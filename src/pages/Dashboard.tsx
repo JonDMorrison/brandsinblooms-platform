@@ -102,25 +102,6 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8 fade-in">
-      {/* Welcome Section */}
-      <div className="bg-gradient-card rounded-lg p-6 border shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Welcome back! 👋
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Here's what's happening with your site today.
-            </p>
-          </div>
-          <Button variant="gradient" size="lg" asChild>
-            <Link to="/dashboard/ai-tools">
-              <Sparkles className="mr-2 h-5 w-5" />
-              AI Assistant
-            </Link>
-          </Button>
-        </div>
-      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
