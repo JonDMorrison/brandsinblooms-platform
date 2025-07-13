@@ -8,7 +8,8 @@ import {
   ShoppingCart,
   Sparkles,
   Bot,
-  Settings
+  Settings,
+  Leaf
 } from 'lucide-react';
 
 const navigation = [
@@ -48,11 +49,9 @@ export const DashboardSidebar = () => {
         {/* Logo */}
         <div className="p-6 border-b border-border">
           <Link to="/dashboard" className="flex items-center space-x-2">
-            <img 
-              src="/lovable-uploads/cf363b9f-c52e-442a-8cb7-d785b613feac.png" 
-              alt="Brands In Blooms Logo" 
-              className="h-8 w-8 rounded-lg object-contain"
-            />
+            <div className="h-8 w-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+              <Leaf className="h-4 w-4 text-white" />
+            </div>
             <div>
               <h1 className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
                 Brands In Blooms
