@@ -12,6 +12,7 @@ import Content from "./pages/Content";
 import Products from "./pages/Products";
 import Orders from "./pages/Orders";
 import AITools from "./pages/AITools";
+import Settings from "./pages/Settings";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="products" element={<Products />} />
               <Route path="orders" element={<Orders />} />
               <Route path="ai-tools" element={<AITools />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

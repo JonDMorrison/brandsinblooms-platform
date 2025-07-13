@@ -6,7 +6,6 @@ import {
   FileText,
   Package,
   ShoppingCart,
-  User,
   Sparkles,
   Bot,
   Settings
@@ -32,11 +31,6 @@ const navigation = [
     name: 'Orders',
     href: '/dashboard/orders',
     icon: ShoppingCart,
-  },
-  {
-    name: 'Profile',
-    href: '/dashboard/profile',
-    icon: User,
   },
   {
     name: 'AI Tools',
