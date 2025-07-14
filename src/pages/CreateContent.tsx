@@ -28,107 +28,135 @@ const CreateContent = () => {
 
   const layouts: Layout[] = [
     {
-      id: 'single-column',
-      name: 'Single Column',
-      description: 'Full-width centered content flow',
+      id: 'landing-page',
+      name: 'Landing Page',
+      description: 'Hero banner with features and call-to-action',
       preview: (
-        <div className="w-full h-20 bg-muted rounded border p-3 space-y-1">
-          <div className="h-3 bg-primary/30 rounded w-3/4 mx-auto"></div>
-          <div className="h-2 bg-muted-foreground/20 rounded w-full"></div>
-          <div className="h-2 bg-muted-foreground/20 rounded w-5/6"></div>
-          <div className="h-2 bg-muted-foreground/20 rounded w-4/5"></div>
+        <div className="w-full h-20 bg-muted rounded border p-2 space-y-1">
+          <div className="h-5 bg-primary/40 rounded mb-1"></div>
+          <div className="grid grid-cols-3 gap-1">
+            <div className="h-3 bg-secondary/60 rounded"></div>
+            <div className="h-3 bg-secondary/60 rounded"></div>
+            <div className="h-3 bg-secondary/60 rounded"></div>
+          </div>
+          <div className="h-2 bg-primary/20 rounded w-1/3 mx-auto"></div>
         </div>
       )
     },
     {
-      id: 'sidebar-left',
-      name: 'Left Sidebar',
-      description: 'Content with navigation on the left',
+      id: 'blog-post',
+      name: 'Blog Article',
+      description: 'Article layout with sidebar for related content',
       preview: (
-        <div className="w-full h-20 bg-muted rounded border flex gap-2 p-3">
-          <div className="w-1/4 space-y-1">
-            <div className="h-2 bg-secondary rounded"></div>
-            <div className="h-1 bg-secondary/60 rounded"></div>
-            <div className="h-1 bg-secondary/60 rounded w-3/4"></div>
-            <div className="h-1 bg-secondary/60 rounded w-2/3"></div>
-          </div>
+        <div className="w-full h-20 bg-muted rounded border flex gap-2 p-2">
           <div className="flex-1 space-y-1">
-            <div className="h-3 bg-primary/30 rounded w-3/4"></div>
-            <div className="h-2 bg-muted-foreground/20 rounded"></div>
-            <div className="h-2 bg-muted-foreground/20 rounded w-5/6"></div>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'sidebar-right',
-      name: 'Right Sidebar',
-      description: 'Content with sidebar on the right',
-      preview: (
-        <div className="w-full h-20 bg-muted rounded border flex gap-2 p-3">
-          <div className="flex-1 space-y-1">
-            <div className="h-3 bg-primary/30 rounded w-3/4"></div>
-            <div className="h-2 bg-muted-foreground/20 rounded"></div>
-            <div className="h-2 bg-muted-foreground/20 rounded w-5/6"></div>
+            <div className="h-2 bg-primary/30 rounded w-4/5"></div>
+            <div className="h-1 bg-muted-foreground/20 rounded"></div>
+            <div className="h-1 bg-muted-foreground/20 rounded w-5/6"></div>
+            <div className="h-1 bg-muted-foreground/20 rounded w-4/5"></div>
+            <div className="h-1 bg-muted-foreground/20 rounded w-3/4"></div>
           </div>
           <div className="w-1/4 space-y-1">
-            <div className="h-2 bg-secondary rounded"></div>
-            <div className="h-1 bg-secondary/60 rounded"></div>
-            <div className="h-1 bg-secondary/60 rounded w-3/4"></div>
-            <div className="h-1 bg-secondary/60 rounded w-2/3"></div>
+            <div className="h-1 bg-secondary/40 rounded"></div>
+            <div className="h-3 bg-secondary rounded"></div>
+            <div className="h-3 bg-secondary rounded"></div>
           </div>
         </div>
       )
     },
     {
-      id: 'two-column-equal',
-      name: 'Split Layout',
-      description: 'Two equal columns side by side',
+      id: 'portfolio-grid',
+      name: 'Portfolio Grid',
+      description: 'Showcase work with grid-based image gallery',
       preview: (
-        <div className="w-full h-20 bg-muted rounded border p-3 space-y-1">
+        <div className="w-full h-20 bg-muted rounded border p-2 space-y-1">
           <div className="h-2 bg-primary/30 rounded w-1/2 mx-auto"></div>
-          <div className="flex gap-2 mt-2">
-            <div className="flex-1 space-y-1">
-              <div className="h-2 bg-muted-foreground/20 rounded"></div>
-              <div className="h-1 bg-muted-foreground/20 rounded w-4/5"></div>
-              <div className="h-1 bg-muted-foreground/20 rounded w-3/5"></div>
-            </div>
-            <div className="flex-1 space-y-1">
-              <div className="h-2 bg-muted-foreground/20 rounded"></div>
-              <div className="h-1 bg-muted-foreground/20 rounded w-4/5"></div>
-              <div className="h-1 bg-muted-foreground/20 rounded w-3/5"></div>
-            </div>
+          <div className="grid grid-cols-4 gap-1">
+            <div className="h-4 bg-secondary rounded"></div>
+            <div className="h-4 bg-secondary rounded"></div>
+            <div className="h-4 bg-secondary rounded"></div>
+            <div className="h-4 bg-secondary rounded"></div>
+          </div>
+          <div className="grid grid-cols-4 gap-1">
+            <div className="h-3 bg-secondary/60 rounded"></div>
+            <div className="h-3 bg-secondary/60 rounded"></div>
+            <div className="h-3 bg-secondary/60 rounded"></div>
+            <div className="h-3 bg-secondary/60 rounded"></div>
           </div>
         </div>
       )
     },
     {
-      id: 'grid-layout',
-      name: 'Grid Layout',
-      description: 'Multi-section grid arrangement',
+      id: 'about-company',
+      name: 'About/Company',
+      description: 'Alternating text and image sections',
       preview: (
-        <div className="w-full h-20 bg-muted rounded border p-3 space-y-1">
+        <div className="w-full h-20 bg-muted rounded border p-2 space-y-1">
           <div className="h-2 bg-primary/30 rounded w-2/3 mx-auto"></div>
-          <div className="grid grid-cols-2 gap-1 mt-2">
-            <div className="h-3 bg-secondary rounded"></div>
-            <div className="h-3 bg-secondary rounded"></div>
-            <div className="h-3 bg-secondary rounded"></div>
-            <div className="h-3 bg-secondary rounded"></div>
+          <div className="flex gap-2">
+            <div className="w-3/5 space-y-1">
+              <div className="h-1 bg-muted-foreground/20 rounded"></div>
+              <div className="h-1 bg-muted-foreground/20 rounded w-4/5"></div>
+            </div>
+            <div className="w-2/5 h-4 bg-secondary rounded"></div>
+          </div>
+          <div className="flex gap-2">
+            <div className="w-2/5 h-4 bg-secondary rounded"></div>
+            <div className="w-3/5 space-y-1">
+              <div className="h-1 bg-muted-foreground/20 rounded"></div>
+              <div className="h-1 bg-muted-foreground/20 rounded w-4/5"></div>
+            </div>
           </div>
         </div>
       )
     },
     {
-      id: 'hero-sections',
-      name: 'Hero Sections',
-      description: 'Large header with content sections below',
+      id: 'product-page',
+      name: 'Product Page',
+      description: 'Product images with details and specifications',
       preview: (
-        <div className="w-full h-20 bg-muted rounded border p-3 space-y-1">
-          <div className="h-4 bg-primary/30 rounded"></div>
-          <div className="grid grid-cols-3 gap-1 mt-1">
-            <div className="h-2 bg-secondary/60 rounded"></div>
-            <div className="h-2 bg-secondary/60 rounded"></div>
-            <div className="h-2 bg-secondary/60 rounded"></div>
+        <div className="w-full h-20 bg-muted rounded border flex gap-2 p-2">
+          <div className="w-1/2 space-y-1">
+            <div className="h-8 bg-secondary rounded"></div>
+            <div className="grid grid-cols-3 gap-1">
+              <div className="h-2 bg-secondary/60 rounded"></div>
+              <div className="h-2 bg-secondary/60 rounded"></div>
+              <div className="h-2 bg-secondary/60 rounded"></div>
+            </div>
+          </div>
+          <div className="w-1/2 space-y-1">
+            <div className="h-2 bg-primary/30 rounded w-4/5"></div>
+            <div className="h-1 bg-muted-foreground/20 rounded w-3/5"></div>
+            <div className="h-1 bg-muted-foreground/20 rounded"></div>
+            <div className="h-1 bg-muted-foreground/20 rounded w-4/5"></div>
+            <div className="h-2 bg-primary/20 rounded w-2/3"></div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'contact-services',
+      name: 'Contact/Services',
+      description: 'Form alongside contact information or service details',
+      preview: (
+        <div className="w-full h-20 bg-muted rounded border flex gap-2 p-2">
+          <div className="w-1/2 space-y-1">
+            <div className="h-2 bg-primary/30 rounded w-3/4"></div>
+            <div className="h-1 bg-muted-foreground/20 rounded"></div>
+            <div className="h-1 bg-muted-foreground/20 rounded w-4/5"></div>
+            <div className="flex gap-1">
+              <div className="h-1 bg-secondary/40 rounded flex-1"></div>
+              <div className="h-1 bg-secondary/40 rounded flex-1"></div>
+            </div>
+            <div className="h-2 bg-primary/20 rounded w-1/3"></div>
+          </div>
+          <div className="w-1/2 space-y-1">
+            <div className="h-1 bg-secondary/60 rounded w-3/4"></div>
+            <div className="space-y-1">
+              <div className="h-3 bg-secondary rounded"></div>
+              <div className="h-3 bg-secondary rounded"></div>
+              <div className="h-3 bg-secondary rounded"></div>
+            </div>
           </div>
         </div>
       )
