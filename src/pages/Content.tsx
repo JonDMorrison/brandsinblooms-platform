@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   FileText,
   Plus,
@@ -82,6 +83,13 @@ const Content = () => {
       views: 567,
     },
   ];
+
+  const getFilteredPages = (type: string) => {
+    return pages.filter(page => 
+      page.type === type && 
+      page.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
 
   const filteredPages = pages.filter(page =>
     page.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -198,76 +206,146 @@ const Content = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Modified</TableHead>
-                <TableHead>Views</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPages.map((page) => (
-                <TableRow key={page.id} className="hover:bg-accent/50">
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      {getTypeIcon(page.type)}
-                      <div>
-                        <p className="font-medium">{page.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          by {page.author}
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {page.type === 'blog' ? 'Blog Post' : 'Page'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(page.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{page.lastModified}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                      <span>{page.views.toLocaleString()}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Tabs defaultValue="pages" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="pages">Pages</TabsTrigger>
+              <TabsTrigger value="blog">Blog Posts</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="pages" className="mt-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Last Modified</TableHead>
+                    <TableHead>Views</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {getFilteredPages('page').map((page) => (
+                    <TableRow key={page.id} className="hover:bg-accent/50">
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          {getTypeIcon(page.type)}
+                          <div>
+                            <p className="font-medium">{page.title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              by {page.author}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(page.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span>{page.lastModified}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                          <span>{page.views.toLocaleString()}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TabsContent>
+
+            <TabsContent value="blog" className="mt-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Last Modified</TableHead>
+                    <TableHead>Views</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {getFilteredPages('blog').map((page) => (
+                    <TableRow key={page.id} className="hover:bg-accent/50">
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          {getTypeIcon(page.type)}
+                          <div>
+                            <p className="font-medium">{page.title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              by {page.author}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(page.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span>{page.lastModified}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                          <span>{page.views.toLocaleString()}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
