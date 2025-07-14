@@ -25,6 +25,11 @@ const navigation = [
     icon: FileText,
   },
   {
+    name: 'Design',
+    href: '/dashboard/design',
+    icon: Palette,
+  },
+  {
     name: 'Products',
     href: '/dashboard/products',
     icon: Package,
@@ -38,11 +43,6 @@ const navigation = [
     name: 'AI Tools',
     href: '/dashboard/ai-tools',
     icon: Bot,
-  },
-  {
-    name: 'Design',
-    href: '/dashboard/design',
-    icon: Palette,
   },
 ];
 
