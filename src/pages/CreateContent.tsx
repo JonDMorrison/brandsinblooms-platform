@@ -6,112 +6,77 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   ArrowLeft,
   FileText,
   PenTool,
   Sparkles,
-  Layout,
-  Image,
-  Type,
-  Eye,
   Save,
-  Wand2
+  Eye,
+  Wand2,
+  ArrowRight
 } from 'lucide-react';
 
-interface PageLayout {
+interface Template {
   id: string;
   name: string;
+  type: 'page' | 'blog';
   description: string;
-  preview: string;
-  sections: string[];
+  icon: string;
 }
 
 const CreateContent = () => {
   const navigate = useNavigate();
-  const [contentType, setContentType] = useState<'page' | 'blog'>('page');
-  const [selectedLayout, setSelectedLayout] = useState<string>('');
+  const [step, setStep] = useState(1);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [title, setTitle] = useState('');
-  const [excerpt, setExcerpt] = useState('');
   const [content, setContent] = useState('');
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const pageLayouts: PageLayout[] = [
+  const templates: Template[] = [
     {
-      id: 'hero-centered',
-      name: 'Hero Centered',
-      description: 'Large centered hero section with call-to-action',
-      preview: '🎯',
-      sections: ['Hero', 'Features', 'CTA']
+      id: 'homepage',
+      name: 'Homepage',
+      type: 'page',
+      description: 'Perfect landing page for your business',
+      icon: '🏠'
     },
     {
-      id: 'hero-left',
-      name: 'Hero Left Aligned',
-      description: 'Hero content aligned to the left with image on right',
-      preview: '📱',
-      sections: ['Hero Split', 'Content', 'Gallery']
+      id: 'about',
+      name: 'About Page',
+      type: 'page', 
+      description: 'Tell your story and build trust',
+      icon: '👋'
     },
     {
-      id: 'two-column',
-      name: 'Two Column Layout',
-      description: 'Balanced two-column content layout',
-      preview: '📊',
-      sections: ['Header', 'Two Columns', 'Footer']
+      id: 'services',
+      name: 'Services',
+      type: 'page',
+      description: 'Showcase what you offer',
+      icon: '⚡'
     },
     {
-      id: 'four-corners',
-      name: 'Four Corners',
-      description: 'Grid layout with four main content areas',
-      preview: '⬜',
-      sections: ['Header', 'Four Grid', 'Contact']
+      id: 'blog-post',
+      name: 'Blog Post',
+      type: 'blog',
+      description: 'Share insights and expertise',
+      icon: '✍️'
     },
     {
-      id: 'landing-page',
-      name: 'Landing Page',
-      description: 'Complete landing page with multiple sections',
-      preview: '🚀',
-      sections: ['Hero', 'Features', 'Testimonials', 'Pricing', 'CTA']
+      id: 'case-study',
+      name: 'Case Study',
+      type: 'blog',
+      description: 'Highlight success stories',
+      icon: '📈'
     },
     {
-      id: 'portfolio',
-      name: 'Portfolio',
-      description: 'Showcase work and projects',
-      preview: '🎨',
-      sections: ['Introduction', 'Projects Grid', 'About', 'Contact']
-    }
-  ];
-
-  const blogLayouts: PageLayout[] = [
-    {
-      id: 'standard-blog',
-      name: 'Standard Blog',
-      description: 'Traditional blog post layout',
-      preview: '📝',
-      sections: ['Header', 'Content', 'Related Posts']
-    },
-    {
-      id: 'featured-image',
-      name: 'Featured Image',
-      description: 'Large featured image with content below',
-      preview: '🖼️',
-      sections: ['Featured Image', 'Title', 'Content', 'Author Bio']
-    },
-    {
-      id: 'magazine-style',
-      name: 'Magazine Style',
-      description: 'Multi-column magazine layout',
-      preview: '📰',
-      sections: ['Large Header', 'Multi-column Content', 'Sidebar']
-    },
-    {
-      id: 'minimal-blog',
-      name: 'Minimal Blog',
-      description: 'Clean, minimal blog post design',
-      preview: '✨',
-      sections: ['Simple Header', 'Clean Content', 'Minimal Footer']
+      id: 'tutorial',
+      name: 'Tutorial',
+      type: 'blog',
+      description: 'Teach your audience something new',
+      icon: '🎓'
     }
   ];
 
@@ -120,26 +85,43 @@ const CreateContent = () => {
     
     setIsGenerating(true);
     try {
-      // This would connect to an AI service
-      // For now, we'll simulate content generation
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const generatedContent = `# Generated Content for "${aiPrompt}"
+      const template = templates.find(t => t.id === selectedTemplate);
+      const generatedContent = `# ${title || aiPrompt}
 
-This is AI-generated content based on your prompt. Here's a structured approach to your topic:
+${template?.type === 'blog' ? 
+`Welcome to this comprehensive guide about ${aiPrompt}. Let's dive into the key insights and practical tips you need to know.
 
-## Introduction
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+## What You'll Learn
 
-## Main Points
-- Key point about ${aiPrompt}
-- Supporting evidence and examples
-- Practical applications and benefits
+In this ${template.name.toLowerCase()}, we'll cover:
+- Essential concepts and fundamentals
+- Practical strategies you can implement today  
+- Real-world examples and case studies
+- Next steps for continued growth
 
-## Conclusion
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+## Getting Started
 
-*This content was generated by AI and should be reviewed and customized to fit your needs.*`;
+${aiPrompt} is an important topic that deserves your attention. Here's why it matters and how you can get started...` :
+
+`## Welcome to ${title || aiPrompt}
+
+We're excited to share our approach to ${aiPrompt} with you. Our mission is to provide exceptional value through innovative solutions.
+
+## Our Approach
+
+At the heart of what we do is a commitment to excellence. We believe that ${aiPrompt} should be accessible, effective, and tailored to your unique needs.
+
+## Why Choose Us
+
+- **Experience**: Years of expertise in the field
+- **Quality**: Commitment to delivering the best results  
+- **Support**: We're here to help every step of the way`}
+
+## Get In Touch
+
+Ready to learn more? We'd love to hear from you and discuss how we can help with your ${aiPrompt} needs.`;
 
       setContent(generatedContent);
       if (!title) {
@@ -153,246 +135,192 @@ Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliqu
   };
 
   const handleSave = () => {
-    // This would save to the database
-    console.log('Saving content:', { contentType, selectedLayout, title, excerpt, content });
-    // For now, navigate back to content list
+    console.log('Saving content:', { selectedTemplate, title, content });
     navigate('/dashboard/content');
   };
 
-  const currentLayouts = contentType === 'page' ? pageLayouts : blogLayouts;
+  const canProceed = () => {
+    if (step === 1) return selectedTemplate;
+    if (step === 2) return title;
+    return true;
+  };
 
   return (
-    <div className="space-y-6 fade-in">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/dashboard/content">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Create New Content</h1>
-          <p className="text-muted-foreground">
-            Create a new page or blog post with AI assistance
-          </p>
+    <div className="min-h-screen bg-gradient-subtle">
+      <div className="max-w-4xl mx-auto p-6 space-y-8 animate-fade-in">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild className="hover-scale">
+            <Link to="/dashboard/content">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Create New Content</h1>
+            <p className="text-muted-foreground">
+              Step {step} of 3 • Build something amazing
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Content Creation Form */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Content Type Selection */}
-          <Card className="gradient-card border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Type className="h-5 w-5" />
-                Content Type
-              </CardTitle>
+        {/* Progress Bar */}
+        <div className="w-full bg-secondary rounded-full h-2">
+          <div 
+            className="bg-primary h-2 rounded-full transition-all duration-500"
+            style={{ width: `${(step / 3) * 100}%` }}
+          />
+        </div>
+
+        {step === 1 && (
+          <Card className="gradient-card border-0 shadow-xl animate-scale-in">
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl">Choose Your Template</CardTitle>
               <CardDescription>
-                Choose what type of content you want to create
+                Pick a starting point that matches your goals
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Tabs value={contentType} onValueChange={(value) => setContentType(value as 'page' | 'blog')}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="page" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Page
-                  </TabsTrigger>
-                  <TabsTrigger value="blog" className="flex items-center gap-2">
-                    <PenTool className="h-4 w-4" />
-                    Blog Post
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </CardContent>
-          </Card>
-
-          {/* Layout Selection */}
-          <Card className="gradient-card border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Layout className="h-5 w-5" />
-                Choose Layout
-              </CardTitle>
-              <CardDescription>
-                Select a layout template for your {contentType}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {currentLayouts.map((layout) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {templates.map((template) => (
                   <div
-                    key={layout.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      selectedLayout === layout.id
+                    key={template.id}
+                    className={`group p-6 border rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg hover-scale ${
+                      selectedTemplate === template.id
                         ? 'border-primary bg-primary/5 shadow-md'
                         : 'border-border hover:border-primary/50'
                     }`}
-                    onClick={() => setSelectedLayout(layout.id)}
+                    onClick={() => setSelectedTemplate(template.id)}
                   >
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-2xl">{layout.preview}</span>
-                      <div className="flex-1">
-                        <h3 className="font-medium">{layout.name}</h3>
-                        <p className="text-sm text-muted-foreground">{layout.description}</p>
+                    <div className="text-center space-y-3">
+                      <span className="text-3xl block">{template.icon}</span>
+                      <div>
+                        <h3 className="font-medium">{template.name}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {template.description}
+                        </p>
                       </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {layout.sections.map((section) => (
-                        <Badge key={section} variant="secondary" className="text-xs">
-                          {section}
-                        </Badge>
-                      ))}
+                      <Badge variant={template.type === 'blog' ? 'default' : 'secondary'}>
+                        {template.type}
+                      </Badge>
                     </div>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
+        )}
 
-          {/* Content Details */}
-          <Card className="gradient-card border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PenTool className="h-5 w-5" />
-                Content Details
-              </CardTitle>
+        {step === 2 && (
+          <Card className="gradient-card border-0 shadow-xl animate-scale-in">
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl">What's Your Topic?</CardTitle>
+              <CardDescription>
+                Tell us what you want to create content about
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title">Title</Label>
                 <Input
                   id="title"
-                  placeholder={`Enter ${contentType} title...`}
+                  placeholder="Enter a compelling title..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  className="text-lg"
                 />
               </div>
 
-              {contentType === 'blog' && (
-                <div className="space-y-2">
-                  <Label htmlFor="excerpt">Excerpt</Label>
-                  <Textarea
-                    id="excerpt"
-                    placeholder="Brief description of your blog post..."
-                    value={excerpt}
-                    onChange={(e) => setExcerpt(e.target.value)}
-                    rows={3}
-                  />
+              <div className="bg-accent/50 rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-sm">AI Assistant</span>
                 </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="content">Content</Label>
                 <Textarea
-                  id="content"
-                  placeholder="Start writing your content here..."
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={12}
-                  className="font-mono text-sm"
+                  placeholder="Describe your topic or ask AI to help generate ideas..."
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  rows={3}
                 />
-              </div>
-
-              <div className="flex gap-2">
-                <Button onClick={handleSave} disabled={!title || !selectedLayout}>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Draft
-                </Button>
-                <Button variant="outline">
-                  <Eye className="mr-2 h-4 w-4" />
-                  Preview
+                <Button 
+                  onClick={handleGenerateContent} 
+                  disabled={!aiPrompt.trim() || isGenerating}
+                  size="sm"
+                  className="w-full"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Ideas...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      Generate with AI
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
           </Card>
-        </div>
+        )}
 
-        {/* AI Assistant Panel */}
-        <div className="space-y-6">
-          <Card className="gradient-card border-0 shadow-lg">
+        {step === 3 && (
+          <Card className="gradient-card border-0 shadow-xl animate-scale-in">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                AI Content Generator
-              </CardTitle>
+              <CardTitle className="text-xl">Write Your Content</CardTitle>
               <CardDescription>
-                Generate content ideas and text with AI
+                {title && `Creating: ${title}`}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="ai-prompt">What would you like to write about?</Label>
-                <Textarea
-                  id="ai-prompt"
-                  placeholder="E.g., 'Benefits of sustainable living', 'How to start a small business', etc."
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  rows={4}
-                />
-              </div>
-
-              <Button 
-                onClick={handleGenerateContent} 
-                disabled={!aiPrompt.trim() || isGenerating}
-                className="w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <Wand2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    Generate Content
-                  </>
-                )}
-              </Button>
-
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">AI Tools</h4>
-                <div className="grid grid-cols-1 gap-2">
+              <Textarea
+                placeholder="Start writing your content here..."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={16}
+                className="font-mono text-sm resize-none"
+              />
+              
+              <div className="flex justify-between items-center pt-4 border-t">
+                <div className="text-sm text-muted-foreground">
+                  {content.length} characters
+                </div>
+                <div className="flex gap-2">
                   <Button variant="outline" size="sm">
-                    <Sparkles className="mr-2 h-3 w-3" />
-                    Improve Writing
+                    <Eye className="mr-2 h-4 w-4" />
+                    Preview
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <Image className="mr-2 h-3 w-3" />
-                    Generate Images
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Type className="mr-2 h-3 w-3" />
-                    SEO Optimize
+                  <Button onClick={handleSave} size="sm">
+                    <Save className="mr-2 h-4 w-4" />
+                    Save & Publish
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
+        )}
 
-          {/* Quick Tips */}
-          <Card className="gradient-card border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Writing Tips</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 text-sm">
-                <div>
-                  <h4 className="font-medium">Good Titles</h4>
-                  <p className="text-muted-foreground">Be specific, include keywords, keep under 60 characters</p>
-                </div>
-                <div>
-                  <h4 className="font-medium">Content Structure</h4>
-                  <p className="text-muted-foreground">Use headers, bullet points, and short paragraphs</p>
-                </div>
-                <div>
-                  <h4 className="font-medium">SEO Best Practices</h4>
-                  <p className="text-muted-foreground">Include relevant keywords naturally throughout</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Navigation */}
+        <div className="flex justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => setStep(Math.max(1, step - 1))}
+            disabled={step === 1}
+          >
+            Previous
+          </Button>
+          
+          {step < 3 ? (
+            <Button 
+              onClick={() => setStep(step + 1)}
+              disabled={!canProceed()}
+            >
+              Continue
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <div /> // Spacer
+          )}
         </div>
       </div>
     </div>
