@@ -7,7 +7,6 @@ import {
   Package,
   ShoppingCart,
   Sparkles,
-  Bot,
   Settings,
   Leaf,
   Palette
@@ -38,11 +37,6 @@ const navigation = [
     name: 'Orders',
     href: '/dashboard/orders',
     icon: ShoppingCart,
-  },
-  {
-    name: 'AI Tools',
-    href: '/dashboard/ai-tools',
-    icon: Bot,
   },
 ];
 

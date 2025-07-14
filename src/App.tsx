@@ -12,7 +12,6 @@ import Content from "./pages/Content";
 import CreateContent from "./pages/CreateContent";
 import Products from "./pages/Products";
 import Orders from "./pages/Orders";
-import AITools from "./pages/AITools";
 import Settings from "./pages/Settings";
 import Design from "./pages/Design";
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -57,7 +56,6 @@ const App = () => (
               <Route path="content/new" element={<CreateContent />} />
               <Route path="products" element={<Products />} />
               <Route path="orders" element={<Orders />} />
-              <Route path="ai-tools" element={<AITools />} />
               <Route path="design" element={<Design />} />
               <Route path="settings" element={<Settings />} />
             </Route>
