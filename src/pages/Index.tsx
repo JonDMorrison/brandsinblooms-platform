@@ -11,7 +11,7 @@ const Index = () => {
       <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
-            <div className="mx-auto h-48 w-48 bg-gradient-primary rounded-xl flex items-center justify-center mb-8 shadow-glow">
+            <div className="mx-auto h-48 w-48 bg-gradient-primary rounded-xl flex items-center justify-center mb-8 shadow-glow p-6">
               <img 
                 src="/lovable-uploads/9fb0ed2b-1788-4ead-84c3-7d7d0d9768a3.png" 
                 alt="Brands In Blooms Logo" 
