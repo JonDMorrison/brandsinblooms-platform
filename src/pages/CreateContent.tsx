@@ -32,7 +32,7 @@ const CreateContent = () => {
       name: 'Single Column',
       description: 'Full-width centered content flow',
       preview: (
-        <div className="w-full h-20 bg-accent rounded border p-3 space-y-1">
+        <div className="w-full h-20 bg-muted rounded border p-3 space-y-1">
           <div className="h-3 bg-primary/30 rounded w-3/4 mx-auto"></div>
           <div className="h-2 bg-muted-foreground/20 rounded w-full"></div>
           <div className="h-2 bg-muted-foreground/20 rounded w-5/6"></div>
@@ -45,7 +45,7 @@ const CreateContent = () => {
       name: 'Left Sidebar',
       description: 'Content with navigation on the left',
       preview: (
-        <div className="w-full h-20 bg-accent rounded border flex gap-2 p-3">
+        <div className="w-full h-20 bg-muted rounded border flex gap-2 p-3">
           <div className="w-1/4 space-y-1">
             <div className="h-2 bg-secondary rounded"></div>
             <div className="h-1 bg-secondary/60 rounded"></div>
@@ -65,7 +65,7 @@ const CreateContent = () => {
       name: 'Right Sidebar',
       description: 'Content with sidebar on the right',
       preview: (
-        <div className="w-full h-20 bg-accent rounded border flex gap-2 p-3">
+        <div className="w-full h-20 bg-muted rounded border flex gap-2 p-3">
           <div className="flex-1 space-y-1">
             <div className="h-3 bg-primary/30 rounded w-3/4"></div>
             <div className="h-2 bg-muted-foreground/20 rounded"></div>
@@ -85,7 +85,7 @@ const CreateContent = () => {
       name: 'Split Layout',
       description: 'Two equal columns side by side',
       preview: (
-        <div className="w-full h-20 bg-accent rounded border p-3 space-y-1">
+        <div className="w-full h-20 bg-muted rounded border p-3 space-y-1">
           <div className="h-2 bg-primary/30 rounded w-1/2 mx-auto"></div>
           <div className="flex gap-2 mt-2">
             <div className="flex-1 space-y-1">
@@ -107,7 +107,7 @@ const CreateContent = () => {
       name: 'Grid Layout',
       description: 'Multi-section grid arrangement',
       preview: (
-        <div className="w-full h-20 bg-accent rounded border p-3 space-y-1">
+        <div className="w-full h-20 bg-muted rounded border p-3 space-y-1">
           <div className="h-2 bg-primary/30 rounded w-2/3 mx-auto"></div>
           <div className="grid grid-cols-2 gap-1 mt-2">
             <div className="h-3 bg-secondary rounded"></div>
@@ -123,7 +123,7 @@ const CreateContent = () => {
       name: 'Hero Sections',
       description: 'Large header with content sections below',
       preview: (
-        <div className="w-full h-20 bg-accent rounded border p-3 space-y-1">
+        <div className="w-full h-20 bg-muted rounded border p-3 space-y-1">
           <div className="h-4 bg-primary/30 rounded"></div>
           <div className="grid grid-cols-3 gap-1 mt-1">
             <div className="h-2 bg-secondary/60 rounded"></div>
