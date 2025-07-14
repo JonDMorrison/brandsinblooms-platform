@@ -15,6 +15,8 @@ const Design = () => {
   const [selectedTopbarLayout, setSelectedTopbarLayout] = useState('left');
   const [selectedMainMenuLayout, setSelectedMainMenuLayout] = useState('logo-left');
   const [selectedFooterLayout, setSelectedFooterLayout] = useState('simple');
+  const [selectedMenuBgStyle, setSelectedMenuBgStyle] = useState('solid');
+  const [menuBgColor, setMenuBgColor] = useState('#ffffff');
 
   const colorPalettes = [
     { id: 'default', name: 'Forest Green', primary: '#22C55E', secondary: '#16A34A', accent: '#15803D' },
@@ -467,16 +469,88 @@ const Design = () => {
               <div>
                 <Label className="text-base font-medium">Menu Background Style</Label>
                 <div className="grid grid-cols-2 gap-4 mt-3">
-                  <div className="border rounded-lg p-3 cursor-pointer hover:border-primary/50">
+                  <div 
+                    className={`border rounded-lg p-3 cursor-pointer transition-all hover:scale-105 ${
+                      selectedMenuBgStyle === 'solid' ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedMenuBgStyle('solid')}
+                  >
                     <div className="space-y-2">
                       <h4 className="font-medium">Solid Color</h4>
-                      <div className="h-8 bg-card border rounded"></div>
+                      <div 
+                        className="h-8 border rounded" 
+                        style={{ backgroundColor: menuBgColor }}
+                      ></div>
                     </div>
                   </div>
-                  <div className="border rounded-lg p-3 cursor-pointer hover:border-primary/50">
+                  <div 
+                    className={`border rounded-lg p-3 cursor-pointer transition-all hover:scale-105 ${
+                      selectedMenuBgStyle === 'transparent' ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedMenuBgStyle('transparent')}
+                  >
                     <div className="space-y-2">
                       <h4 className="font-medium">Transparent Fade</h4>
-                      <div className="h-8 bg-gradient-to-b from-card/80 to-transparent border rounded"></div>
+                      <div 
+                        className="h-8 border rounded"
+                        style={{ 
+                          background: `linear-gradient(to bottom, ${menuBgColor}80, transparent)` 
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Color Selector */}
+                <div className="mt-4 space-y-3">
+                  <Label className="text-sm font-medium">Background Color</Label>
+                  <div className="flex gap-3">
+                    <div className="flex gap-2">
+                      <Input 
+                        type="color" 
+                        value={menuBgColor} 
+                        onChange={(e) => setMenuBgColor(e.target.value)}
+                        className="w-16 h-10" 
+                      />
+                      <Input 
+                        value={menuBgColor} 
+                        onChange={(e) => setMenuBgColor(e.target.value)}
+                        className="w-24" 
+                        placeholder="#ffffff"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      {/* Quick color presets */}
+                      {['#ffffff', '#f8f9fa', '#e9ecef', '#dee2e6', '#adb5bd', '#6c757d'].map((color) => (
+                        <button
+                          key={color}
+                          className="w-8 h-8 rounded border-2 border-border hover:border-primary/50 transition-colors"
+                          style={{ backgroundColor: color }}
+                          onClick={() => setMenuBgColor(color)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Live Preview */}
+                  <div className="border rounded-lg p-4 bg-muted/20">
+                    <Label className="text-xs text-muted-foreground mb-2 block">Live Preview</Label>
+                    <div 
+                      className="h-12 rounded flex items-center px-4 border"
+                      style={{ 
+                        background: selectedMenuBgStyle === 'solid' 
+                          ? menuBgColor 
+                          : `linear-gradient(to bottom, ${menuBgColor}80, transparent)`
+                      }}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="h-2 w-16 bg-primary/80 rounded"></div>
+                        <div className="flex gap-4">
+                          <div className="h-1 w-12 bg-foreground/60 rounded"></div>
+                          <div className="h-1 w-12 bg-foreground/60 rounded"></div>
+                          <div className="h-1 w-12 bg-foreground/60 rounded"></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
