@@ -92,10 +92,10 @@ const Dashboard = () => {
       variant: 'default' as const,
     },
     {
-      title: 'AI Content Generator',
-      description: 'Generate content with AI assistance',
-      icon: Sparkles,
-      href: '/dashboard/ai-tools',
+      title: 'Customize Design',
+      description: 'Update colors, fonts, and layouts',
+      icon: Edit,
+      href: '/dashboard/design',
       variant: 'accent' as const,
     },
   ];
