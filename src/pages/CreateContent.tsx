@@ -18,65 +18,123 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-interface Template {
+interface Layout {
   id: string;
   name: string;
-  type: 'page' | 'blog';
   description: string;
-  icon: string;
+  preview: React.ReactNode;
 }
 
 const CreateContent = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [selectedLayout, setSelectedLayout] = useState<string>('');
   const [title, setTitle] = useState('');
+  const [subtitle, setSubtitle] = useState('');
   const [content, setContent] = useState('');
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const templates: Template[] = [
+  const layouts: Layout[] = [
     {
-      id: 'homepage',
-      name: 'Homepage',
-      type: 'page',
-      description: 'Perfect landing page for your business',
-      icon: '🏠'
+      id: 'hero-cta',
+      name: 'Hero + CTA',
+      description: 'Large hero section with call-to-action',
+      preview: (
+        <div className="w-full h-16 bg-accent rounded border space-y-1 p-2">
+          <div className="h-3 bg-primary/30 rounded w-3/4"></div>
+          <div className="h-2 bg-muted-foreground/20 rounded w-1/2"></div>
+          <div className="h-2 bg-primary rounded w-1/4 mt-1"></div>
+        </div>
+      )
     },
     {
-      id: 'about',
-      name: 'About Page',
-      type: 'page', 
-      description: 'Tell your story and build trust',
-      icon: '👋'
+      id: 'two-column',
+      name: 'Two Column',
+      description: 'Split layout with content and sidebar',
+      preview: (
+        <div className="w-full h-16 bg-accent rounded border flex gap-1 p-2">
+          <div className="flex-1 space-y-1">
+            <div className="h-2 bg-primary/30 rounded"></div>
+            <div className="h-2 bg-muted-foreground/20 rounded w-3/4"></div>
+            <div className="h-2 bg-muted-foreground/20 rounded w-1/2"></div>
+          </div>
+          <div className="w-1/3 space-y-1">
+            <div className="h-2 bg-secondary rounded"></div>
+            <div className="h-2 bg-secondary rounded w-3/4"></div>
+          </div>
+        </div>
+      )
     },
     {
-      id: 'services',
-      name: 'Services',
-      type: 'page',
-      description: 'Showcase what you offer',
-      icon: '⚡'
+      id: 'feature-grid',
+      name: 'Feature Grid',
+      description: 'Grid layout showcasing features or services',
+      preview: (
+        <div className="w-full h-16 bg-accent rounded border p-2 space-y-1">
+          <div className="h-2 bg-primary/30 rounded w-1/2 mx-auto"></div>
+          <div className="grid grid-cols-3 gap-1 mt-2">
+            <div className="h-3 bg-secondary rounded"></div>
+            <div className="h-3 bg-secondary rounded"></div>
+            <div className="h-3 bg-secondary rounded"></div>
+          </div>
+        </div>
+      )
     },
     {
-      id: 'blog-post',
-      name: 'Blog Post',
-      type: 'blog',
-      description: 'Share insights and expertise',
-      icon: '✍️'
+      id: 'about-story',
+      name: 'About Story',
+      description: 'Narrative layout perfect for about pages',
+      preview: (
+        <div className="w-full h-16 bg-accent rounded border p-2 space-y-1">
+          <div className="h-2 bg-primary/30 rounded w-2/3 mx-auto"></div>
+          <div className="flex gap-1 mt-1">
+            <div className="w-1/3 h-4 bg-secondary rounded"></div>
+            <div className="flex-1 space-y-1">
+              <div className="h-1 bg-muted-foreground/20 rounded"></div>
+              <div className="h-1 bg-muted-foreground/20 rounded w-4/5"></div>
+              <div className="h-1 bg-muted-foreground/20 rounded w-3/5"></div>
+            </div>
+          </div>
+        </div>
+      )
     },
     {
-      id: 'case-study',
-      name: 'Case Study',
-      type: 'blog',
-      description: 'Highlight success stories',
-      icon: '📈'
+      id: 'contact-form',
+      name: 'Contact Form',
+      description: 'Contact page with form and info',
+      preview: (
+        <div className="w-full h-16 bg-accent rounded border p-2 space-y-1">
+          <div className="h-2 bg-primary/30 rounded w-1/2 mx-auto"></div>
+          <div className="flex gap-1 mt-1">
+            <div className="flex-1 space-y-1">
+              <div className="h-1 bg-muted-foreground/20 rounded"></div>
+              <div className="h-1 bg-muted-foreground/20 rounded"></div>
+              <div className="h-1 bg-primary rounded w-1/3"></div>
+            </div>
+            <div className="w-1/3 space-y-1">
+              <div className="h-1 bg-secondary rounded"></div>
+              <div className="h-1 bg-secondary rounded w-3/4"></div>
+            </div>
+          </div>
+        </div>
+      )
     },
     {
-      id: 'tutorial',
-      name: 'Tutorial',
-      type: 'blog',
-      description: 'Teach your audience something new',
-      icon: '🎓'
+      id: 'blog-article',
+      name: 'Blog Article',
+      description: 'Clean reading layout for articles',
+      preview: (
+        <div className="w-full h-16 bg-accent rounded border p-2 space-y-1">
+          <div className="h-2 bg-primary/30 rounded w-3/4 mx-auto"></div>
+          <div className="h-1 bg-muted-foreground/30 rounded w-1/3 mx-auto"></div>
+          <div className="space-y-1 mt-2">
+            <div className="h-1 bg-muted-foreground/20 rounded"></div>
+            <div className="h-1 bg-muted-foreground/20 rounded w-5/6"></div>
+            <div className="h-1 bg-muted-foreground/20 rounded w-4/5"></div>
+          </div>
+        </div>
+      )
     }
   ];
 
@@ -87,27 +145,11 @@ const CreateContent = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const template = templates.find(t => t.id === selectedTemplate);
+      const layout = layouts.find(l => l.id === selectedLayout);
       const generatedContent = `# ${title || aiPrompt}
+${subtitle ? `\n*${subtitle}*\n` : ''}
 
-${template?.type === 'blog' ? 
-`Welcome to this comprehensive guide about ${aiPrompt}. Let's dive into the key insights and practical tips you need to know.
-
-## What You'll Learn
-
-In this ${template.name.toLowerCase()}, we'll cover:
-- Essential concepts and fundamentals
-- Practical strategies you can implement today  
-- Real-world examples and case studies
-- Next steps for continued growth
-
-## Getting Started
-
-${aiPrompt} is an important topic that deserves your attention. Here's why it matters and how you can get started...` :
-
-`## Welcome to ${title || aiPrompt}
-
-We're excited to share our approach to ${aiPrompt} with you. Our mission is to provide exceptional value through innovative solutions.
+Welcome to this new page about ${aiPrompt}. We're excited to share our approach with you.
 
 ## Our Approach
 
@@ -117,7 +159,7 @@ At the heart of what we do is a commitment to excellence. We believe that ${aiPr
 
 - **Experience**: Years of expertise in the field
 - **Quality**: Commitment to delivering the best results  
-- **Support**: We're here to help every step of the way`}
+- **Support**: We're here to help every step of the way
 
 ## Get In Touch
 
@@ -135,12 +177,12 @@ Ready to learn more? We'd love to hear from you and discuss how we can help with
   };
 
   const handleSave = () => {
-    console.log('Saving content:', { selectedTemplate, title, content });
+    console.log('Saving page:', { selectedLayout, title, subtitle, content });
     navigate('/dashboard/content');
   };
 
   const canProceed = () => {
-    if (step === 1) return selectedTemplate;
+    if (step === 1) return selectedLayout;
     if (step === 2) return title;
     return true;
   };
@@ -156,7 +198,7 @@ Ready to learn more? We'd love to hear from you and discuss how we can help with
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Create New Content</h1>
+            <h1 className="text-2xl font-bold">Create New Page</h1>
             <p className="text-muted-foreground">
               Step {step} of 3 • Build something amazing
             </p>
@@ -174,34 +216,33 @@ Ready to learn more? We'd love to hear from you and discuss how we can help with
         {step === 1 && (
           <Card className="gradient-card border-0 shadow-xl animate-scale-in">
             <CardHeader className="text-center">
-              <CardTitle className="text-xl">Choose Your Template</CardTitle>
+              <CardTitle className="text-xl">Choose Your Layout</CardTitle>
               <CardDescription>
-                Pick a starting point that matches your goals
+                Select a layout that fits your page design
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {templates.map((template) => (
+                {layouts.map((layout) => (
                   <div
-                    key={template.id}
-                    className={`group p-6 border rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg hover-scale ${
-                      selectedTemplate === template.id
+                    key={layout.id}
+                    className={`group p-4 border rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg hover-scale ${
+                      selectedLayout === layout.id
                         ? 'border-primary bg-primary/5 shadow-md'
                         : 'border-border hover:border-primary/50'
                     }`}
-                    onClick={() => setSelectedTemplate(template.id)}
+                    onClick={() => setSelectedLayout(layout.id)}
                   >
-                    <div className="text-center space-y-3">
-                      <span className="text-3xl block">{template.icon}</span>
-                      <div>
-                        <h3 className="font-medium">{template.name}</h3>
+                    <div className="space-y-3">
+                      <div className="w-full">
+                        {layout.preview}
+                      </div>
+                      <div className="text-center">
+                        <h3 className="font-medium">{layout.name}</h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {template.description}
+                          {layout.description}
                         </p>
                       </div>
-                      <Badge variant={template.type === 'blog' ? 'default' : 'secondary'}>
-                        {template.type}
-                      </Badge>
                     </div>
                   </div>
                 ))}
@@ -213,20 +254,30 @@ Ready to learn more? We'd love to hear from you and discuss how we can help with
         {step === 2 && (
           <Card className="gradient-card border-0 shadow-xl animate-scale-in">
             <CardHeader className="text-center">
-              <CardTitle className="text-xl">What's Your Topic?</CardTitle>
+              <CardTitle className="text-xl">Page Details</CardTitle>
               <CardDescription>
-                Tell us what you want to create content about
+                Enter your page title and subtitle
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">Page Title</Label>
                 <Input
                   id="title"
                   placeholder="Enter a compelling title..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="text-lg"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="subtitle">Subtitle (Optional)</Label>
+                <Input
+                  id="subtitle"
+                  placeholder="Add a descriptive subtitle..."
+                  value={subtitle}
+                  onChange={(e) => setSubtitle(e.target.value)}
                 />
               </div>
 
