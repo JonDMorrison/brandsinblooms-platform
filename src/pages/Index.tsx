@@ -12,7 +12,11 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
             <div className="mx-auto h-16 w-16 bg-gradient-primary rounded-xl flex items-center justify-center mb-8 shadow-glow">
-              <Sparkles className="h-8 w-8 text-white" />
+              <img 
+                src="/lovable-uploads/9fb0ed2b-1788-4ead-84c3-7d7d0d9768a3.png" 
+                alt="Brands In Blooms Logo" 
+                className="h-10 w-10 object-contain"
+              />
             </div>
             <h1 className="text-4xl sm:text-6xl font-bold mb-6">
               <span className="bg-gradient-primary bg-clip-text text-transparent">
