@@ -10,6 +10,7 @@ import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import Content from "./pages/Content";
 import CreateContent from "./pages/CreateContent";
+import PageEditor from "./pages/PageEditor";
 import Products from "./pages/Products";
 import Orders from "./pages/Orders";
 import Settings from "./pages/Settings";
@@ -54,6 +55,7 @@ const App = () => (
               <Route index element={<Dashboard />} />
               <Route path="content" element={<Content />} />
               <Route path="content/new" element={<CreateContent />} />
+              <Route path="page-editor" element={<PageEditor />} />
               <Route path="products" element={<Products />} />
               <Route path="orders" element={<Orders />} />
               <Route path="design" element={<Design />} />
