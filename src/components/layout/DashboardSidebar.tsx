@@ -9,7 +9,8 @@ import {
   Sparkles,
   Bot,
   Settings,
-  Leaf
+  Leaf,
+  Palette
 } from 'lucide-react';
 
 const navigation = [
@@ -37,6 +38,11 @@ const navigation = [
     name: 'AI Tools',
     href: '/dashboard/ai-tools',
     icon: Bot,
+  },
+  {
+    name: 'Design',
+    href: '/dashboard/design',
+    icon: Palette,
   },
 ];
 
