@@ -1,53 +1,34 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import {
-  LayoutDashboard,
-  FileText,
-  Package,
-  ShoppingCart,
-  Sparkles,
-  Settings,
-  Leaf,
-  Palette
-} from 'lucide-react';
-
-const navigation = [
-  {
-    name: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-  },
-  {
-    name: 'Content',
-    href: '/dashboard/content',
-    icon: FileText,
-  },
-  {
-    name: 'Design',
-    href: '/dashboard/design',
-    icon: Palette,
-  },
-  {
-    name: 'Products',
-    href: '/dashboard/products',
-    icon: Package,
-  },
-  {
-    name: 'Orders',
-    href: '/dashboard/orders',
-    icon: ShoppingCart,
-  },
-];
-
+import { LayoutDashboard, FileText, Package, ShoppingCart, Sparkles, Settings, Leaf, Palette } from 'lucide-react';
+const navigation = [{
+  name: 'Dashboard',
+  href: '/dashboard',
+  icon: LayoutDashboard
+}, {
+  name: 'Content',
+  href: '/dashboard/content',
+  icon: FileText
+}, {
+  name: 'Design',
+  href: '/dashboard/design',
+  icon: Palette
+}, {
+  name: 'Products',
+  href: '/dashboard/products',
+  icon: Package
+}, {
+  name: 'Orders',
+  href: '/dashboard/orders',
+  icon: ShoppingCart
+}];
 export const DashboardSidebar = () => {
   const location = useLocation();
-
-  return (
-    <div className="w-64 bg-card border-r border-border shadow-lg h-screen">
+  return <div className="w-64 bg-card border-r border-border shadow-lg h-screen">
       <div className="flex flex-col h-full">
         {/* Logo */}
-        <div className="px-6 py-3 border-b border-border">
+        <div className="px-6 border-b border-border py-[14px]">
           <Link to="/dashboard" className="flex items-center space-x-2">
             <div className="h-8 w-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <Leaf className="h-4 w-4 text-white" />
@@ -63,37 +44,22 @@ export const DashboardSidebar = () => {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2">
-          {navigation.map((item) => {
-            const isActive = location.pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={cn(
-                  'flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200',
-                  isActive
-                    ? 'bg-gradient-primary text-white shadow-glow'
-                    : 'text-foreground hover:bg-accent hover:text-accent-foreground hover:translate-x-1'
-                )}
-              >
+          {navigation.map(item => {
+          const isActive = location.pathname === item.href;
+          return <Link key={item.name} to={item.href} className={cn('flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200', isActive ? 'bg-gradient-primary text-white shadow-glow' : 'text-foreground hover:bg-accent hover:text-accent-foreground hover:translate-x-1')}>
                 <item.icon className="h-5 w-5" />
                 <span>{item.name}</span>
-              </Link>
-            );
-          })}
+              </Link>;
+        })}
         </nav>
 
         {/* Footer */}
         <div className="p-4 border-t border-border">
-          <Link
-            to="/dashboard/settings"
-            className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
+          <Link to="/dashboard/settings" className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
             <Settings className="h-5 w-5" />
             <span>Settings</span>
           </Link>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
