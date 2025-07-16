@@ -44,7 +44,7 @@ export const DashboardSidebar = () => {
   const location = useLocation();
 
   return (
-    <div className="w-64 bg-card border-r border-border shadow-lg">
+    <div className="w-64 bg-card border-r border-border shadow-lg h-screen">
       <div className="flex flex-col h-full">
         {/* Logo */}
         <div className="p-6 border-b border-border">
