@@ -47,7 +47,7 @@ export const DashboardSidebar = () => {
     <div className="w-64 bg-card border-r border-border shadow-lg h-screen">
       <div className="flex flex-col h-full">
         {/* Logo */}
-        <div className="px-6 py-4 border-b border-border">
+        <div className="px-6 py-3 border-b border-border">
           <Link to="/dashboard" className="flex items-center space-x-2">
             <div className="h-8 w-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <Leaf className="h-4 w-4 text-white" />
