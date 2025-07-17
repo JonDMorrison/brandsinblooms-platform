@@ -225,7 +225,7 @@ const Design = () => {
                 Logo & Branding
               </CardTitle>
               <CardDescription>
-                Upload or generate your site logo and favicon
+                Upload or generate your site logo
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -253,18 +253,6 @@ const Design = () => {
                 </div>
               </div>
 
-              <Separator />
-
-              <div>
-                <Label className="text-base font-medium">Favicon</Label>
-                <div className="mt-3">
-                  <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                    <Globe className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">Upload favicon (32x32 PNG recommended)</p>
-                    <Button variant="outline" size="sm" className="mt-2">Choose File</Button>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
