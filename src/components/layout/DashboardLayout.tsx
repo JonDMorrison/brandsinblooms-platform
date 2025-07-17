@@ -7,12 +7,12 @@ const DashboardLayout = () => {
   const location = useLocation();
   
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <div className="flex">
+    <div className="h-screen bg-gradient-subtle">
+      <div className="flex h-full">
         <DashboardSidebar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
           <DashboardHeader />
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 overflow-y-auto">
             <div className="max-w-7xl mx-auto">
               <Outlet />
             </div>
