@@ -1,42 +1,38 @@
-# Multi-stage Dockerfile for React/Vite Application
-
-# Stage 1: Build the application
+# Build stage
 FROM node:20-alpine AS builder
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Set working directory
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
-RUN npm ci --only=production --omit=dev && \
-    npm cache clean --force
+RUN pnpm install --frozen-lockfile
 
-# Copy all source files
+# Copy source code
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN pnpm build
 
-# Stage 2: Serve the application with nginx
-FROM nginx:alpine
+# Production stage
+FROM node:20-alpine
 
-# Install curl for healthcheck
-RUN apk add --no-cache curl
+# Install serve to run the static files
+RUN npm install -g serve
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Set working directory
+WORKDIR /app
 
-# Copy built application from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copy built files from builder stage
+COPY --from=builder /app/dist ./dist
 
-# Expose port 80
-EXPOSE 80
+# Expose port (Railway will set PORT env var)
+EXPOSE 3000
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/ || exit 1
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the application using PORT env var
+CMD serve -s dist -l tcp://0.0.0.0:${PORT:-3000}
