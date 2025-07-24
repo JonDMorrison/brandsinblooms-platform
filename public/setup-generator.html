@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Starter - Setup Command Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        
+        .help-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .method-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .method-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .method-option:hover {
+            border-color: #2563eb;
+        }
+        
+        .method-option.selected {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+        
+        .command-output {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .copy-button:hover {
+            background: #1d4ed8;
+        }
+        
+        .copy-button.copied {
+            background: #10b981;
+        }
+        
+        .warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .warning strong {
+            color: #d97706;
+        }
+        
+        .steps {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .step {
+            margin-bottom: 20px;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #2563eb;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Supabase Starter Setup</h1>
+        <p class="subtitle">Generate your personalized setup command</p>
+        
+        <div class="warning">
+            <strong>⚠️ Security Note:</strong> This is for a private repository. Never share your GitHub token or include it in scripts that might be committed to version control.
+        </div>
+        
+        <div class="method-selector">
+            <div class="method-option selected" onclick="selectMethod('token')">
+                <strong>🔑 Token Method</strong>
+                <div class="help-text">Use GitHub Personal Access Token</div>
+            </div>
+            <div class="method-option" onclick="selectMethod('ssh')">
+                <strong>🔐 SSH Method</strong>
+                <div class="help-text">Use SSH key authentication</div>
+            </div>
+        </div>
+        
+        <div id="token-fields">
+            <div class="form-group">
+                <label for="github-token">GitHub Personal Access Token</label>
+                <input type="password" id="github-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                <div class="help-text">
+                    <a href="https://github.com/settings/tokens/new?scopes=repo" target="_blank">Generate a new token</a> with 'repo' scope
+                </div>
+            </div>
+        </div>
+        
+        <div id="ssh-fields" style="display: none;">
+            <div class="form-group">
+                <p><strong>Prerequisites:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>SSH key generated and added to ssh-agent</li>
+                    <li>Public key added to your GitHub account</li>
+                </ul>
+                <div class="help-text" style="margin-top: 10px;">
+                    <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh" target="_blank">GitHub SSH Setup Guide</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="project-name">Project Name (optional)</label>
+            <input type="text" id="project-name" placeholder="my-awesome-app">
+            <div class="help-text">Leave empty to enter during setup</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="script-url">Script Hosting URL</label>
+            <input type="text" id="script-url" value="https://your-domain.com/start-private.sh" placeholder="https://your-domain.com/start-private.sh">
+            <div class="help-text">Where the start-private.sh script is hosted</div>
+        </div>
+        
+        <div class="command-output">
+            <button class="copy-button" onclick="copyCommand()">Copy</button>
+            <div id="command-text"># Commands will appear here</div>
+        </div>
+        
+        <div class="steps">
+            <h2>Next Steps</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Copy and run the command above in your terminal</strong>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Follow the interactive prompts</strong>
+                <ul style="margin-left: 50px; margin-top: 5px;">
+                    <li>Enter project name (if not provided)</li>
+                    <li>Wait for dependencies to install</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Configure your environment</strong>
+                <ul style="margin-left: 50px; margin-top: 5px;">
+                    <li>Copy <code>.env.example</code> to <code>.env.local</code></li>
+                    <li>Add your Supabase credentials</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>Start developing!</strong>
+                <pre style="margin-left: 50px; margin-top: 5px;">cd your-project-name
+pnpm dev</pre>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let selectedMethod = 'token';
+        
+        function selectMethod(method) {
+            selectedMethod = method;
+            
+            // Update UI
+            document.querySelectorAll('.method-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.target.closest('.method-option').classList.add('selected');
+            
+            // Show/hide fields
+            document.getElementById('token-fields').style.display = method === 'token' ? 'block' : 'none';
+            document.getElementById('ssh-fields').style.display = method === 'ssh' ? 'block' : 'none';
+            
+            // Update command
+            updateCommand();
+        }
+        
+        function updateCommand() {
+            const scriptUrl = document.getElementById('script-url').value || 'https://your-domain.com/start-private.sh';
+            const projectName = document.getElementById('project-name').value;
+            const token = document.getElementById('github-token').value;
+            
+            let command = '';
+            
+            if (selectedMethod === 'token') {
+                if (token) {
+                    // Full command with token
+                    command = `# Download and run the setup script
+curl -fsSL ${scriptUrl} -o start-private.sh && \\
+chmod +x start-private.sh && \\
+./start-private.sh --token ${token}${projectName ? ` --project ${projectName}` : ''}`;
+                } else {
+                    // Command template without token
+                    command = `# Download and run the setup script
+curl -fsSL ${scriptUrl} -o start-private.sh && \\
+chmod +x start-private.sh && \\
+./start-private.sh --token YOUR_GITHUB_TOKEN${projectName ? ` --project ${projectName}` : ''}
+
+# Don't forget to replace YOUR_GITHUB_TOKEN with your actual token!`;
+                }
+            } else {
+                // SSH method
+                command = `# Download and run the setup script (SSH method)
+curl -fsSL ${scriptUrl} -o start-private.sh && \\
+chmod +x start-private.sh && \\
+./start-private.sh --ssh${projectName ? ` --project ${projectName}` : ''}`;
+            }
+            
+            document.getElementById('command-text').textContent = command;
+        }
+        
+        function copyCommand() {
+            const commandText = document.getElementById('command-text').textContent;
+            navigator.clipboard.writeText(commandText).then(() => {
+                const button = document.querySelector('.copy-button');
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+        
+        // Update command when inputs change
+        document.getElementById('github-token').addEventListener('input', updateCommand);
+        document.getElementById('project-name').addEventListener('input', updateCommand);
+        document.getElementById('script-url').addEventListener('input', updateCommand);
+        
+        // Initial command generation
+        updateCommand();
+    </script>
+</body>
+</html>
