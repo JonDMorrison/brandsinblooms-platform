@@ -141,8 +141,6 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             <HelpCircle className="h-4 w-4" />
           </Button>
 
-          {/* Theme toggle removed - light mode only */
-
           {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
