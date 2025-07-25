@@ -47,7 +47,7 @@ export default function SignIn() {
       <div className="w-full max-w-md fade-in">
         <Card className="gradient-card shadow-lg hover-scale-sm">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-brand-heading text-gradient-primary">
+            <CardTitle className="text-2xl font-brand-heading text-primary">
               Welcome Back
             </CardTitle>
             <CardDescription className="text-muted-foreground">

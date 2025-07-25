@@ -72,19 +72,7 @@
   --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 }
 
-/* Dark mode overrides */
-.dark {
-  --brand-gray-50: 222 84% 5%;
-  --brand-gray-100: 217 33% 17%;
-  --brand-gray-200: 215 25% 27%;
-  --brand-gray-300: 215 19% 35%;
-  --brand-gray-400: 215 16% 47%;
-  --brand-gray-500: 215 14% 71%;
-  --brand-gray-600: 213 13% 83%;
-  --brand-gray-700: 214 15% 91%;
-  --brand-gray-800: 210 20% 95%;
-  --brand-gray-900: 210 20% 98%;
-}
+/* Dark mode removed - light mode only */
 
 /* Brand-specific utility classes */
 .text-brand-primary { color: hsl(var(--brand-primary)); }
@@ -124,11 +112,6 @@
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
-.dark .brand-card {
-  background-color: rgb(17 24 39);
-  border-color: rgb(31 41 55);
-}
-
 .brand-card-elevated {
   background-color: white;
   border: 1px solid rgb(229 231 235);
@@ -139,11 +122,6 @@
 
 .brand-card-elevated:hover {
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-}
-
-.dark .brand-card-elevated {
-  background-color: rgb(17 24 39);
-  border-color: rgb(31 41 55);
 }
 
 .brand-button-primary {
@@ -198,10 +176,6 @@
   border-color: transparent;
 }
 
-.dark .brand-input {
-  border-color: rgb(55 65 81);
-}
-
 .brand-badge {
   display: inline-flex;
   align-items: center;
@@ -226,30 +200,18 @@
   color: rgb(22 101 52);
 }
 
-.dark .brand-badge-success {
-  background-color: rgb(20 83 45 / 0.2);
-  color: rgb(74 222 128);
-}
 
 .brand-badge-warning {
   background-color: rgb(254 249 195);
   color: rgb(133 77 14);
 }
 
-.dark .brand-badge-warning {
-  background-color: rgb(161 98 7 / 0.2);
-  color: rgb(250 204 21);
-}
 
 .brand-badge-error {
   background-color: rgb(254 226 226);
   color: rgb(153 27 27);
 }
 
-.dark .brand-badge-error {
-  background-color: rgb(153 27 27 / 0.2);
-  color: rgb(248 113 113);
-}
 
 /* Layout utilities */
 .brand-container {
@@ -435,9 +397,6 @@
   color: rgb(75 85 99);
 }
 
-.dark .text-caption {
-  color: rgb(156 163 175);
-}
 
 /* Focus styles */
 .brand-focus:focus {
@@ -452,9 +411,6 @@
   border-radius: 0.25rem;
 }
 
-.dark .brand-skeleton {
-  background-color: rgb(55 65 81);
-}
 
 /* Status indicators */
 .status-online {

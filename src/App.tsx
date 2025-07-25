@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
-import { ThemeProvider } from '@/contexts/ThemeContext'
+// ThemeProvider removed - light mode only
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { DashboardSkeleton } from '@/components/ui/loading-states'
 import { useAuth } from '@/contexts/AuthContext'
@@ -39,8 +39,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <AuthProvider>
+      <AuthProvider>
           <Router>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -87,7 +86,6 @@ function App() {
         <Toaster />
           </Router>
         </AuthProvider>
-      </ThemeProvider>
     </ErrorBoundary>
   )
 }

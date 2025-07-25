@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ThemeToggle } from '@/components/ThemeToggle'
+// ThemeToggle removed - light mode only
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 
@@ -141,8 +141,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             <HelpCircle className="h-4 w-4" />
           </Button>
 
-          {/* Theme toggle */}
-          <ThemeToggle />
+          {/* Theme toggle removed - light mode only */
 
           {/* User menu */}
           <DropdownMenu>
@@ -191,7 +190,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950"
+                className="text-red-600 focus:text-red-600 focus:bg-red-50"
                 onClick={handleSignOut}
               >
                 <LogOut className="mr-2 h-4 w-4" />

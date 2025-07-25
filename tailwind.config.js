@@ -1,11 +1,36 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
+  // Dark mode disabled - light mode only
+  // darkMode: ["class"],
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   prefix: "",
+  safelist: [
+    // Custom design system classes
+    'bg-gradient-hero',
+    'bg-gradient-primary',
+    'bg-gradient-subtle',
+    'gradient-card',
+    'text-gradient-primary',
+    'btn-gradient-primary',
+    'fade-in',
+    'fade-in-up',
+    'fade-in-slow',
+    'hover-scale',
+    'hover-scale-sm',
+    'interactive',
+    'shadow-glow',
+    'font-brand-heading',
+    'font-brand-body',
+    // Animation delays
+    'animate-delay-1',
+    'animate-delay-2',
+    'animate-delay-3',
+    'animate-delay-4',
+    'animate-delay-5',
+  ],
   theme: {
     container: {
       center: true,
@@ -71,5 +96,5 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 }
