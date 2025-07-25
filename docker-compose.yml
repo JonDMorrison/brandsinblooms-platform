@@ -79,16 +79,18 @@ services:
       GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
       GOTRUE_MAILER_AUTOCONFIRM: "false"
       GOTRUE_SMTP_ADMIN_EMAIL: admin@example.com
-      GOTRUE_SMTP_HOST: supabase-mail
+      GOTRUE_SMTP_HOST: mail
       GOTRUE_SMTP_PORT: 2500
-      GOTRUE_SMTP_USER: fake_mail_user
-      GOTRUE_SMTP_PASS: fake_mail_password
-      GOTRUE_SMTP_SENDER_NAME: fake_sender
+      GOTRUE_SMTP_USER: ""
+      GOTRUE_SMTP_PASS: ""
+      GOTRUE_SMTP_SENDER_NAME: "Brands and Blooms"
+      GOTRUE_SMTP_MAX_FREQUENCY: 1s
+      GOTRUE_MAILER_SECURE_EMAIL_CHANGE_ENABLED: "false"
       
-      GOTRUE_MAILER_URLPATHS_INVITE: http://localhost:3000/auth/v1/verify
-      GOTRUE_MAILER_URLPATHS_CONFIRMATION: http://localhost:3000/auth/v1/verify
-      GOTRUE_MAILER_URLPATHS_RECOVERY: http://localhost:3000/auth/v1/verify
-      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: http://localhost:3000/auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_INVITE: http://localhost:3001/auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: http://localhost:3001/auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: http://localhost:3001/auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: http://localhost:3001/auth/v1/verify
       
       GOTRUE_EXTERNAL_PHONE_ENABLED: "true"
       GOTRUE_SMS_AUTOCONFIRM: "true"
