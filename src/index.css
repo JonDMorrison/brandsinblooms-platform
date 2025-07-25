@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Import custom styles */
+@import "./styles/gradients.css";
+@import "./styles/animations.css";
+@import "./styles/brand.css";
+
 @layer base {
   :root {
     --background: 0 0% 100%;
