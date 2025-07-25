@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ActivityFeed } from '@/components/ActivityFeed'
 import { PerformanceMetrics } from '@/components/PerformanceMetrics'
+import { DashboardChart } from '@/components/charts/DashboardChart'
 import { 
   FileText, 
   Package, 
@@ -161,6 +162,24 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Charts Section */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <DashboardChart
+          title="Site Views"
+          description="Monthly site views over time"
+          type="area"
+          dataKey="views"
+          color="#8884d8"
+        />
+        <DashboardChart
+          title="Order Volume"
+          description="Orders received each month"
+          type="bar"
+          dataKey="orders"
+          color="#82ca9d"
+        />
+      </div>
 
       {/* Activity Feed and Performance Metrics */}
       <div className="grid gap-6 lg:grid-cols-2">

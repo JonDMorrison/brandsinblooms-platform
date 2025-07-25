@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 
@@ -139,6 +140,9 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           <Button variant="ghost" size="sm">
             <HelpCircle className="h-4 w-4" />
           </Button>
+
+          {/* Theme toggle */}
+          <ThemeToggle />
 
           {/* User menu */}
           <DropdownMenu>

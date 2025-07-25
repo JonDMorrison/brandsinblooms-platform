@@ -1,6 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { ThemeProvider } from '@/contexts/ThemeContext'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { DashboardSkeleton } from '@/components/ui/loading-states'
 import { useAuth } from '@/contexts/AuthContext'
 import Index from '@/pages/Index'
 import SignIn from '@/pages/SignIn'
@@ -21,7 +24,13 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   
   if (loading) {
-    return <div>Loading...</div>
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6">
+          <DashboardSkeleton />
+        </div>
+      </div>
+    )
   }
   
   return user ? <>{children}</> : <Navigate to="/signin" />
@@ -29,8 +38,10 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/signin" element={<SignIn />} />
@@ -74,8 +85,10 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
-      </Router>
-    </AuthProvider>
+          </Router>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   )
 }
 

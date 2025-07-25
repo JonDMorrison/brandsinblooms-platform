@@ -31,6 +31,15 @@ This document outlines a systematic, milestone-based plan to migrate UI componen
 ### Compatibility Strategy
 **Decision**: Maintain React 19 ecosystem in target project for future-proofing, but thoroughly test component compatibility during migration.
 
+### Stack Compatibility Updates (Post-Implementation)
+**Updated**: After implementing 8 milestones, the following compatibility issues were identified and resolved:
+
+1. **shadcn CLI**: Updated from deprecated `shadcn-ui@latest` to `shadcn@latest`
+2. **Theme System**: Replaced Next.js-specific `next-themes` with custom React Context implementation  
+3. **Color Picker**: Replaced `react-color` with React 19 compatible `react-colorful`
+4. **Removed Dependencies**: Eliminated redundant `vaul` and `react-day-picker` packages
+5. **React 19 Verification**: All dependencies verified for React 19 compatibility
+
 ---
 
 ## MILESTONE 1: Foundation Setup & Core Dependencies
@@ -61,11 +70,11 @@ pnpm add @radix-ui/react-tooltip@^1.1.4
 
 ```bash
 # Core UI components (Phase 1)
-npx shadcn-ui@latest add button card input label textarea
-npx shadcn-ui@latest add form dialog dropdown-menu select
-npx shadcn-ui@latest add toast alert-dialog badge avatar
-npx shadcn-ui@latest add separator tabs progress switch
-npx shadcn-ui@latest add table tooltip popover
+npx shadcn@latest add button card input label textarea
+npx shadcn@latest add form dialog dropdown-menu select
+npx shadcn@latest add toast alert-dialog badge avatar
+npx shadcn@latest add separator tabs progress switch
+npx shadcn@latest add table tooltip popover
 ```
 
 ### 1.3 Copy and Adapt Custom Styles
@@ -363,7 +372,7 @@ pnpm add recharts@^2.12.7
 
 **Required Components**:
 ```bash
-npx shadcn-ui@latest add data-table command
+npx shadcn@latest add data-table command
 ```
 
 **Mock Data Structure**:
@@ -466,7 +475,7 @@ const createContentSchema = z.object({
 
 **Required Components**:
 ```bash
-npx shadcn-ui@latest add radio-group toggle-group
+npx shadcn@latest add radio-group toggle-group
 ```
 
 **Mock Product Data Structure**:
@@ -566,7 +575,7 @@ interface Order {
 
 **Required Dependencies**:
 ```bash
-pnpm add react-color@^2.19.3  # Color picker
+pnpm add react-colorful@^5.6.1  # React 19 compatible color picker
 pnpm add @radix-ui/react-collapsible@^1.1.0
 ```
 
@@ -576,10 +585,16 @@ pnpm add @radix-ui/react-collapsible@^1.1.0
 
 **Features**:
 - Predefined color palettes
-- Custom color picker integration
+- Custom color picker integration using react-colorful
 - Real-time preview updates
 - Brand color management
 - AI palette suggestions (mock)
+
+**Color Picker Integration**:
+```typescript
+import { HexColorPicker } from 'react-colorful'
+// Lightweight, React 19 compatible, no dependencies
+```
 
 ### 7.3 Typography Tab
 
@@ -648,7 +663,7 @@ pnpm add @radix-ui/react-collapsible@^1.1.0
 
 **Required Components**:
 ```bash
-npx shadcn-ui@latest add calendar scroll-area
+npx shadcn@latest add calendar scroll-area
 ```
 
 ### 8.2 Profile Tab
@@ -728,28 +743,52 @@ npx shadcn-ui@latest add calendar scroll-area
 ### 9.1 Install Remaining UI Dependencies
 
 ```bash
-# Advanced UI components
+# Advanced UI components (React 19 compatible)
 pnpm add embla-carousel-react@^8.3.0 react-resizable-panels@^2.1.3
-pnpm add input-otp@^1.2.4 vaul@^0.9.3 react-day-picker@^8.10.1
-pnpm add next-themes@^0.3.0
+pnpm add input-otp@^1.2.4
 
 # Additional shadcn/ui components
-npx shadcn-ui@latest add carousel drawer calendar
-npx shadcn-ui@latest add command menubar navigation-menu
-npx shadcn-ui@latest add resizable scroll-area slider
+npx shadcn@latest add carousel drawer
+npx shadcn@latest add command menubar navigation-menu
+npx shadcn@latest add resizable slider
+# Note: calendar and scroll-area already installed in Milestone 8
 ```
 
-### 9.2 Theme System Implementation
+### 9.2 Theme System Implementation (Custom React Implementation)
 
 **Features to Add**:
 - Dark/light theme toggle
 - Theme switching in header
-- Persistent theme preference
-- Theme-aware component styling
+- Persistent theme preference with localStorage
+- Theme-aware component styling using CSS custom properties
+- React Context for theme state management
 
 **Files to Create**:
-- `src/components/ThemeProvider.tsx`
-- `src/components/ThemeToggle.tsx`
+- `src/contexts/ThemeContext.tsx` - Theme context and provider
+- `src/components/ThemeToggle.tsx` - Toggle button component
+- `src/hooks/useTheme.ts` - Theme hook for components
+
+**Custom Implementation** (No additional dependencies needed):
+```typescript
+// Custom theme implementation using React Context + CSS variables
+// More reliable than next-themes for Vite + React setup
+// Integrates seamlessly with existing shadcn/ui components
+```
+
+**CSS Custom Properties** (to add to index.css):
+```css
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  /* ... other theme variables */
+}
+
+[data-theme="dark"] {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  /* ... dark theme variables */
+}
+```
 
 ### 9.3 Advanced Data Tables
 
@@ -964,3 +1003,28 @@ This migration plan provides a systematic approach to bringing a comprehensive U
 The plan prioritizes foundation setup and core features first, then progressively adds more advanced functionality. Each milestone has clear deliverables and success criteria to ensure nothing is left incomplete.
 
 By following this plan, the development team will have a complete, production-ready UI that maintains the design system and user experience of the source project while leveraging the robust Supabase backend architecture of the target project.
+
+---
+
+## Stack Compatibility Fixes Applied
+
+### Critical Updates Made:
+1. **✅ shadcn CLI**: All `npx shadcn-ui@latest` → `npx shadcn@latest` (deprecated CLI fixed)
+2. **✅ Theme System**: Removed `next-themes@^0.3.0` → Custom React Context implementation
+3. **✅ Color Picker**: `react-color@^2.19.3` → `react-colorful@^5.6.1` (React 19 compatible)
+4. **✅ Redundant Packages**: Removed `vaul@^0.9.3` and `react-day-picker@^8.10.1` (already covered by existing components)
+
+### Dependencies Verified for React 19 + Vite:
+- ✅ `embla-carousel-react@^8.3.0` 
+- ✅ `react-resizable-panels@^2.1.3`
+- ✅ `input-otp@^1.2.4`
+- ✅ `react-colorful@^5.6.1`
+- ✅ All shadcn/ui components
+- ✅ All Radix UI primitives
+
+### Implementation Status:
+- **Milestones 1-8**: ✅ Completed with compatibility fixes
+- **Milestone 9**: ✅ Updated for React 19 + Vite compatibility  
+- **Milestone 10**: ✅ Ready for implementation
+
+The migration plan is now fully compatible with the Vite + React 19 + Supabase stack.
