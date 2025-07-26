@@ -49,3 +49,5 @@ pnpm-debug.log*
 # Misc
 .npm
 .eslintcache
+
+.claude/
