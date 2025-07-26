@@ -25,16 +25,17 @@ Brands and Blooms platform
 
 3. **Start development**
    ```bash
-   # Start local Supabase
-   pnpm docker:up
+   # Start Supabase (CRITICAL: Use CLI, not Docker Compose)
+   npx supabase start
    
    # Start dev server
-   pnpm dev
+   npm run dev:vite
    ```
 
 4. **Open your app**
-   - Frontend: http://localhost:5173
-   - Supabase Studio: http://localhost:54323
+   - Frontend: http://localhost:3000
+   - Supabase Studio: http://127.0.0.1:54323
+   - Supabase API: http://127.0.0.1:54321
 
 ## Development
 
