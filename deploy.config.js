@@ -52,7 +52,7 @@ export default {
         platform: false,         // Railway will host the container
         buildCommand: "pnpm build",
         envVars: {
-          // Auto-injected: VITE_SUPABASE_URL & VITE_SUPABASE_ANON_KEY
+          // Auto-injected: NEXT_PUBLIC_SUPABASE_URL & NEXT_PUBLIC_SUPABASE_ANON_KEY
           NODE_ENV: "staging"
         }
       }

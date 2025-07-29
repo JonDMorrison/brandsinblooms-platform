@@ -18,6 +18,7 @@ dotenv.config({ path: '.env.local' })
  * - Environment validation
  * - Service health checks
  * - Graceful startup/shutdown
+ * - Next.js development server integration
  */
 
 async function main() {
@@ -47,8 +48,8 @@ async function main() {
         studio: {
           port: 54323
         },
-        vite: {
-          port: 3000
+        nextjs: {
+          port: 3001
         }
       }
       
@@ -64,8 +65,8 @@ async function main() {
         studio: {
           port: 3000
         },
-        vite: {
-          port: 3001  // Different port to avoid conflict with studio
+        nextjs: {
+          port: 3001  // Default Next.js port
         }
       }
       
@@ -74,6 +75,7 @@ async function main() {
       
       this.mode = null // 'supabase-cli' or 'docker-compose'
       this.useExistingPostgres = false
+      this.skipSupabase = false
       this.portsToUse = {}
     }
 
@@ -96,7 +98,7 @@ async function main() {
       
       const welcomeBox = this.boxen(
         this.chalk.bold.cyan('🚀 Local Development Environment') + '\n\n' +
-        this.chalk.gray('Starting your Supabase + Vite stack') + '\n' +
+        this.chalk.gray('Starting your Supabase + Next.js stack') + '\n' +
         this.chalk.gray('Smart port management • Service orchestration'),
         {
           padding: 2,
@@ -166,8 +168,8 @@ async function main() {
 # These values are for local development only
 # For production, use your actual Supabase project credentials
 
-VITE_SUPABASE_URL=${apiUrl}
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+NEXT_PUBLIC_SUPABASE_URL=${apiUrl}
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
 
 # Optional: For deployment scripts
 # SUPABASE_PROJECT_ID=your_project_id
@@ -184,7 +186,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
       dotenv.config({ path: '.env.local' })
       
       // Check for required env vars
-      const required = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY']
+      const required = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY']
       const missing = required.filter(key => !process.env[key])
       
       if (missing.length > 0 && !this.isFirstRun()) {
@@ -199,7 +201,15 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     }
 
     async checkBackend() {
-      // Check for Docker first (prefer Docker Compose over Supabase CLI)
+      // Check for Supabase CLI first (prefer over Docker Compose)
+      try {
+        execSync('supabase --version', { stdio: 'ignore' })
+        this.mode = 'supabase-cli'
+        this.config = this.supabaseCliConfig
+        return
+      } catch {}
+      
+      // Check for Docker as fallback
       try {
         execSync('docker --version', { stdio: 'ignore' })
         
@@ -220,14 +230,6 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
         // Docker not installed
       }
       
-      // Check for Supabase CLI as fallback
-      try {
-        execSync('supabase --version', { stdio: 'ignore' })
-        this.mode = 'supabase-cli'
-        this.config = this.supabaseCliConfig
-        return
-      } catch {}
-      
       // Neither found
       if (this.mode === null) {
         throw new Error('Neither Docker nor Supabase CLI found. Please install one of them.')
@@ -238,7 +240,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
       const portsToCheck = [
         { name: 'Supabase API', port: this.config.api.port, service: 'api' },
         { name: 'Supabase Studio', port: this.config.studio.port, service: 'studio' },
-        { name: 'Vite', port: this.config.vite.port, service: 'vite' }
+        { name: 'Next.js', port: this.config.nextjs.port, service: 'nextjs' }
       ]
       
       // Only check PostgreSQL port if using Supabase CLI
@@ -374,11 +376,16 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
         
         if (action === 'restart') {
           await this.stopSupabase()
+          this.skipSupabase = false
         }
         
         if (action === 'use') {
           this.skipSupabase = true
         }
+      } else {
+        // Supabase is not running, so we need to start it
+        console.log(this.chalk.gray('\n📦 Supabase is not running. It will be started automatically.'))
+        this.skipSupabase = false
       }
     }
 
@@ -406,8 +413,8 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
         await this.startSupabase()
       }
       
-      // Start Vite
-      await this.startVite()
+      // Start Next.js
+      await this.startNextjs()
     }
 
     async startSupabase() {
@@ -432,6 +439,32 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
           })
           
           this.services.push({ name: 'Supabase', process: supabase })
+          
+          // Pipe Supabase output to show progress
+          this.supabaseStarted = false
+          supabase.stdout.on('data', (data) => {
+            const output = data.toString()
+            const lines = output.split('\n')
+            for (const line of lines) {
+              const trimmedLine = line.trim()
+              if (trimmedLine) {
+                console.log(this.chalk.gray(`  ${trimmedLine}`))
+                // Check if Supabase has finished starting
+                if (trimmedLine.includes('Started supabase') || 
+                    trimmedLine.includes('API URL:') ||
+                    trimmedLine.includes('Studio URL:')) {
+                  this.supabaseStarted = true
+                }
+              }
+            }
+          })
+          
+          supabase.stderr.on('data', (data) => {
+            const output = data.toString().trim()
+            if (output && !output.includes('Unknown config fields')) {
+              console.log(this.chalk.yellow(`  ${output}`))
+            }
+          })
           
           // Wait for Supabase to be ready
           await this.waitForSupabase()
@@ -470,9 +503,19 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     async waitForSupabase() {
       // Wait for Supabase API to be ready
       let attempts = 0
-      const maxAttempts = 60 // Increased from 30 to 60 seconds
+      const maxAttempts = 300 // 5 minutes for initial setup with image downloads
+      
+      console.log(this.chalk.gray('  Waiting for Supabase services to be ready...'))
+      console.log(this.chalk.gray('  (First time setup may take several minutes to download images)'))
       
       while (attempts < maxAttempts) {
+        // First check if Supabase CLI has reported it's ready
+        if (this.supabaseStarted) {
+          console.log(this.chalk.gray('  Supabase is ready!'))
+          await new Promise(resolve => setTimeout(resolve, 2000))
+          return
+        }
+        
         try {
           // Check if we can actually connect to the API
           const response = await fetch(`http://127.0.0.1:${this.config.api.port}/rest/v1/`, {
@@ -498,11 +541,16 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
           return
         }
         
+        // Show progress every 10 seconds
+        if (attempts > 0 && attempts % 10 === 0) {
+          console.log(this.chalk.gray(`  Still waiting... (${attempts}s)`))
+        }
+        
         await new Promise(resolve => setTimeout(resolve, 1000))
         attempts++
       }
       
-      throw new Error('Supabase failed to start within 60 seconds')
+      throw new Error('Supabase failed to start within 5 minutes')
     }
 
     async waitForDocker() {
@@ -551,8 +599,8 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
           if (apiUrl && anonKey) {
             console.log(this.chalk.cyan('\n📋 Local Supabase Credentials:'))
             console.log(this.chalk.gray('  Add these to your .env.local:\n'))
-            console.log(this.chalk.white(`  VITE_SUPABASE_URL=${apiUrl}`))
-            console.log(this.chalk.white(`  VITE_SUPABASE_ANON_KEY=${anonKey}`))
+            console.log(this.chalk.white(`  NEXT_PUBLIC_SUPABASE_URL=${apiUrl}`))
+            console.log(this.chalk.white(`  NEXT_PUBLIC_SUPABASE_ANON_KEY=${anonKey}`))
           }
         } catch (error) {
           // Silently fail - status might not be available yet
@@ -562,48 +610,48 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
         // Docker Compose mode
         console.log(this.chalk.cyan('\n📋 Local Supabase Credentials:'))
         console.log(this.chalk.gray('  Using Docker Compose defaults:\n'))
-        console.log(this.chalk.white(`  VITE_SUPABASE_URL=http://localhost:${this.config.api.port}`))
-        console.log(this.chalk.white(`  VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`))
+        console.log(this.chalk.white(`  NEXT_PUBLIC_SUPABASE_URL=http://localhost:${this.config.api.port}`))
+        console.log(this.chalk.white(`  NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`))
         console.log(this.chalk.gray('\n  (See .env.local for full key)'))
       }
     }
 
-    async startVite() {
-      const spinner = this.ora('Starting Vite development server...').start()
+    async startNextjs() {
+      const spinner = this.ora('Starting Next.js development server...').start()
       
-      const port = this.portsToUse.vite || this.config.vite.port
+      const port = this.portsToUse.nextjs || this.config.nextjs.port
       
-      const vite = spawn('pnpm', ['exec', 'vite', '--port', port.toString()], {
+      const nextjs = spawn('pnpm', ['dev'], {
         stdio: 'pipe',
         shell: process.platform === 'win32',
         env: { ...process.env, FORCE_COLOR: '1' }
       })
       
-      this.services.push({ name: 'Vite', process: vite })
+      this.services.push({ name: 'Next.js', process: nextjs })
       
-      // Pipe Vite output
-      vite.stdout.on('data', (data) => {
+      // Pipe Next.js output
+      nextjs.stdout.on('data', (data) => {
         const output = data.toString()
-        if (output.includes('Local:')) {
-          spinner.succeed('Vite development server started')
+        if (output.includes('- ready') || output.includes('▲ Next.js')) {
+          spinner.succeed('Next.js development server started')
         }
-        // Show Vite output
+        // Show Next.js output
         process.stdout.write(this.chalk.gray(output))
       })
       
-      vite.stderr.on('data', (data) => {
+      nextjs.stderr.on('data', (data) => {
         process.stderr.write(this.chalk.red(data.toString()))
       })
     }
 
     showSuccess() {
-      const port = this.portsToUse.vite || this.config.vite.port
+      const port = this.portsToUse.nextjs || this.config.nextjs.port
       const studioPort = this.portsToUse.studio || this.config.studio.port
       
       const successBox = this.boxen(
         this.chalk.bold.green('✅ Development environment is running!') + '\n\n' +
         this.chalk.white('Access your services:') + '\n\n' +
-        this.chalk.cyan(`  🌐 Vite App:          ${this.chalk.bold(`http://localhost:${port}`)}`) + '\n' +
+        this.chalk.cyan(`  🌐 Next.js App:       ${this.chalk.bold(`http://localhost:${port}`)}`) + '\n' +
         this.chalk.cyan(`  🗄️  Supabase Studio:   ${this.chalk.bold(`http://localhost:${studioPort}`)}`) + '\n' +
         this.chalk.cyan(`  🔌 Supabase API:      ${this.chalk.bold(`http://localhost:${this.config.api.port}`)}`) + '\n\n' +
         this.chalk.yellow('Press Ctrl+C to stop all services'),

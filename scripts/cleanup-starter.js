@@ -176,7 +176,7 @@ class StarterCleanup {
       `This is your Supabase application project.
 
 ### Key Components
-- Complete Supabase application with Vite + React frontend
+- Complete Supabase application with Next.js + React frontend
 - TypeScript-first approach with auto-generated database types
 - Docker Compose for local development
 - Automated deployment system with health monitoring

@@ -41,7 +41,7 @@ This will:
 - Detect Docker is available
 - Start all services with Docker Compose
 - Use port 8000 for API and port 3000 for Studio
-- Configure Vite to use port 3001 (to avoid conflict with Studio)
+- Configure Next.js to use port 3001 (to avoid conflict with Studio)
 
 ### Option 2: Manual Docker Compose
 
@@ -121,8 +121,8 @@ When using Docker Compose, your `.env.local` should have:
 
 ```env
 # For Docker Compose
-VITE_SUPABASE_URL=http://localhost:8000
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:8000
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
 ```
 
 ## Security Note

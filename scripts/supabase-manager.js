@@ -324,8 +324,8 @@ export class SupabaseManager {
 # Environment: ${this.environment}
 # Generated: ${new Date().toISOString()}
 
-VITE_SUPABASE_URL=${projectUrl}
-VITE_SUPABASE_ANON_KEY=${anonKey}
+NEXT_PUBLIC_SUPABASE_URL=${projectUrl}
+NEXT_PUBLIC_SUPABASE_ANON_KEY=${anonKey}
 SUPABASE_SERVICE_ROLE_KEY=${serviceKey}
 
 # Database

@@ -54,10 +54,10 @@ async function testProjectCreation() {
       'package.json',
       'README.md',
       'tsconfig.json',
-      'vite.config.ts',
+      'next.config.js',
       '.env.example',
-      'src/main.tsx',
-      'src/App.tsx',
+      'app/layout.tsx',
+      'app/page.tsx',
       'supabase/config.toml',
       'scripts/deploy.js'
     ]
@@ -66,7 +66,7 @@ async function testProjectCreation() {
       'src',
       'src/components',
       'src/lib',
-      'src/pages',
+      'app',
       'supabase',
       'scripts',
       'docs'

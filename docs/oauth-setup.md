@@ -50,7 +50,7 @@ This guide explains how to set up OAuth providers (Google and GitHub) for your S
 
 ## Environment Variables
 
-For Vite applications, environment variables are handled differently. OAuth redirect URLs are typically constructed using `window.location.origin` for flexibility:
+For Next.js applications, OAuth redirect URLs are typically constructed using `window.location.origin` for flexibility:
 
 ```typescript
 // In your OAuth login function
@@ -66,7 +66,7 @@ This approach works for both development and production without needing environm
 
 ## Implementation in React
 
-Here's how to implement OAuth in your Vite + React app:
+Here's how to implement OAuth in your Next.js app:
 
 ```typescript
 // src/components/auth/OAuthButtons.tsx

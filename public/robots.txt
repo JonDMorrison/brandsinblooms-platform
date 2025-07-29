@@ -1,0 +1,25 @@
+# Robots.txt for Brands and Blooms
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /_next/
+Disallow: /auth/
+Disallow: *.json$
+
+# Sitemap location
+Sitemap: https://brandsandblooms.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Specific bot rules
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1

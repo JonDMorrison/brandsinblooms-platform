@@ -1,0 +1,29 @@
+# Development Dockerfile for Next.js
+FROM node:20-alpine
+
+# Install dependencies for node-gyp
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Install all dependencies (including devDependencies)
+RUN pnpm install
+
+# Copy the rest of the application
+COPY . .
+
+# Expose the development port
+EXPOSE 3001
+
+# Set environment to development
+ENV NODE_ENV=development
+
+# Start Next.js in development mode
+CMD ["pnpm", "dev"]

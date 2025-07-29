@@ -19,13 +19,13 @@ describe('Supabase Client', () => {
       const { supabase } = await import('@/lib/supabase/client')
       
       expect(createBrowserClient).toHaveBeenCalledWith(
-        process.env.VITE_SUPABASE_URL,
-        process.env.VITE_SUPABASE_ANON_KEY
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       )
       expect(supabase).toBe(mockClient)
     })
   })
   
-  // Note: Server-side client testing removed as it's specific to Next.js
-  // In a Vite SPA, all Supabase operations happen client-side
+  // Note: Server-side client testing should be added for Next.js server components
+  // Additional tests needed for middleware and server-side auth flows
 })

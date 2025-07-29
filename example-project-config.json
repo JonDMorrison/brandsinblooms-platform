@@ -1,7 +1,7 @@
 {
   "projectName": "my-awesome-app",
   "projectPath": "../my-awesome-app",
-  "projectDescription": "A modern web application built with Supabase and Vite",
+  "projectDescription": "A modern web application built with Supabase and Next.js",
   "authorName": "Your Name",
   "authorEmail": "your.email@example.com",
   "supabaseProjectName": "my-awesome-app",

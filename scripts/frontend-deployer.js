@@ -155,8 +155,8 @@ export class FrontendDeployer {
     const { anonKey, serviceKey } = await this.supabaseManager.getProjectKeys()
     
     const baseEnvVars = {
-      VITE_SUPABASE_URL: projectUrl,
-      VITE_SUPABASE_ANON_KEY: anonKey,
+      NEXT_PUBLIC_SUPABASE_URL: projectUrl,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: anonKey,
       SUPABASE_SERVICE_ROLE_KEY: serviceKey,
       NODE_ENV: this.environment === 'production' ? 'production' : 'development'
     }
@@ -294,7 +294,7 @@ export class FrontendDeployer {
       }
     }
     
-    return 'dist' // Default for Vite build
+    return '.next' // Default for Next.js build
   }
 
   async createVercelConfig() {

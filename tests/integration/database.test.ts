@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { Database } from '@/lib/database/types'
+import { Database } from '@/src/lib/database/types'
 
 // Integration tests require actual Supabase connection
 // Set TEST_SUPABASE_URL and TEST_SUPABASE_SERVICE_KEY in environment

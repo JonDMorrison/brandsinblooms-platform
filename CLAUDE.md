@@ -1,17 +1,17 @@
-# Claude Code - Supabase Development Assistant
+# Claude Code - Next.js + Supabase Development Assistant
 
 ## Project Context
 
 This is **brands-and-blooms** - Brands and Blooms platform
 
 ### Key Components
-- Complete local development environment with Docker Compose
-- Vite + React + TypeScript for fast development
+- Next.js 15 with App Router for optimal performance and SEO
+- React 19 + TypeScript for type-safe development
 - shadcn/ui components for modern UI
-- Automated deployment system for Supabase Cloud
+- Supabase for backend (database, auth, realtime)
+- Automated deployment system for Railway + Supabase Cloud
 - Health monitoring and rollback capabilities
 - TypeScript-first approach with auto-generated database types
-- Containerized deployment with Docker for Railway hosting
 
 ## Core Identity
 
@@ -27,43 +27,48 @@ You are an expert Supabase developer specializing in building robust, scalable, 
 
 ## Project Structure & Architecture
 
-### Standard Vite + Supabase Project Layout
+### Next.js App Router + Supabase Project Layout
 ```
 /
-├── supabase/
-│   ├── migrations/         # Database migrations (numbered sequentially)
-│   ├── functions/          # Edge Functions (optional)
-│   ├── seed.sql           # Seed data for development
-│   └── config.toml        # Local configuration
+├── app/                   # Next.js App Router
+│   ├── (auth)/           # Authentication routes group
+│   │   ├── login/        # Login page
+│   │   └── signup/       # Signup page
+│   ├── (dashboard)/      # Dashboard routes group
+│   │   ├── layout.tsx    # Dashboard layout
+│   │   ├── page.tsx      # Dashboard home
+│   │   └── [feature]/    # Feature pages
+│   ├── api/              # API routes
+│   │   └── auth/         # Auth endpoints
+│   ├── layout.tsx        # Root layout
+│   ├── page.tsx          # Home page
+│   └── globals.css       # Global styles
 ├── src/
-│   ├── main.tsx           # Vite entry point
-│   ├── App.tsx            # Root component with React Router
-│   ├── index.css          # Global styles with Tailwind
-│   ├── vite-env.d.ts      # Vite type definitions
-│   ├── pages/             # Page components
 │   ├── components/        
 │   │   ├── ui/           # shadcn/ui components
 │   │   ├── auth/         # Authentication components
-│   │   └── layout/       # Layout components
+│   │   ├── layout/       # Layout components
+│   │   └── features/     # Feature components
 │   ├── contexts/          # React contexts (AuthContext, etc.)
 │   ├── hooks/             # Custom React hooks
 │   ├── lib/
-│   │   ├── supabase/      # Supabase client
+│   │   ├── supabase/      # Supabase clients (browser/server)
 │   │   ├── database/      # Database types and queries
 │   │   ├── auth/          # Authentication helpers
 │   │   └── utils.ts       # Utility functions (cn, etc.)
-│   └── utils/             # Additional utilities
+│   └── middleware.ts      # Next.js middleware
+├── supabase/
+│   ├── migrations/         # Database migrations
+│   ├── functions/          # Edge Functions
+│   ├── seed.sql           # Seed data
+│   └── config.toml        # Local configuration
 ├── public/                # Static assets
-├── tests/
-│   ├── unit/             # Unit tests
-│   └── integration/      # Integration tests
-├── index.html            # HTML entry point
-├── vite.config.ts        # Vite configuration
+├── tests/                 # Test files
+├── next.config.js         # Next.js configuration
 ├── components.json       # shadcn/ui configuration
-├── Dockerfile           # Docker configuration for Railway
+├── Dockerfile           # Docker configuration
 ├── railway.json         # Railway deployment config
-├── .dockerignore        # Docker ignore file
-└── docker-compose.yml    # Local development setup
+└── package.json         # Dependencies and scripts
 ```
 
 ### Database Design Principles
@@ -101,28 +106,34 @@ You are an expert Supabase developer specializing in building robust, scalable, 
 
 ## Environment Variables
 
-### Vite Environment Variables
-In Vite, environment variables must be prefixed with `VITE_` to be exposed to the browser:
+### Next.js Environment Variables
+In Next.js, environment variables work differently for client and server:
 
 ```typescript
 // .env.local
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+# Server-side only (default)
+DATABASE_URL=postgresql://...
+SUPABASE_SERVICE_ROLE_KEY=your-service-key
 
-// Access in code
-const url = import.meta.env.VITE_SUPABASE_URL
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+# Client-side (must be prefixed with NEXT_PUBLIC_)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
-// Type definitions in vite-env.d.ts
-/// <reference types="vite/client" />
+// Access in client components
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-interface ImportMetaEnv {
-  readonly VITE_SUPABASE_URL: string
-  readonly VITE_SUPABASE_ANON_KEY: string
-}
+// Access in server components/API routes
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-interface ImportMeta {
-  readonly env: ImportMetaEnv
+// Type definitions in env.d.ts
+declare namespace NodeJS {
+  interface ProcessEnv {
+    NEXT_PUBLIC_SUPABASE_URL: string
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: string
+    SUPABASE_SERVICE_ROLE_KEY: string
+    DATABASE_URL: string
+  }
 }
 ```
 
@@ -153,23 +164,91 @@ interface ImportMeta {
 
 ### Supabase Client Patterns
 
-1. **Singleton client for browser**
+1. **Browser client (for client components)**
    ```typescript
-   // src/lib/supabase/client.ts
-   import { createClient } from '@supabase/supabase-js'
+   // src/lib/supabase/browser.ts
+   import { createBrowserClient } from '@supabase/ssr'
    import { Database } from '@/lib/database/types'
    
-   export const supabase = createClient<Database>(
-     import.meta.env.VITE_SUPABASE_URL,
-     import.meta.env.VITE_SUPABASE_ANON_KEY,
-     {
-       auth: {
-         autoRefreshToken: true,
-         persistSession: true,
-         detectSessionInUrl: true,
-       },
-     }
-   )
+   export function createSupabaseBrowser() {
+     return createBrowserClient<Database>(
+       process.env.NEXT_PUBLIC_SUPABASE_URL!,
+       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+     )
+   }
+   ```
+
+2. **Server client (for server components)**
+   ```typescript
+   // src/lib/supabase/server.ts
+   import { createServerClient } from '@supabase/ssr'
+   import { cookies } from 'next/headers'
+   import { Database } from '@/lib/database/types'
+   
+   export async function createSupabaseServer() {
+     const cookieStore = await cookies()
+     
+     return createServerClient<Database>(
+       process.env.NEXT_PUBLIC_SUPABASE_URL!,
+       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+       {
+         cookies: {
+           getAll() {
+             return cookieStore.getAll()
+           },
+           setAll(cookiesToSet) {
+             try {
+               cookiesToSet.forEach(({ name, value, options }) => 
+                 cookieStore.set(name, value, options)
+               )
+             } catch {
+               // Handle cookie setting errors in Server Components
+             }
+           },
+         },
+       }
+     )
+   }
+   ```
+
+3. **Middleware client**
+   ```typescript
+   // src/middleware.ts
+   import { createServerClient } from '@supabase/ssr'
+   import { NextResponse, type NextRequest } from 'next/server'
+   
+   export async function middleware(request: NextRequest) {
+     let supabaseResponse = NextResponse.next({
+       request,
+     })
+     
+     const supabase = createServerClient(
+       process.env.NEXT_PUBLIC_SUPABASE_URL!,
+       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+       {
+         cookies: {
+           getAll() {
+             return request.cookies.getAll()
+           },
+           setAll(cookiesToSet) {
+             cookiesToSet.forEach(({ name, value, options }) =>
+               request.cookies.set(name, value)
+             )
+             supabaseResponse = NextResponse.next({
+               request,
+             })
+             cookiesToSet.forEach(({ name, value, options }) =>
+               supabaseResponse.cookies.set(name, value, options)
+             )
+           },
+         },
+       }
+     )
+     
+     const { data: { user } } = await supabase.auth.getUser()
+     
+     return supabaseResponse
+   }
    ```
 
 ### Error Handling Patterns
@@ -479,8 +558,8 @@ const { data: posts } = await supabase
 ```typescript
 // Optimized client configuration for browser environments
 export const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   {
     auth: {
       autoRefreshToken: true,
@@ -790,9 +869,11 @@ export async function sendEmail(to: string, subject: string, body: string) {
    - Implement proper loading and error states
    - Cache data appropriately with React Query or SWR
    - Handle authentication state changes gracefully
-9. **Vite Optimization**: 
+9. **Next.js Optimization**: 
    - Use dynamic imports for code splitting
-   - Optimize bundle size with tree shaking
-   - Leverage Vite's fast HMR for development
+   - Leverage automatic code splitting per route
+   - Optimize images with next/image
+   - Use React Server Components for better performance
+   - Implement proper caching strategies
 
-When building Supabase SPAs with Vite, focus on client-side performance and user experience. Design your schema to minimize round trips, implement optimistic updates where appropriate, and always consider the security implications of exposing data to the client. 
+When building Supabase applications with Next.js, leverage both client and server components for optimal performance. Use Server Components for initial data fetching, implement proper caching strategies, and always consider the security implications of exposing data to the client. Take advantage of Next.js features like API routes for sensitive operations and middleware for authentication. 

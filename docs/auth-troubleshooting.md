@@ -34,13 +34,13 @@ The error occurs when the `auth.identities` table doesn't exist or is not access
 3. **Update your `.env.local` file:**
    ```bash
    # Use the CLI URL instead of Docker Compose URL
-   VITE_SUPABASE_URL=http://127.0.0.1:54321
-   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
    ```
 
 4. **Start the development server:**
    ```bash
-   npm run dev:vite
+   npm run dev
    ```
 
 ### Verification
@@ -68,8 +68,8 @@ Should return a JSON response with `access_token` instead of an error.
 # Start Supabase (recommended)
 npx supabase start
 
-# Start just Vite (after Supabase is running)
-npm run dev:vite
+# Start just Next.js (after Supabase is running)
+npm run dev
 
 # Full development with Supabase CLI
 npm run dev  # (if configured to use Supabase CLI)

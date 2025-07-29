@@ -12,7 +12,7 @@ This document defines the architectural decisions and technology stack for our i
 
 #### Frontend
 - **Framework**: React 19 with TypeScript
-- **Build Tool**: Vite 7 (for blazing fast HMR and optimized builds)
+- **Framework**: Next.js 15 (for server-side rendering and optimal performance)
 - **Routing**: React Router v7
 - **Styling**: Tailwind CSS v4 with tailwindcss-animate
 - **UI Components**: shadcn/ui (Radix UI primitives with Tailwind styling)
@@ -77,7 +77,7 @@ src/
 1. Local development with Docker Compose
 2. Database changes via migrations
 3. Type generation from schema
-4. Hot module replacement with Vite
+4. Fast refresh with Next.js
 5. Automated testing before deployment
 
 ### Key Principles
@@ -123,7 +123,7 @@ src/
 
 ## References
 - [Supabase Documentation](https://supabase.com/docs)
-- [Vite Documentation](https://vitejs.dev)
+- [Next.js Documentation](https://nextjs.org/docs)
 - [shadcn/ui](https://ui.shadcn.com)
 - [React Router](https://reactrouter.com)
 - [Tailwind CSS](https://tailwindcss.com)

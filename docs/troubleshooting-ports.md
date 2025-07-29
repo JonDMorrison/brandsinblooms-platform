@@ -33,14 +33,14 @@ If your site loads but Supabase API and Studio are not reachable, you likely hav
    
    For Supabase CLI:
    ```env
-   VITE_SUPABASE_URL=http://localhost:54321
-   VITE_SUPABASE_ANON_KEY=your-anon-key
+   NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    ```
    
    For Docker Compose:
    ```env
-   VITE_SUPABASE_URL=http://localhost:8000
-   VITE_SUPABASE_ANON_KEY=your-anon-key
+   NEXT_PUBLIC_SUPABASE_URL=http://localhost:8000
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    ```
 
 3. **Restart your development environment:**
@@ -65,7 +65,7 @@ The `pnpm dev` command automatically detects which method is available and confi
 
 ### "Failed to fetch" errors in the browser console
 - **Cause**: Your app is trying to connect to the wrong Supabase port
-- **Fix**: Update `VITE_SUPABASE_URL` in `.env.local`
+- **Fix**: Update `NEXT_PUBLIC_SUPABASE_URL` in `.env.local`
 
 ### Studio shows "Cannot connect to project"
 - **Cause**: Studio is trying to connect to the wrong API port
@@ -76,10 +76,10 @@ The `pnpm dev` command automatically detects which method is available and confi
 - **Fix**: Explicitly start the one you want:
   ```bash
   # Force Supabase CLI
-  pnpm supabase:start && pnpm dev:vite
+  pnpm supabase:start && pnpm dev
   
   # Force Docker Compose
-  pnpm docker:up && pnpm dev:vite
+  pnpm docker:up && pnpm dev
   ```
 
 ## Checking Connection

@@ -85,7 +85,7 @@ Before running the setup:
 - **pnpm**: v8.0.0 or higher (will be installed if missing)
 - **Git**: For cloning and version control
 - **Docker**: For local Supabase development (optional)
-- **Vite**: Bundled with the project for fast development
+- **Next.js**: Modern React framework with server-side rendering
 
 ## Troubleshooting
 
@@ -121,10 +121,10 @@ If you have port conflicts:
 - API: 54321
 - Studio: 54323
 
-**Vite dev server**:
+**Next.js dev server**:
 - Default: 3000
 
-Update the ports in `docker-compose.yml` for Supabase or `vite.config.ts` for Vite before starting.
+Update the ports in `docker-compose.yml` for Supabase or in the `dev` script in `package.json` for Next.js before starting.
 
 ## What's Next?
 
@@ -133,16 +133,16 @@ After successful setup:
 1. **Configure Supabase**
    - Create a project at [app.supabase.com](https://app.supabase.com)
    - Copy your project URL and anon key to `.env.local`
-   - **Important**: Use `VITE_` prefix for environment variables:
+   - **Important**: Use `NEXT_PUBLIC_` prefix for client-side environment variables:
      ```
-     VITE_SUPABASE_URL=your_supabase_url
-     VITE_SUPABASE_ANON_KEY=your_anon_key
+     NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+     NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
      ```
 
 2. **Start Development**
    ```bash
    pnpm supabase:start  # Start local Supabase (optional)
-   pnpm dev            # Start Vite dev server
+   pnpm dev            # Start Next.js dev server
    ```
 
 3. **Build for Production**

@@ -16,23 +16,45 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the Next.js application
 RUN pnpm build
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-alpine AS runner
 
-# Install serve to run the static files
-RUN npm install -g serve
+# Install pnpm for production
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Set working directory
 WORKDIR /app
 
-# Copy built files from builder stage
-COPY --from=builder /app/dist ./dist
+# Set environment to production
+ENV NODE_ENV=production
+
+# Create a non-root user to run the app
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+# Copy package files for production
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+
+# Install only production dependencies
+RUN pnpm install --prod --frozen-lockfile
+
+# Copy Next.js build output
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./next.config.js
+
+# Switch to non-root user
+USER nextjs
 
 # Expose port (Railway will set PORT env var)
 EXPOSE 3000
 
-# Start the application using PORT env var
-CMD serve -s dist -l tcp://0.0.0.0:${PORT:-3000}
+# Set PORT environment variable default
+ENV PORT=3000
+
+# Start the Next.js application
+CMD ["pnpm", "start"]

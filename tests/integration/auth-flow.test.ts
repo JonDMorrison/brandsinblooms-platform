@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { Database } from '@/lib/database/types'
+import { Database } from '@/src/lib/database/types'
 
 const supabaseUrl = process.env.TEST_SUPABASE_URL || 'http://localhost:54321'
 const supabaseAnonKey = process.env.TEST_SUPABASE_ANON_KEY || ''

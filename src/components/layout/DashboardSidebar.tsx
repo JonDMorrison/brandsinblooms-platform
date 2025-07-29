@@ -1,4 +1,8 @@
-import { NavLink } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { 
   Home, 
   FileText, 
@@ -26,6 +30,16 @@ const navigationItems = [
 ]
 
 export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
+  const pathname = usePathname()
+  const router = useRouter()
+
+  // Prefetch dashboard routes on component mount
+  useEffect(() => {
+    navigationItems.forEach(item => {
+      router.prefetch(item.href)
+    })
+  }, [router])
+
   return (
     <div className="h-full flex flex-col bg-gradient-card border-r shadow-lg">
       {/* Logo section */}
@@ -59,26 +73,22 @@ export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
       <nav className="flex-1 px-4 py-6 space-y-2">
         {navigationItems.map((item) => {
           const Icon = item.icon
+          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+          
           return (
-            <NavLink
+            <Link
               key={item.href}
-              to={item.href}
+              href={item.href}
               onClick={onClose}
-              className={({ isActive }) =>
-                `flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
-                  isActive
-                    ? 'bg-gradient-primary text-white shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted interactive'
-                }`
-              }
+              className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
+                isActive
+                  ? 'bg-gradient-primary text-white shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted interactive'
+              }`}
             >
-              {({ isActive }) => (
-                <>
-                  <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'group-hover:text-primary'}`} />
-                  <span className="font-medium">{item.name}</span>
-                </>
-              )}
-            </NavLink>
+              <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'group-hover:text-primary'}`} />
+              <span className="font-medium">{item.name}</span>
+            </Link>
           )
         })}
       </nav>
