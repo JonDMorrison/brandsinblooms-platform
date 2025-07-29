@@ -1,9 +1,7 @@
 'use client'
 
-import { createClient } from '../supabase/client'
+import { supabase } from '@/src/lib/supabase/client'
 import { AuthError, User, Session } from '@supabase/supabase-js'
-
-const supabase = createClient()
 
 /**
  * Sign in with email and password

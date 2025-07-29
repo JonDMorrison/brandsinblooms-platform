@@ -1,13 +1,14 @@
-import SignIn from '@/components/auth/SignIn'
-import { requireGuest } from '@/lib/auth/server'
+'use client'
 
-export default async function LoginPage() {
-  // Redirect to dashboard if already authenticated
-  await requireGuest()
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-hero p-4">
-      <SignIn />
-    </div>
-  )
+export default function LoginPage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace('/')
+  }, [router])
+
+  return null
 }
