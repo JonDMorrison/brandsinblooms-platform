@@ -102,7 +102,7 @@ function Dashboard() {
 
 ### Email Verification in React Router
 
-For a Next.js app, handle email verification in your routes:
+For a Vite + React app, handle email verification in your routes:
 
 ```typescript
 // In App.tsx or routes file

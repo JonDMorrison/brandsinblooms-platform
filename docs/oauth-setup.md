@@ -24,7 +24,7 @@ This guide explains how to set up OAuth providers (Google and GitHub) for your S
    - Choose "Web application"
    - Add authorized redirect URIs:
      - `https://[YOUR-PROJECT-REF].supabase.co/auth/v1/callback`
-     - `http://localhost:54321/auth/v1/callback` (for local development)
+     - `http://localhost:54321/auth/v1/callback` (for local development with Supabase CLI)
 
 4. **Configure in Supabase**
    - Go to your Supabase project dashboard
@@ -66,7 +66,7 @@ This approach works for both development and production without needing environm
 
 ## Implementation in React
 
-Here's how to implement OAuth in your Next.js app:
+Here's how to implement OAuth in your Vite + React app:
 
 ```typescript
 // src/components/auth/OAuthButtons.tsx

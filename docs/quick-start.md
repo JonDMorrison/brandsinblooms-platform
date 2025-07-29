@@ -84,8 +84,8 @@ Before running the setup:
 - **Node.js**: v18.0.0 or higher
 - **pnpm**: v8.0.0 or higher (will be installed if missing)
 - **Git**: For cloning and version control
-- **Docker**: For local Supabase development (optional)
-- **Next.js**: Modern React framework with server-side rendering
+- **Docker**: For local Supabase development (automatically managed by Supabase CLI)
+- **Supabase CLI**: For local development environment
 
 ## Troubleshooting
 
@@ -107,24 +107,27 @@ export https_proxy=http://proxy.company.com:8080
 curl -fsSL https://raw.githubusercontent.com/clusterahq/_supabase-starter/main/start.sh | bash
 ```
 
-### Docker Not Running
-The script will warn if Docker isn't running but will continue. To use local development features, start Docker and run:
+### Supabase CLI Not Installed
+The script will check for Supabase CLI. If not installed, you can install it:
 ```bash
-pnpm supabase:start
+npm install -g supabase
+# or
+supabase start
 ```
 
 ### Port Conflicts
 If you have port conflicts:
 
-**Supabase ports** (when using local Supabase):
+**Supabase CLI ports** (default for local development):
+- API Gateway: 54321
 - PostgreSQL: 54322
-- API: 54321
 - Studio: 54323
+- Inbucket (Email): 54324
 
-**Next.js dev server**:
-- Default: 3000
+**Vite dev server**:
+- Default: 5173
 
-Update the ports in `docker-compose.yml` for Supabase or in the `dev` script in `package.json` for Next.js before starting.
+You can customize Supabase ports in `supabase/config.toml` or change the Vite port with `--port` flag.
 
 ## What's Next?
 
@@ -141,8 +144,8 @@ After successful setup:
 
 2. **Start Development**
    ```bash
-   pnpm supabase:start  # Start local Supabase (optional)
-   pnpm dev            # Start Next.js dev server
+   supabase start      # Start local Supabase
+   pnpm dev           # Start Vite dev server
    ```
 
 3. **Build for Production**

@@ -27,7 +27,7 @@ This document defines the architectural decisions and technology stack for our i
 
 #### Development Environment
 - **Package Manager**: pnpm (fast, efficient disk usage)
-- **Containerization**: Docker Compose for local Supabase stack
+- **Local Development**: Supabase CLI for local Supabase stack
 - **Type Safety**: TypeScript with auto-generated database types
 - **Linting**: ESLint with TypeScript plugin
 - **Testing**: Jest with React Testing Library
@@ -74,10 +74,10 @@ src/
 5. Optional MFA support
 
 #### Development Workflow
-1. Local development with Docker Compose
+1. Local development with Supabase CLI
 2. Database changes via migrations
 3. Type generation from schema
-4. Fast refresh with Next.js
+4. Fast refresh with Vite
 5. Automated testing before deployment
 
 ### Key Principles
@@ -100,7 +100,7 @@ src/
 #### Cons
 - Vendor lock-in with Supabase (mitigated by PostgreSQL standard)
 - Learning curve for Supabase-specific patterns
-- Docker requirement for local development
+- Supabase CLI requirement for local development
 - Limited to PostgreSQL (not a con for most use cases)
 
 ## Consequences
@@ -113,7 +113,7 @@ src/
 - Easy onboarding for new developers
 
 ### Negative
-- Requires Docker for local development
+- Requires Supabase CLI for local development
 - Supabase-specific knowledge required
 - May be overkill for simple static sites
 
