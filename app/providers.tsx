@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes'
 import { useState, lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { SiteProvider } from '@/src/contexts/SiteContext'
 
 // Lazy load React Query Devtools only in development
 const ReactQueryDevtools = process.env.NODE_ENV === 'development' 
@@ -13,7 +14,13 @@ const ReactQueryDevtools = process.env.NODE_ENV === 'development'
     })))
   : () => null
 
-export function Providers({ children }: { children: React.ReactNode }) {
+interface ProvidersProps {
+  children: React.ReactNode
+  initialHostname?: string
+  initialSiteData?: any
+}
+
+export function Providers({ children, initialHostname, initialSiteData }: ProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -38,25 +45,30 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
+        <SiteProvider 
+          initialHostname={initialHostname}
+          initialSiteData={initialSiteData}
         >
-          {children}
-          <Toaster 
-            position="top-right" 
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: 'var(--background)',
-                color: 'var(--foreground)',
-                border: '1px solid var(--border)',
-              },
-            }}
-          />
-        </ThemeProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster 
+              position="top-right" 
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: 'var(--background)',
+                  color: 'var(--foreground)',
+                  border: '1px solid var(--border)',
+                },
+              }}
+            />
+          </ThemeProvider>
+        </SiteProvider>
       </AuthProvider>
       {process.env.NODE_ENV === 'development' && (
         <Suspense fallback={null}>

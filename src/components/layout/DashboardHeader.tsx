@@ -27,6 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 // ThemeToggle removed - light mode only
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
+import { CompactSiteSwitcher } from '@/src/components/site/SiteSwitcher'
 
 interface DashboardHeaderProps {
   onMenuClick: () => void
@@ -71,6 +72,11 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
+
+          {/* Site Switcher */}
+          <div className="hidden lg:block">
+            <CompactSiteSwitcher />
+          </div>
 
           {/* Search */}
           <div className="relative hidden md:block">

@@ -10,7 +10,7 @@ Disallow: /auth/
 Disallow: *.json$
 
 # Sitemap location
-Sitemap: https://brandsandblooms.com/sitemap.xml
+Sitemap: https://blooms.cc/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1

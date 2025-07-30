@@ -100,7 +100,7 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
                 <Mail className="h-5 w-5 text-purple-600" />
                 <div>
                   <p className="font-medium">Email</p>
-                  <p className="text-sm text-muted-foreground">hello@brandsandblooms.com</p>
+                  <p className="text-sm text-muted-foreground">hello@blooms.cc</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">

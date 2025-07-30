@@ -4,6 +4,21 @@ const crypto = require('crypto')
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  // Multi-domain support configuration
+  trailingSlash: false,
+  poweredByHeader: false,
+  generateEtags: true,
+  compress: true,
+  
+  // Production optimizations for multi-domain
+  modularizeImports: {
+    '@radix-ui/react-icons': {
+      transform: '@radix-ui/react-icons/dist/{{member}}',
+    },
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+  },
   images: {
     domains: ['localhost'],
     remotePatterns: [
@@ -23,6 +38,21 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '**.cloudinary.com',
+      },
+      // Support for custom domains and subdomains
+      {
+        protocol: 'https',
+        hostname: '**.blooms.cc',
+      },
+      {
+        protocol: 'http',
+        hostname: '**.localhost',
+        port: '3000',
+      },
+      // Support for any custom domain (production)
+      {
+        protocol: 'https',
+        hostname: '**',
       },
     ],
     // Image optimization settings
@@ -44,10 +74,7 @@ const nextConfig = {
   serverRuntimeConfig: {
     port: process.env.PORT || 3000,
   },
-  // Performance optimizations
-  poweredByHeader: false,
-  compress: true,
-  generateEtags: true,
+  // Performance optimizations (already defined above, removing duplicates)
   httpAgentOptions: {
     keepAlive: true,
   },
@@ -111,7 +138,7 @@ const nextConfig = {
     }
     return config
   },
-  // Security headers
+  // Security headers with multi-domain support
   async headers() {
     return [
       {
@@ -139,12 +166,39 @@ const nextConfig = {
           },
           {
             key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
+            value: 'strict-origin-when-cross-origin'
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()'
-          }
+            value: 'camera=(), microphone=(), geolocation=(), payment=()'
+          },
+          // Production performance headers
+          {
+            key: 'X-Robots-Tag',
+            value: 'index, follow'
+          },
+        ]
+      },
+      // API routes with CORS support
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS'
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization, X-Requested-With, x-csrf-token'
+          },
+          {
+            key: 'Access-Control-Max-Age',
+            value: '86400'
+          },
         ]
       },
       {

@@ -41,7 +41,7 @@ export function SiteSettings() {
     defaultValues: {
       siteName: 'Brands and Blooms Platform',
       siteDescription: 'AI-powered platform for creating beautiful websites and managing content.',
-      domain: 'brandsandblooms.com',
+      domain: 'blooms.cc',
       subdomain: 'my-site',
       timezone: 'America/New_York',
       language: 'en',
@@ -241,7 +241,7 @@ export function SiteSettings() {
                       <div className="flex items-center">
                         <Input placeholder="my-site" {...field} />
                         <span className="ml-2 text-sm text-muted-foreground">
-                          .brandsandblooms.com
+                          .blooms.cc
                         </span>
                       </div>
                     </FormControl>
@@ -264,7 +264,7 @@ export function SiteSettings() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">Fallback</Badge>
-                    <span className="text-sm">https://{form.watch('subdomain')}.brandsandblooms.com</span>
+                    <span className="text-sm">https://{form.watch('subdomain')}.blooms.cc</span>
                   </div>
                 </div>
               </div>
