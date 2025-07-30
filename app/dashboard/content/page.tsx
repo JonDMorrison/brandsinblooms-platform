@@ -15,21 +15,8 @@ import {
   Sparkles
 } from 'lucide-react'
 
-// Dynamic import for DataTable with loading state
-const DataTable = dynamic(
-  () => import('@/components/ui/data-table').then(mod => mod.DataTable),
-  {
-    loading: () => (
-      <div className="w-full space-y-3">
-        <div className="h-10 bg-gray-100 rounded animate-pulse" />
-        {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="h-16 bg-gray-50 rounded animate-pulse" />
-        ))}
-      </div>
-    ),
-    ssr: false
-  }
-)
+// Import DataTable directly to preserve generic types
+import { DataTable } from '@/components/ui/data-table'
 
 const mockContentItems: ContentItem[] = [
   {
@@ -197,7 +184,7 @@ export default function ContentPage() {
             </TabsList>
             
             <TabsContent value={activeTab} className="mt-6">
-              <DataTable 
+              <DataTable
                 columns={contentColumns} 
                 data={filteredContent} 
                 searchKey="title"

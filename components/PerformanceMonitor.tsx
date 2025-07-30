@@ -68,7 +68,20 @@ export function PerformanceMonitor() {
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         const metricName = entry.name
-        const value = entry.value || (entry as any).duration || 0
+        let value = 0
+        
+        // Handle different performance entry types
+        if ('value' in entry && typeof entry.value === 'number') {
+          value = entry.value
+        } else if ('duration' in entry && typeof entry.duration === 'number') {
+          value = entry.duration
+        } else if ('loadTime' in entry) {
+          const loadTime = (entry as any).loadTime
+          value = typeof loadTime === 'number' ? loadTime : 0
+        } else if ('renderTime' in entry) {
+          const renderTime = (entry as any).renderTime
+          value = typeof renderTime === 'number' ? renderTime : 0
+        }
         
         setMetrics(prev => prev.map(metric => {
           if (metric.name === metricName) {

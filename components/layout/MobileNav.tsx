@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { 
@@ -25,7 +26,7 @@ const navigationItems = [
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
-  const location = useLocation()
+  const pathname = usePathname()
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -43,13 +44,13 @@ export function MobileNav() {
           
           <nav className="flex-1 p-4 space-y-2">
             {navigationItems.map((item) => {
-              const isActive = location.pathname === item.href || 
-                              (item.href !== '/dashboard' && location.pathname.startsWith(item.href))
+              const isActive = pathname === item.href || 
+                              (item.href !== '/dashboard' && pathname.startsWith(item.href))
               
               return (
                 <Link
                   key={item.name}
-                  to={item.href}
+                  href={item.href}
                   onClick={() => setOpen(false)}
                   className={`
                     flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors

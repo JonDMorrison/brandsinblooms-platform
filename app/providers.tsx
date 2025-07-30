@@ -26,8 +26,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
             refetchOnReconnect: false,
             retry: 1,
             retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-            // Reduce unnecessary re-renders
-            notifyOnChangeProps: 'tracked',
           },
           mutations: {
             retry: 1,

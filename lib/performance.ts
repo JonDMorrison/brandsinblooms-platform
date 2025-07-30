@@ -98,9 +98,85 @@ export function memoize<T extends (...args: any[]) => any>(
     // Limit cache size to prevent memory leaks
     if (cache.size > 100) {
       const firstKey = cache.keys().next().value
-      cache.delete(firstKey)
+      if (firstKey !== undefined) {
+        cache.delete(firstKey)
+      }
     }
 
     return result
   }) as T
+}
+
+/**
+ * Web Vitals thresholds based on Google's recommendations
+ */
+const WEB_VITALS_THRESHOLDS = {
+  // First Contentful Paint (FCP) - milliseconds
+  FCP: { good: 1800, poor: 3000 },
+  // Largest Contentful Paint (LCP) - milliseconds
+  LCP: { good: 2500, poor: 4000 },
+  // First Input Delay (FID) - milliseconds
+  FID: { good: 100, poor: 300 },
+  // Cumulative Layout Shift (CLS) - score
+  CLS: { good: 0.1, poor: 0.25 },
+  // Interaction to Next Paint (INP) - milliseconds
+  INP: { good: 200, poor: 500 },
+  // Time to First Byte (TTFB) - milliseconds
+  TTFB: { good: 800, poor: 1800 },
+} as const
+
+type MetricName = keyof typeof WEB_VITALS_THRESHOLDS
+type Rating = 'good' | 'needs-improvement' | 'poor'
+
+/**
+ * Get performance rating based on metric value and thresholds
+ */
+export function getRating(metricName: string, value: number): Rating {
+  const metric = metricName.toUpperCase() as MetricName
+  const thresholds = WEB_VITALS_THRESHOLDS[metric]
+  
+  if (!thresholds) {
+    return 'needs-improvement'
+  }
+
+  if (value <= thresholds.good) {
+    return 'good'
+  } else if (value <= thresholds.poor) {
+    return 'needs-improvement'
+  } else {
+    return 'poor'
+  }
+}
+
+/**
+ * Format metric values for display with appropriate units and precision
+ */
+export function formatMetricValue(metricName: string, value: number): string {
+  const metric = metricName.toUpperCase() as MetricName
+
+  switch (metric) {
+    case 'CLS':
+      // CLS is a unitless score, show with 3 decimal places
+      return value.toFixed(3)
+    
+    case 'FCP':
+    case 'LCP':
+    case 'FID':
+    case 'INP':
+    case 'TTFB':
+      // Time-based metrics in milliseconds
+      if (value >= 1000) {
+        return `${(value / 1000).toFixed(2)}s`
+      } else {
+        return `${Math.round(value)}ms`
+      }
+    
+    default:
+      // Fallback for unknown metrics
+      if (value >= 1000) {
+        return `${(value / 1000).toFixed(2)}s`
+      } else {
+        return `${Math.round(value)}ms`
+      }
+  }
 }
