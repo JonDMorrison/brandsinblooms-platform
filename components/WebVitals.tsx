@@ -87,7 +87,7 @@ export function WebVitals() {
       // Monitor long tasks
       const longTaskObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (entry.duration > 50) {
+          if (entry.duration > 150) {
             console.warn('[Performance] Long task detected:', {
               duration: entry.duration,
               startTime: entry.startTime,

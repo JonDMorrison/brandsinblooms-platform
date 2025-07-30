@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Flower } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import SignIn from '@/components/auth/SignIn'
-import SignUp from '@/components/auth/SignUp'
 import { useAuth } from '@/contexts/AuthContext'
+
+// Lazy load auth components to improve performance
+const SignIn = lazy(() => import('@/components/auth/SignIn'))
+const SignUp = lazy(() => import('@/components/auth/SignUp'))
 
 export default function HomePageClient() {
   const searchParams = useSearchParams()
@@ -102,7 +104,19 @@ export default function HomePageClient() {
 
             {/* Auth Form */}
             <div className="w-full max-w-md">
-              {isSignUp ? <SignUp /> : <SignIn />}
+              <Suspense fallback={
+                <div className="flex items-center justify-center h-[400px]">
+                  <div className="animate-pulse">
+                    <div className="flex items-center justify-center w-10 h-10 bg-gradient-primary rounded-lg">
+                      <Flower className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </div>
+              }>
+                <div className="transition-all duration-200 ease-in-out">
+                  {isSignUp ? <SignUp /> : <SignIn />}
+                </div>
+              </Suspense>
             </div>
           </div>
         </div>

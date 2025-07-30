@@ -1,5 +1,6 @@
 'use client'
 
+import React, { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -130,8 +131,8 @@ export default function DashboardPage() {
   const { data: siteStats, isLoading: statsLoading } = useSiteStats()
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics()
 
-  // Build dashboard stats from real data
-  const dashboardStats: DashboardStat[] = [
+  // Memoize dashboard stats to prevent recalculation on every render
+  const dashboardStats: DashboardStat[] = useMemo(() => [
     {
       id: '1',
       title: 'Content',
@@ -164,14 +165,14 @@ export default function DashboardPage() {
       icon: <Eye className="h-6 w-6" />,
       color: 'text-orange-600'
     }
-  ]
+  ], [siteStats, metrics])
 
   const isLoading = statsLoading || metricsLoading
 
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div>
+      <div className="fade-in-up" style={{ animationDelay: '0s' }}>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
           Welcome back, {user?.email?.split('@')[0]}! Here's what's happening with {currentSite?.business_name || 'your site'}.
@@ -179,11 +180,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 fade-in-up" style={{ animationDelay: '0.1s' }}>
         {isLoading ? (
           // Loading skeletons
           Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
+            <Card key={i} className="animate-pulse">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <Skeleton className="h-4 w-[100px]" />
                 <Skeleton className="h-6 w-6 rounded" />
@@ -195,8 +196,8 @@ export default function DashboardPage() {
             </Card>
           ))
         ) : (
-          dashboardStats.map((stat) => (
-            <Card key={stat.id}>
+          dashboardStats.map((stat, index) => (
+            <Card key={stat.id} className="fade-in-up" style={{ animationDelay: `${0.1 + index * 0.05}s` }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   {stat.title}
@@ -218,7 +219,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="fade-in-up" style={{ animationDelay: '0.3s' }}>
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>

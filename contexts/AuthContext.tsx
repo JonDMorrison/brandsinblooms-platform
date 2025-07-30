@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else if (event === 'SIGNED_OUT') {
           router.push('/login')
         } else if (event === 'TOKEN_REFRESHED') {
-          console.log('Token refreshed successfully')
+          // Token refreshed successfully
         } else if (event === 'USER_UPDATED') {
           // Refresh user data
           const { data: { user } } = await supabase.auth.getUser()

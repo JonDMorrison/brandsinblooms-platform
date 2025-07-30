@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -89,37 +89,46 @@ export default function SignIn() {
               <FormField
                 control={form.control}
                 name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="email"
-                        placeholder="Enter your email"
-                        className="fade-in-up"
-                        style={{ animationDelay: '0.1s' }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const fieldId = `email-${React.useId()}`
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor={fieldId}>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          id={fieldId}
+                          type="email"
+                          placeholder="Enter your email"
+                          autoComplete="email"
+                          className="fade-in-up"
+                          style={{ animationDelay: '0.1s' }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
               />
               <FormField
                 control={form.control}
                 name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="Enter your password"
-                          className="pr-10 fade-in-up"
-                          style={{ animationDelay: '0.2s' }}
-                        />
+                render={({ field }) => {
+                  const fieldId = `password-${React.useId()}`
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor={fieldId}>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            id={fieldId}
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Enter your password"
+                            autoComplete="current-password"
+                            className="pr-10 fade-in-up"
+                            style={{ animationDelay: '0.2s' }}
+                          />
                         <Button
                           type="button"
                           variant="ghost"
@@ -137,7 +146,8 @@ export default function SignIn() {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
+                  )
+                }}
               />
               <div className="flex items-center justify-between">
                 <Link

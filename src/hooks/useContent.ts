@@ -26,7 +26,7 @@ export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) 
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: [...queryKeys.content(siteId!), { filters, sort }],
+    queryKey: queryKeys.content.list(siteId!, filters),
     queryFn: () => getContent(supabase, siteId!, filters, sort),
     enabled: !!siteId,
     staleTime: 30 * 1000, // 30 seconds
@@ -38,7 +38,7 @@ export function useContentItem(contentId: string) {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: queryKeys.contentItem(siteId!, contentId),
+    queryKey: queryKeys.content.detail(siteId!, contentId),
     queryFn: () => getContentById(supabase, contentId),
     enabled: !!siteId && !!contentId,
   });
@@ -61,7 +61,7 @@ export function usePublishedContent(contentType?: 'page' | 'blog_post' | 'event'
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: [...queryKeys.content(siteId!), 'published', contentType],
+    queryKey: [...queryKeys.content.all(siteId!), 'published', contentType],
     queryFn: () => getPublishedContent(supabase, siteId!, contentType),
     enabled: !!siteId,
     staleTime: 60 * 1000, // 1 minute for published content
@@ -73,7 +73,7 @@ export function useSearchContent(searchQuery: string) {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: [...queryKeys.content(siteId!), 'search', searchQuery],
+    queryKey: [...queryKeys.content.all(siteId!), 'search', searchQuery],
     queryFn: () => searchContent(supabase, siteId!, searchQuery),
     enabled: !!siteId && searchQuery.length > 2,
     staleTime: 10 * 1000,
@@ -85,7 +85,7 @@ export function useContentStats() {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: [...queryKeys.content(siteId!), 'stats'],
+    queryKey: [...queryKeys.content.all(siteId!), 'stats'],
     queryFn: () => getContentStats(supabase, siteId!),
     enabled: !!siteId,
     staleTime: 60 * 1000,
@@ -102,13 +102,13 @@ export function useCreateContent() {
       createContent(supabase, { ...data, site_id: siteId! }),
     onMutate: async (newContent) => {
       // Cancel in-flight queries
-      await queryClient.cancelQueries({ queryKey: queryKeys.content(siteId!) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.content.all(siteId!) });
       
       // Snapshot previous value
-      const previousContent = queryClient.getQueryData(queryKeys.content(siteId!));
+      const previousContent = queryClient.getQueryData(queryKeys.content.all(siteId!));
       
       // Optimistically update
-      queryClient.setQueryData(queryKeys.content(siteId!), (old: Content[] = []) => [
+      queryClient.setQueryData(queryKeys.content.all(siteId!), (old: Content[] = []) => [
         {
           ...newContent,
           id: crypto.randomUUID(),
@@ -126,7 +126,7 @@ export function useCreateContent() {
     onError: (err, newContent, context) => {
       // Revert on error
       if (context?.previousContent) {
-        queryClient.setQueryData(queryKeys.content(siteId!), context.previousContent);
+        queryClient.setQueryData(queryKeys.content.all(siteId!), context.previousContent);
       }
       toast.error('Failed to create content');
     },
@@ -135,7 +135,7 @@ export function useCreateContent() {
     },
     onSettled: () => {
       // Always refetch after mutation
-      queryClient.invalidateQueries({ queryKey: queryKeys.content(siteId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.content.all(siteId!) });
     },
   });
 }
@@ -149,11 +149,11 @@ export function useUpdateContent() {
     mutationFn: ({ id, ...data }: UpdateContent & { id: string }) => 
       updateContent(supabase, id, data),
     onMutate: async ({ id, ...updates }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.contentItem(siteId!, id) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.content.detail(siteId!, id) });
       
-      const previousContent = queryClient.getQueryData(queryKeys.contentItem(siteId!, id));
+      const previousContent = queryClient.getQueryData(queryKeys.content.detail(siteId!, id));
       
-      queryClient.setQueryData(queryKeys.contentItem(siteId!, id), (old: Content) => ({
+      queryClient.setQueryData(queryKeys.content.detail(siteId!, id), (old: Content) => ({
         ...old,
         ...updates,
         updated_at: new Date().toISOString(),
@@ -164,7 +164,7 @@ export function useUpdateContent() {
     onError: (err, variables, context) => {
       if (context?.previousContent) {
         queryClient.setQueryData(
-          queryKeys.contentItem(siteId!, variables.id), 
+          queryKeys.content.detail(siteId!, variables.id), 
           context.previousContent
         );
       }
@@ -174,8 +174,8 @@ export function useUpdateContent() {
       toast.success('Content updated successfully');
     },
     onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.content(siteId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.contentItem(siteId!, variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.content.all(siteId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.content.detail(siteId!, variables.id) });
     },
   });
 }
@@ -188,11 +188,11 @@ export function useDeleteContent() {
   return useMutation({
     mutationFn: (id: string) => deleteContent(supabase, id),
     onMutate: async (contentId) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.content(siteId!) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.content.all(siteId!) });
       
-      const previousContent = queryClient.getQueryData(queryKeys.content(siteId!));
+      const previousContent = queryClient.getQueryData(queryKeys.content.all(siteId!));
       
-      queryClient.setQueryData(queryKeys.content(siteId!), (old: Content[] = []) => 
+      queryClient.setQueryData(queryKeys.content.all(siteId!), (old: Content[] = []) => 
         old.filter(content => content.id !== contentId)
       );
       
@@ -200,7 +200,7 @@ export function useDeleteContent() {
     },
     onError: (err, contentId, context) => {
       if (context?.previousContent) {
-        queryClient.setQueryData(queryKeys.content(siteId!), context.previousContent);
+        queryClient.setQueryData(queryKeys.content.all(siteId!), context.previousContent);
       }
       toast.error('Failed to delete content');
     },
@@ -208,7 +208,7 @@ export function useDeleteContent() {
       toast.success('Content deleted successfully');
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.content(siteId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.content.all(siteId!) });
     },
   });
 }
@@ -233,14 +233,14 @@ export function useContentRealtime() {
         },
         (payload) => {
           // Invalidate queries when data changes
-          queryClient.invalidateQueries({ queryKey: queryKeys.content(siteId) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.content.all(siteId) });
           
           // Handle specific events if needed
           if (payload.eventType === 'INSERT') {
             toast.info('New content added');
           } else if (payload.eventType === 'UPDATE') {
             queryClient.invalidateQueries({ 
-              queryKey: queryKeys.contentItem(siteId, payload.new.id) 
+              queryKey: queryKeys.content.detail(siteId, payload.new.id) 
             });
           }
         }

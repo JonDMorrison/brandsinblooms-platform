@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -93,36 +93,46 @@ export default function ResetPasswordClient() {
                 <FormField
                   control={newPasswordForm.control}
                   name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>New Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder="Enter new password"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const fieldId = `new-password-${React.useId()}`
+                    return (
+                      <FormItem>
+                        <FormLabel htmlFor={fieldId}>New Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            id={fieldId}
+                            type="password"
+                            placeholder="Enter new password"
+                            autoComplete="new-password"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )
+                  }}
                 />
                 <FormField
                   control={newPasswordForm.control}
                   name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder="Confirm new password"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const fieldId = `confirm-password-${React.useId()}`
+                    return (
+                      <FormItem>
+                        <FormLabel htmlFor={fieldId}>Confirm Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            id={fieldId}
+                            type="password"
+                            placeholder="Confirm new password"
+                            autoComplete="new-password"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )
+                  }}
                 />
                 <Button
                   type="submit"
@@ -188,19 +198,24 @@ export default function ResetPasswordClient() {
                 <FormField
                   control={resetForm.control}
                   name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="email"
-                          placeholder="Enter your email"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const fieldId = `email-${React.useId()}`
+                    return (
+                      <FormItem>
+                        <FormLabel htmlFor={fieldId}>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            id={fieldId}
+                            type="email"
+                            placeholder="Enter your email"
+                            autoComplete="email"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )
+                  }}
                 />
                 <Button
                   type="submit"

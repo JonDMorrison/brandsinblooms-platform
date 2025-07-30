@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -87,37 +87,46 @@ export default function SignUp() {
               <FormField
                 control={form.control}
                 name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="email"
-                        placeholder="Enter your email"
-                        className="fade-in-up"
-                        style={{ animationDelay: '0.1s' }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const fieldId = `email-${React.useId()}`
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor={fieldId}>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          id={fieldId}
+                          type="email"
+                          placeholder="Enter your email"
+                          autoComplete="email"
+                          className="fade-in-up"
+                          style={{ animationDelay: '0.1s' }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
               />
               <FormField
                 control={form.control}
                 name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="Create a password"
-                          className="pr-10 fade-in-up"
-                          style={{ animationDelay: '0.2s' }}
-                        />
+                render={({ field }) => {
+                  const fieldId = `password-${React.useId()}`
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor={fieldId}>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            id={fieldId}
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Create a password"
+                            autoComplete="new-password"
+                            className="pr-10 fade-in-up"
+                            style={{ animationDelay: '0.2s' }}
+                          />
                         <Button
                           type="button"
                           variant="ghost"
@@ -160,23 +169,28 @@ export default function SignUp() {
                     )}
                     <FormMessage />
                   </FormItem>
-                )}
+                  )
+                }}
               />
               <FormField
                 control={form.control}
                 name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          placeholder="Confirm your password"
-                          className="pr-10 fade-in-up"
-                          style={{ animationDelay: '0.3s' }}
-                        />
+                render={({ field }) => {
+                  const fieldId = `confirm-password-${React.useId()}`
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor={fieldId}>Confirm Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            id={fieldId}
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            placeholder="Confirm your password"
+                            autoComplete="new-password"
+                            className="pr-10 fade-in-up"
+                            style={{ animationDelay: '0.3s' }}
+                          />
                         <Button
                           type="button"
                           variant="ghost"
@@ -194,21 +208,26 @@ export default function SignUp() {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
+                  )
+                }}
               />
               <FormField
                 control={form.control}
                 name="acceptTerms"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>
+                render={({ field }) => {
+                  const fieldId = `accept-terms-${React.useId()}`
+                  return (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          {...field}
+                          id={fieldId}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel htmlFor={fieldId}>
                         I agree to the{' '}
                         <Link href="/terms" className="text-primary hover:underline">
                           Terms of Service
@@ -221,7 +240,8 @@ export default function SignUp() {
                       <FormMessage />
                     </div>
                   </FormItem>
-                )}
+                  )
+                }}
               />
               <Button
                 type="submit"
