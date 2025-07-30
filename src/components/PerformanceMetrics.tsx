@@ -1,7 +1,13 @@
+'use client'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { TrendingUp, TrendingDown, Minus, AlertCircle } from 'lucide-react'
+import { useSiteMetrics, useMetricsHistory } from '@/hooks/useSiteMetrics'
+import { useMemo } from 'react'
 
 interface MetricItem {
   id: string
@@ -16,57 +22,22 @@ interface MetricItem {
   status: 'excellent' | 'good' | 'average' | 'poor'
 }
 
-const mockMetrics: MetricItem[] = [
-  {
-    id: '1',
-    name: 'Site Performance',
-    value: 87,
-    maxValue: 100,
-    change: { value: 5, type: 'increase', period: 'vs last week' },
-    status: 'good'
-  },
-  {
-    id: '2',
-    name: 'Page Load Speed',
-    value: 92,
-    maxValue: 100,
-    change: { value: 3, type: 'increase', period: 'vs last week' },
-    status: 'excellent'
-  },
-  {
-    id: '3',
-    name: 'SEO Score',
-    value: 78,
-    maxValue: 100,
-    change: { value: 2, type: 'decrease', period: 'vs last week' },
-    status: 'good'
-  },
-  {
-    id: '4',
-    name: 'Mobile Optimization',
-    value: 85,
-    maxValue: 100,
-    change: { value: 0, type: 'neutral', period: 'vs last week' },
-    status: 'good'
-  },
-  {
-    id: '5',
-    name: 'Security Score',
-    value: 95,
-    maxValue: 100,
-    change: { value: 1, type: 'increase', period: 'vs last week' },
-    status: 'excellent'
-  },
-  {
-    id: '6',
-    name: 'Accessibility',
-    value: 72,
-    maxValue: 100,
-    change: { value: 8, type: 'increase', period: 'vs last week' },
-    status: 'average'
-  }
+const metricConfig = [
+  { key: 'performance_score', name: 'Site Performance', maxValue: 100 },
+  { key: 'page_speed_score', name: 'Page Load Speed', maxValue: 100 },
+  { key: 'seo_score', name: 'SEO Score', maxValue: 100 },
+  { key: 'mobile_score', name: 'Mobile Optimization', maxValue: 100 },
+  { key: 'security_score', name: 'Security Score', maxValue: 100 },
+  { key: 'accessibility_score', name: 'Accessibility', maxValue: 100 }
 ]
 
+
+const getMetricStatus = (value: number): MetricItem['status'] => {
+  if (value >= 90) return 'excellent'
+  if (value >= 70) return 'good'
+  if (value >= 50) return 'average'
+  return 'poor'
+}
 
 const getStatusColor = (status: MetricItem['status']) => {
   switch (status) {
@@ -99,6 +70,111 @@ const getTrendIcon = (type: MetricItem['change']['type']) => {
 }
 
 export function PerformanceMetrics() {
+  const { data: currentMetrics, isLoading: isLoadingCurrent, error: currentError } = useSiteMetrics()
+  const { data: history, isLoading: isLoadingHistory } = useMetricsHistory(7) // Last 7 days
+  
+  // Calculate metric changes from history
+  const metrics = useMemo(() => {
+    if (!currentMetrics) return []
+    
+    return metricConfig.map((config, index) => {
+      const currentValue = currentMetrics[config.key as keyof typeof currentMetrics] as number || 0
+      const status = getMetricStatus(currentValue)
+      
+      // Calculate change from last week
+      let change: MetricItem['change'] = {
+        value: 0,
+        type: 'neutral',
+        period: 'vs last week'
+      }
+      
+      if (history && history.length > 0) {
+        const lastWeekMetrics = history[history.length - 1]
+        const lastWeekValue = lastWeekMetrics?.metrics?.[config.key as keyof typeof lastWeekMetrics.metrics] as number || 0
+        
+        if (lastWeekValue > 0) {
+          const changeValue = currentValue - lastWeekValue
+          change = {
+            value: Math.abs(changeValue),
+            type: changeValue > 0 ? 'increase' : changeValue < 0 ? 'decrease' : 'neutral',
+            period: 'vs last week'
+          }
+        }
+      }
+      
+      return {
+        id: String(index + 1),
+        name: config.name,
+        value: currentValue,
+        maxValue: config.maxValue,
+        change,
+        status
+      }
+    })
+  }, [currentMetrics, history])
+  
+  if (isLoadingCurrent) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Site Performance Metrics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Skeleton className="h-2 flex-1" />
+                  <Skeleton className="h-4 w-12" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+  
+  if (currentError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Site Performance Metrics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load performance metrics. Please try again.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    )
+  }
+  
+  if (!currentMetrics || metrics.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Site Performance Metrics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No metrics available yet</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Metrics will be collected automatically as your site receives traffic
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+  
   return (
     <Card>
       <CardHeader>
@@ -106,7 +182,7 @@ export function PerformanceMetrics() {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {mockMetrics.map((metric) => (
+          {metrics.map((metric) => (
             <div key={metric.id} className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -118,14 +194,12 @@ export function PerformanceMetrics() {
                 <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                   {getTrendIcon(metric.change.type)}
                   <span>
-                    {metric.change.value > 0 && metric.change.type !== 'neutral' && (
-                      metric.change.type === 'increase' ? '+' : '-'
-                    )}
-                    {metric.change.value > 0 && metric.change.value}
-                    {metric.change.value > 0 && metric.change.type !== 'neutral' && '%'}
+                    {metric.change.type === 'increase' && '+'}
+                    {metric.change.type === 'decrease' && '-'}
+                    {metric.change.value > 0 && `${metric.change.value}%`}
                     {metric.change.value === 0 && 'No change'}
                   </span>
-                  <span>{metric.change.period}</span>
+                  <span className="text-muted-foreground">{metric.change.period}</span>
                 </div>
               </div>
               <div className="flex items-center space-x-3">

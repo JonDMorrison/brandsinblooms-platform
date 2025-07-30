@@ -10,7 +10,7 @@ import {
   getFileUrl,
   getMediaStats
 } from '@/lib/queries/domains/media';
-import { useSiteId } from './useSite';
+import { useSiteId } from '@/contexts/SiteContext';
 import { supabase } from '@/lib/supabase/client';
 
 // Get all media files

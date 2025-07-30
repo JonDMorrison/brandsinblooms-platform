@@ -219,8 +219,14 @@ export default function DesignPage() {
               <TabsContent value="logo" className="space-y-6">
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <LogoCustomization
-                    logo={designState.logo}
-                    onLogoChange={(logo) => updateDesignState('logo', logo)}
+                    logo={{
+                      url: designState.branding.logoUrl || null,
+                      position: 'left',
+                      size: 'medium'
+                    }}
+                    onLogoChange={(logo) => updateDesignState('branding', { 
+                      logoUrl: logo.url || undefined 
+                    })}
                   />
                 </Suspense>
               </TabsContent>
@@ -241,7 +247,7 @@ export default function DesignPage() {
                     layout={designState.layout}
                     onLayoutChange={(layout) => updateDesignState('layout', layout)}
                     section="all"
-                />
+                  />
                 </Suspense>
               </TabsContent>
             </div>

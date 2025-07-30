@@ -7,8 +7,8 @@
 -- =====================================================
 
 -- First, update the existing profiles table to align with new schema
--- Add user_type column to existing profiles table
-ALTER TABLE public.profiles ADD COLUMN user_type VARCHAR(20);
+-- Add user_type column to existing profiles table (if not exists)
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS user_type VARCHAR(20);
 
 -- Update existing profiles to have site_owner type (since they're managing sites)
 UPDATE public.profiles SET user_type = 'site_owner' WHERE user_type IS NULL;

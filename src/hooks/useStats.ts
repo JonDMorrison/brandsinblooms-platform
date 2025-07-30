@@ -10,7 +10,7 @@ import {
   getProductAnalytics,
   getCustomerAnalytics
 } from '@/lib/queries/domains/sites';
-import { useSiteId } from './useSite';
+import { useSiteId } from '@/contexts/SiteContext';
 import { supabase } from '@/lib/supabase/client';
 
 // Main dashboard metrics

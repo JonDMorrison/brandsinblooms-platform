@@ -13,7 +13,7 @@ import {
   removeTagFromResource,
   getResourceTags
 } from '@/lib/queries/domains/tags';
-import { useSiteId } from './useSite';
+import { useSiteId } from '@/contexts/SiteContext';
 import { Tag, InsertTag, UpdateTag } from '@/lib/database/types';
 import { supabase } from '@/lib/supabase/client';
 

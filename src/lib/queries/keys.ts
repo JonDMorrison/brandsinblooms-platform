@@ -145,6 +145,78 @@ export const queryKeys = {
     detail: (siteId: string, id: string) => 
       [...queryKeys.imports.all(siteId), 'detail', id] as const,
   },
+  
+  // Order queries
+  orders: {
+    all: (siteId: string) => [...queryKeys.all, 'orders', siteId] as const,
+    lists: (siteId: string) => [...queryKeys.orders.all(siteId), 'list'] as const,
+    list: (siteId: string, filters?: {
+      status?: 'processing' | 'shipped' | 'delivered' | 'cancelled';
+      customerId?: string;
+      search?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      page?: number;
+      limit?: number;
+      cursor?: string;
+    }) => [...queryKeys.orders.lists(siteId), filters] as const,
+    details: (siteId: string) => [...queryKeys.orders.all(siteId), 'detail'] as const,
+    detail: (siteId: string, id: string) => 
+      [...queryKeys.orders.details(siteId), id] as const,
+    stats: (siteId: string) => [...queryKeys.orders.all(siteId), 'stats'] as const,
+    customerOrders: (siteId: string, customerId: string) => 
+      [...queryKeys.orders.all(siteId), 'customer', customerId] as const,
+  },
+  
+  // Customer queries
+  customers: {
+    all: (siteId: string) => [...queryKeys.all, 'customers', siteId] as const,
+    lists: (siteId: string) => [...queryKeys.customers.all(siteId), 'list'] as const,
+    list: (siteId: string, filters?: {
+      status?: 'active' | 'inactive';
+      search?: string;
+      sortBy?: 'name' | 'orders' | 'spent' | 'lastOrder';
+      page?: number;
+      limit?: number;
+    }) => [...queryKeys.customers.lists(siteId), filters] as const,
+    details: (siteId: string) => [...queryKeys.customers.all(siteId), 'detail'] as const,
+    detail: (siteId: string, id: string) => 
+      [...queryKeys.customers.details(siteId), id] as const,
+    stats: (siteId: string) => [...queryKeys.customers.all(siteId), 'stats'] as const,
+  },
+  
+  // Activity feed queries
+  activity: {
+    all: (siteId: string) => [...queryKeys.all, 'activity', siteId] as const,
+    lists: (siteId: string) => [...queryKeys.activity.all(siteId), 'list'] as const,
+    list: (siteId: string, filters?: {
+      type?: string;
+      entityType?: string;
+      userId?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      cursor?: string;
+      limit?: number;
+    }) => [...queryKeys.activity.lists(siteId), filters] as const,
+    byEntity: (siteId: string, entityType: string, entityId: string) => 
+      [...queryKeys.activity.all(siteId), 'entity', entityType, entityId] as const,
+  },
+  
+  // Metrics queries
+  metrics: {
+    all: (siteId: string) => [...queryKeys.all, 'metrics', siteId] as const,
+    current: (siteId: string) => [...queryKeys.metrics.all(siteId), 'current'] as const,
+    history: (siteId: string, days?: number) => 
+      [...queryKeys.metrics.all(siteId), 'history', days] as const,
+    byDate: (siteId: string, date: string) => 
+      [...queryKeys.metrics.all(siteId), 'date', date] as const,
+  },
+  
+  // Theme queries
+  theme: {
+    all: (siteId: string) => [...queryKeys.all, 'theme', siteId] as const,
+    settings: (siteId: string) => [...queryKeys.theme.all(siteId), 'settings'] as const,
+  },
 } as const;
 
 // Type exports for use in components

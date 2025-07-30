@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   full_name TEXT,
   avatar_url TEXT,
   bio TEXT,
+  email TEXT,
+  phone TEXT,
+  user_type TEXT DEFAULT 'customer' CHECK (user_type IN ('customer', 'staff', 'admin')),
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL

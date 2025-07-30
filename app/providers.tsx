@@ -54,10 +54,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
               toastOptions={{
                 duration: 4000,
                 style: {
-                  background: 'var(--background)',
-                  color: 'var(--foreground)',
-                  border: '1px solid var(--border)',
+                  background: 'hsl(var(--background))',
+                  color: 'hsl(var(--foreground))',
+                  border: '1px solid hsl(var(--border))',
+                  opacity: 1,
+                  backgroundColor: 'hsl(var(--background))',
+                  backdropFilter: 'none',
                 },
+                className: 'toast-solid',
               }}
             />
           </ThemeProvider>

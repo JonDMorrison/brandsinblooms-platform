@@ -18,7 +18,7 @@ import {
   ContentFilters,
   ContentSortOptions
 } from '@/lib/queries/domains/content';
-import { useSiteId } from './useSite';
+import { useSiteId } from '@/contexts/SiteContext';
 import { Content, InsertContent, UpdateContent } from '@/lib/database/types';
 
 // Main content query hook

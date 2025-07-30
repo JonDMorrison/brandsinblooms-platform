@@ -343,6 +343,26 @@ export default function OrdersPage() {
                   </TableBody>
                 </Table>
               </div>
+              
+              {/* Load More Button */}
+              {hasNextPage && (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                  >
+                    {isFetchingNextPage ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      'Load More'
+                    )}
+                  </Button>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="customers" className="space-y-4">

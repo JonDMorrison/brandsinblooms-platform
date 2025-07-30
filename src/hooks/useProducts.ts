@@ -18,7 +18,7 @@ import {
   ProductFilters,
   ProductSortOptions
 } from '@/lib/queries/domains/products';
-import { useSiteId } from './useSite';
+import { useSiteId } from '@/contexts/SiteContext';
 import { Product, InsertProduct, UpdateProduct } from '@/lib/database/types';
 
 // Main products query hook

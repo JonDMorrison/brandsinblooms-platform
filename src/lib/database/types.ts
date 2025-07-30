@@ -18,9 +18,9 @@ export type Database = {
       graphql: {
         Args: {
           operationName?: string
-          extensions?: Json
-          variables?: Json
           query?: string
+          variables?: Json
+          extensions?: Json
         }
         Returns: Json
       }
@@ -34,6 +34,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json | null
+          site_id: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          site_id: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          site_id?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_inquiries: {
         Row: {
           created_at: string
@@ -263,6 +310,125 @@ export type Database = {
           },
         ]
       }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          product_id: string | null
+          product_name: string
+          product_sku: string | null
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          product_id?: string | null
+          product_name: string
+          product_sku?: string | null
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          product_id?: string | null
+          product_name?: string
+          product_sku?: string | null
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          billing_address: Json | null
+          cancelled_at: string | null
+          created_at: string
+          customer_email: string
+          customer_id: string
+          customer_name: string
+          delivered_at: string | null
+          id: string
+          items_count: number
+          notes: string | null
+          order_number: string
+          shipped_at: string | null
+          shipping_address: Json | null
+          site_id: string
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          billing_address?: Json | null
+          cancelled_at?: string | null
+          created_at?: string
+          customer_email: string
+          customer_id: string
+          customer_name: string
+          delivered_at?: string | null
+          id?: string
+          items_count?: number
+          notes?: string | null
+          order_number: string
+          shipped_at?: string | null
+          shipping_address?: Json | null
+          site_id: string
+          status?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          billing_address?: Json | null
+          cancelled_at?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_id?: string
+          customer_name?: string
+          delivered_at?: string | null
+          id?: string
+          items_count?: number
+          notes?: string | null
+          order_number?: string
+          shipped_at?: string | null
+          shipping_address?: Json | null
+          site_id?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           attributes: Json | null
@@ -354,8 +520,10 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          email: string | null
           full_name: string | null
           id: string
+          phone: string | null
           role: string | null
           updated_at: string
           user_id: string
@@ -366,20 +534,24 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
+          phone?: string | null
           role?: string | null
           updated_at?: string
           user_id: string
-          user_type: string
+          user_type?: string
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
+          phone?: string | null
           role?: string | null
           updated_at?: string
           user_id?: string
@@ -423,6 +595,38 @@ export type Database = {
           },
         ]
       }
+      site_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metric_date: string
+          metrics: Json
+          site_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_date?: string
+          metrics?: Json
+          site_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_date?: string
+          metrics?: Json
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_metrics_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sites: {
         Row: {
           business_address: string | null
@@ -442,6 +646,7 @@ export type Database = {
           name: string
           primary_color: string | null
           subdomain: string
+          theme_settings: Json | null
           timezone: string | null
           updated_at: string
         }
@@ -463,6 +668,7 @@ export type Database = {
           name: string
           primary_color?: string | null
           subdomain: string
+          theme_settings?: Json | null
           timezone?: string | null
           updated_at?: string
         }
@@ -484,6 +690,7 @@ export type Database = {
           name?: string
           primary_color?: string | null
           subdomain?: string
+          theme_settings?: Json | null
           timezone?: string | null
           updated_at?: string
         }
@@ -558,10 +765,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      customer_stats: {
+        Row: {
+          avatar_url: string | null
+          email: string | null
+          id: string | null
+          last_order_date: string | null
+          name: string | null
+          orders_count: number | null
+          status: string | null
+          total_spent: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      calculate_metric_trend: {
+        Args: { previous_value: number; current_value: number }
+        Returns: string
+      }
+      generate_order_number: {
+        Args: { site_prefix?: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

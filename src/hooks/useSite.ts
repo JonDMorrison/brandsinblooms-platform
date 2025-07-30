@@ -8,7 +8,7 @@ export { useSite, useSiteId, useSitePermission } from '@/contexts/SiteContext';
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queries/keys';
 import { getSiteStatistics } from '@/lib/queries/domains/sites';
-import { useSiteId } from '@/contexts/SiteContext';
+import { useSite, useSiteId } from '@/contexts/SiteContext';
 
 // Hook to get site statistics
 export function useSiteStatistics() {
