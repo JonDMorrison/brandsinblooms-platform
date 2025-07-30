@@ -2,7 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Calendar, Eye, MoreHorizontal, Edit, Trash2, User } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -47,7 +47,7 @@ const getTypeIcon = (type: ContentItem['type']) => {
 
 // Actions cell component to handle navigation
 function ActionsCell({ row }: { row: any }) {
-  const navigate = useNavigate()
+  const router = useRouter()
 
   return (
     <DropdownMenu>
@@ -63,7 +63,7 @@ function ActionsCell({ row }: { row: any }) {
           View
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => navigate(`/dashboard/content/edit/${row.original.id}`)}
+          onClick={() => router.push(`/dashboard/content/edit/${row.original.id}`)}
         >
           <Edit className="mr-2 h-4 w-4" />
           Edit
