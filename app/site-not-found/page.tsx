@@ -118,7 +118,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
   const { hostname } = await searchParams
   
   return {
-    title: `Site Not Found${hostname ? ` - ${hostname}` : ''} - Brands and Blooms`,
+    title: `Site Not Found${hostname ? ` - ${hostname}` : ''} - Brands in Blooms`,
     description: 'The requested site could not be found.',
     robots: 'noindex, nofollow',
   }

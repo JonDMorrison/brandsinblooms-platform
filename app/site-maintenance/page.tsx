@@ -101,7 +101,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
   const { site } = await searchParams
   
   return {
-    title: `Site Maintenance${site ? ` - ${site}` : ''} - Brands and Blooms`,
+    title: `Site Maintenance${site ? ` - ${site}` : ''} - Brands in Blooms`,
     description: 'Site is currently under maintenance and temporarily unavailable.',
     robots: 'noindex, nofollow',
   }

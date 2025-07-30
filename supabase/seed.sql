@@ -1,5 +1,5 @@
 -- 
--- Seed data for Brands and Blooms platform
+-- Seed data for Brands in Blooms platform
 -- This file is used to populate the database with initial data for development
 --
 

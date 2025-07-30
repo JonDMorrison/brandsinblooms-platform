@@ -5,11 +5,11 @@ import { Site } from '../database/types'
  * Default metadata fallback values
  */
 const DEFAULT_METADATA = {
-  title: 'Brands and Blooms - Premium Floral Design Platform',
+  title: 'Brands in Blooms - Premium Floral Design Platform',
   description: 'Create stunning floral arrangements and manage your flower business with our comprehensive platform. Design, order, and track - all in one place.',
   keywords: ['floral design', 'flower arrangements', 'bouquet creator', 'flower business', 'florist platform'],
-  creator: 'Brands and Blooms',
-  publisher: 'Brands and Blooms',
+  creator: 'Brands in Blooms',
+  publisher: 'Brands in Blooms',
   twitter: '@brandsandblooms'
 }
 
@@ -24,10 +24,10 @@ export function generateSiteMetadata(hostname: string, site: Site | null): Metad
 
   // Generate site-specific metadata
   const siteTitle = site.name || site.subdomain
-  const siteDescription = site.description || `Welcome to ${siteTitle}, powered by Brands and Blooms platform.`
+  const siteDescription = site.description || `Welcome to ${siteTitle}, powered by Brands in Blooms platform.`
   
   const title = {
-    default: `${siteTitle} - Powered by Brands and Blooms`,
+    default: `${siteTitle} - Powered by Brands in Blooms`,
     template: `%s | ${siteTitle}`
   }
 
@@ -48,7 +48,7 @@ export function generateSiteMetadata(hostname: string, site: Site | null): Metad
     ],
     authors: [{ name: siteTitle }],
     creator: siteTitle,
-    publisher: 'Brands and Blooms',
+    publisher: 'Brands in Blooms',
     formatDetection: {
       email: false,
       address: false,
@@ -56,7 +56,7 @@ export function generateSiteMetadata(hostname: string, site: Site | null): Metad
     },
     metadataBase: new URL(baseUrl),
     openGraph: {
-      title: `${siteTitle} - Powered by Brands and Blooms`,
+      title: `${siteTitle} - Powered by Brands in Blooms`,
       description: siteDescription,
       url: '/',
       siteName: siteTitle,
@@ -65,7 +65,7 @@ export function generateSiteMetadata(hostname: string, site: Site | null): Metad
           url: site.logo_url || '/og-image.png',
           width: 1200,
           height: 630,
-          alt: `${siteTitle} - Powered by Brands and Blooms`,
+          alt: `${siteTitle} - Powered by Brands in Blooms`,
         }
       ],
       locale: 'en_US',
@@ -73,7 +73,7 @@ export function generateSiteMetadata(hostname: string, site: Site | null): Metad
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${siteTitle} - Powered by Brands and Blooms`,
+      title: `${siteTitle} - Powered by Brands in Blooms`,
       description: siteDescription,
       images: [site.logo_url || '/twitter-image.png'],
       creator: DEFAULT_METADATA.twitter,
@@ -122,7 +122,7 @@ function generateDefaultMetadata(hostname: string): Metadata {
   return {
     title: {
       default: DEFAULT_METADATA.title,
-      template: '%s | Brands and Blooms'
+      template: '%s | Brands in Blooms'
     },
     description: DEFAULT_METADATA.description,
     keywords: DEFAULT_METADATA.keywords,
@@ -203,7 +203,7 @@ export function generatePageMetadata(
 ): Partial<Metadata> {
   const pageTitle = site?.name 
     ? `${title} | ${site.name}` 
-    : `${title} | Brands and Blooms`
+    : `${title} | Brands in Blooms`
 
   return {
     title: pageTitle,

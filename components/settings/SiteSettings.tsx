@@ -39,13 +39,13 @@ export function SiteSettings() {
   const form = useForm<SiteFormData>({
     resolver: zodResolver(siteSchema),
     defaultValues: {
-      siteName: 'Brands and Blooms Platform',
+      siteName: 'Brands in Blooms Platform',
       siteDescription: 'AI-powered platform for creating beautiful websites and managing content.',
       domain: 'blooms.cc',
       subdomain: 'my-site',
       timezone: 'America/New_York',
       language: 'en',
-      metaTitle: 'Brands and Blooms - AI Website Builder',
+      metaTitle: 'Brands in Blooms - AI Website Builder',
       metaDescription: 'Create stunning websites with AI-powered tools and manage your content efficiently.',
       metaKeywords: 'website builder, AI, content management, brands, blooms',
       facebookUrl: '',

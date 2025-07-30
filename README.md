@@ -1,6 +1,6 @@
-# brands-and-blooms
+# brands-in-blooms
 
-Brands and Blooms platform - A modern e-commerce platform built with Next.js and Supabase.
+Brands in Blooms platform - A modern e-commerce platform built with Next.js and Supabase.
 
 ## Quick Start
 
@@ -25,7 +25,7 @@ Brands and Blooms platform - A modern e-commerce platform built with Next.js and
 2. **Clone and install dependencies**
    ```bash
    git clone <repository-url>
-   cd brands-and-blooms
+   cd brands-in-blooms
    pnpm install
    ```
 
@@ -155,7 +155,7 @@ pnpm deployment:rollback
 ## Project Structure
 
 ```
-brands-and-blooms/
+brands-in-blooms/
 ├── app/                 # Next.js App Router
 │   ├── (auth)/         # Authentication routes
 │   ├── (dashboard)/    # Dashboard routes

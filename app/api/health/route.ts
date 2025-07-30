@@ -4,6 +4,6 @@ export async function GET() {
   return NextResponse.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    service: 'brands-and-blooms',
+    service: 'brands-in-blooms',
   })
 }

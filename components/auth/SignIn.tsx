@@ -80,7 +80,7 @@ export default function SignIn() {
             Welcome Back
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Sign in to your Brands and Blooms account
+            Sign in to your Brands in Blooms account
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This plan outlines the implementation of domain-based site routing for the Brands and Blooms platform. The feature allows site owners to connect custom domains to their sites, enabling visitors to access site-specific content through their own domains (e.g., `mycoffeshop.com` or `bakery.blooms.cc`).
+This plan outlines the implementation of domain-based site routing for the Brands in Blooms platform. The feature allows site owners to connect custom domains to their sites, enabling visitors to access site-specific content through their own domains (e.g., `mycoffeshop.com` or `bakery.blooms.cc`).
 
 ## Current State Analysis
 

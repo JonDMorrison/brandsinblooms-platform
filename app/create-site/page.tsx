@@ -39,7 +39,7 @@ export default async function CreateSitePage({ searchParams }: PageProps) {
               Create Your Site
             </h1>
             <p className="text-gray-600">
-              Set up your new site on the Brands and Blooms platform
+              Set up your new site on the Brands in Blooms platform
             </p>
           </div>
 
@@ -170,7 +170,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
   const { subdomain } = await searchParams
   
   return {
-    title: `Create Site${subdomain ? ` - ${subdomain}` : ''} - Brands and Blooms`,
-    description: 'Create your new site on the Brands and Blooms platform with custom subdomain and full content management.',
+    title: `Create Site${subdomain ? ` - ${subdomain}` : ''} - Brands in Blooms`,
+    description: 'Create your new site on the Brands in Blooms platform with custom subdomain and full content management.',
   }
 }

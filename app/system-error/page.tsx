@@ -112,7 +112,7 @@ export default async function SystemErrorPage({ searchParams }: PageProps) {
 export async function generateMetadata({ searchParams }: PageProps) {
   await searchParams // Consume the promise
   return {
-    title: 'System Error - Brands and Blooms',
+    title: 'System Error - Brands in Blooms',
     description: 'We are experiencing temporary technical difficulties.',
     robots: 'noindex, nofollow',
   }

@@ -79,7 +79,7 @@ export default async function DomainErrorPage({ searchParams }: PageProps) {
 export async function generateMetadata({ searchParams }: PageProps) {
   await searchParams // Consume the promise
   return {
-    title: 'Domain Error - Brands and Blooms',
+    title: 'Domain Error - Brands in Blooms',
     description: 'The requested domain format is invalid.',
     robots: 'noindex, nofollow',
   }

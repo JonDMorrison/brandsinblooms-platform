@@ -67,7 +67,7 @@ export default async function DomainSetupPage({ searchParams }: PageProps) {
                 </h2>
               </div>
               <p className="text-gray-600 mb-4">
-                You need a Brands and Blooms account to connect a custom domain.
+                You need a Brands in Blooms account to connect a custom domain.
               </p>
               <div className="space-x-3">
                 <Link
@@ -239,7 +239,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
   const { domain } = await searchParams
   
   return {
-    title: `Domain Setup${domain ? ` - ${domain}` : ''} - Brands and Blooms`,
-    description: 'Learn how to connect your custom domain to your Brands and Blooms site with step-by-step DNS configuration instructions.',
+    title: `Domain Setup${domain ? ` - ${domain}` : ''} - Brands in Blooms`,
+    description: 'Learn how to connect your custom domain to your Brands in Blooms site with step-by-step DNS configuration instructions.',
   }
 }
