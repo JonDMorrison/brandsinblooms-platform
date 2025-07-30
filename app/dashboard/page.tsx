@@ -12,9 +12,13 @@ import {
   Plus, 
   Palette,
   TrendingUp,
-  ArrowUpRight
+  ArrowUpRight,
+  Loader2
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSite } from '@/hooks/useSite'
+import { useDashboardMetrics, useSiteStats } from '@/hooks/useStats'
+import { Skeleton } from '@/components/ui/skeleton'
 
 // Dynamic imports for heavy components
 const DashboardChart = dynamic(
@@ -83,41 +87,6 @@ interface DashboardStat {
   color: string
 }
 
-const dashboardStats: DashboardStat[] = [
-  {
-    id: '1',
-    title: 'Pages',
-    count: 12,
-    trend: '+2 this week',
-    icon: <FileText className="h-6 w-6" />,
-    color: 'text-blue-600'
-  },
-  {
-    id: '2',
-    title: 'Products',
-    count: 45,
-    trend: '+5 this month',
-    icon: <Package className="h-6 w-6" />,
-    color: 'text-green-600'
-  },
-  {
-    id: '3',
-    title: 'Orders',
-    count: 23,
-    trend: '+12 today',
-    icon: <ShoppingCart className="h-6 w-6" />,
-    color: 'text-purple-600'
-  },
-  {
-    id: '4',
-    title: 'Site Views',
-    count: 1247,
-    trend: '+15% this week',
-    icon: <Eye className="h-6 w-6" />,
-    color: 'text-orange-600'
-  }
-]
-
 interface QuickAction {
   id: string
   title: string
@@ -157,6 +126,47 @@ const quickActions: QuickAction[] = [
 export default function DashboardPage() {
   const { user } = useAuth()
   const router = useRouter()
+  const { currentSite } = useSite()
+  const { data: siteStats, isLoading: statsLoading } = useSiteStats()
+  const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics()
+
+  // Build dashboard stats from real data
+  const dashboardStats: DashboardStat[] = [
+    {
+      id: '1',
+      title: 'Content',
+      count: siteStats?.totalContent || 0,
+      trend: `${metrics?.contentGrowth || 0}% this week`,
+      icon: <FileText className="h-6 w-6" />,
+      color: 'text-blue-600'
+    },
+    {
+      id: '2',
+      title: 'Products',
+      count: siteStats?.totalProducts || 0,
+      trend: `${metrics?.productGrowth || 0}% this month`,
+      icon: <Package className="h-6 w-6" />,
+      color: 'text-green-600'
+    },
+    {
+      id: '3',
+      title: 'Orders',
+      count: metrics?.totalOrders || 0,
+      trend: `+${metrics?.newOrdersToday || 0} today`,
+      icon: <ShoppingCart className="h-6 w-6" />,
+      color: 'text-purple-600'
+    },
+    {
+      id: '4',
+      title: 'Site Views',
+      count: metrics?.totalViews || 0,
+      trend: `${metrics?.viewsGrowth || 0}% this week`,
+      icon: <Eye className="h-6 w-6" />,
+      color: 'text-orange-600'
+    }
+  ]
+
+  const isLoading = statsLoading || metricsLoading
 
   return (
     <div className="space-y-8">
@@ -164,31 +174,47 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Welcome back, {user?.email?.split('@')[0]}! Here's what's happening with your site.
+          Welcome back, {user?.email?.split('@')[0]}! Here's what's happening with {currentSite?.business_name || 'your site'}.
         </p>
       </div>
 
       {/* Statistics Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {dashboardStats.map((stat) => (
-          <Card key={stat.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <div className={stat.color}>
-                {stat.icon}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.count.toLocaleString()}</div>
-              <div className="flex items-center text-xs text-muted-foreground">
-                <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-                {stat.trend}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {isLoading ? (
+          // Loading skeletons
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-6 w-6 rounded" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-[60px] mb-2" />
+                <Skeleton className="h-3 w-[80px]" />
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          dashboardStats.map((stat) => (
+            <Card key={stat.id}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {stat.title}
+                </CardTitle>
+                <div className={stat.color}>
+                  {stat.icon}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.count.toLocaleString()}</div>
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
+                  {stat.trend}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       {/* Quick Actions */}

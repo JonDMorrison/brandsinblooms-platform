@@ -16,14 +16,18 @@ import {
   Package,
   ShoppingCart,
   DollarSign,
-  Star
+  Star,
+  Loader2
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useProducts, useProductCategories } from '@/hooks/useProducts'
+import { useRouter } from 'next/navigation'
+import { Skeleton } from '@/components/ui/skeleton'
 
 // Lazy load the ProductCard component
 const ProductCard = lazy(() => import('@/components/ProductCard').then(module => ({ default: module.ProductCard })))
 
-interface Product {
+interface ProductDisplay {
   id: string
   name: string
   description: string
@@ -38,103 +42,54 @@ interface Product {
   addedToSite: boolean
 }
 
-// Mock product data
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Premium Rose Bouquet',
-    description: 'Beautiful arrangement of 12 premium red roses with eucalyptus and baby\'s breath',
-    price: 89.99,
-    originalPrice: 99.99,
-    rating: 4.8,
-    reviews: 124,
-    category: 'Bouquets',
-    stock: 'in-stock',
-    image: '/images/roses.jpg',
-    featured: true,
-    addedToSite: true
-  },
-  {
-    id: '2',
-    name: 'Seasonal Wildflower Mix',
-    description: 'Fresh mix of seasonal wildflowers perfect for any occasion',
-    price: 65.00,
-    rating: 4.6,
-    reviews: 89,
-    category: 'Seasonal',
-    stock: 'in-stock',
-    image: '/images/wildflowers.jpg',
-    featured: false,
-    addedToSite: false
-  },
-  {
-    id: '3',
-    name: 'Elegant Lily Arrangement',
-    description: 'Sophisticated arrangement featuring white lilies and greenery',
-    price: 75.50,
-    originalPrice: 85.00,
-    rating: 4.9,
-    reviews: 156,
-    category: 'Arrangements',
-    stock: 'low-stock',
-    image: '/images/lilies.jpg',
-    featured: true,
-    addedToSite: true
-  },
-  {
-    id: '4',
-    name: 'Sunflower Celebration',
-    description: 'Bright and cheerful sunflower bouquet with complementary flowers',
-    price: 55.00,
-    rating: 4.5,
-    reviews: 67,
-    category: 'Bouquets',
-    stock: 'in-stock',
-    image: '/images/sunflowers.jpg',
-    featured: false,
-    addedToSite: false
-  },
-  {
-    id: '5',
-    name: 'Wedding Centerpiece',
-    description: 'Elegant centerpiece arrangement perfect for weddings and special events',
-    price: 120.00,
-    rating: 4.7,
-    reviews: 45,
-    category: 'Wedding',
-    stock: 'out-of-stock',
-    image: '/images/centerpiece.jpg',
-    featured: false,
-    addedToSite: false
-  },
-  {
-    id: '6',
-    name: 'Spring Garden Mix',
-    description: 'Fresh spring flowers including tulips, daffodils, and hyacinths',
-    price: 45.00,
-    rating: 4.4,
-    reviews: 78,
-    category: 'Seasonal',
-    stock: 'in-stock',
-    image: '/images/spring.jpg',
-    featured: false,
-    addedToSite: true
-  }
-]
-
-const categories = ['All', 'Bouquets', 'Arrangements', 'Seasonal', 'Wedding']
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(mockProducts)
+  const router = useRouter()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [activeTab, setActiveTab] = useState('catalogue')
+  
+  // Fetch real product data
+  const { data: productsResponse, isLoading } = useProducts()
+  const { data: categoriesData = [] } = useProductCategories()
+  
+  // Extract products array from response
+  const products = Array.isArray(productsResponse) ? productsResponse : productsResponse?.data || []
+  
+  // Transform products to display format
+  const displayProducts: ProductDisplay[] = useMemo(() => {
+    if (!products || !Array.isArray(products)) return []
+    
+    return products.map(product => ({
+      id: product.id,
+      name: product.name,
+      description: product.description || '',
+      price: product.price,
+      originalPrice: product.compare_at_price || undefined,
+      rating: 4.5, // TODO: Implement ratings system
+      reviews: 0, // TODO: Implement reviews system
+      category: product.category || 'Uncategorized',
+      stock: product.inventory_count === 0 ? 'out-of-stock' : 
+             product.inventory_count < 10 ? 'low-stock' : 'in-stock',
+      image: product.images?.[0] || '/images/placeholder.jpg',
+      featured: product.is_featured || false,
+      addedToSite: product.is_active || false
+    }))
+  }, [products])
+  
+  const categories = useMemo(() => {
+    const categoryStrings = categoriesData.map(cat => 
+      typeof cat === 'string' ? cat : cat.category
+    ).filter(Boolean)
+    const uniqueCategories = Array.from(new Set(categoryStrings))
+    return ['All', ...uniqueCategories]
+  }, [categoriesData])
 
   // Memoize filtered products to prevent unnecessary recalculations
   const filteredProducts = useMemo(() => {
     const searchLower = searchQuery.toLowerCase()
-    return products.filter(product => {
+    return displayProducts.filter(product => {
       const matchesSearch = !searchQuery || 
                            product.name.toLowerCase().includes(searchLower) ||
                            product.description.toLowerCase().includes(searchLower)
@@ -144,34 +99,30 @@ export default function ProductsPage() {
       
       return matchesSearch && matchesCategory && matchesTab
     })
-  }, [products, searchQuery, selectedCategory, activeTab])
+  }, [displayProducts, searchQuery, selectedCategory, activeTab])
 
   const handleAddToSite = useCallback((productId: string) => {
-    setProducts(prev => prev.map(p => 
-      p.id === productId ? { ...p, addedToSite: true } : p
-    ))
+    // TODO: Implement with updateProduct mutation
     toast.success('Product added to your site!')
   }, [])
 
   const handleRemoveFromSite = useCallback((productId: string) => {
-    setProducts(prev => prev.map(p => 
-      p.id === productId ? { ...p, addedToSite: false } : p
-    ))
+    // TODO: Implement with updateProduct mutation
     toast.success('Product removed from your site!')
   }, [])
 
   // Memoize stats calculations
   const stats = useMemo(() => {
-    const totalProducts = products.length
-    const siteProducts = products.filter(p => p.addedToSite)
+    const totalProducts = displayProducts.length
+    const siteProducts = displayProducts.filter(p => p.addedToSite)
     const addedToSite = siteProducts.length
     const totalRevenue = siteProducts.reduce((sum, p) => sum + p.price, 0)
     const avgRating = totalProducts > 0 
-      ? products.reduce((sum, p) => sum + p.rating, 0) / totalProducts 
+      ? displayProducts.reduce((sum, p) => sum + p.rating, 0) / totalProducts 
       : 0
     
     return { totalProducts, addedToSite, totalRevenue, avgRating }
-  }, [products])
+  }, [displayProducts])
 
   return (
     <div className="space-y-6">
@@ -181,7 +132,7 @@ export default function ProductsPage() {
           <h1 className="text-2xl font-bold">Products</h1>
           <p className="text-muted-foreground">Manage your product catalog and site products</p>
         </div>
-        <Button>
+        <Button onClick={() => router.push('/dashboard/products/new')}>
           <Plus className="h-4 w-4 mr-2" />
           Add New Product
         </Button>
@@ -189,7 +140,24 @@ export default function ProductsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        {isLoading ? (
+          // Loading skeletons
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-9 w-9 rounded-md" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-6 w-12" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <>
+            <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-md">
@@ -244,6 +212,8 @@ export default function ProductsPage() {
             </div>
           </CardContent>
         </Card>
+          </>
+        )}
       </div>
 
       {/* Main Content */}
@@ -300,7 +270,17 @@ export default function ProductsPage() {
               </div>
 
               {/* Products Grid/List */}
-              {filteredProducts.length === 0 ? (
+              {isLoading ? (
+                <div className={
+                  viewMode === 'grid' 
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+                    : 'space-y-4'
+                }>
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <Skeleton key={i} className="h-64 w-full rounded-lg" />
+                  ))}
+                </div>
+              ) : filteredProducts.length === 0 ? (
                 <div className="text-center py-12">
                   <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No products found</h3>

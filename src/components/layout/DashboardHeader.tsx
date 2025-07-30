@@ -40,7 +40,8 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
     try {
       await signOut()
       toast.success('Successfully signed out!')
-      router.push('/signin')
+      // Use window.location for a clean navigation to avoid webpack issues
+      window.location.href = '/login'
     } catch (error: any) {
       toast.error('Failed to sign out')
     }

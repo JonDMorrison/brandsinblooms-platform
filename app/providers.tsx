@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes'
 import { useState, lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { SiteProvider } from '@/contexts/SiteContext'
 
 // Lazy load React Query Devtools only in development
 const ReactQueryDevtools = process.env.NODE_ENV === 'development' 
@@ -27,7 +28,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             retry: 1,
             retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
             // Reduce unnecessary re-renders
-            notifyOnChangeProps: 'tracked',
+            // notifyOnChangeProps: 'tracked', // TODO: Fix type when React Query updates
           },
           mutations: {
             retry: 1,
@@ -40,25 +41,27 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster 
-            position="top-right" 
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: 'var(--background)',
-                color: 'var(--foreground)',
-                border: '1px solid var(--border)',
-              },
-            }}
-          />
-        </ThemeProvider>
+        <SiteProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster 
+              position="top-right" 
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: 'var(--background)',
+                  color: 'var(--foreground)',
+                  border: '1px solid var(--border)',
+                },
+              }}
+            />
+          </ThemeProvider>
+        </SiteProvider>
       </AuthProvider>
       {process.env.NODE_ENV === 'development' && (
         <Suspense fallback={null}>

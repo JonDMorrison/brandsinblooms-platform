@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,8 +12,11 @@ import {
   Plus, 
   Eye, 
   Activity,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react'
+import { useContent, useContentStats } from '@/hooks/useContent'
+import { Skeleton } from '@/components/ui/skeleton'
 
 // Dynamic import for DataTable with loading state
 const DataTable = dynamic(
@@ -31,83 +34,47 @@ const DataTable = dynamic(
   }
 )
 
-const mockContentItems: ContentItem[] = [
-  {
-    id: '1',
-    title: 'Welcome to Brands & Blooms',
-    type: 'page',
-    status: 'published',
-    lastModified: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-    views: 847,
-    author: 'You'
-  },
-  {
-    id: '2',
-    title: 'Our Beautiful Flower Collection',
-    type: 'page',
-    status: 'published',
-    lastModified: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-    views: 523,
-    author: 'You'
-  },
-  {
-    id: '3',
-    title: 'Spring Wedding Trends 2024',
-    type: 'blog',
-    status: 'published',
-    lastModified: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
-    views: 1249,
-    author: 'You'
-  },
-  {
-    id: '4',
-    title: 'About Our Florist Team',
-    type: 'page',
-    status: 'draft',
-    lastModified: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
-    views: 0,
-    author: 'You'
-  },
-  {
-    id: '5',
-    title: 'Care Tips for Your Bouquet',
-    type: 'blog',
-    status: 'published',
-    lastModified: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 2 weeks ago
-    views: 892,
-    author: 'You'
-  },
-  {
-    id: '6',
-    title: 'Contact Us',
-    type: 'page',
-    status: 'archived',
-    lastModified: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 1 month ago
-    views: 156,
-    author: 'You'
-  }
-]
 
 
 export default function ContentPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('all')
+  
+  // Fetch real content data
+  const { data: contentResponse, isLoading, error } = useContent()
+  const { data: contentStats, isLoading: statsLoading } = useContentStats()
+  
+  // Extract content array from response
+  const content = Array.isArray(contentResponse) ? contentResponse : contentResponse?.data || []
+  
+  // Transform content data to match ContentItem interface
+  const contentItems: ContentItem[] = useMemo(() => {
+    if (!content || !Array.isArray(content)) return []
+    
+    return content.map(item => ({
+      id: item.id,
+      title: item.title,
+      type: item.content_type === 'blog_post' ? 'blog' : 'page',
+      status: item.is_published ? 'published' : 'draft',
+      lastModified: new Date(item.updated_at),
+      views: item.view_count || 0,
+      author: item.author?.full_name || 'Unknown'
+    }))
+  }, [content])
 
-  const filteredContent = mockContentItems.filter(item => {
+  const filteredContent = contentItems.filter(item => {
     const matchesTab = activeTab === 'all' || 
                       (activeTab === 'pages' && item.type === 'page') ||
                       (activeTab === 'blog' && item.type === 'blog')
     return matchesTab
   })
 
-  const getTabStats = () => {
-    const all = mockContentItems.length
-    const pages = mockContentItems.filter(item => item.type === 'page').length
-    const blog = mockContentItems.filter(item => item.type === 'blog').length
+  const stats = useMemo(() => {
+    const all = contentItems.length
+    const pages = contentItems.filter(item => item.type === 'page').length
+    const blog = contentItems.filter(item => item.type === 'blog').length
     return { all, pages, blog }
-  }
-
-  const stats = getTabStats()
+  }, [contentItems])
 
   return (
     <div className="space-y-8">
@@ -137,50 +104,68 @@ export default function ContentPage() {
 
       {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pages</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pages}</div>
-            <p className="text-xs text-muted-foreground">Published and drafts</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Blog Posts</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.blog}</div>
-            <p className="text-xs text-muted-foreground">Articles and guides</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {mockContentItems.reduce((total, item) => total + item.views, 0).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">This month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Published</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {mockContentItems.filter(item => item.status === 'published').length}
-            </div>
-            <p className="text-xs text-muted-foreground">Live content</p>
-          </CardContent>
-        </Card>
+        {statsLoading ? (
+          // Loading skeletons
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-4 w-4 rounded" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-[60px] mb-2" />
+                <Skeleton className="h-3 w-[80px]" />
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Pages</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{contentStats?.pages || stats.pages}</div>
+                <p className="text-xs text-muted-foreground">Published and drafts</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Blog Posts</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{contentStats?.blogPosts || stats.blog}</div>
+                <p className="text-xs text-muted-foreground">Articles and guides</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {(contentItems.reduce((total, item) => total + item.views, 0)).toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">This month</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Published</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {contentStats?.published || contentItems.filter(item => item.status === 'published').length}
+                </div>
+                <p className="text-xs text-muted-foreground">Live content</p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Content Library with Enhanced Data Table */}
@@ -197,12 +182,28 @@ export default function ContentPage() {
             </TabsList>
             
             <TabsContent value={activeTab} className="mt-6">
-              <DataTable 
-                columns={contentColumns} 
-                data={filteredContent} 
-                searchKey="title"
-                searchPlaceholder="Search content..."
-              />
+              {isLoading ? (
+                <div className="w-full space-y-3">
+                  <Skeleton className="h-10 w-full" />
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : error ? (
+                <div className="text-center py-8">
+                  <p className="text-red-500">Error loading content: {error.message}</p>
+                  <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
+                    Try Again
+                  </Button>
+                </div>
+              ) : (
+                <DataTable
+                  columns={contentColumns} 
+                  data={filteredContent} 
+                  searchKey="title"
+                  searchPlaceholder="Search content..."
+                />
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
