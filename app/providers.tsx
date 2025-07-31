@@ -18,9 +18,10 @@ interface ProvidersProps {
   children: React.ReactNode
   initialHostname?: string
   initialSiteData?: any
+  isAdminRoute?: boolean
 }
 
-export function Providers({ children, initialHostname, initialSiteData }: ProvidersProps) {
+export function Providers({ children, initialHostname, initialSiteData, isAdminRoute }: ProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -45,10 +46,33 @@ export function Providers({ children, initialHostname, initialSiteData }: Provid
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <SiteProvider 
-          initialHostname={initialHostname}
-          initialSiteData={initialSiteData}
-        >
+        {/* Only provide SiteContext for non-admin routes */}
+        {!isAdminRoute ? (
+          <SiteProvider 
+            initialHostname={initialHostname}
+            initialSiteData={initialSiteData}
+          >
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster 
+                position="top-right" 
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: 'var(--background)',
+                    color: 'var(--foreground)',
+                    border: '1px solid var(--border)',
+                  },
+                }}
+              />
+            </ThemeProvider>
+          </SiteProvider>
+        ) : (
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -68,7 +92,7 @@ export function Providers({ children, initialHostname, initialSiteData }: Provid
               }}
             />
           </ThemeProvider>
-        </SiteProvider>
+        )}
       </AuthProvider>
       {process.env.NODE_ENV === 'development' && (
         <Suspense fallback={null}>

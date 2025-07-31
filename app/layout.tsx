@@ -26,6 +26,9 @@ export default async function RootLayout({
   const hostname = headersList.get('host') || ''
   const currentSite = headersList.get('x-current-site')
   
+  // Check if this is an admin route based on middleware headers
+  const isAdminRoute = headersList.get('x-admin-route') === 'true'
+  
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
@@ -33,6 +36,7 @@ export default async function RootLayout({
         <Providers 
           initialHostname={hostname}
           initialSiteData={currentSite ? JSON.parse(currentSite) : null}
+          isAdminRoute={isAdminRoute}
         >
           {children}
         </Providers>
