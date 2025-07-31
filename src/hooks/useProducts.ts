@@ -3,8 +3,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/src/lib/supabase/client';
-import { queryKeys } from '@/src/lib/queries/keys';
+import { supabase } from '@/lib/supabase/client';
+import { queryKeys } from '@/lib/queries/keys';
 import { 
   getProducts, 
   getProductById, 
@@ -15,19 +15,18 @@ import {
   searchProducts,
   getProductCategories,
   updateProductInventory,
-  ProductFilters,
-  ProductSortOptions
-} from '@/src/lib/queries/domains/products';
+  ProductFilters
+} from '@/lib/queries/domains/products';
 import { useSiteId } from '@/contexts/SiteContext';
-import { Product, ProductInsert, ProductUpdate } from '@/src/lib/database/aliases';
+import { Product, ProductInsert, ProductUpdate } from '@/lib/database/aliases';
 
 // Main products query hook
-export function useProducts(filters?: ProductFilters, sort?: ProductSortOptions) {
+export function useProducts(filters?: ProductFilters) {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: [...queryKeys.products(siteId!), { filters, sort }],
-    queryFn: () => getProducts(supabase, siteId!, filters, sort),
+    queryKey: queryKeys.products.list(siteId!, filters),
+    queryFn: () => getProducts(supabase, siteId!, filters),
     enabled: !!siteId,
     staleTime: 30 * 1000,
   });
@@ -38,8 +37,8 @@ export function useProduct(productId: string) {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: queryKeys.product(siteId!, productId),
-    queryFn: () => getProductById(supabase, productId),
+    queryKey: queryKeys.products.detail(siteId!, productId),
+    queryFn: () => getProductById(supabase, siteId!, productId),
     enabled: !!siteId && !!productId,
   });
 }
@@ -49,7 +48,7 @@ export function useProductsByCategory(category: string) {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: queryKeys.productsByCategory(siteId!, category),
+    queryKey: queryKeys.products.list(siteId!, { category }),
     queryFn: () => getProductsByCategory(supabase, siteId!, category),
     enabled: !!siteId && !!category,
     staleTime: 30 * 1000,
@@ -61,7 +60,7 @@ export function useSearchProducts(searchQuery: string) {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: [...queryKeys.products(siteId!), 'search', searchQuery],
+    queryKey: queryKeys.products.list(siteId!, { search: searchQuery }),
     queryFn: () => searchProducts(supabase, siteId!, searchQuery),
     enabled: !!siteId && searchQuery.length > 2,
     staleTime: 10 * 1000,
@@ -73,7 +72,7 @@ export function useProductCategories() {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: [...queryKeys.products(siteId!), 'categories'],
+    queryKey: queryKeys.products.categories(siteId!),
     queryFn: () => getProductCategories(supabase, siteId!),
     enabled: !!siteId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -89,11 +88,11 @@ export function useCreateProduct() {
     mutationFn: (data: Omit<ProductInsert, 'site_id'>) => 
       createProduct(supabase, { ...data, site_id: siteId! }),
     onMutate: async (newProduct) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.products(siteId!) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.products.all(siteId!) });
       
-      const previousProducts = queryClient.getQueryData(queryKeys.products(siteId!));
+      const previousProducts = queryClient.getQueryData(queryKeys.products.all(siteId!));
       
-      queryClient.setQueryData(queryKeys.products(siteId!), (old: Product[] = []) => [
+      queryClient.setQueryData(queryKeys.products.all(siteId!), (old: Product[] = []) => [
         {
           ...newProduct,
           id: crypto.randomUUID(),
@@ -108,7 +107,7 @@ export function useCreateProduct() {
     },
     onError: (err, newProduct, context) => {
       if (context?.previousProducts) {
-        queryClient.setQueryData(queryKeys.products(siteId!), context.previousProducts);
+        queryClient.setQueryData(queryKeys.products.all(siteId!), context.previousProducts);
       }
       toast.error('Failed to create product');
     },
@@ -116,7 +115,7 @@ export function useCreateProduct() {
       toast.success('Product created successfully');
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.products(siteId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
     },
   });
 }
@@ -128,20 +127,20 @@ export function useUpdateProduct() {
   
   return useMutation({
     mutationFn: ({ id, ...data }: ProductUpdate & { id: string }) => 
-      updateProduct(supabase, id, data),
+      updateProduct(supabase, siteId!, id, data),
     onMutate: async ({ id, ...updates }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.product(siteId!, id) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.products.detail(siteId!, id) });
       
-      const previousProduct = queryClient.getQueryData(queryKeys.product(siteId!, id));
+      const previousProduct = queryClient.getQueryData(queryKeys.products.detail(siteId!, id));
       
-      queryClient.setQueryData(queryKeys.product(siteId!, id), (old: Product) => ({
+      queryClient.setQueryData(queryKeys.products.detail(siteId!, id), (old: Product) => ({
         ...old,
         ...updates,
         updated_at: new Date().toISOString(),
       }));
       
       // Also update in list
-      queryClient.setQueryData(queryKeys.products(siteId!), (old: Product[] = []) => 
+      queryClient.setQueryData(queryKeys.products.all(siteId!), (old: Product[] = []) => 
         old.map(product => 
           product.id === id 
             ? { ...product, ...updates, updated_at: new Date().toISOString() }
@@ -154,7 +153,7 @@ export function useUpdateProduct() {
     onError: (err, variables, context) => {
       if (context?.previousProduct) {
         queryClient.setQueryData(
-          queryKeys.product(siteId!, variables.id), 
+          queryKeys.products.detail(siteId!, variables.id), 
           context.previousProduct
         );
       }
@@ -164,8 +163,8 @@ export function useUpdateProduct() {
       toast.success('Product updated successfully');
     },
     onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.products(siteId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.product(siteId!, variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.detail(siteId!, variables.id) });
     },
   });
 }
@@ -179,11 +178,11 @@ export function useUpdateInventory() {
     mutationFn: ({ productId, quantity }: { productId: string; quantity: number }) => 
       updateProductInventory(supabase, productId, quantity),
     onMutate: async ({ productId, quantity }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.product(siteId!, productId) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.products.detail(siteId!, productId) });
       
-      const previousProduct = queryClient.getQueryData(queryKeys.product(siteId!, productId));
+      const previousProduct = queryClient.getQueryData(queryKeys.products.detail(siteId!, productId));
       
-      queryClient.setQueryData(queryKeys.product(siteId!, productId), (old: Product) => ({
+      queryClient.setQueryData(queryKeys.products.detail(siteId!, productId), (old: Product) => ({
         ...old,
         inventory_count: quantity,
         updated_at: new Date().toISOString(),
@@ -194,7 +193,7 @@ export function useUpdateInventory() {
     onError: (err, variables, context) => {
       if (context?.previousProduct) {
         queryClient.setQueryData(
-          queryKeys.product(siteId!, context.productId), 
+          queryKeys.products.detail(siteId!, context.productId), 
           context.previousProduct
         );
       }
@@ -204,8 +203,8 @@ export function useUpdateInventory() {
       toast.success('Inventory updated successfully');
     },
     onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.products(siteId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.product(siteId!, variables.productId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.detail(siteId!, variables.productId) });
     },
   });
 }
@@ -216,13 +215,13 @@ export function useDeleteProduct() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (id: string) => deleteProduct(supabase, id),
+    mutationFn: (id: string) => deleteProduct(supabase, siteId!, id),
     onMutate: async (productId) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.products(siteId!) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.products.all(siteId!) });
       
-      const previousProducts = queryClient.getQueryData(queryKeys.products(siteId!));
+      const previousProducts = queryClient.getQueryData(queryKeys.products.all(siteId!));
       
-      queryClient.setQueryData(queryKeys.products(siteId!), (old: Product[] = []) => 
+      queryClient.setQueryData(queryKeys.products.all(siteId!), (old: Product[] = []) => 
         old.filter(product => product.id !== productId)
       );
       
@@ -230,7 +229,7 @@ export function useDeleteProduct() {
     },
     onError: (err, productId, context) => {
       if (context?.previousProducts) {
-        queryClient.setQueryData(queryKeys.products(siteId!), context.previousProducts);
+        queryClient.setQueryData(queryKeys.products.all(siteId!), context.previousProducts);
       }
       toast.error('Failed to delete product');
     },
@@ -238,7 +237,7 @@ export function useDeleteProduct() {
       toast.success('Product deleted successfully');
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.products(siteId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
     },
   });
 }
@@ -265,11 +264,11 @@ export function useProductInventoryRealtime() {
           // Only invalidate if inventory changed
           if (payload.old.inventory_count !== payload.new.inventory_count) {
             queryClient.invalidateQueries({ 
-              queryKey: queryKeys.product(siteId, payload.new.id) 
+              queryKey: queryKeys.products.detail(siteId, payload.new.id) 
             });
             
             // Update in list as well
-            queryClient.setQueryData(queryKeys.products(siteId), (old: Product[] = []) => 
+            queryClient.setQueryData(queryKeys.products.all(siteId), (old: Product[] = []) => 
               old.map(product => 
                 product.id === payload.new.id 
                   ? { ...product, ...payload.new }

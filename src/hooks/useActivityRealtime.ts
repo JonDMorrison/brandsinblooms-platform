@@ -5,8 +5,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/contexts/SiteContext';
-import { queryKeys } from '@/src/lib/queries/keys';
-import { ActivityLogWithUser } from '@/src/lib/queries/domains/activity';
+import { queryKeys } from '@/lib/queries/keys';
+import { ActivityLogWithUser } from '@/lib/queries/domains/activity';
 import { toast } from 'sonner';
 
 interface UseActivityRealtimeOptions {
@@ -38,6 +38,11 @@ export function useActivityRealtime({
     enabled: enabled && !!siteId,
     onInsert: (payload: RealtimePostgresChangesPayload<ActivityLogWithUser>) => {
       const newActivity = payload.new;
+      
+      // Type guard to ensure we have a valid activity
+      if (!newActivity || typeof newActivity !== 'object' || !('id' in newActivity)) {
+        return;
+      }
       
       // Prevent duplicate processing
       if (processedActivities.current.has(newActivity.id)) {
@@ -91,11 +96,13 @@ export function useActivityRealtime({
           'settings.updated': 'Settings updated',
         };
         
-        const message = activityMessages[`${newActivity.entity_type}.${newActivity.action}`] 
-          || `${newActivity.entity_type} ${newActivity.action}`;
+        const entityType = newActivity.entity_type || 'unknown';
+        const activityType = newActivity.activity_type || 'unknown';
+        const message = activityMessages[`${entityType}.${activityType}`] 
+          || `${entityType} ${activityType}`;
         
         toast.info(message, {
-          description: newActivity.description || `By ${newActivity.user?.name || 'System'}`,
+          description: newActivity.description || `By ${newActivity.user?.full_name || 'System'}`,
         });
       }
       

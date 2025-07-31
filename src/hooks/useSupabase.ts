@@ -1,4 +1,4 @@
-import { supabase } from '@/src/lib/supabase/client'
+import { supabase } from '@/lib/supabase/client'
 
 export function useSupabase() {
   return supabase

@@ -6,10 +6,10 @@ import {
   unenrollMFA,
   listMFAFactors,
   getAssuranceLevel
-} from '@/src/lib/auth/mfa'
-import { createClient } from '@/src/lib/supabase/server'
+} from '@/lib/auth/mfa'
+import { createClient } from '@/lib/supabase/server'
 
-jest.mock('@/src/lib/supabase/server')
+jest.mock('@/lib/supabase/server')
 
 describe('MFA Functions', () => {
   let mockSupabaseClient: any

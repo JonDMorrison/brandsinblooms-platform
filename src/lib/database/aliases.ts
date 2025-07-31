@@ -1,4 +1,5 @@
 import type { Database } from './types';
+import type { MetricsData, ProductFeatures } from './json-types';
 
 // Helper types
 export type Tables = Database['public']['Tables'];
@@ -18,8 +19,10 @@ export type ContentInsert = Tables['content']['Insert'];
 export type ContentUpdate = Tables['content']['Update'];
 export type InsertContent = ContentInsert; // Alias for backward compatibility
 
-// Product types
-export type Product = Tables['products']['Row'];
+// Product types with proper Json typing
+export type Product = Tables['products']['Row'] & {
+  features: ProductFeatures | null;
+};
 export type ProductInsert = Tables['products']['Insert'];
 export type ProductUpdate = Tables['products']['Update'];
 
@@ -61,8 +64,11 @@ export type Tagging = Tables['taggings']['Row'];
 export type TaggingInsert = Tables['taggings']['Insert'];
 export type TaggingUpdate = Tables['taggings']['Update'];
 
-// Site metrics types
-export type SiteMetrics = Tables['site_metrics']['Row'];
+// Site metrics types with proper Json typing
+export type SiteMetric = Tables['site_metrics']['Row'] & {
+  metrics: MetricsData;
+};
+export type SiteMetrics = SiteMetric;
 export type SiteMetricsInsert = Tables['site_metrics']['Insert'];
 export type SiteMetricsUpdate = Tables['site_metrics']['Update'];
 
@@ -87,9 +93,8 @@ export type ImportBatchInsert = Tables['import_batches']['Insert'];
 export type ImportBatchUpdate = Tables['import_batches']['Update'];
 
 // Extended types (commonly used combinations)
-export interface SiteWithMembership {
-  site: Site;
-  membership: SiteMembership;
+export interface SiteWithMembership extends Site {
+  membership?: SiteMembership;
 }
 
 export interface ProductWithTags extends Product {

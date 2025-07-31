@@ -5,11 +5,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/contexts/SiteContext';
-import { queryKeys } from '@/src/lib/queries/keys';
-import { ThemeSettings } from '@/src/lib/queries/domains/theme';
-import { applyThemeToDOM } from '@/src/lib/queries/domains/theme';
+import { queryKeys } from '@/lib/queries/keys';
+import { ThemeSettings } from '@/lib/queries/domains/theme';
+import { applyThemeToDOM } from '@/lib/queries/domains/theme';
 import { toast } from 'sonner';
-import { useAuth } from '@/src/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSiteTheme } from './useSiteTheme';
 
 interface UseThemeRealtimeOptions {
@@ -53,8 +53,9 @@ export function useThemeRealtime({
       const previousSite = payload.old as SiteWithTheme;
       
       // Check if theme_settings actually changed
-      const themeChanged = JSON.stringify(updatedSite.theme_settings) !== 
-                          JSON.stringify(previousSite.theme_settings);
+      const updatedTheme = 'theme_settings' in updatedSite ? updatedSite.theme_settings : null;
+      const previousTheme = 'theme_settings' in previousSite ? previousSite.theme_settings : null;
+      const themeChanged = JSON.stringify(updatedTheme) !== JSON.stringify(previousTheme);
       
       if (!themeChanged) return;
       
@@ -65,7 +66,7 @@ export function useThemeRealtime({
       }
       lastUpdateTime.current = now;
       
-      const newTheme = updatedSite.theme_settings;
+      const newTheme = 'theme_settings' in updatedSite ? updatedSite.theme_settings : null;
       if (!newTheme) return;
       
       // Update cache
@@ -80,7 +81,8 @@ export function useThemeRealtime({
       }
       
       // Show notification
-      if (showNotifications && updatedSite.updated_by !== user?.id) {
+      const updatedBy = 'updated_by' in updatedSite ? updatedSite.updated_by : null;
+      if (showNotifications && updatedBy !== user?.id) {
         toast.info('Theme updated', {
           description: 'Another user has updated the theme settings',
           action: {
@@ -96,7 +98,7 @@ export function useThemeRealtime({
       }
       
       // Call custom handler
-      onThemeUpdated?.(newTheme, updatedSite.updated_by || 'Unknown');
+      onThemeUpdated?.(newTheme, updatedBy || 'Unknown');
     },
   });
 
@@ -138,7 +140,7 @@ export function useThemeEditorPresence() {
     const channelName = `theme-editor-${siteId}`;
     
     // Import supabase client
-    import('@/src/lib/supabase/client').then(({ supabase }) => {
+    import('@/lib/supabase/client').then(({ supabase }) => {
       channelRef.current = supabase
         .channel(channelName, {
           config: {
@@ -193,7 +195,7 @@ export function useThemeEditorPresence() {
     return () => {
       if (channelRef.current) {
         channelRef.current.untrack();
-        import('@/src/lib/supabase/client').then(({ supabase }) => {
+        import('@/lib/supabase/client').then(({ supabase }) => {
           supabase.removeChannel(channelRef.current);
         });
         channelRef.current = null;
@@ -254,9 +256,9 @@ export function useThemeConflictResolution() {
       ...localTheme,
       // Merge nested objects
       colors: { ...remoteTheme.colors, ...localTheme.colors },
-      fonts: { ...remoteTheme.fonts, ...localTheme.fonts },
-      spacing: { ...remoteTheme.spacing, ...localTheme.spacing },
-      borderRadius: { ...remoteTheme.borderRadius, ...localTheme.borderRadius },
+      typography: { ...remoteTheme.typography, ...localTheme.typography },
+      layout: { ...remoteTheme.layout, ...localTheme.layout },
+      logo: { ...remoteTheme.logo, ...localTheme.logo },
     };
   };
 

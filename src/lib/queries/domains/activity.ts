@@ -1,7 +1,8 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/src/lib/database/types';
-import { ActivityLog, ActivityLogInsert } from '@/src/lib/database/aliases';
-import { executeQuery } from '@/src/lib/queries/utils/execute-query';
+import { Database } from '@/lib/database/types';
+import { ActivityLog, ActivityLogInsert } from '@/lib/database/aliases';
+import { executeQuery } from '@/lib/queries/utils/execute-query';
+import { SupabaseError } from '../errors';
 
 export interface ActivityFilters {
   type?: string;
@@ -85,14 +86,19 @@ export async function getActivityLogs(
     query = query.lte('created_at', dateTo);
   }
   
-  const data = await executeQuery(query);
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  if (!data) return { activities: [], nextCursor: null, hasMore: false };
   
   const hasMore = data.length > limit;
   const activities = hasMore ? data.slice(0, -1) : data;
   const nextCursor = hasMore ? activities[activities.length - 1]?.created_at : null;
   
   return {
-    activities: activities as ActivityLogWithUser[],
+    activities: activities.map(activity => ({
+      ...activity,
+      user: activity.user && !('error' in activity.user) ? activity.user : undefined
+    })) as ActivityLogWithUser[],
     nextCursor,
     hasMore,
   };
@@ -123,7 +129,13 @@ export async function getEntityActivityLogs(
     .order('created_at', { ascending: false })
     .limit(limit);
   
-  return await executeQuery(query) as ActivityLogWithUser[];
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  
+  return (data || []).map(activity => ({
+    ...activity,
+    user: activity.user && !('error' in activity.user) ? activity.user : undefined
+  })) as ActivityLogWithUser[];
 }
 
 // Get recent activity for dashboard
@@ -147,7 +159,13 @@ export async function getRecentActivity(
     .order('created_at', { ascending: false })
     .limit(limit);
   
-  return await executeQuery(query) as ActivityLogWithUser[];
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  
+  return (data || []).map(activity => ({
+    ...activity,
+    user: activity.user && !('error' in activity.user) ? activity.user : undefined
+  })) as ActivityLogWithUser[];
 }
 
 // Create activity log
@@ -161,7 +179,10 @@ export async function createActivityLog(
     .select()
     .single();
   
-  return await executeQuery(query);
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  if (!data) throw new SupabaseError('Activity log not created', 'INSERT_FAILED');
+  return data;
 }
 
 // Get activity summary by type
@@ -184,7 +205,8 @@ export async function getActivitySummary(
     .eq('site_id', siteId)
     .gte('created_at', dateFrom.toISOString());
   
-  const activities = await executeQuery(query);
+  const { data: activities, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
   
   // Group by type
   const byType: Record<string, number> = {};
@@ -244,7 +266,13 @@ export async function getUserActivityTimeline(
     .order('created_at', { ascending: false })
     .limit(limit);
   
-  return await executeQuery(query) as ActivityLogWithUser[];
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  
+  return (data || []).map(activity => ({
+    ...activity,
+    user: activity.user && !('error' in activity.user) ? activity.user : undefined
+  })) as ActivityLogWithUser[];
 }
 
 // Group activities by date for UI display

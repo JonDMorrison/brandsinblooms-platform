@@ -2,9 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/src/lib/supabase/server'
-import { getUser } from '@/src/lib/auth/server'
-import { SiteMetricsData, MetricData } from '@/src/lib/database/aliases'
+import { createClient } from '@/lib/supabase/server'
+import { getUser } from '@/lib/auth/server'
+import { SiteMetric, MetricData } from '@/lib/database/aliases'
+import { MetricsData } from '@/lib/database/json-types'
 import { z } from 'zod'
 
 // Validation schemas
@@ -14,7 +15,7 @@ const metricDataSchema = z.object({
   trend: z.enum(['up', 'down', 'neutral']),
 })
 
-const siteMetricsSchema = z.object({
+const metricsDataSchema = z.object({
   performance: metricDataSchema.optional(),
   page_load: metricDataSchema.optional(),
   seo: metricDataSchema.optional(),
@@ -29,7 +30,7 @@ export async function calculateSiteMetrics(siteId?: string): Promise<{
   error?: string;
   processed?: number;
   failed?: number;
-  data?: SiteMetricsData;
+  data?: MetricsData;
 }> {
   const user = await getUser()
   if (!user) {
@@ -50,7 +51,7 @@ export async function calculateSiteMetrics(siteId?: string): Promise<{
     
     // Process each site
     const results = await Promise.all(
-      sites.map((site): Promise<{ success: boolean; error?: string; data?: SiteMetricsData }> => calculateSiteMetrics(site.id))
+      sites.map((site): Promise<{ success: boolean; error?: string; data?: MetricsData }> => calculateSiteMetrics(site.id))
     )
     
     return {
@@ -86,7 +87,7 @@ export async function calculateSiteMetrics(siteId?: string): Promise<{
     // Calculate trends
     const metricsWithTrends = calculateTrends(
       metrics,
-      previousMetrics?.metrics as SiteMetricsData | null
+      previousMetrics?.metrics as MetricsData | null
     )
     
     // Save metrics
@@ -120,15 +121,16 @@ export async function calculateSiteMetrics(siteId?: string): Promise<{
     
     revalidatePath('/dashboard')
     
-    return { success: true, metrics: metricsWithTrends }
+    return { success: true, data: metricsWithTrends }
   } catch (error) {
     console.error('Failed to calculate metrics:', error)
-    return { success: false, error: error.message }
+    const errorMessage = error instanceof Error ? error.message : 'Failed to calculate metrics'
+    return { success: false, error: errorMessage }
   }
 }
 
 // Helper function to calculate metrics (mock implementation)
-async function calculateMetricsForSite(siteId: string): Promise<SiteMetricsData> {
+async function calculateMetricsForSite(siteId: string): Promise<MetricsData> {
   const supabase = await createClient()
   
   // In production, these would come from real monitoring tools
@@ -201,14 +203,14 @@ async function calculateMetricsForSite(siteId: string): Promise<SiteMetricsData>
 
 // Calculate trends based on previous metrics
 function calculateTrends(
-  current: SiteMetricsData,
-  previous: SiteMetricsData | null
-): SiteMetricsData {
+  current: MetricsData,
+  previous: MetricsData | null
+): MetricsData {
   if (!previous) return current
   
-  const result: SiteMetricsData = {}
+  const result: MetricsData = {}
   
-  const metricKeys: (keyof SiteMetricsData)[] = [
+  const metricKeys: (keyof MetricsData)[] = [
     'performance', 'page_load', 'seo', 'mobile', 'security', 'accessibility'
   ]
   
@@ -217,11 +219,19 @@ function calculateTrends(
     const previousMetric = previous[key]
     
     if (currentMetric && previousMetric) {
-      const change = currentMetric.score - previousMetric.score
-      result[key] = {
-        score: currentMetric.score,
-        change: Math.abs(change),
-        trend: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral',
+      // Type assert the metrics data with safe property access
+      const currentData = currentMetric as MetricData
+      const previousData = previousMetric as MetricData
+      
+      if (currentData && previousData && 
+          typeof currentData === 'object' && 'score' in currentData &&
+          typeof previousData === 'object' && 'score' in previousData) {
+        const change = currentData.score - previousData.score
+        result[key] = {
+          score: currentData.score,
+          change: Math.abs(change),
+          trend: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral',
+        }
       }
     } else if (currentMetric) {
       result[key] = currentMetric
@@ -252,8 +262,8 @@ export async function updateSiteMetrics(formData: FormData) {
   }
 
   // Parse form data
-  const metrics: SiteMetricsData = {}
-  const metricTypes: (keyof SiteMetricsData)[] = [
+  const metrics: MetricsData = {}
+  const metricTypes: (keyof MetricsData)[] = [
     'performance', 'page_load', 'seo', 'mobile', 'security', 'accessibility'
   ]
   
@@ -269,7 +279,7 @@ export async function updateSiteMetrics(formData: FormData) {
   }
 
   // Validate metrics
-  const validated = siteMetricsSchema.parse(metrics)
+  const validated = metricsDataSchema.parse(metrics)
   
   // Calculate trends
   const today = new Date().toISOString().split('T')[0]
@@ -281,8 +291,8 @@ export async function updateSiteMetrics(formData: FormData) {
     .single()
   
   const metricsWithTrends = calculateTrends(
-    validated as SiteMetricsData,
-    currentMetrics?.metrics as SiteMetricsData | null
+    validated as MetricsData,
+    currentMetrics?.metrics as MetricsData | null
   )
 
   // Save metrics
@@ -418,19 +428,9 @@ export async function scheduleMetricsCalculation() {
   
   const result = await calculateSiteMetrics()
   
-  // Log the scheduled run
-  const supabase = await createClient()
-  await supabase
-    .from('activity_logs')
-    .insert({
-      site_id: null, // System-wide activity
-      user_id: null,
-      activity_type: 'metrics_scheduled',
-      entity_type: 'system',
-      entity_id: 'metrics-calculation',
-      title: `Scheduled metrics calculation completed`,
-      metadata: result,
-    })
+  // Log the scheduled run would require a specific site_id
+  // For system-wide activities, we'd need a different logging approach
+  console.log('Scheduled metrics calculation completed:', result)
   
   return result
 }

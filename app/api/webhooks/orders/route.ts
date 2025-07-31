@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/src/lib/supabase/server'
-import { activityHelpers } from '@/src/lib/queries/domains/activity'
+import { createClient } from '@/lib/supabase/server'
+import { activityHelpers } from '@/lib/queries/domains/activity'
 import { headers } from 'next/headers'
 import crypto from 'crypto'
 
@@ -92,7 +92,8 @@ async function handlePaymentCompleted(supabase: any, webhookOrder: any) {
     .single()
   
   if (error) {
-    throw new Error(`Failed to update order: ${error.message}`)
+    const errorMessage = error?.message || 'Failed to update order'
+    throw new Error(`Failed to update order: ${errorMessage}`)
   }
   
   // Log activity
@@ -130,7 +131,8 @@ async function handlePaymentFailed(supabase: any, webhookOrder: any) {
     .single()
   
   if (error) {
-    throw new Error(`Failed to update order: ${error.message}`)
+    const errorMessage = error?.message || 'Failed to update order'
+    throw new Error(`Failed to update order: ${errorMessage}`)
   }
   
   // Log activity
@@ -167,7 +169,8 @@ async function handleOrderShipped(supabase: any, webhookOrder: any) {
     .single()
   
   if (error) {
-    throw new Error(`Failed to update order: ${error.message}`)
+    const errorMessage = error?.message || 'Failed to update order'
+    throw new Error(`Failed to update order: ${errorMessage}`)
   }
   
   // Log activity
@@ -200,7 +203,8 @@ async function handleOrderDelivered(supabase: any, webhookOrder: any) {
     .single()
   
   if (error) {
-    throw new Error(`Failed to update order: ${error.message}`)
+    const errorMessage = error?.message || 'Failed to update order'
+    throw new Error(`Failed to update order: ${errorMessage}`)
   }
   
   // Log activity

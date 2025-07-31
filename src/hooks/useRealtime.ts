@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { supabase } from '@/src/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { useSiteId } from '@/contexts/SiteContext';
 
 export type RealtimeEvent = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
@@ -45,14 +45,14 @@ export function useRealtimeSubscription({
     channelRef.current = supabase
       .channel(channelName)
       .on(
-        'postgres_changes',
+        'postgres_changes' as any,
         {
           event,
           schema: 'public',
           table,
           filter: finalFilter,
-        },
-        (payload) => {
+        } as any,
+        (payload: any) => {
           // Call appropriate handler based on event type
           switch (payload.eventType) {
             case 'INSERT':
@@ -117,7 +117,7 @@ export function useInventoryRealtime(
     filter: productId 
       ? `id=eq.${productId}` 
       : `site_id=eq.${siteId}`,
-    onUpdate: (payload) => {
+    onUpdate: (payload: any) => {
       const oldInventory = payload.old?.inventory_count;
       const newInventory = payload.new?.inventory_count;
       

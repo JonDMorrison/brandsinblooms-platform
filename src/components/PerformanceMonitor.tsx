@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Activity, Zap, Layout, MousePointer, Clock, Server } from 'lucide-react'
-import { getRating, formatMetricValue } from '@/src/lib/performance'
+import { getRating, formatMetricValue } from '@/lib/performance'
 
 interface Metric {
   name: string

@@ -4,7 +4,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/src/lib/database/types';
+import { Database } from '@/lib/database/types';
 import { 
   handleQueryResponse, 
   handleSingleResponse,
@@ -155,8 +155,7 @@ export async function checkSiteAccess(
     }
   }
 
-  const response = await query;
-  const memberships = await handleQueryResponse(response);
+  const memberships = await handleQueryResponse(await query);
   return memberships.length > 0;
 }
 

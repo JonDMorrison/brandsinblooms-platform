@@ -4,7 +4,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/src/lib/database/types';
+import { Database } from '@/lib/database/types';
 import { 
   handleQueryResponse, 
   handleSingleResponse,
@@ -159,7 +159,9 @@ export async function getProducts(
   // Transform data to flatten tags
   const transformedData = data.map((item: any) => ({
     ...item,
-    tags: item.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+    tags: Array.isArray(item.tags) 
+      ? item.tags.map((t: any) => t.tag).filter(Boolean) 
+      : [],
   }));
 
   return buildPaginatedResponse(transformedData, count, page, limit);
@@ -191,10 +193,14 @@ export async function getProductById(
 
   const data = await handleSingleResponse(response);
   
-  // Transform tags
+  // Transform tags - handle potential relation errors
+  const tags = Array.isArray(data.tags) 
+    ? data.tags.map((t: any) => t.tag).filter(Boolean) 
+    : [];
+  
   return {
     ...data,
-    tags: data.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+    tags,
   };
 }
 
@@ -224,10 +230,14 @@ export async function getProductBySlug(
 
   const data = await handleSingleResponse(response);
   
-  // Transform tags
+  // Transform tags - handle potential relation errors
+  const tags = Array.isArray(data.tags) 
+    ? data.tags.map((t: any) => t.tag).filter(Boolean) 
+    : [];
+  
   return {
     ...data,
-    tags: data.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+    tags,
   };
 }
 
@@ -257,10 +267,14 @@ export async function getProductBySku(
 
   const data = await handleSingleResponse(response);
   
-  // Transform tags
+  // Transform tags - handle potential relation errors
+  const tags = Array.isArray(data.tags) 
+    ? data.tags.map((t: any) => t.tag).filter(Boolean) 
+    : [];
+  
   return {
     ...data,
-    tags: data.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+    tags,
   };
 }
 
@@ -469,9 +483,14 @@ export async function getProductsByCategory(
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
-  const response = await query;
-  const data = handleResponse(response);
-  return data.map(transformProductWithTags);
+  const data = await handleQueryResponse(await query);
+  return data.map((item: any) => ({
+    ...item,
+    tags: Array.isArray(item.tags) 
+      ? item.tags.map((t: any) => t.tag).filter(Boolean) 
+      : [],
+  }));
+  
 }
 
 /**
@@ -494,9 +513,14 @@ export async function searchProducts(
     .or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`)
     .order('created_at', { ascending: false });
 
-  const response = await query;
-  const data = handleResponse(response);
-  return data.map(transformProductWithTags);
+  const data = await handleQueryResponse(await query);
+  return data.map((item: any) => ({
+    ...item,
+    tags: Array.isArray(item.tags) 
+      ? item.tags.map((t: any) => t.tag).filter(Boolean) 
+      : [],
+  }));
+  
 }
 
 /**
@@ -507,14 +531,9 @@ export async function updateProductInventory(
   productId: string,
   quantity: number
 ): Promise<Product> {
-  const response = await supabase
-    .from('products')
-    .update({ inventory_count: quantity })
-    .eq('id', productId)
-    .select()
-    .single();
-
-  return handleSingleResponse(response);
+  // Note: inventory_count is not available in current schema
+  // This function would need to be implemented when inventory tracking is added
+  throw new Error('Inventory tracking not yet implemented in current schema');
 }
 
 /**
@@ -536,12 +555,14 @@ export async function getProductCategories(
   // Count products per category
   const categoryMap = products.reduce((acc, product) => {
     const category = product.category as string;
-    acc[category] = (acc[category] || 0) + 1;
+    if (category) {
+      acc[category] = (acc[category] || 0) + 1;
+    }
     return acc;
   }, {} as Record<string, number>);
 
   return Object.entries(categoryMap)
-    .map(([category, count]) => ({ category, count }))
+    .map(([category, count]) => ({ category, count: Number(count) }))
     .sort((a, b) => b.count - a.count);
 }
 

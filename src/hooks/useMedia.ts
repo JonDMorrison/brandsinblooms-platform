@@ -2,24 +2,23 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { queryKeys } from '@/src/lib/queries/keys';
+import { queryKeys } from '@/lib/queries/keys';
 import { 
   getMediaFiles, 
-  uploadFile, 
-  deleteFile,
-  getFileUrl,
+  uploadMedia, 
+  deleteMediaWithStorage,
   getMediaStats
-} from '@/src/lib/queries/domains/media';
+} from '@/lib/queries/domains/media';
 import { useSiteId } from '@/contexts/SiteContext';
-import { supabase } from '@/src/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 
 // Get all media files
-export function useMediaFiles(folder?: string) {
+export function useMediaFiles(type?: 'image' | 'video' | 'document') {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: [...queryKeys.media(siteId!), { folder }],
-    queryFn: () => getMediaFiles(siteId!, folder),
+    queryKey: queryKeys.media.list(siteId!, { type }),
+    queryFn: () => getMediaFiles(supabase, siteId!, { type }),
     enabled: !!siteId,
     staleTime: 60 * 1000, // 1 minute
   });
@@ -30,8 +29,8 @@ export function useMediaStats() {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: [...queryKeys.media(siteId!), 'stats'],
-    queryFn: () => getMediaStats(siteId!),
+    queryKey: [...queryKeys.media.all(siteId!), 'stats'],
+    queryFn: () => getMediaStats(supabase, siteId!),
     enabled: !!siteId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -45,20 +44,20 @@ export function useUploadFile() {
   return useMutation({
     mutationFn: ({ 
       file, 
-      folder,
+      path,
       onProgress 
     }: { 
       file: File; 
-      folder?: string;
+      path?: string;
       onProgress?: (progress: number) => void;
-    }) => uploadFile(siteId!, file, folder, onProgress),
+    }) => uploadMedia(supabase, siteId!, file, { path }),
     onSuccess: (data, variables) => {
       toast.success('File uploaded successfully');
       queryClient.invalidateQueries({ 
-        queryKey: [...queryKeys.media(siteId!), { folder: variables.folder }] 
+        queryKey: queryKeys.media.all(siteId!) 
       });
       queryClient.invalidateQueries({ 
-        queryKey: [...queryKeys.media(siteId!), 'stats'] 
+        queryKey: [...queryKeys.media.all(siteId!), 'stats'] 
       });
     },
     onError: (error) => {
@@ -73,12 +72,12 @@ export function useDeleteFile() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: deleteFile,
+    mutationFn: (mediaId: string) => deleteMediaWithStorage(supabase, siteId!, mediaId),
     onSuccess: () => {
       toast.success('File deleted successfully');
-      queryClient.invalidateQueries({ queryKey: queryKeys.media(siteId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.media.all(siteId!) });
       queryClient.invalidateQueries({ 
-        queryKey: [...queryKeys.media(siteId!), 'stats'] 
+        queryKey: [...queryKeys.media.all(siteId!), 'stats'] 
       });
     },
     onError: () => {
@@ -92,8 +91,14 @@ export function useFileUrl(path: string | null) {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: [...queryKeys.media(siteId!), 'url', path],
-    queryFn: () => getFileUrl(path!),
+    queryKey: [...queryKeys.media.all(siteId!), 'url', path],
+    queryFn: async () => {
+      // Get signed URL for private files
+      const { data } = await supabase.storage
+        .from('media')
+        .createSignedUrl(path!, 3600); // 1 hour expiry
+      return data?.signedUrl || null;
+    },
     enabled: !!siteId && !!path,
     staleTime: 55 * 60 * 1000, // 55 minutes (URLs typically expire after 1 hour)
   });
@@ -107,11 +112,11 @@ export function useMultipleFileUpload() {
   return useMutation({
     mutationFn: async ({ 
       files, 
-      folder,
+      path,
       onProgress 
     }: { 
       files: File[]; 
-      folder?: string;
+      path?: string;
       onProgress?: (fileIndex: number, progress: number) => void;
     }) => {
       const results = [];
@@ -119,11 +124,13 @@ export function useMultipleFileUpload() {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         try {
-          const result = await uploadFile(
+          const result = await uploadMedia(
+            supabase,
             siteId!, 
             file, 
-            folder,
-            (progress) => onProgress?.(i, progress)
+            {
+              path: path
+            }
           );
           results.push({ file: file.name, success: true, data: result });
         } catch (error) {
@@ -143,7 +150,7 @@ export function useMultipleFileUpload() {
       
       if (successful > 0) {
         toast.success(`${successful} file(s) uploaded successfully`);
-        queryClient.invalidateQueries({ queryKey: queryKeys.media(siteId!) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.media.all(siteId!) });
       }
       
       if (failed > 0) {

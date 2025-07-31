@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Check, ChevronsUpDown, Store } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -38,7 +38,7 @@ export function SiteSwitcher() {
     return (
       <div className="flex items-center gap-2 px-3 py-2">
         <Avatar className="h-6 w-6">
-          <AvatarImage src={currentSite.logo_url || undefined} alt={currentSite.business_name} />
+          <AvatarImage src={currentSite.logo_url || undefined} alt={currentSite.business_name || undefined} />
           <AvatarFallback>
             <Store className="h-4 w-4" />
           </AvatarFallback>
@@ -61,7 +61,7 @@ export function SiteSwitcher() {
         >
           <div className="flex items-center gap-2 truncate">
             <Avatar className="h-5 w-5">
-              <AvatarImage src={currentSite.logo_url || undefined} alt={currentSite.business_name} />
+              <AvatarImage src={currentSite.logo_url || undefined} alt={currentSite.business_name || undefined} />
               <AvatarFallback>
                 <Store className="h-3 w-3" />
               </AvatarFallback>
@@ -76,30 +76,30 @@ export function SiteSwitcher() {
           <CommandInput placeholder="Search sites..." />
           <CommandEmpty>No site found.</CommandEmpty>
           <CommandGroup>
-            {userSites.map(({ site, membership }) => (
+            {userSites.map((siteWithMembership) => (
               <CommandItem
-                key={site.id}
-                value={site.id}
+                key={siteWithMembership.id}
+                value={siteWithMembership.id}
                 onSelect={() => {
-                  switchSite(site.id);
+                  switchSite(siteWithMembership.id);
                   setOpen(false);
                 }}
               >
                 <Check
                   className={cn(
                     'mr-2 h-4 w-4',
-                    currentSite.id === site.id ? 'opacity-100' : 'opacity-0'
+                    currentSite.id === siteWithMembership.id ? 'opacity-100' : 'opacity-0'
                   )}
                 />
                 <Avatar className="h-5 w-5 mr-2">
-                  <AvatarImage src={site.logo_url || undefined} alt={site.business_name} />
+                  <AvatarImage src={siteWithMembership.logo_url || undefined} alt={siteWithMembership.business_name || undefined} />
                   <AvatarFallback>
                     <Store className="h-3 w-3" />
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="truncate">{site.business_name}</span>
-                  <span className="text-xs text-muted-foreground">{membership.role}</span>
+                  <span className="truncate">{siteWithMembership.business_name}</span>
+                  <span className="text-xs text-muted-foreground">{siteWithMembership.membership?.role}</span>
                 </div>
               </CommandItem>
             ))}

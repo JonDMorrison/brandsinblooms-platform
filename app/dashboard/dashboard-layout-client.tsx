@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import DashboardSidebar from '@/src/components/layout/DashboardSidebar'
-import DashboardHeader from '@/src/components/layout/DashboardHeader'
+import DashboardSidebar from '@/components/layout/DashboardSidebar'
+import DashboardHeader from '@/components/layout/DashboardHeader'
 import { PageTransition } from '@/components/ui/page-transition'
 
 export function DashboardLayoutClient({

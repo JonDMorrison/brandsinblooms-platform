@@ -9,14 +9,14 @@ import { Loader2, Eye, EyeOff, Check } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { signUpSchema, type SignUpData } from '@/src/lib/validations/auth'
+import { signUpSchema, type SignUpData } from '@/lib/validations/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
-import { signInWithProvider, handleAuthError } from '@/src/lib/auth/client'
+import { signInWithProvider, handleAuthError } from '@/lib/auth/client'
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false)

@@ -3,9 +3,9 @@
  * Provides consistent patterns for data fetching across the application
  */
 
-import { PostgrestError, PostgrestResponse } from '@supabase/supabase-js';
+import { PostgrestError, PostgrestResponse, PostgrestSingleResponse } from '@supabase/supabase-js';
 import { SupabaseError, isSupabaseError } from './errors';
-import { Database } from '@/src/lib/database/types';
+import { Database } from '@/lib/database/types';
 
 // Type aliases for better readability
 export type Tables = Database['public']['Tables'];
@@ -100,11 +100,11 @@ export async function handleQueryResponse<T>(
 }
 
 /**
- * Handle single item response
+ * Handle single item response (for .single() queries)
  * Throws SupabaseError if item not found or query fails
  */
 export async function handleSingleResponse<T>(
-  response: PostgrestResponse<T>
+  response: PostgrestSingleResponse<T>
 ): Promise<T> {
   const { data, error } = response;
   
@@ -116,7 +116,7 @@ export async function handleSingleResponse<T>(
     );
   }
   
-  if (!data || data.length === 0) {
+  if (!data) {
     throw new SupabaseError(
       'Item not found',
       'PGRST116',
@@ -124,7 +124,7 @@ export async function handleSingleResponse<T>(
     );
   }
   
-  return data[0];
+  return data;
 }
 
 /**

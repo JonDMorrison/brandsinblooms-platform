@@ -1,9 +1,9 @@
-import { signIn, signUp, signOut, requireAuth, getUser } from '@/src/lib/auth/actions'
-import { supabase } from '@/src/lib/supabase/client'
+import { signIn, signUp, signOut, requireAuth, getUser } from '@/lib/auth/actions'
+import { supabase } from '@/lib/supabase/client'
 import { useNavigate } from 'react-router-dom'
 
 // Mock the dependencies
-jest.mock('@/src/lib/supabase/client')
+jest.mock('@/lib/supabase/client')
 jest.mock('react-router-dom')
 
 describe('Auth Actions', () => {

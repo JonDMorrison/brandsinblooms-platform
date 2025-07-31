@@ -2,9 +2,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/src/lib/supabase/client';
-import { Site, SiteMembership, SiteWithMembership } from '@/src/lib/database/aliases';
-import { getCurrentUserSite, getUserSites } from '@/src/lib/queries/domains/sites';
+import { supabase } from '@/lib/supabase/client';
+import { Site, SiteMembership, SiteWithMembership } from '@/lib/database/aliases';
+import { getCurrentUserSite, getUserSites } from '@/lib/queries/domains/sites';
 
 interface SiteContextType {
   currentSite: Site | null;
@@ -53,8 +53,10 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (selectedSite) {
-        setCurrentSite(selectedSite);
-        setCurrentMembership(selectedSite.membership || null);
+        // Extract site properties (excluding membership)
+        const { membership, ...siteData } = selectedSite;
+        setCurrentSite(siteData as Site);
+        setCurrentMembership(membership || null);
       }
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to load sites'));
@@ -70,8 +72,10 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
       throw new Error('Site not found or user does not have access');
     }
 
-    setCurrentSite(targetSite);
-    setCurrentMembership(targetSite.membership || null);
+    // Extract site properties (excluding membership)
+    const { membership, ...siteData } = targetSite;
+    setCurrentSite(siteData as Site);
+    setCurrentMembership(membership || null);
     localStorage.setItem('currentSiteId', siteId);
   };
 

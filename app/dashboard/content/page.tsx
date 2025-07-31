@@ -19,8 +19,8 @@ import { useContent, useContentStats } from '@/hooks/useContent'
 import { Skeleton } from '@/components/ui/skeleton'
 
 // Dynamic import for DataTable with loading state
-const DataTable = dynamic(
-  () => import('@/components/ui/data-table').then(mod => mod.DataTable),
+const DataTable = dynamic<any>(
+  () => import('@/components/ui/data-table').then(mod => ({ default: mod.DataTable })) as any,
   {
     loading: () => (
       <div className="w-full space-y-3">
@@ -197,8 +197,8 @@ export default function ContentPage() {
                   </Button>
                 </div>
               ) : (
-                <DataTable<ContentItem, any>
-                  columns={contentColumns} 
+                <DataTable
+                  columns={contentColumns as any} 
                   data={filteredContent} 
                   searchKey="title"
                   searchPlaceholder="Search content..."

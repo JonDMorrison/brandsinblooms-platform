@@ -1,9 +1,10 @@
+'use client'
+
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
 import DashboardSidebar from './DashboardSidebar'
 import DashboardHeader from './DashboardHeader'
 
-export default function DashboardLayout() {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -34,7 +35,7 @@ export default function DashboardLayout() {
         {/* Page content */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gradient-subtle">
           <div className="brand-container py-6">
-            <Outlet />
+            {children}
           </div>
         </main>
       </div>

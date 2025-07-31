@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/src/lib/database/types';
-import { Site } from '@/src/lib/database/aliases';
-import { executeQuery } from '@/src/lib/queries/utils/execute-query';
+import { Database } from '@/lib/database/types';
+import { Site } from '@/lib/database/aliases';
+// No longer need executeQuery imports - using direct Supabase queries
 
 // Theme settings interface
 export interface ThemeSettings {
@@ -33,16 +33,21 @@ export async function getSiteTheme(
   client: SupabaseClient<Database>,
   siteId: string
 ): Promise<ThemeSettings> {
-  const query = client
+  const { data, error } = await client
     .from('sites')
     .select('theme_settings')
     .eq('id', siteId)
     .single();
   
-  const result = await executeQuery(query);
+  if (error) {
+    throw new Error(`Failed to get site theme: ${error.message}`);
+  }
   
   // Return theme settings or default if not set
-  return (result.theme_settings as ThemeSettings) || getDefaultTheme();
+  if (!data) {
+    return getDefaultTheme();
+  }
+  return (data.theme_settings as unknown as ThemeSettings) || getDefaultTheme();
 }
 
 // Update site theme settings
@@ -51,14 +56,21 @@ export async function updateSiteTheme(
   siteId: string,
   theme: ThemeSettings
 ): Promise<Site> {
-  const query = client
+  const { data, error } = await client
     .from('sites')
-    .update({ theme_settings: theme })
+    .update({ theme_settings: theme as any })
     .eq('id', siteId)
     .select()
     .single();
   
-  return await executeQuery(query);
+  if (error) {
+    throw new Error(`Failed to update site theme: ${error.message}`);
+  }
+  
+  if (!data) {
+    throw new Error('Failed to update site theme');
+  }
+  return data;
 }
 
 // Get default theme settings
@@ -319,7 +331,7 @@ export const themePresets: Record<string, ThemeSettings> = {
       fontSize: 'large',
     },
     layout: {
-      headerStyle: 'bold',
+      headerStyle: 'modern',
       footerStyle: 'minimal',
       menuStyle: 'sidebar',
     },

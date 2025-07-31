@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/src/lib/database/types';
-import { executeQuery } from '@/src/lib/queries/utils/execute-query';
+import { Database } from '@/lib/database/types';
+import { executeQuery } from '@/lib/queries/utils/execute-query';
+import { SupabaseError } from '@/lib/queries/errors';
 
 // Customer stats interface (typically from a view or computed)
 export interface CustomerStats {
@@ -87,15 +88,25 @@ export async function getCustomers(
   const offset = (page - 1) * limit;
   query = query.range(offset, offset + limit - 1);
   
-  const { data, count } = await client
-    .from('customer_stats')
-    .select('*', { count: 'exact' })
-    .range(offset, offset + limit - 1);
+  const { data, count, error } = await query;
   
+  if (error) throw new SupabaseError(error.message, error.code, error.details);
   if (!data) throw new Error('Failed to fetch customers');
   
   return {
-    customers: data,
+    customers: data.map(customer => ({
+      id: customer.id || '',
+      name: customer.name || '',
+      email: customer.email || '',
+      total_orders: customer.orders_count || 0,
+      total_spent: customer.total_spent || 0,
+      average_order_value: customer.orders_count && customer.total_spent 
+        ? customer.total_spent / customer.orders_count 
+        : 0,
+      last_order_date: customer.last_order_date,
+      status: (customer.status || 'inactive') as 'active' | 'inactive',
+      created_at: new Date().toISOString() // This should come from the database
+    })),
     totalCount: count || 0,
     page,
     totalPages: Math.ceil((count || 0) / limit),
@@ -114,7 +125,10 @@ export async function getCustomer(
     .eq('id', customerId)
     .single();
   
-  const customer = await executeQuery(customerQuery);
+  const { data: customerData, error: customerError } = await customerQuery;
+  if (customerError) throw new SupabaseError(customerError.message, customerError.code);
+  if (!customerData) throw new Error('Customer not found');
+  const customer = customerData;
   
   // Get recent orders
   const ordersQuery = client
@@ -124,11 +138,28 @@ export async function getCustomer(
     .order('created_at', { ascending: false })
     .limit(5);
   
-  const recentOrders = await executeQuery(ordersQuery);
+  const { data: recentOrders, error: ordersError } = await ordersQuery;
+  if (ordersError) throw new SupabaseError(ordersError.message, ordersError.code);
   
   return {
-    ...customer,
-    recent_orders: recentOrders,
+    id: customer.id || '',
+    name: customer.name || '',
+    email: customer.email || '',
+    total_orders: customer.orders_count || 0,
+    total_spent: customer.total_spent || 0,
+    average_order_value: customer.orders_count && customer.total_spent 
+      ? customer.total_spent / customer.orders_count 
+      : 0,
+    last_order_date: customer.last_order_date,
+    status: (customer.status || 'inactive') as 'active' | 'inactive',
+    created_at: new Date().toISOString(), // This should come from the database
+    recent_orders: (recentOrders || []).map(order => ({
+      id: order.id,
+      order_number: order.order_number,
+      total_amount: order.total_amount,
+      status: order.status,
+      created_at: order.created_at
+    }))
   };
 }
 
@@ -147,7 +178,22 @@ export async function getTopCustomers(
   // Note: customer_stats view doesn't have site_id, so we need to filter by joining with orders
   // This is a limitation of the view approach - in production, you might want to add site_id to the view
   
-  return await executeQuery(query);
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  
+  return (data || []).map(customer => ({
+    id: customer.id || '',
+    name: customer.name || '',
+    email: customer.email || '',
+    total_orders: customer.orders_count || 0,
+    total_spent: customer.total_spent || 0,
+    average_order_value: customer.orders_count && customer.total_spent 
+      ? customer.total_spent / customer.orders_count 
+      : 0,
+    last_order_date: customer.last_order_date,
+    status: (customer.status || 'inactive') as 'active' | 'inactive',
+    created_at: new Date().toISOString()
+  }));
 }
 
 // Get customer statistics
@@ -167,7 +213,11 @@ export async function getCustomerStatistics(
     .select('user_id, created_at', { count: 'exact' })
     .eq('user_type', 'customer');
   
-  const { data: customers, count: totalCustomers } = await customersQuery;
+  const { data: customers, count: totalCustomers, error: customersError } = await customersQuery;
+  
+  if (customersError) {
+    throw new SupabaseError(customersError.message, customersError.code, customersError.details);
+  }
   
   // Get orders for statistics
   const ordersQuery = client
@@ -175,7 +225,8 @@ export async function getCustomerStatistics(
     .select('customer_id, total_amount, created_at')
     .eq('site_id', siteId);
   
-  const orders = await executeQuery(ordersQuery);
+  const { data: orders, error: ordersError } = await ordersQuery;
+  if (ordersError) throw new SupabaseError(ordersError.message, ordersError.code);
   
   // Calculate statistics
   const now = new Date();
@@ -231,7 +282,22 @@ export async function searchCustomers(
     )
     .limit(limit);
   
-  return await executeQuery(query);
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  
+  return (data || []).map(customer => ({
+    id: customer.id || '',
+    name: customer.name || '',
+    email: customer.email || '',
+    total_orders: customer.orders_count || 0,
+    total_spent: customer.total_spent || 0,
+    average_order_value: customer.orders_count && customer.total_spent 
+      ? customer.total_spent / customer.orders_count 
+      : 0,
+    last_order_date: customer.last_order_date,
+    status: (customer.status || 'inactive') as 'active' | 'inactive',
+    created_at: new Date().toISOString()
+  }));
 }
 
 // Get customer order history
@@ -254,13 +320,14 @@ export async function getCustomerOrderHistory(
 }> {
   const offset = (page - 1) * limit;
   
-  const { data, count } = await client
+  const { data, count, error } = await client
     .from('orders')
     .select('id, order_number, total_amount, items_count, status, created_at', { count: 'exact' })
     .eq('customer_id', customerId)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
   
+  if (error) throw new SupabaseError(error.message, error.code, error.details);
   if (!data) throw new Error('Failed to fetch order history');
   
   return {
@@ -292,7 +359,8 @@ export async function getCustomerInsights(
     .eq('customer_id', customerId)
     .neq('status', 'cancelled');
   
-  const orders = await executeQuery(ordersQuery);
+  const { data: orders, error: ordersError } = await ordersQuery;
+  if (ordersError) throw new SupabaseError(ordersError.message, ordersError.code);
   
   if (orders.length === 0) {
     return {
@@ -323,6 +391,7 @@ export async function getCustomerInsights(
   const averageOrderValue = totalRevenue / orders.length;
   
   // Calculate order frequency
+  let orderFrequency: string;
   if (orders.length > 1) {
     const dates = orders.map(o => new Date(o.created_at).getTime()).sort();
     const daysBetweenOrders = dates.slice(1).map((date, i) => 
@@ -330,13 +399,13 @@ export async function getCustomerInsights(
     );
     const avgDaysBetween = daysBetweenOrders.reduce((a, b) => a + b, 0) / daysBetweenOrders.length;
     
-    const orderFrequency = 
+    orderFrequency = 
       avgDaysBetween < 7 ? 'Weekly' :
       avgDaysBetween < 30 ? 'Monthly' :
       avgDaysBetween < 90 ? 'Quarterly' :
       'Occasional';
   } else {
-    const orderFrequency = 'First order';
+    orderFrequency = 'First order';
   }
   
   // Calculate preferred order time

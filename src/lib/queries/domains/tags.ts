@@ -4,7 +4,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/src/lib/database/types';
+import { Database } from '@/lib/database/types';
 import { 
   handleQueryResponse, 
   handleSingleResponse,
@@ -45,8 +45,7 @@ export async function getTags(
     query = query.or(`name.ilike.%${options.search}%,slug.ilike.%${options.search}%`);
   }
 
-  const response = await query;
-  const tags = await handleQueryResponse(response);
+  const tags = await handleQueryResponse(await query);
 
   // Transform to include usage count
   return tags.map((tag: any) => ({

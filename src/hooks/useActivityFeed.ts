@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/src/lib/queries/keys';
+import { queryKeys } from '@/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/contexts/SiteContext';
 import {
@@ -11,8 +11,8 @@ import {
   getUserActivityTimeline,
   ActivityFilters,
   ActivityLogWithUser,
-} from '@/src/lib/queries/domains/activity';
-import { ActivityLogInsert } from '@/src/lib/database/aliases';
+} from '@/lib/queries/domains/activity';
+import { ActivityLogInsert } from '@/lib/database/aliases';
 
 // Hook for paginated activity feed
 export function useActivityFeed(filters?: ActivityFilters) {
@@ -26,6 +26,7 @@ export function useActivityFeed(filters?: ActivityFilters) {
         ...filters, 
         cursor: pageParam,
       }),
+    initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: !!siteId,
     staleTime: 30 * 1000, // 30 seconds

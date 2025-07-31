@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/src/lib/queries/keys';
+import { queryKeys } from '@/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/contexts/SiteContext';
 import {
@@ -11,8 +11,8 @@ import {
   importTheme,
   generateThemeFromBrandColor,
   themePresets,
-} from '@/src/lib/queries/domains/theme';
-import { ThemeSettings } from '@/src/lib/queries/domains/theme';
+} from '@/lib/queries/domains/theme';
+import { ThemeSettings } from '@/lib/queries/domains/theme';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
 
@@ -109,7 +109,7 @@ export function useResetTheme() {
       
       // Apply the reset theme
       if (site.theme_settings) {
-        applyThemeToDOM(site.theme_settings as ThemeSettings);
+        applyThemeToDOM(site.theme_settings as unknown as ThemeSettings);
       }
       
       toast.success('Theme reset to defaults');

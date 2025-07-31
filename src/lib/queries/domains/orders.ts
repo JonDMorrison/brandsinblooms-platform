@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/src/lib/database/types';
-import { Order, OrderInsert, OrderUpdate, OrderItem, OrderStatus } from '@/src/lib/database/aliases';
-import { executeQuery } from '@/src/lib/queries/utils/execute-query';
+import { Database } from '@/lib/database/types';
+import { Order, OrderInsert, OrderUpdate, OrderItem, OrderStatus } from '@/lib/database/aliases';
+import { SupabaseError } from '@/lib/queries/errors';
 
 export interface OrderFilters {
   status?: OrderStatus;
@@ -92,14 +92,16 @@ export async function getOrders(
     query = query.lte('created_at', dateTo);
   }
   
-  const data = await executeQuery(query);
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  if (!data) return { orders: [], nextCursor: null, hasMore: false };
   
   const hasMore = data.length > limit;
   const orders = hasMore ? data.slice(0, -1) : data;
   const nextCursor = hasMore ? orders[orders.length - 1]?.created_at : null;
   
   return {
-    orders: orders as OrderWithCustomer[],
+    orders: orders as unknown as OrderWithCustomer[],
     nextCursor,
     hasMore,
   };
@@ -135,7 +137,10 @@ export async function getOrder(
     .eq('id', orderId)
     .single();
   
-  return await executeQuery(query);
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  if (!data) throw new SupabaseError('Order not found', 'NOT_FOUND');
+  return data as unknown as OrderWithCustomer;
 }
 
 // Get order statistics
@@ -149,7 +154,9 @@ export async function getOrderStats(
     .select('id, status, total_amount, created_at')
     .eq('site_id', siteId);
   
-  const orders = await executeQuery(overallQuery);
+  const { data: orders, error } = await overallQuery;
+  if (error) throw new SupabaseError(error.message, error.code);
+  if (!orders) throw new SupabaseError('Failed to fetch orders', 'FETCH_ERROR');
   
   // Calculate today's stats
   const today = new Date();
@@ -210,7 +217,10 @@ export async function createOrder(
     .select()
     .single();
   
-  return await executeQuery(query);
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  if (!data) throw new SupabaseError('Failed to create order', 'CREATE_ERROR');
+  return data;
 }
 
 // Update order
@@ -228,7 +238,10 @@ export async function updateOrder(
     .select()
     .single();
   
-  return await executeQuery(query);
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  if (!data) throw new SupabaseError('Order not found', 'NOT_FOUND');
+  return data;
 }
 
 // Update order status
@@ -265,7 +278,9 @@ export async function getCustomerOrders(
     .order('created_at', { ascending: false })
     .limit(limit);
   
-  return await executeQuery(query);
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  return data || [];
 }
 
 // Search orders
@@ -293,7 +308,9 @@ export async function searchOrders(
     .order('created_at', { ascending: false })
     .limit(limit);
   
-  return await executeQuery(query) as OrderWithCustomer[];
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  return (data || []) as unknown as OrderWithCustomer[];
 }
 
 // Bulk update orders
@@ -310,5 +327,7 @@ export async function bulkUpdateOrderStatus(
     .in('id', orderIds)
     .select();
   
-  return await executeQuery(query);
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  return data || [];
 }

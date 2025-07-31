@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/src/lib/supabase/server'
-import { getUser } from '@/src/lib/auth/server'
+import { createClient } from '@/lib/supabase/server'
+import { getUser } from '@/lib/auth/server'
 
 export async function signUp(email: string, password: string, fullName: string) {
   const supabase = await createClient()

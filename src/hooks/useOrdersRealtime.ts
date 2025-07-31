@@ -5,8 +5,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/contexts/SiteContext';
-import { queryKeys } from '@/src/lib/queries/keys';
-import { OrderWithCustomer } from '@/src/lib/queries/domains/orders';
+import { queryKeys } from '@/lib/queries/keys';
+import { OrderWithCustomer } from '@/lib/queries/domains/orders';
 import { toast } from 'sonner';
 
 interface UseOrdersRealtimeOptions {
@@ -40,6 +40,11 @@ export function useOrdersRealtime({
     onInsert: (payload: RealtimePostgresChangesPayload<OrderWithCustomer>) => {
       const newOrder = payload.new;
       
+      // Type guard to ensure we have a valid order
+      if (!newOrder || typeof newOrder !== 'object' || !('id' in newOrder)) {
+        return;
+      }
+      
       // Invalidate orders list and stats
       queryClient.invalidateQueries({
         queryKey: queryKeys.orders.lists(siteId!),
@@ -51,7 +56,7 @@ export function useOrdersRealtime({
       // Show notification
       if (showNotifications) {
         toast.info(`New order #${newOrder.order_number} received!`, {
-          description: `From ${newOrder.customer?.name || 'Unknown Customer'}`,
+          description: `From ${newOrder.customer?.full_name || 'Unknown Customer'}`,
           action: {
             label: 'View',
             onClick: () => {
@@ -68,6 +73,11 @@ export function useOrdersRealtime({
     onUpdate: (payload: RealtimePostgresChangesPayload<OrderWithCustomer>) => {
       const updatedOrder = payload.new;
       const previousOrder = payload.old as OrderWithCustomer;
+      
+      // Type guard to ensure we have a valid updated order
+      if (!updatedOrder || typeof updatedOrder !== 'object' || !('id' in updatedOrder)) {
+        return;
+      }
       
       // Update the specific order in cache if it exists
       const cachedOrder = queryClient.getQueryData<OrderWithCustomer>(
@@ -149,8 +159,8 @@ export function useOrderStatusRealtime() {
     event: 'UPDATE',
     enabled: !!siteId,
     onUpdate: (payload) => {
-      const oldStatus = payload.old?.status;
-      const newStatus = payload.new?.status;
+      const oldStatus = (payload.old as any)?.status;
+      const newStatus = (payload.new as any)?.status;
       
       // Only invalidate stats if status changed
       if (oldStatus !== newStatus) {

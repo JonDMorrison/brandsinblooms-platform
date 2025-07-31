@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { cn } from '@/src/lib/utils'
+import { cn } from '@/lib/utils'
 
 interface MobileCardProps {
   title: string

@@ -23,13 +23,13 @@ interface MetricItem {
 }
 
 const metricConfig = [
-  { key: 'performance_score', name: 'Site Performance', maxValue: 100 },
-  { key: 'page_speed_score', name: 'Page Load Speed', maxValue: 100 },
-  { key: 'seo_score', name: 'SEO Score', maxValue: 100 },
-  { key: 'mobile_score', name: 'Mobile Optimization', maxValue: 100 },
-  { key: 'security_score', name: 'Security Score', maxValue: 100 },
-  { key: 'accessibility_score', name: 'Accessibility', maxValue: 100 }
-]
+  { key: 'performance', name: 'Site Performance', maxValue: 100 },
+  { key: 'page_load', name: 'Page Load Speed', maxValue: 100 },
+  { key: 'seo', name: 'SEO Score', maxValue: 100 },
+  { key: 'mobile', name: 'Mobile Optimization', maxValue: 100 },
+  { key: 'security', name: 'Security Score', maxValue: 100 },
+  { key: 'accessibility', name: 'Accessibility', maxValue: 100 }
+] as const
 
 
 const getMetricStatus = (value: number): MetricItem['status'] => {
@@ -78,19 +78,23 @@ export function PerformanceMetrics() {
     if (!currentMetrics) return []
     
     return metricConfig.map((config, index) => {
-      const currentValue = currentMetrics[config.key as keyof typeof currentMetrics] as number || 0
+      const currentMetric = currentMetrics[config.key]
+      const currentValue = currentMetric?.score || 0
       const status = getMetricStatus(currentValue)
       
-      // Calculate change from last week
+      // Use trend from metrics or calculate change from history
       let change: MetricItem['change'] = {
-        value: 0,
-        type: 'neutral',
-        period: 'vs last week'
+        value: currentMetric?.change || 0,
+        type: currentMetric?.trend === 'up' ? 'increase' : 
+              currentMetric?.trend === 'down' ? 'decrease' : 'neutral',
+        period: 'vs previous day'
       }
       
-      if (history && history.length > 0) {
-        const lastWeekMetrics = history[history.length - 1]
-        const lastWeekValue = lastWeekMetrics?.metrics?.[config.key as keyof typeof lastWeekMetrics.metrics] as number || 0
+      // If we have history data, calculate weekly change
+      if (history && Array.isArray(history) && history.length > 1) {
+        const lastWeekMetrics = history[0] // First item is oldest
+        const lastWeekMetric = lastWeekMetrics?.metrics?.[config.key]
+        const lastWeekValue = lastWeekMetric?.score || 0
         
         if (lastWeekValue > 0) {
           const changeValue = currentValue - lastWeekValue

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { cn } from '@/src/lib/utils'
+import { cn } from '@/lib/utils'
 import React from 'react'
 
 interface MobileButtonProps extends React.ComponentProps<typeof Button> {

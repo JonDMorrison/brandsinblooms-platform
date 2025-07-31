@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { requireAuth } from '@/src/lib/auth/server'
+import { requireAuth } from '@/lib/auth/server'
 import { DashboardLayoutClient } from './dashboard-layout-client'
 
 export const metadata: Metadata = {

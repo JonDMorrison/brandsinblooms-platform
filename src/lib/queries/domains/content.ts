@@ -4,7 +4,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/src/lib/database/types';
+import { Database } from '@/lib/database/types';
 import { 
   handleQueryResponse, 
   handleSingleResponse,
@@ -170,7 +170,7 @@ export async function getContentById(
   // Transform tags
   return {
     ...data,
-    tags: data.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+    tags: Array.isArray(data.tags) ? data.tags.map((t: any) => t.tag).filter(Boolean) : [],
   };
 }
 
@@ -203,7 +203,7 @@ export async function getContentBySlug(
   // Transform tags
   return {
     ...data,
-    tags: data.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+    tags: Array.isArray(data.tags) ? data.tags.map((t: any) => t.tag).filter(Boolean) : [],
   };
 }
 
@@ -416,9 +416,11 @@ export async function getContentByType(
     .eq('content_type', contentType)
     .order('created_at', { ascending: false });
 
-  const response = await query;
-  const data = handleResponse(response);
-  return data.map(transformContentWithTags);
+  const data = await handleQueryResponse(await query);
+  return data.map((item: any) => ({
+    ...item,
+    tags: item.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+  }));
 }
 
 /**
@@ -446,9 +448,11 @@ export async function getPublishedContent(
     query = query.eq('content_type', contentType);
   }
 
-  const response = await query;
-  const data = handleResponse(response);
-  return data.map(transformContentWithTags);
+  const data = await handleQueryResponse(await query);
+  return data.map((item: any) => ({
+    ...item,
+    tags: item.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+  }));
 }
 
 /**
@@ -472,9 +476,11 @@ export async function searchContent(
     .or(`title.ilike.%${searchQuery}%,meta_description.ilike.%${searchQuery}%`)
     .order('created_at', { ascending: false });
 
-  const response = await query;
-  const data = handleResponse(response);
-  return data.map(transformContentWithTags);
+  const data = await handleQueryResponse(await query);
+  return data.map((item: any) => ({
+    ...item,
+    tags: item.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+  }));
 }
 
 /**

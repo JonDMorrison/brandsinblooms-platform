@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/src/lib/queries/keys';
+import { queryKeys } from '@/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/contexts/SiteContext';
 import {
@@ -11,9 +11,10 @@ import {
   compareMetrics,
   batchUpdateMetrics,
   generateSampleMetrics,
-  SiteMetricsData,
-  MetricsHistory,
-} from '@/src/lib/queries/domains/metrics';
+} from '@/lib/queries/domains/metrics';
+import type { SiteMetrics } from '@/lib/database/aliases';
+import type { MetricsData } from '@/lib/database/json-types';
+import type { MetricsHistory as MetricsHistoryType } from '@/lib/queries/domains/metrics';
 import { toast } from 'sonner';
 
 // Hook for current metrics
@@ -21,7 +22,7 @@ export function useSiteMetrics() {
   const client = useSupabase();
   const siteId = useSiteId();
   
-  return useQuery<SiteMetricsData | null>({
+  return useQuery<MetricsData | null>({
     queryKey: queryKeys.metrics.current(siteId!),
     queryFn: () => getCurrentMetrics(client, siteId!),
     enabled: !!siteId,
@@ -35,7 +36,7 @@ export function useMetricsHistory(days: number = 30) {
   const client = useSupabase();
   const siteId = useSiteId();
   
-  return useQuery<MetricsHistory[]>({
+  return useQuery<MetricsHistoryType[]>({
     queryKey: queryKeys.metrics.history(siteId!, days),
     queryFn: () => getMetricsHistory(client, siteId!, days),
     enabled: !!siteId,
@@ -48,7 +49,7 @@ export function useMetricsByDate(date: string) {
   const client = useSupabase();
   const siteId = useSiteId();
   
-  return useQuery<SiteMetricsData | null>({
+  return useQuery<MetricsData | null>({
     queryKey: queryKeys.metrics.byDate(siteId!, date),
     queryFn: () => getMetricsByDate(client, siteId!, date),
     enabled: !!siteId && !!date,
@@ -62,7 +63,7 @@ export function useSaveMetrics() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ metrics, date }: { metrics: SiteMetricsData; date?: string }) =>
+    mutationFn: ({ metrics, date }: { metrics: MetricsData; date?: string }) =>
       saveMetrics(client, siteId!, metrics, date),
     onSuccess: (_, variables) => {
       // Invalidate current metrics
@@ -123,7 +124,7 @@ export function useBatchUpdateMetrics() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (metricsData: Array<{ date: string; metrics: SiteMetricsData }>) =>
+    mutationFn: (metricsData: Array<{ date: string; metrics: MetricsData }>) =>
       batchUpdateMetrics(client, siteId!, metricsData),
     onSuccess: () => {
       // Invalidate all metrics queries

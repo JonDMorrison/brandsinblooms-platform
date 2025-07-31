@@ -1,23 +1,23 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/src/lib/database/types';
+import { Database } from '@/lib/database/types';
 import { 
   SiteMetrics, 
   SiteMetricsInsert,
-  SiteMetricsData,
   MetricData 
-} from '@/src/lib/database/aliases';
-import { executeQuery } from '@/src/lib/queries/utils/execute-query';
+} from '@/lib/database/aliases';
+import { MetricsData } from '@/lib/database/json-types';
+import { SupabaseError } from '../errors';
 
 export interface MetricsHistory {
   date: string;
-  metrics: SiteMetricsData;
+  metrics: MetricsData;
 }
 
 // Get current metrics (today's or most recent)
 export async function getCurrentMetrics(
   client: SupabaseClient<Database>,
   siteId: string
-): Promise<SiteMetricsData | null> {
+): Promise<MetricsData | null> {
   const today = new Date().toISOString().split('T')[0];
   
   // Try to get today's metrics first
@@ -29,8 +29,9 @@ export async function getCurrentMetrics(
     .single();
   
   try {
-    const result = await executeQuery(query);
-    return result.metrics as SiteMetricsData;
+    const { data: result, error } = await query;
+    if (error) throw new SupabaseError(error.message, error.code);
+    return (result && 'metrics' in result) ? result.metrics as MetricsData : null;
   } catch (error) {
     // If no metrics for today, get the most recent
     const recentQuery = client
@@ -42,8 +43,9 @@ export async function getCurrentMetrics(
       .single();
     
     try {
-      const result = await executeQuery(recentQuery);
-      return result.metrics as SiteMetricsData;
+      const { data: result, error: recentError } = await recentQuery;
+      if (recentError) throw new SupabaseError(recentError.message, recentError.code);
+      return (result && 'metrics' in result) ? result.metrics as MetricsData : null;
     } catch {
       return null;
     }
@@ -68,11 +70,12 @@ export async function getMetricsHistory(
     .lte('metric_date', endDate.toISOString().split('T')[0])
     .order('metric_date', { ascending: true });
   
-  const results = await executeQuery(query);
+  const { data: results, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
   
   return results.map(result => ({
     date: result.metric_date,
-    metrics: result.metrics as SiteMetricsData,
+    metrics: result.metrics as MetricsData,
   }));
 }
 
@@ -81,7 +84,7 @@ export async function getMetricsByDate(
   client: SupabaseClient<Database>,
   siteId: string,
   date: string
-): Promise<SiteMetricsData | null> {
+): Promise<MetricsData | null> {
   const query = client
     .from('site_metrics')
     .select('metrics')
@@ -90,8 +93,9 @@ export async function getMetricsByDate(
     .single();
   
   try {
-    const result = await executeQuery(query);
-    return result.metrics as SiteMetricsData;
+    const { data: result, error } = await query;
+    if (error) throw new SupabaseError(error.message, error.code);
+    return (result && 'metrics' in result) ? result.metrics as MetricsData : null;
   } catch {
     return null;
   }
@@ -101,7 +105,7 @@ export async function getMetricsByDate(
 export async function saveMetrics(
   client: SupabaseClient<Database>,
   siteId: string,
-  metrics: SiteMetricsData,
+  metrics: MetricsData,
   date?: string
 ): Promise<SiteMetrics> {
   const metricDate = date || new Date().toISOString().split('T')[0];
@@ -133,42 +137,48 @@ export async function saveMetrics(
     .select()
     .single();
   
-  return await executeQuery(query);
+  const { data: result, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  if (!result) {
+    throw new Error('Failed to upsert metrics');
+  }
+  return result as SiteMetrics;
 }
 
 // Calculate metric trends
 function calculateMetricTrends(
-  current: SiteMetricsData,
-  previous: SiteMetricsData | null
-): SiteMetricsData {
+  current: MetricsData,
+  previous: MetricsData | null
+): MetricsData {
   if (!previous) {
     // If no previous data, all trends are neutral
-    return Object.entries(current).reduce((acc, [key, metric]) => {
+    const result: MetricsData = {};
+    for (const [key, metric] of Object.entries(current)) {
       if (metric && typeof metric === 'object' && 'score' in metric) {
-        acc[key as keyof SiteMetricsData] = {
+        result[key as keyof MetricsData] = {
           ...metric,
           trend: 'neutral',
         };
       }
-      return acc;
-    }, {} as SiteMetricsData);
+    }
+    return result;
   }
   
-  const result: SiteMetricsData = {};
+  const result: MetricsData = {};
   
   for (const [key, currentMetric] of Object.entries(current)) {
-    const previousMetric = previous[key as keyof SiteMetricsData];
+    const previousMetric = previous[key as keyof MetricsData];
     
     if (currentMetric && typeof currentMetric === 'object' && 'score' in currentMetric) {
       const currentScore = currentMetric.score;
-      const previousScore = previousMetric && 'score' in previousMetric 
-        ? previousMetric.score 
+      const previousScore = previousMetric && typeof previousMetric === 'object' && 'score' in previousMetric 
+        ? (previousMetric as any).score
         : currentScore;
       
       const change = currentScore - previousScore;
       const trend = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
       
-      result[key as keyof SiteMetricsData] = {
+      result[key as keyof MetricsData] = {
         score: currentScore,
         change: Math.abs(change),
         trend,
@@ -185,8 +195,8 @@ export async function getMetricsSummary(
   siteId: string,
   days: number = 30
 ): Promise<{
-  averages: SiteMetricsData;
-  trends: Record<keyof SiteMetricsData, 'improving' | 'declining' | 'stable'>;
+  averages: MetricsData;
+  trends: Record<keyof MetricsData, 'improving' | 'declining' | 'stable'>;
   bestDay: { date: string; score: number };
   worstDay: { date: string; score: number };
 }> {
@@ -217,17 +227,17 @@ export async function getMetricsSummary(
         if (!sums[key]) {
           sums[key] = { score: 0, count: 0 };
         }
-        sums[key].score += metric.score;
+        sums[key].score += (metric as any).score;
         sums[key].count += 1;
         
         // Track scores for trend analysis
         if (!trends[key]) {
           trends[key] = [];
         }
-        trends[key].push(metric.score);
+        trends[key].push((metric as any).score);
         
         // Calculate day score
-        dayScore += metric.score;
+        dayScore += (metric as any).score;
         metricCount += 1;
       }
     });
@@ -243,9 +253,9 @@ export async function getMetricsSummary(
   });
   
   // Calculate averages
-  const averages: SiteMetricsData = {};
+  const averages: MetricsData = {};
   Object.entries(sums).forEach(([key, { score, count }]) => {
-    averages[key as keyof SiteMetricsData] = {
+    averages[key as keyof MetricsData] = {
       score: Math.round(score / count),
       change: 0,
       trend: 'neutral',
@@ -253,10 +263,10 @@ export async function getMetricsSummary(
   });
   
   // Analyze trends
-  const trendAnalysis: Record<keyof SiteMetricsData, 'improving' | 'declining' | 'stable'> = {} as any;
+  const trendAnalysis: Record<keyof MetricsData, 'improving' | 'declining' | 'stable'> = {} as any;
   Object.entries(trends).forEach(([key, scores]) => {
     if (scores.length < 2) {
-      trendAnalysis[key as keyof SiteMetricsData] = 'stable';
+      trendAnalysis[key as keyof MetricsData] = 'stable';
       return;
     }
     
@@ -269,7 +279,7 @@ export async function getMetricsSummary(
     
     const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
     
-    trendAnalysis[key as keyof SiteMetricsData] = 
+    trendAnalysis[key as keyof MetricsData] = 
       slope > 0.5 ? 'improving' : 
       slope < -0.5 ? 'declining' : 
       'stable';
@@ -284,13 +294,13 @@ export async function getMetricsSummary(
 }
 
 // Generate sample metrics (for development/testing)
-export function generateSampleMetrics(): SiteMetricsData {
+export function generateSampleMetrics(): MetricsData {
   const randomScore = (min: number, max: number) => 
     Math.floor(Math.random() * (max - min + 1)) + min;
   
   const randomChange = () => Math.floor(Math.random() * 10) - 5;
   
-  const metrics: SiteMetricsData = {
+  const metrics: MetricsData = {
     performance: {
       score: randomScore(70, 95),
       change: randomChange(),
@@ -325,8 +335,8 @@ export function generateSampleMetrics(): SiteMetricsData {
   
   // Set trends based on change
   Object.values(metrics).forEach(metric => {
-    if (metric) {
-      metric.trend = metric.change > 0 ? 'up' : metric.change < 0 ? 'down' : 'neutral';
+    if (metric && typeof metric === 'object' && 'change' in metric && 'trend' in metric) {
+      (metric as any).trend = (metric as any).change > 0 ? 'up' : (metric as any).change < 0 ? 'down' : 'neutral';
     }
   });
   
@@ -337,7 +347,7 @@ export function generateSampleMetrics(): SiteMetricsData {
 export async function batchUpdateMetrics(
   client: SupabaseClient<Database>,
   siteId: string,
-  metricsData: Array<{ date: string; metrics: SiteMetricsData }>
+  metricsData: Array<{ date: string; metrics: MetricsData }>
 ): Promise<SiteMetrics[]> {
   const inserts = metricsData.map(({ date, metrics }) => ({
     site_id: siteId,
@@ -352,7 +362,9 @@ export async function batchUpdateMetrics(
     })
     .select();
   
-  return await executeQuery(query);
+  const { data, error } = await query;
+  if (error) throw new SupabaseError(error.message, error.code);
+  return data as SiteMetrics[];
 }
 
 // Get metric comparison between dates
@@ -362,9 +374,9 @@ export async function compareMetrics(
   date1: string,
   date2: string
 ): Promise<{
-  date1Metrics: SiteMetricsData | null;
-  date2Metrics: SiteMetricsData | null;
-  comparison: Record<keyof SiteMetricsData, {
+  date1Metrics: MetricsData | null;
+  date2Metrics: MetricsData | null;
+  comparison: Record<keyof MetricsData, {
     difference: number;
     percentageChange: number;
     improved: boolean;
@@ -378,7 +390,7 @@ export async function compareMetrics(
   const comparison: any = {};
   
   if (metrics1 && metrics2) {
-    const metricKeys: (keyof SiteMetricsData)[] = [
+    const metricKeys: (keyof MetricsData)[] = [
       'performance', 'page_load', 'seo', 'mobile', 'security', 'accessibility'
     ];
     

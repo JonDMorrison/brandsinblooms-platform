@@ -3,8 +3,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/src/lib/supabase/client';
-import { queryKeys } from '@/src/lib/queries/keys';
+import { supabase } from '@/lib/supabase/client';
+import { queryKeys } from '@/lib/queries/keys';
 import { 
   getContent, 
   getContentById, 
@@ -17,9 +17,9 @@ import {
   getContentStats,
   ContentFilters,
   ContentSortOptions
-} from '@/src/lib/queries/domains/content';
+} from '@/lib/queries/domains/content';
 import { useSiteId } from '@/contexts/SiteContext';
-import { Content, InsertContent, ContentUpdate } from '@/src/lib/database/aliases';
+import { Content, InsertContent, ContentUpdate } from '@/lib/database/aliases';
 
 // Main content query hook
 export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) {
@@ -27,7 +27,7 @@ export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) 
   
   return useQuery({
     queryKey: queryKeys.content.list(siteId!, filters),
-    queryFn: () => getContent(supabase, siteId!, filters, sort),
+    queryFn: () => getContent(supabase, siteId!, filters),
     enabled: !!siteId,
     staleTime: 30 * 1000, // 30 seconds
   });
@@ -39,7 +39,7 @@ export function useContentItem(contentId: string) {
   
   return useQuery({
     queryKey: queryKeys.content.detail(siteId!, contentId),
-    queryFn: () => getContentById(supabase, contentId),
+    queryFn: () => getContentById(supabase, siteId!, contentId),
     enabled: !!siteId && !!contentId,
   });
 }
@@ -49,7 +49,7 @@ export function useContentByType(contentType: 'page' | 'blog_post' | 'event') {
   const siteId = useSiteId();
   
   return useQuery({
-    queryKey: queryKeys.contentByType(siteId!, contentType),
+    queryKey: queryKeys.content.list(siteId!, { type: contentType }),
     queryFn: () => getContentByType(supabase, siteId!, contentType),
     enabled: !!siteId,
     staleTime: 30 * 1000,
@@ -147,7 +147,7 @@ export function useUpdateContent() {
   
   return useMutation({
     mutationFn: ({ id, ...data }: ContentUpdate & { id: string }) => 
-      updateContent(supabase, id, data),
+      updateContent(supabase, siteId!, id, data),
     onMutate: async ({ id, ...updates }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.content.detail(siteId!, id) });
       
@@ -186,7 +186,7 @@ export function useDeleteContent() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (id: string) => deleteContent(supabase, id),
+    mutationFn: (id: string) => deleteContent(supabase, siteId!, id),
     onMutate: async (contentId) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.content.all(siteId!) });
       
