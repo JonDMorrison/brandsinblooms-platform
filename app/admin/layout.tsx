@@ -1,4 +1,5 @@
 import { AdminAuthProvider } from '@/src/contexts/AdminAuthContext'
+import { AdminImpersonationProvider } from '@/src/contexts/AdminImpersonationContext'
 import { AdminGuard } from '@/src/components/admin/AdminGuard'
 
 export const metadata = {
@@ -13,11 +14,13 @@ export default function AdminLayout({
 }) {
   return (
     <AdminAuthProvider>
-      <AdminGuard>
-        <div className="min-h-screen bg-gray-50">
-          {children}
-        </div>
-      </AdminGuard>
+      <AdminImpersonationProvider>
+        <AdminGuard>
+          <div className="min-h-screen bg-gray-50">
+            {children}
+          </div>
+        </AdminGuard>
+      </AdminImpersonationProvider>
     </AdminAuthProvider>
   )
 }

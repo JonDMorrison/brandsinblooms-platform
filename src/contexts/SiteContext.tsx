@@ -13,7 +13,7 @@ import {
   Site, 
   SiteMembership, 
   SiteMembershipRole,
-  UserType 
+  UserRole 
 } from '@/src/lib/database/types'
 import { 
   getSite, 

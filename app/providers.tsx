@@ -6,6 +6,9 @@ import { useState, lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SiteProvider } from '@/src/contexts/SiteContext'
+import { AdminAuthProvider } from '@/src/contexts/AdminAuthContext'
+import { AdminImpersonationProvider } from '@/src/contexts/AdminImpersonationContext'
+import { ImpersonationBanner } from '@/src/components/admin/ImpersonationBanner'
 
 // Lazy load React Query Devtools only in development
 const ReactQueryDevtools = process.env.NODE_ENV === 'development' 
@@ -19,9 +22,14 @@ interface ProvidersProps {
   initialHostname?: string
   initialSiteData?: any
   isAdminRoute?: boolean
+  impersonationData?: {
+    sessionId: string | null
+    adminId: string | null
+    adminEmail: string | null
+  } | null
 }
 
-export function Providers({ children, initialHostname, initialSiteData, isAdminRoute }: ProvidersProps) {
+export function Providers({ children, initialHostname, initialSiteData, isAdminRoute, impersonationData }: ProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -48,10 +56,40 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
       <AuthProvider>
         {/* Only provide SiteContext for non-admin routes */}
         {!isAdminRoute ? (
-          <SiteProvider 
-            initialHostname={initialHostname}
-            initialSiteData={initialSiteData}
-          >
+          <AdminAuthProvider>
+            <AdminImpersonationProvider>
+              <SiteProvider 
+                initialHostname={initialHostname}
+                initialSiteData={initialSiteData}
+              >
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                {/* Show impersonation banner for site routes */}
+                {impersonationData && (
+                  <ImpersonationBanner showAdminLink={true} />
+                )}
+                {children}
+                <Toaster 
+                  position="top-right" 
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      background: 'var(--background)',
+                      color: 'var(--foreground)',
+                      border: '1px solid var(--border)',
+                    },
+                  }}
+                />
+              </ThemeProvider>
+            </SiteProvider>
+          </AdminImpersonationProvider>
+          </AdminAuthProvider>
+        ) : (
+          <AdminAuthProvider>
             <ThemeProvider
               attribute="class"
               defaultTheme="system"
@@ -71,27 +109,7 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
                 }}
               />
             </ThemeProvider>
-          </SiteProvider>
-        ) : (
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster 
-              position="top-right" 
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: 'var(--background)',
-                  color: 'var(--foreground)',
-                  border: '1px solid var(--border)',
-                },
-              }}
-            />
-          </ThemeProvider>
+          </AdminAuthProvider>
         )}
       </AuthProvider>
       {process.env.NODE_ENV === 'development' && (

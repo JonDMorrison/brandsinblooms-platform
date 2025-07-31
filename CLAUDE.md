@@ -54,3 +54,6 @@ Working on domain-based site routing implementation with site context and domain
 
 ## Development Principles
 - When implementing new features, always consider leaning on supabase's features first instead of introducing external dependencies
+
+## Development Tools
+- When implementing features, you can use a peer reviewer, or brainstorming co-agent named gemini. You can use the bash command `gemini -y -p "prompt"`. Gemini is a coding agent like you, but with a broader context -- so it's useful for getting summaries of or answering questions about entire directories or larger files.

@@ -20,6 +20,11 @@ const USE_REDIS_CACHE = process.env.REDIS_URL && process.env.NODE_ENV === 'produ
 const ENABLE_ANALYTICS = process.env.ANALYTICS_ENABLED !== 'false'
 const ENABLE_SECURITY = process.env.SECURITY_ENABLED !== 'false'
 
+// Impersonation configuration
+const IMPERSONATION_HEADER = 'x-admin-impersonation-token'
+const IMPERSONATION_COOKIE = 'admin_impersonation_token'
+const IMPERSONATION_QUERY_PARAM = 'admin_impersonation'
+
 // Define public routes that don't require authentication (for main app domain)
 const publicRoutes = [
   '/',
@@ -99,6 +104,28 @@ export async function middleware(request: NextRequest) {
     // Check if this is the main app domain - if so, handle authentication
     if (isMainAppDomain(hostname)) {
       return handleMainAppAuthentication(request, supabaseResponse, user, pathname)
+    }
+
+    // Check for admin impersonation token before normal site resolution
+    const impersonationToken = detectImpersonationToken(request)
+    if (impersonationToken) {
+      const impersonationContext = await validateImpersonationToken(supabase, impersonationToken)
+      if (impersonationContext) {
+        // Handle impersonated site access
+        return await handleImpersonatedSiteAccess(
+          request, 
+          supabase, 
+          supabaseResponse, 
+          impersonationContext, 
+          start
+        )
+      } else {
+        // Invalid impersonation token - clear it and continue with normal flow
+        console.warn('Invalid impersonation token detected, clearing and continuing with normal flow')
+        const response = NextResponse.next({ request })
+        response.cookies.delete(IMPERSONATION_COOKIE)
+        // Continue with normal site resolution below
+      }
     }
 
     // This is a site domain - resolve site and handle site-specific logic
@@ -243,6 +270,154 @@ function handleDevelopmentRequest(
   }
   
   logDomainResolution(hostname, siteParam || 'dev', 'DEVELOPMENT', 0)
+  
+  return response
+}
+
+/**
+ * Detects impersonation token from request
+ */
+function detectImpersonationToken(request: NextRequest): string | null {
+  // Check query parameter first (for initial setup)
+  const queryToken = request.nextUrl.searchParams.get(IMPERSONATION_QUERY_PARAM)
+  if (queryToken) return queryToken
+
+  // Check header (for API requests)
+  const headerToken = request.headers.get(IMPERSONATION_HEADER)
+  if (headerToken) return headerToken
+
+  // Check cookie (for browser sessions)
+  const cookieToken = request.cookies.get(IMPERSONATION_COOKIE)?.value
+  if (cookieToken) return cookieToken
+
+  return null
+}
+
+/**
+ * Validates impersonation token and returns session context
+ */
+async function validateImpersonationToken(
+  supabase: any, 
+  token: string
+): Promise<any | null> {
+  try {
+    const { data, error } = await supabase.rpc('get_impersonation_context', { token })
+    
+    if (error) {
+      console.error('Error validating impersonation token:', error)
+      return null
+    }
+
+    if (!data || !data.valid) {
+      return null
+    }
+
+    return data
+  } catch (err) {
+    console.error('Unexpected error validating impersonation token:', err)
+    return null
+  }
+}
+
+/**
+ * Handles impersonated site access
+ */
+async function handleImpersonatedSiteAccess(
+  request: NextRequest,
+  supabase: any,
+  supabaseResponse: NextResponse,
+  impersonationContext: any,
+  start: number
+): Promise<NextResponse> {
+  const siteId = impersonationContext.site_id
+  
+  // Get the site data from the impersonation context
+  const site = {
+    id: siteId,
+    name: impersonationContext.site_name,
+    subdomain: impersonationContext.site_subdomain,
+    custom_domain: impersonationContext.site_custom_domain,
+    is_published: true, // Assume published for admin access
+    is_active: true
+  }
+
+  // Create response with impersonation context
+  const response = NextResponse.next({ request })
+
+  // Set impersonation headers for downstream use
+  response.headers.set('x-admin-impersonation', 'true')
+  response.headers.set('x-impersonation-session-id', impersonationContext.session_id)
+  response.headers.set('x-impersonation-admin-id', impersonationContext.admin_user_id)
+  response.headers.set('x-impersonation-admin-email', impersonationContext.admin_email)
+  
+  // Set site context in cookies and headers
+  response.cookies.set('x-site-id', site.id, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24, // 1 day
+  })
+  
+  response.cookies.set('x-site-subdomain', site.subdomain, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24, // 1 day
+  })
+
+  // Set impersonation cookie if it came from query param
+  const queryToken = request.nextUrl.searchParams.get(IMPERSONATION_QUERY_PARAM)
+  if (queryToken) {
+    response.cookies.set(IMPERSONATION_COOKIE, queryToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24, // 1 day
+    })
+  }
+  
+  if (site.custom_domain) {
+    response.cookies.set('x-site-custom-domain', site.custom_domain, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24, // 1 day
+    })
+  }
+
+  // Set headers for server components
+  response.headers.set('x-site-id', site.id)
+  response.headers.set('x-site-subdomain', site.subdomain)
+  response.headers.set('x-site-name', site.name)
+  response.headers.set('x-hostname', extractHostname(request))
+  
+  if (site.custom_domain) {
+    response.headers.set('x-site-custom-domain', site.custom_domain)
+  }
+
+  // Add performance headers
+  const totalLatency = Date.now() - start
+  response.headers.set('X-Response-Time', `${totalLatency}ms`)
+  response.headers.set('X-Cache-Status', 'impersonation')
+  response.headers.set('X-Impersonation-Mode', 'active')
+  
+  // Log impersonation access
+  logDomainResolution(
+    extractHostname(request), 
+    site.id, 
+    'IMPERSONATION_ACCESS', 
+    totalLatency
+  )
+
+  // Track impersonation analytics if enabled
+  if (ENABLE_ANALYTICS) {
+    await trackDomainResolution(
+      extractHostname(request), 
+      site.id, 
+      'IMPERSONATION_ACCESS', 
+      totalLatency
+    )
+  }
   
   return response
 }

@@ -29,6 +29,14 @@ export default async function RootLayout({
   // Check if this is an admin route based on middleware headers
   const isAdminRoute = headersList.get('x-admin-route') === 'true'
   
+  // Check if this is an impersonated session
+  const isImpersonated = headersList.get('x-admin-impersonation') === 'true'
+  const impersonationData = isImpersonated ? {
+    sessionId: headersList.get('x-impersonation-session-id'),
+    adminId: headersList.get('x-impersonation-admin-id'),
+    adminEmail: headersList.get('x-impersonation-admin-email'),
+  } : null
+  
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
@@ -37,6 +45,7 @@ export default async function RootLayout({
           initialHostname={hostname}
           initialSiteData={currentSite ? JSON.parse(currentSite) : null}
           isAdminRoute={isAdminRoute}
+          impersonationData={impersonationData}
         >
           {children}
         </Providers>

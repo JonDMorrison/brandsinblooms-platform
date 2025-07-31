@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { useRouter } from 'next/navigation'
 import { 
   Globe, 
   Users, 
@@ -8,7 +9,12 @@ import {
   LogOut, 
   BarChart3, 
   Database,
-  Shield
+  Shield,
+  Plus,
+  Palette,
+  Edit,
+  Activity,
+  TrendingUp
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { 
@@ -19,9 +25,11 @@ import {
   CardTitle 
 } from '@/src/components/ui/card'
 import { useAdminAuth } from '@/src/contexts/AdminAuthContext'
+import { ActiveImpersonationSessions } from './ActiveImpersonationSessions'
 
 export function AdminDashboard() {
   const { user, signOut, isLoading } = useAdminAuth()
+  const router = useRouter()
 
   const handleSignOut = async () => {
     try {
@@ -77,8 +85,24 @@ export function AdminDashboard() {
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-6 py-8">
+        {/* Quick Actions */}
+        <div className="mb-8 flex flex-wrap gap-3">
+          <Button onClick={() => router.push('/admin/sites/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create New Site
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/admin/sites/templates')}>
+            <Palette className="h-4 w-4 mr-2" />
+            Browse Templates
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/admin/sites/health')}>
+            <Shield className="h-4 w-4 mr-2" />
+            Platform Health
+          </Button>
+        </div>
+
         {/* Dashboard Cards Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {/* Sites Management Card */}
           <Card className="group hover:shadow-md transition-shadow">
             <CardHeader>
@@ -89,7 +113,7 @@ export function AdminDashboard() {
                 <div>
                   <CardTitle className="text-lg">Sites Management</CardTitle>
                   <CardDescription>
-                    Manage all customer sites and domains
+                    Create and manage customer sites
                   </CardDescription>
                 </div>
               </div>
@@ -97,15 +121,24 @@ export function AdminDashboard() {
             <CardContent>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  View, create, and manage all customer websites. Handle domain 
-                  configurations and site settings.
+                  Create new sites using templates, manage existing sites, and 
+                  configure domain settings.
                 </p>
                 <div className="flex gap-2">
-                  <Button size="sm" className="flex-1">
-                    View Sites
+                  <Button 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => router.push('/admin/sites/new')}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create Site
                   </Button>
-                  <Button size="sm" variant="outline">
-                    <BarChart3 className="h-4 w-4" />
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => router.push('/admin/sites/templates')}
+                  >
+                    <Palette className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -139,6 +172,48 @@ export function AdminDashboard() {
                   </Button>
                   <Button size="sm" variant="outline">
                     <Shield className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Analytics & Monitoring Card */}
+          <Card className="group hover:shadow-md transition-shadow">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
+                  <Activity className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Analytics & Monitoring</CardTitle>
+                  <CardDescription>
+                    Site analytics and health monitoring
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Monitor site performance, health status, and comprehensive 
+                  analytics across the platform.
+                </p>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => router.push('/admin/sites/health')}
+                  >
+                    <Shield className="h-4 w-4 mr-1" />
+                    Health
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => router.push('/admin/analytics')}
+                  >
+                    <TrendingUp className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -241,6 +316,14 @@ export function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Active Impersonation Sessions */}
+        <div className="mt-12">
+          <h2 className="text-xl font-semibold text-foreground mb-6">
+            Active Sessions
+          </h2>
+          <ActiveImpersonationSessions />
         </div>
 
         {/* Recent Activity Section (Placeholder) */}
