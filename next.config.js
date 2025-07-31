@@ -1,5 +1,3 @@
-const crypto = require('crypto')
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -86,6 +84,29 @@ const nextConfig = {
   },
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Exclude Node.js built-ins from client-side bundles
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        dns: false,
+        crypto: false,
+        stream: false,
+        url: false,
+        querystring: false,
+        util: false,
+        http: false,
+        https: false,
+        assert: false,
+        os: false,
+        path: false,
+      }
+      
+      // Exclude Redis from client-side bundles completely
+      config.externals = config.externals || []
+      config.externals.push('redis')
+    }
     // Optimize production builds
     if (!dev && !isServer) {
       config.optimization.usedExports = true
@@ -109,9 +130,15 @@ const nextConfig = {
               return module.size() > 160000 && /node_modules[/\\]/.test(module.identifier())
             },
             name(module) {
-              const hash = crypto.createHash('sha1')
-              hash.update(module.identifier())
-              return hash.digest('hex').substring(0, 8)
+              // Simple hash function for module names - browser compatible
+              const str = module.identifier()
+              let hash = 0
+              for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i)
+                hash = ((hash << 5) - hash) + char
+                hash = hash & hash // Convert to 32-bit integer
+              }
+              return Math.abs(hash).toString(16).substring(0, 8)
             },
             priority: 30,
             minChunks: 1,
@@ -125,9 +152,15 @@ const nextConfig = {
           },
           shared: {
             name(module, chunks) {
-              const hash = crypto.createHash('sha1')
-              hash.update(chunks.reduce((acc, chunk) => acc + chunk.name, ''))
-              return hash.digest('hex').substring(0, 8)
+              // Simple hash function for chunk names - browser compatible
+              const str = chunks.reduce((acc, chunk) => acc + chunk.name, '')
+              let hash = 0
+              for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i)
+                hash = ((hash << 5) - hash) + char
+                hash = hash & hash // Convert to 32-bit integer
+              }
+              return Math.abs(hash).toString(16).substring(0, 8)
             },
             priority: 10,
             minChunks: 2,

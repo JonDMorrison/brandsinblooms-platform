@@ -6,7 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { clearSiteCache, getSiteCacheStats } from '@/src/lib/cache/site-cache'
-import { getRedisCache } from '@/src/lib/cache/redis-site-cache'
+// Dynamic import for Redis cache to avoid bundling Node.js built-ins
+// import { getRedisCache } from '@/src/lib/cache/redis-site-cache.server'
 
 interface CleanupResult {
   success: boolean
@@ -110,9 +111,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     }
 
-    // Clean Redis cache if available
-    if ((cacheType === 'all' || cacheType === 'redis') && process.env.REDIS_URL) {
+    // TODO: Fix Redis cache import issue with Node.js built-ins 
+    // Clean Redis cache if available - temporarily disabled
+    if (false && (cacheType === 'all' || cacheType === 'redis') && process.env.REDIS_URL) {
       try {
+        const { getRedisCache } = await import('@/src/lib/cache/redis-site-cache.server')
         const redisCache = getRedisCache()
         
         if (force) {
@@ -178,8 +181,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const memoryStats = getSiteCacheStats()
     
     let redisStats = null
-    if (process.env.REDIS_URL) {
+    // TODO: Fix Redis cache import issue - temporarily disabled
+    if (false && process.env.REDIS_URL) {
       try {
+        const { getRedisCache } = await import('@/src/lib/cache/redis-site-cache.server')
         const redisCache = getRedisCache()
         const health = await redisCache.healthCheck()
         const metrics = redisCache.getMetrics()
@@ -222,13 +227,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       response.recommendations.push('Memory cache is >80% full, consider running cleanup')
     }
 
-    if (redisStats && !redisStats.connected) {
-      response.recommendations.push('Redis cache is disconnected, check connection')
-    }
+    // TODO: Uncomment when Redis is re-enabled
+    // if (redisStats && 'connected' in redisStats && !redisStats.connected) {
+    //   response.recommendations.push('Redis cache is disconnected, check connection')
+    // }
 
-    if (redisStats && redisStats.errors && redisStats.errors > 0) {
-      response.recommendations.push('Redis cache has errors, check logs')
-    }
+    // if (redisStats && 'errors' in redisStats && redisStats.errors && redisStats.errors > 0) {
+    //   response.recommendations.push('Redis cache has errors, check logs')
+    // }
 
     return NextResponse.json(response, {
       headers: {
@@ -271,7 +277,9 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     // Force clear all caches
     await clearSiteCache()
     
-    if (process.env.REDIS_URL) {
+    // TODO: Fix Redis cache import issue - temporarily disabled
+    if (false && process.env.REDIS_URL) {
+      const { getRedisCache } = await import('@/src/lib/cache/redis-site-cache.server')
       const redisCache = getRedisCache()
       await redisCache.clear()
     }

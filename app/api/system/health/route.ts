@@ -6,7 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { getRedisCacheHealth } from '@/src/lib/cache/redis-site-cache'
+// Dynamic import for Redis cache to avoid bundling Node.js built-ins
+// import { getRedisCacheHealth } from '@/src/lib/cache/redis-site-cache.server'
 import { getSiteCacheStats } from '@/src/lib/cache/site-cache'
 import { getAnalyticsHealth } from '@/src/lib/monitoring/site-analytics'
 
@@ -98,8 +99,10 @@ async function checkDatabaseHealth(): Promise<HealthCheckResult['services']['dat
  */
 async function checkCacheHealth(): Promise<HealthCheckResult['services']['cache']> {
   try {
+    // TODO: Fix Redis cache import issue - temporarily disabled
     // Check if Redis is available
-    if (process.env.REDIS_URL) {
+    if (false && process.env.REDIS_URL) {
+      const { getRedisCacheHealth } = await import('@/src/lib/cache/redis-site-cache.server')
       const redisHealth = await getRedisCacheHealth()
       return {
         status: redisHealth.status,

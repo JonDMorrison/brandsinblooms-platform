@@ -34,6 +34,321 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_inquiries: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          inquiry_type: string | null
+          message: string
+          name: string
+          phone: string | null
+          related_content_id: string | null
+          related_product_id: string | null
+          responded_at: string | null
+          responded_by: string | null
+          site_id: string
+          status: string | null
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          inquiry_type?: string | null
+          message: string
+          name: string
+          phone?: string | null
+          related_content_id?: string | null
+          related_product_id?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          site_id: string
+          status?: string | null
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          inquiry_type?: string | null
+          message?: string
+          name?: string
+          phone?: string | null
+          related_content_id?: string | null
+          related_product_id?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          site_id?: string
+          status?: string | null
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_inquiries_related_content_id_fkey"
+            columns: ["related_content_id"]
+            isOneToOne: false
+            referencedRelation: "content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_inquiries_related_product_id_fkey"
+            columns: ["related_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_inquiries_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content: {
+        Row: {
+          author_id: string | null
+          content: Json
+          content_type: string
+          created_at: string
+          id: string
+          is_featured: boolean | null
+          is_published: boolean | null
+          meta_data: Json | null
+          published_at: string | null
+          site_id: string
+          slug: string
+          sort_order: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          content: Json
+          content_type: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          meta_data?: Json | null
+          published_at?: string | null
+          site_id: string
+          slug: string
+          sort_order?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: Json
+          content_type?: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          meta_data?: Json | null
+          published_at?: string | null
+          site_id?: string
+          slug?: string
+          sort_order?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_batches: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_log: Json | null
+          failed_rows: number | null
+          file_name: string | null
+          file_type: string | null
+          id: string
+          imported_by: string | null
+          site_id: string
+          status: string | null
+          successful_rows: number | null
+          total_rows: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_log?: Json | null
+          failed_rows?: number | null
+          file_name?: string | null
+          file_type?: string | null
+          id?: string
+          imported_by?: string | null
+          site_id: string
+          status?: string | null
+          successful_rows?: number | null
+          total_rows?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_log?: Json | null
+          failed_rows?: number | null
+          file_name?: string | null
+          file_type?: string | null
+          id?: string
+          imported_by?: string | null
+          site_id?: string
+          status?: string | null
+          successful_rows?: number | null
+          total_rows?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_batches_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_files: {
+        Row: {
+          alt_text: string | null
+          created_at: string
+          file_name: string
+          file_size_bytes: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          site_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          alt_text?: string | null
+          created_at?: string
+          file_name: string
+          file_size_bytes?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          site_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          alt_text?: string | null
+          created_at?: string
+          file_name?: string
+          file_size_bytes?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          site_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_files_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          attributes: Json | null
+          care_instructions: string | null
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          images: Json | null
+          import_batch_id: string | null
+          import_source: string | null
+          in_stock: boolean | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          meta_description: string | null
+          name: string
+          price: number | null
+          sale_price: number | null
+          site_id: string
+          sku: string | null
+          slug: string | null
+          stock_status: string | null
+          subcategory: string | null
+          unit_of_measure: string | null
+          updated_at: string
+        }
+        Insert: {
+          attributes?: Json | null
+          care_instructions?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: Json | null
+          import_batch_id?: string | null
+          import_source?: string | null
+          in_stock?: boolean | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          meta_description?: string | null
+          name: string
+          price?: number | null
+          sale_price?: number | null
+          site_id: string
+          sku?: string | null
+          slug?: string | null
+          stock_status?: string | null
+          subcategory?: string | null
+          unit_of_measure?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attributes?: Json | null
+          care_instructions?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: Json | null
+          import_batch_id?: string | null
+          import_source?: string | null
+          in_stock?: boolean | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          meta_description?: string | null
+          name?: string
+          price?: number | null
+          sale_price?: number | null
+          site_id?: string
+          sku?: string | null
+          slug?: string | null
+          stock_status?: string | null
+          subcategory?: string | null
+          unit_of_measure?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -56,7 +371,7 @@ export type Database = {
           role?: string | null
           updated_at?: string
           user_id: string
-          user_type?: string
+          user_type: string
           username?: string | null
         }
         Update: {
@@ -71,106 +386,32 @@ export type Database = {
           user_type?: string
           username?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      sites: {
-        Row: {
-          id: string
-          subdomain: string
-          custom_domain: string | null
-          name: string
-          description: string | null
-          logo_url: string | null
-          primary_color: string | null
-          business_name: string | null
-          business_email: string | null
-          business_phone: string | null
-          business_address: string | null
-          business_hours: Json | null
-          latitude: number | null
-          longitude: number | null
-          timezone: string | null
-          is_active: boolean | null
-          is_published: boolean | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          subdomain: string
-          custom_domain?: string | null
-          name: string
-          description?: string | null
-          logo_url?: string | null
-          primary_color?: string | null
-          business_name?: string | null
-          business_email?: string | null
-          business_phone?: string | null
-          business_address?: string | null
-          business_hours?: Json | null
-          latitude?: number | null
-          longitude?: number | null
-          timezone?: string | null
-          is_active?: boolean | null
-          is_published?: boolean | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          subdomain?: string
-          custom_domain?: string | null
-          name?: string
-          description?: string | null
-          logo_url?: string | null
-          primary_color?: string | null
-          business_name?: string | null
-          business_email?: string | null
-          business_phone?: string | null
-          business_address?: string | null
-          business_hours?: Json | null
-          latitude?: number | null
-          longitude?: number | null
-          timezone?: string | null
-          is_active?: boolean | null
-          is_published?: boolean | null
-          created_at?: string
-          updated_at?: string
-        }
         Relationships: []
       }
       site_memberships: {
         Row: {
-          id: string
-          user_id: string
-          site_id: string
-          role: string
-          is_active: boolean | null
           created_at: string
+          id: string
+          is_active: boolean | null
+          role: string
+          site_id: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_id: string
-          site_id: string
-          role: string
-          is_active?: boolean | null
           created_at?: string
+          id?: string
+          is_active?: boolean | null
+          role: string
+          site_id: string
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string
-          site_id?: string
-          role?: string
-          is_active?: boolean | null
           created_at?: string
+          id?: string
+          is_active?: boolean | null
+          role?: string
+          site_id?: string
+          user_id?: string
         }
         Relationships: [
           {
@@ -179,224 +420,96 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "sites"
             referencedColumns: ["id"]
-          }
-        ]
-      }
-      content: {
-        Row: {
-          id: string
-          site_id: string
-          author_id: string | null
-          content_type: string
-          title: string
-          slug: string
-          content: Json
-          meta_data: Json | null
-          is_published: boolean | null
-          is_featured: boolean | null
-          sort_order: number | null
-          created_at: string
-          updated_at: string
-          published_at: string | null
-        }
-        Insert: {
-          id?: string
-          site_id: string
-          author_id?: string | null
-          content_type: string
-          title: string
-          slug: string
-          content: Json
-          meta_data?: Json | null
-          is_published?: boolean | null
-          is_featured?: boolean | null
-          sort_order?: number | null
-          created_at?: string
-          updated_at?: string
-          published_at?: string | null
-        }
-        Update: {
-          id?: string
-          site_id?: string
-          author_id?: string | null
-          content_type?: string
-          title?: string
-          slug?: string
-          content?: Json
-          meta_data?: Json | null
-          is_published?: boolean | null
-          is_featured?: boolean | null
-          sort_order?: number | null
-          created_at?: string
-          updated_at?: string
-          published_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "content_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "content_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
         ]
       }
-      products: {
+      sites: {
         Row: {
-          id: string
-          site_id: string
-          sku: string | null
-          name: string
+          business_address: string | null
+          business_email: string | null
+          business_hours: Json | null
+          business_name: string | null
+          business_phone: string | null
+          created_at: string
+          custom_domain: string | null
           description: string | null
-          care_instructions: string | null
-          category: string | null
-          subcategory: string | null
-          price: number | null
-          sale_price: number | null
-          unit_of_measure: string | null
+          id: string
           is_active: boolean | null
-          is_featured: boolean | null
-          in_stock: boolean | null
-          stock_status: string | null
-          slug: string | null
-          meta_description: string | null
-          attributes: Json | null
-          images: Json | null
-          import_source: string | null
-          import_batch_id: string | null
-          created_at: string
+          is_published: boolean | null
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          name: string
+          primary_color: string | null
+          subdomain: string
+          timezone: string | null
           updated_at: string
         }
         Insert: {
-          id?: string
-          site_id: string
-          sku?: string | null
-          name: string
-          description?: string | null
-          care_instructions?: string | null
-          category?: string | null
-          subcategory?: string | null
-          price?: number | null
-          sale_price?: number | null
-          unit_of_measure?: string | null
-          is_active?: boolean | null
-          is_featured?: boolean | null
-          in_stock?: boolean | null
-          stock_status?: string | null
-          slug?: string | null
-          meta_description?: string | null
-          attributes?: Json | null
-          images?: Json | null
-          import_source?: string | null
-          import_batch_id?: string | null
+          business_address?: string | null
+          business_email?: string | null
+          business_hours?: Json | null
+          business_name?: string | null
+          business_phone?: string | null
           created_at?: string
+          custom_domain?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_published?: boolean | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name: string
+          primary_color?: string | null
+          subdomain: string
+          timezone?: string | null
           updated_at?: string
         }
         Update: {
-          id?: string
-          site_id?: string
-          sku?: string | null
-          name?: string
-          description?: string | null
-          care_instructions?: string | null
-          category?: string | null
-          subcategory?: string | null
-          price?: number | null
-          sale_price?: number | null
-          unit_of_measure?: string | null
-          is_active?: boolean | null
-          is_featured?: boolean | null
-          in_stock?: boolean | null
-          stock_status?: string | null
-          slug?: string | null
-          meta_description?: string | null
-          attributes?: Json | null
-          images?: Json | null
-          import_source?: string | null
-          import_batch_id?: string | null
+          business_address?: string | null
+          business_email?: string | null
+          business_hours?: Json | null
+          business_name?: string | null
+          business_phone?: string | null
           created_at?: string
+          custom_domain?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_published?: boolean | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name?: string
+          primary_color?: string | null
+          subdomain?: string
+          timezone?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "products_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_import_batch_id_fkey"
-            columns: ["import_batch_id"]
-            isOneToOne: false
-            referencedRelation: "import_batches"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      tags: {
-        Row: {
-          id: string
-          site_id: string
-          name: string
-          slug: string
-          description: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          site_id: string
-          name: string
-          slug: string
-          description?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          site_id?: string
-          name?: string
-          slug?: string
-          description?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tags_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       taggings: {
         Row: {
+          created_at: string
           id: string
           tag_id: string
           taggable_id: string
           taggable_type: string
-          created_at: string
         }
         Insert: {
+          created_at?: string
           id?: string
           tag_id: string
           taggable_id: string
           taggable_type: string
-          created_at?: string
         }
         Update: {
+          created_at?: string
           id?: string
           tag_id?: string
           taggable_id?: string
           taggable_type?: string
-          created_at?: string
         }
         Relationships: [
           {
@@ -405,198 +518,42 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tags"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
-      contact_inquiries: {
+      tags: {
         Row: {
-          id: string
-          site_id: string
-          inquiry_type: string | null
-          related_product_id: string | null
-          related_content_id: string | null
-          name: string
-          email: string
-          phone: string | null
-          subject: string | null
-          message: string
-          status: string | null
-          responded_at: string | null
-          responded_by: string | null
           created_at: string
+          description: string | null
+          id: string
+          name: string
+          site_id: string
+          slug: string
         }
         Insert: {
-          id?: string
-          site_id: string
-          inquiry_type?: string | null
-          related_product_id?: string | null
-          related_content_id?: string | null
-          name: string
-          email: string
-          phone?: string | null
-          subject?: string | null
-          message: string
-          status?: string | null
-          responded_at?: string | null
-          responded_by?: string | null
           created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          site_id: string
+          slug: string
         }
         Update: {
+          created_at?: string
+          description?: string | null
           id?: string
-          site_id?: string
-          inquiry_type?: string | null
-          related_product_id?: string | null
-          related_content_id?: string | null
           name?: string
-          email?: string
-          phone?: string | null
-          subject?: string | null
-          message?: string
-          status?: string | null
-          responded_at?: string | null
-          responded_by?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contact_inquiries_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contact_inquiries_related_product_id_fkey"
-            columns: ["related_product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contact_inquiries_related_content_id_fkey"
-            columns: ["related_content_id"]
-            isOneToOne: false
-            referencedRelation: "content"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contact_inquiries_responded_by_fkey"
-            columns: ["responded_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      media_files: {
-        Row: {
-          id: string
-          site_id: string
-          uploaded_by: string | null
-          file_name: string
-          file_url: string
-          file_type: string | null
-          file_size_bytes: number | null
-          alt_text: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          site_id: string
-          uploaded_by?: string | null
-          file_name: string
-          file_url: string
-          file_type?: string | null
-          file_size_bytes?: number | null
-          alt_text?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
           site_id?: string
-          uploaded_by?: string | null
-          file_name?: string
-          file_url?: string
-          file_type?: string | null
-          file_size_bytes?: number | null
-          alt_text?: string | null
-          created_at?: string
+          slug?: string
         }
         Relationships: [
           {
-            foreignKeyName: "media_files_site_id_fkey"
+            foreignKeyName: "tags_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "media_files_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      import_batches: {
-        Row: {
-          id: string
-          site_id: string
-          imported_by: string | null
-          file_name: string | null
-          file_type: string | null
-          total_rows: number | null
-          successful_rows: number | null
-          failed_rows: number | null
-          error_log: Json | null
-          status: string | null
-          created_at: string
-          completed_at: string | null
-        }
-        Insert: {
-          id?: string
-          site_id: string
-          imported_by?: string | null
-          file_name?: string | null
-          file_type?: string | null
-          total_rows?: number | null
-          successful_rows?: number | null
-          failed_rows?: number | null
-          error_log?: Json | null
-          status?: string | null
-          created_at?: string
-          completed_at?: string | null
-        }
-        Update: {
-          id?: string
-          site_id?: string
-          imported_by?: string | null
-          file_name?: string | null
-          file_type?: string | null
-          total_rows?: number | null
-          successful_rows?: number | null
-          failed_rows?: number | null
-          error_log?: Json | null
-          status?: string | null
-          created_at?: string
-          completed_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "import_batches_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "import_batches_imported_by_fkey"
-            columns: ["imported_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
         ]
       }
     }
@@ -604,16 +561,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_exists: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      create_initial_admin: {
+        Args: {
+          target_user_id: string
+          admin_full_name?: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      user_type: "admin" | "site_owner" | "customer"
-      site_membership_role: "owner" | "editor" | "viewer"
-      content_type: "page" | "blog_post" | "event"
-      file_type: "image" | "video" | "document"
-      inquiry_status: "new" | "read" | "responded"
-      stock_status: "in_stock" | "low_stock" | "out_of_stock" | "discontinued"
-      taggable_type: "content" | "product"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -743,15 +704,7 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {
-      user_type: ["admin", "site_owner", "customer"],
-      site_membership_role: ["owner", "editor", "viewer"],
-      content_type: ["page", "blog_post", "event"],
-      file_type: ["image", "video", "document"],
-      inquiry_status: ["new", "read", "responded"],
-      stock_status: ["in_stock", "low_stock", "out_of_stock", "discontinued"],
-      taggable_type: ["content", "product"],
-    },
+    Enums: {},
   },
 } as const
 
@@ -796,14 +749,14 @@ export type Profile = Database['public']['Tables']['profiles']['Row']
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']
 export type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 
-// Enum types
-export type UserType = Database['public']['Enums']['user_type']
-export type SiteMembershipRole = Database['public']['Enums']['site_membership_role']
-export type ContentType = Database['public']['Enums']['content_type']
-export type FileType = Database['public']['Enums']['file_type']
-export type InquiryStatus = Database['public']['Enums']['inquiry_status']
-export type StockStatus = Database['public']['Enums']['stock_status']
-export type TaggableType = Database['public']['Enums']['taggable_type']
+// Enum types (these would be defined if enums existed)
+export type UserType = 'admin' | 'site_owner' | 'customer'
+export type SiteMembershipRole = 'owner' | 'editor' | 'viewer'
+export type ContentType = 'page' | 'blog_post' | 'event'
+export type FileType = 'image' | 'video' | 'document'
+export type InquiryStatus = 'new' | 'read' | 'responded'
+export type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock' | 'discontinued'
+export type TaggableType = 'content' | 'product'
 
 // Extended types with relationships
 export type SiteWithMemberships = Site & {
