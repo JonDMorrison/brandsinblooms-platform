@@ -48,6 +48,12 @@ export function AdminGuard({ children, fallback }: AdminGuardProps) {
       router.push('/admin/login')
       return
     }
+
+    // If user is authenticated as admin but on login page, redirect to admin dashboard
+    if (isAdmin && pathname === '/admin/login') {
+      router.push('/admin')
+      return
+    }
   }, [isAdmin, isLoading, adminExists, pathname, router])
 
   // Clear errors when component unmounts or admin status changes
@@ -105,11 +111,14 @@ export function AdminGuard({ children, fallback }: AdminGuardProps) {
     return <>{children}</>
   }
 
-  // If user is not authenticated but not on the right page, show loading while redirect happens
-  if (!isAdmin && (
-    (adminExists === false && pathname !== '/admin') ||
-    (adminExists === true && pathname !== '/admin/login')
-  )) {
+  // Show loading while redirects happen
+  if (
+    (!isAdmin && (
+      (adminExists === false && pathname !== '/admin') ||
+      (adminExists === true && pathname !== '/admin/login')
+    )) ||
+    (isAdmin && pathname === '/admin/login') // Admin on login page (redirecting to dashboard)
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-md">

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAdminAuth } from '@/src/contexts/AdminAuthContext'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
@@ -20,13 +21,21 @@ interface FormErrors {
 }
 
 export function AdminLoginForm() {
-  const { signIn, error: contextError, clearError } = useAdminAuth()
+  const router = useRouter()
+  const { isAdmin, signIn, error: contextError, clearError } = useAdminAuth()
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: ''
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [isLoading, setIsLoading] = useState(false)
+
+  // Redirect if already logged in as admin
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/admin')
+    }
+  }, [isAdmin, router])
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
