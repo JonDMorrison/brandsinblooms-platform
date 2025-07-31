@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/keys';
+import { queryKeys } from '@/src/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/contexts/SiteContext';
 import {
@@ -12,7 +12,7 @@ import {
   getCustomerInsights,
   CustomerFilters,
   CustomerWithStats,
-} from '@/lib/queries/domains/customers';
+} from '@/src/lib/queries/domains/customers';
 
 // Hook for paginated customers list
 export function useCustomers(filters?: CustomerFilters) {

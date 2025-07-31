@@ -5,7 +5,7 @@
 
 import { PostgrestError, PostgrestResponse } from '@supabase/supabase-js';
 import { SupabaseError, isSupabaseError } from './errors';
-import { Database } from '@/lib/database/types';
+import { Database } from '@/src/lib/database/types';
 
 // Type aliases for better readability
 export type Tables = Database['public']['Tables'];

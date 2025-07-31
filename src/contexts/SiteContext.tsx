@@ -2,14 +2,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase/client';
-import { Site, SiteMembership } from '@/lib/database/types';
-import { getCurrentUserSite, getUserSites } from '@/lib/queries/domains/sites';
+import { supabase } from '@/src/lib/supabase/client';
+import { Site, SiteMembership, SiteWithMembership } from '@/src/lib/database/aliases';
+import { getCurrentUserSite, getUserSites } from '@/src/lib/queries/domains/sites';
 
 interface SiteContextType {
   currentSite: Site | null;
   currentMembership: SiteMembership | null;
-  userSites: Array<{ site: Site; membership: SiteMembership }>;
+  userSites: SiteWithMembership[];
   loading: boolean;
   error: Error | null;
   switchSite: (siteId: string) => Promise<void>;
@@ -22,7 +22,7 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [currentSite, setCurrentSite] = useState<Site | null>(null);
   const [currentMembership, setCurrentMembership] = useState<SiteMembership | null>(null);
-  const [userSites, setUserSites] = useState<Array<{ site: Site; membership: SiteMembership }>>([]);
+  const [userSites, setUserSites] = useState<SiteWithMembership[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -45,16 +45,16 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
 
       // Get current site from localStorage or use the first site
       const savedSiteId = localStorage.getItem('currentSiteId');
-      let selectedSite = sites.find(s => s.site.id === savedSiteId);
+      let selectedSite = sites.find(s => s.id === savedSiteId);
 
       if (!selectedSite && sites.length > 0) {
         selectedSite = sites[0];
-        localStorage.setItem('currentSiteId', selectedSite.site.id);
+        localStorage.setItem('currentSiteId', selectedSite.id);
       }
 
       if (selectedSite) {
-        setCurrentSite(selectedSite.site);
-        setCurrentMembership(selectedSite.membership);
+        setCurrentSite(selectedSite);
+        setCurrentMembership(selectedSite.membership || null);
       }
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to load sites'));
@@ -65,13 +65,13 @@ export function SiteProvider({ children }: { children: React.ReactNode }) {
   };
 
   const switchSite = async (siteId: string) => {
-    const targetSite = userSites.find(s => s.site.id === siteId);
+    const targetSite = userSites.find(s => s.id === siteId);
     if (!targetSite) {
       throw new Error('Site not found or user does not have access');
     }
 
-    setCurrentSite(targetSite.site);
-    setCurrentMembership(targetSite.membership);
+    setCurrentSite(targetSite);
+    setCurrentMembership(targetSite.membership || null);
     localStorage.setItem('currentSiteId', siteId);
   };
 

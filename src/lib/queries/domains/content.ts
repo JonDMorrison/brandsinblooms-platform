@@ -4,7 +4,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/database/types';
+import { Database } from '@/src/lib/database/types';
 import { 
   handleQueryResponse, 
   handleSingleResponse,
@@ -27,6 +27,11 @@ type InsertContent = InsertType<'content'>;
 type UpdateContent = UpdateType<'content'>;
 
 export type ContentType = 'page' | 'blog_post' | 'event';
+
+export interface ContentSortOptions {
+  field: 'title' | 'created_at' | 'updated_at';
+  direction: 'asc' | 'desc';
+}
 
 export interface ContentFilters extends QueryParams<Content> {
   type?: ContentType;

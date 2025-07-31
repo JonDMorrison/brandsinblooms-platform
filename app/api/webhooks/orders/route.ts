@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { activityHelpers } from '@/lib/queries/domains/activity'
+import { createClient } from '@/src/lib/supabase/server'
+import { activityHelpers } from '@/src/lib/queries/domains/activity'
 import { headers } from 'next/headers'
 import crypto from 'crypto'
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/keys';
+import { queryKeys } from '@/src/lib/queries/keys';
 import { 
   getSiteStatistics,
   getDashboardMetrics,
@@ -9,9 +9,9 @@ import {
   getContentAnalytics,
   getProductAnalytics,
   getCustomerAnalytics
-} from '@/lib/queries/domains/sites';
+} from '@/src/lib/queries/domains/sites';
 import { useSiteId } from '@/contexts/SiteContext';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 
 // Main dashboard metrics
 export function useDashboardMetrics() {

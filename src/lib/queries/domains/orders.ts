@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database, Order, OrderInsert, OrderUpdate, OrderItem, OrderStatus } from '@/lib/database/types';
-import { executeQuery } from '@/lib/queries/utils/execute-query';
+import { Database } from '@/src/lib/database/types';
+import { Order, OrderInsert, OrderUpdate, OrderItem, OrderStatus } from '@/src/lib/database/aliases';
+import { executeQuery } from '@/src/lib/queries/utils/execute-query';
 
 export interface OrderFilters {
   status?: OrderStatus;

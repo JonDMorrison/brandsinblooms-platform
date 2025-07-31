@@ -4,7 +4,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/database/types';
+import { Database } from '@/src/lib/database/types';
 import { 
   handleQueryResponse, 
   handleSingleResponse,
@@ -23,6 +23,17 @@ type InsertSiteMembership = InsertType<'site_memberships'>;
 
 export interface SiteWithMembership extends Site {
   membership?: SiteMembership;
+}
+
+/**
+ * Get the current user's primary site
+ */
+export async function getCurrentUserSite(
+  supabase: SupabaseClient<Database>,
+  userId: string
+): Promise<SiteWithMembership | null> {
+  const sites = await getUserSites(supabase, userId, { active: true });
+  return sites.length > 0 ? sites[0] : null;
 }
 
 /**

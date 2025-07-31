@@ -1,6 +1,32 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database, Site, ThemeSettings } from '@/lib/database/types';
-import { executeQuery } from '@/lib/queries/utils/execute-query';
+import { Database } from '@/src/lib/database/types';
+import { Site } from '@/src/lib/database/aliases';
+import { executeQuery } from '@/src/lib/queries/utils/execute-query';
+
+// Theme settings interface
+export interface ThemeSettings {
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+  };
+  typography: {
+    headingFont: string;
+    bodyFont: string;
+    fontSize: 'small' | 'medium' | 'large';
+  };
+  layout: {
+    headerStyle: 'modern' | 'classic' | 'minimal';
+    footerStyle: 'minimal' | 'detailed' | 'hidden';
+    menuStyle: 'horizontal' | 'vertical' | 'sidebar';
+  };
+  logo: {
+    url: string | null;
+    position: 'left' | 'center' | 'right';
+    size: 'small' | 'medium' | 'large';
+  };
+}
 
 // Get site theme settings
 export async function getSiteTheme(

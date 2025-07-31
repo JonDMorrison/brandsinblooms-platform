@@ -5,8 +5,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/contexts/SiteContext';
-import { queryKeys } from '@/lib/queries/keys';
-import { ActivityLogWithUser } from '@/lib/queries/domains/activity';
+import { queryKeys } from '@/src/lib/queries/keys';
+import { ActivityLogWithUser } from '@/src/lib/queries/domains/activity';
 import { toast } from 'sonner';
 
 interface UseActivityRealtimeOptions {

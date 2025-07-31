@@ -197,7 +197,7 @@ export default function ContentPage() {
                   </Button>
                 </div>
               ) : (
-                <DataTable
+                <DataTable<ContentItem, any>
                   columns={contentColumns} 
                   data={filteredContent} 
                   searchKey="title"

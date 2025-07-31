@@ -6,8 +6,8 @@ export { useSite, useSiteId, useSitePermission } from '@/contexts/SiteContext';
 // Additional site-related hooks can be added here
 
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/keys';
-import { getSiteStatistics } from '@/lib/queries/domains/sites';
+import { queryKeys } from '@/src/lib/queries/keys';
+import { getSiteStatistics } from '@/src/lib/queries/domains/sites';
 import { useSite, useSiteId } from '@/contexts/SiteContext';
 
 // Hook to get site statistics
@@ -18,7 +18,7 @@ export function useSiteStatistics() {
     queryKey: queryKeys.siteStatistics(siteId!),
     queryFn: () => {
       // Import supabase client here to avoid circular dependency
-      const { supabase } = require('@/lib/supabase/client');
+      const { supabase } = require('@/src/lib/supabase/client');
       return getSiteStatistics(supabase, siteId!);
     },
     enabled: !!siteId,

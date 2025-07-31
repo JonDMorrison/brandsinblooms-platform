@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/keys';
+import { queryKeys } from '@/src/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/contexts/SiteContext';
 import {
@@ -11,8 +11,8 @@ import {
   importTheme,
   generateThemeFromBrandColor,
   themePresets,
-} from '@/lib/queries/domains/theme';
-import { ThemeSettings } from '@/lib/database/types';
+} from '@/src/lib/queries/domains/theme';
+import { ThemeSettings } from '@/src/lib/queries/domains/theme';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
 

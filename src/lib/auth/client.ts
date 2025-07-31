@@ -1,7 +1,7 @@
 'use client'
 
 import { supabase } from '@/src/lib/supabase/client'
-import { AuthError, User, Session } from '@supabase/supabase-js'
+import { AuthError, User, Session, Provider } from '@supabase/supabase-js'
 
 /**
  * Sign in with email and password
@@ -14,6 +14,31 @@ export const signInWithEmail = async (email: string, password: string) => {
   
   if (error) throw error
   return data
+}
+
+/**
+ * Enhanced sign in with MFA detection
+ */
+export async function signIn(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+  
+  if (error) {
+    return { success: false, error: error.message, requiresMFA: false }
+  }
+  
+  // Check if user has MFA enabled
+  const { data: { user } } = await supabase.auth.getUser()
+  const hasMFA = user?.factors?.some(factor => factor.status === 'verified')
+  
+  return { 
+    success: true, 
+    user: data.user,
+    requiresMFA: hasMFA || false,
+    factors: user?.factors || []
+  }
 }
 
 /**
@@ -31,6 +56,32 @@ export const signUpWithEmail = async (email: string, password: string, metadata?
   
   if (error) throw error
   return data
+}
+
+/**
+ * Enhanced sign up with confirmation detection
+ */
+export async function signUp(email: string, password: string) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${window.location.origin}/auth/verify-email`,
+    },
+  })
+  
+  if (error) {
+    return { success: false, error: error.message }
+  }
+  
+  // Check if email confirmation is required
+  const needsEmailConfirmation = data.user && !data.user.confirmed_at
+  
+  return { 
+    success: true, 
+    user: data.user,
+    needsEmailConfirmation
+  }
 }
 
 /**
@@ -55,6 +106,28 @@ export const signInWithProvider = async (
   
   if (error) throw error
   return data
+}
+
+/**
+ * Enhanced OAuth sign in
+ */
+export async function signInWithOAuth(provider: Provider) {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  })
+  
+  if (error) {
+    return { success: false, error: error.message }
+  }
+  
+  return { success: true, url: data.url }
 }
 
 /**
@@ -85,6 +158,21 @@ export const resetPassword = async (email: string) => {
 }
 
 /**
+ * Enhanced reset password
+ */
+export async function resetPasswordEnhanced(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  })
+  
+  if (error) {
+    return { success: false, error: error.message }
+  }
+  
+  return { success: true }
+}
+
+/**
  * Update password
  */
 export const updatePassword = async (newPassword: string) => {
@@ -94,6 +182,21 @@ export const updatePassword = async (newPassword: string) => {
   
   if (error) throw error
   return data
+}
+
+/**
+ * Enhanced update password
+ */
+export async function updatePasswordEnhanced(newPassword: string) {
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  })
+  
+  if (error) {
+    return { success: false, error: error.message }
+  }
+  
+  return { success: true }
 }
 
 /**
@@ -110,6 +213,14 @@ export const signOut = async () => {
 export const getCurrentUser = async (): Promise<User | null> => {
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error) throw error
+  return user
+}
+
+/**
+ * Enhanced get user
+ */
+export async function getUser() {
+  const { data: { user } } = await supabase.auth.getUser()
   return user
 }
 
@@ -155,6 +266,58 @@ export const verifyOtp = async (email: string, token: string, type: 'signup' | '
   
   if (error) throw error
   return data
+}
+
+/**
+ * Enhanced verify email
+ */
+export async function verifyEmail(token: string, email: string) {
+  const { error } = await supabase.auth.verifyOtp({
+    token,
+    type: 'email',
+    email,
+  })
+  
+  if (error) {
+    return { success: false, error: error.message }
+  }
+  
+  return { success: true }
+}
+
+/**
+ * Resend verification email
+ */
+export async function resendVerificationEmail(email: string) {
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: {
+      emailRedirectTo: `${window.location.origin}/auth/verify-email`,
+    },
+  })
+  
+  if (error) {
+    return { success: false, error: error.message }
+  }
+  
+  return { success: true }
+}
+
+/**
+ * Check if email is verified
+ */
+export async function checkEmailVerified() {
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    return { verified: false, user: null }
+  }
+  
+  return {
+    verified: !!user.email_confirmed_at,
+    user,
+  }
 }
 
 /**

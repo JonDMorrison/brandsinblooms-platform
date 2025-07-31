@@ -5,10 +5,10 @@ import {
   verifyEmail,
   resendVerificationEmail,
   checkEmailVerified
-} from '@/lib/auth/actions'
-import { createClient } from '@/lib/supabase/server'
+} from '@/src/lib/auth/actions'
+import { createClient } from '@/src/lib/supabase/server'
 
-jest.mock('@/lib/supabase/server')
+jest.mock('@/src/lib/supabase/server')
 
 describe('Auth Flow Functions', () => {
   let mockSupabaseClient: any

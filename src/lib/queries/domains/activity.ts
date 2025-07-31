@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database, ActivityLog, ActivityLogInsert } from '@/lib/database/types';
-import { executeQuery } from '@/lib/queries/utils/execute-query';
+import { Database } from '@/src/lib/database/types';
+import { ActivityLog, ActivityLogInsert } from '@/src/lib/database/aliases';
+import { executeQuery } from '@/src/lib/queries/utils/execute-query';
 
 export interface ActivityFilters {
   type?: string;

@@ -16,7 +16,7 @@ describe('Supabase Client', () => {
       ;(createBrowserClient as jest.Mock).mockReturnValue(mockClient)
       
       // Import the client module
-      const { supabase } = await import('@/lib/supabase/client')
+      const { supabase } = await import('@/src/lib/supabase/client')
       
       expect(createBrowserClient).toHaveBeenCalledWith(
         process.env.NEXT_PUBLIC_SUPABASE_URL,

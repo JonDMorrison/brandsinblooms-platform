@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Check, ChevronsUpDown, Store } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Command,

@@ -3,8 +3,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase/client';
-import { queryKeys } from '@/lib/queries/keys';
+import { supabase } from '@/src/lib/supabase/client';
+import { queryKeys } from '@/src/lib/queries/keys';
 import { 
   getProducts, 
   getProductById, 
@@ -17,9 +17,9 @@ import {
   updateProductInventory,
   ProductFilters,
   ProductSortOptions
-} from '@/lib/queries/domains/products';
+} from '@/src/lib/queries/domains/products';
 import { useSiteId } from '@/contexts/SiteContext';
-import { Product, InsertProduct, UpdateProduct } from '@/lib/database/types';
+import { Product, ProductInsert, ProductUpdate } from '@/src/lib/database/aliases';
 
 // Main products query hook
 export function useProducts(filters?: ProductFilters, sort?: ProductSortOptions) {
@@ -86,7 +86,7 @@ export function useCreateProduct() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: Omit<InsertProduct, 'site_id'>) => 
+    mutationFn: (data: Omit<ProductInsert, 'site_id'>) => 
       createProduct(supabase, { ...data, site_id: siteId! }),
     onMutate: async (newProduct) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.products(siteId!) });
@@ -127,7 +127,7 @@ export function useUpdateProduct() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ id, ...data }: UpdateProduct & { id: string }) => 
+    mutationFn: ({ id, ...data }: ProductUpdate & { id: string }) => 
       updateProduct(supabase, id, data),
     onMutate: async ({ id, ...updates }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.product(siteId!, id) });

@@ -2,16 +2,16 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { queryKeys } from '@/lib/queries/keys';
+import { queryKeys } from '@/src/lib/queries/keys';
 import { 
   getMediaFiles, 
   uploadFile, 
   deleteFile,
   getFileUrl,
   getMediaStats
-} from '@/lib/queries/domains/media';
+} from '@/src/lib/queries/domains/media';
 import { useSiteId } from '@/contexts/SiteContext';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 
 // Get all media files
 export function useMediaFiles(folder?: string) {

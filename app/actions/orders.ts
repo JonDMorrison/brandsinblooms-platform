@@ -2,10 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { getUser } from '@/lib/auth/server'
-import { OrderStatus, OrderInsert } from '@/lib/database/types'
-import { activityHelpers } from '@/lib/queries/domains/activity'
+import { createClient } from '@/src/lib/supabase/server'
+import { getUser } from '@/src/lib/auth/server'
+import { OrderStatus, OrderInsert } from '@/src/lib/database/aliases'
+import { activityHelpers } from '@/src/lib/queries/domains/activity'
 import { z } from 'zod'
 
 // Validation schemas

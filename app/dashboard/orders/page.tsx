@@ -165,6 +165,14 @@ export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [activeTab, setActiveTab] = useState('orders')
+  
+  // Pagination state for orders (mock implementation)
+  const hasNextPage = false
+  const fetchNextPage = () => {
+    // Mock implementation - would be replaced with real data fetching
+    console.log('Fetching next page...')
+  }
+  const isFetchingNextPage = false
 
   // Filter orders
   const filteredOrders = orders.filter(order => {

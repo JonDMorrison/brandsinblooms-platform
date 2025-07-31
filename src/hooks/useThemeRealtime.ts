@@ -5,9 +5,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/contexts/SiteContext';
-import { queryKeys } from '@/lib/queries/keys';
-import { ThemeSettings } from '@/lib/database/types';
-import { applyThemeToDOM } from '@/lib/queries/domains/theme';
+import { queryKeys } from '@/src/lib/queries/keys';
+import { ThemeSettings } from '@/src/lib/queries/domains/theme';
+import { applyThemeToDOM } from '@/src/lib/queries/domains/theme';
 import { toast } from 'sonner';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { useSiteTheme } from './useSiteTheme';
@@ -138,7 +138,7 @@ export function useThemeEditorPresence() {
     const channelName = `theme-editor-${siteId}`;
     
     // Import supabase client
-    import('@/lib/supabase/client').then(({ supabase }) => {
+    import('@/src/lib/supabase/client').then(({ supabase }) => {
       channelRef.current = supabase
         .channel(channelName, {
           config: {
@@ -193,7 +193,7 @@ export function useThemeEditorPresence() {
     return () => {
       if (channelRef.current) {
         channelRef.current.untrack();
-        import('@/lib/supabase/client').then(({ supabase }) => {
+        import('@/src/lib/supabase/client').then(({ supabase }) => {
           supabase.removeChannel(channelRef.current);
         });
         channelRef.current = null;

@@ -2,9 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { getUser } from '@/lib/auth/server'
-import { SiteMetricsData, MetricData } from '@/lib/database/types'
+import { createClient } from '@/src/lib/supabase/server'
+import { getUser } from '@/src/lib/auth/server'
+import { SiteMetricsData, MetricData } from '@/src/lib/database/aliases'
 import { z } from 'zod'
 
 // Validation schemas
@@ -24,7 +24,13 @@ const siteMetricsSchema = z.object({
 })
 
 // Calculate site metrics (could be called by a cron job)
-export async function calculateSiteMetrics(siteId?: string) {
+export async function calculateSiteMetrics(siteId?: string): Promise<{
+  success: boolean;
+  error?: string;
+  processed?: number;
+  failed?: number;
+  data?: SiteMetricsData;
+}> {
   const user = await getUser()
   if (!user) {
     // Allow this to be called by system/cron without user
@@ -44,13 +50,13 @@ export async function calculateSiteMetrics(siteId?: string) {
     
     // Process each site
     const results = await Promise.all(
-      sites.map(site => calculateSiteMetrics(site.id))
+      sites.map((site): Promise<{ success: boolean; error?: string; data?: SiteMetricsData }> => calculateSiteMetrics(site.id))
     )
     
     return {
       success: true,
-      processed: results.filter(r => r.success).length,
-      failed: results.filter(r => !r.success).length,
+      processed: results.filter((r): boolean => r.success).length,
+      failed: results.filter((r): boolean => !r.success).length,
     }
   }
 

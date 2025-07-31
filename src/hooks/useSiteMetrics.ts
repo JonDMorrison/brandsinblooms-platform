@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/keys';
+import { queryKeys } from '@/src/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/contexts/SiteContext';
 import {
@@ -13,7 +13,7 @@ import {
   generateSampleMetrics,
   SiteMetricsData,
   MetricsHistory,
-} from '@/lib/queries/domains/metrics';
+} from '@/src/lib/queries/domains/metrics';
 import { toast } from 'sonner';
 
 // Hook for current metrics

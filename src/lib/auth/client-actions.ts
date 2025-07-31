@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client'
+import { supabase } from '@/src/lib/supabase/client'
 import { Provider } from '@supabase/supabase-js'
 
 export async function signIn(email: string, password: string) {

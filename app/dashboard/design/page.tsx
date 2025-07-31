@@ -35,6 +35,9 @@ interface DesignState {
     position: string
     size: string
   }
+  branding: {
+    logoUrl?: string
+  }
 }
 
 export default function DesignPage() {
@@ -59,6 +62,9 @@ export default function DesignPage() {
       url: null,
       position: 'left',
       size: 'medium'
+    },
+    branding: {
+      logoUrl: undefined
     }
   })
 
@@ -103,6 +109,9 @@ export default function DesignPage() {
         url: null,
         position: 'left',
         size: 'medium'
+      },
+      branding: {
+        logoUrl: undefined
       }
     })
   }

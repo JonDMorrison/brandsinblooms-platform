@@ -1,12 +1,12 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { Database } from '@/src/lib/database/types';
 import { 
-  Database, 
   SiteMetrics, 
   SiteMetricsInsert,
   SiteMetricsData,
   MetricData 
-} from '@/lib/database/types';
-import { executeQuery } from '@/lib/queries/utils/execute-query';
+} from '@/src/lib/database/aliases';
+import { executeQuery } from '@/src/lib/queries/utils/execute-query';
 
 export interface MetricsHistory {
   date: string;

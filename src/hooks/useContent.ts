@@ -3,8 +3,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase/client';
-import { queryKeys } from '@/lib/queries/keys';
+import { supabase } from '@/src/lib/supabase/client';
+import { queryKeys } from '@/src/lib/queries/keys';
 import { 
   getContent, 
   getContentById, 
@@ -17,9 +17,9 @@ import {
   getContentStats,
   ContentFilters,
   ContentSortOptions
-} from '@/lib/queries/domains/content';
+} from '@/src/lib/queries/domains/content';
 import { useSiteId } from '@/contexts/SiteContext';
-import { Content, InsertContent, UpdateContent } from '@/lib/database/types';
+import { Content, InsertContent, ContentUpdate } from '@/src/lib/database/aliases';
 
 // Main content query hook
 export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) {
@@ -146,7 +146,7 @@ export function useUpdateContent() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ id, ...data }: UpdateContent & { id: string }) => 
+    mutationFn: ({ id, ...data }: ContentUpdate & { id: string }) => 
       updateContent(supabase, id, data),
     onMutate: async ({ id, ...updates }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.content.detail(siteId!, id) });

@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/keys';
+import { queryKeys } from '@/src/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/contexts/SiteContext';
 import {
@@ -15,8 +15,8 @@ import {
   OrderFilters,
   OrderWithCustomer,
   OrderStats,
-} from '@/lib/queries/domains/orders';
-import { OrderInsert, OrderUpdate, OrderStatus } from '@/lib/database/types';
+} from '@/src/lib/queries/domains/orders';
+import { OrderInsert, OrderUpdate, OrderStatus } from '@/src/lib/database/aliases';
 import { toast } from 'sonner';
 
 // Hook for paginated orders list

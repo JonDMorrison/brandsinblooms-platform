@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { queryKeys } from '@/lib/queries/keys';
+import { queryKeys } from '@/src/lib/queries/keys';
 import { 
   getTags, 
   getPopularTags, 
@@ -12,10 +12,10 @@ import {
   addTagToResource,
   removeTagFromResource,
   getResourceTags
-} from '@/lib/queries/domains/tags';
+} from '@/src/lib/queries/domains/tags';
 import { useSiteId } from '@/contexts/SiteContext';
-import { Tag, InsertTag, UpdateTag } from '@/lib/database/types';
-import { supabase } from '@/lib/supabase/client';
+import { Tag, TagInsert, TagUpdate } from '@/src/lib/database/aliases';
+import { supabase } from '@/src/lib/supabase/client';
 
 // Get all tags for the site
 export function useTags() {
@@ -58,7 +58,7 @@ export function useCreateTag() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: Omit<InsertTag, 'site_id'>) => 
+    mutationFn: (data: Omit<TagInsert, 'site_id'>) => 
       createTag({ ...data, site_id: siteId! }),
     onSuccess: () => {
       toast.success('Tag created successfully');
@@ -76,7 +76,7 @@ export function useUpdateTag() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ id, ...data }: UpdateTag & { id: string }) => 
+    mutationFn: ({ id, ...data }: TagUpdate & { id: string }) => 
       updateTag(id, data),
     onSuccess: () => {
       toast.success('Tag updated successfully');

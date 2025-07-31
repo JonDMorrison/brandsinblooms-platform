@@ -5,41 +5,38 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Eye, EyeOff, Check } from 'lucide-react'
+import { Loader2, Eye, EyeOff, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { signUpSchema, type SignUpData } from '@/src/lib/validations/auth'
+import { signInSchema, type SignInData } from '@/src/lib/validations/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
-import { signInWithProvider, handleAuthError } from '@/lib/auth/client'
+import { signInWithProvider, signInWithMagicLink, handleAuthError } from '@/src/lib/auth/client'
 
-export default function SignUp() {
+export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoadingProvider, setIsLoadingProvider] = useState<string | null>(null)
-  const { signUp } = useAuth()
+  const [isLoadingMagicLink, setIsLoadingMagicLink] = useState(false)
+  const { signIn } = useAuth()
   const router = useRouter()
 
-  const form = useForm<SignUpData>({
-    resolver: zodResolver(signUpSchema),
+  const form = useForm<SignInData>({
+    resolver: zodResolver(signInSchema),
     defaultValues: {
       email: '',
       password: '',
-      confirmPassword: '',
-      acceptTerms: false,
     },
   })
 
-  const onSubmit = async (data: SignUpData) => {
+  const onSubmit = async (data: SignInData) => {
     try {
-      await signUp(data.email, data.password)
-      toast.success('Account created! Please check your email to verify your account.')
-      router.push('/auth/verify-email')
+      await signIn(data.email, data.password)
+      toast.success('Successfully signed in!')
+      router.push('/dashboard')
     } catch (error: any) {
       const message = handleAuthError(error)
       toast.error(message)
@@ -51,34 +48,39 @@ export default function SignUp() {
       setIsLoadingProvider(provider)
       await signInWithProvider(provider)
     } catch (error: any) {
-      toast.error(`Failed to sign up with ${provider}. Please try again.`)
+      toast.error(`Failed to sign in with ${provider}. Please try again.`)
     } finally {
       setIsLoadingProvider(null)
     }
   }
 
-  // Password strength indicator
-  const password = form.watch('password')
-  const passwordStrength = {
-    hasLength: password?.length >= 8,
-    hasUpperCase: /[A-Z]/.test(password || ''),
-    hasLowerCase: /[a-z]/.test(password || ''),
-    hasNumber: /\d/.test(password || ''),
-    hasSpecial: /[!@#$%^&*]/.test(password || ''),
-  }
+  const handleMagicLinkSignIn = async () => {
+    const email = form.getValues('email')
+    if (!email) {
+      toast.error('Please enter your email address')
+      return
+    }
 
-  const strengthScore = Object.values(passwordStrength).filter(Boolean).length
-  const strengthColor = strengthScore < 2 ? 'text-red-500' : strengthScore < 4 ? 'text-yellow-500' : 'text-green-500'
+    try {
+      setIsLoadingMagicLink(true)
+      await signInWithMagicLink(email)
+      toast.success('Check your email for the magic link!')
+    } catch (error: any) {
+      toast.error('Failed to send magic link. Please try again.')
+    } finally {
+      setIsLoadingMagicLink(false)
+    }
+  }
 
   return (
     <div className="w-full max-w-md">
       <Card className="gradient-card shadow-lg hover-scale-sm">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-brand-heading text-primary">
-            Create an Account
+            Welcome Back
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Join Brands and Blooms to start creating beautiful websites
+            Sign in to your Brands and Blooms account
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -122,8 +124,8 @@ export default function SignUp() {
                             {...field}
                             id={fieldId}
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="Create a password"
-                            autoComplete="new-password"
+                            placeholder="Enter your password"
+                            autoComplete="current-password"
                             className="pr-10 fade-in-up"
                             style={{ animationDelay: '0.2s' }}
                           />
@@ -142,120 +144,51 @@ export default function SignUp() {
                         </Button>
                       </div>
                     </FormControl>
-                    {password && (
-                      <div className="mt-2 space-y-1">
-                        <p className={`text-xs ${strengthColor}`}>
-                          Password strength: {strengthScore < 2 ? 'Weak' : strengthScore < 4 ? 'Medium' : 'Strong'}
-                        </p>
-                        <div className="space-y-1 text-xs">
-                          <div className={`flex items-center gap-1 ${passwordStrength.hasLength ? 'text-green-500' : 'text-muted-foreground'}`}>
-                            <Check className="h-3 w-3" />
-                            At least 8 characters
-                          </div>
-                          <div className={`flex items-center gap-1 ${passwordStrength.hasUpperCase && passwordStrength.hasLowerCase ? 'text-green-500' : 'text-muted-foreground'}`}>
-                            <Check className="h-3 w-3" />
-                            Mix of upper & lowercase letters
-                          </div>
-                          <div className={`flex items-center gap-1 ${passwordStrength.hasNumber ? 'text-green-500' : 'text-muted-foreground'}`}>
-                            <Check className="h-3 w-3" />
-                            At least one number
-                          </div>
-                          <div className={`flex items-center gap-1 ${passwordStrength.hasSpecial ? 'text-green-500' : 'text-muted-foreground'}`}>
-                            <Check className="h-3 w-3" />
-                            At least one special character
-                          </div>
-                        </div>
-                      </div>
-                    )}
                     <FormMessage />
                   </FormItem>
                   )
                 }}
               />
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => {
-                  const fieldId = `confirm-password-${React.useId()}`
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor={fieldId}>Confirm Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            {...field}
-                            id={fieldId}
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            placeholder="Confirm your password"
-                            autoComplete="new-password"
-                            className="pr-10 fade-in-up"
-                            style={{ animationDelay: '0.3s' }}
-                          />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        >
-                          {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                  )
-                }}
-              />
-              <FormField
-                control={form.control}
-                name="acceptTerms"
-                render={({ field }) => {
-                  const fieldId = `accept-terms-${React.useId()}`
-                  return (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          {...field}
-                          id={fieldId}
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel htmlFor={fieldId}>
-                        I agree to the{' '}
-                        <Link href="/terms" className="text-primary hover:underline">
-                          Terms of Service
-                        </Link>{' '}
-                        and{' '}
-                        <Link href="/privacy" className="text-primary hover:underline">
-                          Privacy Policy
-                        </Link>
-                      </FormLabel>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                  )
-                }}
-              />
+              <div className="flex items-center justify-between">
+                <Link
+                  href="/auth/reset-password"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Button
                 type="submit"
                 className="w-full btn-gradient-primary fade-in-up"
-                style={{ animationDelay: '0.4s' }}
+                style={{ animationDelay: '0.3s' }}
                 disabled={form.formState.isSubmitting}
               >
                 {form.formState.isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
+                    Signing in...
                   </>
                 ) : (
-                  'Create Account'
+                  'Sign In'
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleMagicLinkSignIn}
+                disabled={isLoadingMagicLink}
+              >
+                {isLoadingMagicLink ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending magic link...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Sign in with Magic Link
+                  </>
                 )}
               </Button>
             </form>
@@ -263,12 +196,12 @@ export default function SignUp() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-sm text-center text-muted-foreground">
-            Already have an account?{' '}
+            Don't have an account?{' '}
             <Link
-              href="/?signin=true"
+              href="/?signup=true"
               className="text-primary hover:text-primary/80 font-medium transition-colors"
             >
-              Sign in
+              Sign up
             </Link>
           </div>
           <Separator />

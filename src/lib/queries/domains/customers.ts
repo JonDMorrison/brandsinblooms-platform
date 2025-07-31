@@ -1,6 +1,19 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database, CustomerStats } from '@/lib/database/types';
-import { executeQuery } from '@/lib/queries/utils/execute-query';
+import { Database } from '@/src/lib/database/types';
+import { executeQuery } from '@/src/lib/queries/utils/execute-query';
+
+// Customer stats interface (typically from a view or computed)
+export interface CustomerStats {
+  id: string;
+  name: string;
+  email: string;
+  total_orders: number;
+  total_spent: number;
+  average_order_value: number;
+  last_order_date: string | null;
+  status: 'active' | 'inactive';
+  created_at: string;
+}
 
 export interface CustomerFilters {
   status?: 'active' | 'inactive';
