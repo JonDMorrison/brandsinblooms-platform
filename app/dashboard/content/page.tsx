@@ -3,10 +3,10 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { contentColumns, type ContentItem } from '@/components/content/content-columns'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Button } from '@/src/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
+import { contentColumns, type ContentItem } from '@/src/components/content/content-columns'
 import { 
   FileText, 
   Plus, 
@@ -15,8 +15,8 @@ import {
   Sparkles,
   Loader2
 } from 'lucide-react'
-import { useContent, useContentStats } from '@/hooks/useContent'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useContent, useContentStats } from '@/src/hooks/useContent'
+import { Skeleton } from '@/src/components/ui/skeleton'
 
 // Dynamic import for DataTable with loading state
 const DataTable = dynamic<any>(

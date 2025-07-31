@@ -4,6 +4,7 @@
 @import "../src/styles/gradients.css";
 @import "../src/styles/animations.css";
 @import "../src/styles/brand.css";
+@import "../src/styles/admin-login.css";
 
 @layer base {
   :root {

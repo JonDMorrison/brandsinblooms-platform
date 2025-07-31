@@ -1,7 +1,7 @@
 import { formatDistanceToNow } from 'date-fns'
 import { FileText, Package, Palette, ShoppingCart, User, Settings } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/src/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 
 interface ActivityItem {
   id: string

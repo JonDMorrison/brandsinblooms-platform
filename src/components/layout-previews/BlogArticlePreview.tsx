@@ -1,6 +1,6 @@
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Card } from '@/src/components/ui/card'
+import { Badge } from '@/src/components/ui/badge'
+import { Avatar, AvatarFallback } from '@/src/components/ui/avatar'
 import { Calendar, Clock, User } from 'lucide-react'
 
 interface BlogArticlePreviewProps {

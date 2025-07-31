@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ProfileSettings } from '@/components/settings/ProfileSettings'
-import { SiteSettings } from '@/components/settings/SiteSettings'
-import { NotificationSettings } from '@/components/settings/NotificationSettings'
-import { SecuritySettings } from '@/components/settings/SecuritySettings'
-import { BillingSettings } from '@/components/settings/BillingSettings'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
+import { ProfileSettings } from '@/src/components/settings/ProfileSettings'
+import { SiteSettings } from '@/src/components/settings/SiteSettings'
+import { NotificationSettings } from '@/src/components/settings/NotificationSettings'
+import { SecuritySettings } from '@/src/components/settings/SecuritySettings'
+import { BillingSettings } from '@/src/components/settings/BillingSettings'
 import { User, Globe, Bell, Shield, CreditCard } from 'lucide-react'
 
 export default function SettingsPage() {

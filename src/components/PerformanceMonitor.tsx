@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Progress } from '@/src/components/ui/progress'
+import { Badge } from '@/src/components/ui/badge'
 import { Activity, Zap, Layout, MousePointer, Clock, Server } from 'lucide-react'
-import { getRating, formatMetricValue } from '@/lib/performance'
+import { getRating, formatMetricValue } from '@/src/lib/performance'
 
 interface Metric {
   name: string

@@ -4,25 +4,26 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/auth/server'
-import { SiteMetric, MetricData } from '@/lib/database/aliases'
-import { MetricsData } from '@/lib/database/json-types'
+import { SiteMetric } from '@/lib/database/aliases'
 import { z } from 'zod'
 
-// Validation schemas
-const metricDataSchema = z.object({
-  score: z.number().min(0).max(100),
-  change: z.number(),
-  trend: z.enum(['up', 'down', 'neutral']),
+// Validation schemas for new site_metrics schema
+const siteMetricsSchema = z.object({
+  content_count: z.number().min(0).optional(),
+  product_count: z.number().min(0).optional(),
+  inquiry_count: z.number().min(0).optional(),
+  unique_visitors: z.number().min(0).optional(),
+  page_views: z.number().min(0).optional(),
 })
 
-const metricsDataSchema = z.object({
-  performance: metricDataSchema.optional(),
-  page_load: metricDataSchema.optional(),
-  seo: metricDataSchema.optional(),
-  mobile: metricDataSchema.optional(),
-  security: metricDataSchema.optional(),
-  accessibility: metricDataSchema.optional(),
-})
+// Type for metrics calculation result
+export type CalculatedMetrics = {
+  content_count: number;
+  product_count: number;
+  inquiry_count: number;
+  unique_visitors: number;
+  page_views: number;
+};
 
 // Calculate site metrics (could be called by a cron job)
 export async function calculateSiteMetrics(siteId?: string): Promise<{
@@ -30,7 +31,7 @@ export async function calculateSiteMetrics(siteId?: string): Promise<{
   error?: string;
   processed?: number;
   failed?: number;
-  data?: MetricsData;
+  data?: CalculatedMetrics;
 }> {
   const user = await getUser()
   if (!user) {
@@ -51,7 +52,7 @@ export async function calculateSiteMetrics(siteId?: string): Promise<{
     
     // Process each site
     const results = await Promise.all(
-      sites.map((site): Promise<{ success: boolean; error?: string; data?: MetricsData }> => calculateSiteMetrics(site.id))
+      sites.map((site): Promise<{ success: boolean; error?: string; data?: CalculatedMetrics }> => calculateSiteMetrics(site.id))
     )
     
     return {
@@ -63,32 +64,8 @@ export async function calculateSiteMetrics(siteId?: string): Promise<{
 
   // Calculate metrics for a specific site
   try {
-    // In a real application, these would be calculated from:
-    // - Google PageSpeed API
-    // - Google Analytics
-    // - Internal monitoring tools
-    // - Security scans
-    // - Accessibility audits
-    
+    // Calculate actual metrics from database
     const metrics = await calculateMetricsForSite(siteId)
-    
-    // Get previous day's metrics for trend calculation
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    const yesterdayStr = yesterday.toISOString().split('T')[0]
-    
-    const { data: previousMetrics } = await supabase
-      .from('site_metrics')
-      .select('metrics')
-      .eq('site_id', siteId)
-      .eq('metric_date', yesterdayStr)
-      .single()
-    
-    // Calculate trends
-    const metricsWithTrends = calculateTrends(
-      metrics,
-      previousMetrics?.metrics as MetricsData | null
-    )
     
     // Save metrics
     const today = new Date().toISOString().split('T')[0]
@@ -97,7 +74,11 @@ export async function calculateSiteMetrics(siteId?: string): Promise<{
       .upsert({
         site_id: siteId,
         metric_date: today,
-        metrics: metricsWithTrends,
+        content_count: metrics.content_count,
+        product_count: metrics.product_count,
+        inquiry_count: metrics.inquiry_count,
+        unique_visitors: metrics.unique_visitors,
+        page_views: metrics.page_views,
       }, {
         onConflict: 'site_id,metric_date',
       })
@@ -121,7 +102,7 @@ export async function calculateSiteMetrics(siteId?: string): Promise<{
     
     revalidatePath('/dashboard')
     
-    return { success: true, data: metricsWithTrends }
+    return { success: true, data: metrics }
   } catch (error) {
     console.error('Failed to calculate metrics:', error)
     const errorMessage = error instanceof Error ? error.message : 'Failed to calculate metrics'
@@ -129,116 +110,69 @@ export async function calculateSiteMetrics(siteId?: string): Promise<{
   }
 }
 
-// Helper function to calculate metrics (mock implementation)
-async function calculateMetricsForSite(siteId: string): Promise<MetricsData> {
+// Helper function to calculate metrics based on actual database data
+async function calculateMetricsForSite(siteId: string): Promise<CalculatedMetrics> {
   const supabase = await createClient()
   
-  // In production, these would come from real monitoring tools
-  // For now, we'll calculate based on site data
-  
-  // Get site data for calculations
-  const { data: site } = await supabase
-    .from('sites')
-    .select('created_at, updated_at')
-    .eq('id', siteId)
-    .single()
-  
-  // Get content metrics
+  // Get content count (published content)
   const { count: contentCount } = await supabase
     .from('content')
     .select('*', { count: 'exact', head: true })
     .eq('site_id', siteId)
-    .eq('status', 'published')
+    .eq('is_published', true)
   
-  // Get product metrics
+  // Get product count (active products)
   const { count: productCount } = await supabase
     .from('products')
     .select('*', { count: 'exact', head: true })
     .eq('site_id', siteId)
-    .eq('status', 'active')
+    .eq('is_active', true)
   
-  // Calculate scores based on available data
-  // In production, use real monitoring APIs
+  // Get inquiry count (all inquiries)
+  const { count: inquiryCount } = await supabase
+    .from('contact_inquiries')
+    .select('*', { count: 'exact', head: true })
+    .eq('site_id', siteId)
   
-  const performanceScore = Math.min(100, 70 + (productCount || 0) / 10 + (contentCount || 0) / 5)
-  const pageLoadScore = Math.min(100, 80 + Math.random() * 20) // Mock variation
-  const seoScore = Math.min(100, 60 + (contentCount || 0) * 2)
-  const mobileScore = Math.min(100, 75 + Math.random() * 15)
-  const securityScore = 95 // Assume good security by default
-  const accessibilityScore = Math.min(100, 70 + Math.random() * 10)
+  // For unique visitors and page views, we would integrate with analytics services
+  // For now, we'll use placeholder values that could be updated by external services
+  const uniqueVisitors = 0 // Would come from Google Analytics, etc.
+  const pageViews = 0 // Would come from Google Analytics, etc.
   
   return {
-    performance: {
-      score: Math.round(performanceScore),
-      change: 0,
-      trend: 'neutral',
-    },
-    page_load: {
-      score: Math.round(pageLoadScore),
-      change: 0,
-      trend: 'neutral',
-    },
-    seo: {
-      score: Math.round(seoScore),
-      change: 0,
-      trend: 'neutral',
-    },
-    mobile: {
-      score: Math.round(mobileScore),
-      change: 0,
-      trend: 'neutral',
-    },
-    security: {
-      score: Math.round(securityScore),
-      change: 0,
-      trend: 'neutral',
-    },
-    accessibility: {
-      score: Math.round(accessibilityScore),
-      change: 0,
-      trend: 'neutral',
-    },
+    content_count: contentCount || 0,
+    product_count: productCount || 0,
+    inquiry_count: inquiryCount || 0,
+    unique_visitors: uniqueVisitors,
+    page_views: pageViews,
   }
 }
 
 // Calculate trends based on previous metrics
 function calculateTrends(
-  current: MetricsData,
-  previous: MetricsData | null
-): MetricsData {
+  current: CalculatedMetrics,
+  previous: CalculatedMetrics | null
+): CalculatedMetrics & { trends?: Record<keyof CalculatedMetrics, { change: number; trend: 'up' | 'down' | 'neutral' }> } {
   if (!previous) return current
   
-  const result: MetricsData = {}
+  const trends: Record<keyof CalculatedMetrics, { change: number; trend: 'up' | 'down' | 'neutral' }> = {} as any
   
-  const metricKeys: (keyof MetricsData)[] = [
-    'performance', 'page_load', 'seo', 'mobile', 'security', 'accessibility'
+  const metricKeys: (keyof CalculatedMetrics)[] = [
+    'content_count', 'product_count', 'inquiry_count', 'unique_visitors', 'page_views'
   ]
   
   for (const key of metricKeys) {
-    const currentMetric = current[key]
-    const previousMetric = previous[key]
+    const currentValue = current[key]
+    const previousValue = previous[key]
     
-    if (currentMetric && previousMetric) {
-      // Type assert the metrics data with safe property access
-      const currentData = currentMetric as MetricData
-      const previousData = previousMetric as MetricData
-      
-      if (currentData && previousData && 
-          typeof currentData === 'object' && 'score' in currentData &&
-          typeof previousData === 'object' && 'score' in previousData) {
-        const change = currentData.score - previousData.score
-        result[key] = {
-          score: currentData.score,
-          change: Math.abs(change),
-          trend: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral',
-        }
-      }
-    } else if (currentMetric) {
-      result[key] = currentMetric
+    const change = currentValue - previousValue
+    trends[key] = {
+      change: Math.abs(change),
+      trend: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral',
     }
   }
   
-  return result
+  return { ...current, trends }
 }
 
 // Manual metric update (for testing or manual adjustments)
@@ -261,39 +195,37 @@ export async function updateSiteMetrics(formData: FormData) {
     throw new Error('Insufficient permissions')
   }
 
-  // Parse form data
-  const metrics: MetricsData = {}
-  const metricTypes: (keyof MetricsData)[] = [
-    'performance', 'page_load', 'seo', 'mobile', 'security', 'accessibility'
-  ]
+  // Parse form data for count-based metrics
+  const metrics: Partial<CalculatedMetrics> = {}
   
-  for (const type of metricTypes) {
-    const score = formData.get(`${type}_score`)
-    if (score !== null) {
-      metrics[type] = {
-        score: parseInt(score as string),
-        change: 0,
-        trend: 'neutral',
-      }
-    }
-  }
+  const contentCount = formData.get('content_count')
+  const productCount = formData.get('product_count')
+  const inquiryCount = formData.get('inquiry_count')
+  const uniqueVisitors = formData.get('unique_visitors')
+  const pageViews = formData.get('page_views')
+  
+  if (contentCount !== null) metrics.content_count = parseInt(contentCount as string)
+  if (productCount !== null) metrics.product_count = parseInt(productCount as string)
+  if (inquiryCount !== null) metrics.inquiry_count = parseInt(inquiryCount as string)
+  if (uniqueVisitors !== null) metrics.unique_visitors = parseInt(uniqueVisitors as string)
+  if (pageViews !== null) metrics.page_views = parseInt(pageViews as string)
 
   // Validate metrics
-  const validated = metricsDataSchema.parse(metrics)
+  const validated = siteMetricsSchema.parse(metrics)
   
-  // Calculate trends
+  // Get current metrics for trend calculation
   const today = new Date().toISOString().split('T')[0]
   const { data: currentMetrics } = await supabase
     .from('site_metrics')
-    .select('metrics')
+    .select('content_count, product_count, inquiry_count, unique_visitors, page_views')
     .eq('site_id', membership.site_id)
     .eq('metric_date', today)
     .single()
   
-  const metricsWithTrends = calculateTrends(
-    validated as MetricsData,
-    currentMetrics?.metrics as MetricsData | null
-  )
+  // Calculate trends if we have previous data
+  const metricsWithTrends = currentMetrics ? 
+    calculateTrends(validated as CalculatedMetrics, currentMetrics as CalculatedMetrics) :
+    validated
 
   // Save metrics
   const { error } = await supabase
@@ -301,7 +233,11 @@ export async function updateSiteMetrics(formData: FormData) {
     .upsert({
       site_id: membership.site_id,
       metric_date: today,
-      metrics: metricsWithTrends,
+      content_count: validated.content_count,
+      product_count: validated.product_count,
+      inquiry_count: validated.inquiry_count,
+      unique_visitors: validated.unique_visitors,
+      page_views: validated.page_views,
     }, {
       onConflict: 'site_id,metric_date',
     })
@@ -343,7 +279,7 @@ export async function generateMetricsReport(
   // Get metrics for date range
   const { data: metricsData, error } = await supabase
     .from('site_metrics')
-    .select('metric_date, metrics')
+    .select('metric_date, content_count, product_count, inquiry_count, unique_visitors, page_views')
     .eq('site_id', siteId)
     .gte('metric_date', startDate)
     .lte('metric_date', endDate)
@@ -371,21 +307,47 @@ export async function generateMetricsReport(
 function calculateMetricsSummary(metricsData: any[]) {
   if (metricsData.length === 0) return null
   
-  const sums: Record<string, number> = {}
-  const counts: Record<string, number> = {}
+  const sums: Record<string, number> = {
+    content_count: 0,
+    product_count: 0,
+    inquiry_count: 0,
+    unique_visitors: 0,
+    page_views: 0,
+  }
+  const counts: Record<string, number> = {
+    content_count: 0,
+    product_count: 0,
+    inquiry_count: 0,
+    unique_visitors: 0,
+    page_views: 0,
+  }
   
-  metricsData.forEach(({ metrics }) => {
-    Object.entries(metrics).forEach(([key, metric]: [string, any]) => {
-      if (metric?.score) {
-        sums[key] = (sums[key] || 0) + metric.score
-        counts[key] = (counts[key] || 0) + 1
-      }
-    })
+  metricsData.forEach((data) => {
+    if (data.content_count !== null) {
+      sums.content_count += data.content_count
+      counts.content_count += 1
+    }
+    if (data.product_count !== null) {
+      sums.product_count += data.product_count
+      counts.product_count += 1
+    }
+    if (data.inquiry_count !== null) {
+      sums.inquiry_count += data.inquiry_count
+      counts.inquiry_count += 1
+    }
+    if (data.unique_visitors !== null) {
+      sums.unique_visitors += data.unique_visitors
+      counts.unique_visitors += 1
+    }
+    if (data.page_views !== null) {
+      sums.page_views += data.page_views
+      counts.page_views += 1
+    }
   })
   
   const averages: Record<string, number> = {}
   Object.keys(sums).forEach(key => {
-    averages[key] = Math.round(sums[key] / counts[key])
+    averages[key] = counts[key] > 0 ? Math.round(sums[key] / counts[key]) : 0
   })
   
   return {
@@ -398,17 +360,16 @@ function calculateMetricsSummary(metricsData: any[]) {
 
 // Helper to generate CSV
 function generateMetricsCSV(metricsData: any[], summary: any) {
-  const headers = ['Date', 'Performance', 'Page Load', 'SEO', 'Mobile', 'Security', 'Accessibility']
+  const headers = ['Date', 'Content Count', 'Product Count', 'Inquiry Count', 'Unique Visitors', 'Page Views']
   
-  const rows = metricsData.map(({ metric_date, metrics }) => {
+  const rows = metricsData.map((data) => {
     return [
-      metric_date,
-      metrics.performance?.score || '',
-      metrics.page_load?.score || '',
-      metrics.seo?.score || '',
-      metrics.mobile?.score || '',
-      metrics.security?.score || '',
-      metrics.accessibility?.score || '',
+      data.metric_date,
+      data.content_count || 0,
+      data.product_count || 0,
+      data.inquiry_count || 0,
+      data.unique_visitors || 0,
+      data.page_views || 0,
     ].join(',')
   })
   

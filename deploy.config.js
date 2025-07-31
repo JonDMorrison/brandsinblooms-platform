@@ -8,7 +8,7 @@
 export default {
   // Project settings (auto-detected from package.json if not specified)
   project: {
-    name: "brands-and-blooms-platform", // Auto-detected from package.json
+    name: "brands-in-blooms-platform", // Auto-detected from package.json
     // organization: "my-org", // Optional: Supabase organization
   },
 

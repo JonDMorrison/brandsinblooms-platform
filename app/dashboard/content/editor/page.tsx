@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Button } from '@/src/components/ui/button'
+import { Badge } from '@/src/components/ui/badge'
+import { Separator } from '@/src/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { 
   ArrowLeft, 
   Save, 
@@ -25,12 +25,12 @@ import {
 import { toast } from 'sonner'
 
 // Import layout preview components
-import { LandingPagePreview } from '@/components/layout-previews/LandingPagePreview'
-import { BlogArticlePreview } from '@/components/layout-previews/BlogArticlePreview'
-import { PortfolioGridPreview } from '@/components/layout-previews/PortfolioGridPreview'
-import { AboutCompanyPreview } from '@/components/layout-previews/AboutCompanyPreview'
-import { ProductPagePreview } from '@/components/layout-previews/ProductPagePreview'
-import { ContactServicesPreview } from '@/components/layout-previews/ContactServicesPreview'
+import { LandingPagePreview } from '@/src/components/layout-previews/LandingPagePreview'
+import { BlogArticlePreview } from '@/src/components/layout-previews/BlogArticlePreview'
+import { PortfolioGridPreview } from '@/src/components/layout-previews/PortfolioGridPreview'
+import { AboutCompanyPreview } from '@/src/components/layout-previews/AboutCompanyPreview'
+import { ProductPagePreview } from '@/src/components/layout-previews/ProductPagePreview'
+import { ContactServicesPreview } from '@/src/components/layout-previews/ContactServicesPreview'
 
 type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact'
 type ViewportSize = 'mobile' | 'tablet' | 'desktop'

@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Area,
   AreaChart,
@@ -10,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 
 const data = [
   {

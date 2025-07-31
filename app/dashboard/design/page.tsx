@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, lazy, Suspense } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
+import { Button } from '@/src/components/ui/button'
 import { Palette, Type, Layout, Upload, Eye, Wand2 } from 'lucide-react'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/src/components/ui/skeleton'
 
 // Lazy load design components to improve initial load time
 const ColorCustomization = lazy(() => import('@/components/design/ColorCustomization'))

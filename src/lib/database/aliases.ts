@@ -64,10 +64,8 @@ export type Tagging = Tables['taggings']['Row'];
 export type TaggingInsert = Tables['taggings']['Insert'];
 export type TaggingUpdate = Tables['taggings']['Update'];
 
-// Site metrics types with proper Json typing
-export type SiteMetric = Tables['site_metrics']['Row'] & {
-  metrics: MetricsData;
-};
+// Site metrics types - Note: site-domains uses individual columns instead of JSON
+export type SiteMetric = Tables['site_metrics']['Row'];
 export type SiteMetrics = SiteMetric;
 export type SiteMetricsInsert = Tables['site_metrics']['Insert'];
 export type SiteMetricsUpdate = Tables['site_metrics']['Update'];
@@ -108,3 +106,40 @@ export interface ContentWithTags extends Content {
 export interface OrderWithItems extends Order {
   order_items?: OrderItem[];
 }
+
+// Admin types
+export type AdminAction = Tables['admin_actions']['Row'];
+export type AdminActionInsert = Tables['admin_actions']['Insert'];
+export type AdminActionUpdate = Tables['admin_actions']['Update'];
+
+export type AdminImpersonationSession = Tables['admin_impersonation_sessions']['Row'];
+export type AdminImpersonationSessionInsert = Tables['admin_impersonation_sessions']['Insert'];
+export type AdminImpersonationSessionUpdate = Tables['admin_impersonation_sessions']['Update'];
+
+// Site health and performance types
+export type SiteHealthCheck = Tables['site_health_checks']['Row'];
+export type SiteHealthCheckInsert = Tables['site_health_checks']['Insert'];
+export type SiteHealthCheckUpdate = Tables['site_health_checks']['Update'];
+
+export type SitePerformanceMetrics = Tables['site_performance_metrics']['Row'];
+export type SitePerformanceMetricsInsert = Tables['site_performance_metrics']['Insert'];
+export type SitePerformanceMetricsUpdate = Tables['site_performance_metrics']['Update'];
+
+// Site template types
+export type SiteTemplate = Tables['site_templates']['Row'];
+export type SiteTemplateInsert = Tables['site_templates']['Insert'];
+export type SiteTemplateUpdate = Tables['site_templates']['Update'];
+
+// Extended types
+export type SiteWithMemberships = Site & {
+  site_memberships: SiteMembership[];
+};
+
+export type SiteWithTemplate = Site & {
+  template?: SiteTemplate;
+};
+
+// Role types
+export type SiteMembershipRole = 'owner' | 'editor' | 'viewer';
+export type UserRole = 'platform_admin' | 'site_owner' | 'customer';
+export type UserType = 'platform_admin' | 'site_owner' | 'customer';

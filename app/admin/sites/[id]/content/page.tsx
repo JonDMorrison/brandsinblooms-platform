@@ -1,0 +1,111 @@
+import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { AdminGuard } from '@/src/components/admin/AdminGuard'
+import { SiteContentManager } from '@/src/components/admin/SiteContentManager'
+import { SiteNavigation } from '@/src/components/admin/SiteNavigation'
+import { getSiteById } from '@/src/lib/admin/sites'
+
+interface PageProps {
+  params: {
+    id: string
+  }
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  try {
+    const site = await getSiteById(params.id)
+    
+    if (!site) {
+      return {
+        title: 'Site Not Found - Admin',
+        description: 'The requested site could not be found.'
+      }
+    }
+
+    return {
+      title: `Content Management - ${site.name} - Admin`,
+      description: `Manage content for ${site.name} site`
+    }
+  } catch (error) {
+    return {
+      title: 'Error - Admin',
+      description: 'An error occurred while loading the site.'
+    }
+  }
+}
+
+export default async function SiteContentPage({ params }: PageProps) {
+  let site: any = null
+  let error: string | null = null
+
+  try {
+    site = await getSiteById(params.id)
+    
+    if (!site) {
+      notFound()
+    }
+  } catch (err) {
+    console.error('Error loading site:', err)
+    error = 'Failed to load site information'
+  }
+
+  if (error) {
+    return (
+      <AdminGuard>
+        <div className="min-h-screen bg-background p-6">
+          <div className="mx-auto max-w-7xl">
+            <div className="text-center py-12">
+              <h1 className="text-2xl font-bold text-destructive mb-2">Error</h1>
+              <p className="text-muted-foreground">{error}</p>
+            </div>
+          </div>
+        </div>
+      </AdminGuard>
+    )
+  }
+
+  return (
+    <AdminGuard>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="border-b bg-card/50">
+          <div className="mx-auto max-w-7xl px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">
+                  Content Management
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {site.name} • {site.subdomain}.brandsinblooms.com
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <a 
+                  href={`/admin/sites/${params.id}/edit`}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  ← Back to Site
+                </a>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="mx-auto max-w-7xl px-6 py-8 space-y-6">
+          <SiteNavigation 
+            siteId={params.id}
+            siteName={site.name}
+            siteSubdomain={site.subdomain}
+            showBackButton={true}
+          />
+          
+          <SiteContentManager 
+            siteId={params.id} 
+            siteName={site.name} 
+          />
+        </main>
+      </div>
+    </AdminGuard>
+  )
+}

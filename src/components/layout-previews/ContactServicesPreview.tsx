@@ -1,8 +1,8 @@
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
+import { Card } from '@/src/components/ui/card'
+import { Button } from '@/src/components/ui/button'
+import { Input } from '@/src/components/ui/input'
+import { Textarea } from '@/src/components/ui/textarea'
+import { Badge } from '@/src/components/ui/badge'
 import { 
   MapPin, 
   Phone, 
@@ -100,7 +100,7 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
                 <Mail className="h-5 w-5 text-purple-600" />
                 <div>
                   <p className="font-medium">Email</p>
-                  <p className="text-sm text-muted-foreground">hello@brandsandblooms.com</p>
+                  <p className="text-sm text-muted-foreground">hello@blooms.cc</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">

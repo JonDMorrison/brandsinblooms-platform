@@ -9,11 +9,11 @@ import { Loader2, KeyRound } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { resetPassword, updatePassword } from '@/lib/auth/client'
+import { Button } from '@/src/components/ui/button'
+import { Input } from '@/src/components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/src/components/ui/form'
+import { resetPassword, updatePassword } from '@/src/lib/auth/client'
 
 const resetPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),

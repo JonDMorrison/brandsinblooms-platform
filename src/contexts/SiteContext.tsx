@@ -1,159 +1,426 @@
-'use client';
+'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase/client';
-import { Site, SiteMembership, SiteWithMembership } from '@/lib/database/aliases';
-import { getCurrentUserSite, getUserSites } from '@/lib/queries/domains/sites';
+import { 
+  createContext, 
+  useContext, 
+  useEffect, 
+  useState, 
+  useCallback, 
+  ReactNode 
+} from 'react'
+import { useAuth } from './AuthContext'
+import { 
+  Site, 
+  SiteMembership, 
+  SiteMembershipRole,
+  UserRole 
+} from '@/src/lib/database/aliases'
+import { 
+  getSite, 
+  getUserSites, 
+  checkUserSiteAccess,
+  UserSiteAccess,
+  SiteQueryError 
+} from '@/src/lib/site/queries'
+import { 
+  resolveSiteFromHost, 
+  extractHostname,
+  SiteResolution 
+} from '@/src/lib/site/resolution'
 
-interface SiteContextType {
-  currentSite: Site | null;
-  currentMembership: SiteMembership | null;
-  userSites: SiteWithMembership[];
-  loading: boolean;
-  error: Error | null;
-  switchSite: (siteId: string) => Promise<void>;
-  refreshSites: () => Promise<void>;
+export interface SiteContextType {
+  // Current site state
+  currentSite: Site | null
+  siteResolution: SiteResolution | null
+  loading: boolean
+  error: SiteQueryError | null
+
+  // User access to current site
+  userAccess: UserSiteAccess | null
+  canEdit: boolean
+  canManage: boolean
+
+  // All user sites
+  userSites: UserSiteAccess[]
+  userSitesLoading: boolean
+  userSitesError: SiteQueryError | null
+
+  // Actions
+  switchSite: (siteId: string) => Promise<void>
+  refreshSite: () => Promise<void>
+  refreshUserSites: () => Promise<void>
+  resolveSiteFromUrl: (url: string) => Promise<void>
 }
 
-const SiteContext = createContext<SiteContextType | undefined>(undefined);
+const SiteContext = createContext<SiteContextType | undefined>(undefined)
 
-export function SiteProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const [currentSite, setCurrentSite] = useState<Site | null>(null);
-  const [currentMembership, setCurrentMembership] = useState<SiteMembership | null>(null);
-  const [userSites, setUserSites] = useState<SiteWithMembership[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+export interface SiteProviderProps {
+  children: ReactNode
+  initialSiteId?: string
+  initialHostname?: string
+  initialSiteData?: Site | null
+}
 
-  const loadSites = async () => {
-    if (!user) {
-      setCurrentSite(null);
-      setCurrentMembership(null);
-      setUserSites([]);
-      setLoading(false);
-      return;
+export function SiteProvider({ 
+  children, 
+  initialSiteId,
+  initialHostname,
+  initialSiteData 
+}: SiteProviderProps) {
+  // Site state
+  const [currentSite, setCurrentSite] = useState<Site | null>(initialSiteData || null)
+  const [siteResolution, setSiteResolution] = useState<SiteResolution | null>(null)
+  const [loading, setLoading] = useState(!initialSiteData)
+  const [error, setError] = useState<SiteQueryError | null>(null)
+
+  // User access state
+  const [userAccess, setUserAccess] = useState<UserSiteAccess | null>(null)
+  const [canEdit, setCanEdit] = useState(false)
+  const [canManage, setCanManage] = useState(false)
+
+  // User sites state
+  const [userSites, setUserSites] = useState<UserSiteAccess[]>([])
+  const [userSitesLoading, setUserSitesLoading] = useState(false)
+  const [userSitesError, setUserSitesError] = useState<SiteQueryError | null>(null)
+
+  const { user, loading: authLoading } = useAuth()
+
+  /**
+   * Resolves and loads a site from hostname
+   */
+  const resolveSiteFromUrl = useCallback(async (url: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const hostname = extractHostname(url)
+      const resolution = resolveSiteFromHost(hostname)
+      setSiteResolution(resolution)
+
+      if (!resolution.isValid) {
+        setError({
+          code: 'INVALID_HOSTNAME',
+          message: 'Invalid hostname format'
+        })
+        setCurrentSite(null)
+        setUserAccess(null)
+        return
+      }
+
+      // Try to get the site
+      const siteResult = await getSite(resolution.value, resolution.type)
+      
+      if (siteResult.error) {
+        setError(siteResult.error)
+        setCurrentSite(null)
+        setUserAccess(null)
+        return
+      }
+
+      if (!siteResult.data) {
+        setError({
+          code: 'SITE_NOT_FOUND',
+          message: `Site not found for ${resolution.type}: ${resolution.value}`
+        })
+        setCurrentSite(null)
+        setUserAccess(null)
+        return
+      }
+
+      setCurrentSite(siteResult.data)
+
+      // If user is authenticated, check their access to this site
+      if (user?.id) {
+        const accessResult = await checkUserSiteAccess(user.id, siteResult.data.id)
+        
+        if (accessResult.data) {
+          setUserAccess(accessResult.data)
+          setCanEdit(accessResult.data.canEdit)
+          setCanManage(accessResult.data.canManage)
+        } else {
+          // User has no access to this site
+          setUserAccess(null)
+          setCanEdit(false)
+          setCanManage(false)
+        }
+      }
+
+    } catch (err) {
+      setError({
+        code: 'RESOLVE_FAILED',
+        message: 'Failed to resolve site from URL',
+        details: err
+      })
+      setCurrentSite(null)
+      setUserAccess(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [user?.id])
+
+  /**
+   * Loads a site by ID and sets it as current
+   */
+  const loadSiteById = useCallback(async (siteId: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Check if user has access to this site
+      if (!user?.id) {
+        setError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated'
+        })
+        return
+      }
+
+      const accessResult = await checkUserSiteAccess(user.id, siteId)
+      
+      if (accessResult.error) {
+        setError(accessResult.error)
+        setCurrentSite(null)
+        setUserAccess(null)
+        return
+      }
+
+      if (!accessResult.data) {
+        setError({
+          code: 'ACCESS_DENIED',
+          message: 'User does not have access to this site'
+        })
+        setCurrentSite(null)
+        setUserAccess(null)
+        return
+      }
+
+      setCurrentSite(accessResult.data.site)
+      setUserAccess(accessResult.data)
+      setCanEdit(accessResult.data.canEdit)
+      setCanManage(accessResult.data.canManage)
+
+      // Clear site resolution since we're loading by ID
+      setSiteResolution(null)
+
+    } catch (err) {
+      setError({
+        code: 'LOAD_FAILED',
+        message: 'Failed to load site',
+        details: err
+      })
+      setCurrentSite(null)
+      setUserAccess(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [user?.id])
+
+  /**
+   * Loads all sites the user has access to
+   */
+  const refreshUserSites = useCallback(async () => {
+    if (!user?.id) {
+      setUserSites([])
+      return
     }
 
     try {
-      setLoading(true);
-      setError(null);
+      setUserSitesLoading(true)
+      setUserSitesError(null)
 
-      // Get all sites for the user
-      const sites = await getUserSites(supabase, user.id);
-      setUserSites(sites);
-
-      // Get current site from localStorage or use the first site
-      const savedSiteId = localStorage.getItem('currentSiteId');
-      let selectedSite = sites.find(s => s.id === savedSiteId);
-
-      if (!selectedSite && sites.length > 0) {
-        selectedSite = sites[0];
-        localStorage.setItem('currentSiteId', selectedSite.id);
+      const result = await getUserSites(user.id)
+      
+      if (result.error) {
+        setUserSitesError(result.error)
+        setUserSites([])
+        return
       }
 
-      if (selectedSite) {
-        // Extract site properties (excluding membership)
-        const { membership, ...siteData } = selectedSite;
-        setCurrentSite(siteData as Site);
-        setCurrentMembership(membership || null);
-      }
+      setUserSites(result.data || [])
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load sites'));
-      console.error('Error loading sites:', err);
+      setUserSitesError({
+        code: 'LOAD_FAILED',
+        message: 'Failed to load user sites',
+        details: err
+      })
+      setUserSites([])
     } finally {
-      setLoading(false);
+      setUserSitesLoading(false)
     }
-  };
+  }, [user?.id])
 
-  const switchSite = async (siteId: string) => {
-    const targetSite = userSites.find(s => s.id === siteId);
-    if (!targetSite) {
-      throw new Error('Site not found or user does not have access');
+  /**
+   * Switches to a different site
+   */
+  const switchSite = useCallback(async (siteId: string) => {
+    await loadSiteById(siteId)
+  }, [loadSiteById])
+
+  /**
+   * Refreshes the current site data
+   */
+  const refreshSite = useCallback(async () => {
+    if (currentSite?.id) {
+      await loadSiteById(currentSite.id)
+    } else if (siteResolution && typeof window !== 'undefined') {
+      await resolveSiteFromUrl(window.location.href)
+    }
+  }, [currentSite?.id, siteResolution, loadSiteById, resolveSiteFromUrl])
+
+  // Initialize site resolution on mount
+  useEffect(() => {
+    if (authLoading) return
+
+    // If we already have initial site data, don't reload
+    if (initialSiteData) {
+      setLoading(false)
+      return
     }
 
-    // Extract site properties (excluding membership)
-    const { membership, ...siteData } = targetSite;
-    setCurrentSite(siteData as Site);
-    setCurrentMembership(membership || null);
-    localStorage.setItem('currentSiteId', siteId);
-  };
+    // Priority: initialSiteId > initialHostname > current URL
+    if (initialSiteId) {
+      loadSiteById(initialSiteId)
+    } else if (initialHostname) {
+      resolveSiteFromUrl(`https://${initialHostname}`)
+    } else if (typeof window !== 'undefined') {
+      resolveSiteFromUrl(window.location.href)
+    } else {
+      setLoading(false)
+    }
+  }, [authLoading, initialSiteId, initialHostname, initialSiteData, loadSiteById, resolveSiteFromUrl])
 
-  const refreshSites = async () => {
-    await loadSites();
-  };
-
+  // Load user sites when user changes
   useEffect(() => {
-    loadSites();
-  }, [user]);
+    if (!authLoading && user?.id) {
+      refreshUserSites()
+    } else if (!user?.id) {
+      setUserSites([])
+      setUserAccess(null)
+      setCanEdit(false)
+      setCanManage(false)
+    }
+  }, [user?.id, authLoading, refreshUserSites])
 
-  // Subscribe to site membership changes
+  // Update user access when current site or user changes
   useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('site-memberships')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'site_memberships',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          // Refresh sites when membership changes
-          loadSites();
+    if (currentSite?.id && user?.id && !userAccess) {
+      // Re-check access if we don't have it yet
+      checkUserSiteAccess(user.id, currentSite.id).then(result => {
+        if (result.data) {
+          setUserAccess(result.data)
+          setCanEdit(result.data.canEdit)
+          setCanManage(result.data.canManage)
         }
-      )
-      .subscribe();
+      })
+    }
+  }, [currentSite?.id, user?.id, userAccess])
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
+  const value: SiteContextType = {
+    // Current site state
+    currentSite,
+    siteResolution,
+    loading,
+    error,
+
+    // User access
+    userAccess,
+    canEdit,
+    canManage,
+
+    // User sites
+    userSites,
+    userSitesLoading,
+    userSitesError,
+
+    // Actions
+    switchSite,
+    refreshSite,
+    refreshUserSites,
+    resolveSiteFromUrl,
+  }
 
   return (
-    <SiteContext.Provider
-      value={{
-        currentSite,
-        currentMembership,
-        userSites,
-        loading,
-        error,
-        switchSite,
-        refreshSites,
-      }}
-    >
+    <SiteContext.Provider value={value}>
       {children}
     </SiteContext.Provider>
-  );
+  )
 }
 
-export function useSite() {
-  const context = useContext(SiteContext);
-  if (!context) {
-    throw new Error('useSite must be used within a SiteProvider');
+/**
+ * Hook to access site context
+ */
+export const useSiteContext = () => {
+  const context = useContext(SiteContext)
+  if (context === undefined) {
+    throw new Error('useSiteContext must be used within a SiteProvider')
   }
-  return context;
+  return context
 }
 
-// Convenience hook to get just the current site ID
-export function useSiteId(): string | null {
-  const { currentSite } = useSite();
-  return currentSite?.id || null;
+/**
+ * Hook to access current site with loading state
+ */
+export const useCurrentSite = () => {
+  const { currentSite, loading, error } = useSiteContext()
+  return { 
+    site: currentSite, 
+    loading, 
+    error,
+    isLoaded: !loading && !error && currentSite !== null
+  }
 }
 
-// Hook to check if user has specific permission
-export function useSitePermission(permission: 'owner' | 'editor' | 'viewer'): boolean {
-  const { currentMembership } = useSite();
-  if (!currentMembership) return false;
+/**
+ * Hook to access user's sites
+ */
+export const useUserSites = () => {
+  const { 
+    userSites, 
+    userSitesLoading, 
+    userSitesError, 
+    refreshUserSites 
+  } = useSiteContext()
+  
+  return { 
+    sites: userSites, 
+    loading: userSitesLoading, 
+    error: userSitesError,
+    refresh: refreshUserSites
+  }
+}
 
-  const roleHierarchy = {
-    owner: ['owner', 'editor', 'viewer'],
-    editor: ['editor', 'viewer'],
-    viewer: ['viewer'],
-  };
+/**
+ * Hook to access user permissions for current site
+ */
+export const useSitePermissions = () => {
+  const { userAccess, canEdit, canManage } = useSiteContext()
+  
+  return {
+    access: userAccess,
+    canEdit,
+    canManage,
+    role: userAccess?.role || null,
+    hasAccess: userAccess !== null
+  }
+}
 
-  return roleHierarchy[permission].includes(currentMembership.role);
+/**
+ * Hook for site switching functionality
+ */
+export const useSiteSwitcher = () => {
+  const { switchSite, userSites, currentSite } = useSiteContext()
+  
+  return {
+    switchSite,
+    availableSites: userSites,
+    currentSiteId: currentSite?.id || null
+  }
+}
+
+/**
+ * Hook to get just the current site ID
+ */
+export const useSiteId = () => {
+  const { currentSite } = useSiteContext()
+  return currentSite?.id || null
 }

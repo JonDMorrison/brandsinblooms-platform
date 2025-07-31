@@ -1,0 +1,216 @@
+/* Enhanced Admin Login Styles */
+
+/* Button ripple effect */
+@keyframes button-ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.admin-login-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-login-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.admin-login-button:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Input focus glow */
+.admin-input-glow:focus {
+  box-shadow: 0 0 0 2px rgba(var(--primary), 0.2), 0 0 20px rgba(var(--primary), 0.1);
+  transform: translateY(-1px);
+}
+
+/* Success animation */
+@keyframes success-checkmark {
+  0% {
+    stroke-dasharray: 0, 100;
+  }
+  100% {
+    stroke-dasharray: 100, 0;
+  }
+}
+
+.success-checkmark {
+  animation: success-checkmark 0.6s ease-in-out;
+  stroke-dasharray: 100, 0;
+}
+
+/* Floating particles effect */
+@keyframes float-particle {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+.floating-particle {
+  animation: float-particle 3s ease-in-out infinite;
+}
+
+.floating-particle:nth-child(2) {
+  animation-delay: -1s;
+}
+
+.floating-particle:nth-child(3) {
+  animation-delay: -2s;
+}
+
+/* Card hover enhancement */
+.admin-login-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-login-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Error shake animation */
+@keyframes error-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.error-shake {
+  animation: error-shake 0.4s ease-in-out;
+}
+
+/* Loading pulse for form fields */
+@keyframes loading-pulse {
+  0%, 100% {
+    background-color: rgba(var(--muted), 0.5);
+  }
+  50% {
+    background-color: rgba(var(--muted), 0.8);
+  }
+}
+
+.loading-pulse {
+  animation: loading-pulse 2s ease-in-out infinite;
+}
+
+/* Shield icon rotation on focus */
+@keyframes shield-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.shield-focus {
+  animation: shield-rotate 2s linear infinite;
+}
+
+/* Gradient text animation */
+@keyframes gradient-text {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animated-gradient-text {
+  background: linear-gradient(-45deg, var(--primary), var(--accent), var(--primary-glow), var(--secondary));
+  background-size: 400% 400%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-text 3s ease infinite;
+}
+
+/* Focus ring enhancement */
+.enhanced-focus-ring:focus-visible {
+  outline: 2px solid transparent;
+  ring: 3px solid rgba(var(--primary), 0.3);
+  ring-offset: 2px;
+  ring-offset-color: rgba(var(--background));
+}
+
+/* Success state animation */
+@keyframes success-bounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.success-bounce {
+  animation: success-bounce 0.6s ease-in-out;
+}
+
+/* Glassmorphism effect for card */
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Progressive enhancement for hover states */
+@media (hover: hover) {
+  .interactive-hover:hover {
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .admin-login-card {
+    border: 2px solid currentColor;
+  }
+  
+  .admin-input-glow:focus {
+    outline: 3px solid currentColor;
+  }
+}
+
+/* Motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .admin-login-button::before,
+  .floating-particle,
+  .shield-focus,
+  .animated-gradient-text {
+    animation: none;
+  }
+  
+  .admin-login-card,
+  .admin-input-glow,
+  .interactive-hover {
+    transition: none;
+  }
+}

@@ -1,10 +1,3 @@
--- Fix user_type constraint to include 'site_owner'
--- Drop the old constraint and add the updated one
-
--- First drop the existing constraints
-ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_user_type_check;
-ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS check_user_type;
-
--- Add the correct constraint with all user types
-ALTER TABLE public.profiles ADD CONSTRAINT profiles_user_type_check 
-    CHECK (user_type IN ('admin', 'site_owner', 'customer', 'staff'));
+-- This migration is no longer needed as we've moved from user_type to role
+-- The role column and constraints are handled in the platform admin system migration
+-- Keeping this as a no-op for migration history

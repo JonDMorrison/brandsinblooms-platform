@@ -1,9 +1,22 @@
-const crypto = require('crypto')
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  // Multi-domain support configuration
+  trailingSlash: false,
+  poweredByHeader: false,
+  generateEtags: true,
+  compress: true,
+  
+  // Production optimizations for multi-domain
+  modularizeImports: {
+    '@radix-ui/react-icons': {
+      transform: '@radix-ui/react-icons/dist/{{member}}',
+    },
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+  },
   images: {
     domains: ['localhost'],
     remotePatterns: [
@@ -23,6 +36,21 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '**.cloudinary.com',
+      },
+      // Support for custom domains and subdomains
+      {
+        protocol: 'https',
+        hostname: '**.blooms.cc',
+      },
+      {
+        protocol: 'http',
+        hostname: '**.localhost',
+        port: '3000',
+      },
+      // Support for any custom domain (production)
+      {
+        protocol: 'https',
+        hostname: '**',
       },
     ],
     // Image optimization settings
@@ -44,10 +72,7 @@ const nextConfig = {
   serverRuntimeConfig: {
     port: process.env.PORT || 3000,
   },
-  // Performance optimizations
-  poweredByHeader: false,
-  compress: true,
-  generateEtags: true,
+  // Performance optimizations (already defined above, removing duplicates)
   httpAgentOptions: {
     keepAlive: true,
   },
@@ -59,6 +84,29 @@ const nextConfig = {
   },
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Exclude Node.js built-ins from client-side bundles
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        dns: false,
+        crypto: false,
+        stream: false,
+        url: false,
+        querystring: false,
+        util: false,
+        http: false,
+        https: false,
+        assert: false,
+        os: false,
+        path: false,
+      }
+      
+      // Exclude Redis from client-side bundles completely
+      config.externals = config.externals || []
+      config.externals.push('redis')
+    }
     // Optimize production builds
     if (!dev && !isServer) {
       config.optimization.usedExports = true
@@ -82,9 +130,15 @@ const nextConfig = {
               return module.size() > 160000 && /node_modules[/\\]/.test(module.identifier())
             },
             name(module) {
-              const hash = crypto.createHash('sha1')
-              hash.update(module.identifier())
-              return hash.digest('hex').substring(0, 8)
+              // Simple hash function for module names - browser compatible
+              const str = module.identifier()
+              let hash = 0
+              for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i)
+                hash = ((hash << 5) - hash) + char
+                hash = hash & hash // Convert to 32-bit integer
+              }
+              return Math.abs(hash).toString(16).substring(0, 8)
             },
             priority: 30,
             minChunks: 1,
@@ -98,9 +152,15 @@ const nextConfig = {
           },
           shared: {
             name(module, chunks) {
-              const hash = crypto.createHash('sha1')
-              hash.update(chunks.reduce((acc, chunk) => acc + chunk.name, ''))
-              return hash.digest('hex').substring(0, 8)
+              // Simple hash function for chunk names - browser compatible
+              const str = chunks.reduce((acc, chunk) => acc + chunk.name, '')
+              let hash = 0
+              for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i)
+                hash = ((hash << 5) - hash) + char
+                hash = hash & hash // Convert to 32-bit integer
+              }
+              return Math.abs(hash).toString(16).substring(0, 8)
             },
             priority: 10,
             minChunks: 2,
@@ -111,7 +171,7 @@ const nextConfig = {
     }
     return config
   },
-  // Security headers
+  // Security headers with multi-domain support
   async headers() {
     return [
       {
@@ -139,12 +199,39 @@ const nextConfig = {
           },
           {
             key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
+            value: 'strict-origin-when-cross-origin'
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()'
-          }
+            value: 'camera=(), microphone=(), geolocation=(), payment=()'
+          },
+          // Production performance headers
+          {
+            key: 'X-Robots-Tag',
+            value: 'index, follow'
+          },
+        ]
+      },
+      // API routes with CORS support
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS'
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization, X-Requested-With, x-csrf-token'
+          },
+          {
+            key: 'Access-Control-Max-Age',
+            value: '86400'
+          },
         ]
       },
       {

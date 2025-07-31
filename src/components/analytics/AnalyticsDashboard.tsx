@@ -1,6 +1,6 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DashboardChart } from '@/components/charts/DashboardChart'
-import { OrderTrendsChart } from '@/components/charts/OrderTrendsChart'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { DashboardChart } from '@/src/components/charts/DashboardChart'
+import { OrderTrendsChart } from '@/src/components/charts/OrderTrendsChart'
 import { 
   TrendingUp, 
   TrendingDown, 

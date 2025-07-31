@@ -3,8 +3,8 @@
 import React, { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Button } from '@/src/components/ui/button'
 import { 
   FileText, 
   Package, 
@@ -16,31 +16,19 @@ import {
   ArrowUpRight,
   Loader2
 } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
-import { useSite } from '@/hooks/useSite'
-import { useDashboardMetrics, useSiteStats } from '@/hooks/useStats'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { useSite } from '@/src/hooks/useSite'
+import { useDashboardMetrics, useSiteStats } from '@/src/hooks/useStats'
+import { Skeleton } from '@/src/components/ui/skeleton'
+
+// Import SimpleChart directly for now to avoid webpack issues
+import { SimpleChart } from '@/src/components/charts/SimpleChart'
 
 // Dynamic imports for heavy components
-const DashboardChart = dynamic(
-  () => import('@/components/charts/DashboardChart').then(mod => mod.DashboardChart),
-  { 
-    loading: () => (
-      <Card className="animate-pulse">
-        <CardHeader>
-          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 bg-gray-100 rounded"></div>
-        </CardContent>
-      </Card>
-    ),
-    ssr: false 
-  }
-)
+const DashboardChart = SimpleChart // Use SimpleChart temporarily
 
 const ActivityFeed = dynamic(
-  () => import('@/components/ActivityFeed').then(mod => mod.ActivityFeed),
+  () => import('@/src/components/ActivityFeed').then(mod => mod.ActivityFeed),
   { 
     loading: () => (
       <Card className="animate-pulse">
@@ -60,7 +48,7 @@ const ActivityFeed = dynamic(
 )
 
 const PerformanceMetrics = dynamic(
-  () => import('@/components/PerformanceMetrics').then(mod => mod.PerformanceMetrics),
+  () => import('@/src/components/PerformanceMetrics').then(mod => mod.PerformanceMetrics),
   { 
     loading: () => (
       <Card className="animate-pulse">
@@ -127,7 +115,7 @@ const quickActions: QuickAction[] = [
 export default function DashboardPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const { currentSite } = useSite()
+  const { site: currentSite } = useSite()
   const { data: siteStats, isLoading: statsLoading } = useSiteStats()
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics()
 

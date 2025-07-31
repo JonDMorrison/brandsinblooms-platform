@@ -78,7 +78,7 @@ export default function SignUp() {
             Create an Account
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Join Brands and Blooms to start creating beautiful websites
+            Join Brands in Blooms to start creating beautiful websites
           </CardDescription>
         </CardHeader>
         <CardContent>

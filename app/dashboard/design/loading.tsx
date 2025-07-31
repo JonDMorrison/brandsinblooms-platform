@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardHeader } from '@/src/components/ui/card'
+import { Skeleton } from '@/src/components/ui/skeleton'
 
 export default function DesignLoading() {
   return (

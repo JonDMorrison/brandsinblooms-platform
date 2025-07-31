@@ -12,9 +12,9 @@ import {
   HelpCircle,
   ChevronDown
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+import { Button } from '@/src/components/ui/button'
+import { Input } from '@/src/components/ui/input'
+import { Badge } from '@/src/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,11 +22,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+} from '@/src/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
 // ThemeToggle removed - light mode only
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/src/contexts/AuthContext'
 import { toast } from 'sonner'
+import { CompactSiteSwitcher } from '@/src/components/site/SiteSwitcher'
 
 interface DashboardHeaderProps {
   onMenuClick: () => void
@@ -72,6 +73,11 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
+
+          {/* Site Switcher */}
+          <div className="hidden lg:block">
+            <CompactSiteSwitcher />
+          </div>
 
           {/* Search */}
           <div className="relative hidden md:block">

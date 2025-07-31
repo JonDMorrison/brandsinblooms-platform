@@ -7,7 +7,7 @@ import {
   YAxis,
   CartesianGrid,
 } from 'recharts'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 
 const orderTrendsData = [
   { month: 'Jan', orders: 65, revenue: 1200 },

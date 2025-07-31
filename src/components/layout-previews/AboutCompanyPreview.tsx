@@ -1,6 +1,6 @@
-import { Card } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
+import { Card } from '@/src/components/ui/card'
+import { Avatar, AvatarFallback } from '@/src/components/ui/avatar'
+import { Badge } from '@/src/components/ui/badge'
 import { MapPin, Users, Award, Heart } from 'lucide-react'
 
 interface AboutCompanyPreviewProps {

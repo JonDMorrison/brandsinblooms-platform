@@ -4,8 +4,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
 import { useState, lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
-import { AuthProvider } from '@/contexts/AuthContext'
-import { SiteProvider } from '@/contexts/SiteContext'
+import { AuthProvider } from '@/src/contexts/AuthContext'
+import { SiteProvider } from '@/src/contexts/SiteContext'
+import { AdminAuthProvider } from '@/src/contexts/AdminAuthContext'
+import { AdminImpersonationProvider } from '@/src/contexts/AdminImpersonationContext'
+import { ImpersonationBanner } from '@/src/components/admin/ImpersonationBanner'
 
 // Lazy load React Query Devtools only in development
 const ReactQueryDevtools = process.env.NODE_ENV === 'development' 
@@ -14,7 +17,19 @@ const ReactQueryDevtools = process.env.NODE_ENV === 'development'
     })))
   : () => null
 
-export function Providers({ children }: { children: React.ReactNode }) {
+interface ProvidersProps {
+  children: React.ReactNode
+  initialHostname?: string
+  initialSiteData?: any
+  isAdminRoute?: boolean
+  impersonationData?: {
+    sessionId: string | null
+    adminId: string | null
+    adminEmail: string | null
+  } | null
+}
+
+export function Providers({ children, initialHostname, initialSiteData, isAdminRoute, impersonationData }: ProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -41,31 +56,63 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <SiteProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster 
-              position="top-right" 
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: 'hsl(var(--background))',
-                  color: 'hsl(var(--foreground))',
-                  border: '1px solid hsl(var(--border))',
-                  opacity: 1,
-                  backgroundColor: 'hsl(var(--background))',
-                  backdropFilter: 'none',
-                },
-                className: 'toast-solid',
-              }}
-            />
-          </ThemeProvider>
-        </SiteProvider>
+        {/* Only provide SiteContext for non-admin routes */}
+        {!isAdminRoute ? (
+          <AdminAuthProvider>
+            <AdminImpersonationProvider>
+              <SiteProvider 
+                initialHostname={initialHostname}
+                initialSiteData={initialSiteData}
+              >
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                {/* Show impersonation banner for site routes */}
+                {impersonationData && (
+                  <ImpersonationBanner showAdminLink={true} />
+                )}
+                {children}
+                <Toaster 
+                  position="top-right" 
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      background: 'var(--background)',
+                      color: 'var(--foreground)',
+                      border: '1px solid var(--border)',
+                    },
+                  }}
+                />
+              </ThemeProvider>
+            </SiteProvider>
+          </AdminImpersonationProvider>
+          </AdminAuthProvider>
+        ) : (
+          <AdminAuthProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster 
+                position="top-right" 
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: 'var(--background)',
+                    color: 'var(--foreground)',
+                    border: '1px solid var(--border)',
+                  },
+                }}
+              />
+            </ThemeProvider>
+          </AdminAuthProvider>
+        )}
       </AuthProvider>
       {process.env.NODE_ENV === 'development' && (
         <Suspense fallback={null}>

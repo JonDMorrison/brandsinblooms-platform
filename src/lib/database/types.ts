@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          operationName?: string
           query?: string
-          variables?: Json
           extensions?: Json
+          variables?: Json
+          operationName?: string
         }
         Returns: Json
       }
@@ -74,6 +74,130 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "activity_logs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_actions: {
+        Row: {
+          action_details: string | null
+          action_type: string
+          admin_user_id: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          site_id: string
+          target_id: string | null
+          target_type: string
+          user_agent: string | null
+        }
+        Insert: {
+          action_details?: string | null
+          action_type: string
+          admin_user_id: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          site_id: string
+          target_id?: string | null
+          target_type: string
+          user_agent?: string | null
+        }
+        Update: {
+          action_details?: string | null
+          action_type?: string
+          admin_user_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          site_id?: string
+          target_id?: string | null
+          target_type?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_actions_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_impersonation_sessions: {
+        Row: {
+          admin_user_id: string
+          allowed_actions: string[] | null
+          created_at: string
+          end_reason: string | null
+          ended_at: string | null
+          ended_by_admin_id: string | null
+          expires_at: string
+          id: string
+          impersonated_user_id: string | null
+          ip_address: unknown | null
+          is_active: boolean
+          last_used_at: string | null
+          purpose: string | null
+          restrictions: Json | null
+          session_token: string
+          session_token_hash: string
+          site_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          admin_user_id: string
+          allowed_actions?: string[] | null
+          created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
+          ended_by_admin_id?: string | null
+          expires_at: string
+          id?: string
+          impersonated_user_id?: string | null
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_used_at?: string | null
+          purpose?: string | null
+          restrictions?: Json | null
+          session_token: string
+          session_token_hash: string
+          site_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          admin_user_id?: string
+          allowed_actions?: string[] | null
+          created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
+          ended_by_admin_id?: string | null
+          expires_at?: string
+          id?: string
+          impersonated_user_id?: string | null
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_used_at?: string | null
+          purpose?: string | null
+          restrictions?: Json | null
+          session_token?: string
+          session_token_hash?: string
+          site_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_impersonation_sessions_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
@@ -524,10 +648,9 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
-          role: string | null
+          role: string
           updated_at: string
           user_id: string
-          user_type: string
           username: string | null
         }
         Insert: {
@@ -538,10 +661,9 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
-          role?: string | null
+          role?: string
           updated_at?: string
           user_id: string
-          user_type?: string
           username?: string | null
         }
         Update: {
@@ -552,13 +674,89 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
-          role?: string | null
+          role?: string
           updated_at?: string
           user_id?: string
-          user_type?: string
           username?: string | null
         }
         Relationships: []
+      }
+      site_health_checks: {
+        Row: {
+          check_data: Json | null
+          check_location: string | null
+          check_type: string
+          checked_at: string
+          created_at: string
+          cumulative_layout_shift: number | null
+          dns_resolution_ms: number | null
+          error_message: string | null
+          first_contentful_paint_ms: number | null
+          http_status_code: number | null
+          id: string
+          is_healthy: boolean | null
+          largest_contentful_paint_ms: number | null
+          page_load_time_ms: number | null
+          response_time_ms: number | null
+          site_id: string
+          ssl_expiry_date: string | null
+          status: string
+          user_agent: string | null
+          warning_message: string | null
+        }
+        Insert: {
+          check_data?: Json | null
+          check_location?: string | null
+          check_type: string
+          checked_at?: string
+          created_at?: string
+          cumulative_layout_shift?: number | null
+          dns_resolution_ms?: number | null
+          error_message?: string | null
+          first_contentful_paint_ms?: number | null
+          http_status_code?: number | null
+          id?: string
+          is_healthy?: boolean | null
+          largest_contentful_paint_ms?: number | null
+          page_load_time_ms?: number | null
+          response_time_ms?: number | null
+          site_id: string
+          ssl_expiry_date?: string | null
+          status?: string
+          user_agent?: string | null
+          warning_message?: string | null
+        }
+        Update: {
+          check_data?: Json | null
+          check_location?: string | null
+          check_type?: string
+          checked_at?: string
+          created_at?: string
+          cumulative_layout_shift?: number | null
+          dns_resolution_ms?: number | null
+          error_message?: string | null
+          first_contentful_paint_ms?: number | null
+          http_status_code?: number | null
+          id?: string
+          is_healthy?: boolean | null
+          largest_contentful_paint_ms?: number | null
+          page_load_time_ms?: number | null
+          response_time_ms?: number | null
+          site_id?: string
+          ssl_expiry_date?: string | null
+          status?: string
+          user_agent?: string | null
+          warning_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_health_checks_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_memberships: {
         Row: {
@@ -593,29 +791,58 @@ export type Database = {
             referencedRelation: "sites"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "site_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "customer_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       site_metrics: {
         Row: {
+          content_count: number | null
           created_at: string
           id: string
+          inquiry_count: number | null
           metric_date: string
-          metrics: Json
+          page_views: number | null
+          product_count: number | null
           site_id: string
+          unique_visitors: number | null
+          updated_at: string
         }
         Insert: {
+          content_count?: number | null
           created_at?: string
           id?: string
+          inquiry_count?: number | null
           metric_date?: string
-          metrics?: Json
+          page_views?: number | null
+          product_count?: number | null
           site_id: string
+          unique_visitors?: number | null
+          updated_at?: string
         }
         Update: {
+          content_count?: number | null
           created_at?: string
           id?: string
+          inquiry_count?: number | null
           metric_date?: string
-          metrics?: Json
+          page_views?: number | null
+          product_count?: number | null
           site_id?: string
+          unique_visitors?: number | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -627,19 +854,204 @@ export type Database = {
           },
         ]
       }
+      site_performance_metrics: {
+        Row: {
+          active_content_items: number | null
+          avg_cumulative_layout_shift: number | null
+          avg_first_contentful_paint_ms: number | null
+          avg_first_input_delay_ms: number | null
+          avg_largest_contentful_paint_ms: number | null
+          avg_page_load_time_ms: number | null
+          avg_search_position: number | null
+          avg_server_response_time_ms: number | null
+          avg_session_duration_seconds: number | null
+          bandwidth_used_bytes: number | null
+          bounce_rate: number | null
+          browser_breakdown: Json | null
+          cdn_cache_hit_rate: number | null
+          contact_inquiries: number | null
+          created_at: string
+          device_breakdown: Json | null
+          error_rate: number | null
+          form_submissions: number | null
+          id: string
+          page_views: number | null
+          period_end: string | null
+          period_start: string | null
+          period_type: string | null
+          product_views: number | null
+          raw_data: Json | null
+          recorded_at: string
+          search_clicks: number | null
+          search_impressions: number | null
+          sessions: number | null
+          site_id: string
+          storage_used_bytes: number | null
+          top_countries: Json | null
+          top_pages: Json | null
+          top_referrers: Json | null
+          total_content_items: number | null
+          total_products: number | null
+          total_requests: number | null
+          unique_visitors: number | null
+        }
+        Insert: {
+          active_content_items?: number | null
+          avg_cumulative_layout_shift?: number | null
+          avg_first_contentful_paint_ms?: number | null
+          avg_first_input_delay_ms?: number | null
+          avg_largest_contentful_paint_ms?: number | null
+          avg_page_load_time_ms?: number | null
+          avg_search_position?: number | null
+          avg_server_response_time_ms?: number | null
+          avg_session_duration_seconds?: number | null
+          bandwidth_used_bytes?: number | null
+          bounce_rate?: number | null
+          browser_breakdown?: Json | null
+          cdn_cache_hit_rate?: number | null
+          contact_inquiries?: number | null
+          created_at?: string
+          device_breakdown?: Json | null
+          error_rate?: number | null
+          form_submissions?: number | null
+          id?: string
+          page_views?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          period_type?: string | null
+          product_views?: number | null
+          raw_data?: Json | null
+          recorded_at?: string
+          search_clicks?: number | null
+          search_impressions?: number | null
+          sessions?: number | null
+          site_id: string
+          storage_used_bytes?: number | null
+          top_countries?: Json | null
+          top_pages?: Json | null
+          top_referrers?: Json | null
+          total_content_items?: number | null
+          total_products?: number | null
+          total_requests?: number | null
+          unique_visitors?: number | null
+        }
+        Update: {
+          active_content_items?: number | null
+          avg_cumulative_layout_shift?: number | null
+          avg_first_contentful_paint_ms?: number | null
+          avg_first_input_delay_ms?: number | null
+          avg_largest_contentful_paint_ms?: number | null
+          avg_page_load_time_ms?: number | null
+          avg_search_position?: number | null
+          avg_server_response_time_ms?: number | null
+          avg_session_duration_seconds?: number | null
+          bandwidth_used_bytes?: number | null
+          bounce_rate?: number | null
+          browser_breakdown?: Json | null
+          cdn_cache_hit_rate?: number | null
+          contact_inquiries?: number | null
+          created_at?: string
+          device_breakdown?: Json | null
+          error_rate?: number | null
+          form_submissions?: number | null
+          id?: string
+          page_views?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          period_type?: string | null
+          product_views?: number | null
+          raw_data?: Json | null
+          recorded_at?: string
+          search_clicks?: number | null
+          search_impressions?: number | null
+          sessions?: number | null
+          site_id?: string
+          storage_used_bytes?: number | null
+          top_countries?: Json | null
+          top_pages?: Json | null
+          top_referrers?: Json | null
+          total_content_items?: number | null
+          total_products?: number | null
+          total_requests?: number | null
+          unique_visitors?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_performance_metrics_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          default_business_hours: Json | null
+          default_content: Json | null
+          default_products: Json | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          preview_image_url: string | null
+          slug: string
+          template_config: Json
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          default_business_hours?: Json | null
+          default_content?: Json | null
+          default_products?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          preview_image_url?: string | null
+          slug: string
+          template_config: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          default_business_hours?: Json | null
+          default_content?: Json | null
+          default_products?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          preview_image_url?: string | null
+          slug?: string
+          template_config?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sites: {
         Row: {
+          admin_notes: string | null
           business_address: string | null
           business_email: string | null
           business_hours: Json | null
           business_name: string | null
           business_phone: string | null
           created_at: string
+          created_by: string | null
           custom_domain: string | null
           description: string | null
           id: string
           is_active: boolean | null
           is_published: boolean | null
+          last_activity_at: string | null
           latitude: number | null
           logo_url: string | null
           longitude: number | null
@@ -651,17 +1063,20 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_notes?: string | null
           business_address?: string | null
           business_email?: string | null
           business_hours?: Json | null
           business_name?: string | null
           business_phone?: string | null
           created_at?: string
+          created_by?: string | null
           custom_domain?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
           is_published?: boolean | null
+          last_activity_at?: string | null
           latitude?: number | null
           logo_url?: string | null
           longitude?: number | null
@@ -673,17 +1088,20 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_notes?: string | null
           business_address?: string | null
           business_email?: string | null
           business_hours?: Json | null
           business_name?: string | null
           business_phone?: string | null
           created_at?: string
+          created_by?: string | null
           custom_domain?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
           is_published?: boolean | null
+          last_activity_at?: string | null
           latitude?: number | null
           logo_url?: string | null
           longitude?: number | null
@@ -780,13 +1198,219 @@ export type Database = {
       }
     }
     Functions: {
+      admin_bulk_update_content: {
+        Args: {
+          content_ids: string[]
+          bulk_updates: Json
+          admin_notes?: string
+        }
+        Returns: Json
+      }
+      admin_bulk_update_products: {
+        Args: {
+          product_ids: string[]
+          bulk_updates: Json
+          admin_notes?: string
+        }
+        Returns: Json
+      }
+      admin_exists: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      admin_get_content_analytics: {
+        Args: { site_uuid: string; start_date?: string; end_date?: string }
+        Returns: Json
+      }
+      admin_get_product_analytics: {
+        Args: { site_uuid: string; start_date?: string; end_date?: string }
+        Returns: Json
+      }
+      admin_get_site_content: {
+        Args: {
+          site_uuid: string
+          search_query?: string
+          content_type_filter?: string
+          status_filter?: string
+          limit_count?: number
+          offset_count?: number
+        }
+        Returns: Json
+      }
+      admin_get_site_products: {
+        Args: {
+          site_uuid: string
+          search_query?: string
+          category_filter?: string
+          status_filter?: string
+          limit_count?: number
+          offset_count?: number
+        }
+        Returns: Json
+      }
+      admin_update_content: {
+        Args: {
+          content_uuid: string
+          content_updates: Json
+          admin_notes?: string
+        }
+        Returns: Json
+      }
+      admin_update_product: {
+        Args: {
+          product_uuid: string
+          product_updates: Json
+          admin_notes?: string
+        }
+        Returns: Json
+      }
+      admin_update_site_status: {
+        Args: {
+          site_uuid: string
+          new_is_active?: boolean
+          new_is_published?: boolean
+          notes?: string
+        }
+        Returns: boolean
+      }
       calculate_metric_trend: {
         Args: { previous_value: number; current_value: number }
+        Returns: string
+      }
+      check_site_health: {
+        Args: { site_uuid: string }
+        Returns: Json
+      }
+      check_subdomain_availability: {
+        Args: { subdomain_to_check: string }
+        Returns: boolean
+      }
+      cleanup_expired_impersonation_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      create_initial_admin: {
+        Args: { admin_full_name?: string; target_user_id: string }
+        Returns: boolean
+      }
+      create_site_with_template: {
+        Args: {
+          template_slug: string
+          site_name: string
+          site_subdomain: string
+          owner_email: string
+          business_info?: Json
+        }
+        Returns: Json
+      }
+      end_impersonation_session: {
+        Args: {
+          session_token_param?: string
+          session_id_param?: string
+          end_reason_param?: string
+        }
+        Returns: Json
+      }
+      generate_impersonation_token: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       generate_order_number: {
         Args: { site_prefix?: string }
         Returns: string
+      }
+      get_active_impersonation_sessions: {
+        Args: {
+          admin_user_uuid?: string
+          site_uuid?: string
+          limit_count?: number
+        }
+        Returns: Json
+      }
+      get_admin_action_logs: {
+        Args: {
+          site_uuid?: string
+          admin_user_uuid?: string
+          action_type_filter?: string
+          target_type_filter?: string
+          start_date?: string
+          end_date?: string
+          limit_count?: number
+          offset_count?: number
+        }
+        Returns: Json
+      }
+      get_all_sites_with_stats: {
+        Args: {
+          offset_count?: number
+          search_query?: string
+          limit_count?: number
+          status_filter?: string
+        }
+        Returns: Json
+      }
+      get_impersonation_context: {
+        Args: { token: string }
+        Returns: Json
+      }
+      get_platform_analytics_summary: {
+        Args: { days_back?: number }
+        Returns: Json
+      }
+      get_site_analytics: {
+        Args: { site_uuid: string; period_type?: string; days_back?: number }
+        Returns: Json
+      }
+      get_site_health_summary: {
+        Args: { site_uuid: string; days_back?: number }
+        Returns: Json
+      }
+      get_site_summary_stats: {
+        Args: { site_uuid: string }
+        Returns: Json
+      }
+      get_site_templates: {
+        Args: { category_filter?: string; active_only?: boolean }
+        Returns: Json
+      }
+      hash_impersonation_token: {
+        Args: { token: string }
+        Returns: string
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      log_admin_action: {
+        Args: {
+          user_agent_val?: string
+          admin_id: string
+          site_uuid: string
+          action_type_val: string
+          target_type_val: string
+          target_uuid?: string
+          old_vals?: Json
+          new_vals?: Json
+          details?: string
+          ip_addr?: unknown
+        }
+        Returns: string
+      }
+      run_platform_health_checks: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      start_admin_impersonation: {
+        Args: {
+          site_uuid: string
+          impersonated_user_uuid?: string
+          purpose_text?: string
+          duration_hours?: number
+          allowed_actions_list?: string[]
+          ip_addr?: unknown
+          user_agent_val?: string
+        }
+        Returns: Json
       }
     }
     Enums: {

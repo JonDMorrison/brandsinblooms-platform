@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/src/components/ui/badge'
 import { Package, Truck, CheckCircle, XCircle } from 'lucide-react'
 
 type OrderStatus = 'delivered' | 'shipped' | 'processing' | 'cancelled'

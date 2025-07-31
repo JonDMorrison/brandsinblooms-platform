@@ -1,7 +1,7 @@
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { Card } from '@/src/components/ui/card'
+import { Button } from '@/src/components/ui/button'
+import { Badge } from '@/src/components/ui/badge'
+import { Separator } from '@/src/components/ui/separator'
 import { Star, ShoppingCart, Heart, Share, Truck, Shield, RotateCcw } from 'lucide-react'
 
 interface ProductPagePreviewProps {

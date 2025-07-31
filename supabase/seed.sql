@@ -2,23 +2,37 @@
 -- Brands in Blooms Platform - Simple Seed Data
 -- =====================================================
 -- This creates minimal test data for development
+-- This file is used to populate the database with initial data for development
 -- =====================================================
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- =====================================================
--- 1. UPDATE YOUR EXISTING PROFILE
+-- 1. CREATE A TEST USER (if not exists)
 -- =====================================================
 
+-- Insert a test user into auth.users if it doesn't exist
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, created_at, updated_at)
+VALUES (
+    '86e5fae8-203c-4cbe-9746-3389b4a05ee8',
+    'admin@greenthumbgardens.com',
+    crypt('password123', gen_salt('bf')), -- Test password
+    NOW(),
+    NOW(),
+    NOW()
+) ON CONFLICT (id) DO NOTHING;
+
+-- The profile will be created automatically by the trigger
+-- Just update it with additional details
 UPDATE public.profiles 
 SET 
-    user_type = 'site_owner',
     username = 'greenthumb_admin',
     full_name = 'Admin User (Sarah)',
     bio = 'Platform administrator and owner of Green Thumb Gardens',
     avatar_url = 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
-    phone = '555-0100'
+    phone = '555-0100',
+    role = 'admin' -- Make this user an admin
 WHERE user_id = '86e5fae8-203c-4cbe-9746-3389b4a05ee8';
 
 -- =====================================================
@@ -28,8 +42,7 @@ WHERE user_id = '86e5fae8-203c-4cbe-9746-3389b4a05ee8';
 INSERT INTO public.sites (
     subdomain, name, description, logo_url, primary_color,
     business_name, business_email, business_phone, business_address,
-    business_hours, latitude, longitude, timezone, is_active, is_published,
-    theme_settings
+    business_hours, latitude, longitude, timezone, is_active, is_published
 ) VALUES (
     'greenthumb',
     'Green Thumb Gardens',
@@ -45,13 +58,7 @@ INSERT INTO public.sites (
     -122.6784,
     'America/Los_Angeles',
     true,
-    true,
-    '{
-        "colors": {"primary": "#10B981", "secondary": "#3B82F6", "accent": "#F59E0B", "background": "#FFFFFF"},
-        "typography": {"headingFont": "Playfair Display", "bodyFont": "Inter", "fontSize": "medium"},
-        "layout": {"headerStyle": "classic", "footerStyle": "detailed", "menuStyle": "horizontal"},
-        "logo": {"url": null, "position": "left", "size": "medium"}
-    }'::jsonb
+    true
 );
 
 -- Get the site ID for reference
@@ -170,18 +177,15 @@ BEGIN
         );
     
     -- Create site metrics for today
-    INSERT INTO public.site_metrics (site_id, metric_date, metrics)
+    INSERT INTO public.site_metrics (site_id, metric_date, unique_visitors, page_views, content_count, product_count, inquiry_count)
     VALUES (
         site_id,
         CURRENT_DATE,
-        '{
-            "performance": {"score": 87, "change": 5, "trend": "up"},
-            "page_load": {"score": 92, "change": 3, "trend": "up"},
-            "seo": {"score": 78, "change": -2, "trend": "down"},
-            "mobile": {"score": 85, "change": 0, "trend": "neutral"},
-            "security": {"score": 95, "change": 1, "trend": "up"},
-            "accessibility": {"score": 72, "change": 8, "trend": "up"}
-        }'::jsonb
+        150,    -- unique_visitors
+        450,    -- page_views  
+        2,      -- content_count (from the content we just created)
+        3,      -- product_count (from the products we just created)
+        0       -- inquiry_count (no inquiries yet)
     );
     
     RAISE NOTICE 'Test data created successfully!';

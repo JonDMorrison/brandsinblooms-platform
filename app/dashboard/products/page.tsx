@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useMemo, useCallback, lazy, Suspense } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Button } from '@/src/components/ui/button'
+import { Input } from '@/src/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
+import { ToggleGroup, ToggleGroupItem } from '@/src/components/ui/toggle-group'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
 import { 
   Search, 
   Grid3X3, 
@@ -20,9 +20,9 @@ import {
   Loader2
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useProducts, useProductCategories } from '@/hooks/useProducts'
+import { useProducts, useProductCategories } from '@/src/hooks/useProducts'
 import { useRouter } from 'next/navigation'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/src/components/ui/skeleton'
 
 // Lazy load the ProductCard component
 const ProductCard = lazy(() => import('@/components/ProductCard').then(module => ({ default: module.ProductCard })))

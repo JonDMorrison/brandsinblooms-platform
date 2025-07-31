@@ -1,12 +1,12 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Progress } from '@/src/components/ui/progress'
+import { Badge } from '@/src/components/ui/badge'
+import { Skeleton } from '@/src/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import { TrendingUp, TrendingDown, Minus, AlertCircle } from 'lucide-react'
-import { useSiteMetrics, useMetricsHistory } from '@/hooks/useSiteMetrics'
+import { useSiteMetrics, useMetricsHistory } from '@/src/hooks/useSiteMetrics'
 import { useMemo } from 'react'
 
 interface MetricItem {

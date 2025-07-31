@@ -43,11 +43,9 @@ export async function getSiteTheme(
     throw new Error(`Failed to get site theme: ${error.message}`);
   }
   
-  // Return theme settings or default if not set
-  if (!data) {
-    return getDefaultTheme();
-  }
-  return (data.theme_settings as unknown as ThemeSettings) || getDefaultTheme();
+  // Return default theme for now - theme_settings column was removed in site-domains
+  // TODO: Implement theme loading from site_templates table
+  return getDefaultTheme();
 }
 
 // Update site theme settings
@@ -56,21 +54,9 @@ export async function updateSiteTheme(
   siteId: string,
   theme: ThemeSettings
 ): Promise<Site> {
-  const { data, error } = await client
-    .from('sites')
-    .update({ theme_settings: theme as any })
-    .eq('id', siteId)
-    .select()
-    .single();
-  
-  if (error) {
-    throw new Error(`Failed to update site theme: ${error.message}`);
-  }
-  
-  if (!data) {
-    throw new Error('Failed to update site theme');
-  }
-  return data;
+  // Theme settings column was removed in site-domains
+  // TODO: Implement theme updates via site_templates table
+  throw new Error('Theme updates not yet implemented for new schema');
 }
 
 // Get default theme settings

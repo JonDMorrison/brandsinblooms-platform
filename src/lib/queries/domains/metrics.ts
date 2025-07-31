@@ -2,28 +2,30 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/lib/database/types';
 import { 
   SiteMetrics, 
-  SiteMetricsInsert,
-  MetricData 
+  SiteMetricsInsert
 } from '@/lib/database/aliases';
-import { MetricsData } from '@/lib/database/json-types';
 import { SupabaseError } from '../errors';
 
 export interface MetricsHistory {
   date: string;
-  metrics: MetricsData;
+  unique_visitors: number;
+  page_views: number;
+  content_count: number;
+  product_count: number;
+  inquiry_count: number;
 }
 
 // Get current metrics (today's or most recent)
 export async function getCurrentMetrics(
   client: SupabaseClient<Database>,
   siteId: string
-): Promise<MetricsData | null> {
+): Promise<SiteMetrics | null> {
   const today = new Date().toISOString().split('T')[0];
   
   // Try to get today's metrics first
   let query = client
     .from('site_metrics')
-    .select('metrics')
+    .select('*')
     .eq('site_id', siteId)
     .eq('metric_date', today)
     .single();
@@ -31,12 +33,12 @@ export async function getCurrentMetrics(
   try {
     const { data: result, error } = await query;
     if (error) throw new SupabaseError(error.message, error.code);
-    return (result && 'metrics' in result) ? result.metrics as MetricsData : null;
+    return result;
   } catch (error) {
     // If no metrics for today, get the most recent
     const recentQuery = client
       .from('site_metrics')
-      .select('metrics')
+      .select('*')
       .eq('site_id', siteId)
       .order('metric_date', { ascending: false })
       .limit(1)
@@ -45,7 +47,7 @@ export async function getCurrentMetrics(
     try {
       const { data: result, error: recentError } = await recentQuery;
       if (recentError) throw new SupabaseError(recentError.message, recentError.code);
-      return (result && 'metrics' in result) ? result.metrics as MetricsData : null;
+      return result;
     } catch {
       return null;
     }
@@ -64,7 +66,7 @@ export async function getMetricsHistory(
   
   const query = client
     .from('site_metrics')
-    .select('metric_date, metrics')
+    .select('*')
     .eq('site_id', siteId)
     .gte('metric_date', startDate.toISOString().split('T')[0])
     .lte('metric_date', endDate.toISOString().split('T')[0])
@@ -73,9 +75,13 @@ export async function getMetricsHistory(
   const { data: results, error } = await query;
   if (error) throw new SupabaseError(error.message, error.code);
   
-  return results.map(result => ({
+  return (results || []).map(result => ({
     date: result.metric_date,
-    metrics: result.metrics as MetricsData,
+    unique_visitors: result.unique_visitors || 0,
+    page_views: result.page_views || 0,
+    content_count: result.content_count || 0,
+    product_count: result.product_count || 0,
+    inquiry_count: result.inquiry_count || 0,
   }));
 }
 
@@ -84,10 +90,10 @@ export async function getMetricsByDate(
   client: SupabaseClient<Database>,
   siteId: string,
   date: string
-): Promise<MetricsData | null> {
+): Promise<SiteMetrics | null> {
   const query = client
     .from('site_metrics')
-    .select('metrics')
+    .select('*')
     .eq('site_id', siteId)
     .eq('metric_date', date)
     .single();
@@ -95,7 +101,7 @@ export async function getMetricsByDate(
   try {
     const { data: result, error } = await query;
     if (error) throw new SupabaseError(error.message, error.code);
-    return (result && 'metrics' in result) ? result.metrics as MetricsData : null;
+    return result;
   } catch {
     return null;
   }
@@ -105,27 +111,25 @@ export async function getMetricsByDate(
 export async function saveMetrics(
   client: SupabaseClient<Database>,
   siteId: string,
-  metrics: MetricsData,
+  metrics: {
+    unique_visitors?: number;
+    page_views?: number;
+    content_count?: number;
+    product_count?: number;
+    inquiry_count?: number;
+  },
   date?: string
 ): Promise<SiteMetrics> {
   const metricDate = date || new Date().toISOString().split('T')[0];
   
-  // Calculate trends based on previous day's data
-  const previousDate = new Date(metricDate);
-  previousDate.setDate(previousDate.getDate() - 1);
-  const previousMetrics = await getMetricsByDate(
-    client, 
-    siteId, 
-    previousDate.toISOString().split('T')[0]
-  );
-  
-  // Calculate trends for each metric
-  const metricsWithTrends = calculateMetricTrends(metrics, previousMetrics);
-  
   const metricsData: SiteMetricsInsert = {
     site_id: siteId,
     metric_date: metricDate,
-    metrics: metricsWithTrends,
+    unique_visitors: metrics.unique_visitors || 0,
+    page_views: metrics.page_views || 0,
+    content_count: metrics.content_count || 0,
+    product_count: metrics.product_count || 0,
+    inquiry_count: metrics.inquiry_count || 0,
   };
   
   // Use upsert to handle both insert and update
@@ -145,277 +149,230 @@ export async function saveMetrics(
   return result as SiteMetrics;
 }
 
-// Calculate metric trends
-function calculateMetricTrends(
-  current: MetricsData,
-  previous: MetricsData | null
-): MetricsData {
-  if (!previous) {
-    // If no previous data, all trends are neutral
-    const result: MetricsData = {};
-    for (const [key, metric] of Object.entries(current)) {
-      if (metric && typeof metric === 'object' && 'score' in metric) {
-        result[key as keyof MetricsData] = {
-          ...metric,
-          trend: 'neutral',
-        };
-      }
-    }
-    return result;
-  }
+// Update specific metrics
+export async function updateMetricCounts(
+  client: SupabaseClient<Database>,
+  siteId: string,
+  updates: {
+    unique_visitors?: number;
+    page_views?: number;
+    content_count?: number;
+    product_count?: number;
+    inquiry_count?: number;
+  },
+  date?: string
+): Promise<SiteMetrics> {
+  const metricDate = date || new Date().toISOString().split('T')[0];
   
-  const result: MetricsData = {};
+  // Get existing metrics or create new
+  const existing = await getMetricsByDate(client, siteId, metricDate);
   
-  for (const [key, currentMetric] of Object.entries(current)) {
-    const previousMetric = previous[key as keyof MetricsData];
+  if (existing) {
+    // Update existing metrics
+    const query = client
+      .from('site_metrics')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('site_id', siteId)
+      .eq('metric_date', metricDate)
+      .select()
+      .single();
     
-    if (currentMetric && typeof currentMetric === 'object' && 'score' in currentMetric) {
-      const currentScore = currentMetric.score;
-      const previousScore = previousMetric && typeof previousMetric === 'object' && 'score' in previousMetric 
-        ? (previousMetric as any).score
-        : currentScore;
-      
-      const change = currentScore - previousScore;
-      const trend = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
-      
-      result[key as keyof MetricsData] = {
-        score: currentScore,
-        change: Math.abs(change),
-        trend,
-      };
+    const { data: result, error } = await query;
+    if (error) throw new SupabaseError(error.message, error.code);
+    if (!result) {
+      throw new Error('Failed to update metrics');
     }
+    return result as SiteMetrics;
+  } else {
+    // Create new metrics
+    return saveMetrics(client, siteId, updates, metricDate);
   }
-  
-  return result;
 }
 
-// Get metrics summary (averages, trends, etc.)
+// Increment metric counts
+export async function incrementMetrics(
+  client: SupabaseClient<Database>,
+  siteId: string,
+  increments: {
+    unique_visitors?: number;
+    page_views?: number;
+    inquiry_count?: number;
+  },
+  date?: string
+): Promise<void> {
+  const metricDate = date || new Date().toISOString().split('T')[0];
+  
+  // Get current metrics
+  const current = await getMetricsByDate(client, siteId, metricDate);
+  
+  if (current) {
+    const updates: any = {};
+    if (increments.unique_visitors) {
+      updates.unique_visitors = (current.unique_visitors || 0) + increments.unique_visitors;
+    }
+    if (increments.page_views) {
+      updates.page_views = (current.page_views || 0) + increments.page_views;
+    }
+    if (increments.inquiry_count) {
+      updates.inquiry_count = (current.inquiry_count || 0) + increments.inquiry_count;
+    }
+    
+    await updateMetricCounts(client, siteId, updates, metricDate);
+  } else {
+    await saveMetrics(client, siteId, increments, metricDate);
+  }
+}
+
+// Get metrics summary
 export async function getMetricsSummary(
   client: SupabaseClient<Database>,
   siteId: string,
   days: number = 30
 ): Promise<{
-  averages: MetricsData;
-  trends: Record<keyof MetricsData, 'improving' | 'declining' | 'stable'>;
-  bestDay: { date: string; score: number };
-  worstDay: { date: string; score: number };
+  total_visitors: number;
+  total_page_views: number;
+  avg_daily_visitors: number;
+  avg_daily_page_views: number;
+  growth_rate: number;
 }> {
   const history = await getMetricsHistory(client, siteId, days);
   
-  if (history.length === 0) {
-    return {
-      averages: {},
-      trends: {} as any,
-      bestDay: { date: '', score: 0 },
-      worstDay: { date: '', score: 0 },
-    };
-  }
+  const totals = history.reduce((acc, metric) => ({
+    visitors: acc.visitors + metric.unique_visitors,
+    pageViews: acc.pageViews + metric.page_views,
+  }), { visitors: 0, pageViews: 0 });
   
-  // Calculate averages
-  const sums: Record<string, { score: number; count: number }> = {};
-  const trends: Record<string, number[]> = {};
-  let bestDay = { date: '', score: 0 };
-  let worstDay = { date: '', score: 100 };
+  const avgDailyVisitors = totals.visitors / (history.length || 1);
+  const avgDailyPageViews = totals.pageViews / (history.length || 1);
   
-  history.forEach(({ date, metrics }) => {
-    let dayScore = 0;
-    let metricCount = 0;
-    
-    Object.entries(metrics).forEach(([key, metric]) => {
-      if (metric && typeof metric === 'object' && 'score' in metric) {
-        // Track sums for averages
-        if (!sums[key]) {
-          sums[key] = { score: 0, count: 0 };
-        }
-        sums[key].score += (metric as any).score;
-        sums[key].count += 1;
-        
-        // Track scores for trend analysis
-        if (!trends[key]) {
-          trends[key] = [];
-        }
-        trends[key].push((metric as any).score);
-        
-        // Calculate day score
-        dayScore += (metric as any).score;
-        metricCount += 1;
-      }
-    });
-    
-    // Track best/worst days
-    const avgDayScore = metricCount > 0 ? dayScore / metricCount : 0;
-    if (avgDayScore > bestDay.score) {
-      bestDay = { date, score: avgDayScore };
-    }
-    if (avgDayScore < worstDay.score) {
-      worstDay = { date, score: avgDayScore };
-    }
-  });
+  // Calculate growth rate (compare first half to second half)
+  const midPoint = Math.floor(history.length / 2);
+  const firstHalf = history.slice(0, midPoint);
+  const secondHalf = history.slice(midPoint);
   
-  // Calculate averages
-  const averages: MetricsData = {};
-  Object.entries(sums).forEach(([key, { score, count }]) => {
-    averages[key as keyof MetricsData] = {
-      score: Math.round(score / count),
-      change: 0,
-      trend: 'neutral',
-    };
-  });
+  const firstHalfAvg = firstHalf.reduce((sum, m) => sum + m.unique_visitors, 0) / (firstHalf.length || 1);
+  const secondHalfAvg = secondHalf.reduce((sum, m) => sum + m.unique_visitors, 0) / (secondHalf.length || 1);
   
-  // Analyze trends
-  const trendAnalysis: Record<keyof MetricsData, 'improving' | 'declining' | 'stable'> = {} as any;
-  Object.entries(trends).forEach(([key, scores]) => {
-    if (scores.length < 2) {
-      trendAnalysis[key as keyof MetricsData] = 'stable';
-      return;
-    }
-    
-    // Simple linear regression to determine trend
-    const n = scores.length;
-    const sumX = (n * (n + 1)) / 2;
-    const sumY = scores.reduce((a, b) => a + b, 0);
-    const sumXY = scores.reduce((sum, y, x) => sum + (x + 1) * y, 0);
-    const sumX2 = (n * (n + 1) * (2 * n + 1)) / 6;
-    
-    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-    
-    trendAnalysis[key as keyof MetricsData] = 
-      slope > 0.5 ? 'improving' : 
-      slope < -0.5 ? 'declining' : 
-      'stable';
-  });
+  const growthRate = firstHalfAvg ? ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100 : 0;
   
   return {
-    averages,
-    trends: trendAnalysis,
-    bestDay,
-    worstDay,
+    total_visitors: totals.visitors,
+    total_page_views: totals.pageViews,
+    avg_daily_visitors: Math.round(avgDailyVisitors),
+    avg_daily_page_views: Math.round(avgDailyPageViews),
+    growth_rate: Math.round(growthRate * 100) / 100,
   };
 }
 
-// Generate sample metrics (for development/testing)
-export function generateSampleMetrics(): MetricsData {
-  const randomScore = (min: number, max: number) => 
-    Math.floor(Math.random() * (max - min + 1)) + min;
-  
-  const randomChange = () => Math.floor(Math.random() * 10) - 5;
-  
-  const metrics: MetricsData = {
-    performance: {
-      score: randomScore(70, 95),
-      change: randomChange(),
-      trend: 'neutral',
-    },
-    page_load: {
-      score: randomScore(80, 98),
-      change: randomChange(),
-      trend: 'neutral',
-    },
-    seo: {
-      score: randomScore(60, 85),
-      change: randomChange(),
-      trend: 'neutral',
-    },
-    mobile: {
-      score: randomScore(75, 90),
-      change: randomChange(),
-      trend: 'neutral',
-    },
-    security: {
-      score: randomScore(85, 100),
-      change: randomChange(),
-      trend: 'neutral',
-    },
-    accessibility: {
-      score: randomScore(65, 80),
-      change: randomChange(),
-      trend: 'neutral',
-    },
-  };
-  
-  // Set trends based on change
-  Object.values(metrics).forEach(metric => {
-    if (metric && typeof metric === 'object' && 'change' in metric && 'trend' in metric) {
-      (metric as any).trend = (metric as any).change > 0 ? 'up' : (metric as any).change < 0 ? 'down' : 'neutral';
-    }
-  });
-  
-  return metrics;
-}
-
-// Batch update metrics for multiple dates
-export async function batchUpdateMetrics(
-  client: SupabaseClient<Database>,
-  siteId: string,
-  metricsData: Array<{ date: string; metrics: MetricsData }>
-): Promise<SiteMetrics[]> {
-  const inserts = metricsData.map(({ date, metrics }) => ({
-    site_id: siteId,
-    metric_date: date,
-    metrics,
-  }));
-  
-  const query = client
-    .from('site_metrics')
-    .upsert(inserts, {
-      onConflict: 'site_id,metric_date',
-    })
-    .select();
-  
-  const { data, error } = await query;
-  if (error) throw new SupabaseError(error.message, error.code);
-  return data as SiteMetrics[];
-}
-
-// Get metric comparison between dates
+// Compare metrics between two dates
 export async function compareMetrics(
   client: SupabaseClient<Database>,
   siteId: string,
   date1: string,
   date2: string
 ): Promise<{
-  date1Metrics: MetricsData | null;
-  date2Metrics: MetricsData | null;
-  comparison: Record<keyof MetricsData, {
-    difference: number;
-    percentageChange: number;
-    improved: boolean;
-  }>;
+  date1_metrics: SiteMetrics | null;
+  date2_metrics: SiteMetrics | null;
+  changes: {
+    unique_visitors: number;
+    page_views: number;
+    content_count: number;
+    product_count: number;
+    inquiry_count: number;
+  };
+  percentages: {
+    unique_visitors: number;
+    page_views: number;
+    content_count: number;
+    product_count: number;
+    inquiry_count: number;
+  };
 }> {
   const [metrics1, metrics2] = await Promise.all([
     getMetricsByDate(client, siteId, date1),
     getMetricsByDate(client, siteId, date2),
   ]);
   
-  const comparison: any = {};
+  const calculateChange = (val1: number | null, val2: number | null) => {
+    const v1 = val1 || 0;
+    const v2 = val2 || 0;
+    return v2 - v1;
+  };
   
-  if (metrics1 && metrics2) {
-    const metricKeys: (keyof MetricsData)[] = [
-      'performance', 'page_load', 'seo', 'mobile', 'security', 'accessibility'
-    ];
-    
-    metricKeys.forEach(key => {
-      const m1 = metrics1[key];
-      const m2 = metrics2[key];
-      
-      if (m1 && m2 && 'score' in m1 && 'score' in m2) {
-        const difference = m2.score - m1.score;
-        const percentageChange = m1.score !== 0 
-          ? ((difference / m1.score) * 100) 
-          : 0;
-        
-        comparison[key] = {
-          difference,
-          percentageChange: Math.round(percentageChange * 10) / 10,
-          improved: difference > 0,
-        };
-      }
-    });
-  }
+  const calculatePercentage = (val1: number | null, val2: number | null) => {
+    const v1 = val1 || 0;
+    const v2 = val2 || 0;
+    if (v1 === 0) return v2 > 0 ? 100 : 0;
+    return Math.round(((v2 - v1) / v1) * 10000) / 100;
+  };
   
   return {
-    date1Metrics: metrics1,
-    date2Metrics: metrics2,
-    comparison,
+    date1_metrics: metrics1,
+    date2_metrics: metrics2,
+    changes: {
+      unique_visitors: calculateChange(metrics1?.unique_visitors, metrics2?.unique_visitors),
+      page_views: calculateChange(metrics1?.page_views, metrics2?.page_views),
+      content_count: calculateChange(metrics1?.content_count, metrics2?.content_count),
+      product_count: calculateChange(metrics1?.product_count, metrics2?.product_count),
+      inquiry_count: calculateChange(metrics1?.inquiry_count, metrics2?.inquiry_count),
+    },
+    percentages: {
+      unique_visitors: calculatePercentage(metrics1?.unique_visitors, metrics2?.unique_visitors),
+      page_views: calculatePercentage(metrics1?.page_views, metrics2?.page_views),
+      content_count: calculatePercentage(metrics1?.content_count, metrics2?.content_count),
+      product_count: calculatePercentage(metrics1?.product_count, metrics2?.product_count),
+      inquiry_count: calculatePercentage(metrics1?.inquiry_count, metrics2?.inquiry_count),
+    },
+  };
+}
+
+// Batch update metrics
+export async function batchUpdateMetrics(
+  client: SupabaseClient<Database>,
+  siteId: string,
+  metricsData: Array<{
+    date: string;
+    metrics: {
+      unique_visitors?: number;
+      page_views?: number;
+      content_count?: number;
+      product_count?: number;
+      inquiry_count?: number;
+    };
+  }>
+): Promise<void> {
+  // Process in batches to avoid overwhelming the database
+  const batchSize = 10;
+  for (let i = 0; i < metricsData.length; i += batchSize) {
+    const batch = metricsData.slice(i, i + batchSize);
+    await Promise.all(
+      batch.map(({ date, metrics }) => 
+        saveMetrics(client, siteId, metrics, date)
+      )
+    );
+  }
+}
+
+// Generate sample metrics (for development/testing)
+export function generateSampleMetrics(): {
+  unique_visitors: number;
+  page_views: number;
+  content_count: number;
+  product_count: number;
+  inquiry_count: number;
+} {
+  // Generate realistic-looking sample data
+  const baseVisitors = Math.floor(Math.random() * 50) + 10;
+  const pageViewMultiplier = Math.random() * 2 + 1.5;
+  
+  return {
+    unique_visitors: baseVisitors,
+    page_views: Math.floor(baseVisitors * pageViewMultiplier),
+    content_count: Math.floor(Math.random() * 5) + 1,
+    product_count: Math.floor(Math.random() * 3),
+    inquiry_count: Math.floor(Math.random() * baseVisitors * 0.1),
   };
 }
