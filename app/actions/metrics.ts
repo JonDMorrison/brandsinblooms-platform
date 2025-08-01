@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/auth/server'
-import { SiteMetric } from '@/lib/database/aliases'
 import { z } from 'zod'
 
 // Validation schemas for new site_metrics schema
@@ -185,11 +184,13 @@ export async function updateSiteMetrics(formData: FormData) {
   const supabase = await createClient()
   
   // Get user's site
-  const { data: membership } = await supabase
+  const { data: membershipArray } = await supabase
     .from('site_memberships')
     .select('site_id, role')
     .eq('user_id', user.id)
-    .single()
+    .limit(1)
+  
+  const membership = membershipArray && membershipArray.length > 0 ? membershipArray[0] : null
   
   if (!membership || !['owner', 'editor'].includes(membership.role)) {
     throw new Error('Insufficient permissions')
@@ -215,12 +216,14 @@ export async function updateSiteMetrics(formData: FormData) {
   
   // Get current metrics for trend calculation
   const today = new Date().toISOString().split('T')[0]
-  const { data: currentMetrics } = await supabase
+  const { data: currentMetricsArray } = await supabase
     .from('site_metrics')
     .select('content_count, product_count, inquiry_count, unique_visitors, page_views')
     .eq('site_id', membership.site_id)
     .eq('metric_date', today)
-    .single()
+    .limit(1)
+  
+  const currentMetrics = currentMetricsArray && currentMetricsArray.length > 0 ? currentMetricsArray[0] : null
   
   // Calculate trends if we have previous data
   const metricsWithTrends = currentMetrics ? 
@@ -265,12 +268,14 @@ export async function generateMetricsReport(
   const supabase = await createClient()
   
   // Check permissions
-  const { data: membership } = await supabase
+  const { data: membershipArray } = await supabase
     .from('site_memberships')
     .select('role')
     .eq('user_id', user.id)
     .eq('site_id', siteId)
-    .single()
+    .limit(1)
+  
+  const membership = membershipArray && membershipArray.length > 0 ? membershipArray[0] : null
   
   if (!membership) {
     throw new Error('No access to this site')

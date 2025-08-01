@@ -22,36 +22,35 @@ export async function getCurrentMetrics(
 ): Promise<SiteMetrics | null> {
   const today = new Date().toISOString().split('T')[0];
   
-  // Try to get today's metrics first
-  const query = client
+  // Try to get today's metrics first (using limit instead of single to avoid 406 errors)
+  const { data: todayResults, error: todayError } = await client
     .from('site_metrics')
     .select('*')
     .eq('site_id', siteId)
     .eq('metric_date', today)
-    .single();
+    .limit(1);
   
-  try {
-    const { data: result, error } = await query;
-    if (error) throw new SupabaseError(error.message, error.code);
-    return result;
-  } catch (error) {
-    // If no metrics for today, get the most recent
-    const recentQuery = client
-      .from('site_metrics')
-      .select('*')
-      .eq('site_id', siteId)
-      .order('metric_date', { ascending: false })
-      .limit(1)
-      .single();
-    
-    try {
-      const { data: result, error: recentError } = await recentQuery;
-      if (recentError) throw new SupabaseError(recentError.message, recentError.code);
-      return result;
-    } catch {
-      return null;
-    }
+  if (todayError) {
+    throw new SupabaseError(todayError.message, todayError.code);
   }
+  
+  if (todayResults && todayResults.length > 0) {
+    return todayResults[0];
+  }
+  
+  // If no metrics for today, get the most recent
+  const { data: recentResults, error: recentError } = await client
+    .from('site_metrics')
+    .select('*')
+    .eq('site_id', siteId)
+    .order('metric_date', { ascending: false })
+    .limit(1);
+  
+  if (recentError) {
+    throw new SupabaseError(recentError.message, recentError.code);
+  }
+  
+  return recentResults && recentResults.length > 0 ? recentResults[0] : null;
 }
 
 // Get metrics history
@@ -91,20 +90,18 @@ export async function getMetricsByDate(
   siteId: string,
   date: string
 ): Promise<SiteMetrics | null> {
-  const query = client
+  const { data: results, error } = await client
     .from('site_metrics')
     .select('*')
     .eq('site_id', siteId)
     .eq('metric_date', date)
-    .single();
+    .limit(1);
   
-  try {
-    const { data: result, error } = await query;
-    if (error) throw new SupabaseError(error.message, error.code);
-    return result;
-  } catch {
-    return null;
+  if (error) {
+    throw new SupabaseError(error.message, error.code);
   }
+  
+  return results && results.length > 0 ? results[0] : null;
 }
 
 // Save or update metrics
@@ -133,20 +130,18 @@ export async function saveMetrics(
   };
   
   // Use upsert to handle both insert and update
-  const query = client
+  const { data: results, error } = await client
     .from('site_metrics')
     .upsert(metricsData, {
       onConflict: 'site_id,metric_date',
     })
-    .select()
-    .single();
+    .select();
   
-  const { data: result, error } = await query;
   if (error) throw new SupabaseError(error.message, error.code);
-  if (!result) {
+  if (!results || results.length === 0) {
     throw new Error('Failed to upsert metrics');
   }
-  return result as SiteMetrics;
+  return results[0] as SiteMetrics;
 }
 
 // Update specific metrics
@@ -169,7 +164,7 @@ export async function updateMetricCounts(
   
   if (existing) {
     // Update existing metrics
-    const query = client
+    const { data: results, error } = await client
       .from('site_metrics')
       .update({
         ...updates,
@@ -177,15 +172,13 @@ export async function updateMetricCounts(
       })
       .eq('site_id', siteId)
       .eq('metric_date', metricDate)
-      .select()
-      .single();
+      .select();
     
-    const { data: result, error } = await query;
     if (error) throw new SupabaseError(error.message, error.code);
-    if (!result) {
+    if (!results || results.length === 0) {
       throw new Error('Failed to update metrics');
     }
-    return result as SiteMetrics;
+    return results[0] as SiteMetrics;
   } else {
     // Create new metrics
     return saveMetrics(client, siteId, updates, metricDate);
