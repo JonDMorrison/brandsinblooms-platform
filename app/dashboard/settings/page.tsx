@@ -15,14 +15,14 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="fade-in-up" style={{ animationDelay: '0s' }}>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground">
           Manage your account settings and preferences.
         </p>
       </div>
 
-      <Card>
+      <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader>
             <TabsList className="grid w-full grid-cols-5">

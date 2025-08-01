@@ -141,7 +141,7 @@ export function OrderStats({ orders }: OrderStatsProps) {
       </div>
 
       {/* Status Breakdown */}
-      <Card>
+      <Card className="fade-in-up" style={{ animationDelay: '1s' }}>
         <CardContent className="p-4">
           <h3 className="font-semibold mb-4">Order Status Breakdown</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

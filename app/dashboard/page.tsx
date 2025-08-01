@@ -14,7 +14,6 @@ import {
   Palette,
   TrendingUp,
   ArrowUpRight,
-  Loader2
 } from 'lucide-react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useSite } from '@/src/hooks/useSite'
@@ -196,7 +195,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 fade-in-up" style={{ animationDelay: '0.1s' }}>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {isLoading ? (
           // Loading skeletons
           Array.from({ length: 4 }).map((_, i) => (
@@ -213,7 +212,7 @@ export default function DashboardPage() {
           ))
         ) : (
           dashboardStats.map((stat, index) => (
-            <Card key={stat.id} className="fade-in-up" style={{ animationDelay: `${0.1 + index * 0.05}s` }}>
+            <Card key={stat.id} className="fade-in-up" style={{ animationDelay: `${0.2 + index * 0.1}s` }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   {stat.title}
@@ -235,7 +234,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <Card className="fade-in-up" style={{ animationDelay: '0.3s' }}>
+      <Card className="fade-in-up" style={{ animationDelay: '0.7s' }}>
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>

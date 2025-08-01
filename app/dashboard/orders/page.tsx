@@ -215,7 +215,7 @@ export default function OrdersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-in-up" style={{ animationDelay: '0s' }}>
         <div>
           <h1 className="text-2xl font-bold">Orders</h1>
           <p className="text-muted-foreground">Manage your orders and customer information</p>
@@ -236,7 +236,7 @@ export default function OrdersPage() {
       <OrderStats orders={orders} />
 
       {/* Main Content */}
-      <Card>
+      <Card className="fade-in-up" style={{ animationDelay: '1.2s' }}>
         <CardHeader>
           <CardTitle>Order Management</CardTitle>
         </CardHeader>

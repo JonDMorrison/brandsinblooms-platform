@@ -13,7 +13,6 @@ import {
   Eye, 
   Activity,
   Sparkles,
-  Loader2
 } from 'lucide-react'
 import { useContent, useContentStats } from '@/src/hooks/useContent'
 import { Skeleton } from '@/src/components/ui/skeleton'
@@ -79,7 +78,7 @@ export default function ContentPage() {
   return (
     <div className="space-y-8">
       {/* Header Section */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between fade-in-up" style={{ animationDelay: '0s' }}>
         <div>
           <h1 className="text-3xl font-bold">Content Management</h1>
           <p className="text-muted-foreground mt-2">
@@ -120,7 +119,7 @@ export default function ContentPage() {
           ))
         ) : (
           <>
-            <Card>
+            <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Pages</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
@@ -130,7 +129,7 @@ export default function ContentPage() {
                 <p className="text-xs text-muted-foreground">Published and drafts</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="fade-in-up" style={{ animationDelay: '0.3s' }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Blog Posts</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
@@ -140,7 +139,7 @@ export default function ContentPage() {
                 <p className="text-xs text-muted-foreground">Articles and guides</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="fade-in-up" style={{ animationDelay: '0.4s' }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Views</CardTitle>
                 <Eye className="h-4 w-4 text-muted-foreground" />
@@ -152,7 +151,7 @@ export default function ContentPage() {
                 <p className="text-xs text-muted-foreground">This month</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="fade-in-up" style={{ animationDelay: '0.5s' }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Published</CardTitle>
                 <Activity className="h-4 w-4 text-muted-foreground" />
@@ -169,7 +168,7 @@ export default function ContentPage() {
       </div>
 
       {/* Content Library with Enhanced Data Table */}
-      <Card>
+      <Card className="fade-in-up" style={{ animationDelay: '0.7s' }}>
         <CardHeader>
           <CardTitle>Content Library</CardTitle>
         </CardHeader>

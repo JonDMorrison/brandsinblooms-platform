@@ -17,7 +17,6 @@ import {
   ShoppingCart,
   DollarSign,
   Star,
-  Loader2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useProducts, useProductCategories } from '@/src/hooks/useProducts'
@@ -127,7 +126,7 @@ export default function ProductsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-in-up" style={{ animationDelay: '0s' }}>
         <div>
           <h1 className="text-2xl font-bold">Products</h1>
           <p className="text-muted-foreground">Manage your product catalog and site products</p>
@@ -157,7 +156,7 @@ export default function ProductsPage() {
           ))
         ) : (
           <>
-            <Card>
+            <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-md">
@@ -171,7 +170,7 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="fade-in-up" style={{ animationDelay: '0.3s' }}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-100 dark:bg-green-900 rounded-md">
@@ -185,7 +184,7 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="fade-in-up" style={{ animationDelay: '0.4s' }}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-md">
@@ -199,7 +198,7 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="fade-in-up" style={{ animationDelay: '0.5s' }}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-md">
@@ -217,7 +216,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Main Content */}
-      <Card>
+      <Card className="fade-in-up" style={{ animationDelay: '0.7s' }}>
         <CardHeader>
           <CardTitle>Product Catalog</CardTitle>
         </CardHeader>
