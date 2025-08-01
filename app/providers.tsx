@@ -9,6 +9,7 @@ import { SiteProvider } from '@/src/contexts/SiteContext'
 import { AdminAuthProvider } from '@/src/contexts/AdminAuthContext'
 import { AdminImpersonationProvider } from '@/src/contexts/AdminImpersonationContext'
 import { ImpersonationBanner } from '@/src/components/admin/ImpersonationBanner'
+import { Tables } from '@/src/lib/database/types'
 
 // Lazy load React Query Devtools only in development
 const ReactQueryDevtools = process.env.NODE_ENV === 'development' 
@@ -20,7 +21,7 @@ const ReactQueryDevtools = process.env.NODE_ENV === 'development'
 interface ProvidersProps {
   children: React.ReactNode
   initialHostname?: string
-  initialSiteData?: any
+  initialSiteData?: Tables<'sites'> | null
   isAdminRoute?: boolean
   impersonationData?: {
     sessionId: string | null

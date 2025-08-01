@@ -17,6 +17,13 @@ import {
   CheckCircle
 } from 'lucide-react'
 
+interface BusinessHours {
+  [day: string]: {
+    open?: string
+    close?: string
+  } | null
+}
+
 export function SiteInfo() {
   const { site, loading, error } = useCurrentSite()
   const { role, hasAccess, canEdit, canManage } = useSitePermissions()
@@ -204,7 +211,7 @@ export function SiteInfo() {
                 <div>
                   <h5 className="font-medium">Business Hours</h5>
                   <div className="text-sm text-muted-foreground">
-                    {Object.entries(site.business_hours as Record<string, any>).map(([day, hours]) => (
+                    {Object.entries(site.business_hours as BusinessHours).map(([day, hours]) => (
                       <div key={day} className="flex justify-between">
                         <span className="capitalize">{day}:</span>
                         <span>

@@ -14,7 +14,11 @@ interface TypographyCustomizationProps {
     bodyFont: string
     fontSize: string
   }
-  onTypographyChange: (typography: any) => void
+  onTypographyChange: (typography: {
+    headingFont: string
+    bodyFont: string
+    fontSize: string
+  }) => void
 }
 
 const googleFonts = [
@@ -119,7 +123,7 @@ export default function TypographyCustomization({ typography, onTypographyChange
     })
   }
 
-  const handlePresetSelect = (preset: any) => {
+  const handlePresetSelect = (preset: typeof typographyPresets[0]) => {
     onTypographyChange({
       headingFont: preset.headingFont,
       bodyFont: preset.bodyFont,

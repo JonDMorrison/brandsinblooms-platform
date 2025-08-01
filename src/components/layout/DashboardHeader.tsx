@@ -43,7 +43,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
       toast.success('Successfully signed out!')
       // Use window.location for a clean navigation to avoid webpack issues
       window.location.href = '/login'
-    } catch (error: any) {
+    } catch (error) {
       toast.error('Failed to sign out')
     }
   }

@@ -40,7 +40,7 @@ export default async function DomainErrorPage({ searchParams }: PageProps) {
             Invalid Domain
           </h1>
           <p className="text-gray-600">
-            The domain you're trying to access has an invalid format.
+            The domain you&apos;re trying to access has an invalid format.
           </p>
         </div>
 

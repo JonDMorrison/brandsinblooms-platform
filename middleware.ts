@@ -198,10 +198,15 @@ function isMainAppDomain(hostname: string): boolean {
 /**
  * Handles main app domain authentication
  */
+interface User {
+  id: string
+  [key: string]: unknown
+}
+
 function handleMainAppAuthentication(
   request: NextRequest, 
   response: NextResponse, 
-  user: any, 
+  user: User | null, 
   pathname: string
 ): NextResponse {
   const isPublicRoute = publicRoutes.some(route => 
@@ -236,7 +241,7 @@ function handleDevelopmentRequest(
   request: NextRequest, 
   response: NextResponse, 
   hostname: string,
-  user: any
+  user: User | null
 ): NextResponse {
   const url = request.nextUrl.clone()
   const pathname = url.pathname
@@ -296,10 +301,36 @@ function detectImpersonationToken(request: NextRequest): string | null {
 /**
  * Validates impersonation token and returns session context
  */
+interface SupabaseClient {
+  rpc: (fnName: string, params?: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>
+  auth: {
+    getUser: () => Promise<{ data: { user: User | null }; error: unknown }>
+  }
+  from: (table: string) => {
+    select: (columns?: string) => {
+      eq: (column: string, value: unknown) => {
+        single: () => Promise<{ data: unknown; error: unknown }>
+      }
+    }
+  }
+}
+
+interface ImpersonationContext {
+  valid: boolean
+  session_id: string
+  admin_user_id: string
+  admin_email: string
+  site_id: string
+  site_name: string
+  site_subdomain: string
+  site_custom_domain?: string
+  [key: string]: unknown
+}
+
 async function validateImpersonationToken(
-  supabase: any, 
+  supabase: SupabaseClient, 
   token: string
-): Promise<any | null> {
+): Promise<ImpersonationContext | null> {
   try {
     const { data, error } = await supabase.rpc('get_impersonation_context', { token })
     
@@ -324,9 +355,9 @@ async function validateImpersonationToken(
  */
 async function handleImpersonatedSiteAccess(
   request: NextRequest,
-  supabase: any,
+  supabase: SupabaseClient,
   supabaseResponse: NextResponse,
-  impersonationContext: any,
+  impersonationContext: ImpersonationContext,
   start: number
 ): Promise<NextResponse> {
   const siteId = impersonationContext.site_id
@@ -425,9 +456,25 @@ async function handleImpersonatedSiteAccess(
 /**
  * Handles site domain resolution and validation
  */
+interface Site {
+  id: string
+  name: string
+  subdomain: string
+  custom_domain?: string
+  is_published: boolean
+  is_active: boolean
+  [key: string]: unknown
+}
+
+interface SiteResolution {
+  isValid: boolean
+  type: 'subdomain' | 'custom_domain'
+  value: string
+}
+
 async function handleSiteDomain(
   request: NextRequest,
-  supabase: any,
+  supabase: SupabaseClient,
   supabaseResponse: NextResponse,
   hostname: string,
   start: number
@@ -627,7 +674,7 @@ function handleInvalidDomain(request: NextRequest, hostname: string): NextRespon
 function handleSiteNotFound(
   request: NextRequest, 
   hostname: string, 
-  siteResolution: { type: string, value: string }
+  siteResolution: SiteResolution
 ): NextResponse {
   const url = request.nextUrl.clone()
   
@@ -658,7 +705,7 @@ function handleSiteNotFound(
 /**
  * Handles unpublished site access
  */
-function handleUnpublishedSite(request: NextRequest, site: any): NextResponse {
+function handleUnpublishedSite(request: NextRequest, site: Site): NextResponse {
   const url = request.nextUrl.clone()
   
   url.hostname = APP_DOMAIN

@@ -527,7 +527,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                   <CardHeader>
                     <CardTitle>Core Web Vitals</CardTitle>
                     <CardDescription>
-                      Google's Core Web Vitals metrics over time
+                      Google&apos;s Core Web Vitals metrics over time
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

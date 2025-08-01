@@ -3,9 +3,10 @@
  * Performs maintenance on cache systems
  */
 
-import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { clearSiteCache, getSiteCacheStats } from '@/lib/cache/site-cache'
+import { handleError } from '@/lib/types/error-handling'
+import { ApiHandler, ApiRequest, ApiResponse, apiSuccess, apiError, ApiResult } from '@/src/lib/types/api'
 // Dynamic import for Redis cache to avoid bundling Node.js built-ins
 // import { getRedisCache } from '@/lib/cache/redis-site-cache.server'
 
@@ -32,7 +33,7 @@ interface CleanupResult {
 /**
  * Validate cron job authorization
  */
-function validateCronAuth(request: NextRequest): boolean {
+function validateCronAuth(request: ApiRequest<void>): boolean {
   const authHeader = request.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
 
@@ -59,16 +60,13 @@ function validateCronAuth(request: NextRequest): boolean {
  * POST /api/system/cleanup-cache
  * Cleans up expired cache entries and performs maintenance
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export const POST = async (request: ApiRequest<void>): Promise<ApiResponse<ApiResult<CleanupResult>>> => {
   const startTime = Date.now()
 
   try {
     // Validate authorization
     if (!validateCronAuth(request)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return apiError('Unauthorized', 'UNAUTHORIZED', 401)
     }
 
     const searchParams = request.nextUrl.searchParams
@@ -105,8 +103,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           // The memory cache has automatic cleanup, so we just report status
           result.operations.memoryCache.cleared = true
         }
-      } catch (error: any) {
-        result.operations.memoryCache.error = error.message
+      } catch (error: unknown) {
+        const handled = handleError(error)
+        result.operations.memoryCache.error = handled.message
         result.success = false
       }
     }
@@ -126,10 +125,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         result.operations.redisCache = {
           cleared: true,
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const handled = handleError(error)
         result.operations.redisCache = {
           cleared: false,
-          error: error.message,
+          error: handled.message,
         }
         result.success = false
       }
@@ -139,34 +139,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const statusCode = result.success ? 200 : 207 // 207 = partial success
 
-    return NextResponse.json(result, {
-      status: statusCode,
-      headers: {
-        'Cache-Control': 'no-cache',
-        'X-Cleanup-Status': result.success ? 'success' : 'partial',
-      },
-    })
+    const response = apiSuccess(result)
+    response.headers.set('Cache-Control', 'no-cache')
+    response.headers.set('X-Cleanup-Status', result.success ? 'success' : 'partial')
+    
+    if (statusCode !== 200) {
+      return new Response(response.body, {
+        status: statusCode,
+        headers: response.headers,
+      }) as ApiResponse<ApiResult<CleanupResult>>
+    }
+    
+    return response
 
-  } catch (error: any) {
-    console.error('[Cache Cleanup] Unexpected error:', error)
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Cache Cleanup] Unexpected error:', handled)
 
-    return NextResponse.json(
-      {
-        success: false,
-        timestamp: new Date().toISOString(),
-        error: error.message,
-        performance: {
-          duration: Date.now() - startTime,
-          unit: 'ms',
-        },
-      },
-      {
-        status: 500,
-        headers: {
-          'Cache-Control': 'no-cache',
-          'X-Cleanup-Status': 'error',
-        },
-      }
+    return apiError(
+      handled.message,
+      'CLEANUP_ERROR',
+      500
     )
   }
 }
@@ -175,7 +168,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
  * GET /api/system/cleanup-cache
  * Returns cache cleanup status and statistics
  */
-export async function GET(request: NextRequest): Promise<NextResponse> {
+interface CacheStatsResponse {
+  timestamp: string
+  caches: {
+    memory: {
+      size: number
+      maxSize: number
+      utilization: number
+      entries: Array<{
+        key: string
+        age: number
+        ttl: number
+      }>
+    }
+    redis: unknown
+  }
+  recommendations: string[]
+}
+
+export const GET = async (request: ApiRequest<void>): Promise<ApiResponse<ApiResult<CacheStatsResponse>>> => {
   try {
     // Get current cache statistics
     const memoryStats = getSiteCacheStats()
@@ -196,10 +207,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           errors: metrics.errors,
           avgResponseTime: metrics.avgResponseTime,
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const handled = handleError(error)
         redisStats = {
           connected: false,
-          error: error.message,
+          error: handled.message,
         }
       }
     }
@@ -236,20 +248,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     //   response.recommendations.push('Redis cache has errors, check logs')
     // }
 
-    return NextResponse.json(response, {
-      headers: {
-        'Cache-Control': 'public, max-age=60', // Cache for 1 minute
-      },
-    })
+    const apiResponse = apiSuccess(response)
+    apiResponse.headers.set('Cache-Control', 'public, max-age=60')
+    return apiResponse
 
-  } catch (error: any) {
-    return NextResponse.json(
-      {
-        error: 'Failed to get cache statistics',
-        message: error.message,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 }
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    return apiError(
+      'Failed to get cache statistics',
+      'CACHE_STATS_ERROR',
+      500
     )
   }
 }
@@ -258,7 +266,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
  * DELETE /api/system/cleanup-cache
  * Force clears all cache entries (requires admin authorization)
  */
-export async function DELETE(request: NextRequest): Promise<NextResponse> {
+interface ClearCacheResponse {
+  success: boolean
+  message: string
+  timestamp: string
+  duration: number
+}
+
+export const DELETE = async (request: ApiRequest<void>): Promise<ApiResponse<ApiResult<ClearCacheResponse>>> => {
   try {
     // This should require admin authentication in production
     const headersList = await headers()
@@ -266,10 +281,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     
     // Basic auth check (implement proper admin auth in production)
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Admin authorization required' },
-        { status: 401 }
-      )
+      return apiError('Admin authorization required', 'ADMIN_AUTH_REQUIRED', 401)
     }
 
     const startTime = Date.now()
@@ -284,21 +296,19 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       await redisCache.clear()
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       message: 'All caches cleared',
       timestamp: new Date().toISOString(),
       duration: Date.now() - startTime,
     })
 
-  } catch (error: any) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 }
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    return apiError(
+      handled.message,
+      'CACHE_CLEAR_ERROR',
+      500
     )
   }
 }

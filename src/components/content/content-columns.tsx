@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, Row } from '@tanstack/react-table'
 import { ArrowUpDown, Calendar, Eye, MoreHorizontal, Edit, Trash2, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/src/components/ui/button'
@@ -46,7 +46,7 @@ const getTypeIcon = (type: ContentItem['type']) => {
 }
 
 // Actions cell component to handle navigation
-function ActionsCell({ row }: { row: any }) {
+function ActionsCell({ row }: { row: Row<ContentItem> }) {
   const router = useRouter()
 
   return (

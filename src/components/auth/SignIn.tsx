@@ -16,6 +16,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Separator } from '@/components/ui/separator'
 import { signInWithProvider, signInWithMagicLink, handleAuthError } from '@/lib/auth/client'
+import { AuthError } from '@supabase/supabase-js'
+import { handleError } from '@/lib/types/error-handling'
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false)
@@ -23,6 +25,10 @@ export default function SignIn() {
   const [isLoadingMagicLink, setIsLoadingMagicLink] = useState(false)
   const { signIn } = useAuth()
   const router = useRouter()
+
+  // Generate unique IDs at the top level
+  const emailId = React.useId()
+  const passwordId = React.useId()
 
   const form = useForm<SignInData>({
     resolver: zodResolver(signInSchema),
@@ -37,8 +43,8 @@ export default function SignIn() {
       await signIn(data.email, data.password)
       toast.success('Successfully signed in!')
       router.push('/dashboard')
-    } catch (error: any) {
-      const message = handleAuthError(error)
+    } catch (error: unknown) {
+      const message = handleAuthError(error as AuthError)
       toast.error(message)
     }
   }
@@ -47,7 +53,8 @@ export default function SignIn() {
     try {
       setIsLoadingProvider(provider)
       await signInWithProvider(provider)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const handled = handleError(error)
       toast.error(`Failed to sign in with ${provider}. Please try again.`)
     } finally {
       setIsLoadingProvider(null)
@@ -65,7 +72,8 @@ export default function SignIn() {
       setIsLoadingMagicLink(true)
       await signInWithMagicLink(email)
       toast.success('Check your email for the magic link!')
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const handled = handleError(error)
       toast.error('Failed to send magic link. Please try again.')
     } finally {
       setIsLoadingMagicLink(false)
@@ -90,14 +98,13 @@ export default function SignIn() {
                 control={form.control}
                 name="email"
                 render={({ field }) => {
-                  const fieldId = `email-${React.useId()}`
                   return (
                     <FormItem>
-                      <FormLabel htmlFor={fieldId}>Email</FormLabel>
+                      <FormLabel htmlFor={emailId}>Email</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          id={fieldId}
+                          id={emailId}
                           type="email"
                           placeholder="Enter your email"
                           autoComplete="email"
@@ -114,15 +121,14 @@ export default function SignIn() {
                 control={form.control}
                 name="password"
                 render={({ field }) => {
-                  const fieldId = `password-${React.useId()}`
                   return (
                     <FormItem>
-                      <FormLabel htmlFor={fieldId}>Password</FormLabel>
+                      <FormLabel htmlFor={passwordId}>Password</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             {...field}
-                            id={fieldId}
+                            id={passwordId}
                             type={showPassword ? 'text' : 'password'}
                             placeholder="Enter your password"
                             autoComplete="current-password"
@@ -196,7 +202,7 @@ export default function SignIn() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-sm text-center text-muted-foreground">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link
               href="/?signup=true"
               className="text-primary hover:text-primary/80 font-medium transition-colors"

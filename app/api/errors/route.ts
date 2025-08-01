@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { ApiHandler, ApiRequest, ApiResponse, apiSuccess, apiError } from '@/src/lib/types/api'
 
 interface ErrorLog {
   message: string
@@ -9,7 +9,11 @@ interface ErrorLog {
   timestamp: string
 }
 
-export async function POST(request: NextRequest) {
+interface ErrorResponse {
+  success: boolean
+}
+
+export const POST: ApiHandler<ErrorLog, ErrorResponse> = async (request: ApiRequest<ErrorLog>): Promise<ApiResponse<ErrorResponse>> => {
   try {
     const errorLog: ErrorLog = await request.json()
 
@@ -61,12 +65,13 @@ export async function POST(request: NextRequest) {
     //   })
     // }
 
-    return NextResponse.json({ success: true })
+    return apiSuccess({ success: true })
   } catch (error) {
     console.error('Failed to log error:', error)
-    return NextResponse.json(
-      { error: 'Failed to log error' },
-      { status: 500 }
+    return apiError(
+      'Failed to log error',
+      'ERROR_LOGGING_FAILED',
+      500
     )
   }
 }

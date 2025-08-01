@@ -419,10 +419,11 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {healthSummary.historical_data?.uptime_trend?.length > 0 ? (
+                  {/* TODO: Add historical_data to SiteHealthSummary type */}
+                  {(healthSummary as any).historical_data?.uptime_trend?.length > 0 ? (
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={healthSummary.historical_data.uptime_trend}>
+                        <LineChart data={(healthSummary as any).historical_data.uptime_trend}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis 
                             dataKey="date" 
@@ -463,10 +464,10 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {healthSummary.historical_data?.uptime_trend?.length > 0 ? (
+                  {(healthSummary as any).historical_data?.uptime_trend?.length > 0 ? (
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={healthSummary.historical_data.uptime_trend}>
+                        <LineChart data={(healthSummary as any).historical_data.uptime_trend}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis 
                             dataKey="date" 
@@ -496,7 +497,7 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
               </Card>
 
               {/* Error Trend */}
-              {healthSummary.historical_data?.error_trend?.length > 0 && (
+              {(healthSummary as any).historical_data?.error_trend?.length > 0 && (
                 <Card className="lg:col-span-2">
                   <CardHeader>
                     <CardTitle>Error Trend</CardTitle>
@@ -507,7 +508,7 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                   <CardContent>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={healthSummary.historical_data.error_trend}>
+                        <BarChart data={(healthSummary as any).historical_data.error_trend}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis 
                             dataKey="date" 

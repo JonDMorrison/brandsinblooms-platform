@@ -136,7 +136,7 @@ export default function DesignPage() {
         <div>
           <h1 className="text-3xl font-bold">Design System</h1>
           <p className="text-gray-600 mt-1">
-            Customize your site's appearance and branding
+            Customize your site&apos;s appearance and branding
           </p>
         </div>
         <div className="flex items-center gap-3">

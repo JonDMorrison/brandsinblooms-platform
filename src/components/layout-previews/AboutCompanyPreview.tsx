@@ -24,7 +24,7 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">Our Story</h2>
           <p className="text-muted-foreground leading-relaxed">
-            Founded in 2010, we've been bringing beauty and joy to our community through 
+            Founded in 2010, we&apos;ve been bringing beauty and joy to our community through 
             exceptional floral arrangements. Our passion for flowers drives everything we do.
           </p>
           <div className="grid grid-cols-2 gap-4">

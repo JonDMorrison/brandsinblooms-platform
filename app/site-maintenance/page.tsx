@@ -59,7 +59,7 @@ export default async function SiteMaintenancePage({ searchParams }: PageProps) {
 
         <div className="space-y-4">
           <div className="text-left">
-            <h3 className="font-semibold text-gray-900 mb-2">What's happening:</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">What&apos;s happening:</h3>
             <div className="text-sm text-gray-600 space-y-1">
               <p>• The site owner is working on updates</p>
               <p>• The site is temporarily unpublished</p>

@@ -23,7 +23,7 @@ export async function getCurrentMetrics(
   const today = new Date().toISOString().split('T')[0];
   
   // Try to get today's metrics first
-  let query = client
+  const query = client
     .from('site_metrics')
     .select('*')
     .eq('site_id', siteId)
@@ -209,7 +209,7 @@ export async function incrementMetrics(
   const current = await getMetricsByDate(client, siteId, metricDate);
   
   if (current) {
-    const updates: any = {};
+    const updates: Record<string, unknown> = {};
     if (increments.unique_visitors) {
       updates.unique_visitors = (current.unique_visitors || 0) + increments.unique_visitors;
     }

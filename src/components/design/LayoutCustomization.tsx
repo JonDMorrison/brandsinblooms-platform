@@ -15,7 +15,11 @@ interface LayoutCustomizationProps {
     footerStyle: string
     menuStyle: string
   }
-  onLayoutChange: (layout: any) => void
+  onLayoutChange: (layout: {
+    headerStyle: string
+    footerStyle: string
+    menuStyle: string
+  }) => void
   section: 'header' | 'footer' | 'menu' | 'all'
 }
 
@@ -142,7 +146,7 @@ export default function LayoutCustomization({ layout, onLayoutChange, section }:
     })
   }
 
-  const handlePresetSelect = (preset: any) => {
+  const handlePresetSelect = (preset: typeof layoutPresets[0]) => {
     onLayoutChange({
       headerStyle: preset.headerStyle,
       footerStyle: preset.footerStyle,
@@ -150,7 +154,13 @@ export default function LayoutCustomization({ layout, onLayoutChange, section }:
     })
   }
 
-  const LayoutPreview = ({ title, options, selectedValue, onChange, previewKey }: any) => (
+  const LayoutPreview = ({ title, options, selectedValue, onChange, previewKey }: {
+    title: string
+    options: Array<{id: string, name: string, description: string, preview?: string}>
+    selectedValue: string
+    onChange: (key: string, value: string) => void
+    previewKey: string
+  }) => (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
@@ -161,7 +171,7 @@ export default function LayoutCustomization({ layout, onLayoutChange, section }:
       <CardContent>
         <RadioGroup value={selectedValue} onValueChange={(value) => onChange(previewKey, value)}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {options.map((option: any) => (
+            {options.map((option) => (
               <div key={option.id} className="flex items-start space-x-3">
                 <RadioGroupItem value={option.id} id={option.id} className="mt-1" />
                 <Label htmlFor={option.id} className="flex-1 cursor-pointer">

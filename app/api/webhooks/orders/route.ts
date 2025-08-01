@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { activityHelpers } from '@/lib/queries/domains/activity'
 import { headers } from 'next/headers'
 import crypto from 'crypto'
+import { ApiHandler, ApiRequest, ApiResponse, apiSuccess, apiError, ApiResult } from '@/src/lib/types/api'
 
 // Webhook secret for verification (should be in env vars)
 const WEBHOOK_SECRET = process.env.ORDER_WEBHOOK_SECRET || 'your-webhook-secret'
@@ -21,7 +21,25 @@ function verifyWebhookSignature(
   )
 }
 
-export async function POST(request: NextRequest) {
+interface OrderWebhookPayload {
+  event: 'order.payment.completed' | 'order.payment.failed' | 'order.shipped' | 'order.delivered'
+  order: {
+    order_number: string
+    payment_id?: string
+    payment_method?: string
+    failure_reason?: string
+    tracking_number?: string
+    carrier?: string
+    estimated_delivery?: string
+    [key: string]: unknown
+  }
+}
+
+interface WebhookResponse {
+  received: boolean
+}
+
+export const POST = async (request: ApiRequest<OrderWebhookPayload>): Promise<ApiResponse<ApiResult<WebhookResponse>>> => {
   try {
     const payload = await request.text()
     const headersList = await headers()
@@ -29,10 +47,7 @@ export async function POST(request: NextRequest) {
     
     // Verify webhook signature
     if (!signature || !verifyWebhookSignature(payload, signature, WEBHOOK_SECRET)) {
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      )
+      return apiError('Invalid signature', 'INVALID_SIGNATURE', 401)
     }
     
     const data = JSON.parse(payload)
@@ -65,17 +80,38 @@ export async function POST(request: NextRequest) {
         console.log('Unhandled webhook event:', event)
     }
     
-    return NextResponse.json({ received: true })
+    return apiSuccess({ received: true })
   } catch (error) {
     console.error('Webhook error:', error)
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    )
+    return apiError('Webhook processing failed', 'WEBHOOK_ERROR', 500)
   }
 }
 
-async function handlePaymentCompleted(supabase: any, webhookOrder: any) {
+interface SupabaseClient {
+  from: (table: string) => {
+    update: (data: Record<string, unknown>) => {
+      eq: (column: string, value: unknown) => {
+        select: () => {
+          single: () => Promise<{ data: unknown; error: unknown }>
+        }
+      }
+    }
+    insert: (data: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>
+  }
+}
+
+interface WebhookOrder {
+  order_number: string
+  payment_id?: string
+  payment_method?: string
+  failure_reason?: string
+  tracking_number?: string
+  carrier?: string
+  estimated_delivery?: string
+  [key: string]: unknown
+}
+
+async function handlePaymentCompleted(supabase: any, webhookOrder: WebhookOrder) {
   // Update order status to processing
   const { data: order, error } = await supabase
     .from('orders')
@@ -116,7 +152,7 @@ async function handlePaymentCompleted(supabase: any, webhookOrder: any) {
   // await sendOrderConfirmationEmail(order)
 }
 
-async function handlePaymentFailed(supabase: any, webhookOrder: any) {
+async function handlePaymentFailed(supabase: any, webhookOrder: WebhookOrder) {
   // Keep order in pending state or cancel
   const { data: order, error } = await supabase
     .from('orders')
@@ -151,7 +187,7 @@ async function handlePaymentFailed(supabase: any, webhookOrder: any) {
     })
 }
 
-async function handleOrderShipped(supabase: any, webhookOrder: any) {
+async function handleOrderShipped(supabase: any, webhookOrder: WebhookOrder) {
   // Update order with tracking information
   const { data: order, error } = await supabase
     .from('orders')
@@ -190,7 +226,7 @@ async function handleOrderShipped(supabase: any, webhookOrder: any) {
   // await sendShippingNotificationEmail(order)
 }
 
-async function handleOrderDelivered(supabase: any, webhookOrder: any) {
+async function handleOrderDelivered(supabase: any, webhookOrder: WebhookOrder) {
   // Update order status to delivered
   const { data: order, error } = await supabase
     .from('orders')
@@ -225,7 +261,11 @@ async function handleOrderDelivered(supabase: any, webhookOrder: any) {
 }
 
 // GET endpoint for webhook verification (some providers require this)
-export async function GET(request: NextRequest) {
+interface VerificationResponse {
+  status: string
+}
+
+export const GET = async (request: ApiRequest<void>) => {
   const { searchParams } = new URL(request.url)
   const challenge = searchParams.get('challenge')
   
@@ -233,8 +273,8 @@ export async function GET(request: NextRequest) {
     // Return challenge for webhook verification
     return new Response(challenge, {
       headers: { 'Content-Type': 'text/plain' },
-    })
+    }) as ApiResponse<string>
   }
   
-  return NextResponse.json({ status: 'Webhook endpoint active' })
+  return apiSuccess({ status: 'Webhook endpoint active' })
 }

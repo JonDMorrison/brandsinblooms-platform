@@ -9,6 +9,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Tables } from '@/src/lib/database/types'
+import { User } from '@supabase/supabase-js'
 
 interface SiteLayoutProps {
   children: React.ReactNode
@@ -79,8 +81,8 @@ function SiteNavigation({
   canManage, 
   onSignOut 
 }: {
-  site: any
-  user: any
+  site: Tables<'sites'> | null
+  user: User | null
   canEdit: boolean
   canManage: boolean
   onSignOut: () => void
@@ -172,7 +174,7 @@ function SiteNavigation({
   )
 }
 
-function UserMenu({ user, onSignOut }: { user: any; onSignOut: () => void }) {
+function UserMenu({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const router = useRouter()
 
   const handleSignOut = async () => {
@@ -229,7 +231,7 @@ function UserMenu({ user, onSignOut }: { user: any; onSignOut: () => void }) {
   )
 }
 
-function SiteFooter({ site }: { site: any }) {
+function SiteFooter({ site }: { site: Tables<'sites'> | null }) {
   return (
     <footer className="border-t bg-muted/50">
       <div className="brand-container py-8">
@@ -352,7 +354,7 @@ function SiteAccessRequired() {
             Access Denied
           </h1>
           <p className="text-muted-foreground">
-            You don't have permission to access this site.
+            You don&apos;t have permission to access this site.
           </p>
         </div>
 

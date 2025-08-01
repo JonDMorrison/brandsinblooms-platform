@@ -1,7 +1,57 @@
 {
   "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
-    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-explicit-any": [
+      "error",
+      {
+        "fixToUnknown": false,
+        "ignoreRestArgs": false
+      }
+    ],
     "@typescript-eslint/no-unused-vars": "warn"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "tests/**/*"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": [
+        "src/lib/cache/**/*.ts",
+        "src/lib/queries/base.ts",
+        "src/lib/queries/domains/content.ts",
+        "src/lib/queries/domains/customers.ts",
+        "src/lib/queries/domains/tags.ts",
+        "src/lib/queries/domains/theme.ts",
+        "src/lib/auth/**/*.ts",
+        "src/lib/admin/audit.ts",
+        "src/lib/admin/analytics.ts",
+        "src/components/WebVitals.tsx",
+        "src/components/PerformanceMetrics.tsx",
+        "src/components/PerformanceMonitor.tsx",
+        "src/components/site/SiteHomepage.tsx",
+        "src/components/site/SitePreview.tsx",
+        "src/components/site/DomainConfiguration.tsx",
+        "src/components/admin/SiteAccessPortal.tsx",
+        "src/components/admin/SiteAnalytics.tsx",
+        "src/components/admin/SiteConfigurationForm.tsx",
+        "src/components/admin/SiteHealthDetails.tsx",
+        "src/components/admin/SiteProductManager.tsx",
+        "src/hooks/**/*.ts",
+        "src/contexts/AdminImpersonationContext.tsx",
+        "src/lib/performance.ts",
+        "app/actions/metrics.ts",
+        "app/admin/**/*.tsx",
+        "app/dashboard/content/page.tsx",
+        "app/auth/reset-password/reset-password-client.tsx",
+        "app/test-supabase/client-test.tsx",
+        "app/api/webhooks/orders/route.ts"
+      ],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "warn"
+      }
+    }
+  ]
 }

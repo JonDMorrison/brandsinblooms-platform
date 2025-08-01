@@ -40,7 +40,7 @@ export default async function SiteNotFoundPage({ searchParams }: PageProps) {
             Site Not Found
           </h1>
           <p className="text-gray-600">
-            We couldn't find a site associated with this domain.
+            We couldn&apos;t find a site associated with this domain.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export default async function SiteNotFoundPage({ searchParams }: PageProps) {
             <ul className="text-sm text-gray-600 space-y-2">
               <li className="flex items-start">
                 <span className="text-red-500 mr-2">•</span>
-                The site hasn't been created yet
+                The site hasn&apos;t been created yet
               </li>
               <li className="flex items-start">
                 <span className="text-red-500 mr-2">•</span>
@@ -69,7 +69,7 @@ export default async function SiteNotFoundPage({ searchParams }: PageProps) {
               </li>
               <li className="flex items-start">
                 <span className="text-red-500 mr-2">•</span>
-                DNS changes haven't propagated yet (for custom domains)
+                DNS changes haven&apos;t propagated yet (for custom domains)
               </li>
             </ul>
           </div>
@@ -82,7 +82,7 @@ export default async function SiteNotFoundPage({ searchParams }: PageProps) {
                 href={`/create-site?subdomain=${subdomain}`}
                 className="block w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center"
               >
-                Create Site for "{subdomain}"
+                Create Site for &quot;{subdomain}&quot;
               </Link>
             )}
             

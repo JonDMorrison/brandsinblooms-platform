@@ -319,8 +319,8 @@ export function getSecurityHeaders(site: Site, hostname: string): Record<string,
 export function getErrorResponseData(
   status: DomainResolutionStatus,
   hostname: string,
-  additionalData?: Record<string, any>
-): Record<string, any> {
+  additionalData?: Record<string, unknown>
+): Record<string, unknown> {
   const baseData = {
     error: status,
     hostname,

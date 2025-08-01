@@ -214,7 +214,7 @@ export function SecuritySettings() {
                     {field.value && (
                       <div className="flex items-center gap-2 mt-2">
                         <div className="text-sm">Password strength:</div>
-                        <Badge variant={passwordStrength.color as any}>
+                        <Badge variant={passwordStrength.color as "default" | "secondary" | "destructive" | "outline"}>
                           {passwordStrength.label}
                         </Badge>
                       </div>

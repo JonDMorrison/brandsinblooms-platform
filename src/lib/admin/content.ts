@@ -61,7 +61,7 @@ export class AdminContentError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message)
     this.name = 'AdminContentError'
@@ -134,7 +134,7 @@ export async function getSiteContent(
       }
     }
 
-    const dataObj = data as any
+    const dataObj = data as unknown as { content: ContentWithAuthor[]; total_count: number }
     const content = (dataObj.content || []) as ContentWithAuthor[]
     const total_count = dataObj.total_count || 0
     
@@ -145,7 +145,7 @@ export async function getSiteContent(
       limit,
       has_more: offset + content.length < total_count
     }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminContentError) {
       throw error
     }
@@ -260,12 +260,12 @@ export async function searchAllContent(
     }
 
     // Transform data to include author names
-    const content = (data || []).map((item: any) => ({
+    const content = (data || []).map((item) => ({
       ...item,
-      author_name: item.profiles?.full_name || 'Unknown',
-      author_email: item.profiles?.user_id || null,
-      site_name: item.sites?.name || 'Unknown Site',
-      site_subdomain: item.sites?.subdomain || null
+      author_name: (item as { profiles?: { full_name?: string } }).profiles?.full_name || 'Unknown',
+      author_email: (item as { profiles?: { user_id?: string } }).profiles?.user_id || null,
+      site_name: (item as { sites?: { name?: string } }).sites?.name || 'Unknown Site',
+      site_subdomain: (item as { sites?: { subdomain?: string } }).sites?.subdomain || null
     })) as ContentWithAuthor[]
 
     return {
@@ -275,7 +275,7 @@ export async function searchAllContent(
       limit,
       has_more: offset + content.length < (total_count || 0)
     }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminContentError) {
       throw error
     }
@@ -358,7 +358,7 @@ export async function updateContent(
     }
 
     return data as ContentRow
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminContentError) {
       throw error
     }
@@ -433,7 +433,7 @@ export async function bulkUpdateContent(
     }
 
     return data as { updated_count: number; total_requested: number }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminContentError) {
       throw error
     }
@@ -471,7 +471,7 @@ export async function deleteContent(
       },
       adminNotes ? `DELETION: ${adminNotes}` : 'DELETION: Content deleted by admin'
     )
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminContentError) {
       throw error
     }
@@ -534,7 +534,7 @@ export async function getContentAnalytics(
     }
 
     return data as unknown as ContentAnalytics
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminContentError) {
       throw error
     }
@@ -587,12 +587,12 @@ export async function getContentById(contentId: string): Promise<ContentWithAuth
     // Transform data to include author and site information
     return {
       ...data,
-      author_name: (data as any).profiles?.full_name || 'Unknown',
-      author_email: (data as any).profiles?.user_id || null,
-      site_name: (data as any).sites?.name || 'Unknown Site',
-      site_subdomain: (data as any).sites?.subdomain || null
+      author_name: (data as { profiles?: { full_name?: string } }).profiles?.full_name || 'Unknown',
+      author_email: (data as { profiles?: { user_id?: string } }).profiles?.user_id || null,
+      site_name: (data as { sites?: { name?: string } }).sites?.name || 'Unknown Site',
+      site_subdomain: (data as { sites?: { subdomain?: string } }).sites?.subdomain || null
     } as ContentWithAuthor
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminContentError) {
       throw error
     }
@@ -637,7 +637,7 @@ export async function getContentTypes(siteId?: string): Promise<string[]> {
     ).sort()
 
     return contentTypes
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminContentError) {
       throw error
     }
@@ -673,7 +673,7 @@ export async function checkAdminAccess(): Promise<boolean> {
     }
 
     return data.role === 'admin'
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error checking admin access:', error)
     return false
   }

@@ -140,7 +140,7 @@ export function ProductPagePreview({ title, subtitle }: ProductPagePreviewProps)
             <ul className="text-sm text-muted-foreground space-y-1">
               <li>• Height: 12-15 inches</li>
               <li>• Width: 8-10 inches</li>
-              <li>• Flowers: Roses, eucalyptus, baby's breath</li>
+              <li>• Flowers: Roses, eucalyptus, baby&apos;s breath</li>
               <li>• Vase: Glass cylinder (optional)</li>
             </ul>
           </div>

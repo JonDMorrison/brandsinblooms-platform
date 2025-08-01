@@ -73,7 +73,7 @@ export interface ProductImportResult {
   failed_rows: number
   total_rows: number
   batch_id: string
-  error_log?: any[]
+  error_log?: Array<Record<string, unknown>>
 }
 
 /**
@@ -83,7 +83,7 @@ export class AdminProductError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message)
     this.name = 'AdminProductError'
@@ -156,7 +156,7 @@ export async function getSiteProducts(
       }
     }
 
-    const dataObj = data as any
+    const dataObj = data as unknown as { products: ProductWithSite[]; total_count: number }
     const products = (dataObj.products || []) as ProductWithSite[]
     const total_count = dataObj.total_count || 0
     
@@ -167,7 +167,7 @@ export async function getSiteProducts(
       limit,
       has_more: offset + products.length < total_count
     }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminProductError) {
       throw error
     }
@@ -313,10 +313,10 @@ export async function searchAllProducts(
     }
 
     // Transform data to include site information
-    const products = (data || []).map((item: any) => ({
+    const products = (data || []).map((item) => ({
       ...item,
-      site_name: item.sites?.name || 'Unknown Site',
-      site_subdomain: item.sites?.subdomain || null
+      site_name: (item as { sites?: { name?: string } }).sites?.name || 'Unknown Site',
+      site_subdomain: (item as { sites?: { subdomain?: string } }).sites?.subdomain || null
     })) as ProductWithSite[]
 
     return {
@@ -326,7 +326,7 @@ export async function searchAllProducts(
       limit,
       has_more: offset + products.length < (total_count || 0)
     }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminProductError) {
       throw error
     }
@@ -409,7 +409,7 @@ export async function updateProduct(
     }
 
     return data as ProductRow
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminProductError) {
       throw error
     }
@@ -484,7 +484,7 @@ export async function bulkUpdateProducts(
     }
 
     return data as { updated_count: number; total_requested: number }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminProductError) {
       throw error
     }
@@ -522,7 +522,7 @@ export async function deleteProducts(
       },
       adminNotes ? `DELETION: ${adminNotes}` : 'DELETION: Products deleted by admin'
     )
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminProductError) {
       throw error
     }
@@ -585,7 +585,7 @@ export async function getProductAnalytics(
     }
 
     return data as unknown as ProductAnalytics
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminProductError) {
       throw error
     }
@@ -637,10 +637,10 @@ export async function getProductById(productId: string): Promise<ProductWithSite
     // Transform data to include site information
     return {
       ...data,
-      site_name: (data as any).sites?.name || 'Unknown Site',
-      site_subdomain: (data as any).sites?.subdomain || null
+      site_name: (data as { sites?: { name?: string } }).sites?.name || 'Unknown Site',
+      site_subdomain: (data as { sites?: { subdomain?: string } }).sites?.subdomain || null
     } as ProductWithSite
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminProductError) {
       throw error
     }
@@ -708,7 +708,7 @@ export async function getProductCategories(siteId?: string): Promise<{
     })
 
     return { categories, subcategories }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminProductError) {
       throw error
     }
@@ -753,7 +753,7 @@ export async function getImportSources(siteId?: string): Promise<string[]> {
     ).sort()
 
     return importSources
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminProductError) {
       throw error
     }
@@ -819,7 +819,7 @@ export async function exportProductsToCSV(
       .join('\n')
 
     return csvContent
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminProductError) {
       throw error
     }
@@ -855,7 +855,7 @@ export async function checkAdminAccess(): Promise<boolean> {
     }
 
     return data.role === 'admin'
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error checking admin access:', error)
     return false
   }

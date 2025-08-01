@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "type-coverage": "npx type-coverage --strict",
+    "type-coverage:report": "npx type-coverage --strict --detail",
     "analyze": "ANALYZE=true next build",
     "generate-types": "supabase gen types typescript --local > src/lib/database/types.ts",
     "shadcn": "pnpm dlx shadcn-ui@latest",
@@ -121,6 +123,7 @@
     "tailwindcss": "^4.1.11",
     "tailwindcss-animate": "^1.0.7",
     "ts-jest": "^29.4.0",
+    "type-coverage": "^2.29.7",
     "typescript": "^5.8.3"
   },
   "engines": {

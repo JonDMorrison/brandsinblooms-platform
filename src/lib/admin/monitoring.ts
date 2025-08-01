@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabase/client'
+import type { Json } from '@/lib/database/types'
 
 // Types for health monitoring
 export interface SiteHealthCheck {
@@ -16,7 +17,7 @@ export interface SiteHealthCheck {
   is_healthy?: boolean
   error_message?: string
   warning_message?: string
-  check_data?: Record<string, any>
+  check_data?: Record<string, unknown>
   http_status_code?: number
   dns_resolution_ms?: number
   ssl_expiry_date?: string
@@ -110,7 +111,7 @@ export async function checkSiteHealth(siteId: string): Promise<SiteHealthSummary
 export async function getSiteHealthSummary(
   siteId: string, 
   daysBack: number = 7
-): Promise<any> {
+): Promise<SiteHealthSummary> {
   const { data, error } = await supabase.rpc('get_site_health_summary', {
     site_uuid: siteId,
     days_back: daysBack
@@ -121,7 +122,7 @@ export async function getSiteHealthSummary(
     throw new Error(`Failed to get site health summary: ${error.message}`)
   }
 
-  return data
+  return data as unknown as SiteHealthSummary
 }
 
 /**
@@ -194,7 +195,7 @@ export async function getPlatformHealthOverview(): Promise<PlatformHealthOvervie
   let healthySites = 0
   let warningSites = 0
   let criticalSites = 0
-  let totalUptime = 0
+  const totalUptime = 0
   let totalResponseTime = 0
   let responseTimeCount = 0
   let totalErrors = 0
@@ -212,7 +213,11 @@ export async function getPlatformHealthOverview(): Promise<PlatformHealthOvervie
     const healthCheck = siteHealthMap.get(site.id)
     
     if (healthCheck) {
-      const healthScore = healthCheck.check_data?.health_score || 0
+      const healthScore = (typeof healthCheck.check_data === 'object' && 
+        healthCheck.check_data !== null && 
+        !Array.isArray(healthCheck.check_data) &&
+        'health_score' in healthCheck.check_data
+      ) ? (healthCheck.check_data.health_score as number) : 0
       
       if (healthScore >= 90) {
         healthySites++
@@ -261,7 +266,7 @@ export async function getPlatformHealthOverview(): Promise<PlatformHealthOvervie
     criticalChecks.forEach(check => {
       recentIssues.push({
         site_id: check.site_id,
-        site_name: (check.sites as any).name,
+        site_name: (check.sites as { name: string }).name,
         issue_type: check.check_type,
         severity: 'high',
         occurred_at: check.checked_at,
@@ -403,7 +408,14 @@ export async function getSitesNeedingAttention(): Promise<Array<{
   }
 
   // Group by site and get latest status
-  const siteMap = new Map<string, any>()
+  const siteMap = new Map<string, {
+    site_id: string
+    site_name: string
+    health_score: number
+    status: string
+    issues: string[]
+    last_checked: string
+  }>()
   data?.forEach(check => {
     if (!siteMap.has(check.site_id)) {
       const issues: string[] = []
@@ -414,19 +426,19 @@ export async function getSitesNeedingAttention(): Promise<Array<{
       }) || {}
       
       if (checkData.issues) {
-        checkData.issues.forEach((issue: any) => {
+        checkData.issues.forEach((issue: { message: string }) => {
           issues.push(issue.message)
         })
       }
       if (checkData.warnings) {
-        checkData.warnings.forEach((warning: any) => {
+        checkData.warnings.forEach((warning: { message: string }) => {
           issues.push(warning.message)
         })
       }
 
       siteMap.set(check.site_id, {
         site_id: check.site_id,
-        site_name: (check.sites as any).name,
+        site_name: (check.sites as { name: string }).name,
         health_score: checkData.health_score || 0,
         status: check.status,
         issues,
@@ -453,14 +465,28 @@ export async function addHealthCheckRecord(
   checkType: string,
   data: Partial<SiteHealthCheck>
 ): Promise<void> {
+  // Prepare the data, ensuring check_data is Json compatible
+  const insertData: any = {
+    site_id: siteId,
+    check_type: checkType,
+    created_at: new Date().toISOString()
+  }
+  
+  // Copy over fields excluding check_data for special handling
+  Object.entries(data).forEach(([key, value]) => {
+    if (key !== 'check_data' && value !== undefined) {
+      insertData[key] = value
+    }
+  })
+  
+  // Handle check_data separately to ensure it's Json compatible
+  if (data.check_data) {
+    insertData.check_data = data.check_data as Json
+  }
+  
   const { error } = await supabase
     .from('site_health_checks')
-    .insert({
-      site_id: siteId,
-      check_type: checkType,
-      ...data,
-      created_at: new Date().toISOString()
-    })
+    .insert(insertData)
 
   if (error) {
     console.error('Error adding health check record:', error)

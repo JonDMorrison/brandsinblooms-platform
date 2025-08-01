@@ -12,7 +12,7 @@ export class SupabaseError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any,
+    public details?: unknown,
     public hint?: string
   ) {
     super(message);
@@ -92,8 +92,11 @@ export class SupabaseError extends Error {
   getRetryDelay(): number {
     if (this.code === '429') {
       // Extract retry-after header if available
-      const retryAfter = this.details?.['retry-after'];
-      return retryAfter ? parseInt(retryAfter) * 1000 : 60000; // Default to 1 minute
+      if (this.details && typeof this.details === 'object' && 'retry-after' in this.details) {
+        const retryAfter = (this.details as any)['retry-after'];
+        return retryAfter ? parseInt(retryAfter) * 1000 : 60000; // Default to 1 minute
+      }
+      return 60000; // Default to 1 minute
     }
 
     // Default exponential backoff delays
@@ -171,7 +174,7 @@ export function handleMutationError(
 /**
  * Format error for logging
  */
-export function formatErrorForLogging(error: SupabaseError): Record<string, any> {
+export function formatErrorForLogging(error: SupabaseError): Record<string, unknown> {
   return {
     name: error.name,
     code: error.code,

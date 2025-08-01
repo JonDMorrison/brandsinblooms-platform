@@ -43,10 +43,10 @@ export function nullToUndefined<T>(value: T | null): T | undefined {
  * @param obj - Object with potentially null properties
  * @returns Object with undefined instead of null
  */
-export function nullsToUndefined<T extends Record<string, any>>(
+export function nullsToUndefined<T extends Record<string, unknown>>(
   obj: T
 ): NullableToOptional<T> {
-  const result: any = {}
+  const result: Record<string, unknown> = {}
   
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -54,7 +54,7 @@ export function nullsToUndefined<T extends Record<string, any>>(
     }
   }
   
-  return result
+  return result as NullableToOptional<T>
 }
 
 /**
@@ -77,10 +77,10 @@ export function undefinedToNull<T>(value: T | undefined): T | null {
  * Converts all undefined properties in an object to null
  * Useful when preparing data for database insertion
  */
-export function undefinedsToNull<T extends Record<string, any>>(
+export function undefinedsToNull<T extends Record<string, unknown>>(
   obj: T
 ): { [K in keyof T]: T[K] extends undefined ? null : T[K] } {
-  const result: any = {}
+  const result: Record<string, unknown> = {}
   
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -88,7 +88,7 @@ export function undefinedsToNull<T extends Record<string, any>>(
     }
   }
   
-  return result
+  return result as { [K in keyof T]: T[K] extends undefined ? null : T[K] }
 }
 
 /**
@@ -96,7 +96,7 @@ export function undefinedsToNull<T extends Record<string, any>>(
  * @param value - JSON string or object
  * @returns Parsed object with nulls converted to undefined
  */
-export function safeParseJsonWithNulls<T = any>(
+export function safeParseJsonWithNulls<T = unknown>(
   value: string | object | null | undefined
 ): T | undefined {
   if (!value) return undefined

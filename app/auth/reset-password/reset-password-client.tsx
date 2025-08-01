@@ -35,6 +35,11 @@ export default function ResetPasswordClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
+  // Generate unique IDs at the top level
+  const newPasswordId = React.useId()
+  const confirmPasswordId = React.useId()
+  const emailId = React.useId()
+  
   // Check if we have a token in the URL (user clicked email link)
   const hasToken = searchParams.has('code')
 
@@ -94,14 +99,13 @@ export default function ResetPasswordClient() {
                   control={newPasswordForm.control}
                   name="password"
                   render={({ field }) => {
-                    const fieldId = `new-password-${React.useId()}`
                     return (
                       <FormItem>
-                        <FormLabel htmlFor={fieldId}>New Password</FormLabel>
+                        <FormLabel htmlFor={newPasswordId}>New Password</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            id={fieldId}
+                            id={newPasswordId}
                             type="password"
                             placeholder="Enter new password"
                             autoComplete="new-password"
@@ -116,14 +120,13 @@ export default function ResetPasswordClient() {
                   control={newPasswordForm.control}
                   name="confirmPassword"
                   render={({ field }) => {
-                    const fieldId = `confirm-password-${React.useId()}`
                     return (
                       <FormItem>
-                        <FormLabel htmlFor={fieldId}>Confirm Password</FormLabel>
+                        <FormLabel htmlFor={confirmPasswordId}>Confirm Password</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            id={fieldId}
+                            id={confirmPasswordId}
                             type="password"
                             placeholder="Confirm new password"
                             autoComplete="new-password"
@@ -167,7 +170,7 @@ export default function ResetPasswordClient() {
           <CardTitle className="text-2xl">Reset your password</CardTitle>
           <CardDescription>
             {isResetMode 
-              ? "We've sent you a password reset link" 
+              ? "We&apos;ve sent you a password reset link" 
               : "Enter your email to receive a reset link"}
           </CardDescription>
         </CardHeader>
@@ -176,7 +179,7 @@ export default function ResetPasswordClient() {
             <div className="space-y-4 text-center">
               <p className="text-sm text-muted-foreground">
                 Check your email for a link to reset your password. 
-                If it doesn't appear within a few minutes, check your spam folder.
+                If it doesn&apos;t appear within a few minutes, check your spam folder.
               </p>
               <Button
                 variant="outline"
@@ -199,14 +202,13 @@ export default function ResetPasswordClient() {
                   control={resetForm.control}
                   name="email"
                   render={({ field }) => {
-                    const fieldId = `email-${React.useId()}`
                     return (
                       <FormItem>
-                        <FormLabel htmlFor={fieldId}>Email</FormLabel>
+                        <FormLabel htmlFor={emailId}>Email</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            id={fieldId}
+                            id={emailId}
                             type="email"
                             placeholder="Enter your email"
                             autoComplete="email"

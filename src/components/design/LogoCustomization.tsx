@@ -20,7 +20,11 @@ interface LogoCustomizationProps {
     position: string
     size: string
   }
-  onLogoChange: (logo: any) => void
+  onLogoChange: (logo: {
+    url: string | null
+    position: string
+    size: string
+  }) => void
 }
 
 const logoPositions = [
@@ -173,7 +177,7 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
     }
   }
 
-  const generateAILogo = (template: any) => {
+  const generateAILogo = (template: typeof logoTemplates[0]) => {
     // Mock AI logo generation - create a simple SVG logo
     const svg = `data:image/svg+xml,${encodeURIComponent(`
       <svg width="200" height="80" xmlns="http://www.w3.org/2000/svg">

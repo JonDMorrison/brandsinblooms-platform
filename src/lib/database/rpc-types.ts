@@ -209,7 +209,7 @@ export function isAuditLogResponse(data: unknown): data is AuditLogResponse {
     data !== null &&
     'logs' in data &&
     'total_count' in data &&
-    Array.isArray((data as any).logs)
+    Array.isArray((data as AuditLogResponse).logs)
   )
 }
 

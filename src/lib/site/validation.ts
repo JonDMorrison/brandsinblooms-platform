@@ -377,16 +377,17 @@ function isValidHexColor(color: string): boolean {
 /**
  * Validates business hours format
  */
-export function isValidBusinessHours(businessHours: any): boolean {
+export function isValidBusinessHours(businessHours: unknown): boolean {
   if (!businessHours || typeof businessHours !== 'object') {
     return false
   }
 
+  const hoursObj = businessHours as Record<string, any>
   const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
   
   for (const day of daysOfWeek) {
-    if (businessHours[day]) {
-      const hours = businessHours[day]
+    if (hoursObj[day]) {
+      const hours = hoursObj[day]
       
       if (typeof hours !== 'object' || !hours.open || !hours.close) {
         return false

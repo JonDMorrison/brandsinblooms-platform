@@ -4,6 +4,7 @@
  */
 
 import { Site } from '@/lib/database/aliases'
+import { handleError } from '@/lib/types/error-handling'
 
 // Analytics event types
 interface BaseEvent {
@@ -11,7 +12,7 @@ interface BaseEvent {
   timestamp: number
   sessionId?: string
   userId?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 interface PageViewEvent extends BaseEvent {
@@ -280,8 +281,9 @@ export async function trackPageView(
 
   try {
     await storage.store(event)
-  } catch (error) {
-    console.error('[Analytics] Failed to track page view:', error)
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Analytics] Failed to track page view:', handled)
   }
 }
 
@@ -316,8 +318,9 @@ export async function trackDomainResolution(
 
   try {
     await storage.store(event)
-  } catch (error) {
-    console.error('[Analytics] Failed to track domain resolution:', error)
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Analytics] Failed to track domain resolution:', handled)
   }
 }
 
@@ -348,8 +351,9 @@ export async function trackError(
 
   try {
     await storage.store(event)
-  } catch (error) {
-    console.error('[Analytics] Failed to track error:', error)
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Analytics] Failed to track error:', handled)
   }
 }
 
@@ -375,8 +379,9 @@ export async function trackPerformance(
 
   try {
     await storage.store(event)
-  } catch (error) {
-    console.error('[Analytics] Failed to track performance:', error)
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Analytics] Failed to track performance:', handled)
   }
 }
 
@@ -406,8 +411,9 @@ export async function trackSecurityEvent(
 
   try {
     await storage.store(event)
-  } catch (error) {
-    console.error('[Analytics] Failed to track security event:', error)
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Analytics] Failed to track security event:', handled)
   }
 }
 
@@ -534,8 +540,9 @@ export async function getSiteAnalytics(
         securityViolations: securityEvents,
       },
     }
-  } catch (error) {
-    console.error('[Analytics] Failed to get site analytics:', error)
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Analytics] Failed to get site analytics:', handled)
     throw error
   }
 }
@@ -622,8 +629,9 @@ export async function getSystemAnalytics(
         securityViolationCount: securityEvents.total,
       },
     }
-  } catch (error) {
-    console.error('[Analytics] Failed to get system analytics:', error)
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Analytics] Failed to get system analytics:', handled)
     throw error
   }
 }
@@ -666,7 +674,8 @@ export async function getAnalyticsHealth(): Promise<{
         eventCount: recentEvents.total,
       },
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const handled = handleError(error)
     return {
       status: 'unhealthy',
       storage: {
@@ -674,7 +683,7 @@ export async function getAnalyticsHealth(): Promise<{
         connected: false,
         eventCount: 0,
       },
-      lastError: error.message,
+      lastError: handled.message,
     }
   }
 }

@@ -174,7 +174,7 @@ export function SiteSettings() {
                     Site Information
                   </CardTitle>
                   <CardDescription>
-                    Configure your site's basic information.
+                    Configure your site&apos;s basic information.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -188,7 +188,7 @@ export function SiteSettings() {
                           <Input placeholder="Enter your site name" {...field} disabled={!canManage} />
                         </FormControl>
                         <FormDescription>
-                          This will appear in your site's title and navigation.
+                          This will appear in your site&apos;s title and navigation.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -211,7 +211,7 @@ export function SiteSettings() {
                           />
                         </FormControl>
                         <FormDescription>
-                          A brief description of your site's purpose.
+                          A brief description of your site&apos;s purpose.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

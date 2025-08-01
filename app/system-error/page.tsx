@@ -40,7 +40,7 @@ export default async function SystemErrorPage({ searchParams }: PageProps) {
             System Error
           </h1>
           <p className="text-gray-600">
-            We're experiencing temporary technical difficulties.
+            We&apos;re experiencing temporary technical difficulties.
           </p>
         </div>
 

@@ -1,11 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { ApiRequest, ApiResponse, apiSuccess, apiError, ApiResult } from '@/src/lib/types/api'
 
 /**
  * API endpoint for cleaning up expired impersonation sessions
  * Can be called by cron jobs, monitoring systems, or admin interfaces
  */
-export async function POST(request: NextRequest) {
+interface CleanupSessionsData {
+  expired_sessions_count: number
+  cleanup_timestamp: string
+  message: string
+}
+
+export const POST = async (request: ApiRequest<void>): Promise<ApiResponse<ApiResult<CleanupSessionsData>>> => {
   try {
     // Create Supabase client
     const supabase = createServerClient(
@@ -27,10 +33,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
+      return apiError('Authentication required', 'AUTH_REQUIRED', 401)
     }
 
     // Check if user is admin
@@ -41,10 +44,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (profileError || profile?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Admin privileges required' },
-        { status: 403 }
-      )
+      return apiError('Admin privileges required', 'ADMIN_REQUIRED', 403)
     }
 
     // Call the cleanup function
@@ -53,18 +53,15 @@ export async function POST(request: NextRequest) {
 
     if (cleanupError) {
       console.error('Error during session cleanup:', cleanupError)
-      return NextResponse.json(
-        { 
-          error: 'Failed to cleanup sessions',
-          details: cleanupError.message 
-        },
-        { status: 500 }
+      return apiError(
+        'Failed to cleanup sessions',
+        'CLEANUP_FAILED',
+        500
       )
     }
 
     // Return cleanup results
-    return NextResponse.json({
-      success: true,
+    return apiSuccess({
       expired_sessions_count: cleanupResult.expired_sessions_count,
       cleanup_timestamp: cleanupResult.cleanup_timestamp,
       message: `Successfully cleaned up ${cleanupResult.expired_sessions_count} expired sessions`
@@ -72,17 +69,22 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Unexpected error during session cleanup:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return apiError('Internal server error', 'INTERNAL_ERROR', 500)
   }
 }
 
 /**
  * GET endpoint to check cleanup status and get statistics
  */
-export async function GET(request: NextRequest) {
+interface SessionStatsData {
+  active_sessions_count: number
+  expiring_sessions_count: number
+  last_cleanup_check: string
+  cleanup_threshold_minutes: number
+  total_sessions_fetched: number
+}
+
+export const GET = async (request: ApiRequest<void>): Promise<ApiResponse<ApiResult<SessionStatsData>>> => {
   try {
     // Create Supabase client
     const supabase = createServerClient(
@@ -104,10 +106,7 @@ export async function GET(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
+      return apiError('Authentication required', 'AUTH_REQUIRED', 401)
     }
 
     // Check if user is admin
@@ -118,10 +117,7 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (profileError || profile?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Admin privileges required' },
-        { status: 403 }
-      )
+      return apiError('Admin privileges required', 'ADMIN_REQUIRED', 403)
     }
 
     // Get active sessions count
@@ -134,23 +130,24 @@ export async function GET(request: NextRequest) {
 
     if (activeError) {
       console.error('Error fetching active sessions:', activeError)
-      return NextResponse.json(
-        { error: 'Failed to fetch session statistics' },
-        { status: 500 }
+      return apiError(
+        'Failed to fetch session statistics',
+        'SESSION_STATS_ERROR',
+        500
       )
     }
 
     // Count sessions by expiry status
     const now = new Date()
-    const sessions = activeSessions.sessions || []
+    const sessions = (activeSessions.sessions as Array<{ expires_at: string }>) || []
     
-    const expiringCount = sessions.filter((session: any) => {
+    const expiringCount = sessions.filter((session) => {
       const expiryTime = new Date(session.expires_at)
       const timeUntilExpiry = expiryTime.getTime() - now.getTime()
       return timeUntilExpiry <= 10 * 60 * 1000 // Expiring within 10 minutes
     }).length
 
-    return NextResponse.json({
+    return apiSuccess({
       active_sessions_count: sessions.length,
       expiring_sessions_count: expiringCount,
       last_cleanup_check: now.toISOString(),
@@ -160,26 +157,17 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Unexpected error fetching cleanup statistics:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return apiError('Internal server error', 'INTERNAL_ERROR', 500)
   }
 }
 
 /**
  * OPTIONS for CORS support
  */
-export async function OPTIONS() {
-  return NextResponse.json(
-    { message: 'Session cleanup endpoint' },
-    { 
-      status: 200,
-      headers: {
-        'Allow': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    }
-  )
+export const OPTIONS = async () => {
+  const response = apiSuccess({ message: 'Session cleanup endpoint' })
+  response.headers.set('Allow', 'GET, POST, OPTIONS')
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  return response
 }

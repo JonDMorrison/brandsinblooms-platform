@@ -6,7 +6,8 @@
  */
 
 import { supabase } from '@/lib/supabase/client'
-import type { Database } from '@/lib/database/types'
+import type { Database, Json } from '@/lib/database/types'
+import { ThemeSettings, BusinessHours } from '@/lib/database/json-types'
 
 // Type definitions for site templates
 export interface SiteTemplate {
@@ -16,10 +17,10 @@ export interface SiteTemplate {
   description: string | null
   category: string
   preview_image_url: string | null
-  template_config: any
-  default_content: any | null
-  default_products: any | null
-  default_business_hours: any | null
+  template_config: Json
+  default_content: Json | null
+  default_products: Json | null
+  default_business_hours: BusinessHours | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -37,7 +38,7 @@ export interface SiteCreationRequest {
     business_phone?: string
     business_address?: string
     primary_color?: string
-    business_hours?: any
+    business_hours?: BusinessHours
   }
 }
 
@@ -59,7 +60,7 @@ export interface SiteConfigurationUpdate {
   business_email?: string
   business_phone?: string
   business_address?: string
-  business_hours?: any
+  business_hours?: BusinessHours
   primary_color?: string
   logo_url?: string
   custom_domain?: string
@@ -145,7 +146,7 @@ export class AdminSiteError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message)
     this.name = 'AdminSiteError'
@@ -190,7 +191,7 @@ export async function getAllSites(
       }
     }
 
-    const dataObj = data as any
+    const dataObj = data as unknown as { sites: SiteWithStats[]; total_count: number }
     const sites = (dataObj.sites || []) as SiteWithStats[]
     const total_count = dataObj.total_count || 0
     
@@ -201,7 +202,7 @@ export async function getAllSites(
       limit,
       has_more: offset + sites.length < total_count
     }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -230,7 +231,7 @@ export async function searchSites(
       ...filters,
       search: query
     })
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -295,7 +296,7 @@ export async function getSiteStats(siteId: string): Promise<SiteStats> {
     }
 
     return data as unknown as SiteStats
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -366,7 +367,7 @@ export async function updateSiteStatus(
     }
 
     return data === true
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -413,7 +414,7 @@ export async function getSiteById(siteId: string): Promise<Database['public']['T
     }
 
     return data
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -471,7 +472,7 @@ export async function getSiteMetrics(
     }
 
     return data || []
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -507,7 +508,7 @@ export async function checkAdminAccess(): Promise<boolean> {
     }
 
     return data.role === 'admin'
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error checking admin access:', error)
     return false
   }
@@ -536,7 +537,7 @@ export async function getRecentActivity(limit: number = 10): Promise<SiteWithSta
     const response = await getAllSites(1, limit, {})
     return response.sites.filter(site => site.last_activity_at)
       .sort((a, b) => new Date(b.last_activity_at!).getTime() - new Date(a.last_activity_at!).getTime())
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -576,7 +577,7 @@ export async function getSitesNeedingAttention(): Promise<SiteWithStats[]> {
         new Date(site.last_activity_at) < thirtyDaysAgo
       )
     })
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -620,8 +621,8 @@ export async function getSiteTemplates(
       return []
     }
 
-    return (data as any).templates || []
-  } catch (error) {
+    return (data as unknown as { templates: SiteTemplate[] }).templates || []
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -662,7 +663,7 @@ export async function getTemplateBySlug(slug: string): Promise<SiteTemplate | nu
     }
 
     return data as unknown as SiteTemplate
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -711,7 +712,7 @@ export async function checkSubdomainAvailability(subdomain: string): Promise<boo
     }
 
     return data === true
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -812,7 +813,7 @@ export async function createSiteWithTemplate(
     }
 
     return data as unknown as SiteCreationResult
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -881,7 +882,7 @@ export async function updateSiteConfiguration(
     }
 
     return true
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }
@@ -903,7 +904,7 @@ export async function getSiteConfiguration(siteId: string): Promise<Database['pu
     await requireAdminAccess()
 
     return await getSiteById(siteId)
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AdminSiteError) {
       throw error
     }

@@ -2,7 +2,7 @@ export class SupabaseError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message)
     this.name = 'SupabaseError'
@@ -10,15 +10,16 @@ export class SupabaseError extends Error {
 }
 
 export async function executeQuery<T>(
-  query: Promise<{ data: T[] | null; error: any }>
+  query: Promise<{ data: T[] | null; error: unknown }>
 ): Promise<T[]> {
   const { data, error } = await query
   
   if (error) {
+    const err = error as { message?: string; code?: string; details?: unknown }
     throw new SupabaseError(
-      error.message,
-      error.code,
-      error.details
+      err.message || 'Unknown error',
+      err.code || 'UNKNOWN',
+      err.details
     )
   }
   

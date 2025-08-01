@@ -4,7 +4,8 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/database/types';
+import { Database, Tables, TablesInsert, TablesUpdate, Json } from '@/lib/database/types';
+import { ProductAttributes } from '@/lib/database/json-types';
 import { 
   handleQueryResponse, 
   handleSingleResponse,
@@ -22,9 +23,9 @@ import {
 } from '../base';
 import { SupabaseError } from '../errors';
 
-type Product = RowType<'products'>;
-type InsertProduct = InsertType<'products'>;
-type UpdateProduct = UpdateType<'products'>;
+type Product = Tables<'products'>;
+type InsertProduct = TablesInsert<'products'>;
+type UpdateProduct = TablesUpdate<'products'>;
 
 export interface ProductFilters extends QueryParams<Product> {
   category?: string;
@@ -50,9 +51,7 @@ export interface ProductImage {
   isPrimary?: boolean;
 }
 
-export interface ProductAttributes {
-  [key: string]: any;
-}
+// ProductAttributes now imported from json-types.ts
 
 /**
  * Get paginated product list
@@ -157,10 +156,10 @@ export async function getProducts(
   const data = await handleQueryResponse(await dataQuery);
 
   // Transform data to flatten tags
-  const transformedData = data.map((item: any) => ({
+  const transformedData = data.map((item) => ({
     ...item,
     tags: Array.isArray(item.tags) 
-      ? item.tags.map((t: any) => t.tag).filter(Boolean) 
+      ? item.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
       : [],
   }));
 
@@ -195,7 +194,7 @@ export async function getProductById(
   
   // Transform tags - handle potential relation errors
   const tags = Array.isArray(data.tags) 
-    ? data.tags.map((t: any) => t.tag).filter(Boolean) 
+    ? data.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
     : [];
   
   return {
@@ -232,7 +231,7 @@ export async function getProductBySlug(
   
   // Transform tags - handle potential relation errors
   const tags = Array.isArray(data.tags) 
-    ? data.tags.map((t: any) => t.tag).filter(Boolean) 
+    ? data.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
     : [];
   
   return {
@@ -269,7 +268,7 @@ export async function getProductBySku(
   
   // Transform tags - handle potential relation errors
   const tags = Array.isArray(data.tags) 
-    ? data.tags.map((t: any) => t.tag).filter(Boolean) 
+    ? data.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
     : [];
   
   return {
@@ -484,10 +483,10 @@ export async function getProductsByCategory(
     .order('created_at', { ascending: false });
 
   const data = await handleQueryResponse(await query);
-  return data.map((item: any) => ({
+  return data.map((item) => ({
     ...item,
     tags: Array.isArray(item.tags) 
-      ? item.tags.map((t: any) => t.tag).filter(Boolean) 
+      ? item.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
       : [],
   }));
   
@@ -514,10 +513,10 @@ export async function searchProducts(
     .order('created_at', { ascending: false });
 
   const data = await handleQueryResponse(await query);
-  return data.map((item: any) => ({
+  return data.map((item) => ({
     ...item,
     tags: Array.isArray(item.tags) 
-      ? item.tags.map((t: any) => t.tag).filter(Boolean) 
+      ? item.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
       : [],
   }));
   
@@ -665,13 +664,25 @@ export async function checkSkuAvailability(
 /**
  * Parse product images from JSON
  */
-export function parseProductImages(images: any): ProductImage[] {
-  return safeJsonParse<ProductImage[]>(images, []);
+export function parseProductImages(images: Json): ProductImage[] {
+  // Handle the Json type properly
+  if (!images) return [];
+  if (Array.isArray(images)) return images as unknown as ProductImage[];
+  if (typeof images === 'string') return safeJsonParse<ProductImage[]>(images, []);
+  return [];
 }
 
 /**
  * Parse product attributes from JSON
  */
-export function parseProductAttributes(attributes: any): ProductAttributes {
-  return safeJsonParse<ProductAttributes>(attributes, {});
+export function parseProductAttributes(attributes: Json): ProductAttributes {
+  // Handle the Json type properly
+  if (!attributes) return {};
+  if (typeof attributes === 'object' && !Array.isArray(attributes)) {
+    return attributes as unknown as ProductAttributes;
+  }
+  if (typeof attributes === 'string') {
+    return safeJsonParse<ProductAttributes>(attributes, {});
+  }
+  return {};
 }

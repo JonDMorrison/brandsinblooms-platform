@@ -258,17 +258,17 @@ export function TemplateSelector({
                 </div>
 
                 {/* Template Configuration Preview */}
-                {template.template_config && (
+                {template.template_config && typeof template.template_config === 'object' && !Array.isArray(template.template_config) && (
                   <div className="mt-3 pt-3 border-t">
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-4 h-4 rounded border"
                         style={{ 
-                          backgroundColor: template.template_config.primary_color || '#22c55e' 
+                          backgroundColor: (template.template_config as Record<string, unknown>).primary_color as string || '#22c55e' 
                         }}
                       />
                       <span className="text-xs text-gray-600">
-                        {template.template_config.font_family || 'Inter'} • {template.template_config.layout_style || 'Modern'}
+                        {(template.template_config as Record<string, unknown>).font_family as string || 'Inter'} • {(template.template_config as Record<string, unknown>).layout_style as string || 'Modern'}
                       </span>
                     </div>
                   </div>

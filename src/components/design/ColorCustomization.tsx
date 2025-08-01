@@ -19,7 +19,12 @@ interface ColorCustomizationProps {
     accent: string
     background: string
   }
-  onColorsChange: (colors: any) => void
+  onColorsChange: (colors: {
+    primary: string
+    secondary: string
+    accent: string
+    background: string
+  }) => void
 }
 
 const colorPresets = [

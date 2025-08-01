@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { Json } from '@/lib/database/types'
 
 // Audit action types
 export type AuditActionType = 
@@ -36,8 +37,8 @@ export interface AdminAuditLogEntry {
   action_type: AuditActionType
   target_type: AuditTargetType
   target_id?: string
-  old_values?: Record<string, any>
-  new_values?: Record<string, any>
+  old_values?: Json
+  new_values?: Json
   action_details?: string
   ip_address?: string
   user_agent?: string
@@ -70,8 +71,8 @@ export async function logAdminAction(
   actionType: AuditActionType,
   targetType: AuditTargetType,
   targetId?: string,
-  oldValues?: Record<string, any>,
-  newValues?: Record<string, any>,
+  oldValues?: Json,
+  newValues?: Json,
   details?: string
 ): Promise<string | null> {
   try {
@@ -98,7 +99,7 @@ export async function logAdminAction(
     }
 
     return data as string
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('Unexpected error logging admin action:', err)
     return null
   }
@@ -127,12 +128,16 @@ export async function getAdminAuditLogs(
       return null
     }
 
-    const result = data as any
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return { logs: [], totalCount: 0 }
+    }
+    
+    const result = data as unknown as { logs: AdminAuditLogEntry[]; total_count: number }
     return {
       logs: result?.logs || [],
       totalCount: result?.total_count || 0
     }
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('Unexpected error fetching admin audit logs:', err)
     return null
   }
@@ -183,7 +188,7 @@ export async function getImpersonationAuditLogs(
       logs: paginatedLogs,
       totalCount
     }
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('Error fetching impersonation audit logs:', err)
     return null
   }
@@ -195,56 +200,65 @@ export async function getImpersonationAuditLogs(
 export function formatActionDetails(
   actionType: AuditActionType,
   targetType: AuditTargetType,
-  oldValues?: Record<string, any>,
-  newValues?: Record<string, any>,
+  oldValues?: Json,
+  newValues?: Json,
   details?: string
 ): string {
   if (details) return details
 
   switch (actionType) {
     case 'impersonation_start':
-      const duration = newValues?.duration_hours
-      const purpose = newValues?.purpose
+      const values1 = newValues as Record<string, unknown> | undefined
+      const duration = values1?.duration_hours
+      const purpose = values1?.purpose
       return `Started impersonation session${duration ? ` for ${duration} hours` : ''}${purpose ? ` (${purpose})` : ''}`
 
     case 'impersonation_end':
-      const endReason = newValues?.end_reason
-      const sessionDuration = newValues?.duration
+      const values2 = newValues as Record<string, unknown> | undefined
+      const endReason = values2?.end_reason
+      const sessionDuration = values2?.duration as number | undefined
       return `Ended impersonation session${endReason ? ` (${endReason})` : ''}${sessionDuration ? ` after ${sessionDuration.toFixed(1)} hours` : ''}`
 
     case 'site_create':
-      return `Created site: ${newValues?.name || 'Unnamed'}`
+      const values3 = newValues as Record<string, unknown> | undefined
+      return `Created site: ${values3?.name || 'Unnamed'}`
 
     case 'site_update':
+      const oldSite = oldValues as Record<string, unknown> | undefined
+      const newSite = newValues as Record<string, unknown> | undefined
       const changes = []
-      if (oldValues?.name !== newValues?.name) {
-        changes.push(`name: "${oldValues?.name}" → "${newValues?.name}"`)
+      if (oldSite?.name !== newSite?.name) {
+        changes.push(`name: "${oldSite?.name}" → "${newSite?.name}"`)
       }
-      if (oldValues?.is_published !== newValues?.is_published) {
-        changes.push(`published: ${oldValues?.is_published} → ${newValues?.is_published}`)
+      if (oldSite?.is_published !== newSite?.is_published) {
+        changes.push(`published: ${oldSite?.is_published} → ${newSite?.is_published}`)
       }
       return changes.length > 0 ? `Updated ${changes.join(', ')}` : 'Updated site settings'
 
     case 'content_update':
+      const oldContent = oldValues as Record<string, unknown> | undefined
+      const newContent = newValues as Record<string, unknown> | undefined
       const contentChanges = []
-      if (oldValues?.title !== newValues?.title) {
-        contentChanges.push(`title: "${oldValues?.title}" → "${newValues?.title}"`)
+      if (oldContent?.title !== newContent?.title) {
+        contentChanges.push(`title: "${oldContent?.title}" → "${newContent?.title}"`)
       }
-      if (oldValues?.is_published !== newValues?.is_published) {
-        contentChanges.push(`published: ${oldValues?.is_published} → ${newValues?.is_published}`)
+      if (oldContent?.is_published !== newContent?.is_published) {
+        contentChanges.push(`published: ${oldContent?.is_published} → ${newContent?.is_published}`)
       }
       return contentChanges.length > 0 ? `Updated ${contentChanges.join(', ')}` : 'Updated content'
 
     case 'product_update':
+      const oldProduct = oldValues as Record<string, unknown> | undefined
+      const newProduct = newValues as Record<string, unknown> | undefined
       const productChanges = []
-      if (oldValues?.name !== newValues?.name) {
-        productChanges.push(`name: "${oldValues?.name}" → "${newValues?.name}"`)
+      if (oldProduct?.name !== newProduct?.name) {
+        productChanges.push(`name: "${oldProduct?.name}" → "${newProduct?.name}"`)
       }
-      if (oldValues?.price !== newValues?.price) {
-        productChanges.push(`price: $${oldValues?.price} → $${newValues?.price}`)
+      if (oldProduct?.price !== newProduct?.price) {
+        productChanges.push(`price: $${oldProduct?.price} → $${newProduct?.price}`)
       }
-      if (oldValues?.is_active !== newValues?.is_active) {
-        productChanges.push(`active: ${oldValues?.is_active} → ${newValues?.is_active}`)
+      if (oldProduct?.is_active !== newProduct?.is_active) {
+        productChanges.push(`active: ${oldProduct?.is_active} → ${newProduct?.is_active}`)
       }
       return productChanges.length > 0 ? `Updated ${productChanges.join(', ')}` : 'Updated product'
 

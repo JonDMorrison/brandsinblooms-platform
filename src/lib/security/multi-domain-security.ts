@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { Site } from '@/lib/database/aliases'
+import { handleError } from '@/lib/types/error-handling'
 
 // Security configuration
 interface SecurityConfig {
@@ -550,12 +551,13 @@ export async function applyMultiDomainSecurity(
     applySecurityHeaders(response, site)
 
     return { success: true, response }
-  } catch (error: any) {
-    console.error('[Multi-Domain Security] Unexpected error:', error)
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Multi-Domain Security] Unexpected error:', handled)
     return {
       success: false,
       response: createSecurityErrorResponse('Internal security error', 500),
-      error: error.message,
+      error: handled.message,
     }
   }
 }
@@ -589,8 +591,9 @@ export async function validateDomainOwnership(
     }
 
     return { valid: true }
-  } catch (error: any) {
-    return { valid: false, error: error.message }
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    return { valid: false, error: handled.message }
   }
 }
 

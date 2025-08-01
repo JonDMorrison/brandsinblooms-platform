@@ -9,7 +9,7 @@ import { Site, SiteWithMemberships, SiteMembership, SiteMembershipRole } from '@
 export interface SiteQueryError {
   code: string
   message: string
-  details?: any
+  details?: unknown
 }
 
 export interface SiteQueryResult<T> {
@@ -260,7 +260,7 @@ export async function getUserSites(
     
     // Transform the data to match UserSiteAccess interface
     const userSites: UserSiteAccess[] = (data || [])
-      .map((membership: any) => {
+      .map((membership: { site_id: string; role: string; is_active: boolean | null; created_at: string; id: string; user_id: string }) => {
         const site = sites?.find(s => s.id === membership.site_id)
         if (!site) return null
         
@@ -271,7 +271,7 @@ export async function getUserSites(
             user_id: membership.user_id,
             site_id: membership.site_id,
             role: membership.role,
-            is_active: membership.is_active,
+            is_active: membership.is_active ?? false,
             created_at: membership.created_at
           } as SiteMembership,
           role: membership.role as SiteMembershipRole,

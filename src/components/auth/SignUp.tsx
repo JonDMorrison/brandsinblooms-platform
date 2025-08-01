@@ -17,6 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { signInWithProvider, handleAuthError } from '@/lib/auth/client'
+import { AuthError } from '@supabase/supabase-js'
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false)
@@ -24,6 +25,12 @@ export default function SignUp() {
   const [isLoadingProvider, setIsLoadingProvider] = useState<string | null>(null)
   const { signUp } = useAuth()
   const router = useRouter()
+
+  // Generate unique IDs at the top level
+  const emailId = React.useId()
+  const passwordId = React.useId()
+  const confirmPasswordId = React.useId()
+  const acceptTermsId = React.useId()
 
   const form = useForm<SignUpData>({
     resolver: zodResolver(signUpSchema),
@@ -40,8 +47,8 @@ export default function SignUp() {
       await signUp(data.email, data.password)
       toast.success('Account created! Please check your email to verify your account.')
       router.push('/auth/verify-email')
-    } catch (error: any) {
-      const message = handleAuthError(error)
+    } catch (error) {
+      const message = handleAuthError(error as AuthError)
       toast.error(message)
     }
   }
@@ -50,7 +57,7 @@ export default function SignUp() {
     try {
       setIsLoadingProvider(provider)
       await signInWithProvider(provider)
-    } catch (error: any) {
+    } catch (error) {
       toast.error(`Failed to sign up with ${provider}. Please try again.`)
     } finally {
       setIsLoadingProvider(null)
@@ -88,14 +95,13 @@ export default function SignUp() {
                 control={form.control}
                 name="email"
                 render={({ field }) => {
-                  const fieldId = `email-${React.useId()}`
                   return (
                     <FormItem>
-                      <FormLabel htmlFor={fieldId}>Email</FormLabel>
+                      <FormLabel htmlFor={emailId}>Email</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          id={fieldId}
+                          id={emailId}
                           type="email"
                           placeholder="Enter your email"
                           autoComplete="email"
@@ -112,15 +118,14 @@ export default function SignUp() {
                 control={form.control}
                 name="password"
                 render={({ field }) => {
-                  const fieldId = `password-${React.useId()}`
                   return (
                     <FormItem>
-                      <FormLabel htmlFor={fieldId}>Password</FormLabel>
+                      <FormLabel htmlFor={passwordId}>Password</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             {...field}
-                            id={fieldId}
+                            id={passwordId}
                             type={showPassword ? 'text' : 'password'}
                             placeholder="Create a password"
                             autoComplete="new-password"
@@ -176,15 +181,14 @@ export default function SignUp() {
                 control={form.control}
                 name="confirmPassword"
                 render={({ field }) => {
-                  const fieldId = `confirm-password-${React.useId()}`
                   return (
                     <FormItem>
-                      <FormLabel htmlFor={fieldId}>Confirm Password</FormLabel>
+                      <FormLabel htmlFor={confirmPasswordId}>Confirm Password</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
                             {...field}
-                            id={fieldId}
+                            id={confirmPasswordId}
                             type={showConfirmPassword ? 'text' : 'password'}
                             placeholder="Confirm your password"
                             autoComplete="new-password"
@@ -215,12 +219,11 @@ export default function SignUp() {
                 control={form.control}
                 name="acceptTerms"
                 render={({ field }) => {
-                  const fieldId = `accept-terms-${React.useId()}`
                   return (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                       <FormControl>
                         <Checkbox
-                          id={fieldId}
+                          id={acceptTermsId}
                           checked={field.value}
                           onCheckedChange={field.onChange}
                           name={field.name}
@@ -230,7 +233,7 @@ export default function SignUp() {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel htmlFor={fieldId}>
+                        <FormLabel htmlFor={acceptTermsId}>
                         I agree to the{' '}
                         <Link href="/terms" className="text-primary hover:underline">
                           Terms of Service

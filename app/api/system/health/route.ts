@@ -3,13 +3,14 @@
  * Provides comprehensive health status for monitoring
  */
 
-import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 // Dynamic import for Redis cache to avoid bundling Node.js built-ins
 // import { getRedisCacheHealth } from '@/lib/cache/redis-site-cache.server'
 import { getSiteCacheStats } from '@/lib/cache/site-cache'
 import { getAnalyticsHealth } from '@/lib/monitoring/site-analytics'
+import { handleError } from '@/lib/types/error-handling'
+import { ApiHandler, ApiRequest, ApiResponse, apiSuccess, apiError, ApiResult } from '@/src/lib/types/api'
 
 interface HealthCheckResult {
   status: 'healthy' | 'degraded' | 'unhealthy'
@@ -86,10 +87,11 @@ async function checkDatabaseHealth(): Promise<HealthCheckResult['services']['dat
       status: responseTime < 500 ? 'healthy' : 'degraded',
       responseTime,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const handled = handleError(error)
     return {
       status: 'unhealthy',
-      error: error.message,
+      error: handled.message,
     }
   }
 }
@@ -120,11 +122,12 @@ async function checkCacheHealth(): Promise<HealthCheckResult['services']['cache'
         size: memoryStats.size,
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const handled = handleError(error)
     return {
       status: 'unhealthy',
       provider: process.env.REDIS_URL ? 'redis' : 'memory',
-      error: error.message,
+      error: handled.message,
     }
   }
 }
@@ -140,10 +143,11 @@ async function checkAnalyticsHealth(): Promise<HealthCheckResult['services']['an
       eventCount: analyticsHealth.storage.eventCount,
       error: analyticsHealth.lastError,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const handled = handleError(error)
     return {
       status: 'unhealthy',
-      error: error.message,
+      error: handled.message,
     }
   }
 }
@@ -167,7 +171,7 @@ function calculateOverallStatus(services: HealthCheckResult['services']): Health
  * GET /api/system/health
  * Returns comprehensive system health status
  */
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export const GET = async (request: ApiRequest<void>): Promise<ApiResponse<ApiResult<HealthCheckResult>>> => {
   try {
     const searchParams = request.nextUrl.searchParams
     const format = searchParams.get('format') || 'json'
@@ -191,7 +195,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       timestamp: new Date().toISOString(),
       uptime: Date.now() - startTime,
       version: process.env.npm_package_version || '1.0.0',
-      services: includeDetails ? services : {} as any,
+      services: includeDetails ? services : {} as HealthCheckResult['services'],
       performance: {
         averageResponseTime: 0, // This would be calculated from actual metrics
         requestsPerMinute: 0,   // This would be calculated from actual metrics
@@ -229,36 +233,42 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         `database_response_time_ms ${services.database.responseTime || 0}`,
       ].join('\n')
 
-      return new NextResponse(metrics, {
+      return new Response(metrics, {
         status: statusCode,
         headers: {
           'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
-      })
+      }) as ApiResponse<ApiResult<HealthCheckResult>>
     } else if (format === 'simple') {
       // Simple text format for basic monitoring
-      return new NextResponse(result.status.toUpperCase(), {
+      return new Response(result.status.toUpperCase(), {
         status: statusCode,
         headers: {
           'Content-Type': 'text/plain',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
-      })
+      }) as ApiResponse<ApiResult<HealthCheckResult>>
     }
 
     // Default JSON format
-    return NextResponse.json(result, {
-      status: statusCode,
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'X-Health-Status': result.status,
-        'X-Health-Timestamp': result.timestamp,
-      },
-    })
+    const response = apiSuccess(result)
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('X-Health-Status', result.status)
+    response.headers.set('X-Health-Timestamp', result.timestamp)
+    
+    if (statusCode !== 200) {
+      return new Response(response.body, {
+        status: statusCode,
+        headers: response.headers,
+      }) as ApiResponse<ApiResult<HealthCheckResult>>
+    }
+    
+    return response
 
-  } catch (error: any) {
-    console.error('[Health Check] Unexpected error:', error)
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Health Check] Unexpected error:', handled)
     
     const errorResult: Partial<HealthCheckResult> = {
       status: 'unhealthy',
@@ -270,13 +280,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     }
 
-    return NextResponse.json(errorResult, {
-      status: 503,
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'X-Health-Status': 'unhealthy',
-      },
-    })
+    return apiError(
+      'Health check failed',
+      'HEALTH_CHECK_ERROR',
+      503
+    )
   }
 }
 
@@ -284,7 +292,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
  * HEAD /api/system/health
  * Lightweight health check that only returns status code
  */
-export async function HEAD(request: NextRequest): Promise<NextResponse> {
+export const HEAD: ApiHandler<void, null> = async (request: ApiRequest<void>): Promise<ApiResponse<null>> => {
   try {
     // Quick database connectivity check
     const cookieStore = await cookies()
@@ -306,30 +314,30 @@ export async function HEAD(request: NextRequest): Promise<NextResponse> {
     const { error } = await supabase.from('sites').select('id').limit(1)
     
     if (error) {
-      return new NextResponse(null, {
+      return new Response(null, {
         status: 503,
         headers: {
           'X-Health-Status': 'unhealthy',
           'Cache-Control': 'no-cache',
         },
-      })
+      }) as ApiResponse<null>
     }
 
-    return new NextResponse(null, {
+    return new Response(null, {
       status: 200,
       headers: {
         'X-Health-Status': 'healthy',
         'Cache-Control': 'no-cache',
       },
-    })
+    }) as ApiResponse<null>
 
-  } catch (error) {
-    return new NextResponse(null, {
+  } catch (error: unknown) {
+    return new Response(null, {
       status: 503,
       headers: {
         'X-Health-Status': 'unhealthy',
         'Cache-Control': 'no-cache',
       },
-    })
+    }) as ApiResponse<null>
   }
 }

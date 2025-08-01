@@ -30,6 +30,8 @@ pnpm generate-types   # Generate DB types
 pnpm lint             # ESLint
 pnpm typecheck        # TypeScript check
 pnpm test:all         # Run all tests
+pnpm type-coverage    # Check type coverage (target: >95%)
+pnpm type-coverage:report # Detailed type coverage report
 
 # Deployment
 pnpm deploy:staging   # Deploy to staging
@@ -57,3 +59,17 @@ Working on domain-based site routing implementation with site context and domain
 
 ## Development Tools
 - When implementing features, you can use a peer reviewer, or brainstorming co-agent named gemini. You can use the bash command `gemini -y -p "prompt"`. Gemini is a coding agent like you, but with a broader context -- so it's useful for getting summaries of or answering questions about entire directories or larger files.
+
+## Type Safety Standards
+- **No `any` usage**: All new code must avoid `any` types
+- **Use `unknown` with type guards**: For dynamic data, use `unknown` and proper type checking
+- **Leverage generated types**: Use `Tables<'table_name'>` from `@/lib/database/types`
+- **Error handling**: Use `catch (error: unknown)` with the `handleError` utility
+- **Run checks before commits**: 
+  - `pnpm lint` - Must pass with no errors
+  - `pnpm typecheck` - Must pass
+  - `pnpm type-coverage` - Target: >95% coverage
+- **Common patterns**:
+  - Error handling: `import { handleError } from '@/lib/types/error-handling'`
+  - API types: `import { apiSuccess, apiError, ApiResult } from '@/lib/types/api'`
+  - Database types: `import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types'`

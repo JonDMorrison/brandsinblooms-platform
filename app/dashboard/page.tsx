@@ -163,7 +163,7 @@ export default function DashboardPage() {
       <div className="fade-in-up" style={{ animationDelay: '0s' }}>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Welcome back, {user?.email?.split('@')[0]}! Here's what's happening with {currentSite?.business_name || 'your site'}.
+          Welcome back, {user?.email?.split('@')[0]}! Here&apos;s what&apos;s happening with {currentSite?.business_name || 'your site'}.
         </p>
       </div>
 

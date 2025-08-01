@@ -252,7 +252,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
             <div>
               <h3 className="font-semibold mb-2">Basic Information</h3>
               <p className="text-sm text-muted-foreground">
-                Let's start with the basics about your new site.
+                Let&apos;s start with the basics about your new site.
               </p>
             </div>
             
@@ -266,7 +266,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
                     <Input placeholder="My Awesome Site" {...field} />
                   </FormControl>
                   <FormDescription>
-                    This will be displayed as your site's title.
+                    This will be displayed as your site&apos;s title.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -513,7 +513,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
             Create New Site
           </DialogTitle>
           <DialogDescription>
-            Step {currentStep} of 3 - Let's get your new site set up!
+            Step {currentStep} of 3 - Let&apos;s get your new site set up!
           </DialogDescription>
         </DialogHeader>
 

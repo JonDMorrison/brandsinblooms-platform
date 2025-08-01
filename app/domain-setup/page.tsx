@@ -173,7 +173,7 @@ export default async function DomainSetupPage({ searchParams }: PageProps) {
                   rel="noopener noreferrer"
                   className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm"
                 >
-                  What's My DNS →
+                  What&apos;s My DNS →
                 </a>
               </div>
             </div>

@@ -1,7 +1,13 @@
-import { NextResponse } from 'next/server'
+import { apiSuccess } from '@/src/lib/types/api'
 
-export async function GET() {
-  return NextResponse.json({
+interface HealthResponse {
+  status: 'ok'
+  timestamp: string
+  service: string
+}
+
+export const GET = async () => {
+  return apiSuccess<HealthResponse>({
     status: 'ok',
     timestamp: new Date().toISOString(),
     service: 'brands-in-blooms',

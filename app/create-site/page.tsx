@@ -58,7 +58,7 @@ export default async function CreateSitePage({ searchParams }: PageProps) {
           <div className="space-y-6">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                What you'll get:
+                What you&apos;ll get:
               </h2>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="flex items-start space-x-3">

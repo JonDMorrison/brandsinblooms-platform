@@ -108,7 +108,7 @@ export function SiteSettings() {
                 Basic Site Information
               </CardTitle>
               <CardDescription>
-                Configure your site's basic information and appearance.
+                Configure your site&apos;s basic information and appearance.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -122,7 +122,7 @@ export function SiteSettings() {
                       <Input placeholder="Enter your site name" {...field} />
                     </FormControl>
                     <FormDescription>
-                      This will appear in your site's title and navigation.
+                      This will appear in your site&apos;s title and navigation.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

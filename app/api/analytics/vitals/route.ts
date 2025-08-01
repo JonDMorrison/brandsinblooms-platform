@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { ApiHandler, ApiRequest, ApiResponse, apiSuccess, apiError } from '@/src/lib/types/api'
 
 interface VitalsData {
   id: string
@@ -10,7 +10,11 @@ interface VitalsData {
   userAgent: string
 }
 
-export async function POST(request: NextRequest) {
+interface VitalsResponse {
+  success: boolean
+}
+
+export const POST: ApiHandler<VitalsData, VitalsResponse> = async (request: ApiRequest<VitalsData>): Promise<ApiResponse<VitalsResponse>> => {
   try {
     const data: VitalsData = await request.json()
 
@@ -48,12 +52,13 @@ export async function POST(request: NextRequest) {
     //   body: JSON.stringify(data),
     // })
 
-    return NextResponse.json({ success: true })
+    return apiSuccess({ success: true })
   } catch (error) {
     console.error('Failed to process web vitals:', error)
-    return NextResponse.json(
-      { error: 'Failed to process analytics data' },
-      { status: 500 }
+    return apiError(
+      'Failed to process analytics data',
+      'VITALS_PROCESSING_ERROR',
+      500
     )
   }
 }

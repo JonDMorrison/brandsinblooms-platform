@@ -8,6 +8,8 @@ import { Sheet, SheetContent, SheetTrigger } from '@/src/components/ui/sheet'
 import Link from 'next/link'
 import { useState } from 'react'
 import { cn } from '@/src/lib/utils'
+import { Tables } from '@/src/lib/database/types'
+import { User } from '@supabase/supabase-js'
 
 interface NavigationItem {
   label: string
@@ -141,7 +143,7 @@ export function SiteAwareNavigation({
   )
 }
 
-function SiteBranding({ site }: { site: any }) {
+function SiteBranding({ site }: { site: Tables<'sites'> | null }) {
   return (
     <Link href="/" className="flex items-center space-x-3">
       {site?.logo_url ? (
@@ -160,9 +162,9 @@ function SiteBranding({ site }: { site: any }) {
         <span className="font-brand-heading text-lg text-gradient-primary">
           {site?.name || 'Site'}
         </span>
-        {site?.tagline && (
+        {site?.description && (
           <p className="text-xs text-muted-foreground">
-            {site.tagline}
+            {site.description}
           </p>
         )}
       </div>
@@ -224,7 +226,7 @@ function NavigationLink({
   )
 }
 
-function UserActions({ user }: { user: any }) {
+function UserActions({ user }: { user: User | null }) {
   if (user) {
     return (
       <div className="flex items-center space-x-2">
@@ -265,8 +267,8 @@ function MobileNavigation({
   onNavigate 
 }: { 
   items: NavigationItem[]
-  user: any
-  site: any
+  user: User | null
+  site: Tables<'sites'> | null
   onNavigate: () => void
 }) {
   return (
@@ -364,7 +366,7 @@ function NavigationSkeleton({ variant, fixed }: { variant: string; fixed: boolea
 }
 
 function getNavigationItems(
-  user: any,
+  user: User | null,
   hasAccess: boolean,
   canEdit: boolean,
   canManage: boolean,

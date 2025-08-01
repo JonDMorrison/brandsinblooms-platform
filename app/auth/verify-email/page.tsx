@@ -12,7 +12,7 @@ export default function VerifyEmailPage() {
           </div>
           <CardTitle className="text-2xl">Check your email</CardTitle>
           <CardDescription>
-            We've sent you a verification link to confirm your account
+            We&apos;ve sent you a verification link to confirm your account
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -22,7 +22,7 @@ export default function VerifyEmailPage() {
           </p>
           <div className="pt-4 text-center">
             <p className="text-sm text-muted-foreground">
-              Didn't receive the email?{' '}
+              Didn&apos;t receive the email?{' '}
               <button className="text-primary hover:underline">
                 Resend verification email
               </button>

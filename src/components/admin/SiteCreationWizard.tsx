@@ -142,8 +142,11 @@ export function SiteCreationWizard() {
     setValue('template_slug', template.slug)
     
     // Auto-populate some fields from template
-    if (template.template_config?.primary_color) {
-      setValue('primary_color', template.template_config.primary_color)
+    if (template.template_config && typeof template.template_config === 'object' && !Array.isArray(template.template_config)) {
+      const config = template.template_config as Record<string, unknown>
+      if (config.primary_color) {
+        setValue('primary_color', config.primary_color as string)
+      }
     }
   }
 
@@ -199,9 +202,9 @@ export function SiteCreationWizard() {
 
       const result = await createSiteWithTemplate(request)
       setCreationResult(result)
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error creating site:', err)
-      setError(err.message || 'Failed to create site. Please try again.')
+      setError(err instanceof Error ? err.message : 'Failed to create site. Please try again.')
     } finally {
       setIsCreating(false)
     }

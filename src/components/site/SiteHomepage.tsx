@@ -225,7 +225,7 @@ function SiteNotFound() {
             Site Not Found
           </h1>
           <p className="text-muted-foreground">
-            The site you're looking for doesn't exist or isn't available.
+            The site you&apos;re looking for doesn&apos;t exist or isn&apos;t available.
           </p>
         </div>
 

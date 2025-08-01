@@ -3,10 +3,11 @@
  * Provides site-specific and system-wide analytics data
  */
 
-import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getSiteAnalytics, getSystemAnalytics } from '@/lib/monitoring/site-analytics'
+import { handleError } from '@/lib/types/error-handling'
+import { ApiHandler, ApiRequest, ApiResponse, apiSuccess, apiError, ApiResult } from '@/src/lib/types/api'
 
 interface AnalyticsDashboardQuery {
   siteId?: string
@@ -15,12 +16,17 @@ interface AnalyticsDashboardQuery {
   metrics?: string[]
 }
 
+interface UserProfile {
+  id: string
+  [key: string]: unknown
+}
+
 /**
  * Validate user access to analytics data
  */
 async function validateAccess(siteId?: string): Promise<{
   authorized: boolean
-  user?: any
+  user?: UserProfile
   error?: string
 }> {
   try {
@@ -58,7 +64,7 @@ async function validateAccess(siteId?: string): Promise<{
         return { authorized: false, error: 'Admin access required for system analytics' }
       }
 
-      return { authorized: true, user }
+      return { authorized: true, user: user as unknown as UserProfile }
     }
 
     // Check site-specific access
@@ -74,9 +80,10 @@ async function validateAccess(siteId?: string): Promise<{
       return { authorized: false, error: 'Access denied to site analytics' }
     }
 
-    return { authorized: true, user }
-  } catch (error: any) {
-    return { authorized: false, error: error.message }
+    return { authorized: true, user: user as unknown as UserProfile }
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    return { authorized: false, error: handled.message }
   }
 }
 
@@ -84,12 +91,24 @@ async function validateAccess(siteId?: string): Promise<{
  * GET /api/analytics/dashboard
  * Returns analytics dashboard data
  */
-export async function GET(request: NextRequest): Promise<NextResponse> {
+interface AnalyticsDashboardResponse {
+  timestamp: string
+  timeRange: string
+  site: Record<string, unknown> | null
+  system: Record<string, unknown> | null
+  metadata: {
+    generatedAt: string
+    generationTime: number
+    requestedBy: string | undefined
+  }
+}
+
+export const GET = async (request: ApiRequest<void>): Promise<ApiResponse<ApiResult<AnalyticsDashboardResponse>>> => {
   try {
     const searchParams = request.nextUrl.searchParams
     const query: AnalyticsDashboardQuery = {
       siteId: searchParams.get('siteId') || undefined,
-      timeRange: (searchParams.get('timeRange') as any) || 'day',
+      timeRange: (searchParams.get('timeRange') as 'hour' | 'day' | 'week' | 'month') || 'day',
       includeSystem: searchParams.get('includeSystem') === 'true',
       metrics: searchParams.get('metrics')?.split(',') || undefined,
     }
@@ -97,10 +116,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Validate access
     const accessCheck = await validateAccess(query.siteId)
     if (!accessCheck.authorized) {
-      return NextResponse.json(
-        { error: accessCheck.error },
-        { status: 401 }
-      )
+      return apiError(accessCheck.error || 'Unauthorized', 'UNAUTHORIZED', 401)
     }
 
     const startTime = Date.now()
@@ -111,11 +127,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (query.siteId) {
       try {
         siteAnalytics = await getSiteAnalytics(query.siteId, query.timeRange)
-      } catch (error: any) {
-        console.error('[Analytics API] Error getting site analytics:', error)
-        return NextResponse.json(
-          { error: 'Failed to retrieve site analytics', details: error.message },
-          { status: 500 }
+      } catch (error: unknown) {
+        const handled = handleError(error)
+        console.error('[Analytics API] Error getting site analytics:', handled)
+        return apiError(
+          'Failed to retrieve site analytics',
+          'SITE_ANALYTICS_ERROR',
+          500
         )
       }
     }
@@ -124,16 +142,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (query.includeSystem || !query.siteId) {
       try {
         systemAnalytics = await getSystemAnalytics(query.timeRange)
-      } catch (error: any) {
-        console.error('[Analytics API] Error getting system analytics:', error)
+      } catch (error: unknown) {
+        const handled = handleError(error)
+        console.error('[Analytics API] Error getting system analytics:', handled)
         // Don't fail the entire request if system analytics fail
-        systemAnalytics = { error: error.message }
+        systemAnalytics = { error: handled.message }
       }
     }
 
     const response = {
       timestamp: new Date().toISOString(),
-      timeRange: query.timeRange,
+      timeRange: query.timeRange || 'day',
       site: siteAnalytics ? {
         id: query.siteId,
         pageViews: siteAnalytics.pageViews,
@@ -159,32 +178,28 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Filter metrics if specified
     if (query.metrics && response.site) {
-      const filteredSite: any = {}
+      const filteredSite: Record<string, unknown> = {}
       query.metrics.forEach(metric => {
         if (metric in response.site!) {
-          filteredSite[metric] = (response.site as any)[metric]
+          filteredSite[metric] = (response.site as Record<string, unknown>)[metric]
         }
       })
-      response.site = filteredSite
+      response.site = filteredSite as typeof response.site
     }
 
-    return NextResponse.json(response, {
-      headers: {
-        'Cache-Control': 'private, max-age=60', // Cache for 1 minute
-        'X-Analytics-Generated': response.metadata.generatedAt,
-        'X-Analytics-Time': `${response.metadata.generationTime}ms`,
-      },
-    })
+    const apiResponse = apiSuccess(response)
+    apiResponse.headers.set('Cache-Control', 'private, max-age=60')
+    apiResponse.headers.set('X-Analytics-Generated', response.metadata.generatedAt)
+    apiResponse.headers.set('X-Analytics-Time', `${response.metadata.generationTime}ms`)
+    return apiResponse
 
-  } catch (error: any) {
-    console.error('[Analytics API] Unexpected error:', error)
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error.message,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 }
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Analytics API] Unexpected error:', handled)
+    return apiError(
+      'Internal server error',
+      'INTERNAL_ERROR',
+      500
     )
   }
 }
@@ -193,7 +208,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
  * POST /api/analytics/dashboard/export
  * Exports analytics data in various formats
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+interface ExportRequestBody {
+  siteId?: string
+  timeRange?: 'hour' | 'day' | 'week' | 'month'
+  format?: 'json' | 'csv' | 'xlsx'
+  startTime?: string
+  endTime?: string
+}
+
+export const POST: ApiHandler<ExportRequestBody, unknown> = async (request: ApiRequest<ExportRequestBody>): Promise<ApiResponse<unknown>> => {
   try {
     const body = await request.json()
     const {
@@ -207,10 +230,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Validate access
     const accessCheck = await validateAccess(siteId)
     if (!accessCheck.authorized) {
-      return NextResponse.json(
-        { error: accessCheck.error },
-        { status: 401 }
-      )
+      return apiError(accessCheck.error || 'Unauthorized', 'UNAUTHORIZED', 401)
     }
 
     // Get analytics data
@@ -250,23 +270,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       const csvContent = csvRows.map(row => row.join(',')).join('\n')
 
-      return new NextResponse(csvContent, {
+      return new Response(csvContent, {
         headers: {
           'Content-Type': 'text/csv',
           'Content-Disposition': `attachment; filename="analytics-${siteId || 'system'}-${Date.now()}.csv"`,
           'Cache-Control': 'no-cache',
         },
-      })
+      }) as ApiResponse<unknown>
     } else if (format === 'xlsx') {
       // For Excel format, you'd typically use a library like xlsx
       // For now, return JSON with a note
-      return NextResponse.json(
-        {
-          error: 'Excel export not implemented',
-          suggestion: 'Use CSV format instead',
-          data: analytics,
-        },
-        { status: 501 }
+      return apiError(
+        'Excel export not implemented',
+        'NOT_IMPLEMENTED',
+        501
       )
     }
 
@@ -280,23 +297,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       data: analytics,
     }
 
-    return NextResponse.json(exportData, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Disposition': `attachment; filename="analytics-${siteId || 'system'}-${Date.now()}.json"`,
-        'Cache-Control': 'no-cache',
-      },
-    })
+    const response = apiSuccess(exportData)
+    response.headers.set('Content-Type', 'application/json')
+    response.headers.set('Content-Disposition', `attachment; filename="analytics-${siteId || 'system'}-${Date.now()}.json"`)
+    response.headers.set('Cache-Control', 'no-cache')
+    return response
 
-  } catch (error: any) {
-    console.error('[Analytics Export] Error:', error)
-    return NextResponse.json(
-      {
-        error: 'Export failed',
-        message: error.message,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 }
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Analytics Export] Error:', handled)
+    return apiError(
+      'Export failed',
+      'EXPORT_ERROR',
+      500
     )
   }
 }
@@ -305,25 +318,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
  * PUT /api/analytics/dashboard/config
  * Updates analytics configuration for a site
  */
-export async function PUT(request: NextRequest): Promise<NextResponse> {
+interface ConfigUpdateBody {
+  siteId: string
+  config: Record<string, unknown>
+}
+
+interface ConfigUpdateResponse {
+  success: boolean
+  site: Record<string, unknown>
+  updatedAt: string
+}
+
+export const PUT = async (request: ApiRequest<ConfigUpdateBody>): Promise<ApiResponse<ApiResult<ConfigUpdateResponse>>> => {
   try {
     const body = await request.json()
     const { siteId, config } = body
 
     if (!siteId) {
-      return NextResponse.json(
-        { error: 'Site ID is required' },
-        { status: 400 }
-      )
+      return apiError('Site ID is required', 'MISSING_SITE_ID', 400)
     }
 
     // Validate access
     const accessCheck = await validateAccess(siteId)
     if (!accessCheck.authorized) {
-      return NextResponse.json(
-        { error: accessCheck.error },
-        { status: 401 }
-      )
+      return apiError(accessCheck.error || 'Unauthorized', 'UNAUTHORIZED', 401)
     }
 
     // Update analytics configuration in database
@@ -354,27 +372,26 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       .single()
 
     if (error) {
-      return NextResponse.json(
-        { error: 'Failed to update analytics configuration', details: error.message },
-        { status: 500 }
+      return apiError(
+        'Failed to update analytics configuration',
+        'CONFIG_UPDATE_ERROR',
+        500
       )
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       success: true,
       site: data,
       updatedAt: new Date().toISOString(),
     })
 
-  } catch (error: any) {
-    console.error('[Analytics Config] Error:', error)
-    return NextResponse.json(
-      {
-        error: 'Configuration update failed',
-        message: error.message,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 }
+  } catch (error: unknown) {
+    const handled = handleError(error)
+    console.error('[Analytics Config] Error:', handled)
+    return apiError(
+      'Configuration update failed',
+      'CONFIG_UPDATE_FAILED',
+      500
     )
   }
 }

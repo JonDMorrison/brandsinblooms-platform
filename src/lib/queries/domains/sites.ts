@@ -4,7 +4,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/database/types';
+import { Database, Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
 import { 
   handleQueryResponse, 
   handleSingleResponse,
@@ -15,11 +15,11 @@ import {
 } from '../base';
 import { SupabaseError } from '../errors';
 
-type Site = RowType<'sites'>;
-type SiteMembership = RowType<'site_memberships'>;
-type InsertSite = InsertType<'sites'>;
-type UpdateSite = UpdateType<'sites'>;
-type InsertSiteMembership = InsertType<'site_memberships'>;
+type Site = Tables<'sites'>;
+type SiteMembership = Tables<'site_memberships'>;
+type InsertSite = TablesInsert<'sites'>;
+type UpdateSite = TablesUpdate<'sites'>;
+type InsertSiteMembership = TablesInsert<'site_memberships'>;
 
 export interface SiteWithMembership extends Site {
   membership?: SiteMembership;
@@ -66,7 +66,7 @@ export async function getUserSites(
   return memberships.map((item: any) => ({
     ...item.sites,
     membership: {
-      id: item.id,
+      id: `${userId}-${item.site_id}`, // Generate a composite ID since it's not returned
       user_id: userId,
       site_id: item.site_id,
       role: item.role,
@@ -133,7 +133,7 @@ export async function checkSiteAccess(
   siteId: string,
   requiredRole?: 'owner' | 'editor' | 'viewer'
 ): Promise<boolean> {
-  let query = supabase
+  const query = supabase
     .from('site_memberships')
     .select('role')
     .eq('user_id', userId)
@@ -253,7 +253,7 @@ export async function getSiteMembers(
   supabase: SupabaseClient<Database>,
   siteId: string,
   options?: { active?: boolean }
-): Promise<Array<SiteMembership & { profile?: any }>> {
+): Promise<Array<SiteMembership & { profile?: Tables<'profiles'> }>> {
   let query = supabase
     .from('site_memberships')
     .select(`
@@ -406,7 +406,7 @@ export async function getRevenueAnalytics(
   supabase: SupabaseClient<Database>,
   siteId: string,
   period: 'day' | 'week' | 'month' | 'year'
-): Promise<any> {
+): Promise<{ total: number; growth: number; chart: unknown[] }> {
   // TODO: Implement when orders table exists
   return {
     total: 0,
@@ -421,7 +421,7 @@ export async function getRevenueAnalytics(
 export async function getContentAnalytics(
   supabase: SupabaseClient<Database>,
   siteId: string
-): Promise<any> {
+): Promise<{ total: number; byType: Record<string, number> }> {
   const stats = await supabase
     .from('content')
     .select('content_type', { count: 'exact' })
@@ -439,7 +439,7 @@ export async function getContentAnalytics(
 export async function getProductAnalytics(
   supabase: SupabaseClient<Database>,
   siteId: string
-): Promise<any> {
+): Promise<{ total: number; byCategory: Record<string, number> }> {
   const stats = await supabase
     .from('products')
     .select('category', { count: 'exact' })
@@ -457,7 +457,7 @@ export async function getProductAnalytics(
 export async function getCustomerAnalytics(
   supabase: SupabaseClient<Database>,
   siteId: string
-): Promise<any> {
+): Promise<{ total: number; newThisMonth: number; retention: number }> {
   // TODO: Implement when customer table exists
   return {
     total: 0,
