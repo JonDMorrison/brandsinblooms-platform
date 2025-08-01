@@ -253,7 +253,7 @@ export function AdminImpersonationProvider({ children }: AdminImpersonationProvi
         session_token: token,
         admin_user_id: contextData.admin_user_id,
         admin_email: contextData.admin_email,
-        admin_name: contextData.admin_name,
+        admin_name: contextData.admin_name || '',
         site_id: contextData.site_id,
         site_name: contextData.site_name,
         site_subdomain: contextData.site_subdomain,
@@ -393,7 +393,7 @@ export function AdminImpersonationProvider({ children }: AdminImpersonationProvi
         return
       }
 
-      setActiveSessions(data?.sessions || [])
+      setActiveSessions((data as any)?.sessions || [])
 
     } catch (err) {
       console.error('Unexpected error fetching active sessions:', err)

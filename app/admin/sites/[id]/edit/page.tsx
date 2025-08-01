@@ -1,22 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { Button } from '@/src/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { SiteConfigurationForm } from '@/src/components/admin/SiteConfigurationForm'
 import { SiteNavigation } from '@/src/components/admin/SiteNavigation'
 import { getSiteById } from '@/src/lib/admin/sites'
 
-interface EditSitePageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function EditSitePage({ params }: EditSitePageProps) {
+export default function EditSitePage() {
   const router = useRouter()
-  const siteId = params.id
+  const params = useParams()
+  const siteId = params.id as string
   const [site, setSite] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 

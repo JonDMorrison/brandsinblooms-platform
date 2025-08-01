@@ -11,6 +11,7 @@ import { ImpersonationSpacer } from '@/src/components/admin/ImpersonationBanner'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import { AlertTriangle } from 'lucide-react'
+import { nullToUndefined } from '@/src/lib/types/utility-types'
 
 interface SiteData {
   id: string
@@ -79,11 +80,11 @@ export default function SiteAccessPage() {
           id: siteData.id,
           name: siteData.name,
           subdomain: siteData.subdomain,
-          custom_domain: siteData.custom_domain,
-          is_published: siteData.is_published,
-          owner_id: ownerProfile?.user_id || null,
-          owner_email: ownerProfile?.email || null,
-          owner_name: ownerProfile?.full_name || null,
+          custom_domain: nullToUndefined(siteData.custom_domain),
+          is_published: siteData.is_published || false,
+          owner_id: ownerProfile?.user_id || '',
+          owner_email: nullToUndefined(ownerProfile?.email),
+          owner_name: nullToUndefined(ownerProfile?.full_name),
         })
 
       } catch (err) {

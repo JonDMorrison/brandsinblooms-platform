@@ -766,7 +766,7 @@ export async function createSiteWithTemplate(
       site_name: request.site_name,
       site_subdomain: request.site_subdomain.toLowerCase(),
       owner_email: request.owner_email.toLowerCase(),
-      business_info: request.business_info || null
+      business_info: request.business_info || undefined
     })
 
     if (error) {

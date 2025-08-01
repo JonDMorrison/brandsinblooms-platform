@@ -296,13 +296,13 @@ export async function compareMetrics(
     getMetricsByDate(client, siteId, date2),
   ]);
   
-  const calculateChange = (val1: number | null, val2: number | null) => {
+  const calculateChange = (val1: number | null | undefined, val2: number | null | undefined) => {
     const v1 = val1 || 0;
     const v2 = val2 || 0;
     return v2 - v1;
   };
   
-  const calculatePercentage = (val1: number | null, val2: number | null) => {
+  const calculatePercentage = (val1: number | null | undefined, val2: number | null | undefined) => {
     const v1 = val1 || 0;
     const v2 = val2 || 0;
     if (v1 === 0) return v2 > 0 ? 100 : 0;

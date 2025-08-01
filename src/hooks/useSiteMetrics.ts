@@ -13,7 +13,6 @@ import {
   generateSampleMetrics,
 } from '@/lib/queries/domains/metrics';
 import type { SiteMetrics } from '@/lib/database/aliases';
-import type { MetricsData } from '@/lib/database/json-types';
 import type { MetricsHistory as MetricsHistoryType } from '@/lib/queries/domains/metrics';
 import { toast } from 'sonner';
 
@@ -22,7 +21,7 @@ export function useSiteMetrics() {
   const client = useSupabase();
   const siteId = useSiteId();
   
-  return useQuery<MetricsData | null>({
+  return useQuery<SiteMetrics | null>({
     queryKey: queryKeys.metrics.current(siteId!),
     queryFn: () => getCurrentMetrics(client, siteId!),
     enabled: !!siteId,
@@ -49,7 +48,7 @@ export function useMetricsByDate(date: string) {
   const client = useSupabase();
   const siteId = useSiteId();
   
-  return useQuery<MetricsData | null>({
+  return useQuery<SiteMetrics | null>({
     queryKey: queryKeys.metrics.byDate(siteId!, date),
     queryFn: () => getMetricsByDate(client, siteId!, date),
     enabled: !!siteId && !!date,
@@ -63,8 +62,17 @@ export function useSaveMetrics() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ metrics, date }: { metrics: MetricsData; date?: string }) =>
-      saveMetrics(client, siteId!, metrics, date),
+    mutationFn: ({ metrics, date }: { metrics: Partial<SiteMetrics>; date?: string }) => {
+      // Convert nulls to undefined for saveMetrics
+      const metricsData = {
+        unique_visitors: metrics.unique_visitors ?? undefined,
+        page_views: metrics.page_views ?? undefined,
+        content_count: metrics.content_count ?? undefined,
+        product_count: metrics.product_count ?? undefined,
+        inquiry_count: metrics.inquiry_count ?? undefined,
+      }
+      return saveMetrics(client, siteId!, metricsData, date)
+    },
     onSuccess: (_, variables) => {
       // Invalidate current metrics
       queryClient.invalidateQueries({
@@ -124,8 +132,8 @@ export function useBatchUpdateMetrics() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (metricsData: Array<{ date: string; metrics: MetricsData }>) =>
-      batchUpdateMetrics(client, siteId!, metricsData),
+    mutationFn: (metricsData: Array<{ date: string; metrics: Partial<SiteMetrics> }>) =>
+      batchUpdateMetrics(client, siteId!, metricsData as any),
     onSuccess: () => {
       // Invalidate all metrics queries
       queryClient.invalidateQueries({

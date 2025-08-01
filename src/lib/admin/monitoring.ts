@@ -96,11 +96,12 @@ export async function checkSiteHealth(siteId: string): Promise<SiteHealthSummary
     throw new Error(`Failed to check site health: ${error.message}`)
   }
 
-  if (!data.success) {
-    throw new Error(data.error || 'Health check failed')
+  const result = data as unknown as { success: boolean; error?: string }
+  if (!result.success) {
+    throw new Error(result.error || 'Health check failed')
   }
 
-  return data
+  return data as unknown as SiteHealthSummary
 }
 
 /**
@@ -149,7 +150,7 @@ export async function getSiteHealthChecks(
     throw new Error(`Failed to get health checks: ${error.message}`)
   }
 
-  return data || []
+  return (data as unknown as SiteHealthCheck[]) || []
 }
 
 /**
@@ -185,7 +186,7 @@ export async function getPlatformHealthOverview(): Promise<PlatformHealthOvervie
   const siteHealthMap = new Map<string, SiteHealthCheck>()
   healthChecks.forEach(check => {
     if (!siteHealthMap.has(check.site_id)) {
-      siteHealthMap.set(check.site_id, check)
+      siteHealthMap.set(check.site_id, check as unknown as SiteHealthCheck)
     }
   })
 
@@ -297,7 +298,7 @@ export async function runPlatformHealthChecks(): Promise<{ success: boolean; sit
     throw new Error(`Failed to run platform health checks: ${error.message}`)
   }
 
-  return data
+  return data as unknown as { success: boolean; sites_checked: number }
 }
 
 /**
@@ -406,7 +407,11 @@ export async function getSitesNeedingAttention(): Promise<Array<{
   data?.forEach(check => {
     if (!siteMap.has(check.site_id)) {
       const issues: string[] = []
-      const checkData = check.check_data || {}
+      const checkData = (check.check_data as unknown as {
+        issues?: Array<{ message: string }>
+        warnings?: Array<{ message: string }>
+        health_score?: number
+      }) || {}
       
       if (checkData.issues) {
         checkData.issues.forEach((issue: any) => {

@@ -91,12 +91,12 @@ export async function getAdminActionLogs(
 
     // Call the database function with filter parameters
     const { data, error } = await supabase.rpc('get_admin_action_logs', {
-      site_uuid: filters.site_id || null,
-      admin_user_uuid: filters.admin_user_id || null,
-      action_type_filter: filters.action_type || null,
-      target_type_filter: filters.target_type || null,
-      start_date: filters.start_date || null,
-      end_date: filters.end_date || null,
+      site_uuid: filters.site_id || undefined,
+      admin_user_uuid: filters.admin_user_id || undefined,
+      action_type_filter: filters.action_type || undefined,
+      target_type_filter: filters.target_type || undefined,
+      start_date: filters.start_date || undefined,
+      end_date: filters.end_date || undefined,
       limit_count: limit,
       offset_count: offset
     })

@@ -1,5 +1,5 @@
 // Define specific types for Json columns
-export interface MetricsData {
+export interface PerformanceMetricsData {
   performance?: {
     score: number
     change: number
@@ -38,7 +38,7 @@ export interface ProductFeatures {
 }
 
 // Type guard functions
-export function isMetricsData(data: unknown): data is MetricsData {
+export function isPerformanceMetricsData(data: unknown): data is PerformanceMetricsData {
   return typeof data === 'object' && data !== null
 }
 

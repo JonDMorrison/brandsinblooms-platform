@@ -26,9 +26,10 @@ export async function cleanupExpiredSessions(): Promise<CleanupResult> {
       }
     }
 
+    const result = data as unknown as { success: boolean; expired_sessions_count: number }
     return {
-      success: data.success,
-      expiredSessionsCount: data.expired_sessions_count
+      success: result.success,
+      expiredSessionsCount: result.expired_sessions_count
     }
   } catch (err) {
     console.error('Unexpected error during session cleanup:', err)
@@ -54,7 +55,8 @@ export async function validateCurrentSession(sessionToken: string): Promise<bool
       return false
     }
 
-    return data?.valid === true
+    const result = data as unknown as { valid?: boolean }
+    return result?.valid === true
   } catch (err) {
     console.error('Unexpected error validating session:', err)
     return false

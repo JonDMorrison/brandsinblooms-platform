@@ -1,17 +1,30 @@
 'use client'
 
-import { useState, lazy, Suspense } from 'react'
+import { useState, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { Button } from '@/src/components/ui/button'
 import { Palette, Type, Layout, Upload, Eye, Wand2 } from 'lucide-react'
 import { Skeleton } from '@/src/components/ui/skeleton'
 
-// Lazy load design components to improve initial load time
-const ColorCustomization = lazy(() => import('@/components/design/ColorCustomization'))
-const TypographyCustomization = lazy(() => import('@/components/design/TypographyCustomization'))
-const LayoutCustomization = lazy(() => import('@/components/design/LayoutCustomization'))
-const LogoCustomization = lazy(() => import('@/components/design/LogoCustomization'))
+// Dynamic imports for design components with loading states
+const ColorCustomization = dynamic(
+  () => import('@/src/components/design/ColorCustomization').then(mod => mod.ColorCustomization),
+  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+)
+const TypographyCustomization = dynamic(
+  () => import('@/src/components/design/TypographyCustomization'),
+  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+)
+const LayoutCustomization = dynamic(
+  () => import('@/src/components/design/LayoutCustomization'),
+  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+)
+const LogoCustomization = dynamic(
+  () => import('@/src/components/design/LogoCustomization'),
+  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+)
 
 interface DesignState {
   colors: {

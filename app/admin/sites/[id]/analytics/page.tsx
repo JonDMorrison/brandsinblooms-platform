@@ -1,14 +1,9 @@
 import { notFound } from 'next/navigation'
 import { supabase } from '@/src/lib/supabase/client'
 import { SiteAnalytics } from '@/src/components/admin/SiteAnalytics'
+import { PageProps } from '@/src/lib/types/page-props'
 
-interface SiteAnalyticsPageProps {
-  params: {
-    id: string
-  }
-}
-
-export async function generateMetadata({ params }: SiteAnalyticsPageProps) {
+export async function generateMetadata({ params }: PageProps<{ id: string }>) {
   // Note: In a real app, you'd want to fetch the site name server-side
   // For now, we'll use a generic title
   return {
@@ -17,8 +12,8 @@ export async function generateMetadata({ params }: SiteAnalyticsPageProps) {
   }
 }
 
-export default async function SiteAnalyticsPage({ params }: SiteAnalyticsPageProps) {
-  const { id: siteId } = params
+export default async function SiteAnalyticsPage({ params }: PageProps<{ id: string }>) {
+  const { id: siteId } = await params
 
   // Validate that the site exists (server-side check)
   // Note: In a production app, you'd want to do this check with proper admin auth

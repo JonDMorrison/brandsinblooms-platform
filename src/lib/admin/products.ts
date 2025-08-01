@@ -112,9 +112,9 @@ export async function getSiteProducts(
     // Call the database function with search and filter parameters
     const { data, error } = await supabase.rpc('admin_get_site_products', {
       site_uuid: siteId,
-      search_query: filters.search || null,
-      category_filter: filters.category || null,
-      status_filter: filters.status || null,
+      search_query: filters.search || undefined,
+      category_filter: filters.category || undefined,
+      status_filter: filters.status || undefined,
       limit_count: limit,
       offset_count: offset
     })
@@ -255,7 +255,48 @@ export async function searchAllProducts(
     }
 
     // Get total count for pagination
-    const { count: total_count } = await queryBuilder.select('*', { count: 'exact', head: true })
+    const countQuery = supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+    
+    // Apply the same filters to count query
+    let countQueryBuilder = countQuery.or(`name.ilike.%${query}%, description.ilike.%${query}%, sku.ilike.%${query}%`)
+    
+    if (filters.category) {
+      countQueryBuilder = countQueryBuilder.eq('category', filters.category)
+    }
+    if (filters.subcategory) {
+      countQueryBuilder = countQueryBuilder.eq('subcategory', filters.subcategory)
+    }
+    if (filters.status === 'active') {
+      countQueryBuilder = countQueryBuilder.eq('is_active', true)
+    } else if (filters.status === 'inactive') {
+      countQueryBuilder = countQueryBuilder.eq('is_active', false)
+    } else if (filters.status === 'featured') {
+      countQueryBuilder = countQueryBuilder.eq('is_featured', true)
+    } else if (filters.status === 'out_of_stock') {
+      countQueryBuilder = countQueryBuilder.eq('in_stock', false)
+    }
+    if (filters.in_stock !== undefined) {
+      countQueryBuilder = countQueryBuilder.eq('in_stock', filters.in_stock)
+    }
+    if (filters.price_min !== undefined) {
+      countQueryBuilder = countQueryBuilder.gte('price', filters.price_min)
+    }
+    if (filters.price_max !== undefined) {
+      countQueryBuilder = countQueryBuilder.lte('price', filters.price_max)
+    }
+    if (filters.import_source) {
+      countQueryBuilder = countQueryBuilder.eq('import_source', filters.import_source)
+    }
+    if (filters.created_after) {
+      countQueryBuilder = countQueryBuilder.gte('created_at', filters.created_after)
+    }
+    if (filters.created_before) {
+      countQueryBuilder = countQueryBuilder.lte('created_at', filters.created_before)
+    }
+
+    const { count: total_count } = await countQueryBuilder
 
     // Get paginated results
     const { data, error } = await queryBuilder
@@ -330,7 +371,7 @@ export async function updateProduct(
     const { data, error } = await supabase.rpc('admin_update_product', {
       product_uuid: productId,
       product_updates: filteredUpdates,
-      admin_notes: adminNotes || null
+      admin_notes: adminNotes || undefined
     })
 
     if (error) {
@@ -413,7 +454,7 @@ export async function bulkUpdateProducts(
     const { data, error } = await supabase.rpc('admin_bulk_update_products', {
       product_ids: productIds,
       bulk_updates: filteredUpdates,
-      admin_notes: adminNotes || null
+      admin_notes: adminNotes || undefined
     })
 
     if (error) {
@@ -513,8 +554,8 @@ export async function getProductAnalytics(
 
     const { data, error } = await supabase.rpc('admin_get_product_analytics', {
       site_uuid: siteId,
-      start_date: startDate || null,
-      end_date: endDate || null
+      start_date: startDate || undefined,
+      end_date: endDate || undefined
     })
 
     if (error) {
@@ -543,7 +584,7 @@ export async function getProductAnalytics(
       )
     }
 
-    return data as ProductAnalytics
+    return data as unknown as ProductAnalytics
   } catch (error) {
     if (error instanceof AdminProductError) {
       throw error
@@ -708,7 +749,7 @@ export async function getImportSources(siteId?: string): Promise<string[]> {
 
     // Extract unique import sources
     const importSources = Array.from(
-      new Set((data || []).map(item => item.import_source).filter(Boolean))
+      new Set((data || []).map(item => item.import_source).filter(Boolean) as string[])
     ).sort()
 
     return importSources

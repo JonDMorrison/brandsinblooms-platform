@@ -1,21 +1,16 @@
 import { notFound } from 'next/navigation'
 import { SiteHealthDetails } from '@/src/components/admin/SiteHealthDetails'
+import { PageProps } from '@/src/lib/types/page-props'
 
-interface SiteHealthPageProps {
-  params: {
-    id: string
-  }
-}
-
-export async function generateMetadata({ params }: SiteHealthPageProps) {
+export async function generateMetadata({ params }: PageProps<{ id: string }>) {
   return {
     title: 'Site Health Details - Admin Dashboard',
     description: 'Detailed health monitoring and diagnostics for the site',
   }
 }
 
-export default async function SiteHealthPage({ params }: SiteHealthPageProps) {
-  const { id: siteId } = params
+export default async function SiteHealthPage({ params }: PageProps<{ id: string }>) {
+  const { id: siteId } = await params
 
   // Validate that the site exists (server-side check)
   // Note: In a production app, you'd want to do this check with proper admin auth

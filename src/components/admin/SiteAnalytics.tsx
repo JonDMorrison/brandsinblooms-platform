@@ -396,7 +396,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                               outerRadius={80}
                               fill="#8884d8"
                               dataKey="value"
-                              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                              label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                             >
                               {Object.entries(analytics.device_breakdown).map(([key, value], index) => (
                                 <Cell key={`cell-${index}`} fill={deviceColors[index % deviceColors.length]} />

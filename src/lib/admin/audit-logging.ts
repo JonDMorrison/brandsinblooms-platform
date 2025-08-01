@@ -80,16 +80,16 @@ export async function logAdminAction(
     const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : null
 
     const { data, error } = await supabase.rpc('log_admin_action', {
-      admin_id: null, // Will be populated server-side with auth.uid()
+      admin_id: '', // Will be populated server-side with auth.uid()
       site_uuid: siteId,
       action_type_val: actionType,
       target_type_val: targetType,
-      target_uuid: targetId || null,
+      target_uuid: targetId || undefined,
       old_vals: oldValues ? JSON.parse(JSON.stringify(oldValues)) : null,
       new_vals: newValues ? JSON.parse(JSON.stringify(newValues)) : null,
-      details: details || null,
+      details: details || undefined,
       ip_addr: ipAddress,
-      user_agent_val: userAgent
+      user_agent_val: userAgent || undefined
     })
 
     if (error) {
@@ -112,12 +112,12 @@ export async function getAdminAuditLogs(
 ): Promise<AuditLogResult | null> {
   try {
     const { data, error } = await supabase.rpc('get_admin_action_logs', {
-      site_uuid: filters.siteId || null,
-      admin_user_uuid: filters.adminUserId || null,
-      action_type_filter: filters.actionType || null,
-      target_type_filter: filters.targetType || null,
-      start_date: filters.startDate?.toISOString() || null,
-      end_date: filters.endDate?.toISOString() || null,
+      site_uuid: filters.siteId || undefined,
+      admin_user_uuid: filters.adminUserId || undefined,
+      action_type_filter: filters.actionType || undefined,
+      target_type_filter: filters.targetType || undefined,
+      start_date: filters.startDate?.toISOString() || undefined,
+      end_date: filters.endDate?.toISOString() || undefined,
       limit_count: filters.limit || 50,
       offset_count: filters.offset || 0
     })
@@ -127,9 +127,10 @@ export async function getAdminAuditLogs(
       return null
     }
 
+    const result = data as any
     return {
-      logs: data.logs || [],
-      totalCount: data.total_count || 0
+      logs: result?.logs || [],
+      totalCount: result?.total_count || 0
     }
   } catch (err) {
     console.error('Unexpected error fetching admin audit logs:', err)

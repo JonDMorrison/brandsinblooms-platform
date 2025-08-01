@@ -105,6 +105,43 @@ export interface BulkUpdateResponse {
   }>
 }
 
+export interface SiteAnalyticsSummary {
+  site_id: string
+  domain: string
+  unique_visitors: number
+  page_views: number
+  bounce_rate: number
+  avg_session_duration: number
+  top_pages: Array<{
+    path: string
+    views: number
+    avg_time: number
+  }>
+  referrers: Array<{
+    source: string
+    count: number
+  }>
+  devices: {
+    desktop: number
+    mobile: number
+    tablet: number
+  }
+}
+
+export interface AuditLogResponse {
+  logs: Array<{
+    id: string
+    admin_user_id: string
+    action: string
+    target_type: string
+    target_id: string
+    details?: Json
+    created_at: string
+  }>
+  total_count: number
+  has_more: boolean
+}
+
 // Type guards
 export function isImpersonationSessionResponse(data: unknown): data is ImpersonationSessionResponse {
   return (
@@ -135,6 +172,47 @@ export function isSessionCleanupResponse(data: unknown): data is SessionCleanupR
   )
 }
 
+export function isPlatformAnalyticsSummary(data: unknown): data is PlatformAnalyticsSummary {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'total_sites' in data &&
+    'active_sites' in data &&
+    'total_users' in data &&
+    'trends' in data
+  )
+}
+
+export function isSiteAnalyticsSummary(data: unknown): data is SiteAnalyticsSummary {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'site_id' in data &&
+    'unique_visitors' in data &&
+    'page_views' in data
+  )
+}
+
+export function isProductAnalyticsResponse(data: unknown): data is ProductAnalyticsResponse {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'total_products' in data &&
+    'active_products' in data &&
+    'price_range' in data
+  )
+}
+
+export function isAuditLogResponse(data: unknown): data is AuditLogResponse {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'logs' in data &&
+    'total_count' in data &&
+    Array.isArray((data as any).logs)
+  )
+}
+
 // Type assertion helpers
 export function assertImpersonationSessionResponse(data: Json): ImpersonationSessionResponse {
   if (!isImpersonationSessionResponse(data)) {
@@ -153,6 +231,34 @@ export function assertImpersonationContext(data: Json): ImpersonationContext {
 export function assertSessionCleanupResponse(data: Json): SessionCleanupResponse {
   if (!isSessionCleanupResponse(data)) {
     throw new Error('Invalid session cleanup response')
+  }
+  return data
+}
+
+export function assertPlatformAnalyticsSummary(data: Json): PlatformAnalyticsSummary {
+  if (!isPlatformAnalyticsSummary(data)) {
+    throw new Error('Invalid platform analytics summary')
+  }
+  return data
+}
+
+export function assertSiteAnalyticsSummary(data: Json): SiteAnalyticsSummary {
+  if (!isSiteAnalyticsSummary(data)) {
+    throw new Error('Invalid site analytics summary')
+  }
+  return data
+}
+
+export function assertProductAnalyticsResponse(data: Json): ProductAnalyticsResponse {
+  if (!isProductAnalyticsResponse(data)) {
+    throw new Error('Invalid product analytics response')
+  }
+  return data
+}
+
+export function assertAuditLogResponse(data: Json): AuditLogResponse {
+  if (!isAuditLogResponse(data)) {
+    throw new Error('Invalid audit log response')
   }
   return data
 }

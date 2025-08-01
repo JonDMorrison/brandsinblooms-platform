@@ -1,5 +1,5 @@
 import type { Database } from './types';
-import type { MetricsData, ProductFeatures } from './json-types';
+import type { PerformanceMetricsData, ProductFeatures } from './json-types';
 
 // Helper types
 export type Tables = Database['public']['Tables'];

@@ -4,16 +4,12 @@ import { AdminGuard } from '@/src/components/admin/AdminGuard'
 import { SiteContentManager } from '@/src/components/admin/SiteContentManager'
 import { SiteNavigation } from '@/src/components/admin/SiteNavigation'
 import { getSiteById } from '@/src/lib/admin/sites'
+import { PageProps } from '@/src/lib/types/page-props'
 
-interface PageProps {
-  params: {
-    id: string
-  }
-}
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<{ id: string }>): Promise<Metadata> {
   try {
-    const site = await getSiteById(params.id)
+    const { id } = await params
+    const site = await getSiteById(id)
     
     if (!site) {
       return {
@@ -34,12 +30,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function SiteContentPage({ params }: PageProps) {
+export default async function SiteContentPage({ params }: PageProps<{ id: string }>) {
+  const { id } = await params
   let site: any = null
   let error: string | null = null
 
   try {
-    site = await getSiteById(params.id)
+    site = await getSiteById(id)
     
     if (!site) {
       notFound()
@@ -81,7 +78,7 @@ export default async function SiteContentPage({ params }: PageProps) {
               </div>
               <div className="flex items-center gap-2">
                 <a 
-                  href={`/admin/sites/${params.id}/edit`}
+                  href={`/admin/sites/${id}/edit`}
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
                   ← Back to Site
@@ -94,14 +91,14 @@ export default async function SiteContentPage({ params }: PageProps) {
         {/* Main Content */}
         <main className="mx-auto max-w-7xl px-6 py-8 space-y-6">
           <SiteNavigation 
-            siteId={params.id}
+            siteId={id}
             siteName={site.name}
             siteSubdomain={site.subdomain}
             showBackButton={true}
           />
           
           <SiteContentManager 
-            siteId={params.id} 
+            siteId={id} 
             siteName={site.name} 
           />
         </main>
