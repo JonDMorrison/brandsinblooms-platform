@@ -115,7 +115,7 @@ const quickActions: QuickAction[] = [
 export default function DashboardPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const { site: currentSite } = useSite()
+  const { site: currentSite, loading: siteLoading } = useSite()
   const { data: siteStats, isLoading: statsLoading } = useSiteStats()
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics()
 
@@ -156,6 +156,34 @@ export default function DashboardPage() {
   ], [siteStats, metrics])
 
   const isLoading = statsLoading || metricsLoading
+
+  // Wait for critical data (site and user) to load before rendering
+  // This prevents the animations from playing twice
+  if (siteLoading || !user) {
+    return (
+      <div className="space-y-8">
+        {/* Loading skeleton that matches the layout */}
+        <div>
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-6 w-6 rounded" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-[60px] mb-2" />
+                <Skeleton className="h-3 w-[80px]" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

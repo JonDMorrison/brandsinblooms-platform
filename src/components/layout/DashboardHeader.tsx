@@ -163,12 +163,12 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                     {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="hidden md:flex flex-col items-start">
+                <div className="hidden md:flex flex-col items-start min-w-[120px]">
                   <span className="text-sm font-medium">
-                    {user?.user_metadata?.full_name || 'User'}
+                    {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
                   </span>
-                  <span className="text-xs text-muted-foreground">
-                    {user?.email}
+                  <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                    {user?.email || 'Loading...'}
                   </span>
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />

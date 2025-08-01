@@ -157,7 +157,14 @@ export function CompactSiteSwitcher() {
   }
 
   if (loading) {
-    return <Skeleton className="h-8 w-32" />
+    // Return a placeholder that maintains the same dimensions
+    // to prevent layout shift during loading
+    return (
+      <div className="flex items-center space-x-2 text-sm h-8 px-3">
+        <Globe className="h-4 w-4 opacity-50" />
+        <span className="text-muted-foreground">Loading...</span>
+      </div>
+    )
   }
 
   if (!currentSite || availableSites.length <= 1) {
