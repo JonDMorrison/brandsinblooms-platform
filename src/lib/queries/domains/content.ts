@@ -76,16 +76,7 @@ export async function getContent(
 
   let dataQuery = supabase
     .from('content')
-    .select(`
-      *,
-      tags:taggings(
-        tag:tags(
-          id,
-          name,
-          slug
-        )
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId);
 
   // Apply filters
@@ -132,10 +123,10 @@ export async function getContent(
   // Execute query
   const data = await handleQueryResponse(await dataQuery);
 
-  // Transform data to flatten tags
+  // Transform data (tags will be empty for now)
   const transformedData = data.map((item: any) => ({
     ...item,
-    tags: item.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+    tags: [],
   }));
 
   return buildPaginatedResponse(transformedData, count, page, limit);
@@ -151,26 +142,17 @@ export async function getContentById(
 ): Promise<ContentWithTags> {
   const response = await supabase
     .from('content')
-    .select(`
-      *,
-      tags:taggings(
-        tag:tags(
-          id,
-          name,
-          slug
-        )
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('id', contentId)
     .single();
 
   const data = await handleSingleResponse(response);
   
-  // Transform tags
+  // Transform tags (empty for now)
   return {
     ...data,
-    tags: Array.isArray(data.tags) ? data.tags.map((t: any) => t.tag).filter(Boolean) : [],
+    tags: [],
   };
 }
 
@@ -184,26 +166,17 @@ export async function getContentBySlug(
 ): Promise<ContentWithTags> {
   const response = await supabase
     .from('content')
-    .select(`
-      *,
-      tags:taggings(
-        tag:tags(
-          id,
-          name,
-          slug
-        )
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('slug', slug)
     .single();
 
   const data = await handleSingleResponse(response);
   
-  // Transform tags
+  // Transform tags (empty for now)
   return {
     ...data,
-    tags: Array.isArray(data.tags) ? data.tags.map((t: any) => t.tag).filter(Boolean) : [],
+    tags: [],
   };
 }
 
@@ -407,10 +380,7 @@ export async function getContentByType(
     .from('content')
     .select(`
       *,
-      author:profiles!author_id(id, full_name, avatar_url),
-      tags:taggings(
-        tag:tags(id, name, slug)
-      )
+      author:profiles!author_id(id, full_name, avatar_url)
     `)
     .eq('site_id', siteId)
     .eq('content_type', contentType)
@@ -419,7 +389,7 @@ export async function getContentByType(
   const data = await handleQueryResponse(await query);
   return data.map((item: any) => ({
     ...item,
-    tags: item.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+    tags: [],
   }));
 }
 
@@ -435,10 +405,7 @@ export async function getPublishedContent(
     .from('content')
     .select(`
       *,
-      author:profiles!author_id(id, full_name, avatar_url),
-      tags:taggings(
-        tag:tags(id, name, slug)
-      )
+      author:profiles!author_id(id, full_name, avatar_url)
     `)
     .eq('site_id', siteId)
     .eq('is_published', true)
@@ -451,7 +418,7 @@ export async function getPublishedContent(
   const data = await handleQueryResponse(await query);
   return data.map((item: any) => ({
     ...item,
-    tags: item.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+    tags: [],
   }));
 }
 
@@ -467,10 +434,7 @@ export async function searchContent(
     .from('content')
     .select(`
       *,
-      author:profiles!author_id(id, full_name, avatar_url),
-      tags:taggings(
-        tag:tags(id, name, slug)
-      )
+      author:profiles!author_id(id, full_name, avatar_url)
     `)
     .eq('site_id', siteId)
     .or(`title.ilike.%${searchQuery}%,meta_description.ilike.%${searchQuery}%`)
@@ -479,7 +443,7 @@ export async function searchContent(
   const data = await handleQueryResponse(await query);
   return data.map((item: any) => ({
     ...item,
-    tags: item.tags?.map((t: any) => t.tag).filter(Boolean) || [],
+    tags: [],
   }));
 }
 

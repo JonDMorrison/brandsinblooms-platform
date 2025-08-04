@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
@@ -16,22 +15,7 @@ import {
 } from 'lucide-react'
 import { useContent, useContentStats } from '@/src/hooks/useContent'
 import { Skeleton } from '@/src/components/ui/skeleton'
-
-// Dynamic import for DataTable with loading state
-const DataTable = dynamic<any>(
-  () => import('@/components/ui/data-table').then(mod => ({ default: mod.DataTable })) as any,
-  {
-    loading: () => (
-      <div className="w-full space-y-3">
-        <div className="h-10 bg-gray-100 rounded animate-pulse" />
-        {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="h-16 bg-gray-50 rounded animate-pulse" />
-        ))}
-      </div>
-    ),
-    ssr: false
-  }
-)
+import { DataTable } from '@/src/components/ui/data-table'
 
 
 
@@ -197,7 +181,7 @@ export default function ContentPage() {
                 </div>
               ) : (
                 <DataTable
-                  columns={contentColumns as any} 
+                  columns={contentColumns} 
                   data={filteredContent} 
                   searchKey="title"
                   searchPlaceholder="Search content..."
