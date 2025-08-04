@@ -84,16 +84,7 @@ export async function getProducts(
 
   let dataQuery = supabase
     .from('products')
-    .select(`
-      *,
-      tags:taggings(
-        tag:tags(
-          id,
-          name,
-          slug
-        )
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId);
 
   // Apply filters
@@ -155,12 +146,10 @@ export async function getProducts(
   // Execute query
   const data = await handleQueryResponse(await dataQuery);
 
-  // Transform data to flatten tags
+  // Transform data (tags will be empty for now)
   const transformedData = data.map((item) => ({
     ...item,
-    tags: Array.isArray(item.tags) 
-      ? item.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
-      : [],
+    tags: [],
   }));
 
   return buildPaginatedResponse(transformedData, count, page, limit);
@@ -176,16 +165,7 @@ export async function getProductById(
 ): Promise<ProductWithTags> {
   const response = await supabase
     .from('products')
-    .select(`
-      *,
-      tags:taggings(
-        tag:tags(
-          id,
-          name,
-          slug
-        )
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('id', productId)
     .single();
@@ -193,9 +173,7 @@ export async function getProductById(
   const data = await handleSingleResponse(response);
   
   // Transform tags - handle potential relation errors
-  const tags = Array.isArray(data.tags) 
-    ? data.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
-    : [];
+  const tags = [];
   
   return {
     ...data,
@@ -213,16 +191,7 @@ export async function getProductBySlug(
 ): Promise<ProductWithTags> {
   const response = await supabase
     .from('products')
-    .select(`
-      *,
-      tags:taggings(
-        tag:tags(
-          id,
-          name,
-          slug
-        )
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('slug', slug)
     .single();
@@ -230,9 +199,7 @@ export async function getProductBySlug(
   const data = await handleSingleResponse(response);
   
   // Transform tags - handle potential relation errors
-  const tags = Array.isArray(data.tags) 
-    ? data.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
-    : [];
+  const tags = [];
   
   return {
     ...data,
@@ -250,16 +217,7 @@ export async function getProductBySku(
 ): Promise<ProductWithTags> {
   const response = await supabase
     .from('products')
-    .select(`
-      *,
-      tags:taggings(
-        tag:tags(
-          id,
-          name,
-          slug
-        )
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('sku', sku)
     .single();
@@ -267,9 +225,7 @@ export async function getProductBySku(
   const data = await handleSingleResponse(response);
   
   // Transform tags - handle potential relation errors
-  const tags = Array.isArray(data.tags) 
-    ? data.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
-    : [];
+  const tags = [];
   
   return {
     ...data,
@@ -471,12 +427,7 @@ export async function getProductsByCategory(
 ): Promise<ProductWithTags[]> {
   const query = supabase
     .from('products')
-    .select(`
-      *,
-      tags:taggings(
-        tag:tags(id, name, slug)
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('category', category)
     .eq('is_active', true)
@@ -485,9 +436,7 @@ export async function getProductsByCategory(
   const data = await handleQueryResponse(await query);
   return data.map((item) => ({
     ...item,
-    tags: Array.isArray(item.tags) 
-      ? item.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
-      : [],
+    tags: [],
   }));
   
 }
@@ -502,12 +451,7 @@ export async function searchProducts(
 ): Promise<ProductWithTags[]> {
   const query = supabase
     .from('products')
-    .select(`
-      *,
-      tags:taggings(
-        tag:tags(id, name, slug)
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`)
     .order('created_at', { ascending: false });
@@ -515,9 +459,7 @@ export async function searchProducts(
   const data = await handleQueryResponse(await query);
   return data.map((item) => ({
     ...item,
-    tags: Array.isArray(item.tags) 
-      ? item.tags.map((t: { tag: { id: string; name: string; slug: string } }) => t.tag).filter(Boolean) 
-      : [],
+    tags: [],
   }));
   
 }
