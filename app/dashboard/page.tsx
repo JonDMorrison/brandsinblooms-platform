@@ -20,11 +20,8 @@ import { useSite } from '@/src/hooks/useSite'
 import { useDashboardMetrics, useSiteStats } from '@/src/hooks/useStats'
 import { Skeleton } from '@/src/components/ui/skeleton'
 
-// Import SimpleChart directly for now to avoid webpack issues
-import { SimpleChart } from '@/src/components/charts/SimpleChart'
-
-// Dynamic imports for heavy components
-const DashboardChart = SimpleChart // Use SimpleChart temporarily
+// Import MetricsChart for actual data visualization
+import { MetricsChart } from '@/src/components/charts/MetricsChart'
 
 const ActivityFeed = dynamic(
   () => import('@/src/components/ActivityFeed').then(mod => mod.ActivityFeed),
@@ -265,19 +262,15 @@ export default function DashboardPage() {
 
       {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2 fade-in-up" style={{ animationDelay: '0.8s' }}>
-        <DashboardChart
+        <MetricsChart
           title="Site Views"
-          description="Monthly site views over time"
-          type="area"
-          dataKey="views"
-          color="#8884d8"
+          description="Daily site views over the last 30 days"
+          type="views"
         />
-        <DashboardChart
+        <MetricsChart
           title="Order Volume"
-          description="Orders received each month"
-          type="bar"
-          dataKey="orders"
-          color="#82ca9d"
+          description="Daily orders over the last 30 days"
+          type="orders"
         />
       </div>
 

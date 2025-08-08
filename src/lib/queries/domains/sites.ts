@@ -388,14 +388,64 @@ export async function getDashboardMetrics(
   contentGrowth: number;
   productGrowth: number;
 }> {
-  // TODO: Implement actual metrics when tables exist
+  const today = new Date().toISOString().split('T')[0];
+  const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+  // Get total views from site_metrics
+  const { data: viewsData } = await supabase
+    .from('site_metrics')
+    .select('page_views')
+    .eq('site_id', siteId)
+    .gte('metric_date', lastWeek);
+
+  const totalViews = viewsData?.reduce((sum, item) => sum + (item.page_views || 0), 0) || 0;
+
+  // Get views growth by comparing last week to previous week
+  const { data: previousWeekViews } = await supabase
+    .from('site_metrics')
+    .select('page_views')
+    .eq('site_id', siteId)
+    .gte('metric_date', twoWeeksAgo)
+    .lt('metric_date', lastWeek);
+
+  const previousTotal = previousWeekViews?.reduce((sum, item) => sum + (item.page_views || 0), 0) || 0;
+  const viewsGrowth = previousTotal > 0 ? Math.round(((totalViews - previousTotal) / previousTotal) * 100) : 0;
+
+  // Get content and product growth
+  const { data: latestMetrics } = await supabase
+    .from('site_metrics')
+    .select('content_count, product_count')
+    .eq('site_id', siteId)
+    .order('metric_date', { ascending: false })
+    .limit(1)
+    .single();
+
+  const { data: weekAgoMetrics } = await supabase
+    .from('site_metrics')
+    .select('content_count, product_count')
+    .eq('site_id', siteId)
+    .lte('metric_date', lastWeek)
+    .order('metric_date', { ascending: false })
+    .limit(1)
+    .single();
+
+  const contentGrowth = weekAgoMetrics?.content_count 
+    ? Math.round(((latestMetrics?.content_count || 0) - weekAgoMetrics.content_count) / weekAgoMetrics.content_count * 100)
+    : 0;
+
+  const productGrowth = weekAgoMetrics?.product_count
+    ? Math.round(((latestMetrics?.product_count || 0) - weekAgoMetrics.product_count) / weekAgoMetrics.product_count * 100)
+    : 0;
+
+  // For now, return 0 for orders until we have order data
   return {
     totalOrders: 0,
     newOrdersToday: 0,
-    totalViews: 0,
-    viewsGrowth: 0,
-    contentGrowth: 0,
-    productGrowth: 0,
+    totalViews,
+    viewsGrowth,
+    contentGrowth,
+    productGrowth,
   };
 }
 

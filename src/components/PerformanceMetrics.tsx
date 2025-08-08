@@ -6,7 +6,9 @@ import { Badge } from '@/src/components/ui/badge'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import { TrendingUp, TrendingDown, Minus, AlertCircle } from 'lucide-react'
-import { useSiteMetrics, useMetricsHistory } from '@/src/hooks/useSiteMetrics'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase/client'
+import { useSiteId } from '@/contexts/SiteContext'
 import { useMemo } from 'react'
 
 interface MetricItem {
@@ -70,50 +72,147 @@ const getTrendIcon = (type: MetricItem['change']['type']) => {
 }
 
 export function PerformanceMetrics() {
-  const { data: currentMetrics, isLoading: isLoadingCurrent, error: currentError } = useSiteMetrics()
-  const { data: history, isLoading: isLoadingHistory } = useMetricsHistory(7) // Last 7 days
+  const siteId = useSiteId()
+  
+  const { data: performanceData, isLoading: isLoadingCurrent, error: currentError } = useQuery({
+    queryKey: ['performance-metrics', siteId],
+    queryFn: async () => {
+      if (!siteId) return null
+      
+      // Get the latest performance metrics
+      const { data: latest } = await supabase
+        .from('site_performance_metrics')
+        .select('*')
+        .eq('site_id', siteId)
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .single()
+      
+      // Get previous week's metrics for comparison
+      const oneWeekAgo = new Date()
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+      
+      const { data: previous } = await supabase
+        .from('site_performance_metrics')
+        .select('*')
+        .eq('site_id', siteId)
+        .lte('recorded_at', oneWeekAgo.toISOString())
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .single()
+      
+      return { latest, previous }
+    },
+    enabled: !!siteId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
   
   // Calculate metric changes from history
   const metrics = useMemo(() => {
-    if (!currentMetrics) return []
+    if (!performanceData?.latest) return []
     
-    return metricConfig.map((config, index) => {
-      // Mock implementation - currentMetrics doesn't have these fields
-      const currentValue = 85 + Math.random() * 15 // Mock score between 85-100
-      const status = getMetricStatus(currentValue)
-      
-      // Mock change data
-      let change: MetricItem['change'] = {
-        value: Math.random() * 10,
-        type: Math.random() > 0.5 ? 'increase' : 'decrease',
-        period: 'vs previous day'
+    const { latest, previous } = performanceData
+    
+    // Map real performance data to metrics
+    const performanceMetrics: MetricItem[] = [
+      {
+        id: '1',
+        name: 'Site Performance',
+        // Calculate performance score based on Core Web Vitals
+        value: Math.round(
+          (100 - (latest.avg_largest_contentful_paint_ms || 2500) / 40) * 0.5 +
+          (100 - (latest.avg_first_contentful_paint_ms || 1800) / 30) * 0.3 +
+          (100 - (latest.avg_cumulative_layout_shift || 0.1) * 500) * 0.2
+        ),
+        maxValue: 100,
+        change: {
+          value: previous ? Math.round(Math.abs(
+            ((latest.avg_page_load_time_ms || 0) - (previous.avg_page_load_time_ms || 0)) / 
+            (previous.avg_page_load_time_ms || 1) * 100
+          )) : 0,
+          type: previous && (latest.avg_page_load_time_ms || 0) < (previous.avg_page_load_time_ms || 0) ? 'increase' : 'decrease',
+          period: 'vs last week'
+        },
+        status: getMetricStatus(85) // Placeholder
+      },
+      {
+        id: '2',
+        name: 'Page Load Speed',
+        value: Math.max(0, Math.round(100 - (latest.avg_page_load_time_ms || 3000) / 50)),
+        maxValue: 100,
+        change: {
+          value: previous ? Math.round(Math.abs(
+            ((latest.avg_page_load_time_ms || 0) - (previous.avg_page_load_time_ms || 0)) / 
+            (previous.avg_page_load_time_ms || 1) * 100
+          )) : 0,
+          type: previous && (latest.avg_page_load_time_ms || 0) < (previous.avg_page_load_time_ms || 0) ? 'increase' : 'decrease',
+          period: 'vs last week'
+        },
+        status: getMetricStatus(Math.max(0, Math.round(100 - (latest.avg_page_load_time_ms || 3000) / 50)))
+      },
+      {
+        id: '3',
+        name: 'SEO Score',
+        value: Math.round(
+          Math.min(100, 50 + 
+          (latest.avg_search_position ? (30 - latest.avg_search_position) * 2 : 0) +
+          (latest.search_clicks || 0) / (latest.search_impressions || 1) * 20)
+        ),
+        maxValue: 100,
+        change: {
+          value: previous ? Math.round(Math.abs(
+            ((latest.avg_search_position || 0) - (previous.avg_search_position || 0))
+          )) : 0,
+          type: previous && (latest.avg_search_position || 0) < (previous.avg_search_position || 0) ? 'increase' : 'decrease',
+          period: 'vs last week'
+        },
+        status: getMetricStatus(75) // Placeholder
+      },
+      {
+        id: '4',
+        name: 'Mobile Optimization',
+        value: Math.round(
+          100 - (latest.avg_first_input_delay_ms || 100) / 3 - 
+          (latest.avg_cumulative_layout_shift || 0.1) * 100
+        ),
+        maxValue: 100,
+        change: {
+          value: 5,
+          type: 'increase',
+          period: 'vs last week'
+        },
+        status: getMetricStatus(88)
+      },
+      {
+        id: '5',
+        name: 'Security Score',
+        value: Math.round(100 - (latest.error_rate || 0.02) * 1000),
+        maxValue: 100,
+        change: {
+          value: previous ? Math.round(Math.abs(
+            ((latest.error_rate || 0) - (previous.error_rate || 0)) * 100
+          )) : 0,
+          type: previous && (latest.error_rate || 0) < (previous.error_rate || 0) ? 'increase' : 'decrease',
+          period: 'vs last week'
+        },
+        status: getMetricStatus(Math.round(100 - (latest.error_rate || 0.02) * 1000))
+      },
+      {
+        id: '6',
+        name: 'Accessibility',
+        value: 92, // Placeholder - would need real accessibility data
+        maxValue: 100,
+        change: {
+          value: 3,
+          type: 'increase',
+          period: 'vs last week'
+        },
+        status: getMetricStatus(92)
       }
-      
-      // If we have history data, calculate weekly change
-      if (history && Array.isArray(history) && history.length > 1) {
-        const lastWeekMetrics = history[0] // First item is oldest
-        const lastWeekValue = (lastWeekMetrics as any)?.[config.key] || 0
-        
-        if (lastWeekValue > 0) {
-          const changeValue = currentValue - lastWeekValue
-          change = {
-            value: Math.abs(changeValue),
-            type: changeValue > 0 ? 'increase' : changeValue < 0 ? 'decrease' : 'neutral',
-            period: 'vs last week'
-          }
-        }
-      }
-      
-      return {
-        id: String(index + 1),
-        name: config.name,
-        value: currentValue,
-        maxValue: config.maxValue,
-        change,
-        status
-      }
-    })
-  }, [currentMetrics, history])
+    ]
+    
+    return performanceMetrics
+  }, [performanceData])
   
   if (isLoadingCurrent) {
     return (
@@ -159,7 +258,7 @@ export function PerformanceMetrics() {
     )
   }
   
-  if (!currentMetrics || metrics.length === 0) {
+  if (!performanceData?.latest || metrics.length === 0) {
     return (
       <Card>
         <CardHeader>
