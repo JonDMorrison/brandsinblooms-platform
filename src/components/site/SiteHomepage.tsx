@@ -158,11 +158,12 @@ function AuthenticatedSiteView({ site, user }: { site: any; user: any }) {
               </Button>
             </Link>
             
+            {/* Temporarily hidden - My Sites page not ready yet
             <Link href="/sites">
               <Button variant="outline" size="lg" className="min-w-[160px]">
                 My Sites
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>
