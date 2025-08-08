@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
@@ -16,16 +16,27 @@ import {
 import { useContent, useContentStats } from '@/src/hooks/useContent'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { DataTable } from '@/src/components/ui/data-table'
+import { useSiteId, useSiteContext } from '@/src/contexts/SiteContext'
 
 
 
 export default function ContentPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('all')
+  const siteId = useSiteId()
+  const { loading: siteLoading } = useSiteContext()
   
   // Fetch real content data
-  const { data: contentResponse, isLoading, error } = useContent()
-  const { data: contentStats, isLoading: statsLoading } = useContentStats()
+  const { data: contentResponse, isLoading, error, refetch } = useContent()
+  const { data: contentStats, isLoading: statsLoading, refetch: refetchStats } = useContentStats()
+  
+  // Refetch data when siteId becomes available
+  useEffect(() => {
+    if (siteId && !siteLoading) {
+      refetch()
+      refetchStats()
+    }
+  }, [siteId, siteLoading, refetch, refetchStats])
   
   // Extract content array from response
   const content = Array.isArray(contentResponse) ? contentResponse : contentResponse?.data || []
@@ -87,10 +98,10 @@ export default function ContentPage() {
 
       {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        {statsLoading ? (
+        {statsLoading || siteLoading || !siteId ? (
           // Loading skeletons
           Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
+            <Card key={i} className="fade-in-up" style={{ animationDelay: `${0.2 + i * 0.1}s` }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <Skeleton className="h-4 w-[100px]" />
                 <Skeleton className="h-4 w-4 rounded" />
@@ -165,7 +176,7 @@ export default function ContentPage() {
             </TabsList>
             
             <TabsContent value={activeTab} className="mt-6">
-              {isLoading ? (
+              {isLoading || siteLoading || !siteId ? (
                 <div className="w-full space-y-3">
                   <Skeleton className="h-10 w-full" />
                   {[1, 2, 3, 4, 5].map(i => (
