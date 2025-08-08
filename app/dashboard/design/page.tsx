@@ -132,7 +132,7 @@ export default function DesignPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between fade-in-up" style={{ animationDelay: '0s' }}>
         <div>
           <h1 className="text-3xl font-bold">Design System</h1>
           <p className="text-gray-600 mt-1">
@@ -164,7 +164,7 @@ export default function DesignPage() {
       </div>
 
       {/* AI Design Assistant Card */}
-      <Card className="bg-gradient-subtle border-0">
+      <Card className="bg-gradient-subtle border-0 fade-in-up" style={{ animationDelay: '0.1s' }}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Wand2 className="h-5 w-5 text-purple-600" />
@@ -193,7 +193,7 @@ export default function DesignPage() {
       </Card>
 
       {/* Design Customization Tabs */}
-      <Card>
+      <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
         <CardContent className="p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-5">
@@ -279,7 +279,7 @@ export default function DesignPage() {
 
       {/* Preview Section */}
       {previewMode && (
-        <Card>
+        <Card className="fade-in-up" style={{ animationDelay: '0.3s' }}>
           <CardHeader>
             <CardTitle>Live Preview</CardTitle>
             <CardDescription>

@@ -119,7 +119,7 @@ export function OrderStats({ orders }: OrderStatsProps) {
         {stats.map((stat, index) => {
           const Icon = stat.icon
           return (
-            <Card key={index}>
+            <Card key={index} className="fade-in-up" style={{ animationDelay: `${0.2 + index * 0.1}s` }}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>

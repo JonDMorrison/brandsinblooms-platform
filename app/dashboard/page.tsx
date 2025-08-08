@@ -264,7 +264,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Charts Section */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 fade-in-up" style={{ animationDelay: '0.8s' }}>
         <DashboardChart
           title="Site Views"
           description="Monthly site views over time"
@@ -282,7 +282,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Activity Feed and Performance Metrics */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 fade-in-up" style={{ animationDelay: '0.9s' }}>
         <ActivityFeed />
         <PerformanceMetrics />
       </div>

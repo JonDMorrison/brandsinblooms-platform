@@ -387,7 +387,7 @@ export default function OrdersPage() {
 
               {/* Customer Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
+                <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-md">
@@ -401,7 +401,7 @@ export default function OrdersPage() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="fade-in-up" style={{ animationDelay: '0.3s' }}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-green-100 dark:bg-green-900 rounded-md">
@@ -415,7 +415,7 @@ export default function OrdersPage() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="fade-in-up" style={{ animationDelay: '0.4s' }}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-md">
