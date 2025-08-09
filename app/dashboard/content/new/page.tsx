@@ -391,7 +391,7 @@ export default function CreateContentPage() {
                     <Label className="text-sm font-medium text-muted-foreground">Layout</Label>
                     {getSelectedLayoutInfo() && (
                       <div className="flex items-center gap-3 mt-2 p-3 border rounded-lg">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-md">
+                        <div className="p-2 bg-blue-600 text-white rounded-md">
                           {getSelectedLayoutInfo()!.icon}
                         </div>
                         <div>
