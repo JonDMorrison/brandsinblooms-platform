@@ -63,7 +63,7 @@ function ActionsCell({ row }: { row: Row<ContentItem> }) {
           View
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => router.push(`/dashboard/content/edit/${row.original.id}`)}
+          onClick={() => router.push(`/dashboard/content/editor?id=${row.original.id}`)}
         >
           <Edit className="mr-2 h-4 w-4" />
           Edit
