@@ -9,14 +9,14 @@ interface LandingPagePreviewProps {
 
 export function LandingPagePreview({ title, subtitle }: LandingPagePreviewProps) {
   return (
-    <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 p-6 space-y-8">
+    <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 p-6 space-y-8">
       {/* Hero Section */}
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             {subtitle}
           </p>
         )}

@@ -10,18 +10,18 @@ interface BlogArticlePreviewProps {
 
 export function BlogArticlePreview({ title, subtitle }: BlogArticlePreviewProps) {
   return (
-    <div className="w-full h-full bg-white dark:bg-gray-900 p-6 space-y-6">
+    <div className="w-full h-full bg-white p-6 space-y-6">
       {/* Article Header */}
       <div className="text-center space-y-4 border-b pb-6">
         <div className="flex justify-center gap-2">
           <Badge>Gardening</Badge>
           <Badge variant="outline">Tips</Badge>
         </div>
-        <h1 className="text-3xl font-bold leading-tight">{title}</h1>
+        <h1 className="text-3xl font-bold leading-tight text-gray-900">{title}</h1>
         {subtitle && (
-          <p className="text-lg text-muted-foreground">{subtitle}</p>
+          <p className="text-lg text-gray-600">{subtitle}</p>
         )}
-        <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+        <div className="flex items-center justify-center gap-6 text-sm text-gray-500">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             March 15, 2024
@@ -37,19 +37,19 @@ export function BlogArticlePreview({ title, subtitle }: BlogArticlePreviewProps)
       <div className="grid lg:grid-cols-4 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-            <span className="text-muted-foreground">Featured Image</span>
+          <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+            <span className="text-gray-400">Featured Image</span>
           </div>
           
           <div className="space-y-4">
-            <p className="text-muted-foreground leading-relaxed">
+            <p className="text-gray-600 leading-relaxed">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
               incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
               nostrud exercitation ullamco laboris.
             </p>
             
-            <h2 className="text-xl font-bold">Key Points</h2>
-            <ul className="space-y-2 list-disc list-inside text-muted-foreground">
+            <h2 className="text-xl font-bold text-gray-900">Key Points</h2>
+            <ul className="space-y-2 list-disc list-inside text-gray-600">
               <li>Essential care techniques</li>
               <li>Seasonal maintenance tips</li>
               <li>Common problems and solutions</li>
@@ -68,11 +68,11 @@ export function BlogArticlePreview({ title, subtitle }: BlogArticlePreviewProps)
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-semibold">Author Name</p>
-                <p className="text-sm text-muted-foreground">Expert Florist</p>
+                <p className="font-semibold text-gray-900">Author Name</p>
+                <p className="text-sm text-gray-600">Expert Florist</p>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-600">
               Passionate about flowers and helping others create beautiful arrangements.
             </p>
           </Card>
