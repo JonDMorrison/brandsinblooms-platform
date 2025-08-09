@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { supabase } from '@/src/lib/supabase/client'
+import { getContentById } from '@/src/lib/queries/domains/content'
+import { useSiteContext } from '@/src/contexts/SiteContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
@@ -58,47 +61,79 @@ const viewportSizes = {
 
 export default function PageEditorPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const contentId = searchParams.get('id')
+  const { currentSite } = useSiteContext()
+  
   const [pageData, setPageData] = useState<PageData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [activeViewport, setActiveViewport] = useState<ViewportSize>('desktop')
   const [isPreviewMode, setIsPreviewMode] = useState(true)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   useEffect(() => {
-    // Skip if we already have page data
-    if (pageData) return
-    
-    // Get page data from sessionStorage (set by CreateContent page)
-    if (typeof window !== 'undefined') {
-      const storedData = sessionStorage.getItem('newPageData')
-      console.log('Editor: Checking for stored data:', storedData)
-      
-      if (storedData) {
+    async function loadContent() {
+      // If we have a content ID, load it from the database
+      if (contentId && currentSite?.id) {
+        console.log('Editor: Loading content with ID:', contentId)
+        setIsLoading(true)
+        
         try {
-          const { pageData: data } = JSON.parse(storedData)
-          console.log('Editor: Parsed page data:', data)
-          setPageData(data)
-          // Don't clear immediately - keep for potential re-mounts
-          // We'll clear when actually saving to database
+          const content = await getContentById(supabase, currentSite.id, contentId)
+          console.log('Editor: Loaded content:', content)
+          
+          // Extract page data from the content
+          const metaData = content.meta_data as any
+          const contentData = content.content as any
+          const layout = metaData?.layout || contentData?.layout || 'landing'
+          
+          const pageData: PageData = {
+            title: content.title,
+            subtitle: metaData?.subtitle || '',
+            layout: layout as LayoutType
+          }
+          
+          setPageData(pageData)
         } catch (error) {
-          console.error('Editor: Error parsing stored data:', error)
-          // Only redirect if we truly have no data
-          if (!pageData) {
+          console.error('Editor: Error loading content:', error)
+          toast.error('Failed to load content')
+          router.push('/dashboard/content')
+        } finally {
+          setIsLoading(false)
+        }
+      } else {
+        // Fallback: Check sessionStorage for legacy support
+        if (typeof window !== 'undefined') {
+          const storedData = sessionStorage.getItem('newPageData')
+          
+          if (storedData) {
+            try {
+              const { pageData: data } = JSON.parse(storedData)
+              console.log('Editor: Using sessionStorage data:', data)
+              setPageData(data)
+              setIsLoading(false)
+            } catch (error) {
+              console.error('Editor: Error parsing stored data:', error)
+              router.push('/dashboard/content/new')
+            }
+          } else {
+            console.log('Editor: No content ID or sessionStorage data')
             router.push('/dashboard/content/new')
           }
         }
-      } else if (!pageData) {
-        // Only redirect if we don't have data already set
-        console.log('Editor: No data found and no existing pageData, redirecting to content/new')
-        router.push('/dashboard/content/new')
       }
     }
-  }, [router, pageData])
+    
+    loadContent()
+  }, [contentId, currentSite?.id, router])
 
-  if (!pageData) {
+  if (isLoading || !pageData) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-muted-foreground">Loading page editor...</p>
+          <p className="text-muted-foreground">
+            {isLoading ? 'Loading content...' : 'Preparing editor...'}
+          </p>
         </div>
       </div>
     )
