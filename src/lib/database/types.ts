@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          query?: string
           extensions?: Json
-          variables?: Json
           operationName?: string
+          query?: string
+          variables?: Json
         }
         Returns: Json
       }
@@ -437,36 +437,48 @@ export type Database = {
       order_items: {
         Row: {
           created_at: string
+          discount_amount: number | null
           id: string
+          notes: string | null
           order_id: string
           product_id: string | null
           product_name: string
           product_sku: string | null
           quantity: number
+          tax_amount: number | null
           total_price: number
           unit_price: number
+          variant_info: Json | null
         }
         Insert: {
           created_at?: string
+          discount_amount?: number | null
           id?: string
+          notes?: string | null
           order_id: string
           product_id?: string | null
           product_name: string
           product_sku?: string | null
           quantity: number
+          tax_amount?: number | null
           total_price: number
           unit_price: number
+          variant_info?: Json | null
         }
         Update: {
           created_at?: string
+          discount_amount?: number | null
           id?: string
+          notes?: string | null
           order_id?: string
           product_id?: string | null
           product_name?: string
           product_sku?: string | null
           quantity?: number
+          tax_amount?: number | null
           total_price?: number
           unit_price?: number
+          variant_info?: Json | null
         }
         Relationships: [
           {
@@ -474,6 +486,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders_with_details"
             referencedColumns: ["id"]
           },
           {
@@ -485,61 +504,247 @@ export type Database = {
           },
         ]
       }
+      order_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          order_id: string
+          payment_method: string
+          processed_at: string | null
+          provider_response: Json | null
+          status: string
+          transaction_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          order_id: string
+          payment_method: string
+          processed_at?: string | null
+          provider_response?: Json | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          order_id?: string
+          payment_method?: string
+          processed_at?: string | null
+          provider_response?: Json | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_shipments: {
+        Row: {
+          carrier: string | null
+          created_at: string
+          delivered_at: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          shipped_at: string | null
+          status: string | null
+          tracking_number: string | null
+          tracking_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          shipped_at?: string | null
+          status?: string | null
+          tracking_number?: string | null
+          tracking_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          shipped_at?: string | null
+          status?: string | null
+          tracking_number?: string | null
+          tracking_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_status: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          to_status: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          to_status: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           billing_address: Json | null
           cancelled_at: string | null
+          completed_at: string | null
           created_at: string
+          currency: string | null
           customer_email: string
           customer_id: string
           customer_name: string
           delivered_at: string | null
+          discount_amount: number | null
           id: string
+          internal_notes: string | null
           items_count: number
           notes: string | null
           order_number: string
+          payment_method: string | null
+          payment_status: string | null
+          refunded_at: string | null
           shipped_at: string | null
           shipping_address: Json | null
+          shipping_amount: number | null
           site_id: string
           status: string
+          subtotal: number | null
+          tax_amount: number | null
           total_amount: number
           updated_at: string
         }
         Insert: {
           billing_address?: Json | null
           cancelled_at?: string | null
+          completed_at?: string | null
           created_at?: string
+          currency?: string | null
           customer_email: string
           customer_id: string
           customer_name: string
           delivered_at?: string | null
+          discount_amount?: number | null
           id?: string
+          internal_notes?: string | null
           items_count?: number
           notes?: string | null
           order_number: string
+          payment_method?: string | null
+          payment_status?: string | null
+          refunded_at?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
+          shipping_amount?: number | null
           site_id: string
           status?: string
+          subtotal?: number | null
+          tax_amount?: number | null
           total_amount: number
           updated_at?: string
         }
         Update: {
           billing_address?: Json | null
           cancelled_at?: string | null
+          completed_at?: string | null
           created_at?: string
+          currency?: string | null
           customer_email?: string
           customer_id?: string
           customer_name?: string
           delivered_at?: string | null
+          discount_amount?: number | null
           id?: string
+          internal_notes?: string | null
           items_count?: number
           notes?: string | null
           order_number?: string
+          payment_method?: string | null
+          payment_status?: string | null
+          refunded_at?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
+          shipping_amount?: number | null
           site_id?: string
           status?: string
+          subtotal?: number | null
+          tax_amount?: number | null
           total_amount?: number
           updated_at?: string
         }
@@ -1196,6 +1401,86 @@ export type Database = {
         }
         Relationships: []
       }
+      order_stats_by_site: {
+        Row: {
+          average_order_value: number | null
+          cancelled_orders: number | null
+          delivered_orders: number | null
+          last_order_date: string | null
+          orders_last_24h: number | null
+          orders_last_30d: number | null
+          orders_last_7d: number | null
+          paid_orders: number | null
+          paid_revenue: number | null
+          pending_orders: number | null
+          processing_orders: number | null
+          refunded_orders: number | null
+          shipped_orders: number | null
+          site_id: string | null
+          total_orders: number | null
+          total_revenue: number | null
+          unpaid_orders: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders_with_details: {
+        Row: {
+          billing_address: Json | null
+          cancelled_at: string | null
+          completed_at: string | null
+          created_at: string | null
+          currency: string | null
+          customer_avatar_url: string | null
+          customer_email: string | null
+          customer_email_verified: string | null
+          customer_full_name: string | null
+          customer_id: string | null
+          customer_name: string | null
+          delivered_at: string | null
+          discount_amount: number | null
+          id: string | null
+          internal_notes: string | null
+          items_count: number | null
+          latest_status: string | null
+          notes: string | null
+          order_number: string | null
+          order_state: string | null
+          payment_method: string | null
+          payment_status: string | null
+          refunded_at: string | null
+          shipped_at: string | null
+          shipping_address: Json | null
+          shipping_amount: number | null
+          site_domain: string | null
+          site_id: string | null
+          site_name: string | null
+          status: string | null
+          status_changes_count: number | null
+          subtotal: number | null
+          tax_amount: number | null
+          total_amount: number | null
+          total_items: number | null
+          unique_items_count: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       admin_bulk_update_content: {
@@ -1239,12 +1524,12 @@ export type Database = {
       }
       admin_get_site_products: {
         Args: {
+          offset_count?: number
           site_uuid: string
           search_query?: string
           category_filter?: string
           status_filter?: string
           limit_count?: number
-          offset_count?: number
         }
         Returns: Json
       }
@@ -1274,7 +1559,7 @@ export type Database = {
         Returns: boolean
       }
       calculate_metric_trend: {
-        Args: { previous_value: number; current_value: number }
+        Args: { current_value: number; previous_value: number }
         Returns: string
       }
       check_site_health: {
@@ -1342,10 +1627,10 @@ export type Database = {
       }
       get_all_sites_with_stats: {
         Args: {
-          offset_count?: number
           search_query?: string
-          limit_count?: number
+          offset_count?: number
           status_filter?: string
+          limit_count?: number
         }
         Returns: Json
       }
@@ -1353,12 +1638,25 @@ export type Database = {
         Args: { token: string }
         Returns: Json
       }
+      get_order_summary_stats: {
+        Args: { p_site_id: string; p_date_range?: unknown }
+        Returns: {
+          total_orders: number
+          total_revenue: number
+          average_order_value: number
+          conversion_rate: number
+          pending_orders: number
+          processing_orders: number
+          shipped_orders: number
+          delivered_orders: number
+        }[]
+      }
       get_platform_analytics_summary: {
         Args: { days_back?: number }
         Returns: Json
       }
       get_site_analytics: {
-        Args: { site_uuid: string; period_type?: string; days_back?: number }
+        Args: { site_uuid: string; days_back?: number; period_type?: string }
         Returns: Json
       }
       get_site_health_summary: {
@@ -1399,6 +1697,26 @@ export type Database = {
       run_platform_health_checks: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      search_orders: {
+        Args: {
+          p_site_id: string
+          p_search_term?: string
+          p_status?: string
+          p_payment_status?: string
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: {
+          id: string
+          order_number: string
+          customer_name: string
+          customer_email: string
+          status: string
+          payment_status: string
+          total_amount: number
+          created_at: string
+        }[]
       }
       start_admin_impersonation: {
         Args: {

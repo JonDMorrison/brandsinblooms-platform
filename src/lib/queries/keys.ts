@@ -152,6 +152,7 @@ export const queryKeys = {
     lists: (siteId: string) => [...queryKeys.orders.all(siteId), 'list'] as const,
     list: (siteId: string, filters?: {
       status?: 'processing' | 'shipped' | 'delivered' | 'cancelled';
+      paymentStatus?: string;
       customerId?: string;
       search?: string;
       dateFrom?: string;
@@ -163,9 +164,29 @@ export const queryKeys = {
     details: (siteId: string) => [...queryKeys.orders.all(siteId), 'detail'] as const,
     detail: (siteId: string, id: string) => 
       [...queryKeys.orders.details(siteId), id] as const,
+    fullDetails: (siteId: string, id: string) => 
+      [...queryKeys.orders.detail(siteId, id), 'full'] as const,
+    items: (siteId: string, orderId: string) => 
+      [...queryKeys.orders.detail(siteId, orderId), 'items'] as const,
+    statusHistory: (siteId: string, orderId: string) => 
+      [...queryKeys.orders.detail(siteId, orderId), 'status-history'] as const,
+    payments: (siteId: string, orderId: string) => 
+      [...queryKeys.orders.detail(siteId, orderId), 'payments'] as const,
+    shipments: (siteId: string, orderId: string) => 
+      [...queryKeys.orders.detail(siteId, orderId), 'shipments'] as const,
     stats: (siteId: string) => [...queryKeys.orders.all(siteId), 'stats'] as const,
+    trends: (siteId: string, days?: number) => 
+      [...queryKeys.orders.stats(siteId), 'trends', days] as const,
+    metrics: (siteId: string) => [...queryKeys.orders.stats(siteId), 'metrics'] as const,
+    distribution: (siteId: string) => [...queryKeys.orders.stats(siteId), 'distribution'] as const,
+    recentActivity: (siteId: string, limit?: number) => 
+      [...queryKeys.orders.all(siteId), 'recent-activity', limit] as const,
     customerOrders: (siteId: string, customerId: string) => 
       [...queryKeys.orders.all(siteId), 'customer', customerId] as const,
+    search: (siteId: string, searchTerm: string) => 
+      [...queryKeys.orders.all(siteId), 'search', searchTerm] as const,
+    byStatus: (siteId: string, status: string) => 
+      [...queryKeys.orders.lists(siteId), 'status', status] as const,
   },
   
   // Customer queries

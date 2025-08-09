@@ -1,7 +1,7 @@
 import { Badge } from '@/src/components/ui/badge'
 import { Package, Truck, CheckCircle, XCircle } from 'lucide-react'
 
-type OrderStatus = 'delivered' | 'shipped' | 'processing' | 'cancelled'
+type OrderStatus = 'delivered' | 'shipped' | 'processing' | 'cancelled' | 'pending' | 'refunded'
 
 interface OrderStatusBadgeProps {
   status: OrderStatus
@@ -31,6 +31,18 @@ const statusConfig = {
     label: 'Cancelled',
     variant: 'default' as const,
     className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    icon: XCircle
+  },
+  pending: {
+    label: 'Pending',
+    variant: 'default' as const,
+    className: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+    icon: Package
+  },
+  refunded: {
+    label: 'Refunded',
+    variant: 'default' as const,
+    className: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
     icon: XCircle
   }
 }

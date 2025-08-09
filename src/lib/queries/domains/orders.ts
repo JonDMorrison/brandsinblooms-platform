@@ -1,10 +1,12 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/database/types';
+import { Database, Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
 import { Order, OrderInsert, OrderUpdate, OrderItem, OrderStatus } from '@/lib/database/aliases';
 import { SupabaseError } from '@/lib/queries/errors';
+import { handleError } from '@/lib/types/error-handling';
 
 export interface OrderFilters {
   status?: OrderStatus;
+  paymentStatus?: string;
   customerId?: string;
   search?: string;
   dateFrom?: string;
@@ -21,6 +23,49 @@ export interface OrderWithCustomer extends Order {
     avatar_url: string | null;
   };
   order_items?: OrderItem[];
+}
+
+export interface OrderWithDetails extends Order {
+  customer: {
+    user_id: string;
+    full_name: string | null;
+    email: string | null;
+    avatar_url: string | null;
+  };
+  order_items: (OrderItem & {
+    product?: {
+      id: string;
+      name: string;
+      slug: string | null;
+      images: any;
+    } | null;
+  })[];
+  order_status_history: {
+    id: string;
+    from_status: string | null;
+    to_status: string;
+    created_at: string;
+    changed_by: string | null;
+    notes: string | null;
+  }[];
+  order_payments: {
+    id: string;
+    amount: number;
+    currency: string | null;
+    payment_method: string;
+    status: string;
+    processed_at: string | null;
+    transaction_id: string | null;
+  }[];
+  order_shipments: {
+    id: string;
+    carrier: string | null;
+    tracking_number: string | null;
+    tracking_url: string | null;
+    status: string | null;
+    shipped_at: string | null;
+    delivered_at: string | null;
+  }[];
 }
 
 export interface OrderStats {
@@ -78,6 +123,10 @@ export async function getOrders(
     query = query.eq('customer_id', customerId);
   }
   
+  if (filters.paymentStatus) {
+    query = query.eq('payment_status', filters.paymentStatus);
+  }
+  
   if (search) {
     query = query.or(
       `order_number.ilike.%${search}%,customer_name.ilike.%${search}%,customer_email.ilike.%${search}%`
@@ -107,7 +156,7 @@ export async function getOrders(
   };
 }
 
-// Get single order with details
+// Get single order with basic details
 export async function getOrder(
   client: SupabaseClient<Database>,
   siteId: string,
@@ -127,7 +176,7 @@ export async function getOrder(
         *,
         product:products(
           id,
-          title,
+          name,
           slug,
           images
         )
@@ -143,53 +192,161 @@ export async function getOrder(
   return data as unknown as OrderWithCustomer;
 }
 
+// Get single order with full details (items, history, payments, shipments)
+export async function getOrderById(
+  client: SupabaseClient<Database>,
+  siteId: string,
+  orderId: string
+): Promise<OrderWithDetails> {
+  try {
+    const query = client
+      .from('orders')
+      .select(`
+        *,
+        customer:profiles!customer_id(
+          user_id,
+          full_name,
+          email,
+          avatar_url
+        ),
+        order_items(
+          *,
+          product:products(
+            id,
+            name,
+            slug,
+            images
+          )
+        ),
+        order_status_history(
+          id,
+          from_status,
+          to_status,
+          created_at,
+          changed_by,
+          notes
+        ),
+        order_payments(
+          id,
+          amount,
+          currency,
+          payment_method,
+          status,
+          processed_at,
+          transaction_id
+        ),
+        order_shipments(
+          id,
+          carrier,
+          tracking_number,
+          tracking_url,
+          status,
+          shipped_at,
+          delivered_at
+        )
+      `)
+      .eq('site_id', siteId)
+      .eq('id', orderId)
+      .single();
+    
+    const { data, error } = await query;
+    if (error) throw new SupabaseError(error.message, error.code);
+    if (!data) throw new SupabaseError('Order not found', 'NOT_FOUND');
+    return data as unknown as OrderWithDetails;
+  } catch (error: unknown) {
+    const errorDetails = handleError(error);
+    throw new SupabaseError(errorDetails.message, errorDetails.code || 'UNKNOWN_ERROR');
+  }
+}
+
 // Get order statistics
 export async function getOrderStats(
   client: SupabaseClient<Database>,
   siteId: string
 ): Promise<OrderStats> {
-  // Get overall stats
-  const overallQuery = client
-    .from('orders')
-    .select('id, status, total_amount, created_at')
-    .eq('site_id', siteId);
-  
-  const { data: orders, error } = await overallQuery;
-  if (error) throw new SupabaseError(error.message, error.code);
-  if (!orders) throw new SupabaseError('Failed to fetch orders', 'FETCH_ERROR');
-  
-  // Calculate today's stats
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayISO = today.toISOString();
-  
-  const todayOrders = orders.filter(order => 
-    new Date(order.created_at) >= today
-  );
-  
-  // Calculate statistics
-  const stats: OrderStats = {
-    totalOrders: orders.length,
-    processingOrders: orders.filter(o => o.status === 'processing').length,
-    shippedOrders: orders.filter(o => o.status === 'shipped').length,
-    deliveredOrders: orders.filter(o => o.status === 'delivered').length,
-    cancelledOrders: orders.filter(o => o.status === 'cancelled').length,
-    totalRevenue: orders
+  try {
+    // Use the database function for better performance
+    const { data, error } = await client
+      .rpc('get_order_summary_stats', { 
+        p_site_id: siteId
+        // p_date_range is optional and will default to all-time stats
+      })
+      .single();
+    
+    if (error) throw new SupabaseError(error.message, error.code);
+    if (!data) {
+      // Fallback to manual calculation if function doesn't exist
+      return await getOrderStatsManual(client, siteId);
+    }
+    
+    // Map database function result to our interface
+    const stats: OrderStats = {
+      totalOrders: data.total_orders || 0,
+      processingOrders: data.processing_orders || 0,
+      shippedOrders: data.shipped_orders || 0,
+      deliveredOrders: data.delivered_orders || 0,
+      cancelledOrders: 0, // Not provided by function, could be added
+      totalRevenue: data.total_revenue || 0,
+      averageOrderValue: data.average_order_value || 0,
+      todayOrders: 0, // Calculate separately if needed
+      todayRevenue: 0, // Calculate separately if needed
+    };
+    
+    return stats;
+  } catch (error: unknown) {
+    // Fallback to manual calculation on any error
+    return await getOrderStatsManual(client, siteId);
+  }
+}
+
+// Manual order statistics calculation (fallback)
+async function getOrderStatsManual(
+  client: SupabaseClient<Database>,
+  siteId: string
+): Promise<OrderStats> {
+  try {
+    // Get overall stats
+    const overallQuery = client
+      .from('orders')
+      .select('id, status, total_amount, created_at')
+      .eq('site_id', siteId);
+    
+    const { data: orders, error } = await overallQuery;
+    if (error) throw new SupabaseError(error.message, error.code);
+    if (!orders) throw new SupabaseError('Failed to fetch orders', 'FETCH_ERROR');
+    
+    // Calculate today's stats
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayOrders = orders.filter(order => 
+      new Date(order.created_at) >= today
+    );
+    
+    // Calculate statistics
+    const validOrders = orders.filter(o => o.status !== 'cancelled');
+    const totalRevenue = validOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
+    const todayRevenue = todayOrders
       .filter(o => o.status !== 'cancelled')
-      .reduce((sum, o) => sum + Number(o.total_amount), 0),
-    averageOrderValue: orders.length > 0 
-      ? orders
-          .filter(o => o.status !== 'cancelled')
-          .reduce((sum, o) => sum + Number(o.total_amount), 0) / 
-          orders.filter(o => o.status !== 'cancelled').length
-      : 0,
-    todayOrders: todayOrders.length,
-    todayRevenue: todayOrders
-      .filter(o => o.status !== 'cancelled')
-      .reduce((sum, o) => sum + Number(o.total_amount), 0),
-  };
-  
-  return stats;
+      .reduce((sum, o) => sum + Number(o.total_amount), 0);
+    
+    const stats: OrderStats = {
+      totalOrders: orders.length,
+      processingOrders: orders.filter(o => o.status === 'processing').length,
+      shippedOrders: orders.filter(o => o.status === 'shipped').length,
+      deliveredOrders: orders.filter(o => o.status === 'delivered').length,
+      cancelledOrders: orders.filter(o => o.status === 'cancelled').length,
+      totalRevenue,
+      averageOrderValue: validOrders.length > 0 ? totalRevenue / validOrders.length : 0,
+      todayOrders: todayOrders.length,
+      todayRevenue,
+    };
+    
+    return stats;
+  } catch (error: unknown) {
+    const errorDetails = handleError(error);
+    throw new SupabaseError(errorDetails.message, errorDetails.code || 'UNKNOWN_ERROR');
+  }
 }
 
 // Create new order
@@ -198,29 +355,37 @@ export async function createOrder(
   siteId: string,
   orderData: Omit<OrderInsert, 'site_id' | 'order_number'>
 ): Promise<Order> {
-  // Generate order number using the database function
-  const { data: orderNumber } = await client
-    .rpc('generate_order_number', { site_prefix: 'ORD' })
-    .single();
-  
-  if (!orderNumber) {
-    throw new Error('Failed to generate order number');
+  try {
+    // Generate order number using the database function
+    const { data: orderNumber, error: orderNumberError } = await client
+      .rpc('generate_order_number', { site_prefix: 'ORD' })
+      .single();
+    
+    if (orderNumberError || !orderNumber) {
+      throw new SupabaseError('Failed to generate order number', 'GENERATION_ERROR');
+    }
+    
+    const query = client
+      .from('orders')
+      .insert({
+        ...orderData,
+        site_id: siteId,
+        order_number: orderNumber,
+        items_count: orderData.items_count || 0,
+        status: (orderData.status || 'processing') as OrderStatus,
+        payment_status: orderData.payment_status || 'pending',
+      })
+      .select()
+      .single();
+    
+    const { data, error } = await query;
+    if (error) throw new SupabaseError(error.message, error.code);
+    if (!data) throw new SupabaseError('Failed to create order', 'CREATE_ERROR');
+    return data;
+  } catch (error: unknown) {
+    const errorDetails = handleError(error);
+    throw new SupabaseError(errorDetails.message, errorDetails.code || 'UNKNOWN_ERROR');
   }
-  
-  const query = client
-    .from('orders')
-    .insert({
-      ...orderData,
-      site_id: siteId,
-      order_number: orderNumber,
-    })
-    .select()
-    .single();
-  
-  const { data, error } = await query;
-  if (error) throw new SupabaseError(error.message, error.code);
-  if (!data) throw new SupabaseError('Failed to create order', 'CREATE_ERROR');
-  return data;
 }
 
 // Update order
@@ -230,28 +395,75 @@ export async function updateOrder(
   orderId: string,
   updates: OrderUpdate
 ): Promise<Order> {
-  const query = client
-    .from('orders')
-    .update(updates)
-    .eq('site_id', siteId)
-    .eq('id', orderId)
-    .select()
-    .single();
-  
-  const { data, error } = await query;
-  if (error) throw new SupabaseError(error.message, error.code);
-  if (!data) throw new SupabaseError('Order not found', 'NOT_FOUND');
-  return data;
+  try {
+    const query = client
+      .from('orders')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('site_id', siteId)
+      .eq('id', orderId)
+      .select()
+      .single();
+    
+    const { data, error } = await query;
+    if (error) throw new SupabaseError(error.message, error.code);
+    if (!data) throw new SupabaseError('Order not found', 'NOT_FOUND');
+    return data;
+  } catch (error: unknown) {
+    const errorDetails = handleError(error);
+    throw new SupabaseError(errorDetails.message, errorDetails.code || 'UNKNOWN_ERROR');
+  }
 }
 
-// Update order status
+// Update order status with history tracking
 export async function updateOrderStatus(
   client: SupabaseClient<Database>,
   siteId: string,
   orderId: string,
-  status: OrderStatus
+  status: OrderStatus,
+  changedBy?: string,
+  notes?: string
 ): Promise<Order> {
-  return updateOrder(client, siteId, orderId, { status });
+  try {
+    // First get the current status
+    const { data: currentOrder } = await client
+      .from('orders')
+      .select('status')
+      .eq('site_id', siteId)
+      .eq('id', orderId)
+      .single();
+    
+    if (!currentOrder) {
+      throw new SupabaseError('Order not found', 'NOT_FOUND');
+    }
+    
+    // Update the order status
+    const updatedOrder = await updateOrder(client, siteId, orderId, { 
+      status,
+      ...(status === 'shipped' && { shipped_at: new Date().toISOString() }),
+      ...(status === 'delivered' && { delivered_at: new Date().toISOString() }),
+      ...(status === 'cancelled' && { cancelled_at: new Date().toISOString() }),
+      ...(status === 'delivered' && { completed_at: new Date().toISOString() }),
+    });
+    
+    // Add status change to history
+    await client
+      .from('order_status_history')
+      .insert({
+        order_id: orderId,
+        from_status: currentOrder.status,
+        to_status: status,
+        changed_by: changedBy,
+        notes,
+      });
+    
+    return updatedOrder;
+  } catch (error: unknown) {
+    const errorDetails = handleError(error);
+    throw new SupabaseError(errorDetails.message, errorDetails.code || 'UNKNOWN_ERROR');
+  }
 }
 
 // Cancel order
@@ -313,21 +525,102 @@ export async function searchOrders(
   return (data || []) as unknown as OrderWithCustomer[];
 }
 
+// Get order items for a specific order
+export async function getOrderItems(
+  client: SupabaseClient<Database>,
+  siteId: string,
+  orderId: string
+): Promise<OrderItem[]> {
+  try {
+    const { data, error } = await client
+      .from('order_items')
+      .select(`
+        *,
+        product:products(
+          id,
+          name,
+          slug,
+          images
+        )
+      `)
+      .eq('order_id', orderId);
+    
+    if (error) throw new SupabaseError(error.message, error.code);
+    return data || [];
+  } catch (error: unknown) {
+    const errorDetails = handleError(error);
+    throw new SupabaseError(errorDetails.message, errorDetails.code || 'UNKNOWN_ERROR');
+  }
+}
+
+// Delete order (soft delete by marking as cancelled)
+export async function deleteOrder(
+  client: SupabaseClient<Database>,
+  siteId: string,
+  orderId: string,
+  deletedBy?: string
+): Promise<Order> {
+  return updateOrderStatus(client, siteId, orderId, 'cancelled', deletedBy, 'Order deleted');
+}
+
 // Bulk update orders
 export async function bulkUpdateOrderStatus(
   client: SupabaseClient<Database>,
   siteId: string,
   orderIds: string[],
-  status: OrderStatus
+  status: OrderStatus,
+  changedBy?: string
 ): Promise<Order[]> {
-  const query = client
-    .from('orders')
-    .update({ status })
-    .eq('site_id', siteId)
-    .in('id', orderIds)
-    .select();
-  
-  const { data, error } = await query;
-  if (error) throw new SupabaseError(error.message, error.code);
-  return data || [];
+  try {
+    // Update orders in batches to avoid timeout
+    const batchSize = 50;
+    const results: Order[] = [];
+    
+    for (let i = 0; i < orderIds.length; i += batchSize) {
+      const batch = orderIds.slice(i, i + batchSize);
+      
+      const updateData: any = {
+        status,
+        updated_at: new Date().toISOString(),
+      };
+      
+      // Add timestamp fields based on status
+      if (status === 'shipped') updateData.shipped_at = new Date().toISOString();
+      if (status === 'delivered') {
+        updateData.delivered_at = new Date().toISOString();
+        updateData.completed_at = new Date().toISOString();
+      }
+      if (status === 'cancelled') updateData.cancelled_at = new Date().toISOString();
+      
+      const { data, error } = await client
+        .from('orders')
+        .update(updateData)
+        .eq('site_id', siteId)
+        .in('id', batch)
+        .select();
+      
+      if (error) throw new SupabaseError(error.message, error.code);
+      if (data) results.push(...data);
+      
+      // Add status history entries for this batch
+      if (data) {
+        const historyEntries = data.map(order => ({
+          order_id: order.id,
+          from_status: null, // We don't track the previous status in bulk operations
+          to_status: status,
+          changed_by: changedBy,
+          notes: `Bulk status update to ${status}`,
+        }));
+        
+        await client
+          .from('order_status_history')
+          .insert(historyEntries);
+      }
+    }
+    
+    return results;
+  } catch (error: unknown) {
+    const errorDetails = handleError(error);
+    throw new SupabaseError(errorDetails.message, errorDetails.code || 'UNKNOWN_ERROR');
+  }
 }
