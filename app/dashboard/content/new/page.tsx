@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { createContent } from '@/src/lib/queries/domains/content'
+import { supabase } from '@/src/lib/supabase/client'
+import { useSiteContext } from '@/src/contexts/SiteContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
@@ -19,6 +22,7 @@ import {
   FormMessage,
 } from '@/src/components/ui/form'
 import { Badge } from '@/src/components/ui/badge'
+import { toast } from 'sonner'
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -109,8 +113,10 @@ const layoutOptions: LayoutOption[] = [
 
 export default function CreateContentPage() {
   const router = useRouter()
+  const { currentSite } = useSiteContext()
   const [step, setStep] = useState(1)
-  const [selectedLayout, setSelectedLayout] = useState<CreateContentForm['layout'] | null>(null)
+  const [selectedLayout, setSelectedLayout] = useState<CreateContentForm['layout'] | null>('landing')
+  const [isCreating, setIsCreating] = useState(false)
 
   const form = useForm<CreateContentForm>({
     resolver: zodResolver(createContentSchema),
@@ -121,21 +127,73 @@ export default function CreateContentPage() {
     }
   })
 
-  const onSubmit = (data: CreateContentForm) => {
-    // Navigate to page editor with form data
-    // In Next.js, we'll use sessionStorage to pass data
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('newPageData', JSON.stringify({
-        pageData: data,
-        isNew: true
-      }))
+  const onSubmit = async (data: CreateContentForm) => {
+    console.log('Form submitted with data:', data)
+    
+    // Ensure we have all required data
+    if (!data.title || !data.layout) {
+      toast.error('Please fill in all required fields')
+      console.error('Missing required fields:', { title: data.title, layout: data.layout })
+      return
     }
-    router.push('/dashboard/content/editor')
+
+    if (!currentSite?.id) {
+      toast.error('No site selected. Please select a site first.')
+      return
+    }
+    
+    setIsCreating(true)
+    toast.info('Creating page...')
+    
+    try {
+      // Generate slug from title
+      const slug = data.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+      
+      // Create content structure based on layout
+      const contentStructure = {
+        layout: data.layout,
+        sections: [],
+        metadata: {
+          subtitle: data.subtitle || '',
+          createdFrom: 'dashboard'
+        }
+      }
+      
+      // Create the content in the database
+      const newContent = await createContent(supabase, {
+        site_id: currentSite.id,
+        title: data.title,
+        slug,
+        content_type: data.layout === 'blog' ? 'blog_post' : 'page',
+        content: contentStructure,
+        is_published: false,
+        is_featured: false,
+        meta_data: {
+          subtitle: data.subtitle,
+          layout: data.layout
+        }
+      })
+      
+      console.log('Content created:', newContent)
+      toast.success('Page created successfully!')
+      
+      // Navigate to the editor with the created content ID
+      router.push(`/dashboard/content/editor?id=${newContent.id}`)
+      
+    } catch (error) {
+      console.error('Error creating content:', error)
+      toast.error('Failed to create page. Please try again.')
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   const handleLayoutSelect = (layoutId: CreateContentForm['layout']) => {
     setSelectedLayout(layoutId)
-    form.setValue('layout', layoutId)
+    form.setValue('layout', layoutId, { shouldValidate: true })
   }
 
   const nextStep = () => {
@@ -157,7 +215,8 @@ export default function CreateContentPage() {
   }
 
   const getSelectedLayoutInfo = () => {
-    return layoutOptions.find(layout => layout.id === selectedLayout)
+    const currentLayout = form.getValues('layout') || selectedLayout
+    return layoutOptions.find(layout => layout.id === currentLayout)
   }
 
   return (
@@ -410,9 +469,9 @@ export default function CreateContentPage() {
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
-                  <Button type="submit">
-                    Create Page
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                  <Button type="submit" disabled={isCreating}>
+                    {isCreating ? 'Creating...' : 'Create Page'}
+                    {!isCreating && <ArrowRight className="h-4 w-4 ml-2" />}
                   </Button>
                 </div>
               </CardContent>

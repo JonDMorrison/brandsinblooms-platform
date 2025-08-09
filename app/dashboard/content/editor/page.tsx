@@ -64,20 +64,35 @@ export default function PageEditorPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   useEffect(() => {
+    // Skip if we already have page data
+    if (pageData) return
+    
     // Get page data from sessionStorage (set by CreateContent page)
     if (typeof window !== 'undefined') {
       const storedData = sessionStorage.getItem('newPageData')
+      console.log('Editor: Checking for stored data:', storedData)
+      
       if (storedData) {
-        const { pageData: data } = JSON.parse(storedData)
-        setPageData(data)
-        // Clear the data after reading
-        sessionStorage.removeItem('newPageData')
-      } else {
-        // Fallback for direct access - redirect to content creation
+        try {
+          const { pageData: data } = JSON.parse(storedData)
+          console.log('Editor: Parsed page data:', data)
+          setPageData(data)
+          // Don't clear immediately - keep for potential re-mounts
+          // We'll clear when actually saving to database
+        } catch (error) {
+          console.error('Editor: Error parsing stored data:', error)
+          // Only redirect if we truly have no data
+          if (!pageData) {
+            router.push('/dashboard/content/new')
+          }
+        }
+      } else if (!pageData) {
+        // Only redirect if we don't have data already set
+        console.log('Editor: No data found and no existing pageData, redirecting to content/new')
         router.push('/dashboard/content/new')
       }
     }
-  }, [router])
+  }, [router, pageData])
 
   if (!pageData) {
     return (
