@@ -60,7 +60,7 @@ export function BlogArticlePreview({ title, subtitle }: BlogArticlePreviewProps)
         {/* Sidebar */}
         <div className="space-y-4">
           {/* Author Bio */}
-          <Card className="p-4">
+          <Card className="p-4 bg-white border-gray-200">
             <div className="flex items-center gap-3 mb-3">
               <Avatar>
                 <AvatarFallback>
@@ -78,13 +78,13 @@ export function BlogArticlePreview({ title, subtitle }: BlogArticlePreviewProps)
           </Card>
 
           {/* Related Posts */}
-          <Card className="p-4">
-            <h3 className="font-semibold mb-3">Related Articles</h3>
+          <Card className="p-4 bg-white border-gray-200">
+            <h3 className="font-semibold mb-3 text-gray-900">Related Articles</h3>
             <div className="space-y-3">
               {['Flower Care Basics', 'Seasonal Blooms', 'Garden Design'].map((post, i) => (
                 <div key={i} className="text-sm">
-                  <p className="font-medium hover:text-blue-600 cursor-pointer">{post}</p>
-                  <p className="text-xs text-muted-foreground">2 min read</p>
+                  <p className="font-medium hover:text-blue-600 cursor-pointer text-gray-900">{post}</p>
+                  <p className="text-xs text-gray-500">2 min read</p>
                 </div>
               ))}
             </div>
