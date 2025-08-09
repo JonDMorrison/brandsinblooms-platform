@@ -96,15 +96,7 @@ export async function getOrders(
   
   let query = client
     .from('orders')
-    .select(`
-      *,
-      customer:profiles!customer_id(
-        user_id,
-        full_name,
-        email,
-        avatar_url
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .order('created_at', { ascending: false })
     .limit(limit + 1); // Fetch one extra to check if there are more
@@ -149,8 +141,41 @@ export async function getOrders(
   const orders = hasMore ? data.slice(0, -1) : data;
   const nextCursor = hasMore ? orders[orders.length - 1]?.created_at : null;
   
+  // Fetch profiles for all customers
+  const customerIds = [...new Set(orders.map(o => o.customer_id).filter(Boolean))];
+  let ordersWithCustomers: OrderWithCustomer[] = [];
+  
+  if (customerIds.length > 0) {
+    const { data: profiles } = await client
+      .from('profiles')
+      .select('user_id, full_name, email, avatar_url')
+      .in('user_id', customerIds);
+    
+    const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+    
+    ordersWithCustomers = orders.map(order => ({
+      ...order,
+      customer: profileMap.get(order.customer_id) || {
+        user_id: order.customer_id,
+        full_name: order.customer_name,
+        email: order.customer_email,
+        avatar_url: null,
+      }
+    })) as OrderWithCustomer[];
+  } else {
+    ordersWithCustomers = orders.map(order => ({
+      ...order,
+      customer: {
+        user_id: order.customer_id,
+        full_name: order.customer_name,
+        email: order.customer_email,
+        avatar_url: null,
+      }
+    })) as OrderWithCustomer[];
+  }
+  
   return {
-    orders: orders as unknown as OrderWithCustomer[],
+    orders: ordersWithCustomers,
     nextCursor,
     hasMore,
   };
@@ -166,12 +191,6 @@ export async function getOrder(
     .from('orders')
     .select(`
       *,
-      customer:profiles!customer_id(
-        user_id,
-        full_name,
-        email,
-        avatar_url
-      ),
       order_items(
         *,
         product:products(
@@ -189,7 +208,36 @@ export async function getOrder(
   const { data, error } = await query;
   if (error) throw new SupabaseError(error.message, error.code);
   if (!data) throw new SupabaseError('Order not found', 'NOT_FOUND');
-  return data as unknown as OrderWithCustomer;
+  
+  // Fetch customer profile
+  let customer = {
+    user_id: data.customer_id,
+    full_name: data.customer_name,
+    email: data.customer_email,
+    avatar_url: null,
+  };
+  
+  if (data.customer_id) {
+    const { data: profile } = await client
+      .from('profiles')
+      .select('user_id, full_name, email, avatar_url')
+      .eq('user_id', data.customer_id)
+      .single();
+    
+    if (profile) {
+      customer = {
+        user_id: profile.user_id,
+        full_name: profile.full_name || data.customer_name,
+        email: profile.email || data.customer_email,
+        avatar_url: profile.avatar_url,
+      };
+    }
+  }
+  
+  return {
+    ...data,
+    customer
+  } as unknown as OrderWithCustomer;
 }
 
 // Get single order with full details (items, history, payments, shipments)
@@ -203,12 +251,6 @@ export async function getOrderById(
       .from('orders')
       .select(`
         *,
-        customer:profiles!customer_id(
-          user_id,
-          full_name,
-          email,
-          avatar_url
-        ),
         order_items(
           *,
           product:products(
@@ -252,7 +294,36 @@ export async function getOrderById(
     const { data, error } = await query;
     if (error) throw new SupabaseError(error.message, error.code);
     if (!data) throw new SupabaseError('Order not found', 'NOT_FOUND');
-    return data as unknown as OrderWithDetails;
+    
+    // Fetch customer profile
+    let customer = {
+      user_id: data.customer_id,
+      full_name: data.customer_name,
+      email: data.customer_email,
+      avatar_url: null,
+    };
+    
+    if (data.customer_id) {
+      const { data: profile } = await client
+        .from('profiles')
+        .select('user_id, full_name, email, avatar_url')
+        .eq('user_id', data.customer_id)
+        .single();
+      
+      if (profile) {
+        customer = {
+        user_id: profile.user_id,
+        full_name: profile.full_name || data.customer_name,
+        email: profile.email || data.customer_email,
+        avatar_url: profile.avatar_url,
+      };
+      }
+    }
+    
+    return {
+      ...data,
+      customer
+    } as unknown as OrderWithDetails;
   } catch (error: unknown) {
     const errorDetails = handleError(error);
     throw new SupabaseError(errorDetails.message, errorDetails.code || 'UNKNOWN_ERROR');
@@ -504,15 +575,7 @@ export async function searchOrders(
 ): Promise<OrderWithCustomer[]> {
   const query = client
     .from('orders')
-    .select(`
-      *,
-      customer:profiles!customer_id(
-        user_id,
-        full_name,
-        email,
-        avatar_url
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .or(
       `order_number.ilike.%${searchTerm}%,customer_name.ilike.%${searchTerm}%,customer_email.ilike.%${searchTerm}%`
@@ -522,7 +585,42 @@ export async function searchOrders(
   
   const { data, error } = await query;
   if (error) throw new SupabaseError(error.message, error.code);
-  return (data || []) as unknown as OrderWithCustomer[];
+  const orders = data || [];
+  
+  // Fetch profiles for all customers
+  const customerIds = [...new Set(orders.map(o => o.customer_id).filter(Boolean))];
+  let ordersWithCustomers: OrderWithCustomer[] = [];
+  
+  if (customerIds.length > 0) {
+    const { data: profiles } = await client
+      .from('profiles')
+      .select('user_id, full_name, email, avatar_url')
+      .in('user_id', customerIds);
+    
+    const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+    
+    ordersWithCustomers = orders.map(order => ({
+      ...order,
+      customer: profileMap.get(order.customer_id) || {
+        user_id: order.customer_id,
+        full_name: order.customer_name,
+        email: order.customer_email,
+        avatar_url: null,
+      }
+    })) as OrderWithCustomer[];
+  } else {
+    ordersWithCustomers = orders.map(order => ({
+      ...order,
+      customer: {
+        user_id: order.customer_id,
+        full_name: order.customer_name,
+        email: order.customer_email,
+        avatar_url: null,
+      }
+    })) as OrderWithCustomer[];
+  }
+  
+  return ordersWithCustomers;
 }
 
 // Get order items for a specific order

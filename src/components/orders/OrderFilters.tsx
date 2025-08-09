@@ -48,7 +48,7 @@ interface FilterValues {
 }
 
 const ORDER_STATUSES = [
-  { value: '', label: 'All Statuses' },
+  { value: 'all', label: 'All Statuses' },
   { value: 'processing', label: 'Processing' },
   { value: 'shipped', label: 'Shipped' },
   { value: 'delivered', label: 'Delivered' },
@@ -56,7 +56,7 @@ const ORDER_STATUSES = [
 ]
 
 const PAYMENT_STATUSES = [
-  { value: '', label: 'All Payment Status' },
+  { value: 'all', label: 'All Payment Status' },
   { value: 'paid', label: 'Paid' },
   { value: 'pending', label: 'Pending' },
   { value: 'failed', label: 'Failed' },
@@ -70,8 +70,8 @@ export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
   
   const [filters, setFilters] = useState<FilterValues>({
     search: searchParams.get('search') || '',
-    status: searchParams.get('status') || '',
-    paymentStatus: searchParams.get('paymentStatus') || '',
+    status: searchParams.get('status') || 'all',
+    paymentStatus: searchParams.get('paymentStatus') || 'all',
     dateFrom: searchParams.get('dateFrom') ? new Date(searchParams.get('dateFrom')!) : undefined,
     dateTo: searchParams.get('dateTo') ? new Date(searchParams.get('dateTo')!) : undefined,
   })
@@ -87,7 +87,7 @@ export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
     
     // Update each filter parameter
     Object.entries(updatedFilters).forEach(([key, value]) => {
-      if (value && value !== '') {
+      if (value && value !== '' && value !== 'all') {
         if (key === 'dateFrom' || key === 'dateTo') {
           if (value instanceof Date) {
             params.set(key, value.toISOString().split('T')[0])
@@ -107,8 +107,8 @@ export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
     if (onFiltersChange) {
       onFiltersChange({
         search: updatedFilters.search || undefined,
-        status: updatedFilters.status || undefined,
-        paymentStatus: updatedFilters.paymentStatus || undefined,
+        status: updatedFilters.status === 'all' ? undefined : updatedFilters.status || undefined,
+        paymentStatus: updatedFilters.paymentStatus === 'all' ? undefined : updatedFilters.paymentStatus || undefined,
         dateFrom: updatedFilters.dateFrom?.toISOString().split('T')[0] || undefined,
         dateTo: updatedFilters.dateTo?.toISOString().split('T')[0] || undefined,
       })
@@ -134,8 +134,8 @@ export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
   const clearFilters = () => {
     setFilters({
       search: '',
-      status: '',
-      paymentStatus: '',
+      status: 'all',
+      paymentStatus: 'all',
       dateFrom: undefined,
       dateTo: undefined,
     })
@@ -148,8 +148,8 @@ export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
   const getActiveFiltersCount = () => {
     let count = 0
     if (filters.search) count++
-    if (filters.status) count++
-    if (filters.paymentStatus) count++
+    if (filters.status && filters.status !== 'all') count++
+    if (filters.paymentStatus && filters.paymentStatus !== 'all') count++
     if (filters.dateFrom || filters.dateTo) count++
     return count
   }
@@ -289,22 +289,22 @@ export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
                   </Badge>
                 )}
                 
-                {filters.status && (
+                {filters.status && filters.status !== 'all' && (
                   <Badge variant="secondary" className="gap-1">
                     Status: {ORDER_STATUSES.find(s => s.value === filters.status)?.label}
                     <X 
                       className="h-3 w-3 cursor-pointer" 
-                      onClick={() => handleStatusChange('')}
+                      onClick={() => handleStatusChange('all')}
                     />
                   </Badge>
                 )}
                 
-                {filters.paymentStatus && (
+                {filters.paymentStatus && filters.paymentStatus !== 'all' && (
                   <Badge variant="secondary" className="gap-1">
                     Payment: {PAYMENT_STATUSES.find(s => s.value === filters.paymentStatus)?.label}
                     <X 
                       className="h-3 w-3 cursor-pointer" 
-                      onClick={() => handlePaymentStatusChange('')}
+                      onClick={() => handlePaymentStatusChange('all')}
                     />
                   </Badge>
                 )}

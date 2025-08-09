@@ -66,7 +66,7 @@ export default function OrdersPage() {
     refetch,
   } = useOrders({
     search: filters.search,
-    status: filters.status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded' | undefined,
+    status: filters.status as 'processing' | 'shipped' | 'delivered' | 'cancelled' | undefined,
     paymentStatus: filters.paymentStatus,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
