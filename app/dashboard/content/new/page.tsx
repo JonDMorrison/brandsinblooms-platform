@@ -138,6 +138,7 @@ export default function CreateContentPage() {
     }
 
     if (!currentSite?.id) {
+      console.error('No current site:', currentSite)
       toast.error('No site selected. Please select a site first.')
       return
     }
@@ -145,12 +146,22 @@ export default function CreateContentPage() {
     setIsCreating(true)
     const toastId = toast.loading('Creating page...')
     
+    // Set a timeout to handle if the request hangs
+    const timeoutId = setTimeout(() => {
+      toast.error('Request timed out. Please try again.', { id: toastId })
+      setIsCreating(false)
+    }, 30000) // 30 second timeout
+    
     try {
+      console.log('Starting content creation for site:', currentSite.id)
+      
       // Generate slug from title
       const slug = data.title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '')
+      
+      console.log('Generated slug:', slug)
       
       // Create content structure based on layout
       const contentStructure = {
@@ -162,8 +173,7 @@ export default function CreateContentPage() {
         }
       }
       
-      // Create the content in the database
-      const newContent = await createContent(supabase, {
+      const contentData = {
         site_id: currentSite.id,
         title: data.title,
         slug,
@@ -175,18 +185,32 @@ export default function CreateContentPage() {
           subtitle: data.subtitle,
           layout: data.layout
         }
-      })
+      }
       
-      console.log('Content created:', newContent)
+      console.log('Creating content with data:', contentData)
+      
+      // Create the content in the database
+      const newContent = await createContent(supabase, contentData)
+      
+      console.log('Content created successfully:', newContent)
+      clearTimeout(timeoutId)
       toast.success('Page created successfully!', { id: toastId })
       
       // Navigate to the editor with the created content ID
-      router.push(`/dashboard/content/editor?id=${newContent.id}`)
+      setTimeout(() => {
+        router.push(`/dashboard/content/editor?id=${newContent.id}`)
+      }, 100)
       
-    } catch (error) {
-      console.error('Error creating content:', error)
-      toast.error('Failed to create page. Please try again.', { id: toastId })
+    } catch (error: any) {
+      clearTimeout(timeoutId)
+      console.error('Error creating content - Full error:', error)
+      console.error('Error message:', error?.message)
+      console.error('Error details:', error?.details)
+      
+      const errorMessage = error?.message || 'Failed to create page. Please try again.'
+      toast.error(errorMessage, { id: toastId })
     } finally {
+      clearTimeout(timeoutId)
       setIsCreating(false)
     }
   }
