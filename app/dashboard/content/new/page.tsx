@@ -299,17 +299,35 @@ export default function CreateContentPage() {
                         </div>
                         
                         <div className="flex-1">
-                          <h3 className="font-semibold text-lg">{layout.name}</h3>
-                          <p className="text-sm text-muted-foreground mb-2">
+                          <h3 className={`font-semibold text-lg ${
+                            selectedLayout === layout.id ? 'text-blue-900 dark:text-blue-100' : ''
+                          }`}>{layout.name}</h3>
+                          <p className={`text-sm mb-2 ${
+                            selectedLayout === layout.id 
+                              ? 'text-blue-800 dark:text-blue-200' 
+                              : 'text-muted-foreground'
+                          }`}>
                             {layout.description}
                           </p>
-                          <p className="text-xs text-muted-foreground mb-3">
+                          <p className={`text-xs mb-3 ${
+                            selectedLayout === layout.id 
+                              ? 'text-blue-700 dark:text-blue-300' 
+                              : 'text-muted-foreground'
+                          }`}>
                             {layout.preview}
                           </p>
                           
                           <div className="flex flex-wrap gap-1">
                             {layout.features.map((feature) => (
-                              <Badge key={feature} variant="outline" className="text-xs">
+                              <Badge 
+                                key={feature} 
+                                variant="outline" 
+                                className={`text-xs ${
+                                  selectedLayout === layout.id 
+                                    ? 'border-blue-600 text-blue-800 dark:text-blue-200 dark:border-blue-400' 
+                                    : ''
+                                }`}
+                              >
                                 {feature}
                               </Badge>
                             ))}
