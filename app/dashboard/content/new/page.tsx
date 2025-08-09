@@ -143,7 +143,7 @@ export default function CreateContentPage() {
     }
     
     setIsCreating(true)
-    toast.info('Creating page...')
+    const toastId = toast.loading('Creating page...')
     
     try {
       // Generate slug from title
@@ -178,14 +178,14 @@ export default function CreateContentPage() {
       })
       
       console.log('Content created:', newContent)
-      toast.success('Page created successfully!')
+      toast.success('Page created successfully!', { id: toastId })
       
       // Navigate to the editor with the created content ID
       router.push(`/dashboard/content/editor?id=${newContent.id}`)
       
     } catch (error) {
       console.error('Error creating content:', error)
-      toast.error('Failed to create page. Please try again.')
+      toast.error('Failed to create page. Please try again.', { id: toastId })
     } finally {
       setIsCreating(false)
     }
