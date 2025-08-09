@@ -159,84 +159,95 @@ export default function PageEditorPage() {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b bg-white dark:bg-gray-900 px-6 py-4">
-        <div className="flex items-center justify-between">
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+        <div className="container flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => router.push('/dashboard/content')}>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => router.push('/dashboard/content')}
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Content
+              Back
             </Button>
-            <Separator orientation="vertical" className="h-6" />
-            <div>
-              <div className="flex items-center gap-2">
-                <LayoutIcon className="h-5 w-5 text-blue-600" />
-                <h1 className="text-xl font-bold">{pageData.title}</h1>
-                {hasUnsavedChanges && (
-                  <Badge variant="outline" className="text-orange-600 border-orange-600">
-                    Unsaved
-                  </Badge>
-                )}
+            <Separator orientation="vertical" className="h-8" />
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 rounded-md bg-blue-100 dark:bg-blue-900">
+                <LayoutIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
-              <p className="text-sm text-muted-foreground">
-                {layoutInfo[pageData.layout].name}
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-semibold">{pageData.title}</h1>
+                  {hasUnsavedChanges && (
+                    <Badge variant="outline" className="text-orange-600 border-orange-600">
+                      Unsaved
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {layoutInfo[pageData.layout].name}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Viewport Toggle */}
-            <div className="flex items-center border rounded-md">
+            <div className="hidden md:flex items-center bg-muted rounded-md p-1">
               {Object.entries(viewportSizes).map(([size, config]) => {
                 const Icon = config.icon
                 return (
                   <Button
                     key={size}
-                    variant={activeViewport === size ? 'default' : 'ghost'}
+                    variant={activeViewport === size ? 'secondary' : 'ghost'}
                     size="sm"
-                    className="rounded-none first:rounded-l-md last:rounded-r-md"
+                    className="h-8 px-3"
                     onClick={() => setActiveViewport(size as ViewportSize)}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-3.5 w-3.5" />
                   </Button>
                 )
               })}
             </div>
 
-            <Separator orientation="vertical" className="h-6" />
-
             {/* Mode Toggle */}
-            <div className="flex items-center border rounded-md">
+            <div className="flex items-center bg-muted rounded-md p-1">
               <Button
-                variant={isPreviewMode ? 'default' : 'ghost'}
+                variant={isPreviewMode ? 'secondary' : 'ghost'}
                 size="sm"
-                className="rounded-r-none"
+                className="h-8 px-3"
                 onClick={() => setIsPreviewMode(true)}
               >
-                <Eye className="h-4 w-4 mr-2" />
+                <Eye className="h-3.5 w-3.5 mr-1.5" />
                 Preview
               </Button>
               <Button
-                variant={!isPreviewMode ? 'default' : 'ghost'}
+                variant={!isPreviewMode ? 'secondary' : 'ghost'}
                 size="sm"
-                className="rounded-l-none"
+                className="h-8 px-3"
                 onClick={() => setIsPreviewMode(false)}
               >
-                <Settings className="h-4 w-4 mr-2" />
+                <Settings className="h-3.5 w-3.5 mr-1.5" />
                 Edit
               </Button>
             </div>
 
-            <Separator orientation="vertical" className="h-6" />
-
             {/* Actions */}
-            <Button variant="outline" onClick={handlePreview}>
-              <Eye className="h-4 w-4 mr-2" />
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handlePreview}
+            >
+              <Eye className="h-3.5 w-3.5 mr-1.5" />
               Preview
             </Button>
-            <Button onClick={handleSave}>
-              <Save className="h-4 w-4 mr-2" />
+            <Button 
+              size="sm"
+              onClick={handleSave}
+            >
+              <Save className="h-3.5 w-3.5 mr-1.5" />
               Save
             </Button>
           </div>
@@ -244,23 +255,21 @@ export default function PageEditorPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex">
         {/* Sidebar (Edit Mode) */}
         {!isPreviewMode && (
-          <div className="w-80 border-r bg-gray-50 dark:bg-gray-900 overflow-y-auto">
-            <div className="p-6">
+          <div className="w-80 border-r bg-muted/30 overflow-y-auto">
+            <div className="p-4">
               <Tabs defaultValue="layout" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="layout">Layout</TabsTrigger>
                   <TabsTrigger value="content">Content</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="layout" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Page Layout</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
+                <TabsContent value="layout" className="mt-4 space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium">Page Layout</h3>
+                    <div className="space-y-2">
                       {Object.entries(layoutInfo).map(([layoutKey, info]) => {
                         const Icon = info.icon
                         const isActive = pageData.layout === layoutKey
@@ -268,61 +277,65 @@ export default function PageEditorPage() {
                           <div
                             key={layoutKey}
                             className={`
-                              p-3 border rounded-lg cursor-pointer transition-all hover:shadow-sm
+                              p-3 border rounded-lg cursor-pointer transition-all hover:border-primary/50
                               ${isActive 
-                                ? 'border-blue-600 bg-blue-50 dark:bg-blue-950' 
-                                : 'border-gray-200 dark:border-gray-700'
+                                ? 'border-primary bg-primary/10' 
+                                : 'border-border bg-card'
                               }
                             `}
                             onClick={() => handleLayoutChange(layoutKey as LayoutType)}
                           >
                             <div className="flex items-center gap-3">
                               <div className={`
-                                p-2 rounded-md 
+                                p-1.5 rounded-md 
                                 ${isActive 
-                                  ? 'bg-blue-600 text-white' 
-                                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                                  ? 'bg-primary text-primary-foreground' 
+                                  : 'bg-muted'
                                 }
                               `}>
-                                <Icon className="h-4 w-4" />
+                                <Icon className="h-3.5 w-3.5" />
                               </div>
-                              <div>
-                                <p className="font-medium text-sm">{info.name}</p>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">{info.name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  Switch to {info.name.toLowerCase()}
+                                  {isActive ? 'Current layout' : 'Click to switch'}
                                 </p>
                               </div>
+                              {isActive && (
+                                <div className="h-2 w-2 rounded-full bg-primary" />
+                              )}
                             </div>
                           </div>
                         )
                       })}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </TabsContent>
                 
-                <TabsContent value="content" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Page Settings</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium">Page Title</label>
-                        <p className="text-sm text-muted-foreground mt-1">{pageData.title}</p>
-                      </div>
-                      {pageData.subtitle && (
+                <TabsContent value="content" className="mt-4 space-y-4">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-sm font-medium mb-2">Page Settings</h3>
+                      <div className="space-y-3 p-3 bg-card rounded-lg border">
                         <div>
-                          <label className="text-sm font-medium">Subtitle</label>
-                          <p className="text-sm text-muted-foreground mt-1">{pageData.subtitle}</p>
+                          <label className="text-xs font-medium text-muted-foreground">Title</label>
+                          <p className="text-sm mt-0.5">{pageData.title}</p>
                         </div>
-                      )}
-                      <div className="pt-4 border-t">
-                        <p className="text-sm text-muted-foreground">
-                          Content editing features will be available in the full editor implementation.
-                        </p>
+                        {pageData.subtitle && (
+                          <div>
+                            <label className="text-xs font-medium text-muted-foreground">Subtitle</label>
+                            <p className="text-sm mt-0.5">{pageData.subtitle}</p>
+                          </div>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                    
+                    <div className="p-3 bg-muted/50 rounded-lg">
+                      <p className="text-xs text-muted-foreground">
+                        Full content editing features coming soon
+                      </p>
+                    </div>
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>
@@ -330,10 +343,10 @@ export default function PageEditorPage() {
         )}
 
         {/* Preview Area */}
-        <div className="flex-1 bg-gray-100 dark:bg-gray-800 p-6 overflow-auto">
-          <div className="flex justify-center">
+        <div className="flex-1 bg-muted/20 overflow-auto">
+          <div className="min-h-full p-6 flex items-start justify-center">
             <div 
-              className="bg-white dark:bg-gray-900 shadow-lg rounded-lg overflow-hidden transition-all duration-300"
+              className="bg-background border rounded-lg shadow-sm overflow-hidden transition-all duration-300"
               style={{ 
                 width: viewportSizes[activeViewport].width,
                 minHeight: '600px',
@@ -350,19 +363,20 @@ export default function PageEditorPage() {
       </div>
 
       {/* Status Bar */}
-      <div className="border-t bg-gray-50 dark:bg-gray-900 px-6 py-2">
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-4">
-            <span>Layout: {layoutInfo[pageData.layout].name}</span>
-            <span>•</span>
-            <span>Viewport: {viewportSizes[activeViewport].label}</span>
+      <div className="border-t bg-muted/30 px-6 py-2">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center gap-3">
+            <span className="font-medium">{layoutInfo[pageData.layout].name}</span>
+            <span className="text-muted-foreground/50">•</span>
+            <span>{viewportSizes[activeViewport].label} View</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span>Last saved: Never</span>
             {hasUnsavedChanges && (
-              <Badge variant="outline" className="text-orange-600 border-orange-600">
-                Unsaved changes
-              </Badge>
+              <>
+                <span className="text-muted-foreground/50">•</span>
+                <span className="text-orange-600">Unsaved changes</span>
+              </>
             )}
           </div>
         </div>
