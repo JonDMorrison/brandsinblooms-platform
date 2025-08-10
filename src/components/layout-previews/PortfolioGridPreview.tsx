@@ -10,12 +10,12 @@ interface PortfolioGridPreviewProps {
 
 export function PortfolioGridPreview({ title, subtitle }: PortfolioGridPreviewProps) {
   return (
-    <div className="w-full h-full bg-gray-50 dark:bg-gray-900 p-6 space-y-6">
+    <div className="w-full h-full bg-gray-50 p-6 space-y-6">
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">{title}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
         {subtitle && (
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{subtitle}</p>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">{subtitle}</p>
         )}
       </div>
 
@@ -46,9 +46,9 @@ export function PortfolioGridPreview({ title, subtitle }: PortfolioGridPreviewPr
       >
         {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i} className="overflow-hidden group cursor-pointer">
-            <div className="aspect-square bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900 dark:to-purple-900 relative">
+            <div className="aspect-square bg-gradient-to-br from-pink-100 to-purple-100 relative">
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-muted-foreground text-sm">Portfolio Item {i + 1}</span>
+                <span className="text-gray-600 text-sm">Portfolio Item {i + 1}</span>
               </div>
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                 <Eye className="h-6 w-6 text-white" />
@@ -57,12 +57,12 @@ export function PortfolioGridPreview({ title, subtitle }: PortfolioGridPreviewPr
                 <Badge className="bg-white/90 text-gray-900">Wedding</Badge>
               </div>
             </div>
-            <div className="p-4">
-              <h3 className="font-semibold mb-1">Elegant Spring Bouquet</h3>
-              <p className="text-sm text-muted-foreground mb-2">
+            <div className="p-4 bg-white">
+              <h3 className="font-semibold mb-1 text-gray-900">Elegant Spring Bouquet</h3>
+              <p className="text-sm text-gray-600 mb-2">
                 Beautiful arrangement for spring weddings
               </p>
-              <div className="flex justify-between items-center text-xs text-muted-foreground">
+              <div className="flex justify-between items-center text-xs text-gray-500">
                 <span>March 2024</span>
                 <span>Wedding Collection</span>
               </div>
@@ -73,10 +73,10 @@ export function PortfolioGridPreview({ title, subtitle }: PortfolioGridPreviewPr
 
       {/* Categories */}
       <div className="text-center">
-        <h2 className="text-xl font-bold mb-4">Browse by Category</h2>
+        <h2 className="text-xl font-bold mb-4 text-gray-900">Browse by Category</h2>
         <div className="flex flex-wrap justify-center gap-2">
           {['Wedding Bouquets', 'Corporate Events', 'Seasonal Arrangements', 'Custom Designs'].map((category, i) => (
-            <Badge key={i} variant="outline" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+            <Badge key={i} variant="outline" className="cursor-pointer hover:bg-blue-600 hover:text-white">
               {category}
             </Badge>
           ))}

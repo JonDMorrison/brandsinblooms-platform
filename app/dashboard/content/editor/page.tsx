@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/src/lib/supabase/client'
 import { getContentById } from '@/src/lib/queries/domains/content'
 import { useSiteContext } from '@/src/contexts/SiteContext'
-import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Separator } from '@/src/components/ui/separator'
@@ -86,8 +85,8 @@ export default function PageEditorPage() {
           const content = await getContentById(supabase, currentSite.id, contentId)
           
           // Extract page data from the content
-          const metaData = content.meta_data as any
-          const contentData = content.content as any
+          const metaData = content.meta_data as Record<string, unknown>
+          const contentData = content.content as Record<string, unknown>
           const layout = metaData?.layout || contentData?.layout || 'landing'
           
           const pageData: PageData = {

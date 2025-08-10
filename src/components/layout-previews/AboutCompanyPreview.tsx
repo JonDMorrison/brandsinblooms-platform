@@ -10,42 +10,42 @@ interface AboutCompanyPreviewProps {
 
 export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProps) {
   return (
-    <div className="w-full h-full bg-white dark:bg-gray-900 p-6 space-y-8">
+    <div className="w-full h-full bg-white p-6 space-y-8">
       {/* Hero Section */}
       <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">{title}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
         {subtitle && (
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{subtitle}</p>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">{subtitle}</p>
         )}
       </div>
 
       {/* Company Story */}
       <div className="flex flex-col lg:flex-row gap-8 items-center">
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Our Story</h2>
-          <p className="text-muted-foreground leading-relaxed">
+          <h2 className="text-2xl font-bold text-gray-900">Our Story</h2>
+          <p className="text-gray-600 leading-relaxed">
             Founded in 2010, we&apos;ve been bringing beauty and joy to our community through 
             exceptional floral arrangements. Our passion for flowers drives everything we do.
           </p>
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">500+</div>
-              <div className="text-sm text-muted-foreground">Happy Customers</div>
+              <div className="text-sm text-gray-600">Happy Customers</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">14</div>
-              <div className="text-sm text-muted-foreground">Years Experience</div>
+              <div className="text-sm text-gray-600">Years Experience</div>
             </div>
           </div>
         </div>
-        <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 rounded-lg flex items-center justify-center">
-          <span className="text-muted-foreground">Company Image</span>
+        <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
+          <span className="text-gray-600">Company Image</span>
         </div>
       </div>
 
       {/* Values */}
       <div>
-        <h2 className="text-2xl font-bold text-center mb-6">Our Values</h2>
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">Our Values</h2>
         <div 
           className="grid gap-4"
           style={{
@@ -59,12 +59,12 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
           ].map((value, i) => {
             const Icon = value.icon
             return (
-              <Card key={i} className="p-4 text-center">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Card key={i} className="p-4 text-center bg-white border-gray-200">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Icon className="h-6 w-6 text-blue-600" />
                 </div>
-                <h3 className="font-semibold mb-2">{value.title}</h3>
-                <p className="text-sm text-muted-foreground">{value.desc}</p>
+                <h3 className="font-semibold mb-2 text-gray-900">{value.title}</h3>
+                <p className="text-sm text-gray-600">{value.desc}</p>
               </Card>
             )
           })}
@@ -73,7 +73,7 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
 
       {/* Team Section */}
       <div>
-        <h2 className="text-2xl font-bold text-center mb-6">Meet Our Team</h2>
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">Meet Our Team</h2>
         <div 
           className="grid gap-6"
           style={{
@@ -87,11 +87,11 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
                   {name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
-              <h3 className="font-semibold mb-1">{name}</h3>
+              <h3 className="font-semibold mb-1 text-gray-900">{name}</h3>
               <Badge variant="outline" className="mb-2">
                 {i === 0 ? 'Lead Florist' : i === 1 ? 'Designer' : 'Manager'}
               </Badge>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-600">
                 {i === 0 ? 'Expert in wedding arrangements' : 
                  i === 1 ? 'Creative design specialist' : 
                  'Operations and customer care'}
@@ -102,13 +102,13 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
       </div>
 
       {/* Location */}
-      <div className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+      <div className="text-center bg-gray-50 rounded-lg p-6">
         <div className="flex items-center justify-center gap-2 mb-2">
           <MapPin className="h-5 w-5 text-blue-600" />
-          <h3 className="font-semibold">Visit Our Studio</h3>
+          <h3 className="font-semibold text-gray-900">Visit Our Studio</h3>
         </div>
-        <p className="text-muted-foreground">123 Flower Street, Garden City, CA 90210</p>
-        <p className="text-sm text-muted-foreground mt-1">Open Monday - Saturday, 9AM - 6PM</p>
+        <p className="text-gray-600">123 Flower Street, Garden City, CA 90210</p>
+        <p className="text-sm text-gray-600 mt-1">Open Monday - Saturday, 9AM - 6PM</p>
       </div>
     </div>
   )
