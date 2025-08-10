@@ -62,7 +62,7 @@ const viewportSizes = {
 export default function PageEditorPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const contentId = searchParams.get('id')
+  const contentId = searchParams?.get('id') || null
   const { currentSite } = useSiteContext()
   
   const [pageData, setPageData] = useState<PageData | null>(null)
@@ -72,15 +72,18 @@ export default function PageEditorPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   useEffect(() => {
+    // Wait for searchParams to be available before proceeding
+    if (!searchParams) {
+      return
+    }
+
     async function loadContent() {
       // If we have a content ID, load it from the database
       if (contentId && currentSite?.id) {
-        console.log('Editor: Loading content with ID:', contentId)
         setIsLoading(true)
         
         try {
           const content = await getContentById(supabase, currentSite.id, contentId)
-          console.log('Editor: Loaded content:', content)
           
           // Extract page data from the content
           const metaData = content.meta_data as any
@@ -101,6 +104,9 @@ export default function PageEditorPage() {
         } finally {
           setIsLoading(false)
         }
+      } else if (contentId && !currentSite?.id) {
+        // We have a content ID but site context isn't ready yet
+        return
       } else {
         // Fallback: Check sessionStorage for legacy support
         if (typeof window !== 'undefined') {
@@ -109,7 +115,6 @@ export default function PageEditorPage() {
           if (storedData) {
             try {
               const { pageData: data } = JSON.parse(storedData)
-              console.log('Editor: Using sessionStorage data:', data)
               setPageData(data)
               setIsLoading(false)
             } catch (error) {
@@ -117,7 +122,6 @@ export default function PageEditorPage() {
               router.push('/dashboard/content/new')
             }
           } else {
-            console.log('Editor: No content ID or sessionStorage data')
             router.push('/dashboard/content/new')
           }
         }
@@ -125,7 +129,7 @@ export default function PageEditorPage() {
     }
     
     loadContent()
-  }, [contentId, currentSite?.id, router])
+  }, [contentId, currentSite?.id, router, searchParams])
 
   if (isLoading || !pageData) {
     return (
