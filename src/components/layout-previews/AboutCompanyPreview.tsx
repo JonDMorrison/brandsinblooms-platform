@@ -20,14 +20,14 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
       </div>
 
       {/* Company Story */}
-      <div className="flex flex-col lg:flex-row gap-8 items-center">
+      <div className="flex flex-col gap-8">
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-900">Our Story</h2>
           <p className="text-gray-600 leading-relaxed">
             Founded in 2010, we&apos;ve been bringing beauty and joy to our community through 
             exceptional floral arrangements. Our passion for flowers drives everything we do.
           </p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">500+</div>
               <div className="text-sm text-gray-600">Happy Customers</div>
@@ -38,7 +38,7 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
             </div>
           </div>
         </div>
-        <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
+        <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center w-full">
           <span className="text-gray-600">Company Image</span>
         </div>
       </div>
@@ -46,12 +46,7 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
       {/* Values */}
       <div>
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">Our Values</h2>
-        <div 
-          className="grid gap-4"
-          style={{
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))'
-          }}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[
             { icon: Heart, title: 'Passion', desc: 'Love for what we do' },
             { icon: Award, title: 'Quality', desc: 'Excellence in every arrangement' },
@@ -74,12 +69,7 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
       {/* Team Section */}
       <div>
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">Meet Our Team</h2>
-        <div 
-          className="grid gap-6"
-          style={{
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))'
-          }}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {['Sarah Johnson', 'Mike Chen', 'Emily Davis'].map((name, i) => (
             <Card key={i} className="p-4 text-center">
               <Avatar className="w-16 h-16 mx-auto mb-3">

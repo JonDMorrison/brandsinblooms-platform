@@ -34,9 +34,9 @@ export function BlogArticlePreview({ title, subtitle }: BlogArticlePreviewProps)
       </div>
 
       {/* Content Area */}
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col gap-6">
         {/* Main Content */}
-        <div className="flex-1 space-y-4">
+        <div className="space-y-4">
           <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
             <span className="text-gray-400">Featured Image</span>
           </div>
@@ -58,7 +58,7 @@ export function BlogArticlePreview({ title, subtitle }: BlogArticlePreviewProps)
         </div>
 
         {/* Sidebar */}
-        <div className="w-full lg:w-64 space-y-4">
+        <div className="w-full space-y-4">
           {/* Author Bio */}
           <Card className="p-4 bg-white border-gray-200">
             <div className="flex items-center gap-3 mb-3">

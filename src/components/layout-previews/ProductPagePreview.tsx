@@ -13,9 +13,9 @@ export function ProductPagePreview({ title, subtitle }: ProductPagePreviewProps)
   return (
     <div className="w-full h-full bg-white p-6 space-y-6">
       {/* Product Header */}
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col gap-8">
         {/* Product Images */}
-        <div className="w-full lg:w-1/2 space-y-4">
+        <div className="w-full space-y-4">
           <div className="aspect-square bg-gradient-to-br from-pink-100 to-rose-100 rounded-lg flex items-center justify-center">
             <span className="text-gray-600">Main Product Image</span>
           </div>
@@ -29,7 +29,7 @@ export function ProductPagePreview({ title, subtitle }: ProductPagePreviewProps)
         </div>
 
         {/* Product Details */}
-        <div className="w-full lg:w-1/2 space-y-6">
+        <div className="w-full space-y-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Badge>Best Seller</Badge>
@@ -100,7 +100,7 @@ export function ProductPagePreview({ title, subtitle }: ProductPagePreviewProps)
           </div>
 
           {/* Features */}
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t">
             {[
               { icon: Truck, text: 'Free Delivery' },
               { icon: Shield, text: 'Fresh Guarantee' },
@@ -122,7 +122,7 @@ export function ProductPagePreview({ title, subtitle }: ProductPagePreviewProps)
 
       {/* Product Information Tabs */}
       <div className="space-y-4">
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-2">
           <Button variant="ghost" className="font-semibold text-gray-900">Description</Button>
           <Button variant="ghost" className="text-gray-500">Care Instructions</Button>
           <Button variant="ghost" className="text-gray-500">Reviews (127)</Button>
