@@ -32,12 +32,12 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
         )}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="flex flex-col lg:flex-row gap-8">
         {/* Contact Form */}
-        <Card className="p-6">
+        <Card className="flex-1 p-6">
           <h2 className="text-xl font-bold mb-4">Get in Touch</h2>
           <div className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">First Name</label>
                 <Input placeholder="Your first name" className="mt-1" />
@@ -77,7 +77,7 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
         </Card>
 
         {/* Contact Information & Services */}
-        <div className="space-y-6">
+        <div className="flex-1 space-y-6">
           {/* Contact Info */}
           <Card className="p-6">
             <h2 className="text-xl font-bold mb-4">Contact Information</h2>

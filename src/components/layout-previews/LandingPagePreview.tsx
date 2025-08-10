@@ -27,7 +27,12 @@ export function LandingPagePreview({ title, subtitle }: LandingPagePreviewProps)
       </div>
 
       {/* Features Grid */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div 
+        className="grid gap-4"
+        style={{
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))'
+        }}
+      >
         {[
           { title: 'Feature One', desc: 'Amazing capability' },
           { title: 'Feature Two', desc: 'Powerful tools' },

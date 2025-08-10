@@ -38,7 +38,12 @@ export function PortfolioGridPreview({ title, subtitle }: PortfolioGridPreviewPr
       </div>
 
       {/* Portfolio Grid */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div 
+        className="grid gap-4"
+        style={{
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))'
+        }}
+      >
         {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i} className="overflow-hidden group cursor-pointer">
             <div className="aspect-square bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900 dark:to-purple-900 relative">

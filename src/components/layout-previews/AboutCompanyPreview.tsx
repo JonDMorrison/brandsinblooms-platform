@@ -20,7 +20,7 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
       </div>
 
       {/* Company Story */}
-      <div className="grid lg:grid-cols-2 gap-8 items-center">
+      <div className="flex flex-col lg:flex-row gap-8 items-center">
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">Our Story</h2>
           <p className="text-muted-foreground leading-relaxed">
@@ -46,7 +46,12 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
       {/* Values */}
       <div>
         <h2 className="text-2xl font-bold text-center mb-6">Our Values</h2>
-        <div className="grid md:grid-cols-3 gap-4">
+        <div 
+          className="grid gap-4"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))'
+          }}
+        >
           {[
             { icon: Heart, title: 'Passion', desc: 'Love for what we do' },
             { icon: Award, title: 'Quality', desc: 'Excellence in every arrangement' },
@@ -69,7 +74,12 @@ export function AboutCompanyPreview({ title, subtitle }: AboutCompanyPreviewProp
       {/* Team Section */}
       <div>
         <h2 className="text-2xl font-bold text-center mb-6">Meet Our Team</h2>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div 
+          className="grid gap-6"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))'
+          }}
+        >
           {['Sarah Johnson', 'Mike Chen', 'Emily Davis'].map((name, i) => (
             <Card key={i} className="p-4 text-center">
               <Avatar className="w-16 h-16 mx-auto mb-3">

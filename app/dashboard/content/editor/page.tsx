@@ -54,7 +54,7 @@ const layoutInfo = {
 }
 
 const viewportSizes = {
-  mobile: { width: '375px', icon: Smartphone, label: 'Mobile' },
+  mobile: { width: '390px', icon: Smartphone, label: 'Mobile' },
   tablet: { width: '768px', icon: Tablet, label: 'Tablet' },
   desktop: { width: '100%', icon: Monitor, label: 'Desktop' }
 }
@@ -354,7 +354,8 @@ export default function PageEditorPage() {
               style={{ 
                 width: viewportSizes[activeViewport].width,
                 minHeight: '600px',
-                maxWidth: '100%'
+                maxWidth: '100%',
+                containerType: 'inline-size'
               }}
             >
               <CurrentLayoutComponent 

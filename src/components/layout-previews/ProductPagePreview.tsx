@@ -13,9 +13,9 @@ export function ProductPagePreview({ title, subtitle }: ProductPagePreviewProps)
   return (
     <div className="w-full h-full bg-white dark:bg-gray-900 p-6 space-y-6">
       {/* Product Header */}
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="flex flex-col lg:flex-row gap-8">
         {/* Product Images */}
-        <div className="space-y-4">
+        <div className="w-full lg:w-1/2 space-y-4">
           <div className="aspect-square bg-gradient-to-br from-pink-100 to-rose-100 dark:from-pink-900 dark:to-rose-900 rounded-lg flex items-center justify-center">
             <span className="text-muted-foreground">Main Product Image</span>
           </div>
@@ -29,7 +29,7 @@ export function ProductPagePreview({ title, subtitle }: ProductPagePreviewProps)
         </div>
 
         {/* Product Details */}
-        <div className="space-y-6">
+        <div className="w-full lg:w-1/2 space-y-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Badge>Best Seller</Badge>
