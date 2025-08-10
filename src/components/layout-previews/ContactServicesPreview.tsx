@@ -32,9 +32,14 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
         )}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div 
+        className="grid gap-8"
+        style={{
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))'
+        }}
+      >
         {/* Contact Form */}
-        <Card className="flex-1 p-6 bg-white border-gray-200">
+        <Card className="p-6 bg-white border-gray-200">
           <h2 className="text-xl font-bold mb-4 text-gray-900">Get in Touch</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -77,7 +82,7 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
         </Card>
 
         {/* Contact Information & Services */}
-        <div className="flex-1 space-y-6">
+        <div className="space-y-6">
           {/* Contact Info */}
           <Card className="p-6 bg-white border-gray-200">
             <h2 className="text-xl font-bold mb-4 text-gray-900">Contact Information</h2>
