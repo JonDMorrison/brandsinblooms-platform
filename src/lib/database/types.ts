@@ -18,8 +18,8 @@ export type Database = {
       graphql: {
         Args: {
           extensions?: Json
-          query?: string
           operationName?: string
+          query?: string
           variables?: Json
         }
         Returns: Json
@@ -433,6 +433,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          digest_frequency: string
+          email_marketing: boolean
+          email_updates: boolean
+          id: string
+          push_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          digest_frequency?: string
+          email_marketing?: boolean
+          email_updates?: boolean
+          id?: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          digest_frequency?: string
+          email_marketing?: boolean
+          email_updates?: boolean
+          id?: string
+          push_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       order_items: {
         Row: {
@@ -1630,9 +1663,9 @@ export type Database = {
     Functions: {
       admin_bulk_update_content: {
         Args: {
+          admin_notes?: string
           content_ids: string[]
           bulk_updates: Json
-          admin_notes?: string
         }
         Returns: Json
       }
@@ -1658,21 +1691,21 @@ export type Database = {
       }
       admin_get_site_content: {
         Args: {
+          limit_count?: number
           site_uuid: string
           search_query?: string
           content_type_filter?: string
           status_filter?: string
-          limit_count?: number
           offset_count?: number
         }
         Returns: Json
       }
       admin_get_site_products: {
         Args: {
-          status_filter?: string
+          category_filter?: string
           site_uuid: string
           search_query?: string
-          category_filter?: string
+          status_filter?: string
           limit_count?: number
           offset_count?: number
         }
@@ -1680,8 +1713,8 @@ export type Database = {
       }
       admin_update_content: {
         Args: {
-          content_uuid: string
           content_updates: Json
+          content_uuid: string
           admin_notes?: string
         }
         Returns: Json
@@ -1696,15 +1729,15 @@ export type Database = {
       }
       admin_update_site_status: {
         Args: {
+          new_is_published?: boolean
           site_uuid: string
           new_is_active?: boolean
-          new_is_published?: boolean
           notes?: string
         }
         Returns: boolean
       }
       calculate_metric_trend: {
-        Args: { previous_value: number; current_value: number }
+        Args: { current_value: number; previous_value: number }
         Returns: string
       }
       check_site_health: {
@@ -1725,11 +1758,11 @@ export type Database = {
       }
       create_site_with_template: {
         Args: {
+          owner_email: string
           business_info?: Json
           template_slug: string
           site_name: string
           site_subdomain: string
-          owner_email: string
         }
         Returns: Json
       }
@@ -1751,31 +1784,31 @@ export type Database = {
       }
       get_active_impersonation_sessions: {
         Args: {
-          site_uuid?: string
           admin_user_uuid?: string
+          site_uuid?: string
           limit_count?: number
         }
         Returns: Json
       }
       get_admin_action_logs: {
         Args: {
+          limit_count?: number
           site_uuid?: string
           admin_user_uuid?: string
           action_type_filter?: string
           target_type_filter?: string
           start_date?: string
           end_date?: string
-          limit_count?: number
           offset_count?: number
         }
         Returns: Json
       }
       get_all_sites_with_stats: {
         Args: {
-          search_query?: string
           status_filter?: string
           limit_count?: number
           offset_count?: number
+          search_query?: string
         }
         Returns: Json
       }
@@ -1806,8 +1839,8 @@ export type Database = {
           total_products: number
           active_products: number
           out_of_stock: number
-          low_stock: number
           total_reviews: number
+          low_stock: number
           average_rating: number
         }[]
       }
@@ -1837,16 +1870,16 @@ export type Database = {
       }
       log_admin_action: {
         Args: {
-          admin_id: string
-          site_uuid: string
           action_type_val: string
           target_type_val: string
           target_uuid?: string
           old_vals?: Json
           new_vals?: Json
           details?: string
-          ip_addr?: unknown
           user_agent_val?: string
+          ip_addr?: unknown
+          admin_id: string
+          site_uuid: string
         }
         Returns: string
       }

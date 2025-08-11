@@ -10,8 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/src/components/ui/form'
 import { useAuth } from '@/src/contexts/AuthContext'
+import { useUpdateProfile, useUploadAvatar, useDeleteAvatar } from '@/src/hooks/useProfile'
 import { toast } from 'sonner'
-import { Camera, User } from 'lucide-react'
+import { Camera, User, Trash2 } from 'lucide-react'
 
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
@@ -26,9 +27,15 @@ type ProfileFormData = z.infer<typeof profileSchema>
 
 export function ProfileSettings() {
   const { user } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string>('')
+  
+  // Mutations
+  const updateProfileMutation = useUpdateProfile()
+  const uploadAvatarMutation = useUploadAvatar()
+  const deleteAvatarMutation = useDeleteAvatar()
+  
+  const isLoading = updateProfileMutation.isPending || uploadAvatarMutation.isPending || deleteAvatarMutation.isPending
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -45,6 +52,16 @@ export function ProfileSettings() {
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      // Validate file type and size before setting
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please upload an image file')
+        return
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB')
+        return
+      }
+      
       setAvatarFile(file)
       const reader = new FileReader()
       reader.onload = () => {
@@ -53,23 +70,42 @@ export function ProfileSettings() {
       reader.readAsDataURL(file)
     }
   }
+  
+  const handleRemoveAvatar = async () => {
+    const currentAvatarUrl = user?.user_metadata?.avatar_url
+    if (currentAvatarUrl) {
+      try {
+        await deleteAvatarMutation.mutateAsync(currentAvatarUrl)
+      } catch (error) {
+        // Error handling is done in the mutation hook
+        console.error('Avatar deletion error:', error)
+      }
+    }
+    // Clear preview state
+    setAvatarFile(null)
+    setAvatarPreview('')
+  }
 
   const onSubmit = async (data: ProfileFormData) => {
-    setIsLoading(true)
     try {
-      // Here you would update the user profile in Supabase
-      // For now, we'll just show a success message
-      console.log('Profile data:', data)
+      let avatarUrl = user?.user_metadata?.avatar_url
+      
+      // Upload avatar first if there's a new one
       if (avatarFile) {
-        console.log('Avatar file:', avatarFile)
+        avatarUrl = await uploadAvatarMutation.mutateAsync(avatarFile)
+        // Clear the preview and file after successful upload
+        setAvatarFile(null)
+        setAvatarPreview('')
       }
       
-      toast.success('Profile updated successfully!')
+      // Update profile with the avatar URL
+      await updateProfileMutation.mutateAsync({
+        ...data,
+        avatar_url: avatarUrl
+      })
     } catch (error) {
+      // Error handling is done in the mutation hooks
       console.error('Profile update error:', error)
-      toast.error('Failed to update profile. Please try again.')
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -119,8 +155,20 @@ export function ProfileSettings() {
               onChange={handleAvatarChange}
             />
             <p className="text-sm text-muted-foreground mt-2">
-              JPG, PNG or GIF. Max size 2MB.
+              JPG, PNG or GIF. Max size 5MB.
             </p>
+            {(user?.user_metadata?.avatar_url || avatarPreview) && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRemoveAvatar}
+                disabled={deleteAvatarMutation.isPending}
+                className="mt-2 flex items-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                {deleteAvatarMutation.isPending ? 'Removing...' : 'Remove Photo'}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

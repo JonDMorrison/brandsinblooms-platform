@@ -13,6 +13,7 @@ import { Separator } from '@/src/components/ui/separator'
 import { toast } from 'sonner'
 import { Globe, ExternalLink, Eye } from 'lucide-react'
 import { useCurrentSite, useSitePermissions } from '@/src/hooks/useSite'
+import { useUpdateSiteSettings } from '@/src/hooks/useSiteSettings'
 import { DomainConfiguration } from '@/src/components/site/DomainConfiguration'
 import { SitePreview } from '@/src/components/site/SitePreview'
 
@@ -32,7 +33,7 @@ type SiteFormData = z.infer<typeof siteSchema>
 export function SiteSettings() {
   const { site, loading: siteLoading } = useCurrentSite()
   const { canManage, canEdit } = useSitePermissions()
-  const [isLoading, setIsLoading] = useState(false)
+  const updateSiteSettings = useUpdateSiteSettings()
 
   const form = useForm<SiteFormData>({
     resolver: zodResolver(siteSchema),
@@ -70,18 +71,16 @@ export function SiteSettings() {
       return
     }
 
-    setIsLoading(true)
-    try {
-      // TODO: Implement site update API call
-      console.log('Saving site settings:', data)
-      
-      toast.success('Site settings updated successfully!')
-    } catch (error) {
-      console.error('Site settings update error:', error)
-      toast.error('Failed to update site settings. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
+    updateSiteSettings.mutate({
+      name: data.siteName,
+      description: data.siteDescription,
+      subdomain: data.subdomain,
+      timezone: data.timezone,
+      business_name: data.businessName,
+      business_email: data.businessEmail,
+      business_phone: data.businessPhone,
+      business_address: data.businessAddress,
+    })
   }
 
   const timezones = [
@@ -350,8 +349,8 @@ export function SiteSettings() {
 
               {canManage && (
                 <div className="flex justify-end">
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Saving...' : 'Save Changes'}
+                  <Button type="submit" disabled={updateSiteSettings.isPending}>
+                    {updateSiteSettings.isPending ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </div>
               )}

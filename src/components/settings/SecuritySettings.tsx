@@ -10,8 +10,21 @@ import { Badge } from '@/src/components/ui/badge'
 import { Switch } from '@/src/components/ui/switch'
 import { Label } from '@/src/components/ui/label'
 import { Separator } from '@/src/components/ui/separator'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/src/components/ui/dialog'
 import { toast } from 'sonner'
-import { Shield, Key, Eye, EyeOff, Smartphone, Clock, MapPin, Monitor } from 'lucide-react'
+import { Shield, Key, Eye, EyeOff, Smartphone, Clock, MapPin, Monitor, QrCode } from 'lucide-react'
+import {
+  useChangePassword,
+  useEnroll2FA,
+  useVerify2FA,
+  useUnenroll2FA,
+  useMFAFactors,
+  useRevokeSession,
+  useRevokeAllSessions,
+  useUpdateSecurityNotifications,
+  useSecurityNotificationPreferences
+} from '@/src/hooks/useSecurity'
+import Image from 'next/image'
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
@@ -36,14 +49,27 @@ interface Session {
 }
 
 export function SecuritySettings() {
-  const [isLoading, setIsLoading] = useState(false)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [show2FADialog, setShow2FADialog] = useState(false)
+  const [qrCode, setQrCode] = useState<string>('')
+  const [factorId, setFactorId] = useState<string>('')
+  const [verificationCode, setVerificationCode] = useState('')
   
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [loginAlerts, setLoginAlerts] = useState(true)
+  // Hooks
+  const changePassword = useChangePassword()
+  const enroll2FA = useEnroll2FA()
+  const verify2FA = useVerify2FA()
+  const unenroll2FA = useUnenroll2FA()
+  const { data: mfaFactors = [], isLoading: loadingFactors } = useMFAFactors()
+  const revokeSession = useRevokeSession()
+  const revokeAllSessions = useRevokeAllSessions()
+  const updateSecurityNotifications = useUpdateSecurityNotifications()
+  const { data: securityPrefs, isLoading: loadingPrefs } = useSecurityNotificationPreferences()
+  
+  const twoFactorEnabled = mfaFactors.some(factor => factor.status === 'verified')
+  const isLoading = changePassword.isPending
 
   const form = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
@@ -82,39 +108,83 @@ export function SecuritySettings() {
   ]
 
   const onSubmit = async (data: PasswordFormData) => {
-    setIsLoading(true)
     try {
-      // Here you would change the password using Supabase
-      console.log('Password change data:', { currentPassword: data.currentPassword, newPassword: data.newPassword })
-      toast.success('Password changed successfully!')
+      await changePassword.mutateAsync({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword
+      })
       form.reset()
     } catch (error) {
+      // Error is handled by the mutation hook
       console.error('Password change error:', error)
-      toast.error('Failed to change password. Please try again.')
-    } finally {
-      setIsLoading(false)
     }
   }
 
-  const revokeSession = async (sessionId: string) => {
+  const handleRevokeSession = async (sessionId: string) => {
     try {
-      // Here you would revoke the session
-      console.log('Revoking session:', sessionId)
-      toast.success('Session revoked successfully!')
+      await revokeSession.mutateAsync(sessionId)
     } catch (error) {
       console.error('Session revoke error:', error)
-      toast.error('Failed to revoke session. Please try again.')
     }
   }
 
-  const revokeAllSessions = async () => {
+  const handleRevokeAllSessions = async () => {
     try {
-      // Here you would revoke all other sessions
-      console.log('Revoking all sessions')
-      toast.success('All other sessions revoked successfully!')
+      await revokeAllSessions.mutateAsync()
     } catch (error) {
       console.error('Revoke all sessions error:', error)
-      toast.error('Failed to revoke sessions. Please try again.')
+    }
+  }
+
+  const handle2FAToggle = async (checked: boolean) => {
+    if (checked) {
+      // Enroll in 2FA
+      try {
+        const enrollmentData = await enroll2FA.mutateAsync()
+        setQrCode(enrollmentData.totp.qr_code)
+        setFactorId(enrollmentData.id)
+        setShow2FADialog(true)
+      } catch (error) {
+        console.error('2FA enrollment error:', error)
+      }
+    } else {
+      // Disable 2FA
+      const verifiedFactor = mfaFactors.find(f => f.status === 'verified')
+      if (verifiedFactor) {
+        try {
+          await unenroll2FA.mutateAsync(verifiedFactor.id)
+        } catch (error) {
+          console.error('2FA unenrollment error:', error)
+        }
+      }
+    }
+  }
+
+  const handleVerify2FA = async () => {
+    if (!factorId || !verificationCode) return
+    
+    try {
+      await verify2FA.mutateAsync({
+        factorId,
+        code: verificationCode
+      })
+      setShow2FADialog(false)
+      setVerificationCode('')
+    } catch (error) {
+      console.error('2FA verification error:', error)
+    }
+  }
+
+  const handleSecurityNotificationChange = async (type: 'email' | 'login', checked: boolean) => {
+    const currentPrefs = securityPrefs || { emailNotifications: true, loginAlerts: true }
+    
+    try {
+      await updateSecurityNotifications.mutateAsync({
+        emailNotifications: type === 'email' ? checked : currentPrefs.emailNotifications,
+        loginAlerts: type === 'login' ? checked : currentPrefs.loginAlerts
+      })
+    } catch (error) {
+      console.error('Security notification update error:', error)
     }
   }
 
@@ -135,6 +205,7 @@ export function SecuritySettings() {
   const passwordStrength = getPasswordStrength(form.watch('newPassword') || '')
 
   return (
+    <>
     <div className="space-y-6">
       {/* Change Password */}
       <Card>
@@ -291,24 +362,25 @@ export function SecuritySettings() {
             </div>
             <Switch
               checked={twoFactorEnabled}
-              onCheckedChange={setTwoFactorEnabled}
+              onCheckedChange={handle2FAToggle}
+              disabled={loadingFactors || enroll2FA.isPending || unenroll2FA.isPending}
             />
           </div>
 
           {twoFactorEnabled && (
             <div className="p-4 bg-muted rounded-lg">
-              <p className="text-sm font-medium mb-2">Setup Instructions:</p>
-              <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>Download an authenticator app (Google Authenticator, Authy, etc.)</li>
-                <li>Scan the QR code or enter the setup key manually</li>
-                <li>Enter the 6-digit code from your app to verify setup</li>
-              </ol>
-              <div className="mt-4 flex gap-2">
-                <Button size="sm" variant="outline">
-                  Show QR Code
-                </Button>
-                <Button size="sm" variant="outline">
-                  Show Setup Key
+              <p className="text-sm font-medium mb-2">Two-Factor Authentication is Enabled</p>
+              <p className="text-sm text-muted-foreground">
+                Your account is protected with two-factor authentication.
+              </p>
+              <div className="mt-4">
+                <Button 
+                  size="sm" 
+                  variant="destructive"
+                  onClick={() => handle2FAToggle(false)}
+                  disabled={unenroll2FA.isPending}
+                >
+                  {unenroll2FA.isPending ? 'Disabling...' : 'Disable 2FA'}
                 </Button>
               </div>
             </div>
@@ -336,8 +408,9 @@ export function SecuritySettings() {
               </p>
             </div>
             <Switch
-              checked={emailNotifications}
-              onCheckedChange={setEmailNotifications}
+              checked={securityPrefs?.emailNotifications ?? true}
+              onCheckedChange={(checked) => handleSecurityNotificationChange('email', checked)}
+              disabled={loadingPrefs || updateSecurityNotifications.isPending}
             />
           </div>
 
@@ -349,8 +422,9 @@ export function SecuritySettings() {
               </p>
             </div>
             <Switch
-              checked={loginAlerts}
-              onCheckedChange={setLoginAlerts}
+              checked={securityPrefs?.loginAlerts ?? true}
+              onCheckedChange={(checked) => handleSecurityNotificationChange('login', checked)}
+              disabled={loadingPrefs || updateSecurityNotifications.isPending}
             />
           </div>
         </CardContent>
@@ -399,7 +473,8 @@ export function SecuritySettings() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => revokeSession(session.id)}
+                    onClick={() => handleRevokeSession(session.id)}
+                    disabled={revokeSession.isPending}
                   >
                     Revoke
                   </Button>
@@ -410,8 +485,13 @@ export function SecuritySettings() {
           ))}
 
           <div className="pt-4 border-t">
-            <Button variant="destructive" size="sm" onClick={revokeAllSessions}>
-              Revoke All Other Sessions
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={handleRevokeAllSessions}
+              disabled={revokeAllSessions.isPending}
+            >
+              {revokeAllSessions.isPending ? 'Revoking...' : 'Revoke All Other Sessions'}
             </Button>
             <p className="text-sm text-muted-foreground mt-2">
               This will sign you out of all other devices and browsers.
@@ -420,5 +500,59 @@ export function SecuritySettings() {
         </CardContent>
       </Card>
     </div>
+
+    {/* 2FA Setup Dialog */}
+    <Dialog open={show2FADialog} onOpenChange={setShow2FADialog}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Set Up Two-Factor Authentication</DialogTitle>
+          <DialogDescription>
+            Scan this QR code with your authenticator app, then enter the verification code below.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          {qrCode && (
+            <div className="flex justify-center p-4 bg-white rounded-lg">
+              <Image
+                src={qrCode}
+                alt="2FA QR Code"
+                width={200}
+                height={200}
+                className="rounded"
+              />
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="verification-code">Verification Code</Label>
+            <Input
+              id="verification-code"
+              type="text"
+              placeholder="Enter 6-digit code"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              maxLength={6}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShow2FADialog(false)
+                setVerificationCode('')
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleVerify2FA}
+              disabled={!verificationCode || verify2FA.isPending}
+            >
+              {verify2FA.isPending ? 'Verifying...' : 'Verify and Enable'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </>
   )
 }

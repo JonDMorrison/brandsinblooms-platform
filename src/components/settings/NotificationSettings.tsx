@@ -1,113 +1,44 @@
-import { useState } from 'react'
-import { Button } from '@/src/components/ui/button'
+import { useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Label } from '@/src/components/ui/label'
 import { Switch } from '@/src/components/ui/switch'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
 import { Separator } from '@/src/components/ui/separator'
+import { Skeleton } from '@/src/components/ui/skeleton'
 import { toast } from 'sonner'
-import { Bell, Mail, MessageSquare, ShoppingCart, Users, TrendingUp, Shield, Smartphone } from 'lucide-react'
-
-interface NotificationSetting {
-  id: string
-  title: string
-  description: string
-  email: boolean
-  push: boolean
-  icon: React.ComponentType<{ className?: string }>
-}
+import { Bell, Mail, Smartphone, Clock, CheckCircle } from 'lucide-react'
+import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/src/hooks/useNotificationPreferences'
+import { handleError } from '@/src/lib/types/error-handling'
 
 export function NotificationSettings() {
-  const [isLoading, setIsLoading] = useState(false)
-  
-  const [notifications, setNotifications] = useState<NotificationSetting[]>([
-    {
-      id: 'orders',
-      title: 'Order Updates',
-      description: 'Get notified when you receive new orders or when order status changes',
-      email: true,
-      push: true,
-      icon: ShoppingCart,
-    },
-    {
-      id: 'comments',
-      title: 'Comments & Reviews',
-      description: 'Notifications for new comments on your content and product reviews',
-      email: true,
-      push: false,
-      icon: MessageSquare,
-    },
-    {
-      id: 'followers',
-      title: 'New Followers',
-      description: 'Get notified when someone follows your profile or subscribes to updates',
-      email: false,
-      push: true,
-      icon: Users,
-    },
-    {
-      id: 'analytics',
-      title: 'Analytics Reports',
-      description: 'Weekly and monthly reports about your site performance and metrics',
-      email: true,
-      push: false,
-      icon: TrendingUp,
-    },
-    {
-      id: 'security',
-      title: 'Security Alerts',
-      description: 'Important security notifications and login alerts',
-      email: true,
-      push: true,
-      icon: Shield,
-    },
-    {
-      id: 'marketing',
-      title: 'Marketing & Promotions',
-      description: 'Updates about new features, tips, and promotional offers',
-      email: false,
-      push: false,
-      icon: Bell,
-    },
-  ])
+  const { data: preferences, isLoading, error } = useNotificationPreferences()
+  const updatePreferences = useUpdateNotificationPreferences()
 
-  const [globalSettings, setGlobalSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    pauseAll: false,
-    quietHours: true,
-    quietStart: '22:00',
-    quietEnd: '08:00',
-  })
+  // Handle loading and error states
+  if (isLoading) {
+    return <NotificationSettingsLoading />
+  }
 
-  const updateNotification = (id: string, type: 'email' | 'push', value: boolean) => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === id
-          ? { ...notification, [type]: value }
-          : notification
-      )
+  if (error) {
+    const errorDetails = handleError(error)
+    toast.error(`Failed to load notification preferences: ${errorDetails.message}`)
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Failed to load notification preferences</p>
+      </div>
     )
   }
 
-  const updateGlobalSetting = (key: string, value: boolean) => {
-    setGlobalSettings(prev => ({
-      ...prev,
-      [key]: value,
-    }))
+  if (!preferences) {
+    return <NotificationSettingsLoading />
   }
 
-  const saveSettings = async () => {
-    setIsLoading(true)
-    try {
-      // Here you would save the notification settings
-      console.log('Notification settings:', { notifications, globalSettings })
-      toast.success('Notification preferences updated successfully!')
-    } catch (error) {
-      console.error('Failed to save notification settings:', error)
-      toast.error('Failed to update notification preferences. Please try again.')
-    } finally {
-      setIsLoading(false)
+  const handlePreferenceChange = (key: keyof typeof preferences, value: boolean | string) => {
+    const newPreferences = {
+      ...preferences,
+      [key]: value,
     }
+    updatePreferences.mutate(newPreferences)
   }
 
   return (
@@ -117,23 +48,41 @@ export function NotificationSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Global Notification Settings
+            Email Notification Settings
           </CardTitle>
           <CardDescription>
-            Control your overall notification preferences.
+            Control your email notification preferences and how often you receive them.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-base">Email Notifications</Label>
+              <Label className="text-base">Marketing Emails</Label>
               <p className="text-sm text-muted-foreground">
-                Receive notifications via email
+                Receive updates about new features, tips, and promotional offers
               </p>
             </div>
             <Switch
-              checked={globalSettings.emailNotifications}
-              onCheckedChange={(checked) => updateGlobalSetting('emailNotifications', checked)}
+              checked={preferences.email_marketing}
+              onCheckedChange={(checked) => handlePreferenceChange('email_marketing', checked)}
+              disabled={updatePreferences.isPending}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-base flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                System Updates
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Important updates about your account, orders, and system changes
+              </p>
+            </div>
+            <Switch
+              checked={preferences.email_updates}
+              onCheckedChange={(checked) => handlePreferenceChange('email_updates', checked)}
+              disabled={updatePreferences.isPending}
             />
           </div>
 
@@ -144,149 +93,99 @@ export function NotificationSettings() {
                 Push Notifications
               </Label>
               <p className="text-sm text-muted-foreground">
-                Receive push notifications in your browser
+                Receive push notifications in your browser (when supported)
               </p>
             </div>
             <Switch
-              checked={globalSettings.pushNotifications}
-              onCheckedChange={(checked) => updateGlobalSetting('pushNotifications', checked)}
+              checked={preferences.push_enabled}
+              onCheckedChange={(checked) => handlePreferenceChange('push_enabled', checked)}
+              disabled={updatePreferences.isPending}
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-base">Pause All Notifications</Label>
-              <p className="text-sm text-muted-foreground">
-                Temporarily disable all notifications for 24 hours
-              </p>
-            </div>
-            <Switch
-              checked={globalSettings.pauseAll}
-              onCheckedChange={(checked) => updateGlobalSetting('pauseAll', checked)}
-            />
-          </div>
+          <Separator />
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-base">Quiet Hours</Label>
+              <Label className="text-base flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Email Digest Frequency
+              </Label>
               <p className="text-sm text-muted-foreground">
-                Disable notifications during quiet hours (10 PM - 8 AM)
+                How often you want to receive email summaries
               </p>
             </div>
-            <Switch
-              checked={globalSettings.quietHours}
-              onCheckedChange={(checked) => updateGlobalSetting('quietHours', checked)}
-            />
+            <Select
+              value={preferences.digest_frequency}
+              onValueChange={(value) => handlePreferenceChange('digest_frequency', value)}
+              disabled={updatePreferences.isPending}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+                <SelectItem value="never">Never</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Notification Categories */}
+      {/* Status Indicator */}
+      {updatePreferences.isPending && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
+              Saving preferences...
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {updatePreferences.isSuccess && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-sm text-green-600">
+              <CheckCircle className="h-4 w-4" />
+              Preferences saved successfully
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+
+// Loading component
+function NotificationSettingsLoading() {
+  return (
+    <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Notification Categories</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Email Notification Settings
+          </CardTitle>
           <CardDescription>
-            Choose how you want to be notified for different types of activities.
+            Control your email notification preferences and how often you receive them.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {notifications.map((notification, index) => {
-            const Icon = notification.icon
-            return (
-              <div key={notification.id}>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3">
-                    <div className="mt-1">
-                      <Icon className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-base font-medium">
-                        {notification.title}
-                      </Label>
-                      <p className="text-sm text-muted-foreground">
-                        {notification.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <Switch
-                        checked={notification.email && globalSettings.emailNotifications}
-                        onCheckedChange={(checked) => updateNotification(notification.id, 'email', checked)}
-                        disabled={!globalSettings.emailNotifications}
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Smartphone className="h-4 w-4 text-muted-foreground" />
-                      <Switch
-                        checked={notification.push && globalSettings.pushNotifications}
-                        onCheckedChange={(checked) => updateNotification(notification.id, 'push', checked)}
-                        disabled={!globalSettings.pushNotifications}
-                      />
-                    </div>
-                  </div>
-                </div>
-                {index < notifications.length - 1 && <Separator className="mt-6" />}
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-64" />
               </div>
-            )
-          })}
+              <Skeleton className="h-6 w-12" />
+            </div>
+          ))}
         </CardContent>
       </Card>
-
-      {/* Email Frequency */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Email Frequency</CardTitle>
-          <CardDescription>
-            Control how often you receive email notifications.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border rounded-lg">
-              <h4 className="font-medium mb-2">Instant</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Receive emails immediately when events occur
-              </p>
-              <input type="radio" name="frequency" value="instant" defaultChecked className="sr-only" />
-              <Label className="text-sm font-medium cursor-pointer">
-                <input type="radio" name="frequency" value="instant" defaultChecked className="mr-2" />
-                Real-time notifications
-              </Label>
-            </div>
-            
-            <div className="p-4 border rounded-lg">
-              <h4 className="font-medium mb-2">Daily Digest</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Receive a daily summary of all notifications
-              </p>
-              <Label className="text-sm font-medium cursor-pointer">
-                <input type="radio" name="frequency" value="daily" className="mr-2" />
-                Once per day at 9 AM
-              </Label>
-            </div>
-            
-            <div className="p-4 border rounded-lg">
-              <h4 className="font-medium mb-2">Weekly Summary</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Receive a weekly summary every Monday
-              </p>
-              <Label className="text-sm font-medium cursor-pointer">
-                <input type="radio" name="frequency" value="weekly" className="mr-2" />
-                Weekly on Mondays
-              </Label>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button onClick={saveSettings} disabled={isLoading}>
-          {isLoading ? 'Saving...' : 'Save Preferences'}
-        </Button>
-      </div>
     </div>
   )
 }
