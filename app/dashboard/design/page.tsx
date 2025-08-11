@@ -1,12 +1,17 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { Button } from '@/src/components/ui/button'
-import { Palette, Type, Layout, Upload, Eye, Wand2 } from 'lucide-react'
+import { Palette, Type, Layout, Upload, Eye, Wand2, Loader2, X, History } from 'lucide-react'
 import { Skeleton } from '@/src/components/ui/skeleton'
+import { toast } from 'sonner'
+import { useDesignSettings, useUpdateDesignSettings, useResetDesignSettings } from '@/src/hooks/useDesignSettings'
+import { useDebounceCallback } from '@/src/hooks/useDebounce'
+import { useDesignHistory, useDesignHistoryKeyboardShortcuts } from '@/src/hooks/useDesignHistory'
+import { ThemeSettings } from '@/src/lib/queries/domains/theme'
 
 // Dynamic imports for design components with loading states
 const ColorCustomization = dynamic(
@@ -25,110 +30,137 @@ const LogoCustomization = dynamic(
   () => import('@/src/components/design/LogoCustomization'),
   { loading: () => <Skeleton className="h-[400px] w-full" /> }
 )
+const DesignPreview = dynamic(
+  () => import('@/src/components/design/DesignPreview').then(mod => mod.DesignPreview),
+  { loading: () => <Skeleton className="h-[600px] w-full" /> }
+)
+const AIDesignAssistant = dynamic(
+  () => import('@/src/components/design/AIDesignAssistant').then(mod => mod.AIDesignAssistant),
+  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+)
+const DesignHistory = dynamic(
+  () => import('@/src/components/design/DesignHistory').then(mod => mod.DesignHistory),
+  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+)
 
-interface DesignState {
-  colors: {
-    primary: string
-    secondary: string
-    accent: string
-    background: string
-  }
-  typography: {
-    headingFont: string
-    bodyFont: string
-    fontSize: string
-  }
-  layout: {
-    headerStyle: string
-    footerStyle: string
-    menuStyle: string
-  }
-  logo: {
-    url: string | null
-    position: string
-    size: string
-  }
-  branding: {
-    logoUrl?: string
-  }
+function DesignPageSkeleton() {
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-2">
+        <Skeleton className="h-9 w-48" />
+        <Skeleton className="h-5 w-72" />
+      </div>
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-96 w-full" />
+    </div>
+  )
 }
 
 export default function DesignPage() {
-  const [designState, setDesignState] = useState<DesignState>({
-    colors: {
-      primary: '#8B5CF6',
-      secondary: '#06B6D4',
-      accent: '#F59E0B',
-      background: '#FFFFFF'
-    },
-    typography: {
-      headingFont: 'Inter',
-      bodyFont: 'Inter',
-      fontSize: 'medium'
-    },
-    layout: {
-      headerStyle: 'modern',
-      footerStyle: 'minimal',
-      menuStyle: 'horizontal'
-    },
-    logo: {
-      url: null,
-      position: 'left',
-      size: 'medium'
-    },
-    branding: {
-      logoUrl: undefined
-    }
-  })
-
+  const { data: designSettings, isLoading } = useDesignSettings()
+  const { mutate: updateSettings, isPending: isSaving } = useUpdateDesignSettings()
+  const resetSettings = useResetDesignSettings()
+  
+  // Local state for immediate UI updates
+  const [localSettings, setLocalSettings] = useState<ThemeSettings | null>(null)
   const [activeTab, setActiveTab] = useState<string>('colors')
   const [previewMode, setPreviewMode] = useState<boolean>(false)
-
-  const updateDesignState = (category: keyof DesignState, updates: Partial<DesignState[keyof DesignState]>) => {
-    setDesignState(prev => ({
-      ...prev,
+  const [showHistory, setShowHistory] = useState<boolean>(false)
+  
+  // Design history management
+  const {
+    currentSettings: historySettings,
+    addToHistory,
+    undo,
+    redo,
+    jumpToHistory,
+    clearHistory,
+    canUndo,
+    canRedo,
+    history,
+    currentIndex
+  } = useDesignHistory(localSettings || designSettings || {} as ThemeSettings)
+  
+  // Keyboard shortcuts for undo/redo
+  useDesignHistoryKeyboardShortcuts(
+    useCallback(() => {
+      const settings = undo()
+      if (settings) {
+        setLocalSettings(settings)
+        updateSettings(settings)
+        toast.success('Undone')
+      }
+    }, [undo, updateSettings]),
+    useCallback(() => {
+      const settings = redo()
+      if (settings) {
+        setLocalSettings(settings)
+        updateSettings(settings)
+        toast.success('Redone')
+      }
+    }, [redo, updateSettings]),
+    true
+  )
+  
+  // Debounced save to database (1 second delay)
+  const debouncedSave = useDebounceCallback((settings: ThemeSettings) => {
+    updateSettings(settings)
+    addToHistory(settings)
+  }, 1000)
+  
+  // Initialize local settings from database
+  useEffect(() => {
+    if (designSettings && !localSettings) {
+      setLocalSettings(designSettings)
+    }
+  }, [designSettings, localSettings])
+  
+  // Update handler that saves to both local state and database
+  const handleSettingChange = (category: keyof ThemeSettings, value: Partial<ThemeSettings[keyof ThemeSettings]>) => {
+    if (!localSettings) return
+    
+    const newSettings = {
+      ...localSettings,
       [category]: {
-        ...prev[category],
-        ...updates
+        ...localSettings[category],
+        ...value
       }
-    }))
+    }
+    
+    setLocalSettings(newSettings)
+    debouncedSave(newSettings)
   }
-
+  
   const handleSaveChanges = () => {
-    // In a real app, this would save to the backend
-    console.log('Saving design changes:', designState)
-    // Show success toast here
+    if (!localSettings) return
+    updateSettings(localSettings)
   }
-
+  
   const handleResetToDefaults = () => {
-    setDesignState({
-      colors: {
-        primary: '#8B5CF6',
-        secondary: '#06B6D4',
-        accent: '#F59E0B',
-        background: '#FFFFFF'
-      },
-      typography: {
-        headingFont: 'Inter',
-        bodyFont: 'Inter',
-        fontSize: 'medium'
-      },
-      layout: {
-        headerStyle: 'modern',
-        footerStyle: 'minimal',
-        menuStyle: 'horizontal'
-      },
-      logo: {
-        url: null,
-        position: 'left',
-        size: 'medium'
-      },
-      branding: {
-        logoUrl: undefined
-      }
-    })
+    resetSettings()
+    toast.success('Design settings reset to defaults')
   }
-
+  
+  // Loading state
+  if (isLoading) {
+    return <DesignPageSkeleton />
+  }
+  
+  // Error state
+  if (!localSettings) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-center text-gray-600">
+              Unable to load design settings. Please try refreshing the page.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+  
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
@@ -140,6 +172,14 @@ export default function DesignPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center gap-2"
+          >
+            <History className="h-4 w-4" />
+            {showHistory ? 'Hide' : 'Show'} History
+          </Button>
           <Button
             variant="outline"
             onClick={() => setPreviewMode(!previewMode)}
@@ -156,41 +196,71 @@ export default function DesignPage() {
           </Button>
           <Button
             onClick={handleSaveChanges}
+            disabled={isSaving}
             className="bg-gradient-primary text-white"
           >
-            Save Changes
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Changes'
+            )}
           </Button>
         </div>
       </div>
 
-      {/* AI Design Assistant Card */}
-      <Card className="bg-gradient-subtle border-0 fade-in-up" style={{ animationDelay: '0.1s' }}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wand2 className="h-5 w-5 text-purple-600" />
-            AI Design Assistant
-          </CardTitle>
-          <CardDescription>
-            Let AI help you create the perfect design for your brand
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Generate Color Palette
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Type className="h-4 w-4" />
-              Suggest Typography
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Layout className="h-4 w-4" />
-              Recommend Layout
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Two Column Layout for Assistant and History */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* AI Design Assistant */}
+        <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
+          <AIDesignAssistant
+            currentSettings={localSettings}
+            onApplyColors={(colors) => handleSettingChange('colors', colors)}
+            onApplyTypography={(typography) => handleSettingChange('typography', typography)}
+            onApplyLayout={(layout) => handleSettingChange('layout', layout)}
+          />
+        </Suspense>
+        
+        {/* Design History */}
+        {showHistory && (
+          <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
+            <DesignHistory
+              history={history}
+              currentIndex={currentIndex}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={() => {
+                const settings = undo()
+                if (settings) {
+                  setLocalSettings(settings)
+                  updateSettings(settings)
+                }
+              }}
+              onRedo={() => {
+                const settings = redo()
+                if (settings) {
+                  setLocalSettings(settings)
+                  updateSettings(settings)
+                }
+              }}
+              onJumpTo={(index) => {
+                const settings = jumpToHistory(index)
+                if (settings) {
+                  setLocalSettings(settings)
+                  updateSettings(settings)
+                }
+              }}
+              onClear={clearHistory}
+              onApply={(settings) => {
+                setLocalSettings(settings)
+                updateSettings(settings)
+              }}
+            />
+          </Suspense>
+        )}
+      </div>
 
       {/* Design Customization Tabs */}
       <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
@@ -223,8 +293,8 @@ export default function DesignPage() {
               <TabsContent value="colors" className="space-y-6">
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <ColorCustomization
-                    colors={designState.colors}
-                    onColorsChange={(colors) => updateDesignState('colors', colors)}
+                    colors={localSettings.colors}
+                    onColorsChange={(colors) => handleSettingChange('colors', colors)}
                   />
                 </Suspense>
               </TabsContent>
@@ -232,8 +302,8 @@ export default function DesignPage() {
               <TabsContent value="fonts" className="space-y-6">
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <TypographyCustomization
-                    typography={designState.typography}
-                    onTypographyChange={(typography) => updateDesignState('typography', typography)}
+                    typography={localSettings.typography}
+                    onTypographyChange={(typography) => handleSettingChange('typography', typography)}
                   />
                 </Suspense>
               </TabsContent>
@@ -241,14 +311,8 @@ export default function DesignPage() {
               <TabsContent value="logo" className="space-y-6">
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <LogoCustomization
-                    logo={{
-                      url: designState.branding.logoUrl || null,
-                      position: 'left',
-                      size: 'medium'
-                    }}
-                    onLogoChange={(logo) => updateDesignState('branding', { 
-                      logoUrl: logo.url || undefined 
-                    })}
+                    logo={localSettings.logo}
+                    onLogoChange={(logo) => handleSettingChange('logo', logo)}
                   />
                 </Suspense>
               </TabsContent>
@@ -256,8 +320,8 @@ export default function DesignPage() {
               <TabsContent value="header" className="space-y-6">
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <LayoutCustomization
-                    layout={designState.layout}
-                    onLayoutChange={(layout) => updateDesignState('layout', layout)}
+                    layout={localSettings.layout}
+                    onLayoutChange={(layout) => handleSettingChange('layout', layout)}
                     section="header"
                   />
                 </Suspense>
@@ -266,8 +330,8 @@ export default function DesignPage() {
               <TabsContent value="layout" className="space-y-6">
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <LayoutCustomization
-                    layout={designState.layout}
-                    onLayoutChange={(layout) => updateDesignState('layout', layout)}
+                    layout={localSettings.layout}
+                    onLayoutChange={(layout) => handleSettingChange('layout', layout)}
                     section="all"
                   />
                 </Suspense>
@@ -277,55 +341,27 @@ export default function DesignPage() {
         </CardContent>
       </Card>
 
-      {/* Preview Section */}
+      {/* Live Preview Modal/Panel */}
       {previewMode && (
-        <Card className="fade-in-up" style={{ animationDelay: '0.3s' }}>
-          <CardHeader>
-            <CardTitle>Live Preview</CardTitle>
-            <CardDescription>
-              See how your changes will look on your site
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div 
-              className="p-6 rounded-lg border-2 border-dashed border-gray-300 min-h-[300px] flex items-center justify-center"
-              style={{
-                backgroundColor: designState.colors.background,
-                color: designState.colors.primary,
-                fontFamily: designState.typography.bodyFont
-              }}
-            >
-              <div className="text-center space-y-4">
-                <h2 
-                  className="text-2xl font-bold"
-                  style={{
-                    fontFamily: designState.typography.headingFont,
-                    color: designState.colors.primary
-                  }}
-                >
-                  Your Site Preview
-                </h2>
-                <p className="text-gray-600">
-                  This is how your site will look with the current design settings
-                </p>
-                <div className="flex items-center justify-center gap-4 mt-4">
-                  <div 
-                    className="w-4 h-4 rounded"
-                    style={{ backgroundColor: designState.colors.primary }}
-                  />
-                  <div 
-                    className="w-4 h-4 rounded"
-                    style={{ backgroundColor: designState.colors.secondary }}
-                  />
-                  <div 
-                    className="w-4 h-4 rounded"
-                    style={{ backgroundColor: designState.colors.accent }}
-                  />
-                </div>
-              </div>
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Design Preview</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setPreviewMode(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex-1 overflow-hidden">
+              <Suspense fallback={<Skeleton className="h-full w-full" />}>
+                <DesignPreview settings={localSettings} className="h-full border-0 shadow-none" />
+              </Suspense>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

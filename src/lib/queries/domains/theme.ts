@@ -10,11 +10,14 @@ export interface ThemeSettings {
     secondary: string;
     accent: string;
     background: string;
+    text?: string;
   };
   typography: {
     headingFont: string;
     bodyFont: string;
     fontSize: 'small' | 'medium' | 'large';
+    headingWeight?: string;
+    bodyWeight?: string;
   };
   layout: {
     headerStyle: 'modern' | 'classic' | 'minimal';
@@ -35,7 +38,7 @@ export async function getSiteTheme(
 ): Promise<ThemeSettings> {
   const { data, error } = await client
     .from('sites')
-    .select('theme_settings')
+    .select('theme_settings, logo_url, primary_color')
     .eq('id', siteId)
     .single();
   
@@ -43,8 +46,30 @@ export async function getSiteTheme(
     throw new Error(`Failed to get site theme: ${error.message}`);
   }
   
-  // Return default theme for now - theme_settings column was removed in site-domains
-  // TODO: Implement theme loading from site_templates table
+  // Return theme_settings if it exists, otherwise default
+  if (data?.theme_settings) {
+    const theme = data.theme_settings as unknown as ThemeSettings;
+    
+    // Merge logo_url from site if not in theme_settings
+    if (data.logo_url && !theme.logo?.url) {
+      theme.logo = {
+        ...(theme.logo || {}),
+        url: data.logo_url,
+      };
+    }
+    
+    // Use primary_color if theme doesn't have it
+    if (data.primary_color && !theme.colors?.primary) {
+      theme.colors = {
+        ...getDefaultTheme().colors,
+        ...theme.colors,
+        primary: data.primary_color,
+      };
+    }
+    
+    return theme;
+  }
+  
   return getDefaultTheme();
 }
 
@@ -52,11 +77,41 @@ export async function getSiteTheme(
 export async function updateSiteTheme(
   client: SupabaseClient<Database>,
   siteId: string,
-  theme: ThemeSettings
+  theme: Partial<ThemeSettings>
 ): Promise<Site> {
-  // Theme settings column was removed in site-domains
-  // TODO: Implement theme updates via site_templates table
-  throw new Error('Theme updates not yet implemented for new schema');
+  // Get current theme to merge with updates
+  const currentTheme = await getSiteTheme(client, siteId);
+  const updatedTheme = {
+    ...currentTheme,
+    ...theme,
+    colors: { ...currentTheme.colors, ...theme.colors },
+    typography: { ...currentTheme.typography, ...theme.typography },
+    layout: { ...currentTheme.layout, ...theme.layout },
+    logo: { ...currentTheme.logo, ...theme.logo },
+  };
+  
+  const { data, error } = await client
+    .from('sites')
+    .update({
+      theme_settings: updatedTheme,
+      // Also update individual fields for backwards compatibility
+      logo_url: updatedTheme.logo?.url || null,
+      primary_color: updatedTheme.colors?.primary || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', siteId)
+    .select()
+    .single();
+  
+  if (error) {
+    throw new Error(`Failed to update site theme: ${error.message}`);
+  }
+  
+  if (!data) {
+    throw new Error('No data returned from theme update');
+  }
+  
+  return data as Site;
 }
 
 // Get default theme settings
@@ -67,6 +122,7 @@ export function getDefaultTheme(): ThemeSettings {
       secondary: '#06B6D4',
       accent: '#F59E0B',
       background: '#FFFFFF',
+      text: '#1A1A1A',
     },
     typography: {
       headingFont: 'Inter',

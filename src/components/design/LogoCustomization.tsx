@@ -11,8 +11,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/ta
 import { RadioGroup, RadioGroupItem } from '@/src/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
 import { Separator } from '@/src/components/ui/separator'
-import { Upload, Wand2, Image as ImageIcon, Type, Trash2, Download } from 'lucide-react'
+import { Upload, Wand2, Image as ImageIcon, Type, Trash2, Download, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
+import { toast } from 'sonner'
+import { useSupabase } from '@/hooks/useSupabase'
+import { useSiteId } from '@/contexts/SiteContext'
+import { uploadMedia } from '@/lib/queries/domains/media'
+import { handleError } from '@/lib/types/error-handling'
 
 interface LogoCustomizationProps {
   logo: {
@@ -105,6 +110,8 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
   const [textLogo, setTextLogo] = useState({ text: 'Your Brand', style: 'modern' })
   const [activeTab, setActiveTab] = useState('upload')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const supabase = useSupabase()
+  const siteId = useSiteId()
 
   const handleLogoChange = (updates: Partial<typeof logo>) => {
     onLogoChange({
@@ -114,19 +121,26 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
   }
 
   const handleFileUpload = async (file: File) => {
+    // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file')
+      toast.error('Please upload an image file')
+      return
+    }
+
+    // Validate file size (max 5MB for logos)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB')
       return
     }
 
     setIsUploading(true)
     setUploadProgress(0)
 
-    // Simulate upload progress
-    const interval = setInterval(() => {
+    // Simulate progress for UX
+    const progressInterval = setInterval(() => {
       setUploadProgress(prev => {
         if (prev >= 90) {
-          clearInterval(interval)
+          clearInterval(progressInterval)
           return 90
         }
         return prev + 10
@@ -134,19 +148,42 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
     }, 100)
 
     try {
-      // Create object URL for preview (in real app, upload to server)
-      const objectUrl = URL.createObjectURL(file)
+      if (!siteId) {
+        throw new Error('No site ID available')
+      }
+
+      // Upload to Supabase Storage
+      const result = await uploadMedia(supabase, siteId, file, {
+        path: 'logos',
+        altText: 'Site logo'
+      })
+
+      setUploadProgress(100)
       
-      setTimeout(() => {
-        setUploadProgress(100)
-        handleLogoChange({ url: objectUrl })
-        setIsUploading(false)
-        clearInterval(interval)
-      }, 1500)
+      // Update logo URL
+      handleLogoChange({ url: result.file_url })
+      
+      // Also update the site's logo_url field
+      const { error: updateError } = await supabase
+        .from('sites')
+        .update({ 
+          logo_url: result.file_url,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', siteId)
+
+      if (updateError) {
+        throw updateError
+      }
+
+      toast.success('Logo uploaded successfully')
     } catch (error) {
-      console.error('Upload failed:', error)
+      handleError(error)
+      toast.error('Failed to upload logo')
+    } finally {
       setIsUploading(false)
-      clearInterval(interval)
+      clearInterval(progressInterval)
+      setUploadProgress(0)
     }
   }
 
@@ -178,7 +215,7 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
   }
 
   const generateAILogo = (template: typeof logoTemplates[0]) => {
-    // Mock AI logo generation - create a simple SVG logo
+    // Create a simple SVG logo (in production, this would call an AI service)
     const svg = `data:image/svg+xml,${encodeURIComponent(`
       <svg width="200" height="80" xmlns="http://www.w3.org/2000/svg">
         <rect width="200" height="80" fill="${template.color}" rx="8"/>
@@ -189,6 +226,7 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
     `)}`
     
     handleLogoChange({ url: svg })
+    toast.success('AI logo generated')
   }
 
   const generateTextLogo = () => {
@@ -207,10 +245,30 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
     `)}`
     
     handleLogoChange({ url: svg })
+    toast.success('Text logo generated')
   }
 
-  const removeLogo = () => {
-    handleLogoChange({ url: null })
+  const removeLogo = async () => {
+    try {
+      if (siteId) {
+        // Clear logo from database
+        const { error } = await supabase
+          .from('sites')
+          .update({ 
+            logo_url: null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', siteId)
+
+        if (error) throw error
+      }
+
+      handleLogoChange({ url: null })
+      toast.success('Logo removed')
+    } catch (error) {
+      handleError(error)
+      toast.error('Failed to remove logo')
+    }
   }
 
   return (
@@ -262,7 +320,15 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
                   <span>Size: <strong>{logo.size}</strong></span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      if (logo.url) {
+                        window.open(logo.url, '_blank')
+                      }
+                    }}
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Download
                   </Button>
@@ -308,14 +374,14 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
                 <div
                   className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                     dragActive ? 'border-primary bg-primary/5' : 'border-gray-300'
-                  }`}
+                  } ${isUploading ? 'pointer-events-none opacity-50' : ''}`}
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                 >
                   {isUploading ? (
                     <div className="space-y-2">
-                      <Upload className="h-8 w-8 text-primary mx-auto animate-pulse" />
+                      <Loader2 className="h-8 w-8 text-primary mx-auto animate-spin" />
                       <p className="text-sm font-medium">Uploading... {uploadProgress}%</p>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
@@ -352,7 +418,7 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
                 <Alert>
                   <AlertDescription>
                     <strong>Logo Guidelines:</strong> For best results, upload a high-resolution logo (at least 300x300px) 
-                    with a transparent background (PNG format recommended).
+                    with a transparent background (PNG format recommended). Maximum file size is 5MB.
                   </AlertDescription>
                 </Alert>
               </div>
