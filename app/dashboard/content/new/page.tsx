@@ -201,13 +201,14 @@ export default function CreateContentPage() {
         router.push(`/dashboard/content/editor?id=${newContent.id}`)
       }, 100)
       
-    } catch (error: any) {
+    } catch (error) {
       clearTimeout(timeoutId)
       console.error('Error creating content - Full error:', error)
-      console.error('Error message:', error?.message)
-      console.error('Error details:', error?.details)
+      if (error instanceof Error) {
+        console.error('Error message:', error.message)
+      }
       
-      const errorMessage = error?.message || 'Failed to create page. Please try again.'
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create page. Please try again.'
       toast.error(errorMessage, { id: toastId })
     } finally {
       clearTimeout(timeoutId)

@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/src/lib/supabase/client'
-import { getContentById } from '@/src/lib/queries/domains/content'
+import { getContentById, updateContent } from '@/src/lib/queries/domains/content'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Separator } from '@/src/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
+import { Input } from '@/src/components/ui/input'
+import { Label } from '@/src/components/ui/label'
 import { 
   ArrowLeft, 
   Save, 
@@ -69,6 +71,7 @@ export default function PageEditorPage() {
   const [activeViewport, setActiveViewport] = useState<ViewportSize>('desktop')
   const [isPreviewMode, setIsPreviewMode] = useState(true)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     // Wait for searchParams to be available before proceeding
@@ -91,7 +94,7 @@ export default function PageEditorPage() {
           
           const pageData: PageData = {
             title: content.title,
-            subtitle: metaData?.subtitle || '',
+            subtitle: typeof metaData?.subtitle === 'string' ? metaData.subtitle : '',
             layout: layout as LayoutType
           }
           
@@ -145,10 +148,45 @@ export default function PageEditorPage() {
   const CurrentLayoutComponent = layoutInfo[pageData.layout].component
   const LayoutIcon = layoutInfo[pageData.layout].icon
 
-  const handleSave = () => {
-    // Simulate save operation
-    setHasUnsavedChanges(false)
-    toast.success('Page saved successfully!')
+  const handleSave = async () => {
+    if (!contentId || !currentSite?.id || !pageData) {
+      toast.error('Missing required information to save')
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      // Prepare the update data
+      const metaData = {
+        layout: pageData.layout,
+        subtitle: pageData.subtitle
+      }
+
+      const contentData = {
+        layout: pageData.layout
+      }
+
+      // Update the content in the database
+      await updateContent(
+        supabase,
+        currentSite.id,
+        contentId,
+        {
+          title: pageData.title,
+          meta_data: metaData,
+          content: contentData,
+          content_type: pageData.layout === 'blog' ? 'blog_post' : 'page'
+        }
+      )
+
+      setHasUnsavedChanges(false)
+      toast.success('Page saved successfully!')
+    } catch (error) {
+      console.error('Error saving content:', error)
+      toast.error('Failed to save page. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handlePreview = () => {
@@ -249,9 +287,10 @@ export default function PageEditorPage() {
             <Button 
               size="sm"
               onClick={handleSave}
+              disabled={isSaving || !hasUnsavedChanges}
             >
               <Save className="h-3.5 w-3.5 mr-1.5" />
-              Save
+              {isSaving ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </div>
@@ -320,16 +359,37 @@ export default function PageEditorPage() {
                     <div>
                       <h3 className="text-sm font-medium mb-2">Page Settings</h3>
                       <div className="space-y-3 p-3 bg-card rounded-lg border">
-                        <div>
-                          <label className="text-xs font-medium text-muted-foreground">Title</label>
-                          <p className="text-sm mt-0.5">{pageData.title}</p>
+                        <div className="space-y-2">
+                          <Label htmlFor="title" className="text-xs font-medium">
+                            Title
+                          </Label>
+                          <Input
+                            id="title"
+                            type="text"
+                            value={pageData.title}
+                            onChange={(e) => {
+                              setPageData({ ...pageData, title: e.target.value })
+                              setHasUnsavedChanges(true)
+                            }}
+                            className="h-8 text-sm"
+                          />
                         </div>
-                        {pageData.subtitle && (
-                          <div>
-                            <label className="text-xs font-medium text-muted-foreground">Subtitle</label>
-                            <p className="text-sm mt-0.5">{pageData.subtitle}</p>
-                          </div>
-                        )}
+                        <div className="space-y-2">
+                          <Label htmlFor="subtitle" className="text-xs font-medium">
+                            Subtitle
+                          </Label>
+                          <Input
+                            id="subtitle"
+                            type="text"
+                            value={pageData.subtitle || ''}
+                            onChange={(e) => {
+                              setPageData({ ...pageData, subtitle: e.target.value })
+                              setHasUnsavedChanges(true)
+                            }}
+                            placeholder="Optional subtitle"
+                            className="h-8 text-sm"
+                          />
+                        </div>
                       </div>
                     </div>
                     
