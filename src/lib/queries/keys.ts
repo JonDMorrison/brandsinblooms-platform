@@ -68,6 +68,42 @@ export const queryKeys = {
       [...queryKeys.products.all(siteId), 'sku', sku] as const,
     categories: (siteId: string) => 
       [...queryKeys.products.all(siteId), 'categories'] as const,
+    images: (siteId: string, productId: string) => 
+      [...queryKeys.products.detail(siteId, productId), 'images'] as const,
+    reviews: (siteId: string, productId: string) => 
+      [...queryKeys.products.detail(siteId, productId), 'reviews'] as const,
+    reviewsList: (siteId: string, productId: string, filters?: {
+      rating?: number;
+      verified?: boolean;
+      approved?: boolean;
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    }) => [...queryKeys.products.reviews(siteId, productId), 'list', filters] as const,
+    rating: (siteId: string, productId: string) => 
+      [...queryKeys.products.detail(siteId, productId), 'rating'] as const,
+    userReview: (siteId: string, productId: string, profileId: string) => 
+      [...queryKeys.products.reviews(siteId, productId), 'user', profileId] as const,
+  },
+
+  // Review queries
+  reviews: {
+    all: (siteId: string) => [...queryKeys.all, 'reviews', siteId] as const,
+    lists: (siteId: string) => [...queryKeys.reviews.all(siteId), 'list'] as const,
+    list: (siteId: string, filters?: {
+      rating?: number;
+      verified?: boolean;
+      approved?: boolean;
+      page?: number;
+      limit?: number;
+    }) => [...queryKeys.reviews.lists(siteId), filters] as const,
+    details: (siteId: string) => [...queryKeys.reviews.all(siteId), 'detail'] as const,
+    detail: (siteId: string, id: string) => 
+      [...queryKeys.reviews.details(siteId), id] as const,
+    byProfile: (siteId: string, profileId: string) => 
+      [...queryKeys.reviews.all(siteId), 'profile', profileId] as const,
+    stats: (siteId: string) => [...queryKeys.reviews.all(siteId), 'stats'] as const,
   },
   
   // Tag queries

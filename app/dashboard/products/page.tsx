@@ -7,6 +7,7 @@ import { Input } from '@/src/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { ToggleGroup, ToggleGroupItem } from '@/src/components/ui/toggle-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
+import { Checkbox } from '@/src/components/ui/checkbox'
 import { 
   Search, 
   Grid3X3, 
@@ -17,14 +18,19 @@ import {
   ShoppingCart,
   DollarSign,
   Star,
+  Download,
+  Upload,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useProducts, useProductCategories } from '@/src/hooks/useProducts'
+import { useProducts, useProductCategories, useUpdateProduct } from '@/src/hooks/useProducts'
 import { useRouter } from 'next/navigation'
 import { Skeleton } from '@/src/components/ui/skeleton'
+import { ProductSelectionProvider, useProductSelection } from '@/src/contexts/ProductSelectionContext'
+import { BulkActionsToolbar } from '@/src/components/products/BulkActionsToolbar'
+import { ImportExportDialog } from '@/src/components/products/ImportExportDialog'
 
 // Lazy load the ProductCard component
-const ProductCard = lazy(() => import('@/components/ProductCard').then(module => ({ default: module.ProductCard })))
+const ProductCard = lazy(() => import('@/src/components/ProductCard').then(module => ({ default: module.ProductCard })))
 
 interface ProductDisplay {
   id: string
@@ -42,7 +48,7 @@ interface ProductDisplay {
 }
 
 
-export default function ProductsPage() {
+function ProductsPageContent() {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
@@ -52,6 +58,7 @@ export default function ProductsPage() {
   // Fetch real product data
   const { data: productsResponse, isLoading } = useProducts()
   const { data: categoriesData = [] } = useProductCategories()
+  const updateProduct = useUpdateProduct()
   
   // Extract products array from response
   const products = Array.isArray(productsResponse) ? productsResponse : productsResponse?.data || []
@@ -66,8 +73,8 @@ export default function ProductsPage() {
       description: product.description || '',
       price: product.price,
       originalPrice: product.compare_at_price || undefined,
-      rating: 4.5, // TODO: Implement ratings system
-      reviews: 0, // TODO: Implement reviews system
+      rating: product.rating || 0,
+      reviews: product.review_count || 0,
       category: product.category || 'Uncategorized',
       stock: product.inventory_count === 0 ? 'out-of-stock' : 
              product.inventory_count < 10 ? 'low-stock' : 'in-stock',
@@ -101,14 +108,18 @@ export default function ProductsPage() {
   }, [displayProducts, searchQuery, selectedCategory, activeTab])
 
   const handleAddToSite = useCallback((productId: string) => {
-    // TODO: Implement with updateProduct mutation
-    toast.success('Product added to your site!')
-  }, [])
+    updateProduct.mutate({
+      id: productId,
+      is_active: true
+    })
+  }, [updateProduct])
 
   const handleRemoveFromSite = useCallback((productId: string) => {
-    // TODO: Implement with updateProduct mutation
-    toast.success('Product removed from your site!')
-  }, [])
+    updateProduct.mutate({
+      id: productId,
+      is_active: false
+    })
+  }, [updateProduct])
 
   // Memoize stats calculations
   const stats = useMemo(() => {
@@ -123,18 +134,58 @@ export default function ProductsPage() {
     return { totalProducts, addedToSite, totalRevenue, avgRating }
   }, [displayProducts])
 
+  const { 
+    selectedIds, 
+    selectedCount, 
+    hasSelection, 
+    isAllSelected, 
+    isIndeterminate, 
+    toggleAll, 
+    clearSelection 
+  } = useProductSelection()
+  
+  const [showBulkSelection, setShowBulkSelection] = useState(false)
+  const [showImportExport, setShowImportExport] = useState(false)
+  
+  const availableProductIds = filteredProducts.map(p => p.id)
+  const allSelected = isAllSelected(availableProductIds)
+  const indeterminate = isIndeterminate(availableProductIds)
+  
+  const handleSelectAll = () => {
+    toggleAll(availableProductIds)
+  }
+  
+  const toggleBulkMode = () => {
+    setShowBulkSelection(!showBulkSelection)
+    if (showBulkSelection) {
+      clearSelection()
+    }
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-in-up" style={{ animationDelay: '0s' }}>
         <div>
           <h1 className="text-2xl font-bold">Products</h1>
           <p className="text-muted-foreground">Manage your product catalog and site products</p>
         </div>
-        <Button onClick={() => router.push('/dashboard/products/new')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Product
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => router.push('/dashboard/products/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Product
+          </Button>
+          <Button variant="outline" onClick={() => setShowImportExport(true)}>
+            <Upload className="h-4 w-4 mr-2" />
+            Import / Export
+          </Button>
+          <Button 
+            variant={showBulkSelection ? "default" : "outline"}
+            onClick={toggleBulkMode}
+          >
+            {showBulkSelection ? 'Exit Bulk Mode' : 'Bulk Actions'}
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -229,6 +280,31 @@ export default function ProductsPage() {
             </TabsList>
 
             <TabsContent value={activeTab} className="space-y-4">
+              {/* Bulk Selection Header */}
+              {showBulkSelection && (
+                <div className="flex items-center gap-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                  <Checkbox
+                    checked={allSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = indeterminate
+                    }}
+                    onCheckedChange={handleSelectAll}
+                    className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                  />
+                  <span className="text-sm font-medium">
+                    {selectedCount > 0 
+                      ? `${selectedCount} of ${availableProductIds.length} selected`
+                      : `Select all ${availableProductIds.length} products`
+                    }
+                  </span>
+                  {selectedCount > 0 && (
+                    <Button variant="ghost" size="sm" onClick={clearSelection}>
+                      Clear selection
+                    </Button>
+                  )}
+                </div>
+              )}
+              
               {/* Filters and Search */}
               <div className="flex flex-col sm:flex-row gap-4">
                 {/* Search */}
@@ -303,6 +379,7 @@ export default function ProductsPage() {
                         viewMode={viewMode}
                         onAddToSite={handleAddToSite}
                         onRemoveFromSite={handleRemoveFromSite}
+                        showSelection={showBulkSelection}
                       />
                     </Suspense>
                   ))}
@@ -312,6 +389,24 @@ export default function ProductsPage() {
           </Tabs>
         </CardContent>
       </Card>
+      
+      {/* Bulk Actions Toolbar */}
+      <BulkActionsToolbar />
+      
+      {/* Import/Export Dialog */}
+      <ImportExportDialog 
+        open={showImportExport}
+        onOpenChange={setShowImportExport}
+        selectedProductIds={selectedIds}
+      />
     </div>
+  )
+}
+
+export default function ProductsPage() {
+  return (
+    <ProductSelectionProvider>
+      <ProductsPageContent />
+    </ProductSelectionProvider>
   )
 }

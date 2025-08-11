@@ -3,8 +3,10 @@
 import { Card, CardContent } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
+import { Checkbox } from '@/src/components/ui/checkbox'
 import { Star, ShoppingCart, Eye, Heart, Package } from 'lucide-react'
 import { useState } from 'react'
+import { useProductSelection } from '@/contexts/ProductSelectionContext'
 
 interface Product {
   id: string
@@ -26,10 +28,18 @@ interface ProductCardProps {
   viewMode: 'grid' | 'list'
   onAddToSite: (productId: string) => void
   onRemoveFromSite: (productId: string) => void
+  showSelection?: boolean
 }
 
-export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite }: ProductCardProps) {
+export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, showSelection = false }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const { isSelected, toggleProduct } = useProductSelection()
+  
+  const selected = isSelected(product.id)
+  
+  const handleSelectionChange = (checked: boolean) => {
+    toggleProduct(product.id)
+  }
 
   const stockColors = {
     'in-stock': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
@@ -58,9 +68,20 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite }
 
   if (viewMode === 'list') {
     return (
-      <Card className="hover:shadow-md transition-shadow">
+      <Card className={`hover:shadow-md transition-shadow ${selected ? 'ring-2 ring-blue-500' : ''}`}>
         <CardContent className="p-4">
           <div className="flex gap-4">
+            {/* Selection Checkbox */}
+            {showSelection && (
+              <div className="flex items-center pt-1">
+                <Checkbox
+                  checked={selected}
+                  onCheckedChange={handleSelectionChange}
+                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                />
+              </div>
+            )}
+            
             {/* Product Image */}
             <div className="w-20 h-20 bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900 dark:to-purple-900 rounded-lg flex items-center justify-center flex-shrink-0">
               <Package className="h-8 w-8 text-gray-500" />
@@ -143,11 +164,22 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite }
   // Grid view
   return (
     <Card 
-      className="group cursor-pointer hover:shadow-lg transition-all duration-200"
+      className={`group cursor-pointer hover:shadow-lg transition-all duration-200 ${selected ? 'ring-2 ring-blue-500' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <CardContent className="p-4">
+        {/* Selection Checkbox */}
+        {showSelection && (
+          <div className="absolute top-2 left-2 z-10">
+            <Checkbox
+              checked={selected}
+              onCheckedChange={handleSelectionChange}
+              className="bg-white dark:bg-gray-800 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+          </div>
+        )}
+        
         {/* Product Image */}
         <div className="relative mb-4">
           <div className="aspect-square bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900 dark:to-purple-900 rounded-lg flex items-center justify-center">
@@ -155,7 +187,7 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite }
           </div>
           
           {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
+          <div className={`absolute top-2 ${showSelection ? 'left-10' : 'left-2'} flex flex-col gap-1`}>
             {product.featured && (
               <Badge className="bg-blue-600 text-white text-xs">Featured</Badge>
             )}

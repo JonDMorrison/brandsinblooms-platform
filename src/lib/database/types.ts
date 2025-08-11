@@ -18,8 +18,8 @@ export type Database = {
       graphql: {
         Args: {
           extensions?: Json
-          operationName?: string
           query?: string
+          operationName?: string
           variables?: Json
         }
         Returns: Json
@@ -758,11 +758,142 @@ export type Database = {
           },
         ]
       }
+      product_images: {
+        Row: {
+          alt_text: string | null
+          caption: string | null
+          created_at: string
+          height: number | null
+          id: string
+          is_primary: boolean | null
+          position: number | null
+          product_id: string
+          site_id: string
+          size_bytes: number | null
+          updated_at: string
+          url: string
+          width: number | null
+        }
+        Insert: {
+          alt_text?: string | null
+          caption?: string | null
+          created_at?: string
+          height?: number | null
+          id?: string
+          is_primary?: boolean | null
+          position?: number | null
+          product_id: string
+          site_id: string
+          size_bytes?: number | null
+          updated_at?: string
+          url: string
+          width?: number | null
+        }
+        Update: {
+          alt_text?: string | null
+          caption?: string | null
+          created_at?: string
+          height?: number | null
+          id?: string
+          is_primary?: boolean | null
+          position?: number | null
+          product_id?: string
+          site_id?: string
+          size_bytes?: number | null
+          updated_at?: string
+          url?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_images_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          helpful_count: number | null
+          id: string
+          is_approved: boolean | null
+          product_id: string
+          profile_id: string
+          rating: number
+          site_id: string
+          title: string | null
+          updated_at: string
+          verified_purchase: boolean | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          is_approved?: boolean | null
+          product_id: string
+          profile_id: string
+          rating: number
+          site_id: string
+          title?: string | null
+          updated_at?: string
+          verified_purchase?: boolean | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          is_approved?: boolean | null
+          product_id?: string
+          profile_id?: string
+          rating?: number
+          site_id?: string
+          title?: string | null
+          updated_at?: string
+          verified_purchase?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           attributes: Json | null
           care_instructions: string | null
           category: string | null
+          compare_at_price: number | null
           created_at: string
           description: string | null
           id: string
@@ -770,11 +901,15 @@ export type Database = {
           import_batch_id: string | null
           import_source: string | null
           in_stock: boolean | null
+          inventory_count: number | null
           is_active: boolean | null
           is_featured: boolean | null
+          low_stock_threshold: number | null
           meta_description: string | null
           name: string
           price: number | null
+          rating: number | null
+          review_count: number | null
           sale_price: number | null
           site_id: string
           sku: string | null
@@ -788,6 +923,7 @@ export type Database = {
           attributes?: Json | null
           care_instructions?: string | null
           category?: string | null
+          compare_at_price?: number | null
           created_at?: string
           description?: string | null
           id?: string
@@ -795,11 +931,15 @@ export type Database = {
           import_batch_id?: string | null
           import_source?: string | null
           in_stock?: boolean | null
+          inventory_count?: number | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          low_stock_threshold?: number | null
           meta_description?: string | null
           name: string
           price?: number | null
+          rating?: number | null
+          review_count?: number | null
           sale_price?: number | null
           site_id: string
           sku?: string | null
@@ -813,6 +953,7 @@ export type Database = {
           attributes?: Json | null
           care_instructions?: string | null
           category?: string | null
+          compare_at_price?: number | null
           created_at?: string
           description?: string | null
           id?: string
@@ -820,11 +961,15 @@ export type Database = {
           import_batch_id?: string | null
           import_source?: string | null
           in_stock?: boolean | null
+          inventory_count?: number | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          low_stock_threshold?: number | null
           meta_description?: string | null
           name?: string
           price?: number | null
+          rating?: number | null
+          review_count?: number | null
           sale_price?: number | null
           site_id?: string
           sku?: string | null
@@ -1493,8 +1638,8 @@ export type Database = {
       }
       admin_bulk_update_products: {
         Args: {
-          product_ids: string[]
           bulk_updates: Json
+          product_ids: string[]
           admin_notes?: string
         }
         Returns: Json
@@ -1508,7 +1653,7 @@ export type Database = {
         Returns: Json
       }
       admin_get_product_analytics: {
-        Args: { site_uuid: string; start_date?: string; end_date?: string }
+        Args: { end_date?: string; site_uuid: string; start_date?: string }
         Returns: Json
       }
       admin_get_site_content: {
@@ -1524,12 +1669,12 @@ export type Database = {
       }
       admin_get_site_products: {
         Args: {
-          offset_count?: number
+          status_filter?: string
           site_uuid: string
           search_query?: string
           category_filter?: string
-          status_filter?: string
           limit_count?: number
+          offset_count?: number
         }
         Returns: Json
       }
@@ -1543,8 +1688,8 @@ export type Database = {
       }
       admin_update_product: {
         Args: {
-          product_uuid: string
           product_updates: Json
+          product_uuid: string
           admin_notes?: string
         }
         Returns: Json
@@ -1559,7 +1704,7 @@ export type Database = {
         Returns: boolean
       }
       calculate_metric_trend: {
-        Args: { current_value: number; previous_value: number }
+        Args: { previous_value: number; current_value: number }
         Returns: string
       }
       check_site_health: {
@@ -1575,16 +1720,16 @@ export type Database = {
         Returns: Json
       }
       create_initial_admin: {
-        Args: { admin_full_name?: string; target_user_id: string }
+        Args: { target_user_id: string; admin_full_name?: string }
         Returns: boolean
       }
       create_site_with_template: {
         Args: {
+          business_info?: Json
           template_slug: string
           site_name: string
           site_subdomain: string
           owner_email: string
-          business_info?: Json
         }
         Returns: Json
       }
@@ -1606,8 +1751,8 @@ export type Database = {
       }
       get_active_impersonation_sessions: {
         Args: {
-          admin_user_uuid?: string
           site_uuid?: string
+          admin_user_uuid?: string
           limit_count?: number
         }
         Returns: Json
@@ -1628,9 +1773,9 @@ export type Database = {
       get_all_sites_with_stats: {
         Args: {
           search_query?: string
-          offset_count?: number
           status_filter?: string
           limit_count?: number
+          offset_count?: number
         }
         Returns: Json
       }
@@ -1641,13 +1786,13 @@ export type Database = {
       get_order_summary_stats: {
         Args: { p_site_id: string; p_date_range?: unknown }
         Returns: {
+          shipped_orders: number
           total_orders: number
           total_revenue: number
           average_order_value: number
           conversion_rate: number
           pending_orders: number
           processing_orders: number
-          shipped_orders: number
           delivered_orders: number
         }[]
       }
@@ -1655,8 +1800,19 @@ export type Database = {
         Args: { days_back?: number }
         Returns: Json
       }
+      get_product_stats: {
+        Args: { p_site_id: string }
+        Returns: {
+          total_products: number
+          active_products: number
+          out_of_stock: number
+          low_stock: number
+          total_reviews: number
+          average_rating: number
+        }[]
+      }
       get_site_analytics: {
-        Args: { site_uuid: string; days_back?: number; period_type?: string }
+        Args: { days_back?: number; site_uuid: string; period_type?: string }
         Returns: Json
       }
       get_site_health_summary: {
@@ -1681,7 +1837,6 @@ export type Database = {
       }
       log_admin_action: {
         Args: {
-          user_agent_val?: string
           admin_id: string
           site_uuid: string
           action_type_val: string
@@ -1691,6 +1846,7 @@ export type Database = {
           new_vals?: Json
           details?: string
           ip_addr?: unknown
+          user_agent_val?: string
         }
         Returns: string
       }
@@ -1720,15 +1876,52 @@ export type Database = {
       }
       start_admin_impersonation: {
         Args: {
+          duration_hours?: number
           site_uuid: string
           impersonated_user_uuid?: string
           purpose_text?: string
-          duration_hours?: number
           allowed_actions_list?: string[]
           ip_addr?: unknown
           user_agent_val?: string
         }
         Returns: Json
+      }
+      update_product_inventory: {
+        Args: { p_product_id: string; p_change: number }
+        Returns: {
+          attributes: Json | null
+          care_instructions: string | null
+          category: string | null
+          compare_at_price: number | null
+          created_at: string
+          description: string | null
+          id: string
+          images: Json | null
+          import_batch_id: string | null
+          import_source: string | null
+          in_stock: boolean | null
+          inventory_count: number | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          low_stock_threshold: number | null
+          meta_description: string | null
+          name: string
+          price: number | null
+          rating: number | null
+          review_count: number | null
+          sale_price: number | null
+          site_id: string
+          sku: string | null
+          slug: string | null
+          stock_status: string | null
+          subcategory: string | null
+          unit_of_measure: string | null
+          updated_at: string
+        }
+      }
+      user_has_site_access: {
+        Args: { p_site_id: string; p_role?: string }
+        Returns: boolean
       }
     }
     Enums: {

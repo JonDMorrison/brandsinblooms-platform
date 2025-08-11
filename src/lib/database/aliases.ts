@@ -64,6 +64,11 @@ export type Tagging = Tables['taggings']['Row'];
 export type TaggingInsert = Tables['taggings']['Insert'];
 export type TaggingUpdate = Tables['taggings']['Update'];
 
+// Product review types
+export type ProductReview = Tables['product_reviews']['Row'];
+export type ProductReviewInsert = Tables['product_reviews']['Insert'];
+export type ProductReviewUpdate = Tables['product_reviews']['Update'];
+
 // Site metrics types - Note: site-domains uses individual columns instead of JSON
 export type SiteMetric = Tables['site_metrics']['Row'];
 export type SiteMetrics = SiteMetric;
@@ -101,6 +106,14 @@ export interface ProductWithTags extends Product {
 
 export interface ContentWithTags extends Content {
   tags?: Tag[];
+}
+
+export interface ProductReviewWithProfile extends ProductReview {
+  profile?: {
+    full_name: string | null;
+    avatar_url: string | null;
+    username: string | null;
+  };
 }
 
 export interface OrderWithItems extends Order {

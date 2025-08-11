@@ -37,12 +37,14 @@ export interface ProductFilters extends QueryParams<Product> {
   active?: boolean;
 }
 
+type Tag = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
 export interface ProductWithTags extends Product {
-  tags?: Array<{
-    id: string;
-    name: string;
-    slug: string;
-  }>;
+  tags?: Tag[];
 }
 
 export interface ProductImage {
@@ -173,7 +175,7 @@ export async function getProductById(
   const data = await handleSingleResponse(response);
   
   // Transform tags - handle potential relation errors
-  const tags = [];
+  const tags: Tag[] = [];
   
   return {
     ...data,
@@ -199,7 +201,7 @@ export async function getProductBySlug(
   const data = await handleSingleResponse(response);
   
   // Transform tags - handle potential relation errors
-  const tags = [];
+  const tags: Tag[] = [];
   
   return {
     ...data,
@@ -225,7 +227,7 @@ export async function getProductBySku(
   const data = await handleSingleResponse(response);
   
   // Transform tags - handle potential relation errors
-  const tags = [];
+  const tags: Tag[] = [];
   
   return {
     ...data,
@@ -470,11 +472,15 @@ export async function searchProducts(
 export async function updateProductInventory(
   supabase: SupabaseClient<Database>,
   productId: string,
-  quantity: number
+  change: number
 ): Promise<Product> {
-  // Note: inventory_count is not available in current schema
-  // This function would need to be implemented when inventory tracking is added
-  throw new Error('Inventory tracking not yet implemented in current schema');
+  // Use the database function for safe inventory updates
+  const response = await supabase.rpc('update_product_inventory', {
+    p_product_id: productId,
+    p_change: change
+  }).single();
+
+  return handleSingleResponse(response);
 }
 
 /**
