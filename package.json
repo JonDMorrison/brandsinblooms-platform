@@ -33,7 +33,14 @@
     "deploy:preview": "node scripts/deploy.js --preview",
     "deployment:status": "node scripts/deployment-status.js",
     "deployment:rollback": "node scripts/rollback.js",
-    "test:create-project": "node scripts/test-create-project.js"
+    "test:create-project": "node scripts/test-create-project.js",
+    "railway:setup": "bash scripts/railway-setup.sh",
+    "railway:env": "node scripts/railway-env.js",
+    "railway:deploy": "bash scripts/railway-deploy.sh",
+    "railway:deploy:staging": "bash scripts/railway-deploy.sh staging",
+    "railway:deploy:production": "bash scripts/railway-deploy.sh production",
+    "railway:logs": "railway logs --tail",
+    "railway:status": "railway status"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
