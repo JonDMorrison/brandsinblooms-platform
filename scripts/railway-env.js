@@ -15,7 +15,7 @@ import ora from 'ora'
 class RailwayEnvManager {
   constructor() {
     this.envFile = '.env.production'
-    this.exampleFile = '.env.production.example'
+    this.exampleFile = '.env.example'
     this.requiredVars = [
       'NEXT_PUBLIC_SUPABASE_URL',
       'NEXT_PUBLIC_SUPABASE_ANON_KEY',

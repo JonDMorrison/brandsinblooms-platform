@@ -12,7 +12,8 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 
 # Install pnpm globally and install dependencies
-RUN corepack enable pnpm && \
+RUN --mount=type=cache,target=/root/.local/share/pnpm,id=pnpm \
+    corepack enable pnpm && \
     pnpm config set store-dir /root/.local/share/pnpm/store && \
     pnpm install --frozen-lockfile --prefer-offline --ignore-scripts
 
@@ -25,7 +26,6 @@ WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /root/.local/share/pnpm/store /root/.local/share/pnpm/store
 
 # Copy source code
 COPY . .
@@ -35,9 +35,10 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production \
     SKIP_ENV_VALIDATION=1
 
-# Build the application
-RUN corepack enable pnpm && \
-    pnpm run build --no-lint
+# Build the application with cache mounts
+RUN --mount=type=cache,target=/app/.next/cache,id=nextjs \
+    corepack enable pnpm && \
+    pnpm run build
 
 # ====================================================================
 # Stage 3: Production Runner

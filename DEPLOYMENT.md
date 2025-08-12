@@ -80,7 +80,7 @@ REDIS_URL=redis://default:password@redis-hostname:6379
 - `Dockerfile.standalone` - Production Docker image
 - `railway.json` - Railway deployment configuration
 - `next.config.js` - Next.js optimizations
-- `.env.production.example` - Environment template
+- `.env.example` - Environment template for all environments
 
 ### Scripts
 - `scripts/railway-setup.sh` - Initial Railway setup
