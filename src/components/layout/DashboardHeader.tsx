@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
 import { 
   Menu, 
   Bell, 
@@ -13,7 +14,6 @@ import {
   ChevronDown
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
-import { Input } from '@/src/components/ui/input'
 import { Badge } from '@/src/components/ui/badge'
 import {
   DropdownMenu,
@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { toast } from 'sonner'
 import { CompactSiteSwitcher } from '@/src/components/site/SiteSwitcher'
+import { GlobalSearch, GlobalSearchDialog } from '@/src/components/search'
 
 interface DashboardHeaderProps {
   onMenuClick: () => void
@@ -36,6 +37,29 @@ interface DashboardHeaderProps {
 export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const { user, signOut } = useAuth()
   const router = useRouter()
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+  const searchInputRef = useRef<HTMLDivElement>(null)
+
+  // Keyboard shortcut for search (⌘K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        // Focus the search input by clicking on it
+        const searchContainer = searchInputRef.current
+        if (searchContainer) {
+          const input = searchContainer.querySelector('input')
+          if (input) {
+            input.focus()
+            input.click()
+          }
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const handleSignOut = async () => {
     try {
@@ -80,19 +104,20 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           </div>
 
           {/* Search */}
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search..."
-              className="pl-10 w-64 bg-muted/50 border-0 focus:bg-background"
-            />
+          <div className="hidden md:block" ref={searchInputRef}>
+            <GlobalSearch placeholder="Search... (⌘K)" />
           </div>
         </div>
 
         {/* Right section */}
         <div className="flex items-center space-x-4">
           {/* Search button for mobile */}
-          <Button variant="ghost" size="sm" className="md:hidden">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="md:hidden"
+            onClick={() => setMobileSearchOpen(true)}
+          >
             <Search className="h-4 w-4" />
           </Button>
 
@@ -210,6 +235,13 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Mobile Search Dialog */}
+      <GlobalSearchDialog 
+        open={mobileSearchOpen} 
+        onOpenChange={setMobileSearchOpen}
+        placeholder="Search content..."
+      />
     </header>
   )
 }
