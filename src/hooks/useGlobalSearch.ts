@@ -30,19 +30,6 @@ export function useGlobalSearch(query: string, limit: number = 10): UseGlobalSea
   const siteId = contextSiteId || '00000000-0000-0000-0000-000000000001';
   const debouncedQuery = useDebounce(query.trim(), 300);
   
-  // Debug logging - remove in production
-  useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development' && query.length > 0) {
-      console.log('useGlobalSearch Debug:', { 
-        contextSiteId,
-        siteId, 
-        query, 
-        debouncedQuery,
-        hasMinLength: query.trim().length >= 3,
-        shouldSearch: debouncedQuery.length >= 3 && siteId !== null
-      });
-    }
-  }, [contextSiteId, siteId, query, debouncedQuery]);
   
   // Only search if we have a site ID and query has minimum length (3+ characters)
   const hasMinLength = query.trim().length >= 3;
@@ -64,9 +51,6 @@ export function useGlobalSearch(query: string, limit: number = 10): UseGlobalSea
         return results;
       } catch (err: unknown) {
         const errorInfo = handleError(err);
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Search error:', errorInfo);
-        }
         throw new Error(errorInfo.message);
       }
     },

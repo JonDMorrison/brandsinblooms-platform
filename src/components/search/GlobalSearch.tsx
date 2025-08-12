@@ -91,21 +91,6 @@ export function GlobalSearch({ placeholder = "Search content...", className, onN
     { pages: [], blog_posts: [], events: [] } as GroupedResults
   );
 
-  // Debug logging - remove in production
-  useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      console.log('GlobalSearch state:', { 
-        query, 
-        isOpen, 
-        hasMinLength, 
-        isLoading, 
-        isEmpty, 
-        resultsCount: results.length,
-        results,
-        groupedResults
-      });
-    }
-  }, [query, isOpen, hasMinLength, isLoading, isEmpty, results, groupedResults]);
 
   const handleNavigate = (result: SearchResult) => {
     const config = contentTypeConfig[result.content_type as keyof typeof contentTypeConfig];

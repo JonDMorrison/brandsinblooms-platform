@@ -489,9 +489,6 @@ export async function searchContentEnhanced(
     return typedData || [];
   } catch (error: unknown) {
     // Fall back to the existing searchContent function
-    if (typeof process !== 'undefined' && process?.env?.NODE_ENV === 'development') {
-      console.warn('Enhanced search failed, falling back to basic search:', error);
-    }
     
     const fallbackResults = await searchContent(supabase, siteId, searchQuery);
     
