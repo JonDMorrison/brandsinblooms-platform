@@ -1,0 +1,79 @@
+# Multi-stage Dockerfile for Next.js standalone deployment on Railway
+# Optimized for: fast builds, small images, multi-domain support, and production performance
+
+# ====================================================================
+# Stage 1: Dependencies Installation
+# ====================================================================
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Copy package files for dependency installation
+COPY package.json pnpm-lock.yaml ./
+
+# Install pnpm globally and install dependencies
+RUN corepack enable pnpm && \
+    pnpm config set store-dir /root/.local/share/pnpm/store && \
+    pnpm install --frozen-lockfile --prefer-offline --ignore-scripts
+
+# ====================================================================
+# Stage 2: Builder
+# ====================================================================
+FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /root/.local/share/pnpm/store /root/.local/share/pnpm/store
+
+# Copy source code
+COPY . .
+
+# Set build-time environment variables for optimization
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    NODE_ENV=production \
+    SKIP_ENV_VALIDATION=1
+
+# Build the application
+RUN corepack enable pnpm && \
+    pnpm run build --no-lint
+
+# ====================================================================
+# Stage 3: Production Runner
+# ====================================================================
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Install runtime dependencies only
+RUN apk add --no-cache libc6-compat curl && \
+    addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Set production environment
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000
+
+# Copy built application from builder stage
+# Using Next.js standalone output for minimal size
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/.next/cache && \
+    chown -R nextjs:nodejs /app/.next/cache
+
+# Switch to non-root user for security
+USER nextjs
+
+# Expose port (Railway will override with $PORT)
+EXPOSE 3000
+
+# Health check for Railway
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:${PORT}/api/health || exit 1
+
+# Start the application using Next.js standalone server
+CMD ["node", "server.js"]
