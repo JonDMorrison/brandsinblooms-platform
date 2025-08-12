@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 ENVIRONMENT=${1:-staging}
-DOCKERFILE="Dockerfile.standalone"
+DOCKERFILE="Dockerfile"
 HEALTH_CHECK_RETRIES=10
 HEALTH_CHECK_DELAY=10
 

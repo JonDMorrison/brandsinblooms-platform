@@ -1,9 +1,18 @@
 # Railway deployment configuration
-# Simplified to avoid cache mount conflicts
+# Optimized for production performance and multi-domain support
 
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "Dockerfile.production"
+
+[build.cache]
+# Enable build caching for faster deployments
+enabled = true
+paths = [
+  "node_modules",
+  ".next/cache",
+  "/root/.local/share/pnpm/store"
+]
 
 [deploy]
 # Health check configuration
@@ -19,6 +28,9 @@ region = "us-west1"
 # Memory and CPU limits
 memory = "512Mi"
 cpu = "0.5"
+
+# Start command override (optional)
+startCommand = "node server.js"
 
 # Environment-specific settings
 [deploy.production]
@@ -64,4 +76,3 @@ RAILWAY_ENVIRONMENT = "${{RAILWAY_ENVIRONMENT}}"
 [build.variables]
 NEXT_TELEMETRY_DISABLED = "1"
 NODE_OPTIONS = "--max-old-space-size=4096"
-EOF < /dev/null
