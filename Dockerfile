@@ -20,8 +20,7 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml ./
 
 # Install production dependencies only
-RUN --mount=type=cache,id=s/brands-in-blooms-pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --prefer-offline --production=false
+RUN pnpm install --frozen-lockfile --prefer-offline --production=false
 
 # ====================================================================
 # Stage 3: Builder with build cache
@@ -49,8 +48,7 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     NODE_OPTIONS="--max-old-space-size=4096"
 
 # Build with caching for Next.js
-RUN --mount=type=cache,id=s/brands-in-blooms-nextjs,target=/app/.next/cache \
-    pnpm run build
+RUN pnpm run build
 
 # Remove development dependencies after build
 RUN pnpm prune --production
