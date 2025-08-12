@@ -20,8 +20,7 @@ class RailwayEnvManager {
       'NEXT_PUBLIC_SUPABASE_URL',
       'NEXT_PUBLIC_SUPABASE_ANON_KEY',
       'SUPABASE_SERVICE_ROLE_KEY',
-      'NEXT_PUBLIC_APP_DOMAIN',
-      'NEXT_PUBLIC_SUBDOMAIN_SUFFIX'
+      'NEXT_PUBLIC_APP_DOMAIN'
     ]
     this.sensitiveVars = [
       'SUPABASE_SERVICE_ROLE_KEY',

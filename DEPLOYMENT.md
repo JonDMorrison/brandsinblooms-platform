@@ -47,7 +47,6 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Domain Configuration
 NEXT_PUBLIC_APP_DOMAIN=blooms.cc
-NEXT_PUBLIC_SUBDOMAIN_SUFFIX=.blooms.cc
 
 # Production Settings
 NODE_ENV=production

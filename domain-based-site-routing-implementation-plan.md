@@ -264,7 +264,6 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 # New variables for domain handling
 NEXT_PUBLIC_APP_DOMAIN=blooms.cc
-NEXT_PUBLIC_SUBDOMAIN_SUFFIX=.blooms.cc
 ```
 
 ## Testing Strategy

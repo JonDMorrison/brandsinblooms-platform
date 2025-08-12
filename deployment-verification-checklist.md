@@ -7,7 +7,6 @@
 - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
 - [ ] `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
 - [ ] `NEXT_PUBLIC_APP_DOMAIN` - Primary app domain (e.g., blooms.cc)
-- [ ] `NEXT_PUBLIC_SUBDOMAIN_SUFFIX` - Subdomain suffix (e.g., .blooms.cc)
 
 ### Optional Production Environment Variables
 - [ ] `REDIS_URL` - Redis connection string for production caching
@@ -271,7 +270,6 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-key
 NEXT_PUBLIC_APP_DOMAIN=blooms.cc
-NEXT_PUBLIC_SUBDOMAIN_SUFFIX=.blooms.cc
 
 # Production Optimizations
 REDIS_URL=redis://your-redis-instance

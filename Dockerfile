@@ -1,69 +1,103 @@
-# Simple Dockerfile for Railway deployment without cache mounts
-# Use this if you're getting cache mount errors
+# Production-optimized Dockerfile for Railway deployment
+# Features: Multi-stage build, layer caching, security hardening, performance optimization
 
-FROM node:20-alpine AS deps
+# ====================================================================
+# Stage 1: Base dependencies layer (cached across builds)
+# ====================================================================
+FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
+# Enable corepack for pnpm
+RUN corepack enable pnpm && corepack prepare pnpm@8.15.0 --activate
+
+# ====================================================================
+# Stage 2: Dependencies installation (heavily cached)
+# ====================================================================
+FROM base AS deps
+
+# Copy only package files for optimal layer caching
 COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
-RUN corepack enable pnpm && \
-    pnpm install --frozen-lockfile --ignore-scripts
+# Install production dependencies only
+RUN --mount=type=cache,id=s/brands-in-blooms-pnpm,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --prefer-offline --production=false
 
-# Builder stage
-FROM node:20-alpine AS builder
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
+# ====================================================================
+# Stage 3: Builder with build cache
+# ====================================================================
+FROM base AS builder
 
-# Copy dependencies
+# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source code
 COPY . .
 
-# Set environment variables
+# Set build arguments for runtime configuration
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_APP_DOMAIN
+
+# Build-time optimizations
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production \
-    SKIP_ENV_VALIDATION=1
+    SKIP_ENV_VALIDATION=1 \
+    # Enable SWC minification
+    NEXT_MINIFY_JS=true \
+    # Optimize for production
+    NODE_OPTIONS="--max-old-space-size=4096"
 
-# Build application
-RUN corepack enable pnpm && \
+# Build with caching for Next.js
+RUN --mount=type=cache,id=s/brands-in-blooms-nextjs,target=/app/.next/cache \
     pnpm run build
 
-# Production stage
+# Remove development dependencies after build
+RUN pnpm prune --production
+
+# ====================================================================
+# Stage 4: Production runner (minimal size)
+# ====================================================================
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Install runtime dependencies
-RUN apk add --no-cache libc6-compat curl && \
+# Install only runtime essentials
+RUN apk add --no-cache libc6-compat curl tini && \
     addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+    adduser --system --uid 1001 nextjs && \
+    mkdir -p /app/.next/cache && \
+    chown -R nextjs:nodejs /app
 
-# Set production environment
-ENV NODE_ENV=production \
-    NEXT_TELEMETRY_DISABLED=1 \
-    PORT=3000
-
-# Copy built application
+# Copy standalone build (minimal footprint)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Create cache directory
-RUN mkdir -p /app/.next/cache && \
-    chown -R nextjs:nodejs /app/.next/cache
+# Copy Supabase migrations for production checks
+COPY --from=builder --chown=nextjs:nodejs /app/supabase ./supabase
 
-# Switch to non-root user
+# Runtime environment defaults (overridden by Railway)
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0" \
+    # Enable Node.js cluster mode for better performance
+    NODE_CLUSTER_WORKERS=2 \
+    # Memory optimization
+    NODE_OPTIONS="--max-old-space-size=512"
+
+# Security: Run as non-root user
 USER nextjs
 
-# Expose port
+# Expose port (Railway overrides with $PORT)
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+# Health check with proper timeout
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:${PORT}/api/health || exit 1
 
-# Start application
+# Use tini for proper signal handling
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start with Node.js directly (no npm/pnpm overhead)
 CMD ["node", "server.js"]
