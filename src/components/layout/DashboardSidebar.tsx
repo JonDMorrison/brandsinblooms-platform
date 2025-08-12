@@ -41,7 +41,7 @@ export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
   }, [router])
 
   return (
-    <div className="h-full flex flex-col bg-gradient-card border-r shadow-lg">
+    <div className="h-full flex flex-col bg-white border-r shadow-lg">
       {/* Logo section */}
       <div className="flex items-center justify-between p-6">
         <div className="flex items-center space-x-3">
