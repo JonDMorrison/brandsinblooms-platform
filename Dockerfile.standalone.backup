@@ -25,7 +25,6 @@ WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /root/.local/share/pnpm/store /root/.local/share/pnpm/store
 
 # Copy source code
 COPY . .
@@ -37,7 +36,7 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
 
 # Build the application
 RUN corepack enable pnpm && \
-    pnpm run build --no-lint
+    pnpm run build
 
 # ====================================================================
 # Stage 3: Production Runner

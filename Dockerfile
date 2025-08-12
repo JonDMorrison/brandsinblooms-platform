@@ -20,8 +20,7 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml ./
 
 # Install production dependencies only
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --prefer-offline --production=false
+RUN pnpm install --frozen-lockfile --prefer-offline --production=false
 
 # ====================================================================
 # Stage 3: Builder with build cache
@@ -38,7 +37,6 @@ COPY . .
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 ARG NEXT_PUBLIC_APP_DOMAIN
-ARG NEXT_PUBLIC_SUBDOMAIN_SUFFIX
 
 # Build-time optimizations
 ENV NEXT_TELEMETRY_DISABLED=1 \
@@ -50,8 +48,7 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     NODE_OPTIONS="--max-old-space-size=4096"
 
 # Build with caching for Next.js
-RUN --mount=type=cache,id=nextjs,target=/app/.next/cache \
-    pnpm run build
+RUN pnpm run build
 
 # Remove development dependencies after build
 RUN pnpm prune --production

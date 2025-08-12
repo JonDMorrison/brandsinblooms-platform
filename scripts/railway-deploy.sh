@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 ENVIRONMENT=${1:-staging}
-DOCKERFILE="Dockerfile.standalone"
+DOCKERFILE="Dockerfile"
 HEALTH_CHECK_RETRIES=10
 HEALTH_CHECK_DELAY=10
 
@@ -82,7 +82,6 @@ build_image() {
     SUPABASE_URL=$(railway variables get NEXT_PUBLIC_SUPABASE_URL)
     SUPABASE_ANON_KEY=$(railway variables get NEXT_PUBLIC_SUPABASE_ANON_KEY)
     APP_DOMAIN=$(railway variables get NEXT_PUBLIC_APP_DOMAIN)
-    SUBDOMAIN_SUFFIX=$(railway variables get NEXT_PUBLIC_SUBDOMAIN_SUFFIX || echo ".blooms.cc")
     
     # Build with cache
     docker build \
@@ -90,7 +89,6 @@ build_image() {
         --build-arg NEXT_PUBLIC_SUPABASE_URL="$SUPABASE_URL" \
         --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
         --build-arg NEXT_PUBLIC_APP_DOMAIN="$APP_DOMAIN" \
-        --build-arg NEXT_PUBLIC_SUBDOMAIN_SUFFIX="$SUBDOMAIN_SUFFIX" \
         -f "$DOCKERFILE" \
         -t "railway-deploy:${ENVIRONMENT}" \
         .

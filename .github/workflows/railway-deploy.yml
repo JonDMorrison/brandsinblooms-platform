@@ -81,7 +81,6 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_DOMAIN: ${{ secrets.NEXT_PUBLIC_APP_DOMAIN }}
-          NEXT_PUBLIC_SUBDOMAIN_SUFFIX: ${{ secrets.NEXT_PUBLIC_SUBDOMAIN_SUFFIX }}
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3

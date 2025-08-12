@@ -15,7 +15,6 @@ import { trackDomainResolution, trackPerformance } from '@/src/lib/monitoring/si
 
 // Environment configuration
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
-const SUBDOMAIN_SUFFIX = process.env.NEXT_PUBLIC_SUBDOMAIN_SUFFIX || '.blooms.cc'
 const USE_REDIS_CACHE = process.env.REDIS_URL && process.env.NODE_ENV === 'production'
 const ENABLE_ANALYTICS = process.env.ANALYTICS_ENABLED !== 'false'
 const ENABLE_SECURITY = process.env.SECURITY_ENABLED !== 'false'
