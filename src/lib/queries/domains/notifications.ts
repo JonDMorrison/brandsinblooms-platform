@@ -49,15 +49,7 @@ export async function getNotifications(
   
   let query = client
     .from('notifications')
-    .select(`
-      *,
-      user:profiles!user_id(
-        user_id,
-        full_name,
-        email,
-        avatar_url
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
@@ -114,10 +106,7 @@ export async function getNotifications(
   const nextCursor = hasMore ? notifications[notifications.length - 1]?.created_at : null;
   
   return {
-    notifications: notifications.map(notification => ({
-      ...notification,
-      user: notification.user && !('error' in notification.user) ? notification.user : undefined
-    })) as NotificationWithUser[],
+    notifications: notifications as NotificationWithUser[],
     nextCursor,
     hasMore,
   };
@@ -420,15 +409,7 @@ export async function getEntityNotifications(
 ): Promise<NotificationWithUser[]> {
   const { data, error } = await client
     .from('notifications')
-    .select(`
-      *,
-      user:profiles!user_id(
-        user_id,
-        full_name,
-        email,
-        avatar_url
-      )
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('user_id', userId)
     .eq('related_entity_type', entityType)
@@ -439,10 +420,7 @@ export async function getEntityNotifications(
   
   if (error) throw new SupabaseError(error.message, error.code);
   
-  return (data || []).map(notification => ({
-    ...notification,
-    user: notification.user && !('error' in notification.user) ? notification.user : undefined
-  })) as NotificationWithUser[];
+  return (data || []) as NotificationWithUser[];
 }
 
 // Helper functions for common notification types

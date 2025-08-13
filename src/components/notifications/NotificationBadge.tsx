@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { cn } from '@/src/lib/utils'
-import { Badge } from '@/src/components/ui/badge'
 
 interface NotificationBadgeProps {
   count: number
@@ -40,17 +39,20 @@ export function NotificationBadge({
   const displayCount = count > maxCount ? `${maxCount}+` : count.toString()
 
   return (
-    <Badge
-      variant={variant}
+    <div
       className={cn(
-        'h-5 min-w-[20px] flex items-center justify-center p-0 text-xs font-medium',
+        'h-5 min-w-[20px] flex items-center justify-center px-1.5 rounded-full',
         'absolute -top-2 -right-2 z-10',
         'transition-all duration-300 ease-out',
+        'bg-red-500 text-white text-xs font-semibold',
         isAnimating && [
           'animate-pulse',
           'scale-110',
-          'ring-2 ring-destructive/30',
+          'ring-2 ring-red-500/30',
         ],
+        variant === 'secondary' && 'bg-gray-500',
+        variant === 'outline' && 'bg-white text-gray-900 border border-gray-300',
+        variant === 'default' && 'bg-gray-900 text-white dark:bg-white dark:text-gray-900',
         className
       )}
     >
@@ -62,7 +64,7 @@ export function NotificationBadge({
       >
         {displayCount}
       </span>
-    </Badge>
+    </div>
   )
 }
 
