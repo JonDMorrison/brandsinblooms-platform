@@ -75,9 +75,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/supabase ./supabase
 
 # Runtime environment defaults (overridden by Railway)
+# IMPORTANT: Do NOT set PORT here - Railway provides it automatically
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    PORT=3000 \
     HOSTNAME="0.0.0.0" \
     # Enable Node.js cluster mode for better performance
     NODE_CLUSTER_WORKERS=2 \
@@ -87,12 +87,13 @@ ENV NODE_ENV=production \
 # Security: Run as non-root user
 USER nextjs
 
-# Expose port (Railway overrides with $PORT)
-EXPOSE 3000
+# IMPORTANT: Do not expose a specific port - Railway handles this
+# Railway automatically assigns and exposes the correct port
+# EXPOSE statement removed to prevent port conflicts
 
-# Health check with proper timeout
+# Health check using dynamic PORT from environment
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:${PORT}/api/health || exit 1
+  CMD curl -f http://localhost:${PORT:-3000}/api/health || exit 1
 
 # Use tini for proper signal handling
 ENTRYPOINT ["/sbin/tini", "--"]

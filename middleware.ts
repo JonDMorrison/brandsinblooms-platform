@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { 
   resolveSiteFromHost, 
-  extractHostname,
+  extractHostname as extractHostnameFromResolution,
   isValidSubdomain,
   isValidCustomDomain
 } from '@/src/lib/site/resolution'
@@ -38,6 +38,41 @@ const publicRoutes = [
 
 // Define routes that should redirect to dashboard if authenticated (for main app domain)
 const authRoutes = ['/login', '/signup']
+
+/**
+ * Extracts hostname from request, properly handling proxy headers from Cloudflare/Railway
+ */
+function extractHostname(request: NextRequest): string {
+  // Check for original hostname from proxy headers (Cloudflare/Railway)
+  const forwardedHost = request.headers.get('x-forwarded-host') || 
+                       request.headers.get('x-original-host') ||
+                       request.headers.get('host')
+  
+  if (forwardedHost) {
+    // Remove port if present and return clean hostname
+    return forwardedHost.split(':')[0]
+  }
+  
+  // Fallback to request URL hostname
+  const url = new URL(request.url)
+  return url.hostname
+}
+
+/**
+ * Creates a clean URL for redirects in production (removes ports)
+ */
+function createRedirectUrl(request: NextRequest, targetHostname: string, pathname: string): URL {
+  const url = request.nextUrl.clone()
+  url.hostname = targetHostname
+  url.pathname = pathname
+  
+  // In production, always clear the port to avoid :8080 redirects
+  if (process.env.NODE_ENV === 'production') {
+    url.port = ''
+  }
+  
+  return url
+}
 
 /**
  * Next.js middleware that handles both domain-based site resolution and authentication
@@ -217,15 +252,13 @@ function handleMainAppAuthentication(
 
   // Redirect authenticated users away from auth pages
   if (user && isAuthRoute) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    const url = createRedirectUrl(request, request.nextUrl.hostname, '/dashboard')
     return NextResponse.redirect(url)
   }
 
   // Redirect unauthenticated users to login
   if (!user && !isPublicRoute) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    const url = createRedirectUrl(request, request.nextUrl.hostname, '/login')
     url.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(url)
   }
@@ -656,11 +689,7 @@ async function handleSiteDomain(
  * Handles invalid domain requests
  */
 function handleInvalidDomain(request: NextRequest, hostname: string): NextResponse {
-  const url = request.nextUrl.clone()
-  
-  // Redirect to main app domain with error
-  url.hostname = APP_DOMAIN
-  url.pathname = '/domain-error'
+  const url = createRedirectUrl(request, APP_DOMAIN, '/domain-error')
   url.searchParams.set('error', 'invalid_domain')
   url.searchParams.set('hostname', hostname)
   
@@ -675,27 +704,22 @@ function handleSiteNotFound(
   hostname: string, 
   siteResolution: SiteResolution
 ): NextResponse {
-  const url = request.nextUrl.clone()
-  
   // For subdomain not found, offer to create site
   if (siteResolution.type === 'subdomain' && isValidSubdomain(siteResolution.value)) {
-    url.hostname = APP_DOMAIN
-    url.pathname = '/create-site'
+    const url = createRedirectUrl(request, APP_DOMAIN, '/create-site')
     url.searchParams.set('subdomain', siteResolution.value)
     return NextResponse.redirect(url)
   }
   
   // For custom domain not found, show setup instructions
   if (siteResolution.type === 'custom_domain' && isValidCustomDomain(siteResolution.value)) {
-    url.hostname = APP_DOMAIN
-    url.pathname = '/domain-setup'
+    const url = createRedirectUrl(request, APP_DOMAIN, '/domain-setup')
     url.searchParams.set('domain', siteResolution.value)
     return NextResponse.redirect(url)
   }
   
   // General site not found
-  url.hostname = APP_DOMAIN
-  url.pathname = '/site-not-found'
+  const url = createRedirectUrl(request, APP_DOMAIN, '/site-not-found')
   url.searchParams.set('hostname', hostname)
   
   return NextResponse.redirect(url)
@@ -705,10 +729,7 @@ function handleSiteNotFound(
  * Handles unpublished site access
  */
 function handleUnpublishedSite(request: NextRequest, site: Site): NextResponse {
-  const url = request.nextUrl.clone()
-  
-  url.hostname = APP_DOMAIN
-  url.pathname = '/site-maintenance'
+  const url = createRedirectUrl(request, APP_DOMAIN, '/site-maintenance')
   url.searchParams.set('site', site.name)
   
   return NextResponse.redirect(url)
@@ -718,10 +739,7 @@ function handleUnpublishedSite(request: NextRequest, site: Site): NextResponse {
  * Handles database errors
  */
 function handleDatabaseError(request: NextRequest, hostname: string): NextResponse {
-  const url = request.nextUrl.clone()
-  
-  url.hostname = APP_DOMAIN
-  url.pathname = '/system-error'
+  const url = createRedirectUrl(request, APP_DOMAIN, '/system-error')
   url.searchParams.set('hostname', hostname)
   
   return NextResponse.redirect(url)

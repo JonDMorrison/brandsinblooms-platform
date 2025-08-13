@@ -68,9 +68,16 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Allow dynamic PORT for deployment platforms
+  // Railway port configuration
+  // IMPORTANT: Railway provides PORT automatically - don't override
   serverRuntimeConfig: {
     port: process.env.PORT || 3000,
+    // Log port configuration for debugging
+    _portDebug: {
+      envPort: process.env.PORT,
+      defaultPort: 3000,
+      isRailway: !!process.env.RAILWAY_PUBLIC_DOMAIN,
+    },
   },
   // Performance optimizations (already defined above, removing duplicates)
   httpAgentOptions: {
