@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { 
   Menu, 
-  Bell, 
   Search, 
   User, 
   Settings, 
@@ -29,6 +28,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { toast } from 'sonner'
 import { CompactSiteSwitcher } from '@/src/components/site/SiteSwitcher'
 import { GlobalSearch, GlobalSearchDialog } from '@/src/components/search'
+import { NotificationCenter } from '@/src/components/notifications'
 
 interface DashboardHeaderProps {
   onMenuClick: () => void
@@ -122,56 +122,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           </Button>
 
           {/* Notifications */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-4 w-4" />
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                >
-                  3
-                </Badge>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="space-y-2 p-2">
-                <div className="flex items-start space-x-3 p-2 rounded-md hover:bg-muted">
-                  <div className="mt-1">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">New order received</p>
-                    <p className="text-xs text-muted-foreground">2 minutes ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 p-2 rounded-md hover:bg-muted">
-                  <div className="mt-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">Content published</p>
-                    <p className="text-xs text-muted-foreground">1 hour ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 p-2 rounded-md hover:bg-muted">
-                  <div className="mt-1">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">Low stock alert</p>
-                    <p className="text-xs text-muted-foreground">3 hours ago</p>
-                  </div>
-                </div>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-center justify-center">
-                View all notifications
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <NotificationCenter />
 
           {/* Help */}
           <Button variant="ghost" size="sm">
