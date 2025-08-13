@@ -17,6 +17,7 @@ import {
   updateProductInventory,
   ProductFilters
 } from '@/lib/queries/domains/products';
+import { checkAndCreateLowStockNotification } from '../../app/actions/low-stock-notification';
 import { useSiteId } from '@/contexts/SiteContext';
 import { Product, ProductInsert, ProductUpdate } from '@/lib/database/aliases';
 
@@ -159,7 +160,23 @@ export function useUpdateProduct() {
       }
       toast.error('Failed to update product');
     },
-    onSuccess: () => {
+    onSuccess: async (updatedProduct, variables, context) => {
+      // Check for low stock notification after successful update
+      if (updatedProduct && context?.previousProduct) {
+        const previousProduct = context.previousProduct as Product;
+        const currentStock = updatedProduct.inventory_count || 0;
+        const previousStock = previousProduct.inventory_count || 0;
+        
+        // Only send notification if inventory was updated and crossed threshold
+        if (variables.inventory_count !== undefined) {
+          try {
+            await checkAndCreateLowStockNotification(siteId!, updatedProduct, currentStock, previousStock);
+          } catch (error) {
+            console.error('Failed to create low stock notification:', error);
+          }
+        }
+      }
+      
       toast.success('Product updated successfully');
     },
     onSettled: (data, error, variables) => {
@@ -199,7 +216,20 @@ export function useUpdateInventory() {
       }
       toast.error('Failed to update inventory');
     },
-    onSuccess: () => {
+    onSuccess: async (updatedProduct, variables, context) => {
+      // Check for low stock notification after successful inventory update
+      if (updatedProduct && context?.previousProduct) {
+        const previousProduct = context.previousProduct as Product;
+        const currentStock = variables.quantity;
+        const previousStock = previousProduct.inventory_count || 0;
+        
+        try {
+          await checkAndCreateLowStockNotification(siteId!, updatedProduct, currentStock, previousStock);
+        } catch (error) {
+          console.error('Failed to create low stock notification:', error);
+        }
+      }
+      
       toast.success('Inventory updated successfully');
     },
     onSettled: (data, error, variables) => {
@@ -260,7 +290,7 @@ export function useProductInventoryRealtime() {
           table: 'products',
           filter: `site_id=eq.${siteId}`,
         },
-        (payload) => {
+        async (payload) => {
           // Only invalidate if inventory changed
           if (payload.old.inventory_count !== payload.new.inventory_count) {
             queryClient.invalidateQueries({ 
@@ -275,6 +305,17 @@ export function useProductInventoryRealtime() {
                   : product
               )
             );
+            
+            // Check for low stock notification on real-time updates
+            const currentStock = payload.new.inventory_count || 0;
+            const previousStock = payload.old.inventory_count || 0;
+            const product = payload.new as Product;
+            
+            try {
+              await checkAndCreateLowStockNotification(siteId, product, currentStock, previousStock);
+            } catch (error) {
+              console.error('Failed to create low stock notification in real-time:', error);
+            }
             
             toast.info(`Inventory updated for ${payload.new.name}`);
           }

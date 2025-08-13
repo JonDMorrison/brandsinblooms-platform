@@ -274,6 +274,38 @@ export const queryKeys = {
     all: (siteId: string) => [...queryKeys.all, 'theme', siteId] as const,
     settings: (siteId: string) => [...queryKeys.theme.all(siteId), 'settings'] as const,
   },
+  
+  // Notification queries
+  notifications: {
+    all: (siteId: string, userId: string) => [...queryKeys.all, 'notifications', siteId, userId] as const,
+    lists: (siteId: string, userId: string) => [...queryKeys.notifications.all(siteId, userId), 'list'] as const,
+    list: (siteId: string, userId: string, filters?: {
+      isRead?: boolean;
+      isArchived?: boolean;
+      category?: string;
+      type?: string;
+      priority?: 'low' | 'medium' | 'high' | 'urgent';
+      relatedEntityType?: string;
+      relatedEntityId?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      cursor?: string;
+      limit?: number;
+    }) => [...queryKeys.notifications.lists(siteId, userId), filters] as const,
+    details: (siteId: string, userId: string) => [...queryKeys.notifications.all(siteId, userId), 'detail'] as const,
+    detail: (siteId: string, userId: string, id: string) => 
+      [...queryKeys.notifications.details(siteId, userId), id] as const,
+    unreadCount: (siteId: string, userId: string) => 
+      [...queryKeys.notifications.all(siteId, userId), 'unread-count'] as const,
+    stats: (siteId: string, userId: string) => 
+      [...queryKeys.notifications.all(siteId, userId), 'stats'] as const,
+    byEntity: (siteId: string, userId: string, entityType: string, entityId: string) => 
+      [...queryKeys.notifications.all(siteId, userId), 'entity', entityType, entityId] as const,
+    byCategory: (siteId: string, userId: string, category: string) => 
+      [...queryKeys.notifications.all(siteId, userId), 'category', category] as const,
+    byType: (siteId: string, userId: string, type: string) => 
+      [...queryKeys.notifications.all(siteId, userId), 'type', type] as const,
+  },
 } as const;
 
 // Type exports for use in components

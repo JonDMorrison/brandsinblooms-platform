@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
 import { 
   Menu, 
-  Bell, 
   Search, 
   User, 
   Settings, 
@@ -13,7 +13,6 @@ import {
   ChevronDown
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
-import { Input } from '@/src/components/ui/input'
 import { Badge } from '@/src/components/ui/badge'
 import {
   DropdownMenu,
@@ -28,6 +27,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { toast } from 'sonner'
 import { CompactSiteSwitcher } from '@/src/components/site/SiteSwitcher'
+import { GlobalSearch, GlobalSearchDialog } from '@/src/components/search'
+import { NotificationCenter } from '@/src/components/notifications'
 
 interface DashboardHeaderProps {
   onMenuClick: () => void
@@ -36,6 +37,29 @@ interface DashboardHeaderProps {
 export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const { user, signOut } = useAuth()
   const router = useRouter()
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+  const searchInputRef = useRef<HTMLDivElement>(null)
+
+  // Keyboard shortcut for search (⌘K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        // Focus the search input by clicking on it
+        const searchContainer = searchInputRef.current
+        if (searchContainer) {
+          const input = searchContainer.querySelector('input')
+          if (input) {
+            input.focus()
+            input.click()
+          }
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const handleSignOut = async () => {
     try {
@@ -80,73 +104,25 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           </div>
 
           {/* Search */}
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search..."
-              className="pl-10 w-64 bg-muted/50 border-0 focus:bg-background"
-            />
+          <div className="hidden md:block" ref={searchInputRef}>
+            <GlobalSearch placeholder="Search... (⌘K)" />
           </div>
         </div>
 
         {/* Right section */}
         <div className="flex items-center space-x-4">
           {/* Search button for mobile */}
-          <Button variant="ghost" size="sm" className="md:hidden">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="md:hidden"
+            onClick={() => setMobileSearchOpen(true)}
+          >
             <Search className="h-4 w-4" />
           </Button>
 
           {/* Notifications */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-4 w-4" />
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                >
-                  3
-                </Badge>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="space-y-2 p-2">
-                <div className="flex items-start space-x-3 p-2 rounded-md hover:bg-muted">
-                  <div className="mt-1">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">New order received</p>
-                    <p className="text-xs text-muted-foreground">2 minutes ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 p-2 rounded-md hover:bg-muted">
-                  <div className="mt-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">Content published</p>
-                    <p className="text-xs text-muted-foreground">1 hour ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3 p-2 rounded-md hover:bg-muted">
-                  <div className="mt-1">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">Low stock alert</p>
-                    <p className="text-xs text-muted-foreground">3 hours ago</p>
-                  </div>
-                </div>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-center justify-center">
-                View all notifications
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <NotificationCenter />
 
           {/* Help */}
           <Button variant="ghost" size="sm">
@@ -210,6 +186,13 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Mobile Search Dialog */}
+      <GlobalSearchDialog 
+        open={mobileSearchOpen} 
+        onOpenChange={setMobileSearchOpen}
+        placeholder="Search content..."
+      />
     </header>
   )
 }

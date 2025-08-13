@@ -1,0 +1,27 @@
+.searchDropdown {
+  background-color: white !important;
+}
+
+.searchDropdown * {
+  background-color: transparent;
+}
+
+.searchDropdown [cmdk-list] {
+  background-color: white !important;
+}
+
+.searchDropdown [cmdk-group] {
+  background-color: white !important;
+}
+
+.searchDropdown [cmdk-item] {
+  background-color: transparent;
+}
+
+.searchDropdown [cmdk-item][aria-selected="true"] {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.searchDropdown [cmdk-empty] {
+  background-color: white !important;
+}

@@ -437,7 +437,7 @@ export async function searchContent(
       author:profiles!author_id(id, full_name, avatar_url)
     `)
     .eq('site_id', siteId)
-    .or(`title.ilike.%${searchQuery}%,meta_description.ilike.%${searchQuery}%`)
+    .ilike('title', `%${searchQuery}%`)
     .order('created_at', { ascending: false });
 
   const data = await handleQueryResponse(await query);
@@ -445,6 +445,65 @@ export async function searchContent(
     ...item,
     tags: [],
   }));
+}
+
+/**
+ * Enhanced search result interface for full-text search
+ */
+export interface EnhancedSearchResult {
+  id: string;
+  title: string;
+  content_type: string;
+  slug: string;
+  excerpt: string;
+  is_published: boolean;
+  relevance: number;
+  updated_at: string;
+}
+
+/**
+ * Enhanced search content with full-text search and ranking
+ * Falls back to basic search if RPC function fails
+ */
+export async function searchContentEnhanced(
+  supabase: SupabaseClient<Database>,
+  siteId: string,
+  searchQuery: string,
+  limit: number = 10
+): Promise<EnhancedSearchResult[]> {
+  try {
+    // Attempt to use the enhanced RPC function
+    const { data, error } = await supabase
+      .rpc('search_content_global' as any, {
+        search_query: searchQuery,
+        site_id_param: siteId,
+        result_limit: limit
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    // Type assertion for the RPC result since it's not in generated types yet
+    const typedData = data as EnhancedSearchResult[];
+    return typedData || [];
+  } catch (error: unknown) {
+    // Fall back to the existing searchContent function
+    
+    const fallbackResults = await searchContent(supabase, siteId, searchQuery);
+    
+    // Transform to match the enhanced interface
+    return fallbackResults.slice(0, limit).map((item) => ({
+      id: item.id,
+      title: item.title,
+      content_type: item.content_type,
+      slug: item.slug,
+      excerpt: (item.meta_data as any)?.description || (item.content as any)?.text?.substring(0, 150) || '',
+      is_published: item.is_published || false,
+      relevance: 0.5, // Default relevance for fallback results
+      updated_at: item.updated_at,
+    }));
+  }
 }
 
 /**
