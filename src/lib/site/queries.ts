@@ -137,9 +137,9 @@ export async function getSite(
   _useServer = false
 ): Promise<SiteQueryResult<Site>> {
   if (type === 'subdomain') {
-    return getSiteBySubdomain(identifier, useServer)
+    return getSiteBySubdomain(identifier, _useServer)
   } else {
-    return getSiteByCustomDomain(identifier, useServer)
+    return getSiteByCustomDomain(identifier, _useServer)
   }
 }
 
