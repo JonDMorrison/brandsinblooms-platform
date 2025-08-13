@@ -93,7 +93,7 @@ function getClientIP(request?: NextRequest): string | undefined {
 /**
  * Records metrics for domain resolution performance monitoring
  */
-function recordDomainResolutionMetric(status: DomainResolutionStatus, duration: number): void {
+function recordDomainResolutionMetric(_status: DomainResolutionStatus, _duration: number): void {
   // In a real application, you might send these to a metrics service like DataDog, New Relic, etc.
   
   if (process.env.NODE_ENV === 'production') {

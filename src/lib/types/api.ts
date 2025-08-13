@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Database } from '@/lib/database/types';
 
 export type ApiRequest<T = unknown> = NextRequest & {
   json(): Promise<T>;

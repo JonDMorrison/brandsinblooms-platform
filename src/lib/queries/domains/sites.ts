@@ -63,7 +63,15 @@ export async function getUserSites(
   const memberships = await handleQueryResponse(response);
 
   // Transform the data to include membership info
-  return memberships.map((item: any) => ({
+  interface MembershipWithSite {
+    site_id: string;
+    role: string;
+    is_active: boolean;
+    created_at: string;
+    sites: Record<string, unknown>;
+  }
+  
+  return memberships.map((item: MembershipWithSite) => ({
     ...item.sites,
     membership: {
       id: `${userId}-${item.site_id}`, // Generate a composite ID since it's not returned
