@@ -303,7 +303,7 @@ export default function DesignPage() {
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <TypographyCustomization
                     typography={localSettings.typography}
-                    onTypographyChange={(typography) => handleSettingChange('typography', typography)}
+                    onTypographyChange={(typography) => handleSettingChange('typography', typography as Partial<ThemeSettings['typography']>)}
                   />
                 </Suspense>
               </TabsContent>
@@ -312,7 +312,7 @@ export default function DesignPage() {
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <LogoCustomization
                     logo={localSettings.logo}
-                    onLogoChange={(logo) => handleSettingChange('logo', logo)}
+                    onLogoChange={(logo) => handleSettingChange('logo', logo as Partial<ThemeSettings['logo']>)}
                   />
                 </Suspense>
               </TabsContent>
@@ -321,7 +321,7 @@ export default function DesignPage() {
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <LayoutCustomization
                     layout={localSettings.layout}
-                    onLayoutChange={(layout) => handleSettingChange('layout', layout)}
+                    onLayoutChange={(layout) => handleSettingChange('layout', layout as Partial<ThemeSettings['layout']>)}
                     section="header"
                   />
                 </Suspense>
@@ -331,7 +331,7 @@ export default function DesignPage() {
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <LayoutCustomization
                     layout={localSettings.layout}
-                    onLayoutChange={(layout) => handleSettingChange('layout', layout)}
+                    onLayoutChange={(layout) => handleSettingChange('layout', layout as Partial<ThemeSettings['layout']>)}
                     section="all"
                   />
                 </Suspense>

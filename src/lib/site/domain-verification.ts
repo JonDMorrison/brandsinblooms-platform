@@ -171,7 +171,7 @@ export async function checkSubdomainAvailability(subdomain: string): Promise<{
       available: true,
       errors: []
     }
-  } catch (error) {
+  } catch {
     return {
       available: false,
       errors: ['Failed to check subdomain availability']
@@ -271,7 +271,7 @@ export async function verifyDomainConfiguration(domain: string): Promise<DomainV
       try {
         const currentRecords = await lookupDNSRecords(domain, record.type)
         return { required: record, current: currentRecords }
-      } catch (error) {
+      } catch {
         status.errors.push(`Failed to lookup ${record.type} record: ${record.name}`)
         return { required: record, current: [] }
       }
@@ -325,7 +325,7 @@ export async function verifyDomainConfiguration(domain: string): Promise<DomainV
       currentRecords,
       nextSteps
     }
-  } catch (error) {
+  } catch {
     return {
       success: false,
       status: {
@@ -348,7 +348,7 @@ export async function verifyDomainConfiguration(domain: string): Promise<DomainV
 /**
  * Gets domain health status with monitoring
  */
-export async function getDomainHealth(domain: string): Promise<{
+export async function getDomainHealth(_domain: string): Promise<{
   status: 'healthy' | 'warning' | 'error'
   uptime: number
   responseTime: number
@@ -384,7 +384,7 @@ export async function getDomainHealth(domain: string): Promise<{
       lastChecked: new Date(),
       issues
     }
-  } catch (error) {
+  } catch {
     return {
       status: 'error',
       uptime: 0,
@@ -398,7 +398,7 @@ export async function getDomainHealth(domain: string): Promise<{
 /**
  * Tests domain connectivity
  */
-export async function testDomainConnectivity(domain: string): Promise<{
+export async function testDomainConnectivity(_domain: string): Promise<{
   success: boolean
   httpStatus?: number
   httpsStatus?: number
@@ -434,7 +434,7 @@ export async function testDomainConnectivity(domain: string): Promise<{
     }
     
     return result
-  } catch (error) {
+  } catch {
     return {
       success: false,
       errors: ['Connectivity test failed']

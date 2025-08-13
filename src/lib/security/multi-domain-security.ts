@@ -320,7 +320,7 @@ export async function applyCSRFProtection(
 export function applyCORSHeaders(
   request: NextRequest,
   response: NextResponse,
-  site: Site
+  _site: Site
 ): { success: boolean; error?: string } {
   const config = getSecurityConfig()
   
@@ -370,7 +370,7 @@ export function applyCORSHeaders(
  */
 export function applyRateLimit(
   request: NextRequest,
-  site: Site
+  _site: Site
 ): { success: boolean; error?: string; headers?: Record<string, string> } {
   const config = getSecurityConfig()
   
@@ -566,8 +566,8 @@ export async function applyMultiDomainSecurity(
  * Validate domain ownership for security
  */
 export async function validateDomainOwnership(
-  domain: string,
-  siteId: string
+  _domain: string,
+  _siteId: string
 ): Promise<{ valid: boolean; error?: string }> {
   try {
     // This would typically involve:

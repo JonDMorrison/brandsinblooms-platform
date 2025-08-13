@@ -138,9 +138,7 @@ export async function exportSelectedOrders(
   }
 
   const {
-    includeCustomerDetails = true,
-    includeItems = false,
-    includeAddresses = false
+    includeCustomerDetails = true
   } = options
 
   try {
@@ -254,9 +252,9 @@ export async function exportOrderSummary(orders: OrderWithCustomer[]): Promise<v
           acc[email].orders++
           acc[email].totalSpent += order.total_amount
           return acc
-        }, {} as Record<string, any>)
+        }, {} as Record<string, { name: string; email: string; orders: number; totalSpent: number }>)
       )
-        .map(([_, customer]) => customer)
+        .map(([, customer]) => customer)
         .sort((a, b) => b.totalSpent - a.totalSpent)
         .slice(0, 10)
     }

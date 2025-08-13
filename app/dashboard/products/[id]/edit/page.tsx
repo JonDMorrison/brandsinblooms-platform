@@ -86,18 +86,31 @@ const categories = [
 ]
 
 interface EditProductPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default function EditProductPage({ params }: EditProductPageProps) {
   const router = useRouter()
-  const productId = params.id
-  const { data: product, isLoading, error, isError } = useProduct(productId)
+  const [productId, setProductId] = useState<string | null>(null)
+  
+  useEffect(() => {
+    async function getParams() {
+      const resolvedParams = await params
+      setProductId(resolvedParams.id)
+    }
+    getParams()
+  }, [params])
+  
+  const { data: product, isLoading, error, isError } = useProduct(productId || '')
   const updateProduct = useUpdateProduct()
   const [currentStep, setCurrentStep] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  if (!productId) {
+    return <div>Loading...</div>
+  }
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as any,
@@ -122,7 +135,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   })
 
   // Image management hooks
-  const { data: productImages = [], isLoading: imagesLoading } = useProductImages(productId)
+  const { data: productImages = [], isLoading: imagesLoading } = useProductImages(productId || '')
   const uploadImages = useUploadMultipleProductImages()
   const updateImage = useUpdateProductImage()
   const deleteImage = useDeleteProductImage()
@@ -131,19 +144,28 @@ export default function EditProductPage({ params }: EditProductPageProps) {
 
   // Image handlers
   const handleImageUpload = async (files: File[]) => {
-    await uploadImages.mutateAsync({ productId, files })
+    const result = await uploadImages.mutateAsync({ productId, files })
+    if (result && 'results' in result) {
+      return result.results.map(r => ({ 
+        success: r.success, 
+        data: r.data, 
+        error: r.error 
+      }))
+    }
+    return []
   }
 
   const handleImageUpdate = async (imageId: string, data: Partial<ProductImage>) => {
-    await updateImage.mutateAsync({ imageId, ...data })
+    await updateImage.mutateAsync({ id: imageId, productId, updates: data })
   }
 
   const handleImageRemove = async (imageId: string) => {
-    await deleteImage.mutateAsync(imageId)
+    await deleteImage.mutateAsync({ id: imageId, productId })
   }
 
   const handleImagesReorder = async (images: ProductImage[]) => {
-    await reorderImages.mutateAsync({ productId, images })
+    const imageUpdates = images.map((img, index) => ({ id: img.id, position: index }))
+    await reorderImages.mutateAsync({ productId, imageUpdates })
   }
 
   const handleSetPrimary = async (imageId: string) => {
@@ -631,7 +653,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
               {/* Step 4: Images */}
               {currentStep === 3 && (
                 <ImageUpload
-                  images={productImages}
+                  images={productImages.map(img => ({ ...img, position: img.position ?? 0, is_primary: img.is_primary ?? false }))}
                   onImagesChange={handleImagesReorder}
                   onUpload={handleImageUpload}
                   onUpdate={handleImageUpdate}

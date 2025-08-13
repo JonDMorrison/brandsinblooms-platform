@@ -30,7 +30,7 @@ export interface UserSiteAccess {
  */
 export async function getSiteBySubdomain(
   subdomain: string,
-  useServer = false
+  _useServer = false
 ): Promise<SiteQueryResult<Site>> {
   try {
     const supabase = browserSupabase
@@ -81,7 +81,7 @@ export async function getSiteBySubdomain(
  */
 export async function getSiteByCustomDomain(
   domain: string,
-  useServer = false
+  _useServer = false
 ): Promise<SiteQueryResult<Site>> {
   try {
     const supabase = browserSupabase
@@ -134,7 +134,7 @@ export async function getSiteByCustomDomain(
 export async function getSite(
   identifier: string,
   type: 'subdomain' | 'custom_domain',
-  useServer = false
+  _useServer = false
 ): Promise<SiteQueryResult<Site>> {
   if (type === 'subdomain') {
     return getSiteBySubdomain(identifier, useServer)
@@ -148,7 +148,7 @@ export async function getSite(
  */
 export async function getSiteWithMemberships(
   siteId: string,
-  useServer = false
+  _useServer = false
 ): Promise<SiteQueryResult<SiteWithMemberships>> {
   try {
     const supabase = browserSupabase
@@ -209,7 +209,7 @@ export async function getSiteWithMemberships(
  */
 export async function getUserSites(
   userId: string,
-  useServer = false
+  _useServer = false
 ): Promise<SiteQueryResult<UserSiteAccess[]>> {
   try {
     const supabase = browserSupabase
@@ -300,7 +300,7 @@ export async function getUserSites(
 export async function checkUserSiteAccess(
   userId: string,
   siteId: string,
-  useServer = false
+  _useServer = false
 ): Promise<SiteQueryResult<UserSiteAccess>> {
   try {
     const supabase = browserSupabase
@@ -393,7 +393,7 @@ export async function checkUserSiteAccess(
 export async function isSubdomainAvailable(
   subdomain: string,
   excludeSiteId?: string,
-  useServer = false
+  _useServer = false
 ): Promise<SiteQueryResult<boolean>> {
   try {
     const supabase = browserSupabase
@@ -441,7 +441,7 @@ export async function isSubdomainAvailable(
 export async function isCustomDomainAvailable(
   domain: string,
   excludeSiteId?: string,
-  useServer = false
+  _useServer = false
 ): Promise<SiteQueryResult<boolean>> {
   try {
     const supabase = browserSupabase

@@ -392,7 +392,7 @@ export async function uploadMultipleProductImages(
       }
     }
 
-    const successfulUploads = results.filter(r => r.success).length;
+    results.filter(r => r.success).length;
     const hasFailures = results.some(r => !r.success);
 
     return {

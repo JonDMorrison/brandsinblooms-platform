@@ -120,7 +120,7 @@ export async function getProductReviews(
   const data = await handleQueryResponse(await dataQuery);
 
   // Transform data to match our interface
-  const transformedData: ReviewWithProfile[] = data.map((item: any) => ({
+  const transformedData: ReviewWithProfile[] = data.map((item: unknown) => ({
     ...item,
     profile: item.profile || undefined
   }));
@@ -377,7 +377,7 @@ export async function getReviewsByProfile(
   const data = await handleQueryResponse(await dataQuery);
 
   // Transform data
-  const transformedData: ReviewWithProfile[] = data.map((item: any) => ({
+  const transformedData: ReviewWithProfile[] = data.map((item: unknown) => ({
     ...item,
     profile: item.profile || undefined
   }));

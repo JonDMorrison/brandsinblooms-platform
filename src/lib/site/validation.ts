@@ -10,10 +10,9 @@ import {
 } from './resolution'
 import { 
   isSubdomainAvailable, 
-  isCustomDomainAvailable, 
-  SiteQueryError 
+  isCustomDomainAvailable
 } from './queries'
-import { Site, SiteInsert, SiteUpdate } from '@/lib/database/aliases'
+import { SiteInsert, SiteUpdate } from '@/lib/database/aliases'
 
 export interface ValidationError {
   field: string
@@ -382,7 +381,7 @@ export function isValidBusinessHours(businessHours: unknown): boolean {
     return false
   }
 
-  const hoursObj = businessHours as Record<string, any>
+  const hoursObj = businessHours as Record<string, unknown>
   const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
   
   for (const day of daysOfWeek) {
