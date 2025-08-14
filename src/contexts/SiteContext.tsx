@@ -14,11 +14,11 @@ import {
 } from '@/src/lib/database/aliases'
 import { 
   getSite, 
+  getUserSites,
   checkUserSiteAccess,
   UserSiteAccess,
   SiteQueryError 
 } from '@/src/lib/site/queries'
-import { getUserSitesDebug } from '@/src/lib/site/queries-debug'
 import { 
   resolveSiteFromHost, 
   extractHostname,
@@ -228,24 +228,15 @@ export function SiteProvider({
    */
   const refreshUserSites = useCallback(async () => {
     if (!user?.id) {
-      console.log('[SiteContext] No user ID, skipping refreshUserSites');
       setUserSites([])
       return
     }
-
-    console.log('[SiteContext] Refreshing sites for user:', user.id, user.email);
 
     try {
       setUserSitesLoading(true)
       setUserSitesError(null)
 
-      const result = await getUserSitesDebug(user.id) // Using debug version temporarily
-      
-      console.log('[SiteContext] getUserSites result:', {
-        hasError: !!result.error,
-        dataCount: result.data?.length || 0,
-        error: result.error
-      });
+      const result = await getUserSites(user.id)
       
       if (result.error) {
         setUserSitesError(result.error)
@@ -426,18 +417,6 @@ export const useSitePermissions = () => {
  */
 export const useSiteSwitcher = () => {
   const { switchSite, userSites, currentSite } = useSiteContext()
-  
-  // Debug logging
-  console.log('[useSiteSwitcher] Hook data:', {
-    availableSitesCount: userSites.length,
-    currentSiteId: currentSite?.id,
-    currentSiteName: currentSite?.name,
-    userSites: userSites.map(s => ({ 
-      id: s.site.id, 
-      name: s.site.name,
-      subdomain: s.site.subdomain
-    }))
-  });
   
   return {
     switchSite,

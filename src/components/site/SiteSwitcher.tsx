@@ -42,7 +42,8 @@ export function SiteSwitcher() {
     return <Skeleton className="h-10 w-48" />
   }
 
-  if (!currentSite || availableSites.length === 0) {
+  // Don't show if no sites available
+  if (availableSites.length === 0) {
     return null
   }
 
@@ -65,7 +66,7 @@ export function SiteSwitcher() {
         <Button variant="outline" className="w-48 justify-between">
           <div className="flex items-center space-x-2 min-w-0">
             <Globe className="h-4 w-4 flex-shrink-0" />
-            <span className="truncate">{currentSite.name}</span>
+            <span className="truncate">{currentSite?.name || 'Select Site'}</span>
           </div>
           <ChevronDown className="h-4 w-4 flex-shrink-0" />
         </Button>
@@ -167,13 +168,19 @@ export function CompactSiteSwitcher() {
     )
   }
 
-  if (!currentSite || availableSites.length <= 1) {
-    return currentSite ? (
+  // Show switcher if there are multiple sites OR if there are sites but no current site selected
+  if (availableSites.length === 0) {
+    return null
+  }
+  
+  // If only one site available and it's the current site, just show the name
+  if (availableSites.length === 1 && currentSite) {
+    return (
       <div className="flex items-center space-x-2 text-sm">
         <Globe className="h-4 w-4" />
         <span className="truncate">{currentSite.name}</span>
       </div>
-    ) : null
+    )
   }
 
   return (
@@ -181,7 +188,7 @@ export function CompactSiteSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="justify-start">
           <Globe className="h-4 w-4 mr-2" />
-          <span className="truncate">{currentSite.name}</span>
+          <span className="truncate">{currentSite?.name || 'Select Site'}</span>
           <ChevronDown className="h-4 w-4 ml-1" />
         </Button>
       </DropdownMenuTrigger>
