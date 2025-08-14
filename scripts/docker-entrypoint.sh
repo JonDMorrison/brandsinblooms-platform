@@ -86,6 +86,12 @@ should_run_migrations() {
         return 1
     fi
     
+    # Check if database URL is available for shell migrations
+    if [ "$USE_NODE_MIGRATIONS" != "true" ] && [ -z "$DATABASE_URL" ] && [ -z "$SUPABASE_DB_URL" ]; then
+        log "warn" "Missing DATABASE_URL or SUPABASE_DB_URL for shell migrations, skipping migrations"
+        return 1
+    fi
+    
     log "info" "Migration prerequisites met"
     return 0
 }
