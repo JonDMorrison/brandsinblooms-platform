@@ -66,10 +66,8 @@ RUN apk add --no-cache libc6-compat curl tini postgresql-client bash && \
     mkdir -p /app/.next/cache && \
     chown -R nextjs:nodejs /app
 
-# Install Supabase CLI (lightweight binary)
-# Using specific version for reproducibility
-ARG SUPABASE_VERSION=1.137.2
-RUN curl -L https://github.com/supabase/cli/releases/download/v${SUPABASE_VERSION}/supabase_${SUPABASE_VERSION}_linux_amd64.tar.gz | \
+# Install Supabase CLI (latest stable version)
+RUN curl -sSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | \
     tar -xz -C /tmp && \
     mv /tmp/supabase /usr/local/bin/supabase && \
     chmod +x /usr/local/bin/supabase && \
