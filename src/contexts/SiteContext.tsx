@@ -10,18 +10,15 @@ import {
 } from 'react'
 import { useAuth } from './AuthContext'
 import { 
-  Site, 
-  SiteMembership, 
-  SiteMembershipRole,
-  UserRole 
+  Site
 } from '@/src/lib/database/aliases'
 import { 
   getSite, 
-  getUserSites, 
   checkUserSiteAccess,
   UserSiteAccess,
   SiteQueryError 
 } from '@/src/lib/site/queries'
+import { getUserSitesDebug } from '@/src/lib/site/queries-debug'
 import { 
   resolveSiteFromHost, 
   extractHostname,
@@ -231,15 +228,24 @@ export function SiteProvider({
    */
   const refreshUserSites = useCallback(async () => {
     if (!user?.id) {
+      console.log('[SiteContext] No user ID, skipping refreshUserSites');
       setUserSites([])
       return
     }
+
+    console.log('[SiteContext] Refreshing sites for user:', user.id, user.email);
 
     try {
       setUserSitesLoading(true)
       setUserSitesError(null)
 
-      const result = await getUserSites(user.id)
+      const result = await getUserSitesDebug(user.id) // Using debug version temporarily
+      
+      console.log('[SiteContext] getUserSites result:', {
+        hasError: !!result.error,
+        dataCount: result.data?.length || 0,
+        error: result.error
+      });
       
       if (result.error) {
         setUserSitesError(result.error)
