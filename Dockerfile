@@ -59,20 +59,31 @@ RUN pnpm prune --production
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Install only runtime essentials
-RUN apk add --no-cache libc6-compat curl tini && \
+# Install runtime essentials and Supabase CLI
+RUN apk add --no-cache libc6-compat curl tini postgresql-client bash && \
     addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs && \
     mkdir -p /app/.next/cache && \
     chown -R nextjs:nodejs /app
+
+# Install Supabase CLI (latest stable version)
+RUN curl -sSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | \
+    tar -xz -C /tmp && \
+    mv /tmp/supabase /usr/local/bin/supabase && \
+    chmod +x /usr/local/bin/supabase && \
+    rm -rf /tmp/* && \
+    # Verify installation
+    supabase --version
 
 # Copy standalone build (minimal footprint)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Copy Supabase migrations for production checks
+# Copy Supabase migrations and scripts for production
 COPY --from=builder --chown=nextjs:nodejs /app/supabase ./supabase
+COPY --chown=nextjs:nodejs scripts/run-migrations.sh scripts/docker-entrypoint.sh scripts/migration-monitor.sh scripts/migration-batch-processor.sh ./scripts/
+RUN chmod +x ./scripts/*.sh
 
 # Runtime environment defaults (overridden by Railway)
 # IMPORTANT: Do NOT set PORT here - Railway provides it automatically
@@ -81,8 +92,8 @@ ENV NODE_ENV=production \
     HOSTNAME="0.0.0.0" \
     # Enable Node.js cluster mode for better performance
     NODE_CLUSTER_WORKERS=2 \
-    # Memory optimization
-    NODE_OPTIONS="--max-old-space-size=512"
+    # Memory optimization - reduced to allow headroom for migrations
+    NODE_OPTIONS="--max-old-space-size=384"
 
 # Security: Run as non-root user
 USER nextjs
@@ -98,5 +109,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # Use tini for proper signal handling
 ENTRYPOINT ["/sbin/tini", "--"]
 
-# Start with Node.js directly (no npm/pnpm overhead)
-CMD ["node", "server.js"]
+# Start with our custom entrypoint that handles migrations
+CMD ["/app/scripts/docker-entrypoint.sh"]
