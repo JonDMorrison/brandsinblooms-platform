@@ -176,7 +176,6 @@ run_shell_migrations() {
                     --include-seed false \
                     --include-roles false \
                     --include-all \
-                    --debug false \
                     2>&1 | while IFS= read -r line; do
                         echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [MIGRATION] $line"
                     done
