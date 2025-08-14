@@ -10,11 +10,33 @@ export LOG_PREFIX="[ENTRYPOINT]"
 export MIGRATION_ENABLED="${MIGRATION_ENABLED:-true}"
 export USE_NODE_MIGRATIONS="${USE_NODE_MIGRATIONS:-false}"
 export MIGRATION_TIMEOUT="${MIGRATION_TIMEOUT:-300}"
-export MIGRATION_MAX_MEMORY_MB="${MIGRATION_MAX_MEMORY_MB:-128}"
+export MIGRATION_MAX_MEMORY_MB="${MIGRATION_MAX_MEMORY_MB:-512}"
 export INSTANCE_ID="${HOSTNAME:-$(hostname)}-$$"
+
+# Go runtime optimizations for Supabase CLI
+export GOGC="${GOGC:-100}"
+export GOMEMLIMIT="${GOMEMLIMIT:-$((MIGRATION_MAX_MEMORY_MB * 90 / 100))m}"
+export GOMAXPROCS="${GOMAXPROCS:-2}"
 
 # Create necessary directories for state tracking
 mkdir -p /tmp/migrations
+
+# Function to check and log system memory status
+check_memory_status() {
+    if [ -f /proc/meminfo ]; then
+        local total_mb=$(grep MemTotal /proc/meminfo | awk '{print int($2/1024)}')
+        local available_mb=$(grep MemAvailable /proc/meminfo | awk '{print int($2/1024)}' 2>/dev/null || echo "N/A")
+        local free_mb=$(grep MemFree /proc/meminfo | awk '{print int($2/1024)}')
+        local cached_mb=$(grep "^Cached:" /proc/meminfo | awk '{print int($2/1024)}')
+        local buffers_mb=$(grep Buffers /proc/meminfo | awk '{print int($2/1024)}')
+        
+        log "info" "System memory status" '{"totalMB":'$total_mb',"availableMB":"'$available_mb'","freeMB":'$free_mb',"cachedMB":'$cached_mb',"buffersMB":'$buffers_mb'}'
+    fi
+    
+    # Log Node.js memory configuration
+    local node_max_old_space=$(echo $NODE_OPTIONS | grep -o 'max-old-space-size=[0-9]*' | cut -d= -f2 || echo "default")
+    log "info" "Node.js memory configuration" '{"maxOldSpaceSizeMB":"'$node_max_old_space'","nodeOptions":"'$NODE_OPTIONS'"}'
+}
 
 # Structured logging function
 log() {
@@ -73,9 +95,9 @@ run_node_migrations() {
     log "info" "Starting Node.js migration runner" '{"runner":"node","instance":"'$INSTANCE_ID'"}'
     
     (
-        # Set resource limits for migration process
-        ulimit -v $((MIGRATION_MAX_MEMORY_MB * 1024))  # Memory limit in KB
-        ulimit -t $MIGRATION_TIMEOUT                   # CPU time limit
+        # Set resource limits for migration process (more generous for Go runtime)
+        ulimit -v $((MIGRATION_MAX_MEMORY_MB * 1024 + 102400))  # Add 100MB buffer for Go runtime
+        ulimit -t $MIGRATION_TIMEOUT                            # CPU time limit
         
         # Set nice priority and reduced Node.js memory for migration
         nice -n 10 node --max-old-space-size=$MIGRATION_MAX_MEMORY_MB /app/scripts/migrate.js 2>&1 | while IFS= read -r line; do
@@ -118,8 +140,13 @@ run_shell_migrations() {
     fi
     
     (
-        # Set resource limits
-        ulimit -v $((MIGRATION_MAX_MEMORY_MB * 1024))
+        # Set Go runtime environment for optimal memory usage
+        export GOGC=100                           # Default GC target (100% heap growth)
+        export GOMEMLIMIT=$((MIGRATION_MAX_MEMORY_MB * 1024 * 1024 * 90 / 100))  # 90% of limit for Go soft limit
+        export GODEBUG=gctrace=0                  # Disable GC tracing for production
+        
+        # Set resource limits with buffer for Go runtime overhead
+        ulimit -v $((MIGRATION_MAX_MEMORY_MB * 1024 * 110 / 100))  # 10% buffer over configured limit
         ulimit -t $MIGRATION_TIMEOUT
         
         # Run with timeout and retry logic
@@ -136,12 +163,13 @@ run_shell_migrations() {
                 export DATABASE_URL="$SUPABASE_DB_URL"
             fi
             
-            # Run migration with timeout
+            # Run migration with timeout and memory monitoring
             timeout $MIGRATION_TIMEOUT nice -n 10 \
                 supabase db push \
                     --db-url "${DATABASE_URL:-$SUPABASE_DB_URL}" \
                     --include-seed false \
                     --include-roles false \
+                    --debug false \
                     2>&1 | while IFS= read -r line; do
                         echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [MIGRATION] $line"
                     done
@@ -190,6 +218,9 @@ start_migrations() {
         log "info" "Migrations skipped"
         return 0
     fi
+    
+    # Check system memory before starting migrations
+    check_memory_status
     
     # Mark migrations as running
     touch /tmp/migrations/running

@@ -82,7 +82,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Copy Supabase migrations and scripts for production
 COPY --from=builder --chown=nextjs:nodejs /app/supabase ./supabase
-COPY --chown=nextjs:nodejs scripts/run-migrations.sh scripts/docker-entrypoint.sh ./scripts/
+COPY --chown=nextjs:nodejs scripts/run-migrations.sh scripts/docker-entrypoint.sh scripts/migration-monitor.sh scripts/migration-batch-processor.sh ./scripts/
 RUN chmod +x ./scripts/*.sh
 
 # Runtime environment defaults (overridden by Railway)
@@ -92,8 +92,8 @@ ENV NODE_ENV=production \
     HOSTNAME="0.0.0.0" \
     # Enable Node.js cluster mode for better performance
     NODE_CLUSTER_WORKERS=2 \
-    # Memory optimization
-    NODE_OPTIONS="--max-old-space-size=512"
+    # Memory optimization - reduced to allow headroom for migrations
+    NODE_OPTIONS="--max-old-space-size=384"
 
 # Security: Run as non-root user
 USER nextjs
