@@ -43,7 +43,7 @@ export interface SiteContextType {
   userSitesError: SiteQueryError | null
 
   // Actions
-  switchSite: (siteId: string) => Promise<void>
+  switchSite: (siteId: string | null) => Promise<void>
   refreshSite: () => Promise<void>
   refreshUserSites: () => Promise<void>
   resolveSiteFromUrl: (url: string) => Promise<void>
@@ -94,10 +94,15 @@ export function SiteProvider({
       
       // Check if this is the main app domain - if so, don't try to resolve it as a site
       const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
-      if (hostname === appDomain || hostname.endsWith('.vercel.app') || hostname.endsWith('.railway.app')) {
+      const isMainDomain = hostname === appDomain || 
+                          hostname.endsWith('.vercel.app') || 
+                          hostname.endsWith('.railway.app') ||
+                          hostname === 'localhost' ||
+                          hostname === 'staging.blooms.cc'
+                          
+      if (isMainDomain) {
         setSiteResolution(null)
-        setCurrentSite(null)
-        setUserAccess(null)
+        // Don't set currentSite to null - let the URL/localStorage logic handle it
         setLoading(false)
         return
       }
@@ -169,7 +174,7 @@ export function SiteProvider({
   /**
    * Loads a site by ID and sets it as current
    */
-  const loadSiteById = useCallback(async (siteId: string) => {
+  const loadSiteById = useCallback(async (siteId: string, updateUrl = true) => {
     try {
       setLoading(true)
       setError(null)
@@ -209,6 +214,18 @@ export function SiteProvider({
 
       // Clear site resolution since we're loading by ID
       setSiteResolution(null)
+      
+      // Save to localStorage when site is successfully loaded
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('selectedSiteId', siteId)
+        
+        // Update URL params without causing navigation (unless disabled)
+        if (updateUrl) {
+          const url = new URL(window.location.href)
+          url.searchParams.set('site', siteId)
+          window.history.replaceState({}, '', url.toString())
+        }
+      }
 
     } catch (err) {
       setError({
@@ -260,8 +277,26 @@ export function SiteProvider({
   /**
    * Switches to a different site
    */
-  const switchSite = useCallback(async (siteId: string) => {
-    await loadSiteById(siteId)
+  const switchSite = useCallback(async (siteId: string | null) => {
+    if (siteId) {
+      await loadSiteById(siteId)
+    } else {
+      // Clear site selection
+      setCurrentSite(null)
+      setUserAccess(null)
+      setCanEdit(false)
+      setCanManage(false)
+      setSiteResolution(null)
+      
+      // Clear from localStorage and URL
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('selectedSiteId')
+        
+        const url = new URL(window.location.href)
+        url.searchParams.delete('site')
+        window.history.replaceState({}, '', url.toString())
+      }
+    }
   }, [loadSiteById])
 
   /**
@@ -291,7 +326,22 @@ export function SiteProvider({
     } else if (initialHostname) {
       resolveSiteFromUrl(`https://${initialHostname}`)
     } else if (typeof window !== 'undefined') {
-      resolveSiteFromUrl(window.location.href)
+      // Check if we're on the main app domain
+      const hostname = window.location.hostname
+      const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+      const isMainDomain = hostname === 'localhost' || 
+                          hostname.includes(appDomain) || 
+                          hostname.includes('staging') ||
+                          hostname.endsWith('.vercel.app') || 
+                          hostname.endsWith('.railway.app')
+      
+      if (!isMainDomain) {
+        // Only try to resolve from URL if we're on a site-specific domain
+        resolveSiteFromUrl(window.location.href)
+      } else {
+        // On main domain, let the URL/localStorage effect handle site selection
+        setLoading(false)
+      }
     } else {
       setLoading(false)
     }
@@ -308,6 +358,64 @@ export function SiteProvider({
       setCanManage(false)
     }
   }, [user?.id, authLoading, refreshUserSites])
+
+  // Auto-select site based on URL, localStorage, or first available
+  useEffect(() => {
+    // Only run on main app domain where we need site selection
+    if (typeof window === 'undefined') return
+    
+    const hostname = window.location.hostname
+    const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+    
+    // Skip if we're on a site-specific domain
+    if (!hostname.includes(appDomain) && !hostname.includes('localhost') && !hostname.includes('staging')) {
+      return
+    }
+    
+    // Skip if no sites available or still loading
+    if (userSites.length === 0 || userSitesLoading) {
+      return
+    }
+    
+    // 1. Check URL params first (always check, even if currentSite exists)
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlSiteId = urlParams.get('site')
+    
+    if (urlSiteId) {
+      // If URL has a site ID and it's different from current, switch to it
+      if (urlSiteId !== currentSite?.id) {
+        const urlSite = userSites.find(s => s.site.id === urlSiteId)
+        if (urlSite) {
+          loadSiteById(urlSiteId, false) // Don't update URL since we're loading from URL
+          return
+        }
+      } else {
+        // URL matches current site, no action needed
+        return
+      }
+    }
+    
+    // Skip auto-select if we already have a current site
+    if (currentSite) {
+      return
+    }
+    
+    // 2. Check localStorage
+    const storedSiteId = localStorage.getItem('selectedSiteId')
+    if (storedSiteId) {
+      const storedSite = userSites.find(s => s.site.id === storedSiteId)
+      if (storedSite) {
+        loadSiteById(storedSiteId)
+        return
+      }
+    }
+    
+    // 3. Auto-select first available site
+    if (userSites.length > 0) {
+      const firstSiteId = userSites[0].site.id
+      loadSiteById(firstSiteId)
+    }
+  }, [userSites, userSitesLoading, currentSite, loadSiteById])
 
   // Update user access when current site or user changes
   useEffect(() => {

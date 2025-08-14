@@ -25,7 +25,7 @@ export function SiteSwitcher() {
   const { role, canManage } = useSitePermissions()
   const [switching, setSwitching] = useState(false)
 
-  const handleSiteSwitch = async (siteId: string) => {
+  const handleSiteSwitch = async (siteId: string | null) => {
     if (siteId === currentSiteId || switching) return
     
     try {
@@ -144,7 +144,7 @@ export function CompactSiteSwitcher() {
   const { site: currentSite, loading } = useCurrentSite()
   const [switching, setSwitching] = useState(false)
 
-  const handleSiteSwitch = async (siteId: string) => {
+  const handleSiteSwitch = async (siteId: string | null) => {
     if (siteId === currentSiteId || switching) return
     
     try {
@@ -212,6 +212,21 @@ export function CompactSiteSwitcher() {
             </Badge>
           </DropdownMenuItem>
         ))}
+        
+        {/* Optional: Add "View All Sites" option */}
+        {currentSite && availableSites.length > 1 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => handleSiteSwitch(null)}
+              disabled={switching}
+              className="flex items-center space-x-2 text-muted-foreground"
+            >
+              <Globe className="h-4 w-4" />
+              <span>View All Sites</span>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
