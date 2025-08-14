@@ -22,6 +22,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('[AuthContext] Initial session:', {
+        hasSession: !!session,
+        userId: session?.user?.id,
+        email: session?.user?.email
+      });
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -29,6 +34,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        console.log('[AuthContext] Auth state changed:', {
+          event: _event,
+          hasSession: !!session,
+          userId: session?.user?.id,
+          email: session?.user?.email
+        });
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)

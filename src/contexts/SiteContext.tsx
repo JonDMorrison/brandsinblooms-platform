@@ -427,6 +427,18 @@ export const useSitePermissions = () => {
 export const useSiteSwitcher = () => {
   const { switchSite, userSites, currentSite } = useSiteContext()
   
+  // Debug logging
+  console.log('[useSiteSwitcher] Hook data:', {
+    availableSitesCount: userSites.length,
+    currentSiteId: currentSite?.id,
+    currentSiteName: currentSite?.name,
+    userSites: userSites.map(s => ({ 
+      id: s.site.id, 
+      name: s.site.name,
+      subdomain: s.site.subdomain
+    }))
+  });
+  
   return {
     switchSite,
     availableSites: userSites,
