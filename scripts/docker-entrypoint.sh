@@ -8,9 +8,9 @@ set -e
 # Configuration with environment variable defaults
 export LOG_PREFIX="[ENTRYPOINT]"
 export MIGRATION_ENABLED="${MIGRATION_ENABLED:-true}"
-export USE_NODE_MIGRATIONS="${USE_NODE_MIGRATIONS:-true}"
+export USE_NODE_MIGRATIONS="${USE_NODE_MIGRATIONS:-false}"
 export MIGRATION_TIMEOUT="${MIGRATION_TIMEOUT:-300}"
-export MIGRATION_MAX_MEMORY_MB="${MIGRATION_MAX_MEMORY_MB:-256}"
+export MIGRATION_MAX_MEMORY_MB="${MIGRATION_MAX_MEMORY_MB:-128}"
 export INSTANCE_ID="${HOSTNAME:-$(hostname)}-$$"
 
 # Create necessary directories for state tracking
@@ -45,6 +45,19 @@ should_run_migrations() {
         return 1
     fi
     
+    # Check if migrations recently failed (prevent restart loops)
+    if [ -f /tmp/migrations/recent_failure ]; then
+        local failure_time=$(cat /tmp/migrations/recent_failure 2>/dev/null || echo "0")
+        local current_time=$(date +%s)
+        local time_diff=$((current_time - failure_time))
+        
+        # Skip migrations if they failed within the last 5 minutes
+        if [ $time_diff -lt 300 ]; then
+            log "warn" "Migrations failed recently, skipping to prevent restart loop (will retry in $((300 - time_diff))s)"
+            return 1
+        fi
+    fi
+    
     # Check if required environment variables are available
     if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
         log "warn" "Missing Supabase environment variables, skipping migrations"
@@ -64,8 +77,8 @@ run_node_migrations() {
         ulimit -v $((MIGRATION_MAX_MEMORY_MB * 1024))  # Memory limit in KB
         ulimit -t $MIGRATION_TIMEOUT                   # CPU time limit
         
-        # Set nice priority to lower impact on main application
-        nice -n 10 node /app/scripts/migrate.js 2>&1 | while IFS= read -r line; do
+        # Set nice priority and reduced Node.js memory for migration
+        nice -n 10 node --max-old-space-size=$MIGRATION_MAX_MEMORY_MB /app/scripts/migrate.js 2>&1 | while IFS= read -r line; do
             echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [MIGRATION] $line"
         done
         
@@ -73,10 +86,12 @@ run_node_migrations() {
         
         if [ $RESULT -eq 0 ]; then
             touch /tmp/migrations/completed
+            rm -f /tmp/migrations/recent_failure  # Clear failure marker on success
             log "info" "Node.js migrations completed successfully" '{"result":"success","exitCode":0}'
         else
             touch /tmp/migrations/failed
             echo "Node.js migration exit code: $RESULT" > /tmp/migrations/failed.log
+            echo "$(date +%s)" > /tmp/migrations/recent_failure  # Mark recent failure
             log "error" "Node.js migrations failed" '{"result":"failure","exitCode":'$RESULT'}'
         fi
         
@@ -150,11 +165,13 @@ run_shell_migrations() {
         
         if [ "$success" = "true" ]; then
             touch /tmp/migrations/completed
+            rm -f /tmp/migrations/recent_failure  # Clear failure marker on success
             log "info" "Shell migrations completed successfully"
             exit 0
         else
             touch /tmp/migrations/failed
             echo "All shell migration attempts failed" > /tmp/migrations/failed.log
+            echo "$(date +%s)" > /tmp/migrations/recent_failure  # Mark recent failure
             log "error" "All shell migration attempts failed"
             exit 1
         fi
@@ -177,7 +194,7 @@ start_migrations() {
     # Mark migrations as running
     touch /tmp/migrations/running
     
-    # Choose migration runner
+    # Choose migration runner (default to shell for memory efficiency)
     if [ "$USE_NODE_MIGRATIONS" = "true" ]; then
         run_node_migrations
     else
