@@ -94,6 +94,17 @@ export function SiteProvider({
       setError(null)
 
       const hostname = extractHostname(url)
+      
+      // Check if this is the main app domain - if so, don't try to resolve it as a site
+      const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+      if (hostname === appDomain || hostname.endsWith('.vercel.app') || hostname.endsWith('.railway.app')) {
+        setSiteResolution(null)
+        setCurrentSite(null)
+        setUserAccess(null)
+        setLoading(false)
+        return
+      }
+      
       const resolution = resolveSiteFromHost(hostname)
       setSiteResolution(resolution)
 
