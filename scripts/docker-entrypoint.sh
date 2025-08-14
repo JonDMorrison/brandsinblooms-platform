@@ -175,6 +175,7 @@ run_shell_migrations() {
                     --db-url "${DATABASE_URL:-$SUPABASE_DB_URL}" \
                     --include-seed false \
                     --include-roles false \
+                    --include-all \
                     --debug false \
                     2>&1 | while IFS= read -r line; do
                         echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [MIGRATION] $line"
