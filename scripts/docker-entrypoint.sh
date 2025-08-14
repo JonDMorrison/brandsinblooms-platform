@@ -15,7 +15,7 @@ export INSTANCE_ID="${HOSTNAME:-$(hostname)}-$$"
 
 # Go runtime optimizations for Supabase CLI
 export GOGC="${GOGC:-100}"
-export GOMEMLIMIT="${GOMEMLIMIT:-$((MIGRATION_MAX_MEMORY_MB * 90 / 100))m}"
+export GOMEMLIMIT="${GOMEMLIMIT:-${MIGRATION_MAX_MEMORY_MB}MiB}"
 export GOMAXPROCS="${GOMAXPROCS:-2}"
 
 # Create necessary directories for state tracking
@@ -95,9 +95,9 @@ run_node_migrations() {
     log "info" "Starting Node.js migration runner" '{"runner":"node","instance":"'$INSTANCE_ID'"}'
     
     (
-        # Set resource limits for migration process (more generous for Go runtime)
-        ulimit -v $((MIGRATION_MAX_MEMORY_MB * 1024 + 102400))  # Add 100MB buffer for Go runtime
-        ulimit -t $MIGRATION_TIMEOUT                            # CPU time limit
+        # Set resource limits for migration process
+        # ulimit -v removed: Allow unlimited virtual address space for Go runtime
+        ulimit -t $MIGRATION_TIMEOUT                            # Keep CPU time limit
         
         # Set nice priority and reduced Node.js memory for migration
         nice -n 10 node --max-old-space-size=$MIGRATION_MAX_MEMORY_MB /app/scripts/migrate.js 2>&1 | while IFS= read -r line; do
@@ -142,12 +142,12 @@ run_shell_migrations() {
     (
         # Set Go runtime environment for optimal memory usage
         export GOGC=100                           # Default GC target (100% heap growth)
-        export GOMEMLIMIT=$((MIGRATION_MAX_MEMORY_MB * 1024 * 1024 * 90 / 100))  # 90% of limit for Go soft limit
+        export GOMEMLIMIT="${MIGRATION_MAX_MEMORY_MB}MiB"  # Use MiB suffix for clarity
         export GODEBUG=gctrace=0                  # Disable GC tracing for production
         
-        # Set resource limits with buffer for Go runtime overhead
-        ulimit -v $((MIGRATION_MAX_MEMORY_MB * 1024 * 110 / 100))  # 10% buffer over configured limit
-        ulimit -t $MIGRATION_TIMEOUT
+        # Set resource limits - removed virtual memory limit to allow Go runtime address space reservation
+        # ulimit -v removed: Go needs unrestricted virtual address space for page allocator
+        ulimit -t $MIGRATION_TIMEOUT  # Keep CPU time limit
         
         # Run with timeout and retry logic
         local attempt=1
