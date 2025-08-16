@@ -94,7 +94,7 @@ export class SupabaseError extends Error {
       // Extract retry-after header if available
       if (this.details && typeof this.details === 'object' && 'retry-after' in this.details) {
         const retryAfter = (this.details as Record<string, unknown>)['retry-after'];
-        return retryAfter ? parseInt(retryAfter) * 1000 : 60000; // Default to 1 minute
+        return retryAfter ? parseInt(String(retryAfter)) * 1000 : 60000; // Default to 1 minute
       }
       return 60000; // Default to 1 minute
     }

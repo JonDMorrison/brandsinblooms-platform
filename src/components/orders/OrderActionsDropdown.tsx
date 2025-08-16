@@ -31,12 +31,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/src/components/ui/alert-dialog'
-import { OrderWithCustomer } from '@/lib/queries/domains/orders'
+import { Order } from '@/lib/queries/domains/orders'
 import { useOrderMutations } from '@/hooks/useOrderMutations'
 import { toast } from 'sonner'
 
 interface OrderActionsDropdownProps {
-  order: OrderWithCustomer
+  order: Order & {
+    customer: {
+      user_id: string;
+      full_name: string | null;
+      email: string | null;
+      avatar_url: string | null;
+    };
+  }
 }
 
 export function OrderActionsDropdown({ order }: OrderActionsDropdownProps) {

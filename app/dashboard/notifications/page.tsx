@@ -59,7 +59,14 @@ export default function NotificationsPage() {
   const notifications = notificationsData?.pages.flatMap(page => page.notifications) || []
   const totalCount = notifications.length
 
-  const handleFiltersChange = useCallback((newFilters: Partial<NotificationFilters>) => {
+  const handleFiltersChange = useCallback((newFilters: {
+    search?: string
+    category?: string
+    priority?: string
+    isRead?: boolean
+    dateFrom?: string
+    dateTo?: string
+  }) => {
     // Transform the filters to match NotificationFilters type
     const transformedFilters: NotificationFilters = {
       ...newFilters,

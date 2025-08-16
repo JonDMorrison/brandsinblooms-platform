@@ -49,6 +49,24 @@ export interface ProductRatingAggregation {
 }
 
 /**
+ * Type guard to validate review data from database
+ */
+function isValidReviewData(item: unknown): item is ProductReview & { profile?: unknown } {
+  if (!item || typeof item !== 'object') {
+    return false
+  }
+  
+  const review = item as Record<string, unknown>
+  
+  // Check required ProductReview fields (basic validation)
+  return (
+    typeof review.id === 'string' &&
+    typeof review.site_id === 'string' &&
+    typeof review.product_id === 'string'
+  )
+}
+
+/**
  * Get paginated reviews for a product
  */
 export async function getProductReviews(
@@ -120,10 +138,16 @@ export async function getProductReviews(
   const data = await handleQueryResponse(await dataQuery);
 
   // Transform data to match our interface
-  const transformedData: ReviewWithProfile[] = data.map((item: unknown) => ({
-    ...item,
-    profile: item.profile || undefined
-  }));
+  const transformedData: ReviewWithProfile[] = data.map((item: unknown) => {
+    if (!isValidReviewData(item)) {
+      throw new Error('Invalid review data received from database')
+    }
+    
+    return {
+      ...item,
+      profile: item.profile && typeof item.profile === 'object' ? item.profile as { full_name: string | null; avatar_url: string | null; username: string | null; } : undefined
+    }
+  });
 
   return buildPaginatedResponse(transformedData, count, page, limit);
 }
@@ -377,10 +401,16 @@ export async function getReviewsByProfile(
   const data = await handleQueryResponse(await dataQuery);
 
   // Transform data
-  const transformedData: ReviewWithProfile[] = data.map((item: unknown) => ({
-    ...item,
-    profile: item.profile || undefined
-  }));
+  const transformedData: ReviewWithProfile[] = data.map((item: unknown) => {
+    if (!isValidReviewData(item)) {
+      throw new Error('Invalid review data received from database')
+    }
+    
+    return {
+      ...item,
+      profile: item.profile && typeof item.profile === 'object' ? item.profile as { full_name: string | null; avatar_url: string | null; username: string | null; } : undefined
+    }
+  });
 
   return buildPaginatedResponse(transformedData, count, page, limit);
 }

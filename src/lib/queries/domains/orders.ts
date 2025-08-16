@@ -1,5 +1,10 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database, Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
+
+// Type aliases for order-related tables
+export type OrderPayment = Tables<'order_payments'>;
+export type OrderShipment = Tables<'order_shipments'>;
+export type OrderStatusHistory = Tables<'order_status_history'>;
 import { Order, OrderInsert, OrderUpdate, OrderItem, OrderStatus } from '@/lib/database/aliases';
 import { SupabaseError } from '@/lib/queries/errors';
 import { handleError } from '@/lib/types/error-handling';
@@ -23,6 +28,9 @@ export interface OrderWithCustomer extends Order {
     avatar_url: string | null;
   };
   order_items?: OrderItem[];
+  order_payments?: OrderPayment[];
+  order_shipments?: OrderShipment[];
+  order_status_history?: OrderStatusHistory[];
 }
 
 export interface OrderWithDetails extends Order {
@@ -214,7 +222,7 @@ export async function getOrder(
     user_id: data.customer_id,
     full_name: data.customer_name,
     email: data.customer_email,
-    avatar_url: null,
+    avatar_url: null as string | null,
   };
   
   if (data.customer_id) {
@@ -300,7 +308,7 @@ export async function getOrderById(
       user_id: data.customer_id,
       full_name: data.customer_name,
       email: data.customer_email,
-      avatar_url: null,
+      avatar_url: null as string | null,
     };
     
     if (data.customer_id) {
@@ -312,11 +320,11 @@ export async function getOrderById(
       
       if (profile) {
         customer = {
-        user_id: profile.user_id,
-        full_name: profile.full_name || data.customer_name,
-        email: profile.email || data.customer_email,
-        avatar_url: profile.avatar_url,
-      };
+          user_id: profile.user_id,
+          full_name: profile.full_name || data.customer_name,
+          email: profile.email || data.customer_email,
+          avatar_url: profile.avatar_url,
+        };
       }
     }
     

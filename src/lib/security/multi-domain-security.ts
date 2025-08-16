@@ -566,8 +566,8 @@ export async function applyMultiDomainSecurity(
  * Validate domain ownership for security
  */
 export async function validateDomainOwnership(
-  _domain: string,
-  _siteId: string
+  domain: string,
+  siteId: string
 ): Promise<{ valid: boolean; error?: string }> {
   try {
     // This would typically involve:

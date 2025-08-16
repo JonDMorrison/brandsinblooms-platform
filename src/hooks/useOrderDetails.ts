@@ -40,13 +40,15 @@ export function useOrderDetails(
     includeFullDetails = true,
   } = options;
   
-  return useQuery({
+  return useQuery<OrderWithDetails>({
     queryKey: queryKeys.orders.detail(siteId!, orderId),
-    queryFn: () => {
+    queryFn: async () => {
       if (includeFullDetails) {
-        return getOrderById(client, siteId!, orderId);
+        return await getOrderById(client, siteId!, orderId);
       } else {
-        return getOrder(client, siteId!, orderId);
+        // Cast OrderWithCustomer to OrderWithDetails for type consistency
+        const order = await getOrder(client, siteId!, orderId);
+        return order as unknown as OrderWithDetails;
       }
     },
     enabled: !!siteId && !!orderId && enabled,
@@ -54,7 +56,7 @@ export function useOrderDetails(
     refetchInterval,
     retry: (failureCount, error) => {
       // Don't retry if order not found
-      if (error?.message?.includes('not found')) {
+      if ((error as any)?.message?.includes('not found')) {
         return false;
       }
       return failureCount < 3;

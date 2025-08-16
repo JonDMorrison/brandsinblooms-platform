@@ -66,7 +66,7 @@ export async function getUserSites(
   interface MembershipWithSite {
     site_id: string;
     role: string;
-    is_active: boolean;
+    is_active: boolean | null;
     created_at: string;
     sites: Record<string, unknown>;
   }
@@ -78,10 +78,10 @@ export async function getUserSites(
       user_id: userId,
       site_id: item.site_id,
       role: item.role,
-      is_active: item.is_active,
+      is_active: item.is_active ?? false,
       created_at: item.created_at,
     },
-  }));
+  })) as SiteWithMembership[];
 }
 
 /**

@@ -97,7 +97,7 @@ export async function createTestNotification(formData: FormData) {
 
       case 'low_stock':
         // Create a mock product for testing
-        const mockProduct = {
+        const mockProduct: Tables<'products'> = {
           id: 'test-product-id',
           name: 'Test Product',
           sku: 'TEST-SKU-001',
@@ -107,23 +107,61 @@ export async function createTestNotification(formData: FormData) {
           site_id: siteId,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as Tables<'products'>
+          care_instructions: null,
+          category: null,
+          compare_at_price: null,
+          description: null,
+          images: null,
+          import_batch_id: null,
+          import_source: null,
+          in_stock: true,
+          is_active: true,
+          is_featured: false,
+          low_stock_threshold: 5,
+          meta_description: null,
+          price: 29.99,
+          rating: null,
+          review_count: null,
+          sale_price: null,
+          slug: 'test-product',
+          subcategory: null,
+          unit_of_measure: null
+        }
 
         result = await createLowStockNotification(siteId, mockProduct, 2, 5)
         break
 
       case 'order_status':
         // Create a mock order for testing
-        const mockOrder = {
+        const mockOrder: Tables<'orders'> = {
           id: 'test-order-id',
           order_number: 'ORD-2024-001',
           total_amount: 99.99,
           status: 'shipped',
           site_id: siteId,
-          user_id: userId,
+          customer_id: userId,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as Tables<'orders'>
+          billing_address: null,
+          cancelled_at: null,
+          completed_at: null,
+          currency: 'USD',
+          customer_email: 'test@example.com',
+          customer_name: 'Test Customer',
+          delivered_at: null,
+          discount_amount: null,
+          internal_notes: null,
+          items_count: 1,
+          notes: null,
+          payment_method: 'credit_card',
+          payment_status: 'paid',
+          refunded_at: null,
+          shipped_at: new Date().toISOString(),
+          shipping_address: null,
+          shipping_amount: 9.99,
+          subtotal: 89.99,
+          tax_amount: 8.99
+        }
 
         result = await createOrderStatusNotification(
           siteId,
@@ -136,15 +174,35 @@ export async function createTestNotification(formData: FormData) {
 
       case 'payment':
         // Create a mock order for payment notification
-        const mockPaymentOrder = {
+        const mockPaymentOrder: Tables<'orders'> = {
           id: 'test-payment-order-id',
           order_number: 'ORD-2024-002',
           total_amount: 149.99,
+          status: 'processing',
           site_id: siteId,
-          user_id: userId,
+          customer_id: userId,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as Tables<'orders'>
+          billing_address: null,
+          cancelled_at: null,
+          completed_at: null,
+          currency: 'USD',
+          customer_email: 'test@example.com',
+          customer_name: 'Test Customer',
+          delivered_at: null,
+          discount_amount: null,
+          internal_notes: null,
+          items_count: 2,
+          notes: null,
+          payment_method: 'credit_card',
+          payment_status: 'paid',
+          refunded_at: null,
+          shipped_at: null,
+          shipping_address: null,
+          shipping_amount: 12.99,
+          subtotal: 137.00,
+          tax_amount: 12.99
+        }
 
         result = await createPaymentNotification(
           siteId,
@@ -237,7 +295,7 @@ export async function createTestNotification(formData: FormData) {
           }
         }
 
-        result = await supabase
+        const { data, error } = await supabase
           .from('notifications')
           .insert({
             site_id: siteId,
@@ -255,11 +313,11 @@ export async function createTestNotification(formData: FormData) {
           .select()
           .single()
 
-        if (result.error) {
-          throw new Error(result.error.message)
+        if (error) {
+          throw new Error(error.message)
         }
         
-        result = result.data
+        result = data
         break
 
       default:
@@ -425,7 +483,7 @@ export async function createLowStockTestScenario() {
   const results = []
 
   for (const productData of testProducts) {
-    const mockProduct = {
+    const mockProduct: Tables<'products'> = {
       id: `test-product-${productData.sku}`,
       name: productData.name,
       sku: productData.sku,
@@ -435,7 +493,26 @@ export async function createLowStockTestScenario() {
       site_id: membership.site_id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    } as Tables<'products'>
+      care_instructions: null,
+      category: null,
+      compare_at_price: null,
+      description: null,
+      images: null,
+      import_batch_id: null,
+      import_source: null,
+      in_stock: productData.stock > 0,
+      is_active: true,
+      is_featured: false,
+      low_stock_threshold: productData.threshold,
+      meta_description: null,
+      price: 19.99,
+      rating: null,
+      review_count: null,
+      sale_price: null,
+      slug: `test-product-${productData.sku.toLowerCase()}`,
+      subcategory: null,
+      unit_of_measure: null
+    }
 
     try {
       const notification = await createLowStockNotification(

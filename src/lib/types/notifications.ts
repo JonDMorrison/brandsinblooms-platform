@@ -56,7 +56,7 @@ export interface CreateNotificationData {
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   actionUrl?: string;
   relatedEntityType?: string;
-  relatedEntityId?: string;
+  relatedEntityId?: string | null;
   data?: Record<string, unknown>;
 }
 

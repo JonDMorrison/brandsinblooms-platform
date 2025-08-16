@@ -6,7 +6,7 @@
  */
 
 import { supabase } from '@/lib/supabase/client'
-import type { Database } from '@/lib/database/types'
+import type { Database, Json } from '@/lib/database/types'
 
 // Type definitions for content management
 export type ContentRow = Database['public']['Tables']['content']['Row']
@@ -319,7 +319,7 @@ export async function updateContent(
 
     const { data, error } = await supabase.rpc('admin_update_content', {
       content_uuid: contentId,
-      content_updates: filteredUpdates,
+      content_updates: filteredUpdates as Json,
       admin_notes: adminNotes || undefined
     })
 

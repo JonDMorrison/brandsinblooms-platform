@@ -374,6 +374,25 @@ function isValidHexColor(color: string): boolean {
 }
 
 /**
+ * Type guard for hours object
+ */
+function isValidHoursObject(hours: unknown): hours is { open: string; close: string; closed?: boolean } {
+  if (!hours || typeof hours !== 'object') {
+    return false
+  }
+  
+  const hoursObj = hours as Record<string, unknown>
+  
+  // If marked as closed, we don't need open/close times
+  if (hoursObj.closed === true) {
+    return true
+  }
+  
+  // Otherwise, we need both open and close times as strings
+  return typeof hoursObj.open === 'string' && typeof hoursObj.close === 'string'
+}
+
+/**
  * Validates business hours format
  */
 export function isValidBusinessHours(businessHours: unknown): boolean {
@@ -388,8 +407,14 @@ export function isValidBusinessHours(businessHours: unknown): boolean {
     if (hoursObj[day]) {
       const hours = hoursObj[day]
       
-      if (typeof hours !== 'object' || !hours.open || !hours.close) {
+      // Type guard for hours object
+      if (!isValidHoursObject(hours)) {
         return false
+      }
+      
+      // Skip validation if marked as closed
+      if (hours.closed === true) {
+        continue
       }
       
       // Validate time format (HH:MM)

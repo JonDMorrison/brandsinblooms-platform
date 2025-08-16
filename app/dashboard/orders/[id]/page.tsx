@@ -130,7 +130,7 @@ export default function OrderDetailPage() {
   }
 
   // Error state
-  if (isError || !order) {
+  if (isError) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -166,8 +166,39 @@ export default function OrderDetailPage() {
     )
   }
 
+  // No data state
+  if (!order) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Order Details</h1>
+            <p className="text-muted-foreground">View and manage order information</p>
+          </div>
+        </div>
+        
+        <Card className="border-gray-200 dark:border-gray-800">
+          <CardContent className="p-8 text-center">
+            <Package className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+            <h3 className="font-medium text-gray-600 dark:text-gray-400 mb-2">Order Not Found</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              The order could not be found or you don't have permission to view it.
+            </p>
+            <Button onClick={() => router.push('/dashboard/orders')} variant="default">
+              Back to Orders
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   const customerInitials = order.customer.full_name 
-    ? order.customer.full_name.split(' ').map(name => name[0]).join('').toUpperCase()
+    ? order.customer.full_name.split(' ').map((name: string) => name[0]).join('').toUpperCase()
     : order.customer.email?.[0]?.toUpperCase() || 'U'
 
   // Status timeline data

@@ -33,6 +33,7 @@ import { useOrderMutations } from '@/hooks/useOrderMutations'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
+import { OrderPayment, OrderShipment, OrderStatusHistory, OrderWithDetails } from '@/src/lib/queries/domains/orders'
 
 interface OrderDetailsSheetProps {
   orderId: string | null
@@ -51,16 +52,19 @@ interface AddressData {
 export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsSheetProps) {
   const [note, setNote] = useState('')
   const [isAddingNote, setIsAddingNote] = useState(false)
-  const { data: order, isLoading, error } = useOrderDetails(orderId, { enabled: !!orderId })
-  const { updateOrderStatus, addOrderNote } = useOrderMutations()
+  const { data: orderData, isLoading, error } = useOrderDetails(orderId!, { enabled: !!orderId, includeFullDetails: true })
+  const { updateStatus } = useOrderMutations()
+  
+  // Cast to OrderWithDetails since we're using includeFullDetails: true
+  const order = orderData as OrderWithDetails | undefined
 
   const handleStatusUpdate = async (newStatus: string) => {
     if (!order) return
     
     try {
-      await updateOrderStatus.mutateAsync({
+      await updateStatus.mutateAsync({
         orderId: order.id,
-        status: newStatus,
+        status: newStatus as any,
         notes: `Status updated to ${newStatus}`,
       })
       toast.success('Order status updated successfully')
@@ -75,9 +79,12 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
     
     setIsAddingNote(true)
     try {
-      await addOrderNote.mutateAsync({
+      // For now, we'll use the status update to add notes
+      // TODO: Implement proper addOrderNote mutation
+      await updateStatus.mutateAsync({
         orderId: order.id,
-        note: note.trim(),
+        status: order.status as any,
+        notes: note.trim(),
       })
       setNote('')
       toast.success('Note added successfully')
@@ -220,7 +227,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {order.order_items.map((item) => (
+                  {order.order_items.map((item: any) => (
                     <div key={item.id} className="flex items-center gap-4 p-3 border rounded-lg">
                       <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center">
                         <Package className="h-6 w-6 text-muted-foreground" />
@@ -250,30 +257,30 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>{formatCurrency(order.subtotal_amount || 0, order.currency)}</span>
+                    <span>{formatCurrency(order.subtotal || 0, order.currency || 'USD')}</span>
                   </div>
-                  {order.tax_amount > 0 && (
+                  {(order.tax_amount || 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Tax</span>
-                      <span>{formatCurrency(order.tax_amount, order.currency)}</span>
+                      <span>{formatCurrency(order.tax_amount || 0, order.currency || 'USD')}</span>
                     </div>
                   )}
-                  {order.shipping_amount > 0 && (
+                  {(order.shipping_amount || 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Shipping</span>
-                      <span>{formatCurrency(order.shipping_amount, order.currency)}</span>
+                      <span>{formatCurrency(order.shipping_amount || 0, order.currency || 'USD')}</span>
                     </div>
                   )}
                   {order.discount_amount && order.discount_amount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>-{formatCurrency(order.discount_amount, order.currency)}</span>
+                      <span>-{formatCurrency(order.discount_amount || 0, order.currency || 'USD')}</span>
                     </div>
                   )}
                   <Separator />
                   <div className="flex justify-between font-semibold text-lg">
                     <span>Total</span>
-                    <span>{formatCurrency(order.total_amount, order.currency)}</span>
+                    <span>{formatCurrency(order.total_amount, order.currency || 'USD')}</span>
                   </div>
                 </div>
               </CardContent>
@@ -374,7 +381,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                     <Select
                       value={order.status}
                       onValueChange={handleStatusUpdate}
-                      disabled={updateOrderStatus.isPending}
+                      disabled={updateStatus.isPending}
                     >
                       <SelectTrigger className="w-48">
                         <SelectValue />
