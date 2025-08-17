@@ -15,7 +15,7 @@ import {
 } from '@/src/lib/content/schema'
 
 import { 
-  migrateToV1 as migrateContent, 
+  migrateContent, 
   validatePageContent, 
   initializeDefaultContent 
 } from '@/src/lib/content/migration'

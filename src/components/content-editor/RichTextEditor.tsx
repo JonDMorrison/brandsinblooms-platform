@@ -31,17 +31,18 @@ export interface RichTextEditorRef {
   focus: () => void;
 }
 
-function RichTextEditorComponent(
-  {
-    className,
-    showToolbar = true,
-    showSaveButton = false,
-    autoFocus = false,
-    minHeight = '200px',
-    ...editorOptions
-  }: RichTextEditorProps,
-  ref: React.Ref<RichTextEditorRef>
-) {
+const RichTextEditorComponent = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
+  function RichTextEditor(
+    {
+      className,
+      showToolbar = true,
+      showSaveButton = false,
+      autoFocus = false,
+      minHeight = '200px',
+      ...editorOptions
+    },
+    ref
+  ) {
   const {
     editor,
     content,
@@ -175,10 +176,10 @@ function RichTextEditorComponent(
       </div>
     </div>
   );
-}
+});
 
 // Memoize the component to prevent unnecessary re-renders
-const MemoizedRichTextEditor = React.memo(RichTextEditorComponent, (prevProps, nextProps) => {
+export const RichTextEditor = React.memo(RichTextEditorComponent, (prevProps, nextProps) => {
   // Custom comparison function for better performance
   return (
     prevProps.content === nextProps.content &&
@@ -190,10 +191,6 @@ const MemoizedRichTextEditor = React.memo(RichTextEditorComponent, (prevProps, n
     prevProps.autoFocus === nextProps.autoFocus &&
     prevProps.minHeight === nextProps.minHeight
   )
-})
+});
 
-MemoizedRichTextEditor.displayName = 'RichTextEditor'
-
-export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
-  MemoizedRichTextEditor
-);
+RichTextEditor.displayName = 'RichTextEditor';

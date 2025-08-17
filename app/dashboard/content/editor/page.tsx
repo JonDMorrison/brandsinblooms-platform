@@ -38,7 +38,7 @@ import { ContactServicesPreview } from '@/src/components/layout-previews/Contact
 
 // Import enhanced content editor components
 import { ContentEditor, SectionManager } from '@/src/components/content-editor'
-import { PageContent, LayoutType as ContentLayoutType, serializePageContent } from '@/src/lib/content'
+import { PageContent, LayoutType as ContentLayoutType, serializePageContent, deserializePageContent } from '@/src/lib/content'
 
 type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact'
 type ViewportSize = 'mobile' | 'tablet' | 'desktop'
@@ -105,6 +105,14 @@ export default function PageEditorPage() {
           }
           
           setPageData(pageData)
+          
+          // Deserialize the page content if available
+          if (content.content) {
+            const deserialized = deserializePageContent(content.content)
+            if (deserialized) {
+              setPageContent(deserialized)
+            }
+          }
         } catch (error) {
           console.error('Editor: Error loading content:', error)
           toast.error('Failed to load content')
@@ -479,6 +487,7 @@ export default function PageEditorPage() {
               <CurrentLayoutComponent 
                 title={pageData.title}
                 subtitle={pageData.subtitle}
+                content={pageContent || undefined}
               />
             </div>
           </div>
