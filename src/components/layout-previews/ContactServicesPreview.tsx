@@ -15,161 +15,227 @@ import {
   Heart,
   Gift
 } from 'lucide-react'
+import { PageContent, LegacyContent, isPageContent } from '@/src/lib/content/schema'
+import { DynamicSection } from '@/src/components/preview/DynamicSection'
+import { getLayoutSections, convertLegacyContent, getSpacingClass } from '@/src/lib/preview/section-renderers'
 
 interface ContactServicesPreviewProps {
-  title: string
+  title?: string
   subtitle?: string
+  content?: PageContent | LegacyContent
 }
 
-export function ContactServicesPreview({ title, subtitle }: ContactServicesPreviewProps) {
-  return (
-    <div className="w-full h-full bg-gray-50 p-6 space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-        {subtitle && (
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">{subtitle}</p>
-        )}
+export function ContactServicesPreview({ title, subtitle, content }: ContactServicesPreviewProps) {
+  // Determine if we have enhanced content or need to use legacy format
+  const isEnhanced = content && isPageContent(content)
+  
+  if (isEnhanced) {
+    // Render with enhanced content structure
+    const sections = getLayoutSections(content.sections, 'contact')
+    const spacingClass = getSpacingClass(content.settings?.layout?.spacing)
+    
+    return (
+      <div className={`w-full h-full bg-gray-50 p-6 ${spacingClass}`}>
+        {sections.map(({ key, section }) => {
+          // Special handling for contact header section
+          if (key === 'header' || section.type === 'hero') {
+            return (
+              <div key={key} className="text-center space-y-4">
+                <DynamicSection
+                  section={section}
+                  sectionKey={key}
+                  className=""
+                />
+              </div>
+            )
+          }
+          
+          // Special handling for form section with layout
+          if (key === 'form') {
+            return (
+              <div key={key} className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))' }}>
+                <DynamicSection
+                  section={section}
+                  sectionKey={key}
+                  className=""
+                />
+                
+                {/* Default contact info sidebar */}
+                <div className="space-y-6">
+                  <Card className="p-6 bg-white border-gray-200">
+                    <h2 className="text-xl font-bold mb-4 text-gray-900">Contact Information</h2>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <MapPin className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">Address</p>
+                          <p className="text-sm text-gray-600">Add your address here</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Phone className="h-5 w-5 text-green-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">Phone</p>
+                          <p className="text-sm text-gray-600">Add your phone number</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Mail className="h-5 w-5 text-purple-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">Email</p>
+                          <p className="text-sm text-gray-600">Add your email address</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Clock className="h-5 w-5 text-orange-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">Hours</p>
+                          <p className="text-sm text-gray-600">Add your business hours</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            )
+          }
+          
+          // Default section rendering for info and map
+          return (
+            <DynamicSection
+              key={key}
+              section={section}
+              sectionKey={key}
+              className=""
+            />
+          )
+        })}
       </div>
-
-      <div 
-        className="grid gap-8"
-        style={{
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))'
-        }}
-      >
-        {/* Contact Form */}
-        <Card className="p-6 bg-white border-gray-200">
-          <h2 className="text-xl font-bold mb-4 text-gray-900">Get in Touch</h2>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">First Name</label>
-                <Input placeholder="Your first name" className="mt-1" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Last Name</label>
-                <Input placeholder="Your last name" className="mt-1" />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Email</label>
-              <Input type="email" placeholder="your@email.com" className="mt-1" />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Phone</label>
-              <Input type="tel" placeholder="+1 (555) 123-4567" className="mt-1" />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Service Needed</label>
-              <div className="flex flex-wrap gap-2 mt-1">
-                <Badge variant="outline" className="cursor-pointer">Wedding</Badge>
-                <Badge variant="outline" className="cursor-pointer">Event</Badge>
-                <Badge variant="outline" className="cursor-pointer">Delivery</Badge>
-                <Badge variant="outline" className="cursor-pointer">Consultation</Badge>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Message</label>
-              <Textarea 
-                placeholder="Tell us about your floral needs..." 
-                className="mt-1 resize-none" 
-                rows={4}
-              />
-            </div>
-            <Button className="w-full">Send Message</Button>
-          </div>
-        </Card>
-
-        {/* Contact Information & Services */}
-        <div className="space-y-6">
-          {/* Contact Info */}
-          <Card className="p-6 bg-white border-gray-200">
-            <h2 className="text-xl font-bold mb-4 text-gray-900">Contact Information</h2>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-blue-600" />
-                <div>
-                  <p className="font-medium text-gray-900">Address</p>
-                  <p className="text-sm text-gray-600">123 Flower Street, Garden City, CA 90210</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="font-medium text-gray-900">Phone</p>
-                  <p className="text-sm text-gray-600">+1 (555) 123-4567</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-purple-600" />
-                <div>
-                  <p className="font-medium text-gray-900">Email</p>
-                  <p className="text-sm text-gray-600">hello@blooms.cc</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Clock className="h-5 w-5 text-orange-600" />
-                <div>
-                  <p className="font-medium text-gray-900">Hours</p>
-                  <p className="text-sm text-gray-600">Mon-Sat: 9AM-6PM, Sun: 10AM-4PM</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Services */}
-          <Card className="p-6 bg-white border-gray-200">
-            <h2 className="text-xl font-bold mb-4 text-gray-900">Our Services</h2>
-            <div className="space-y-4">
-              {[
-                { icon: Heart, title: 'Wedding Florals', desc: 'Complete wedding flower packages' },
-                { icon: Gift, title: 'Event Design', desc: 'Corporate and private events' },
-                { icon: Flower, title: 'Daily Arrangements', desc: 'Fresh flowers for any occasion' }
-              ].map((service, i) => {
-                const Icon = service.icon
-                return (
-                  <div key={i} className="flex items-start gap-3">
-                    <div className="p-2 bg-blue-100 rounded-md">
-                      <Icon className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{service.title}</h3>
-                      <p className="text-sm text-gray-600">{service.desc}</p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </Card>
-
-          {/* Map Placeholder */}
-          <Card className="p-6 bg-white border-gray-200">
-            <h2 className="text-xl font-bold mb-4 text-gray-900">Find Us</h2>
-            <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <MapPin className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                <span className="text-gray-600">Interactive Map</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Social Media */}
-          <Card className="p-6 bg-white border-gray-200">
-            <h2 className="text-xl font-bold mb-4 text-gray-900">Follow Us</h2>
-            <div className="flex gap-3">
-              <Button variant="outline" size="icon">
-                <Facebook className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon">
-                <Instagram className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon">
-                <Twitter className="h-4 w-4" />
-              </Button>
-            </div>
-          </Card>
+    )
+  }
+  
+  // Fallback to legacy format or convert legacy content
+  const legacyTitle = title || (content && 'title' in content ? content.title : '') || ''
+  const legacySubtitle = subtitle || (content && 'subtitle' in content ? content.subtitle : '') || ''
+  
+  if (legacyTitle || legacySubtitle) {
+    return (
+      <div className="w-full h-full bg-gray-50 p-6 space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold text-gray-900">{legacyTitle}</h1>
+          {legacySubtitle && (
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">{legacySubtitle}</p>
+          )}
         </div>
+
+        <div 
+          className="grid gap-8"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))'
+          }}
+        >
+          {/* Contact Form */}
+          <Card className="p-6 bg-white border-gray-200">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">Get in Touch</h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">First Name</label>
+                  <Input placeholder="Your first name" className="mt-1" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Last Name</label>
+                  <Input placeholder="Your last name" className="mt-1" />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Email</label>
+                <Input type="email" placeholder="your@email.com" className="mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Phone</label>
+                <Input type="tel" placeholder="+1 (555) 123-4567" className="mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Message</label>
+                <Textarea 
+                  placeholder="Tell us how we can help you..." 
+                  className="mt-1 resize-none" 
+                  rows={4}
+                />
+              </div>
+              <Button className="w-full">Send Message</Button>
+            </div>
+          </Card>
+
+          {/* Contact Information & Services */}
+          <div className="space-y-6">
+            {/* Contact Info */}
+            <Card className="p-6 bg-white border-gray-200">
+              <h2 className="text-xl font-bold mb-4 text-gray-900">Contact Information</h2>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="font-medium text-gray-900">Address</p>
+                    <p className="text-sm text-gray-600">Add your business address</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-green-600" />
+                  <div>
+                    <p className="font-medium text-gray-900">Phone</p>
+                    <p className="text-sm text-gray-600">Add your phone number</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Mail className="h-5 w-5 text-purple-600" />
+                  <div>
+                    <p className="font-medium text-gray-900">Email</p>
+                    <p className="text-sm text-gray-600">Add your email address</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-orange-600" />
+                  <div>
+                    <p className="font-medium text-gray-900">Hours</p>
+                    <p className="text-sm text-gray-600">Add your business hours</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Services */}
+            {content && 'content' in content && content.content && (
+              <Card className="p-6 bg-white border-gray-200">
+                <h2 className="text-xl font-bold mb-4 text-gray-900">Additional Information</h2>
+                <p className="text-gray-600 text-sm leading-relaxed">{content.content}</p>
+              </Card>
+            )}
+
+            {/* Map Placeholder */}
+            <Card className="p-6 bg-white border-gray-200">
+              <h2 className="text-xl font-bold mb-4 text-gray-900">Find Us</h2>
+              <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <MapPin className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                  <span className="text-gray-600">Interactive Map</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
+  // Empty state
+  return (
+    <div className="w-full h-full bg-gray-50 p-6 flex items-center justify-center">
+      <div className="text-center text-gray-500">
+        <h3 className="text-xl font-semibold mb-2">Contact Page Preview</h3>
+        <p>Add content to see your contact page design</p>
       </div>
     </div>
   )

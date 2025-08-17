@@ -36,6 +36,10 @@ import { AboutCompanyPreview } from '@/src/components/layout-previews/AboutCompa
 import { ProductPagePreview } from '@/src/components/layout-previews/ProductPagePreview'
 import { ContactServicesPreview } from '@/src/components/layout-previews/ContactServicesPreview'
 
+// Import enhanced content editor components
+import { ContentEditor, SectionManager } from '@/src/components/content-editor'
+import { PageContent, LayoutType as ContentLayoutType, serializePageContent } from '@/src/lib/content'
+
 type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact'
 type ViewportSize = 'mobile' | 'tablet' | 'desktop'
 
@@ -72,6 +76,8 @@ export default function PageEditorPage() {
   const [isPreviewMode, setIsPreviewMode] = useState(true)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [pageContent, setPageContent] = useState<PageContent | null>(null)
+  const [activeSectionKey, setActiveSectionKey] = useState<string | undefined>()
 
   useEffect(() => {
     // Wait for searchParams to be available before proceeding
@@ -159,12 +165,15 @@ export default function PageEditorPage() {
       // Prepare the update data
       const metaData = {
         layout: pageData.layout,
-        subtitle: pageData.subtitle
+        subtitle: pageData.subtitle,
+        ...(pageContent?.settings || {})
       }
 
-      const contentData = {
-        layout: pageData.layout
-      }
+      const contentData = serializePageContent(pageContent || {
+        version: '1.0' as const,
+        layout: pageData.layout as ContentLayoutType,
+        sections: {}
+      })
 
       // Update the content in the database
       await updateContent(
@@ -187,6 +196,35 @@ export default function PageEditorPage() {
     } finally {
       setIsSaving(false)
     }
+  }
+
+  const handleContentChange = (content: PageContent, hasChanges: boolean) => {
+    setPageContent(content)
+    setHasUnsavedChanges(hasChanges)
+  }
+
+  const handleContentSave = async (content: PageContent) => {
+    if (!contentId || !currentSite?.id || !pageData) {
+      throw new Error('Missing required information to save')
+    }
+
+    const metaData = {
+      layout: pageData.layout,
+      subtitle: pageData.subtitle,
+      ...content.settings
+    }
+
+    await updateContent(
+      supabase,
+      currentSite.id,
+      contentId,
+      {
+        title: pageData.title,
+        meta_data: metaData,
+        content: serializePageContent(content),
+        content_type: pageData.layout === 'blog' ? 'blog_post' : 'page'
+      }
+    )
   }
 
   const handlePreview = () => {
@@ -300,62 +338,63 @@ export default function PageEditorPage() {
       <div className="flex-1 flex">
         {/* Sidebar (Edit Mode) */}
         {!isPreviewMode && (
-          <div className="w-80 border-r bg-muted/30 overflow-y-auto">
-            <div className="p-4">
-              <Tabs defaultValue="layout" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="layout">Layout</TabsTrigger>
-                  <TabsTrigger value="content">Content</TabsTrigger>
-                </TabsList>
+          <div className="w-96 border-r bg-muted/30 overflow-y-auto flex">
+            <div className="flex-1">
+              <Tabs defaultValue="content" className="w-full h-full flex flex-col">
+                <div className="p-4 border-b">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="layout">Layout</TabsTrigger>
+                    <TabsTrigger value="content">Content</TabsTrigger>
+                    <TabsTrigger value="sections">Sections</TabsTrigger>
+                  </TabsList>
+                </div>
                 
-                <TabsContent value="layout" className="mt-4 space-y-4">
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-medium">Page Layout</h3>
+                <TabsContent value="layout" className="mt-0 flex-1 overflow-y-auto">
+                  <div className="p-4 space-y-4">
                     <div className="space-y-2">
-                      {Object.entries(layoutInfo).map(([layoutKey, info]) => {
-                        const Icon = info.icon
-                        const isActive = pageData.layout === layoutKey
-                        return (
-                          <div
-                            key={layoutKey}
-                            className={`
-                              p-3 border rounded-lg cursor-pointer transition-all hover:border-primary/50
-                              ${isActive 
-                                ? 'border-primary bg-primary/10' 
-                                : 'border-border bg-card'
-                              }
-                            `}
-                            onClick={() => handleLayoutChange(layoutKey as LayoutType)}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`
-                                p-1.5 rounded-md 
+                      <h3 className="text-sm font-medium">Page Layout</h3>
+                      <div className="space-y-2">
+                        {Object.entries(layoutInfo).map(([layoutKey, info]) => {
+                          const Icon = info.icon
+                          const isActive = pageData.layout === layoutKey
+                          return (
+                            <div
+                              key={layoutKey}
+                              className={`
+                                p-3 border rounded-lg cursor-pointer transition-all hover:border-primary/50
                                 ${isActive 
-                                  ? 'bg-primary text-primary-foreground' 
-                                  : 'bg-muted'
+                                  ? 'border-primary bg-primary/10' 
+                                  : 'border-border bg-card'
                                 }
-                              `}>
-                                <Icon className="h-3.5 w-3.5" />
+                              `}
+                              onClick={() => handleLayoutChange(layoutKey as LayoutType)}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`
+                                  p-1.5 rounded-md 
+                                  ${isActive 
+                                    ? 'bg-primary text-primary-foreground' 
+                                    : 'bg-muted'
+                                  }
+                                `}>
+                                  <Icon className="h-3.5 w-3.5" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{info.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {isActive ? 'Current layout' : 'Click to switch'}
+                                  </p>
+                                </div>
+                                {isActive && (
+                                  <div className="h-2 w-2 rounded-full bg-primary" />
+                                )}
                               </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">{info.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {isActive ? 'Current layout' : 'Click to switch'}
-                                </p>
-                              </div>
-                              {isActive && (
-                                <div className="h-2 w-2 rounded-full bg-primary" />
-                              )}
                             </div>
-                          </div>
-                        )
-                      })}
+                          )
+                        })}
+                      </div>
                     </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="content" className="mt-4 space-y-4">
-                  <div className="space-y-4">
+
                     <div>
                       <h3 className="text-sm font-medium mb-2">Page Settings</h3>
                       <div className="space-y-3 p-3 bg-card rounded-lg border">
@@ -392,13 +431,33 @@ export default function PageEditorPage() {
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground">
-                        Full content editing features coming soon
-                      </p>
-                    </div>
                   </div>
+                </TabsContent>
+                
+                <TabsContent value="content" className="mt-0 flex-1 flex flex-col">
+                  {contentId && currentSite?.id && (
+                    <ContentEditor
+                      contentId={contentId}
+                      siteId={currentSite.id}
+                      layout={pageData.layout as ContentLayoutType}
+                      onSave={handleContentSave}
+                      onContentChange={handleContentChange}
+                    />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="sections" className="mt-0 flex-1 flex flex-col">
+                  {pageContent && (
+                    <SectionManager
+                      content={pageContent}
+                      layout={pageData.layout as ContentLayoutType}
+                      onToggleVisibility={() => {}} // Handled by ContentEditor
+                      onMoveUp={() => {}} // Handled by ContentEditor
+                      onMoveDown={() => {}} // Handled by ContentEditor
+                      onSectionClick={setActiveSectionKey}
+                      activeSectionKey={activeSectionKey}
+                    />
+                  )}
                 </TabsContent>
               </Tabs>
             </div>
