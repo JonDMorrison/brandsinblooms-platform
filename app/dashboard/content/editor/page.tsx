@@ -254,6 +254,7 @@ export default function PageEditorPage() {
             <Button 
               variant="ghost" 
               size="sm"
+              className="cursor-pointer transition-all hover:bg-gray-100"
               onClick={() => router.push('/dashboard/content')}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -290,7 +291,7 @@ export default function PageEditorPage() {
                     key={size}
                     variant={activeViewport === size ? 'secondary' : 'ghost'}
                     size="sm"
-                    className="h-8 px-3"
+                    className="h-8 px-3 cursor-pointer transition-all hover:bg-gray-100"
                     onClick={() => setActiveViewport(size as ViewportSize)}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -304,7 +305,7 @@ export default function PageEditorPage() {
               <Button
                 variant={isPreviewMode ? 'secondary' : 'ghost'}
                 size="sm"
-                className="h-8 px-3"
+                className="h-8 px-3 cursor-pointer transition-all hover:bg-gray-100"
                 onClick={() => setIsPreviewMode(true)}
               >
                 <Eye className="h-3.5 w-3.5 mr-1.5" />
@@ -313,7 +314,7 @@ export default function PageEditorPage() {
               <Button
                 variant={!isPreviewMode ? 'secondary' : 'ghost'}
                 size="sm"
-                className="h-8 px-3"
+                className="h-8 px-3 cursor-pointer transition-all hover:bg-gray-100"
                 onClick={() => setIsPreviewMode(false)}
               >
                 <Settings className="h-3.5 w-3.5 mr-1.5" />
@@ -325,6 +326,7 @@ export default function PageEditorPage() {
             <Button 
               variant="outline" 
               size="sm"
+              className="cursor-pointer transition-all hover:bg-gray-100"
               onClick={handlePreview}
             >
               <Eye className="h-3.5 w-3.5 mr-1.5" />
@@ -332,6 +334,7 @@ export default function PageEditorPage() {
             </Button>
             <Button 
               size="sm"
+              className="cursor-pointer transition-all disabled:cursor-not-allowed"
               onClick={handleSave}
               disabled={isSaving || !hasUnsavedChanges}
             >
