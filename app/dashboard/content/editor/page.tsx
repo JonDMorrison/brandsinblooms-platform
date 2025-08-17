@@ -447,13 +447,54 @@ export default function PageEditorPage() {
                 
                 <TabsContent value="content" className="mt-0 flex-1 flex flex-col">
                   {contentId && currentSite?.id && (
-                    <ContentEditor
-                      contentId={contentId}
-                      siteId={currentSite.id}
-                      layout={pageData.layout as ContentLayoutType}
-                      onSave={handleContentSave}
-                      onContentChange={handleContentChange}
-                    />
+                    <>
+                      {/* Title and Subtitle Section */}
+                      <div className="p-4 border-b bg-muted/30">
+                        <div className="grid grid-cols-1 gap-4 max-w-2xl">
+                          <div className="space-y-2">
+                            <Label htmlFor="content-title" className="text-xs font-medium">
+                              Page Title
+                            </Label>
+                            <Input
+                              id="content-title"
+                              type="text"
+                              value={pageData.title}
+                              onChange={(e) => {
+                                setPageData({ ...pageData, title: e.target.value })
+                                setHasUnsavedChanges(true)
+                              }}
+                              className="h-9"
+                              placeholder="Enter page title"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="content-subtitle" className="text-xs font-medium">
+                              Page Subtitle
+                            </Label>
+                            <Input
+                              id="content-subtitle"
+                              type="text"
+                              value={pageData.subtitle || ''}
+                              onChange={(e) => {
+                                setPageData({ ...pageData, subtitle: e.target.value })
+                                setHasUnsavedChanges(true)
+                              }}
+                              placeholder="Optional subtitle"
+                              className="h-9"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Content Editor */}
+                      <ContentEditor
+                        contentId={contentId}
+                        siteId={currentSite.id}
+                        layout={pageData.layout as ContentLayoutType}
+                        onSave={handleContentSave}
+                        onContentChange={handleContentChange}
+                      />
+                    </>
                   )}
                 </TabsContent>
 

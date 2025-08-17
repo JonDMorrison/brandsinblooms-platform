@@ -7,63 +7,80 @@ import StarterKit, { type StarterKitOptions } from '@tiptap/starter-kit';
 import Link, { type LinkOptions } from '@tiptap/extension-link';
 import Placeholder, { type PlaceholderOptions } from '@tiptap/extension-placeholder';
 
+// Cache for Tiptap configurations to prevent duplicate extensions
+const configCache = new Map<string, Extensions>();
+
 /**
  * Default Tiptap editor configuration
  * Supports basic formatting: bold, italic, underline, links, lists, headings
  */
-export const getTiptapConfig = (placeholder?: string): Extensions => [
-  StarterKit.configure({
-    // Configure heading levels (H1-H3)
-    heading: {
-      levels: [1, 2, 3],
-    },
-    // Enable bullet and ordered lists
-    bulletList: {
-      keepMarks: true,
-      keepAttributes: false,
-    },
-    orderedList: {
-      keepMarks: true,
-      keepAttributes: false,
-    },
-    // Basic text formatting
-    bold: {},
-    italic: {},
-    strike: {},
-    // Paragraph and line breaks
-    paragraph: {
-      HTMLAttributes: {
-        class: 'editor-paragraph',
+export const getTiptapConfig = (placeholder?: string): Extensions => {
+  const cacheKey = placeholder || 'default';
+  
+  // Return cached config if it exists
+  if (configCache.has(cacheKey)) {
+    return configCache.get(cacheKey)!;
+  }
+  
+  const extensions = [
+    StarterKit.configure({
+      // Configure heading levels (H1-H3)
+      heading: {
+        levels: [1, 2, 3],
       },
-    },
-    // History for undo/redo (enabled by default in StarterKit)
-  }),
+      // Enable bullet and ordered lists
+      bulletList: {
+        keepMarks: true,
+        keepAttributes: false,
+      },
+      orderedList: {
+        keepMarks: true,
+        keepAttributes: false,
+      },
+      // Basic text formatting
+      bold: {},
+      italic: {},
+      strike: {},
+      // Paragraph and line breaks
+      paragraph: {
+        HTMLAttributes: {
+          class: 'editor-paragraph',
+        },
+      },
+      // History for undo/redo (enabled by default in StarterKit)
+    }),
+    
+    // Link extension with proper configuration
+    Link.configure({
+      openOnClick: false,
+      HTMLAttributes: {
+        class: 'editor-link',
+        rel: 'noopener noreferrer',
+      },
+      validate: (url) => {
+        // Basic URL validation
+        try {
+          new URL(url);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+    }),
+    
+    // Placeholder text
+    Placeholder.configure({
+      placeholder: placeholder || 'Start writing...',
+      showOnlyWhenEditable: true,
+      showOnlyCurrent: false,
+    }),
+  ];
   
-  // Link extension with proper configuration
-  Link.configure({
-    openOnClick: false,
-    HTMLAttributes: {
-      class: 'editor-link',
-      rel: 'noopener noreferrer',
-    },
-    validate: (url) => {
-      // Basic URL validation
-      try {
-        new URL(url);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-  }),
+  // Cache the configuration
+  configCache.set(cacheKey, extensions);
   
-  // Placeholder text
-  Placeholder.configure({
-    placeholder: placeholder || 'Start writing...',
-    showOnlyWhenEditable: true,
-    showOnlyCurrent: false,
-  }),
-];
+  return extensions;
+};
 
 /**
  * Editor content types for export

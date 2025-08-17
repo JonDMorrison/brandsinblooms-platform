@@ -53,6 +53,7 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
     extensions: getTiptapConfig(placeholder),
     content: initialContent,
     editable: !readOnly,
+    immediatelyRender: false, // Prevent SSR hydration mismatches
     onCreate: ({ editor }) => {
       setIsLoading(false);
       updateContent(editor);

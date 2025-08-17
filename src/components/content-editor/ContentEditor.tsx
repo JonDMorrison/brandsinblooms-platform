@@ -88,6 +88,7 @@ function SectionEditor({
   }
 
   const renderSectionContent = () => {
+    console.log('Rendering section:', sectionKey, section)
     switch (section.type) {
       case 'richText':
       case 'hero':
@@ -211,7 +212,7 @@ function SectionEditor({
                   Required
                 </Badge>
               )}
-              {!section.visible && (
+              {section.visible === false && (
                 <Badge variant="outline" className="text-xs h-4 px-1.5">
                   Hidden
                 </Badge>
@@ -256,7 +257,7 @@ function SectionEditor({
             onClick={() => onToggleVisibility(sectionKey)}
             disabled={isRequired}
           >
-            {section.visible ? (
+            {section.visible !== false ? (
               <Eye className="h-3 w-3" />
             ) : (
               <EyeOff className="h-3 w-3" />
@@ -266,9 +267,16 @@ function SectionEditor({
       </div>
 
       {/* Section Content */}
-      {section.visible && (
+      {section.visible !== false && (
         <div className="p-3">
           {renderSectionContent()}
+        </div>
+      )}
+      
+      {/* Show message if section is explicitly hidden */}
+      {section.visible === false && (
+        <div className="p-3 text-xs text-muted-foreground">
+          Section is hidden. Click the eye icon to show it.
         </div>
       )}
     </div>
@@ -306,7 +314,8 @@ export function ContentEditor({
   const layoutConfig = LAYOUT_SECTIONS[layout]
   
   const sortedSections = useMemo(() => {
-    return Object.entries(content.sections).sort((a, b) => {
+    const sections = Object.entries(content.sections || {})
+    return sections.sort((a, b) => {
       const orderA = a[1].order || 0
       const orderB = b[1].order || 0
       return orderA - orderB
@@ -374,7 +383,7 @@ export function ContentEditor({
       </div>
 
       {/* Errors */}
-      {errors.length > 0 && (
+      {errors && errors.length > 0 && (
         <div className="p-4 border-b bg-destructive/5">
           <div className="space-y-1">
             {errors.map((error, index) => (

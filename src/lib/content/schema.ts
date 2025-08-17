@@ -165,7 +165,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           items: [],
           columns: 3
         },
-        visible: false,
+        visible: true,
         order: 2
       },
       cta: {
@@ -174,7 +174,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           content: '',
           alignment: 'center'
         },
-        visible: false,
+        visible: true,
         order: 3
       },
       testimonials: {

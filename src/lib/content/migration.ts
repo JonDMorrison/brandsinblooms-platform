@@ -473,6 +473,21 @@ export function getContentVersion(content: unknown): string {
 }
 
 /**
+ * Get default sections for a layout type
+ */
+function getDefaultSections(layout: LayoutType): Record<string, ContentSection> {
+  const layoutConfig = LAYOUT_SECTIONS[layout]
+  if (!layoutConfig) {
+    return {}
+  }
+  
+  return Object.entries(layoutConfig.defaultSections).reduce((acc, [key, section]) => {
+    acc[key] = section as ContentSection
+    return acc
+  }, {} as Record<string, ContentSection>)
+}
+
+/**
  * Initialize default content for a layout
  */
 export function initializeDefaultContent(layout: LayoutType): PageContent {
@@ -486,18 +501,61 @@ export function initializeDefaultContent(layout: LayoutType): PageContent {
 }
 
 /**
- * Validate page content structure
+ * Validate page content structure with detailed errors
  */
-export function validatePageContent(content: unknown): content is PageContent {
+export function validatePageContent(content: unknown, layout?: LayoutType): { isValid: boolean; errors: string[] } {
+  const errors: string[] = []
+  
   try {
-    if (!content || typeof content !== 'object') return false
+    if (!content || typeof content !== 'object') {
+      errors.push('Content must be an object')
+      return { isValid: false, errors }
+    }
+    
     const obj = content as any
-    return (
-      obj.version === '1.0' &&
-      typeof obj.layout === 'string' &&
-      typeof obj.sections === 'object'
-    )
-  } catch {
-    return false
+    
+    if (obj.version !== '1.0') {
+      errors.push('Invalid content version')
+    }
+    
+    if (typeof obj.layout !== 'string') {
+      errors.push('Layout must be a string')
+    }
+    
+    if (typeof obj.sections !== 'object') {
+      errors.push('Sections must be an object')
+    }
+    
+    // Check layout-specific requirements if layout is provided
+    if (layout && obj.layout !== layout) {
+      errors.push(`Content layout "${obj.layout}" does not match expected layout "${layout}"`)
+    }
+    
+    if (layout && LAYOUT_SECTIONS[layout]) {
+      const layoutConfig = LAYOUT_SECTIONS[layout]
+      const requiredSections = layoutConfig.required || []
+      
+      for (const required of requiredSections) {
+        if (!obj.sections[required]) {
+          errors.push(`Missing required section: ${required}`)
+        }
+      }
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    }
+  } catch (error) {
+    errors.push('Validation error: ' + (error instanceof Error ? error.message : 'Unknown error'))
+    return { isValid: false, errors }
   }
+}
+
+/**
+ * Type guard for PageContent
+ */
+export function isValidPageContent(content: unknown): content is PageContent {
+  const validation = validatePageContent(content)
+  return validation.isValid
 }
