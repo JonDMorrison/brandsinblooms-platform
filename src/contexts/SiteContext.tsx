@@ -218,13 +218,6 @@ export function SiteProvider({
       // Save to localStorage when site is successfully loaded
       if (typeof window !== 'undefined') {
         localStorage.setItem('selectedSiteId', siteId)
-        
-        // Update URL params without causing navigation (unless disabled)
-        if (updateUrl) {
-          const url = new URL(window.location.href)
-          url.searchParams.set('site', siteId)
-          window.history.replaceState({}, '', url.toString())
-        }
       }
 
     } catch (err) {
@@ -288,13 +281,9 @@ export function SiteProvider({
       setCanManage(false)
       setSiteResolution(null)
       
-      // Clear from localStorage and URL
+      // Clear from localStorage
       if (typeof window !== 'undefined') {
         localStorage.removeItem('selectedSiteId')
-        
-        const url = new URL(window.location.href)
-        url.searchParams.delete('site')
-        window.history.replaceState({}, '', url.toString())
       }
     }
   }, [loadSiteById])

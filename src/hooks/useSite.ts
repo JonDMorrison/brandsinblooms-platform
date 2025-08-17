@@ -208,11 +208,8 @@ export function useDevSiteSwitcher(): {
   const isDevMode = process.env.NODE_ENV === 'development'
 
   const switchToSite = (siteIdOrSubdomain: string) => {
-    if (!isDevMode || typeof window === 'undefined') return
-
-    const url = new URL(window.location.href)
-    url.searchParams.set('site', siteIdOrSubdomain)
-    window.location.href = url.toString()
+    // Site URL parameter feature has been removed
+    console.warn('switchToSite via URL parameter is no longer supported')
   }
 
   const switchToSubdomain = (subdomain: string) => {

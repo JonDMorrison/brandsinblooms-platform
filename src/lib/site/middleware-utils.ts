@@ -143,7 +143,6 @@ export interface SiteContext {
   siteName: string | null
   hostname: string | null
   isDevMode: boolean
-  devSite?: string
   devSubdomain?: string
 }
 
@@ -158,7 +157,6 @@ export function extractSiteContext(request: NextRequest): SiteContext {
     siteName: headers.get('x-site-name') || null,
     hostname: headers.get('x-hostname') || null,
     isDevMode: process.env.NODE_ENV === 'development',
-    devSite: cookies.get('x-dev-site')?.value || headers.get('x-dev-site') || undefined,
     devSubdomain: cookies.get('x-dev-subdomain')?.value || headers.get('x-dev-subdomain') || undefined,
   }
 }

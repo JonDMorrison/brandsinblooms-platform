@@ -278,16 +278,7 @@ function handleDevelopmentRequest(
   const url = request.nextUrl.clone()
   const pathname = url.pathname
   
-  // Check for site parameter in development
-  const siteParam = url.searchParams.get('site')
-  if (siteParam) {
-    // Set development site context
-    response.cookies.set('x-dev-site', siteParam, {
-      httpOnly: true,
-      maxAge: 60 * 60 * 24, // 1 day
-    })
-    response.headers.set('x-dev-site', siteParam)
-  }
+  // Site URL parameter feature has been removed
   
   // For subdomain.localhost, extract subdomain
   if (hostname.includes('.localhost')) {
@@ -730,7 +721,6 @@ function handleSiteNotFound(
  */
 function handleUnpublishedSite(request: NextRequest, site: Site): NextResponse {
   const url = createRedirectUrl(request, APP_DOMAIN, '/site-maintenance')
-  url.searchParams.set('site', site.name)
   
   return NextResponse.redirect(url)
 }
