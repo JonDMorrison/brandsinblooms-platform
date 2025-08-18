@@ -563,8 +563,6 @@ export default function PageEditorPage() {
               }}
             >
               <CurrentLayoutComponent 
-                title={unifiedContent?.title || pageData.title}
-                subtitle={unifiedContent?.subtitle || pageData.subtitle}
                 content={(() => {
                   // Create content with injected title/subtitle for real-time preview
                   const baseContent = unifiedContent || pageContent
