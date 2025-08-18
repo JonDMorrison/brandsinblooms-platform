@@ -25,8 +25,11 @@ function DynamicSectionComponent({ section, sectionKey, className = '' }: Dynami
   // Helper function to get Lucide icon by name
   const getIcon = (iconName?: string): LucideIcon | null => {
     if (!iconName) return null
-    const IconComponent = (LucideIcons as unknown as Record<string, LucideIcon>)[iconName]
-    return IconComponent || null
+    // Convert lowercase icon names to PascalCase for Lucide React
+    const pascalCase = iconName.charAt(0).toUpperCase() + iconName.slice(1)
+    const IconComponent = (LucideIcons as unknown as Record<string, LucideIcon>)[pascalCase]
+    // Try exact match first, then try with Icon suffix
+    return IconComponent || (LucideIcons as unknown as Record<string, LucideIcon>)[`${pascalCase}Icon`] || null
   }
 
   // Helper function to safely cast and render items array

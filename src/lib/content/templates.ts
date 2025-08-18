@@ -32,21 +32,21 @@ export function getLayoutTemplate(layout: LayoutType, title: string, subtitle?: 
                 id: 'feature-1',
                 title: 'Easy to Use',
                 content: 'Our intuitive interface makes it simple to get started and achieve results quickly.',
-                icon: 'star',
+                icon: 'Star',
                 order: 0
               },
               {
                 id: 'feature-2',
                 title: 'Powerful Features',
                 content: 'Access advanced tools and capabilities designed to help you succeed.',
-                icon: 'zap',
+                icon: 'Zap',
                 order: 1
               },
               {
                 id: 'feature-3',
                 title: '24/7 Support',
                 content: 'Our dedicated team is here to help you every step of the way.',
-                icon: 'users',
+                icon: 'Users',
                 order: 2
               }
             ]
@@ -158,21 +158,21 @@ export function getLayoutTemplate(layout: LayoutType, title: string, subtitle?: 
                 id: 'value-1',
                 title: 'Integrity',
                 content: 'We believe in doing the right thing, always.',
-                icon: 'shield',
+                icon: 'Shield',
                 order: 0
               },
               {
                 id: 'value-2',
                 title: 'Innovation',
                 content: 'We constantly push boundaries to deliver better solutions.',
-                icon: 'lightbulb',
+                icon: 'Lightbulb',
                 order: 1
               },
               {
                 id: 'value-3',
                 title: 'Excellence',
                 content: 'We strive for excellence in everything we do.',
-                icon: 'award',
+                icon: 'Award',
                 order: 2
               }
             ]
@@ -248,21 +248,21 @@ export function getLayoutTemplate(layout: LayoutType, title: string, subtitle?: 
                 id: 'spec-1',
                 title: 'High Quality',
                 content: 'Built with premium materials for lasting durability.',
-                icon: 'check',
+                icon: 'Check',
                 order: 0
               },
               {
                 id: 'spec-2',
                 title: 'Fast Delivery',
                 content: 'Ships within 24 hours of order placement.',
-                icon: 'truck',
+                icon: 'Truck',
                 order: 1
               },
               {
                 id: 'spec-3',
                 title: 'Warranty',
                 content: 'Backed by our comprehensive warranty program.',
-                icon: 'shield',
+                icon: 'Shield',
                 order: 2
               }
             ]
@@ -359,21 +359,21 @@ export function getLayoutTemplate(layout: LayoutType, title: string, subtitle?: 
                 id: 'contact-1',
                 title: 'Email Us',
                 content: 'contact@example.com',
-                icon: 'mail',
+                icon: 'Mail',
                 order: 0
               },
               {
                 id: 'contact-2',
                 title: 'Call Us',
                 content: '+1 (555) 123-4567',
-                icon: 'phone',
+                icon: 'Phone',
                 order: 1
               },
               {
                 id: 'contact-3',
                 title: 'Visit Us',
                 content: '123 Main Street, City, State 12345',
-                icon: 'map-pin',
+                icon: 'MapPin',
                 order: 2
               }
             ]
