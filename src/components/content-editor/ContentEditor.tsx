@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo, useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Separator } from '@/src/components/ui/separator'
@@ -417,7 +417,10 @@ const SectionEditor = function SectionEditor({
   )
 }
 
-export function ContentEditor({
+export const ContentEditor = forwardRef<
+  { resetDirtyState: () => void },
+  ContentEditorProps
+>(function ContentEditor({
   contentId,
   siteId,
   layout,
@@ -426,17 +429,35 @@ export function ContentEditor({
   onContentChange,
   title,
   onTitleChange
-}: ContentEditorProps) {
+}, ref) {
+  // Track initial title to detect changes
+  const [initialTitle, setInitialTitle] = useState(title)
+  const [isTitleDirty, setIsTitleDirty] = useState(false)
+  
+  // Update title dirty state when title changes
+  useEffect(() => {
+    if (title !== undefined && initialTitle !== undefined) {
+      setIsTitleDirty(title !== initialTitle)
+    }
+  }, [title, initialTitle])
+  
+  // Reset initial title when first loaded (only once)
+  useEffect(() => {
+    if (title && !initialTitle) {
+      setInitialTitle(title)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  
   const {
     content,
-    isDirty,
+    isDirty: isContentDirty,
     isValid,
     errors,
     updateSection,
     toggleSectionVisibility,
     moveSectionUp,
     moveSectionDown,
-    saveContent,
+    saveContent: saveContentData,
     isLoading
   } = useContentEditor({
     contentId,
@@ -446,6 +467,19 @@ export function ContentEditor({
     onSave,
     onContentChange
   })
+  
+  // Combined dirty state includes both content and title changes
+  const isDirty = isContentDirty || isTitleDirty
+  
+  // Expose resetDirtyState method to parent
+  useImperativeHandle(ref, () => ({
+    resetDirtyState: () => {
+      setInitialTitle(title)
+      setIsTitleDirty(false)
+      // Note: isContentDirty is managed by useContentEditor hook
+      // and will be reset when content is saved
+    }
+  }), [title])
 
   const layoutConfig = LAYOUT_SECTIONS[layout]
   
@@ -460,7 +494,10 @@ export function ContentEditor({
 
   const handleSave = async () => {
     try {
-      await saveContent()
+      await saveContentData()
+      // Reset title dirty state after successful save
+      setInitialTitle(title)
+      setIsTitleDirty(false)
       toast.success('Content saved successfully!')
     } catch (error) {
       console.error('Failed to save content:', error)
@@ -582,6 +619,6 @@ export function ContentEditor({
       </div>
     </div>
   )
-}
+})
 
 export default ContentEditor

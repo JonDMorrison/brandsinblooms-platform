@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/src/lib/supabase/client'
 import { getContentById, updateContent } from '@/src/lib/queries/domains/content'
@@ -85,6 +85,7 @@ export default function PageEditorPage() {
   const [pageContent, setPageContent] = useState<PageContent | null>(null)
   const [unifiedContent, setUnifiedContent] = useState<UnifiedPageContent | null>(null)
   const [activeSectionKey, setActiveSectionKey] = useState<string | undefined>()
+  const contentEditorRef = useRef<{ resetDirtyState: () => void } | null>(null)
 
   useEffect(() => {
     // Wait for searchParams to be available before proceeding
@@ -239,7 +240,7 @@ export default function PageEditorPage() {
       currentSite.id,
       contentId,
       {
-        title: pageData.title || '',
+        title: pageData?.title || '',
         meta_data: metaData,
         content: serializePageContent(content),
         content_type: content.layout === 'blog' ? 'blog_post' : 'page'
@@ -252,7 +253,10 @@ export default function PageEditorPage() {
       title: unifiedContent.title,
       subtitle: unifiedContent.subtitle
     })
-  }, [contentId, currentSite?.id, unifiedContent])
+    
+    // Clear the unsaved changes flag in the parent component
+    setHasUnsavedChanges(false)
+  }, [contentId, currentSite?.id, unifiedContent, pageData?.title])
 
   if (isLoading || !pageData) {
     return (
@@ -306,6 +310,8 @@ export default function PageEditorPage() {
       )
 
       setHasUnsavedChanges(false)
+      // Reset ContentEditor's dirty state
+      contentEditorRef.current?.resetDirtyState?.()
       toast.success('Content saved successfully!')
     } catch (error) {
       handleError(error)
@@ -499,6 +505,7 @@ export default function PageEditorPage() {
                     <div className="flex flex-col h-full">
                       {/* Content Editor with integrated title/subtitle */}
                       <ContentEditor
+                        ref={contentEditorRef}
                         contentId={contentId}
                         siteId={currentSite.id}
                         layout={pageData.layout as ContentLayoutType}

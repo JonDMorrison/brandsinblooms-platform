@@ -417,6 +417,7 @@ export const DynamicSection = React.memo(DynamicSectionComponent, (prevProps, ne
   return (
     prevProps.sectionKey === nextProps.sectionKey &&
     prevProps.className === nextProps.className &&
+    prevProps.title === nextProps.title &&
     prevProps.section.visible === nextProps.section.visible &&
     prevProps.section.type === nextProps.section.type &&
     JSON.stringify(prevProps.section.data) === JSON.stringify(nextProps.section.data) &&
