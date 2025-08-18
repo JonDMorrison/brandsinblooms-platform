@@ -190,6 +190,12 @@ export default function PageEditorPage() {
       return { ...prev, title: value }
     })
     
+    // Also update unified content title for header display
+    setUnifiedContent(prev => {
+      if (!prev) return prev
+      return { ...prev, title: value }
+    })
+    
     setHasUnsavedChanges(true)
   }, [])
 

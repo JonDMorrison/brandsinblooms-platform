@@ -66,19 +66,6 @@ const SectionEditor = function SectionEditor({
   title,
   onTitleChange
 }: SectionEditorProps) {
-  // Local state for title to ensure smooth updates
-  const [localTitle, setLocalTitle] = React.useState(title || '')
-  
-  // Sync local title with prop changes
-  React.useEffect(() => {
-    setLocalTitle(title || '')
-  }, [title])
-  
-  const handleTitleInputChange = useCallback((value: string) => {
-    setLocalTitle(value)
-    onTitleChange?.(value)
-  }, [onTitleChange])
-  
   const handleDataChange = useCallback((newData: Partial<ContentSection['data']>) => {
     onUpdate(sectionKey, {
       ...section,
@@ -121,8 +108,8 @@ const SectionEditor = function SectionEditor({
                 <Input
                   id="hero-title"
                   type="text"
-                  value={localTitle}
-                  onChange={(e) => handleTitleInputChange(e.target.value)}
+                  value={title || ''}
+                  onChange={(e) => onTitleChange?.(e.target.value)}
                   className="h-8"
                   placeholder="Enter page title"
                 />
