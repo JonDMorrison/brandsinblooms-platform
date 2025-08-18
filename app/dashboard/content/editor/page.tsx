@@ -225,7 +225,6 @@ export default function PageEditorPage() {
 
     const metaData = {
       layout: content.layout,
-      subtitle: unifiedContent.subtitle || '',
       ...content.settings
     }
 
@@ -234,7 +233,7 @@ export default function PageEditorPage() {
       currentSite.id,
       contentId,
       {
-        title: unifiedContent.title || '',
+        title: pageData.title || '',
         meta_data: metaData,
         content: serializePageContent(content),
         content_type: content.layout === 'blog' ? 'blog_post' : 'page'
@@ -272,19 +271,20 @@ export default function PageEditorPage() {
 
     setIsSaving(true)
     try {
-      // Prepare the update data using unified content
+      // Prepare the update data - subtitle is now in hero section data
       const metaData = {
-        layout: unifiedContent.layout,
-        subtitle: unifiedContent.subtitle || '',
-        ...(unifiedContent.settings || {})
+        layout: pageContent?.layout || unifiedContent.layout,
+        ...(pageContent?.settings || unifiedContent.settings || {})
       }
 
-      const contentData = serializePageContent({
-        version: unifiedContent.version,
-        layout: unifiedContent.layout,
-        sections: unifiedContent.sections,
-        settings: unifiedContent.settings
-      })
+      const contentData = serializePageContent(
+        pageContent || {
+          version: unifiedContent.version,
+          layout: unifiedContent.layout,
+          sections: unifiedContent.sections,
+          settings: unifiedContent.settings
+        }
+      )
 
       // Update the content in the database
       await updateContent(
@@ -292,10 +292,10 @@ export default function PageEditorPage() {
         currentSite.id,
         contentId,
         {
-          title: unifiedContent.title || '',
+          title: pageData.title || '',
           meta_data: metaData,
           content: contentData,
-          content_type: unifiedContent.layout === 'blog' ? 'blog_post' : 'page'
+          content_type: pageContent?.layout === 'blog' ? 'blog_post' : 'page'
         }
       )
 
