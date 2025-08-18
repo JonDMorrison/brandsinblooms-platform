@@ -4,6 +4,8 @@ import React, { useState, useCallback, useMemo } from 'react'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Separator } from '@/src/components/ui/separator'
+import { Input } from '@/src/components/ui/input'
+import { Label } from '@/src/components/ui/label'
 import { 
   Plus, 
   Save, 
@@ -37,6 +39,10 @@ interface ContentEditorProps {
   initialContent?: PageContent
   onSave?: (content: PageContent) => Promise<void>
   onContentChange?: (content: PageContent, hasChanges: boolean) => void
+  title?: string
+  subtitle?: string
+  onTitleChange?: (value: string) => void
+  onSubtitleChange?: (value: string) => void
 }
 
 interface SectionEditorProps {
@@ -287,7 +293,11 @@ export function ContentEditor({
   layout,
   initialContent,
   onSave,
-  onContentChange
+  onContentChange,
+  title,
+  subtitle,
+  onTitleChange,
+  onSubtitleChange
 }: ContentEditorProps) {
   const {
     content,
@@ -396,6 +406,38 @@ export function ContentEditor({
       {/* Sections */}
       <div className="flex-1 overflow-auto">
         <div className="p-4 space-y-4">
+          {/* Title and Subtitle Fields */}
+          {(onTitleChange || onSubtitleChange) && (
+            <div className="space-y-4 pb-4 border-b">
+              <div className="space-y-2">
+                <Label htmlFor="page-title" className="text-xs font-medium">
+                  Page Title
+                </Label>
+                <Input
+                  id="page-title"
+                  type="text"
+                  value={title || ''}
+                  onChange={(e) => onTitleChange?.(e.target.value)}
+                  className="h-9"
+                  placeholder="Enter page title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="page-subtitle" className="text-xs font-medium">
+                  Page Subtitle
+                </Label>
+                <Input
+                  id="page-subtitle"
+                  type="text"
+                  value={subtitle || ''}
+                  onChange={(e) => onSubtitleChange?.(e.target.value)}
+                  placeholder="Optional subtitle"
+                  className="h-9"
+                />
+              </div>
+            </div>
+          )}
+          
           {sortedSections.map(([sectionKey, section], index) => {
             const isRequired = layoutConfig.required.includes(sectionKey)
             

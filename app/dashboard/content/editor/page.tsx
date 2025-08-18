@@ -486,40 +486,8 @@ export default function PageEditorPage() {
                 
                 <TabsContent value="content" className="mt-0 flex-1 flex flex-col">
                   {contentId && currentSite?.id && (
-                    <>
-                      {/* Title and Subtitle Section */}
-                      <div className="p-4 border-b bg-muted/30">
-                        <div className="grid grid-cols-1 gap-4 max-w-2xl">
-                          <div className="space-y-2">
-                            <Label htmlFor="content-title" className="text-xs font-medium">
-                              Page Title
-                            </Label>
-                            <Input
-                              id="content-title"
-                              type="text"
-                              value={unifiedContent?.title || pageData.title}
-                              onChange={(e) => handleTitleSubtitleChange('title', e.target.value)}
-                              className="h-9"
-                              placeholder="Enter page title"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="content-subtitle" className="text-xs font-medium">
-                              Page Subtitle
-                            </Label>
-                            <Input
-                              id="content-subtitle"
-                              type="text"
-                              value={unifiedContent?.subtitle || pageData.subtitle || ''}
-                              onChange={(e) => handleTitleSubtitleChange('subtitle', e.target.value)}
-                              placeholder="Optional subtitle"
-                              className="h-9"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Content Editor */}
+                    <div className="flex flex-col h-full">
+                      {/* Content Editor with integrated title/subtitle */}
                       <ContentEditor
                         contentId={contentId}
                         siteId={currentSite.id}
@@ -527,8 +495,12 @@ export default function PageEditorPage() {
                         initialContent={pageContent || undefined}
                         onSave={handleContentSave}
                         onContentChange={handleContentChange}
+                        title={unifiedContent?.title || pageData.title}
+                        subtitle={unifiedContent?.subtitle || pageData.subtitle || ''}
+                        onTitleChange={(value) => handleTitleSubtitleChange('title', value)}
+                        onSubtitleChange={(value) => handleTitleSubtitleChange('subtitle', value)}
                       />
-                    </>
+                    </div>
                   )}
                 </TabsContent>
 
