@@ -66,6 +66,8 @@ const SectionEditor = function SectionEditor({
   title,
   onTitleChange
 }: SectionEditorProps) {
+  console.log('[SectionEditor] Rendering with title:', title, 'for section:', sectionKey)
+  
   const handleDataChange = useCallback((newData: Partial<ContentSection['data']>) => {
     onUpdate(sectionKey, {
       ...section,
@@ -109,7 +111,10 @@ const SectionEditor = function SectionEditor({
                   id="hero-title"
                   type="text"
                   value={title || ''}
-                  onChange={(e) => onTitleChange?.(e.target.value)}
+                  onChange={(e) => {
+                    console.log('[Title Input] onChange called with:', e.target.value)
+                    onTitleChange?.(e.target.value)
+                  }}
                   className="h-8"
                   placeholder="Enter page title"
                 />
@@ -427,6 +432,7 @@ export function ContentEditor({
   title,
   onTitleChange
 }: ContentEditorProps) {
+  console.log('[ContentEditor] Rendering with title:', title)
   const {
     content,
     isDirty,
@@ -539,7 +545,7 @@ export function ContentEditor({
             
             return (
               <SectionEditor
-                key={`${sectionKey}-${sectionKey === 'hero' || sectionKey === 'header' ? title : ''}`}
+                key={sectionKey}
                 sectionKey={sectionKey}
                 section={section}
                 isRequired={isRequired}

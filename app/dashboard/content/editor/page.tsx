@@ -184,20 +184,25 @@ export default function PageEditorPage() {
 
   // Handler for title changes (database column)
   const handleTitleChange = useCallback((value: string) => {
+    console.log('[handleTitleChange] Called with:', value)
+    console.log('[handleTitleChange] Current pageData.title:', pageData?.title)
+    
     // Update pageData with new title
     setPageData(prev => {
+      console.log('[handleTitleChange] Updating pageData from:', prev?.title, 'to:', value)
       if (!prev) return prev
       return { ...prev, title: value }
     })
     
     // Also update unified content title for header display
     setUnifiedContent(prev => {
+      console.log('[handleTitleChange] Updating unifiedContent from:', prev?.title, 'to:', value)
       if (!prev) return prev
       return { ...prev, title: value }
     })
     
     setHasUnsavedChanges(true)
-  }, [])
+  }, [pageData?.title])
 
   const handleContentChange = useCallback((content: PageContent, hasChanges: boolean) => {
     setPageContent(content)
@@ -498,6 +503,7 @@ export default function PageEditorPage() {
                   {contentId && currentSite?.id && (
                     <div className="flex flex-col h-full">
                       {/* Content Editor with integrated title/subtitle */}
+                      {console.log('[Parent] Passing title to ContentEditor:', pageData.title)}
                       <ContentEditor
                         contentId={contentId}
                         siteId={currentSite.id}
