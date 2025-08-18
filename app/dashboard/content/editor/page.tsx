@@ -181,10 +181,52 @@ export default function PageEditorPage() {
       return { ...prev, [field]: value }
     })
     
-    // Update unified content
+    // Update unified content and inject into hero section
     setUnifiedContent(prev => {
       if (!prev) return prev
-      return { ...prev, [field]: value }
+      
+      const updated = { ...prev, [field]: value }
+      
+      // Find and update hero/header section with new title/subtitle
+      const heroKey = prev.sections.hero ? 'hero' : 
+                     prev.sections.header ? 'header' : null
+      
+      if (heroKey && prev.sections[heroKey]) {
+        const existingContent = prev.sections[heroKey]?.data?.content || ''
+        // Remove existing title and subtitle
+        const cleanedContent = existingContent
+          .replace(/<h1[^>]*>.*?<\/h1>/gi, '')
+          .replace(/<p[^>]*class="[^"]*(?:subtitle|text-xl)[^"]*"[^>]*>.*?<\/p>/gi, '')
+          .trim()
+        
+        // Build new content with updated title/subtitle
+        let newHeroContent = ''
+        const currentTitle = field === 'title' ? value : (prev.title || '')
+        const currentSubtitle = field === 'subtitle' ? value : (prev.subtitle || '')
+        
+        if (currentTitle) {
+          newHeroContent = `<h1>${currentTitle}</h1>`
+        }
+        if (currentSubtitle) {
+          newHeroContent += `<p class="text-xl text-gray-600">${currentSubtitle}</p>`
+        }
+        if (cleanedContent) {
+          newHeroContent += '\n' + cleanedContent
+        }
+        
+        updated.sections = {
+          ...prev.sections,
+          [heroKey]: {
+            ...prev.sections[heroKey],
+            data: {
+              ...prev.sections[heroKey].data,
+              content: newHeroContent
+            }
+          }
+        }
+      }
+      
+      return updated
     })
     
     setHasUnsavedChanges(true)
@@ -535,55 +577,7 @@ export default function PageEditorPage() {
               }}
             >
               <CurrentLayoutComponent 
-                content={(() => {
-                  // Create content with injected title/subtitle for real-time preview
-                  const baseContent = unifiedContent || pageContent
-                  if (!baseContent) return undefined
-                  
-                  // Find hero or header section
-                  const heroKey = baseContent.sections.hero ? 'hero' : 
-                                 baseContent.sections.header ? 'header' : null
-                  
-                  if (!heroKey) return baseContent
-                  
-                  // Inject title and subtitle into hero content
-                  const currentTitle = unifiedContent?.title || pageData.title
-                  const currentSubtitle = unifiedContent?.subtitle || pageData.subtitle || ''
-                  
-                  let heroContent = ''
-                  if (currentTitle) {
-                    heroContent = `<h1>${currentTitle}</h1>`
-                  }
-                  if (currentSubtitle) {
-                    heroContent += `<p class="text-xl text-gray-600">${currentSubtitle}</p>`
-                  }
-                  
-                  // Add any existing content after title/subtitle
-                  const existingContent = baseContent.sections[heroKey]?.data?.content || ''
-                  // Remove any existing h1 and subtitle from the content
-                  const cleanedContent = existingContent
-                    .replace(/<h1[^>]*>.*?<\/h1>/gi, '')
-                    .replace(/<p[^>]*class="[^"]*(?:subtitle|text-xl)[^"]*"[^>]*>.*?<\/p>/gi, '')
-                    .trim()
-                  
-                  if (cleanedContent) {
-                    heroContent += '\n' + cleanedContent
-                  }
-                  
-                  return {
-                    ...baseContent,
-                    sections: {
-                      ...baseContent.sections,
-                      [heroKey]: {
-                        ...baseContent.sections[heroKey],
-                        data: {
-                          ...baseContent.sections[heroKey].data,
-                          content: heroContent
-                        }
-                      }
-                    }
-                  }
-                })()}
+                content={unifiedContent || pageContent || undefined}
               />
             </div>
           </div>
