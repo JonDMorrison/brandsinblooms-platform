@@ -565,7 +565,55 @@ export default function PageEditorPage() {
               <CurrentLayoutComponent 
                 title={unifiedContent?.title || pageData.title}
                 subtitle={unifiedContent?.subtitle || pageData.subtitle}
-                content={unifiedContent || pageContent || undefined}
+                content={(() => {
+                  // Create content with injected title/subtitle for real-time preview
+                  const baseContent = unifiedContent || pageContent
+                  if (!baseContent) return undefined
+                  
+                  // Find hero or header section
+                  const heroKey = baseContent.sections.hero ? 'hero' : 
+                                 baseContent.sections.header ? 'header' : null
+                  
+                  if (!heroKey) return baseContent
+                  
+                  // Inject title and subtitle into hero content
+                  const currentTitle = unifiedContent?.title || pageData.title
+                  const currentSubtitle = unifiedContent?.subtitle || pageData.subtitle || ''
+                  
+                  let heroContent = ''
+                  if (currentTitle) {
+                    heroContent = `<h1>${currentTitle}</h1>`
+                  }
+                  if (currentSubtitle) {
+                    heroContent += `<p class="text-xl text-gray-600">${currentSubtitle}</p>`
+                  }
+                  
+                  // Add any existing content after title/subtitle
+                  const existingContent = baseContent.sections[heroKey]?.data?.content || ''
+                  // Remove any existing h1 and subtitle from the content
+                  const cleanedContent = existingContent
+                    .replace(/<h1[^>]*>.*?<\/h1>/gi, '')
+                    .replace(/<p[^>]*class="[^"]*(?:subtitle|text-xl)[^"]*"[^>]*>.*?<\/p>/gi, '')
+                    .trim()
+                  
+                  if (cleanedContent) {
+                    heroContent += '\n' + cleanedContent
+                  }
+                  
+                  return {
+                    ...baseContent,
+                    sections: {
+                      ...baseContent.sections,
+                      [heroKey]: {
+                        ...baseContent.sections[heroKey],
+                        data: {
+                          ...baseContent.sections[heroKey].data,
+                          content: heroContent
+                        }
+                      }
+                    }
+                  }
+                })()}
               />
             </div>
           </div>
