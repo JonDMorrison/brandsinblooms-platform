@@ -48,7 +48,7 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
     text: '',
   });
 
-  // Create the editor instance
+  // Create the editor instance - dependencies are carefully selected
   const editor = useEditor({
     extensions: getTiptapConfig(placeholder),
     content: initialContent,
@@ -63,7 +63,7 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
       updateContent(editor);
       debouncedSave();
     },
-  }, [initialContent, placeholder, readOnly]);
+  });
 
   // Update content state from editor
   const updateContent = useCallback((editorInstance: Editor) => {
@@ -138,6 +138,22 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
     }
   }, [editor, updateContent]);
 
+  // Update editor configuration when props change
+  useEffect(() => {
+    if (editor) {
+      // Update editable state
+      editor.setEditable(!readOnly);
+    }
+  }, [editor, readOnly]);
+
+  // Update content when initial content changes
+  useEffect(() => {
+    if (editor && initialContent !== editor.getHTML()) {
+      editor.commands.setContent(initialContent);
+      setIsDirty(false);
+    }
+  }, [editor, initialContent]);
+
   // Update content when editor changes and handle initialization errors
   useEffect(() => {
     if (editor && !isLoading) {
@@ -152,15 +168,6 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
       setError('Failed to initialize editor');
     }
   }, [editor, isLoading, updateContent]);
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (editor) {
-        editor.destroy();
-      }
-    };
-  }, [editor]);
 
   return {
     editor,

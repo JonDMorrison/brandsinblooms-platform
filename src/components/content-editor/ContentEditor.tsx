@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
-import { ScrollArea } from '@/src/components/ui/scroll-area'
 import { Separator } from '@/src/components/ui/separator'
 import { 
   Plus, 
@@ -50,7 +49,7 @@ interface SectionEditorProps {
   onMoveDown?: (sectionKey: string) => void
 }
 
-function SectionEditor({ 
+const SectionEditor = React.memo(function SectionEditor({ 
   sectionKey, 
   section, 
   isRequired, 
@@ -87,8 +86,7 @@ function SectionEditor({
     return iconMap[type] || '📄'
   }
 
-  const renderSectionContent = () => {
-    console.log('Rendering section:', sectionKey, section)
+  const renderSectionContent = useCallback(() => {
     switch (section.type) {
       case 'richText':
       case 'hero':
@@ -192,7 +190,7 @@ function SectionEditor({
           </div>
         )
     }
-  }
+  }, [section, handleDataChange])
 
   const isEmpty = !section.data.content && !section.data.url && !section.data.icon
 
@@ -281,7 +279,7 @@ function SectionEditor({
       )}
     </div>
   )
-}
+})
 
 export function ContentEditor({
   contentId,
@@ -396,7 +394,7 @@ export function ContentEditor({
       )}
 
       {/* Sections */}
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-auto">
         <div className="p-4 space-y-4">
           {sortedSections.map(([sectionKey, section], index) => {
             const isRequired = layoutConfig.required.includes(sectionKey)
@@ -441,7 +439,7 @@ export function ContentEditor({
             </div>
           </div>
         </div>
-      </ScrollArea>
+      </div>
     </div>
   )
 }

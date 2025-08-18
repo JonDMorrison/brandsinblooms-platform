@@ -3,27 +3,20 @@
  */
 
 import { type Extensions } from '@tiptap/react';
-import StarterKit, { type StarterKitOptions } from '@tiptap/starter-kit';
-import Link, { type LinkOptions } from '@tiptap/extension-link';
-import Placeholder, { type PlaceholderOptions } from '@tiptap/extension-placeholder';
-
-// Cache for Tiptap configurations to prevent duplicate extensions
-const configCache = new Map<string, Extensions>();
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
 
 /**
  * Default Tiptap editor configuration
  * Supports basic formatting: bold, italic, underline, links, lists, headings
  */
 export const getTiptapConfig = (placeholder?: string): Extensions => {
-  const cacheKey = placeholder || 'default';
-  
-  // Return cached config if it exists
-  if (configCache.has(cacheKey)) {
-    return configCache.get(cacheKey)!;
-  }
-  
+  // Create a stable configuration that doesn't change between renders
   const extensions = [
     StarterKit.configure({
+      // Disable Link extension from StarterKit since we're adding our own
+      link: false,
       // Configure heading levels (H1-H3)
       heading: {
         levels: [1, 2, 3],
@@ -75,9 +68,6 @@ export const getTiptapConfig = (placeholder?: string): Extensions => {
       showOnlyCurrent: false,
     }),
   ];
-  
-  // Cache the configuration
-  configCache.set(cacheKey, extensions);
   
   return extensions;
 };

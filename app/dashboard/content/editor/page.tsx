@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/src/lib/supabase/client'
 import { getContentById, updateContent } from '@/src/lib/queries/domains/content'
@@ -39,6 +39,7 @@ import { ContactServicesPreview } from '@/src/components/layout-previews/Contact
 // Import enhanced content editor components
 import { ContentEditor, SectionManager } from '@/src/components/content-editor'
 import { PageContent, LayoutType as ContentLayoutType, serializePageContent, deserializePageContent } from '@/src/lib/content'
+import { handleError } from '@/src/lib/types/error-handling'
 
 type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact'
 type ViewportSize = 'mobile' | 'tablet' | 'desktop'
@@ -47,6 +48,11 @@ interface PageData {
   title: string
   subtitle?: string
   layout: LayoutType
+}
+
+interface UnifiedPageContent extends PageContent {
+  title?: string
+  subtitle?: string
 }
 
 const layoutInfo = {
@@ -77,6 +83,7 @@ export default function PageEditorPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [pageContent, setPageContent] = useState<PageContent | null>(null)
+  const [unifiedContent, setUnifiedContent] = useState<UnifiedPageContent | null>(null)
   const [activeSectionKey, setActiveSectionKey] = useState<string | undefined>()
 
   useEffect(() => {
@@ -111,7 +118,26 @@ export default function PageEditorPage() {
             const deserialized = deserializePageContent(content.content)
             if (deserialized) {
               setPageContent(deserialized)
+              // Create unified content with title and subtitle
+              setUnifiedContent({
+                ...deserialized,
+                title: content.title,
+                subtitle: typeof metaData?.subtitle === 'string' ? metaData.subtitle : ''
+              })
             }
+          } else {
+            // Initialize with default content
+            const defaultContent: PageContent = {
+              version: '1.0' as const,
+              layout: layout as ContentLayoutType,
+              sections: {}
+            }
+            setPageContent(defaultContent)
+            setUnifiedContent({
+              ...defaultContent,
+              title: content.title,
+              subtitle: typeof metaData?.subtitle === 'string' ? metaData.subtitle : ''
+            })
           }
         } catch (error) {
           console.error('Editor: Error loading content:', error)
@@ -147,6 +173,98 @@ export default function PageEditorPage() {
     loadContent()
   }, [contentId, currentSite?.id, router, searchParams])
 
+  // Synchronized update handler for title and subtitle
+  const handleTitleSubtitleChange = useCallback((field: 'title' | 'subtitle', value: string) => {
+    // Update pageData
+    setPageData(prev => {
+      if (!prev) return prev
+      return { ...prev, [field]: value }
+    })
+    
+    // Update unified content
+    setUnifiedContent(prev => {
+      if (!prev) return prev
+      const updated = { ...prev, [field]: value }
+      
+      // Also update hero/header section if it exists
+      const heroSection = prev.sections.hero || prev.sections.header
+      if (heroSection && heroSection.data?.content && field === 'title') {
+        // Update title in hero content if it contains an h1
+        const contentWithUpdatedTitle = heroSection.data.content.replace(
+          /<h1[^>]*>.*?<\/h1>/i,
+          `<h1>${value}</h1>`
+        )
+        
+        // Only update if we found and replaced an h1
+        if (contentWithUpdatedTitle !== heroSection.data.content) {
+          const sectionKey = prev.sections.hero ? 'hero' : 'header'
+          updated.sections = {
+            ...prev.sections,
+            [sectionKey]: {
+              ...heroSection,
+              data: { ...heroSection.data, content: contentWithUpdatedTitle }
+            }
+          }
+        }
+      }
+      
+      return updated
+    })
+    
+    // Update pageContent for ContentEditor
+    setPageContent(prev => {
+      if (!prev) return prev
+      return { ...prev }
+    })
+    
+    setHasUnsavedChanges(true)
+  }, [])
+
+  const handleContentChange = useCallback((content: PageContent, hasChanges: boolean) => {
+    setPageContent(content)
+    // Update unified content with new sections but preserve title/subtitle
+    setUnifiedContent(prev => {
+      if (!prev) return { ...content, title: pageData?.title || '', subtitle: pageData?.subtitle || '' }
+      return {
+        ...content,
+        title: prev.title || pageData?.title || '',
+        subtitle: prev.subtitle || pageData?.subtitle || ''
+      }
+    })
+    setHasUnsavedChanges(hasChanges)
+  }, [pageData?.title, pageData?.subtitle])
+
+  const handleContentSave = useCallback(async (content: PageContent) => {
+    if (!contentId || !currentSite?.id || !unifiedContent) {
+      throw new Error('Missing required information to save')
+    }
+
+    const metaData = {
+      layout: content.layout,
+      subtitle: unifiedContent.subtitle || '',
+      ...content.settings
+    }
+
+    await updateContent(
+      supabase,
+      currentSite.id,
+      contentId,
+      {
+        title: unifiedContent.title || '',
+        meta_data: metaData,
+        content: serializePageContent(content),
+        content_type: content.layout === 'blog' ? 'blog_post' : 'page'
+      }
+    )
+    
+    // Update unified content with saved data
+    setUnifiedContent({
+      ...content,
+      title: unifiedContent.title,
+      subtitle: unifiedContent.subtitle
+    })
+  }, [contentId, currentSite?.id, unifiedContent])
+
   if (isLoading || !pageData) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -163,24 +281,25 @@ export default function PageEditorPage() {
   const LayoutIcon = layoutInfo[pageData.layout].icon
 
   const handleSave = async () => {
-    if (!contentId || !currentSite?.id || !pageData) {
+    if (!contentId || !currentSite?.id || !unifiedContent) {
       toast.error('Missing required information to save')
       return
     }
 
     setIsSaving(true)
     try {
-      // Prepare the update data
+      // Prepare the update data using unified content
       const metaData = {
-        layout: pageData.layout,
-        subtitle: pageData.subtitle,
-        ...(pageContent?.settings || {})
+        layout: unifiedContent.layout,
+        subtitle: unifiedContent.subtitle || '',
+        ...(unifiedContent.settings || {})
       }
 
-      const contentData = serializePageContent(pageContent || {
-        version: '1.0' as const,
-        layout: pageData.layout as ContentLayoutType,
-        sections: {}
+      const contentData = serializePageContent({
+        version: unifiedContent.version,
+        layout: unifiedContent.layout,
+        sections: unifiedContent.sections,
+        settings: unifiedContent.settings
       })
 
       // Update the content in the database
@@ -189,50 +308,22 @@ export default function PageEditorPage() {
         currentSite.id,
         contentId,
         {
-          title: pageData.title,
+          title: unifiedContent.title || '',
           meta_data: metaData,
           content: contentData,
-          content_type: pageData.layout === 'blog' ? 'blog_post' : 'page'
+          content_type: unifiedContent.layout === 'blog' ? 'blog_post' : 'page'
         }
       )
 
       setHasUnsavedChanges(false)
-      toast.success('Page saved successfully!')
+      toast.success('Content saved successfully!')
     } catch (error) {
-      console.error('Error saving content:', error)
-      toast.error('Failed to save page. Please try again.')
+      handleError(error)
+      console.error('Failed to save content:', error)
+      toast.error('Failed to save content. Please try again.')
     } finally {
       setIsSaving(false)
     }
-  }
-
-  const handleContentChange = (content: PageContent, hasChanges: boolean) => {
-    setPageContent(content)
-    setHasUnsavedChanges(hasChanges)
-  }
-
-  const handleContentSave = async (content: PageContent) => {
-    if (!contentId || !currentSite?.id || !pageData) {
-      throw new Error('Missing required information to save')
-    }
-
-    const metaData = {
-      layout: pageData.layout,
-      subtitle: pageData.subtitle,
-      ...content.settings
-    }
-
-    await updateContent(
-      supabase,
-      currentSite.id,
-      contentId,
-      {
-        title: pageData.title,
-        meta_data: metaData,
-        content: serializePageContent(content),
-        content_type: pageData.layout === 'blog' ? 'blog_post' : 'page'
-      }
-    )
   }
 
   const handlePreview = () => {
@@ -241,7 +332,11 @@ export default function PageEditorPage() {
   }
 
   const handleLayoutChange = (newLayout: LayoutType) => {
+    if (!pageData) return
     setPageData({ ...pageData, layout: newLayout })
+    if (unifiedContent) {
+      setUnifiedContent({ ...unifiedContent, layout: newLayout as ContentLayoutType })
+    }
     setHasUnsavedChanges(true)
   }
 
@@ -267,7 +362,7 @@ export default function PageEditorPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-semibold">{pageData.title}</h1>
+                  <h1 className="text-lg font-semibold">{unifiedContent?.title || pageData.title}</h1>
                   {hasUnsavedChanges && (
                     <Badge variant="outline" className="text-orange-600 border-orange-600">
                       Unsaved
@@ -416,11 +511,8 @@ export default function PageEditorPage() {
                           <Input
                             id="title"
                             type="text"
-                            value={pageData.title}
-                            onChange={(e) => {
-                              setPageData({ ...pageData, title: e.target.value })
-                              setHasUnsavedChanges(true)
-                            }}
+                            value={unifiedContent?.title || pageData.title}
+                            onChange={(e) => handleTitleSubtitleChange('title', e.target.value)}
                             className="h-8 text-sm"
                           />
                         </div>
@@ -431,11 +523,8 @@ export default function PageEditorPage() {
                           <Input
                             id="subtitle"
                             type="text"
-                            value={pageData.subtitle || ''}
-                            onChange={(e) => {
-                              setPageData({ ...pageData, subtitle: e.target.value })
-                              setHasUnsavedChanges(true)
-                            }}
+                            value={unifiedContent?.subtitle || pageData.subtitle || ''}
+                            onChange={(e) => handleTitleSubtitleChange('subtitle', e.target.value)}
                             placeholder="Optional subtitle"
                             className="h-8 text-sm"
                           />
@@ -458,11 +547,8 @@ export default function PageEditorPage() {
                             <Input
                               id="content-title"
                               type="text"
-                              value={pageData.title}
-                              onChange={(e) => {
-                                setPageData({ ...pageData, title: e.target.value })
-                                setHasUnsavedChanges(true)
-                              }}
+                              value={unifiedContent?.title || pageData.title}
+                              onChange={(e) => handleTitleSubtitleChange('title', e.target.value)}
                               className="h-9"
                               placeholder="Enter page title"
                             />
@@ -474,11 +560,8 @@ export default function PageEditorPage() {
                             <Input
                               id="content-subtitle"
                               type="text"
-                              value={pageData.subtitle || ''}
-                              onChange={(e) => {
-                                setPageData({ ...pageData, subtitle: e.target.value })
-                                setHasUnsavedChanges(true)
-                              }}
+                              value={unifiedContent?.subtitle || pageData.subtitle || ''}
+                              onChange={(e) => handleTitleSubtitleChange('subtitle', e.target.value)}
                               placeholder="Optional subtitle"
                               className="h-9"
                             />
@@ -529,9 +612,9 @@ export default function PageEditorPage() {
               }}
             >
               <CurrentLayoutComponent 
-                title={pageData.title}
-                subtitle={pageData.subtitle}
-                content={pageContent || undefined}
+                title={unifiedContent?.title || pageData.title}
+                subtitle={unifiedContent?.subtitle || pageData.subtitle}
+                content={unifiedContent || pageContent || undefined}
               />
             </div>
           </div>

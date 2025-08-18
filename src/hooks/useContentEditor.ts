@@ -105,15 +105,43 @@ export function useContentEditor({
         pageContent = dbContent.content as PageContent
       } else if (isLegacyContent(dbContent.content) || dbContent.content === null) {
         // Migrate legacy content or initialize new content
-        pageContent = migrateContent(
+        const migrationResult = await migrateContent(
           dbContent.content as Record<string, unknown> || {},
-          dbContent.meta_data as Record<string, unknown> || {},
           layout,
           {
-            title: dbContent.title,
-            subtitle: (dbContent.meta_data as any)?.subtitle || ''
+            preserveOriginal: true,
+            strictValidation: false,
+            autoFixVisibility: true
           }
         )
+        
+        if (migrationResult.success && migrationResult.data) {
+          pageContent = migrationResult.data
+          // Inject title/subtitle into hero section if available
+          if ((pageContent.sections.hero || pageContent.sections.header) && dbContent.title) {
+            const heroSection = pageContent.sections.hero || pageContent.sections.header
+            const heroKey = pageContent.sections.hero ? 'hero' : 'header'
+            
+            let heroContent = ''
+            if (dbContent.title) {
+              heroContent += `<h1>${dbContent.title}</h1>`
+            }
+            if ((dbContent.meta_data as any)?.subtitle) {
+              heroContent += `<p class="subtitle">${(dbContent.meta_data as any).subtitle}</p>`
+            }
+            if (heroSection.data.content) {
+              heroContent += heroSection.data.content
+            }
+            
+            pageContent.sections[heroKey] = {
+              ...heroSection,
+              data: { ...heroSection.data, content: heroContent }
+            }
+          }
+        } else {
+          // Fallback to default content
+          pageContent = initializeDefaultContent(layout)
+        }
       } else {
         // Fallback to default content
         pageContent = initializeDefaultContent(layout)
@@ -134,7 +162,7 @@ export function useContentEditor({
       setContent(pageContent)
       setOriginalContent(pageContent)
     } catch (error) {
-      handleError(error, 'Failed to load content')
+      handleError(error)
       // Initialize with default content on error
       const defaultContent = initializeDefaultContent(layout)
       setContent(defaultContent)
@@ -177,7 +205,7 @@ export function useContentEditor({
 
       setOriginalContent(content)
     } catch (error) {
-      handleError(error, 'Failed to save content')
+      handleError(error)
       throw error
     } finally {
       setIsSaving(false)
@@ -311,7 +339,9 @@ export function useContentEditor({
 
   // Notify parent of content changes
   useEffect(() => {
-    onContentChange?.(content, isDirty)
+    if (onContentChange) {
+      onContentChange(content, isDirty)
+    }
   }, [content, isDirty, onContentChange])
 
   // Auto-save (if enabled and not using custom save handler)
