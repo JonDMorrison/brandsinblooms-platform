@@ -120,7 +120,10 @@ export default function PageEditorPage() {
               // Migrate subtitle from meta_data to hero section if needed
               const heroSection = deserialized.sections.hero || deserialized.sections.header
               if (heroSection && metaData?.subtitle && !heroSection.data.subtitle) {
-                heroSection.data.subtitle = metaData.subtitle
+                heroSection.data = {
+                  ...heroSection.data,
+                  subtitle: metaData.subtitle
+                }
               }
               
               setPageContent(deserialized)
