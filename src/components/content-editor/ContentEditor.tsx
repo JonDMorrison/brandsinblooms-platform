@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Separator } from '@/src/components/ui/separator'
@@ -66,6 +66,19 @@ const SectionEditor = function SectionEditor({
   title,
   onTitleChange
 }: SectionEditorProps) {
+  // Local state for title to ensure smooth updates
+  const [localTitle, setLocalTitle] = React.useState(title || '')
+  
+  // Sync local title with prop changes
+  React.useEffect(() => {
+    setLocalTitle(title || '')
+  }, [title])
+  
+  const handleTitleInputChange = useCallback((value: string) => {
+    setLocalTitle(value)
+    onTitleChange?.(value)
+  }, [onTitleChange])
+  
   const handleDataChange = useCallback((newData: Partial<ContentSection['data']>) => {
     onUpdate(sectionKey, {
       ...section,
@@ -108,8 +121,8 @@ const SectionEditor = function SectionEditor({
                 <Input
                   id="hero-title"
                   type="text"
-                  value={title || ''}
-                  onChange={(e) => onTitleChange?.(e.target.value)}
+                  value={localTitle}
+                  onChange={(e) => handleTitleInputChange(e.target.value)}
                   className="h-8"
                   placeholder="Enter page title"
                 />
