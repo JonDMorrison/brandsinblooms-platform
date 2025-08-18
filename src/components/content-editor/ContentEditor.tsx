@@ -539,7 +539,7 @@ export function ContentEditor({
             
             return (
               <SectionEditor
-                key={sectionKey}
+                key={`${sectionKey}-${sectionKey === 'hero' || sectionKey === 'header' ? title : ''}`}
                 sectionKey={sectionKey}
                 section={section}
                 isRequired={isRequired}
