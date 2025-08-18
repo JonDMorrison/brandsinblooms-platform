@@ -184,37 +184,7 @@ export default function PageEditorPage() {
     // Update unified content
     setUnifiedContent(prev => {
       if (!prev) return prev
-      const updated = { ...prev, [field]: value }
-      
-      // Also update hero/header section if it exists
-      const heroSection = prev.sections.hero || prev.sections.header
-      if (heroSection && heroSection.data?.content && field === 'title') {
-        // Update title in hero content if it contains an h1
-        const contentWithUpdatedTitle = heroSection.data.content.replace(
-          /<h1[^>]*>.*?<\/h1>/i,
-          `<h1>${value}</h1>`
-        )
-        
-        // Only update if we found and replaced an h1
-        if (contentWithUpdatedTitle !== heroSection.data.content) {
-          const sectionKey = prev.sections.hero ? 'hero' : 'header'
-          updated.sections = {
-            ...prev.sections,
-            [sectionKey]: {
-              ...heroSection,
-              data: { ...heroSection.data, content: contentWithUpdatedTitle }
-            }
-          }
-        }
-      }
-      
-      return updated
-    })
-    
-    // Update pageContent for ContentEditor
-    setPageContent(prev => {
-      if (!prev) return prev
-      return { ...prev }
+      return { ...prev, [field]: value }
     })
     
     setHasUnsavedChanges(true)
@@ -511,36 +481,6 @@ export default function PageEditorPage() {
                       </div>
                     </div>
 
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Page Settings</h3>
-                      <div className="space-y-3 p-3 bg-card rounded-lg border">
-                        <div className="space-y-2">
-                          <Label htmlFor="title" className="text-xs font-medium">
-                            Title
-                          </Label>
-                          <Input
-                            id="title"
-                            type="text"
-                            value={unifiedContent?.title || pageData.title}
-                            onChange={(e) => handleTitleSubtitleChange('title', e.target.value)}
-                            className="h-8 text-sm"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="subtitle" className="text-xs font-medium">
-                            Subtitle
-                          </Label>
-                          <Input
-                            id="subtitle"
-                            type="text"
-                            value={unifiedContent?.subtitle || pageData.subtitle || ''}
-                            onChange={(e) => handleTitleSubtitleChange('subtitle', e.target.value)}
-                            placeholder="Optional subtitle"
-                            className="h-8 text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </TabsContent>
                 
