@@ -269,14 +269,6 @@ export default function NotificationsPage() {
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            onClick={handleExportNotifications} 
-            disabled={notifications.length === 0}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button 
-            variant="outline" 
             onClick={handleMarkAllAsRead} 
             disabled={markAllAsRead.isPending || (stats?.unread || 0) === 0}
           >
@@ -290,71 +282,7 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 fade-in-up" style={{ animationDelay: '0.2s' }}>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {statsLoading ? <Skeleton className="h-8 w-12" /> : stats?.total || 0}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium">Unread</CardTitle>
-            <BellOff className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {statsLoading ? <Skeleton className="h-8 w-12" /> : stats?.unread || 0}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium">High Priority</CardTitle>
-            <Badge variant="destructive" className="h-4 w-4 rounded-full p-0" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {statsLoading ? <Skeleton className="h-8 w-12" /> : (stats?.unreadByPriority?.high || 0) + (stats?.unreadByPriority?.urgent || 0)}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium">Categories</CardTitle>
-            <Archive className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {statsLoading ? <Skeleton className="h-8 w-12" /> : Object.keys(stats?.byCategory || {}).length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search */}
-      <div className="fade-in-up" style={{ animationDelay: '0.4s' }}>
-        <Input
-          placeholder="Search notifications..."
-          value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          className="max-w-md"
-        />
-      </div>
-
-      {/* Filters */}
-      <div className="fade-in-up" style={{ animationDelay: '0.6s' }}>
-        <NotificationFiltersComponent onFiltersChange={handleFiltersChange} />
-      </div>
+      {/* Hidden for now - Stats Cards, Search and Filters */}
 
       {/* Bulk Actions Toolbar */}
       {someSelected && (
