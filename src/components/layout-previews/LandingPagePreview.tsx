@@ -28,6 +28,7 @@ export function LandingPagePreview({ title, subtitle, content }: LandingPagePrev
             section={section}
             sectionKey={key}
             className=""
+            title={key === 'hero' || key === 'header' ? title : undefined}
           />
         ))}
       </div>

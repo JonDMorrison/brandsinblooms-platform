@@ -117,12 +117,18 @@ export default function PageEditorPage() {
           if (content.content) {
             const deserialized = deserializePageContent(content.content)
             if (deserialized) {
+              // Migrate subtitle from meta_data to hero section if needed
+              const heroSection = deserialized.sections.hero || deserialized.sections.header
+              if (heroSection && metaData?.subtitle && !heroSection.data.subtitle) {
+                heroSection.data.subtitle = metaData.subtitle
+              }
+              
               setPageContent(deserialized)
-              // Create unified content with title and subtitle
+              // Create unified content with title (subtitle is now in hero section)
               setUnifiedContent({
                 ...deserialized,
                 title: content.title,
-                subtitle: typeof metaData?.subtitle === 'string' ? metaData.subtitle : ''
+                subtitle: '' // Subtitle is in hero section data
               })
             }
           } else {
@@ -136,7 +142,7 @@ export default function PageEditorPage() {
             setUnifiedContent({
               ...defaultContent,
               title: content.title,
-              subtitle: typeof metaData?.subtitle === 'string' ? metaData.subtitle : ''
+              subtitle: '' // Subtitle is in hero section data
             })
           }
         } catch (error) {
@@ -173,60 +179,12 @@ export default function PageEditorPage() {
     loadContent()
   }, [contentId, currentSite?.id, router, searchParams])
 
-  // Synchronized update handler for title and subtitle
-  const handleTitleSubtitleChange = useCallback((field: 'title' | 'subtitle', value: string) => {
-    // Update pageData
+  // Handler for title changes (database column)
+  const handleTitleChange = useCallback((value: string) => {
+    // Update pageData with new title
     setPageData(prev => {
       if (!prev) return prev
-      return { ...prev, [field]: value }
-    })
-    
-    // Update unified content and inject into hero section
-    setUnifiedContent(prev => {
-      if (!prev) return prev
-      
-      const updated = { ...prev, [field]: value }
-      
-      // Find and update hero/header section with new title/subtitle
-      const heroKey = prev.sections.hero ? 'hero' : 
-                     prev.sections.header ? 'header' : null
-      
-      if (heroKey && prev.sections[heroKey]) {
-        const existingContent = prev.sections[heroKey]?.data?.content || ''
-        // Remove existing title and subtitle
-        const cleanedContent = existingContent
-          .replace(/<h1[^>]*>.*?<\/h1>/gi, '')
-          .replace(/<p[^>]*class="[^"]*(?:subtitle|text-xl)[^"]*"[^>]*>.*?<\/p>/gi, '')
-          .trim()
-        
-        // Build new content with updated title/subtitle
-        let newHeroContent = ''
-        const currentTitle = field === 'title' ? value : (prev.title || '')
-        const currentSubtitle = field === 'subtitle' ? value : (prev.subtitle || '')
-        
-        if (currentTitle) {
-          newHeroContent = `<h1>${currentTitle}</h1>`
-        }
-        if (currentSubtitle) {
-          newHeroContent += `<p class="text-xl text-gray-600">${currentSubtitle}</p>`
-        }
-        if (cleanedContent) {
-          newHeroContent += '\n' + cleanedContent
-        }
-        
-        updated.sections = {
-          ...prev.sections,
-          [heroKey]: {
-            ...prev.sections[heroKey],
-            data: {
-              ...prev.sections[heroKey].data,
-              content: newHeroContent
-            }
-          }
-        }
-      }
-      
-      return updated
+      return { ...prev, title: value }
     })
     
     setHasUnsavedChanges(true)
@@ -234,27 +192,28 @@ export default function PageEditorPage() {
 
   const handleContentChange = useCallback((content: PageContent, hasChanges: boolean) => {
     setPageContent(content)
-    // Update unified content with new sections but preserve title/subtitle
+    // Update unified content with new sections
     setUnifiedContent(prev => {
-      if (!prev) {
+      if (!prev && pageData) {
         return { 
           ...content, 
-          title: pageData?.title || '', 
-          subtitle: pageData?.subtitle || '' 
+          title: pageData.title || '', 
+          subtitle: '' // Subtitle is now in hero section data
         }
       }
-      // Always preserve the current title/subtitle from unified content
+      if (!prev) return null
+      // Preserve title from pageData
       return {
         ...content,
-        title: prev.title,
-        subtitle: prev.subtitle
+        title: pageData?.title || prev.title,
+        subtitle: '' // Subtitle is now in hero section data
       }
     })
     // Set hasUnsavedChanges based on ContentEditor's isDirty state
     if (hasChanges) {
       setHasUnsavedChanges(true)
     }
-  }, [pageData?.title, pageData?.subtitle])
+  }, [pageData])
 
   const handleContentSave = useCallback(async (content: PageContent) => {
     if (!contentId || !currentSite?.id || !unifiedContent) {
@@ -537,10 +496,8 @@ export default function PageEditorPage() {
                         initialContent={pageContent || undefined}
                         onSave={handleContentSave}
                         onContentChange={handleContentChange}
-                        title={unifiedContent?.title || pageData.title}
-                        subtitle={unifiedContent?.subtitle || pageData.subtitle || ''}
-                        onTitleChange={(value) => handleTitleSubtitleChange('title', value)}
-                        onSubtitleChange={(value) => handleTitleSubtitleChange('subtitle', value)}
+                        title={pageData.title}
+                        onTitleChange={handleTitleChange}
                       />
                     </div>
                   )}
@@ -577,7 +534,8 @@ export default function PageEditorPage() {
               }}
             >
               <CurrentLayoutComponent 
-                content={unifiedContent || pageContent || undefined}
+                title={pageData.title}
+                content={pageContent || undefined}
               />
             </div>
           </div>

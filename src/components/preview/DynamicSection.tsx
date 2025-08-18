@@ -12,9 +12,10 @@ interface DynamicSectionProps {
   section: ContentSection
   sectionKey: string
   className?: string
+  title?: string // Page title for hero sections
 }
 
-function DynamicSectionComponent({ section, sectionKey, className = '' }: DynamicSectionProps) {
+function DynamicSectionComponent({ section, sectionKey, className = '', title }: DynamicSectionProps) {
   // Don't render if section is not visible or has no data
   if (!section.visible) {
     return null
@@ -108,11 +109,22 @@ function DynamicSectionComponent({ section, sectionKey, className = '' }: Dynami
     case 'hero':
       return (
         <div className={`text-center space-y-4 ${className}`}>
+          {/* Render title from props */}
+          {title && (
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {title}
+            </h1>
+          )}
+          {/* Render subtitle from section data */}
+          {data.subtitle && (
+            <p className="text-xl text-gray-600">{data.subtitle}</p>
+          )}
+          {/* Render additional content */}
           {data.content && (
             <div className="space-y-4">
               <ContentRenderer 
                 content={data.content} 
-                className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+                className="text-lg text-gray-700"
               />
             </div>
           )}

@@ -40,9 +40,7 @@ interface ContentEditorProps {
   onSave?: (content: PageContent) => Promise<void>
   onContentChange?: (content: PageContent, hasChanges: boolean) => void
   title?: string
-  subtitle?: string
   onTitleChange?: (value: string) => void
-  onSubtitleChange?: (value: string) => void
 }
 
 interface SectionEditorProps {
@@ -54,9 +52,7 @@ interface SectionEditorProps {
   onMoveUp?: (sectionKey: string) => void
   onMoveDown?: (sectionKey: string) => void
   title?: string
-  subtitle?: string
   onTitleChange?: (value: string) => void
-  onSubtitleChange?: (value: string) => void
 }
 
 const SectionEditor = React.memo(function SectionEditor({ 
@@ -68,9 +64,7 @@ const SectionEditor = React.memo(function SectionEditor({
   onMoveUp,
   onMoveDown,
   title,
-  subtitle,
-  onTitleChange,
-  onSubtitleChange
+  onTitleChange
 }: SectionEditorProps) {
   const handleDataChange = useCallback((newData: Partial<ContentSection['data']>) => {
     onUpdate(sectionKey, {
@@ -106,36 +100,34 @@ const SectionEditor = React.memo(function SectionEditor({
         return (
           <>
             {/* Title and Subtitle fields for Hero section */}
-            {onTitleChange && onSubtitleChange && (
-              <div className="space-y-3 mb-4">
-                <div className="space-y-2">
-                  <Label htmlFor="hero-title" className="text-xs font-medium">
-                    Page Title
-                  </Label>
-                  <Input
-                    id="hero-title"
-                    type="text"
-                    value={title || ''}
-                    onChange={(e) => onTitleChange(e.target.value)}
-                    className="h-8"
-                    placeholder="Enter page title"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="hero-subtitle" className="text-xs font-medium">
-                    Page Subtitle
-                  </Label>
-                  <Input
-                    id="hero-subtitle"
-                    type="text"
-                    value={subtitle || ''}
-                    onChange={(e) => onSubtitleChange(e.target.value)}
-                    placeholder="Optional subtitle"
-                    className="h-8"
-                  />
-                </div>
+            <div className="space-y-3 mb-4">
+              <div className="space-y-2">
+                <Label htmlFor="hero-title" className="text-xs font-medium">
+                  Page Title
+                </Label>
+                <Input
+                  id="hero-title"
+                  type="text"
+                  value={title || ''}
+                  onChange={(e) => onTitleChange?.(e.target.value)}
+                  className="h-8"
+                  placeholder="Enter page title"
+                />
               </div>
-            )}
+              <div className="space-y-2">
+                <Label htmlFor="hero-subtitle" className="text-xs font-medium">
+                  Page Subtitle
+                </Label>
+                <Input
+                  id="hero-subtitle"
+                  type="text"
+                  value={section.data.subtitle || ''}
+                  onChange={(e) => handleDataChange({ subtitle: e.target.value })}
+                  placeholder="Optional subtitle"
+                  className="h-8"
+                />
+              </div>
+            </div>
             
             {/* Hero Buttons Configuration */}
             <div className="space-y-3 mb-4">
@@ -433,9 +425,7 @@ export function ContentEditor({
   onSave,
   onContentChange,
   title,
-  subtitle,
-  onTitleChange,
-  onSubtitleChange
+  onTitleChange
 }: ContentEditorProps) {
   const {
     content,
@@ -558,9 +548,7 @@ export function ContentEditor({
                 onMoveUp={canMoveUp(index) ? moveSectionUp : undefined}
                 onMoveDown={canMoveDown(index) ? moveSectionDown : undefined}
                 title={sectionKey === 'hero' || sectionKey === 'header' ? title : undefined}
-                subtitle={sectionKey === 'hero' || sectionKey === 'header' ? subtitle : undefined}
                 onTitleChange={sectionKey === 'hero' || sectionKey === 'header' ? onTitleChange : undefined}
-                onSubtitleChange={sectionKey === 'hero' || sectionKey === 'header' ? onSubtitleChange : undefined}
               />
             )
           })}
