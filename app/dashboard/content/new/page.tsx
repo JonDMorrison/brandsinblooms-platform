@@ -8,6 +8,8 @@ import { z } from 'zod'
 import { createContent } from '@/src/lib/queries/domains/content'
 import { supabase } from '@/src/lib/supabase/client'
 import { useSiteContext } from '@/src/contexts/SiteContext'
+import { getLayoutTemplate } from '@/src/lib/content/templates'
+import { serializePageContent } from '@/src/lib/content'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
@@ -163,22 +165,16 @@ export default function CreateContentPage() {
       
       console.log('Generated slug:', slug)
       
-      // Create content structure based on layout
-      const contentStructure = {
-        layout: data.layout,
-        sections: [],
-        metadata: {
-          subtitle: data.subtitle || '',
-          createdFrom: 'dashboard'
-        }
-      }
+      // Get template content for the selected layout
+      const templateContent = getLayoutTemplate(data.layout, data.title, data.subtitle)
+      const serializedContent = serializePageContent(templateContent)
       
       const contentData = {
         site_id: currentSite.id,
         title: data.title,
         slug,
         content_type: data.layout === 'blog' ? 'blog_post' : 'page',
-        content: contentStructure,
+        content: serializedContent,
         is_published: false,
         is_featured: false,
         meta_data: {
