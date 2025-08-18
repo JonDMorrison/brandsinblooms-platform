@@ -139,7 +139,7 @@ const SectionEditor = React.memo(function SectionEditor({
             
             {/* Hero Buttons Configuration */}
             <div className="space-y-3 mb-4">
-              <Label className="text-xs font-medium">Action Buttons</Label>
+              <Label className="text-xs font-medium">Action Buttons (Optional)</Label>
               <div className="space-y-3">
                 {/* Primary Button */}
                 <div className="p-3 border rounded-lg bg-muted/30 space-y-2">
@@ -147,30 +147,30 @@ const SectionEditor = React.memo(function SectionEditor({
                   <div className="grid grid-cols-2 gap-2">
                     <Input
                       type="text"
-                      value={(() => {
-                        const items = section.data.items as any[]
-                        return items?.[0]?.title || ''
-                      })()}
+                      value={(section.data.items as any[])?.[0]?.title || ''}
                       onChange={(e) => {
-                        const items = [...(section.data.items as any[] || [])]
-                        if (!items[0]) items[0] = { id: 'button-1' }
-                        items[0].title = e.target.value
-                        handleDataChange({ items })
+                        const currentItems = section.data.items as any[] || []
+                        const newItems = [...currentItems]
+                        if (!newItems[0]) {
+                          newItems[0] = { id: 'button-1', title: '', url: '' }
+                        }
+                        newItems[0] = { ...newItems[0], title: e.target.value }
+                        handleDataChange({ items: newItems })
                       }}
                       className="h-8"
-                      placeholder="Button text"
+                      placeholder="Button text (optional)"
                     />
                     <Input
                       type="text"
-                      value={(() => {
-                        const items = section.data.items as any[]
-                        return items?.[0]?.url || ''
-                      })()}
+                      value={(section.data.items as any[])?.[0]?.url || ''}
                       onChange={(e) => {
-                        const items = [...(section.data.items as any[] || [])]
-                        if (!items[0]) items[0] = { id: 'button-1' }
-                        items[0].url = e.target.value
-                        handleDataChange({ items })
+                        const currentItems = section.data.items as any[] || []
+                        const newItems = [...currentItems]
+                        if (!newItems[0]) {
+                          newItems[0] = { id: 'button-1', title: '', url: '' }
+                        }
+                        newItems[0] = { ...newItems[0], url: e.target.value }
+                        handleDataChange({ items: newItems })
                       }}
                       className="h-8"
                       placeholder="Link/Route (e.g., /contact)"
@@ -180,36 +180,42 @@ const SectionEditor = React.memo(function SectionEditor({
                 
                 {/* Secondary Button */}
                 <div className="p-3 border rounded-lg bg-muted/30 space-y-2">
-                  <Label className="text-xs text-muted-foreground">Secondary Button (Optional)</Label>
+                  <Label className="text-xs text-muted-foreground">Secondary Button</Label>
                   <div className="grid grid-cols-2 gap-2">
                     <Input
                       type="text"
-                      value={(() => {
-                        const items = section.data.items as any[]
-                        return items?.[1]?.title || ''
-                      })()}
+                      value={(section.data.items as any[])?.[1]?.title || ''}
                       onChange={(e) => {
-                        const items = [...(section.data.items as any[] || [])]
-                        if (!items[0]) items[0] = { id: 'button-1' }
-                        if (!items[1]) items[1] = { id: 'button-2' }
-                        items[1].title = e.target.value
-                        handleDataChange({ items })
+                        const currentItems = section.data.items as any[] || []
+                        const newItems = [...currentItems]
+                        // Ensure first button exists if we're creating second
+                        if (!newItems[0]) {
+                          newItems[0] = { id: 'button-1', title: '', url: '' }
+                        }
+                        if (!newItems[1]) {
+                          newItems[1] = { id: 'button-2', title: '', url: '' }
+                        }
+                        newItems[1] = { ...newItems[1], title: e.target.value }
+                        handleDataChange({ items: newItems })
                       }}
                       className="h-8"
-                      placeholder="Button text"
+                      placeholder="Button text (optional)"
                     />
                     <Input
                       type="text"
-                      value={(() => {
-                        const items = section.data.items as any[]
-                        return items?.[1]?.url || ''
-                      })()}
+                      value={(section.data.items as any[])?.[1]?.url || ''}
                       onChange={(e) => {
-                        const items = [...(section.data.items as any[] || [])]
-                        if (!items[0]) items[0] = { id: 'button-1' }
-                        if (!items[1]) items[1] = { id: 'button-2' }
-                        items[1].url = e.target.value
-                        handleDataChange({ items })
+                        const currentItems = section.data.items as any[] || []
+                        const newItems = [...currentItems]
+                        // Ensure first button exists if we're creating second
+                        if (!newItems[0]) {
+                          newItems[0] = { id: 'button-1', title: '', url: '' }
+                        }
+                        if (!newItems[1]) {
+                          newItems[1] = { id: 'button-2', title: '', url: '' }
+                        }
+                        newItems[1] = { ...newItems[1], url: e.target.value }
+                        handleDataChange({ items: newItems })
                       }}
                       className="h-8"
                       placeholder="Link/Route (e.g., /about)"

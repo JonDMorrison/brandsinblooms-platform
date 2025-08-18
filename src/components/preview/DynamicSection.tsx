@@ -119,12 +119,17 @@ function DynamicSectionComponent({ section, sectionKey, className = '' }: Dynami
           {data.items && Array.isArray(data.items) && data.items.length > 0 && (
             <div className="flex justify-center gap-4 flex-wrap">
               {data.items.slice(0, 2).map(item => item as unknown as ContentItem).filter(item => 
-                item && typeof item === 'object' && item.id
-              ).map((item: ContentItem, index: number) => (
-                <Button key={item.id || index} variant={index === 0 ? 'default' : 'outline'}>
-                  {item.title || 'Action'}
-                </Button>
-              ))}
+                item && typeof item === 'object' && item.id && item.title // Only show buttons with text
+              ).map((item: ContentItem, index: number) => {
+                // Determine variant based on position in filtered array
+                const filteredButtons = data.items?.slice(0, 2).filter((i: any) => i?.title)
+                const isFirst = filteredButtons?.[0]?.id === item.id
+                return (
+                  <Button key={item.id || index} variant={isFirst ? 'default' : 'outline'}>
+                    {item.title}
+                  </Button>
+                )
+              })}
             </div>
           )}
         </div>
