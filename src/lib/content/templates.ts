@@ -19,7 +19,19 @@ export function getLayoutTemplate(layout: LayoutType, title: string, subtitle?: 
           visible: true,
           order: 0,
           data: {
-            content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p>Welcome to our amazing platform. Discover how we can help you achieve your goals.</p>`
+            content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p>Welcome to our amazing platform. Discover how we can help you achieve your goals.</p>`,
+            items: [
+              {
+                id: 'button-1',
+                title: 'Get Started',
+                url: '/contact'
+              },
+              {
+                id: 'button-2',
+                title: 'Learn More',
+                url: '/about'
+              }
+            ]
           }
         },
         features: {

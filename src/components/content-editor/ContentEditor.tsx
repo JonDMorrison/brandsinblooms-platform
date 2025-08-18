@@ -136,6 +136,89 @@ const SectionEditor = React.memo(function SectionEditor({
                 </div>
               </div>
             )}
+            
+            {/* Hero Buttons Configuration */}
+            <div className="space-y-3 mb-4">
+              <Label className="text-xs font-medium">Action Buttons</Label>
+              <div className="space-y-3">
+                {/* Primary Button */}
+                <div className="p-3 border rounded-lg bg-muted/30 space-y-2">
+                  <Label className="text-xs text-muted-foreground">Primary Button</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="text"
+                      value={(() => {
+                        const items = section.data.items as any[]
+                        return items?.[0]?.title || ''
+                      })()}
+                      onChange={(e) => {
+                        const items = [...(section.data.items as any[] || [])]
+                        if (!items[0]) items[0] = { id: 'button-1' }
+                        items[0].title = e.target.value
+                        handleDataChange({ items })
+                      }}
+                      className="h-8"
+                      placeholder="Button text"
+                    />
+                    <Input
+                      type="text"
+                      value={(() => {
+                        const items = section.data.items as any[]
+                        return items?.[0]?.url || ''
+                      })()}
+                      onChange={(e) => {
+                        const items = [...(section.data.items as any[] || [])]
+                        if (!items[0]) items[0] = { id: 'button-1' }
+                        items[0].url = e.target.value
+                        handleDataChange({ items })
+                      }}
+                      className="h-8"
+                      placeholder="Link/Route (e.g., /contact)"
+                    />
+                  </div>
+                </div>
+                
+                {/* Secondary Button */}
+                <div className="p-3 border rounded-lg bg-muted/30 space-y-2">
+                  <Label className="text-xs text-muted-foreground">Secondary Button (Optional)</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="text"
+                      value={(() => {
+                        const items = section.data.items as any[]
+                        return items?.[1]?.title || ''
+                      })()}
+                      onChange={(e) => {
+                        const items = [...(section.data.items as any[] || [])]
+                        if (!items[0]) items[0] = { id: 'button-1' }
+                        if (!items[1]) items[1] = { id: 'button-2' }
+                        items[1].title = e.target.value
+                        handleDataChange({ items })
+                      }}
+                      className="h-8"
+                      placeholder="Button text"
+                    />
+                    <Input
+                      type="text"
+                      value={(() => {
+                        const items = section.data.items as any[]
+                        return items?.[1]?.url || ''
+                      })()}
+                      onChange={(e) => {
+                        const items = [...(section.data.items as any[] || [])]
+                        if (!items[0]) items[0] = { id: 'button-1' }
+                        if (!items[1]) items[1] = { id: 'button-2' }
+                        items[1].url = e.target.value
+                        handleDataChange({ items })
+                      }}
+                      className="h-8"
+                      placeholder="Link/Route (e.g., /about)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <RichTextEditor
               content={section.data.content || ''}
               onChange={(content) => handleDataChange({ content })}
