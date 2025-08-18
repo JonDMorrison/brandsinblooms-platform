@@ -53,6 +53,10 @@ interface SectionEditorProps {
   onToggleVisibility: (sectionKey: string) => void
   onMoveUp?: (sectionKey: string) => void
   onMoveDown?: (sectionKey: string) => void
+  title?: string
+  subtitle?: string
+  onTitleChange?: (value: string) => void
+  onSubtitleChange?: (value: string) => void
 }
 
 const SectionEditor = React.memo(function SectionEditor({ 
@@ -62,7 +66,11 @@ const SectionEditor = React.memo(function SectionEditor({
   onUpdate, 
   onToggleVisibility,
   onMoveUp,
-  onMoveDown 
+  onMoveDown,
+  title,
+  subtitle,
+  onTitleChange,
+  onSubtitleChange
 }: SectionEditorProps) {
   const handleDataChange = useCallback((newData: Partial<ContentSection['data']>) => {
     onUpdate(sectionKey, {
@@ -94,8 +102,49 @@ const SectionEditor = React.memo(function SectionEditor({
 
   const renderSectionContent = useCallback(() => {
     switch (section.type) {
-      case 'richText':
       case 'hero':
+        return (
+          <>
+            {/* Title and Subtitle fields for Hero section */}
+            {onTitleChange && onSubtitleChange && (
+              <div className="space-y-3 mb-4">
+                <div className="space-y-2">
+                  <Label htmlFor="hero-title" className="text-xs font-medium">
+                    Page Title
+                  </Label>
+                  <Input
+                    id="hero-title"
+                    type="text"
+                    value={title || ''}
+                    onChange={(e) => onTitleChange(e.target.value)}
+                    className="h-8"
+                    placeholder="Enter page title"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hero-subtitle" className="text-xs font-medium">
+                    Page Subtitle
+                  </Label>
+                  <Input
+                    id="hero-subtitle"
+                    type="text"
+                    value={subtitle || ''}
+                    onChange={(e) => onSubtitleChange(e.target.value)}
+                    placeholder="Optional subtitle"
+                    className="h-8"
+                  />
+                </div>
+              </div>
+            )}
+            <RichTextEditor
+              content={section.data.content || ''}
+              onChange={(content) => handleDataChange({ content })}
+              placeholder="Enter additional hero content..."
+            />
+          </>
+        )
+      
+      case 'richText':
       case 'cta':
       case 'mission':
         return (
@@ -406,38 +455,6 @@ export function ContentEditor({
       {/* Sections */}
       <div className="flex-1 overflow-auto">
         <div className="p-4 space-y-4">
-          {/* Title and Subtitle Fields */}
-          {(onTitleChange || onSubtitleChange) && (
-            <div className="space-y-4 pb-4 border-b">
-              <div className="space-y-2">
-                <Label htmlFor="page-title" className="text-xs font-medium">
-                  Page Title
-                </Label>
-                <Input
-                  id="page-title"
-                  type="text"
-                  value={title || ''}
-                  onChange={(e) => onTitleChange?.(e.target.value)}
-                  className="h-9"
-                  placeholder="Enter page title"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="page-subtitle" className="text-xs font-medium">
-                  Page Subtitle
-                </Label>
-                <Input
-                  id="page-subtitle"
-                  type="text"
-                  value={subtitle || ''}
-                  onChange={(e) => onSubtitleChange?.(e.target.value)}
-                  placeholder="Optional subtitle"
-                  className="h-9"
-                />
-              </div>
-            </div>
-          )}
-          
           {sortedSections.map(([sectionKey, section], index) => {
             const isRequired = layoutConfig.required.includes(sectionKey)
             
@@ -451,6 +468,10 @@ export function ContentEditor({
                 onToggleVisibility={toggleSectionVisibility}
                 onMoveUp={canMoveUp(index) ? moveSectionUp : undefined}
                 onMoveDown={canMoveDown(index) ? moveSectionDown : undefined}
+                title={sectionKey === 'hero' || sectionKey === 'header' ? title : undefined}
+                subtitle={sectionKey === 'hero' || sectionKey === 'header' ? subtitle : undefined}
+                onTitleChange={sectionKey === 'hero' || sectionKey === 'header' ? onTitleChange : undefined}
+                onSubtitleChange={sectionKey === 'hero' || sectionKey === 'header' ? onSubtitleChange : undefined}
               />
             )
           })}
