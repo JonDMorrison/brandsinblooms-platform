@@ -224,14 +224,24 @@ export default function PageEditorPage() {
     setPageContent(content)
     // Update unified content with new sections but preserve title/subtitle
     setUnifiedContent(prev => {
-      if (!prev) return { ...content, title: pageData?.title || '', subtitle: pageData?.subtitle || '' }
+      if (!prev) {
+        return { 
+          ...content, 
+          title: pageData?.title || '', 
+          subtitle: pageData?.subtitle || '' 
+        }
+      }
+      // Always preserve the current title/subtitle from unified content
       return {
         ...content,
-        title: prev.title || pageData?.title || '',
-        subtitle: prev.subtitle || pageData?.subtitle || ''
+        title: prev.title,
+        subtitle: prev.subtitle
       }
     })
-    setHasUnsavedChanges(hasChanges)
+    // Set hasUnsavedChanges based on ContentEditor's isDirty state
+    if (hasChanges) {
+      setHasUnsavedChanges(true)
+    }
   }, [pageData?.title, pageData?.subtitle])
 
   const handleContentSave = useCallback(async (content: PageContent) => {
@@ -574,6 +584,7 @@ export default function PageEditorPage() {
                         contentId={contentId}
                         siteId={currentSite.id}
                         layout={pageData.layout as ContentLayoutType}
+                        initialContent={pageContent || undefined}
                         onSave={handleContentSave}
                         onContentChange={handleContentChange}
                       />
