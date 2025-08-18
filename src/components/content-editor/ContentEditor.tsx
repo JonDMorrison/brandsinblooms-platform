@@ -55,7 +55,7 @@ interface SectionEditorProps {
   onTitleChange?: (value: string) => void
 }
 
-const SectionEditor = React.memo(function SectionEditor({ 
+const SectionEditor = function SectionEditor({ 
   sectionKey, 
   section, 
   isRequired, 
@@ -415,7 +415,7 @@ const SectionEditor = React.memo(function SectionEditor({
       )}
     </div>
   )
-})
+}
 
 export function ContentEditor({
   contentId,
