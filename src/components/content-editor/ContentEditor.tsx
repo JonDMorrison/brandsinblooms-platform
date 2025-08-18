@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Separator } from '@/src/components/ui/separator'
@@ -326,7 +326,7 @@ const SectionEditor = function SectionEditor({
           </div>
         )
     }
-  }, [section, handleDataChange])
+  }, [section, handleDataChange, title, onTitleChange, sectionKey])
 
   const isEmpty = !section.data.content && !section.data.url && !section.data.icon
 
