@@ -466,8 +466,8 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
           />
         )}
 
-        {/* Loading overlay */}
-        {loadingState === 'loading' && showLoadingState && (
+        {/* Loading overlay - only show when actually loading a real image, not for placeholders */}
+        {loadingState === 'loading' && showLoadingState && !shouldShowPlaceholder && !isSvg && (
           <div 
             className="absolute inset-0 flex items-center justify-center bg-muted/50"
             aria-hidden="true"
