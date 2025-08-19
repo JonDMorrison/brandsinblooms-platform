@@ -371,7 +371,11 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
 
     // Determine if we should show the placeholder
     const shouldShowPlaceholder = !isValidSrc || loadingState !== 'loaded'
-    const imageSrc = shouldShowPlaceholder ? getPlaceholderSrc() : currentSrc
+    const placeholderSrc = getPlaceholderSrc()
+    const imageSrc = shouldShowPlaceholder ? placeholderSrc : currentSrc
+    
+    // Check if the image is an SVG
+    const isSvg = imageSrc?.endsWith('.svg')
 
     // Create comprehensive alt text
     const imageAlt = alt || 'Product image'
@@ -414,36 +418,65 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
             className="absolute inset-0 z-10"
           />
         )}
-        <Image
-          ref={ref}
-          src={imageSrc}
-          alt={fullAlt}
-          width={width}
-          height={height}
-          priority={priority}
-          loading={performanceConfig.lazyLoad ? 'lazy' : loading}
-          sizes={responsiveSizes}
-          quality={quality}
-          placeholder="blur"
-          blurDataURL={blurDataUrl}
-          onLoad={handleLoad}
-          onError={handleError}
-          className={cn(
-            'object-cover',
-            {
-              'opacity-0': !imageLoaded && showLoadingState,
-              'opacity-100 image-fade-in': imageLoaded,
-              'opacity-60': loadingState === 'error',
-              'skeleton-to-content': imageLoaded && enableSkeletonTransition,
-            }
-          )}
-          style={{
-            width: '100%',
-            height: '100%',
-            transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-          {...props}
-        />
+        {isSvg ? (
+          // Use regular img tag for SVG files
+          <img
+            ref={ref as React.Ref<HTMLImageElement>}
+            src={imageSrc}
+            alt={fullAlt}
+            width={width}
+            height={height}
+            loading={performanceConfig.lazyLoad ? 'lazy' : loading}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={cn(
+              'object-cover',
+              {
+                'opacity-0': !imageLoaded && showLoadingState,
+                'opacity-100 image-fade-in': imageLoaded,
+                'opacity-60': loadingState === 'error',
+                'skeleton-to-content': imageLoaded && enableSkeletonTransition,
+              }
+            )}
+            style={{
+              width: '100%',
+              height: '100%',
+              transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+            {...props}
+          />
+        ) : (
+          <Image
+            ref={ref}
+            src={imageSrc}
+            alt={fullAlt}
+            width={width}
+            height={height}
+            priority={priority}
+            loading={performanceConfig.lazyLoad ? 'lazy' : loading}
+            sizes={responsiveSizes}
+            quality={quality}
+            placeholder="blur"
+            blurDataURL={blurDataUrl}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={cn(
+              'object-cover',
+              {
+                'opacity-0': !imageLoaded && showLoadingState,
+                'opacity-100 image-fade-in': imageLoaded,
+                'opacity-60': loadingState === 'error',
+                'skeleton-to-content': imageLoaded && enableSkeletonTransition,
+              }
+            )}
+            style={{
+              width: '100%',
+              height: '100%',
+              transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+            {...props}
+          />
+        )}
 
         {/* Loading overlay */}
         {loadingState === 'loading' && showLoadingState && (
