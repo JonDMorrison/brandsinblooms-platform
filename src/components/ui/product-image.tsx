@@ -7,6 +7,7 @@ import { useTheme } from '@/hooks/useTheme'
 import { useLazyLoad } from '@/hooks/useLazyLoad'
 import { useImagePreloader } from '@/lib/utils/image-preloader'
 import { ImageSkeleton } from '@/components/ui/skeleton'
+import { Package, ImageIcon, User } from 'lucide-react'
 import {
   ImageLoadingManager,
   validateImageUrl,
@@ -418,37 +419,24 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
             className="absolute inset-0 z-10"
           />
         )}
-        {isSvg ? (
-          // Use regular img tag for SVG files
-          <img
-            ref={ref as React.Ref<HTMLImageElement>}
-            src={imageSrc}
-            alt={fullAlt}
-            width={width}
-            height={height}
-            loading={performanceConfig.lazyLoad ? 'lazy' : loading}
-            onLoad={handleLoad}
-            onError={handleError}
-            className={cn(
-              'object-cover',
-              {
-                'opacity-0': !imageLoaded && showLoadingState,
-                'opacity-100 image-fade-in': imageLoaded,
-                'opacity-60': loadingState === 'error',
-                'skeleton-to-content': imageLoaded && enableSkeletonTransition,
-              }
+        {/* Show placeholder icon when no valid image or loading */}
+        {(shouldShowPlaceholder || isSvg) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            {placeholder.staticFallback === 'user' ? (
+              <User className="h-12 w-12 text-muted-foreground" />
+            ) : placeholder.staticFallback === 'image' ? (
+              <ImageIcon className="h-12 w-12 text-muted-foreground" />
+            ) : (
+              <Package className="h-12 w-12 text-muted-foreground" />
             )}
-            style={{
-              width: '100%',
-              height: '100%',
-              transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
-            {...props}
-          />
-        ) : (
+          </div>
+        )}
+        
+        {/* Only show actual image when it's not an SVG and we have a valid source */}
+        {!isSvg && !shouldShowPlaceholder && (
           <Image
             ref={ref}
-            src={imageSrc}
+            src={currentSrc}
             alt={fullAlt}
             width={width}
             height={height}
@@ -491,27 +479,14 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
           </div>
         )}
 
-        {/* Error overlay */}
-        {loadingState === 'error' && (
+        {/* Error overlay - only show if not already showing placeholder */}
+        {loadingState === 'error' && !shouldShowPlaceholder && (
           <div 
             className="absolute inset-0 flex items-center justify-center bg-muted/50"
             aria-hidden="true"
           >
             <div className="flex flex-col items-center gap-2 text-center p-4">
-              <svg
-                className="h-8 w-8 text-muted-foreground"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                />
-              </svg>
+              <Package className="h-8 w-8 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">
                 Failed to load image
               </span>
