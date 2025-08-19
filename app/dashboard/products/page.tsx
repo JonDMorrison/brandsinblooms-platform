@@ -110,7 +110,7 @@ function ProductsPageContent() {
           : product.inventory_count < 10
           ? 'low-stock'
           : 'in-stock',
-      image: product.images?.[0] || '/images/placeholder.jpg',
+      image: product.images?.[0] || '/images/placeholders/product-default.svg',
       featured: product.is_featured || false,
       addedToSite: product.is_active || false,
     }));
