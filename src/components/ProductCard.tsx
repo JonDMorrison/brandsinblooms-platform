@@ -6,8 +6,12 @@ import { Badge } from '@/src/components/ui/badge'
 import { Checkbox } from '@/src/components/ui/checkbox'
 import { Star, ShoppingCart, Eye, Heart } from 'lucide-react'
 import { useState } from 'react'
-import { useProductSelection } from '@/contexts/ProductSelectionContext'
+import { useProductSelection } from '@/src/contexts/ProductSelectionContext'
 import { ProductImage } from '@/src/components/ui/product-image'
+import { useProductFavorites } from '@/src/hooks/useProductFavorites'
+import { ProductQuickView } from '@/src/components/products/ProductQuickView'
+import { useLongPress } from 'use-long-press'
+import { cn } from '@/src/lib/utils'
 
 interface Product {
   id: string
@@ -34,9 +38,22 @@ interface ProductCardProps {
 
 export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, showSelection = false }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const [quickViewOpen, setQuickViewOpen] = useState(false)
+  const [showMobileActions, setShowMobileActions] = useState(false)
   const { isSelected, toggleProduct } = useProductSelection()
+  const { isFavorite, toggleFavorite, isToggling } = useProductFavorites()
   
   const selected = isSelected(product.id)
+  const isProductFavorite = isFavorite(product.id)
+  
+  // Long press for mobile
+  const bind = useLongPress(() => {
+    setShowMobileActions(true)
+  }, {
+    threshold: 500,
+    captureEvent: true,
+    cancelOnMovement: true,
+  })
   
   const handleSelectionChange = (checked: boolean) => {
     toggleProduct(product.id)
@@ -69,6 +86,7 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
 
   if (viewMode === 'list') {
     return (
+      <>
       <Card className={`hover:shadow-md transition-shadow ${selected ? 'ring-2 ring-blue-500' : ''}`}>
         <CardContent className="p-4">
           <div className="flex gap-4">
@@ -142,7 +160,19 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
                   </div>
                   
                   <div className="flex gap-1">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="hover:bg-gray-100 hover:border-gray-300 transition-colors cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        console.log('Quick view clicked (list)', { productId: product.id });
+                        setQuickViewOpen(true);
+                      }}
+                      aria-label="Quick view"
+                      title="Quick view"
+                    >
                       <Eye className="h-3 w-3" />
                     </Button>
                     
@@ -172,16 +202,35 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
           </div>
         </CardContent>
       </Card>
+      
+      {/* Quick View Modal for List View */}
+      {quickViewOpen && (
+        <ProductQuickView
+          product={product as any}
+          isOpen={quickViewOpen}
+          onClose={() => {
+            console.log('Closing quick view modal (list)');
+            setQuickViewOpen(false);
+          }}
+          onAddToSite={onAddToSite}
+        />
+      )}
+      </>
     )
   }
 
   // Grid view
   return (
-    <Card 
-      className={`group cursor-pointer hover:shadow-lg transition-all duration-200 ${selected ? 'ring-2 ring-blue-500' : ''}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <>
+      <Card 
+        className={`group cursor-pointer hover:shadow-lg transition-all duration-200 ${selected ? 'ring-2 ring-blue-500' : ''}`}
+        {...bind()}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onTouchEnd={() => {
+          setTimeout(() => setShowMobileActions(false), 3000);
+        }}
+      >
       <CardContent className="p-4">
         {/* Selection Checkbox */}
         {showSelection && (
@@ -225,12 +274,50 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
           </div>
 
           {/* Hover Actions */}
-          {isHovered && (
-            <div className="absolute top-2 right-2 flex flex-col gap-1">
-              <Button variant="outline" size="icon" className="h-8 w-8 bg-white ">
-                <Heart className="h-4 w-4" />
+          {(isHovered || showMobileActions) && (
+            <div className="absolute top-2 right-2 flex flex-col gap-1 z-50" style={{ pointerEvents: 'auto' }}>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className={cn(
+                  "h-8 w-8 bg-white/95 backdrop-blur-sm border-gray-200 shadow-sm transition-all",
+                  "hover:scale-110 hover:shadow-md hover:bg-white hover:border-gray-300",
+                  isProductFavorite && "text-red-500 hover:text-red-600 border-red-200 hover:border-red-300"
+                )}
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  if (toggleFavorite) {
+                    toggleFavorite({ 
+                      productId: product.id, 
+                      isFavorite: isProductFavorite 
+                    });
+                  }
+                }}
+                disabled={isToggling}
+                aria-label={isProductFavorite ? "Remove from favorites" : "Add to favorites"}
+                title={isProductFavorite ? "Remove from favorites" : "Add to favorites"}
+              >
+                <Heart className={cn(
+                  "h-4 w-4 transition-all",
+                  isProductFavorite && "fill-current"
+                )} />
               </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8 bg-white ">
+              
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 bg-white/95 backdrop-blur-sm border-gray-200 shadow-sm transition-all hover:scale-110 hover:shadow-md hover:bg-white hover:border-gray-300"
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setQuickViewOpen(true);
+                }}
+                aria-label="Quick view"
+                title="Quick view"
+              >
                 <Eye className="h-4 w-4" />
               </Button>
             </div>
@@ -296,5 +383,19 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
         </div>
       </CardContent>
     </Card>
+    
+    {/* Quick View Modal */}
+    {quickViewOpen && (
+      <ProductQuickView
+        product={product as any}
+        isOpen={quickViewOpen}
+        onClose={() => {
+          console.log('Closing quick view modal');
+          setQuickViewOpen(false);
+        }}
+        onAddToSite={onAddToSite}
+      />
+    )}
+    </>
   )
 }

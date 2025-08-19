@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes'
 import { useState, lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/src/contexts/AuthContext'
+import { ProfileProvider } from '@/src/contexts/ProfileContext'
 import { SiteProvider } from '@/src/contexts/SiteContext'
 import { AdminAuthProvider } from '@/src/contexts/AdminAuthContext'
 import { AdminImpersonationProvider } from '@/src/contexts/AdminImpersonationContext'
@@ -57,7 +58,8 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider
+        <ProfileProvider>
+          <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
@@ -95,7 +97,8 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
               },
             }}
           />
-        </ThemeProvider>
+          </ThemeProvider>
+        </ProfileProvider>
       </AuthProvider>
       {process.env.NODE_ENV === 'development' && (
         <Suspense fallback={null}>
