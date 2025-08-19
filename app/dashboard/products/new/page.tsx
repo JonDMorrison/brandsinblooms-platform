@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -121,9 +121,25 @@ export default function NewProductPage() {
   const [productImages, setProductImages] = useState<TrackedImage[]>([])
   const [uploadedFiles, setUploadedFiles] = useState<Map<string, File>>(new Map())
 
+  // Define steps early so it can be used in useEffects
+  const steps = [
+    { title: 'Basic Info', icon: <Info className="h-4 w-4" /> },
+    { title: 'Pricing', icon: <DollarSign className="h-4 w-4" /> },
+    { title: 'Inventory', icon: <Package className="h-4 w-4" /> },
+    { title: 'Images', icon: <Image className="h-4 w-4" /> },
+    { title: 'Review', icon: <Check className="h-4 w-4" /> },
+  ]
+  
+  // Reset isSubmitting when changing steps (safety mechanism)
+  useEffect(() => {
+    if (isSubmitting && currentStep !== steps.length - 1) {
+      setIsSubmitting(false);
+    }
+  }, [currentStep, isSubmitting, steps.length])
+
   // Use database categories if available, otherwise use fallback
   const categories = dbCategories.length > 0 
-    ? [...dbCategories.map(c => c.category), 'Other']
+    ? [...new Set([...dbCategories.map(c => c.category), 'Other'])] // Use Set to ensure uniqueness
     : fallbackCategories
 
   const form = useForm<ProductFormData>({
@@ -140,14 +156,6 @@ export default function NewProductPage() {
       is_featured: false,
     },
   })
-
-  const steps = [
-    { title: 'Basic Info', icon: <Info className="h-4 w-4" /> },
-    { title: 'Pricing', icon: <DollarSign className="h-4 w-4" /> },
-    { title: 'Inventory', icon: <Package className="h-4 w-4" /> },
-    { title: 'Images', icon: <Image className="h-4 w-4" /> },
-    { title: 'Review', icon: <Check className="h-4 w-4" /> },
-  ]
 
   // SKU validation on blur
   const handleSkuBlur = useCallback(async (e: React.FocusEvent<HTMLInputElement>) => {
@@ -166,14 +174,13 @@ export default function NewProductPage() {
   }, [form, validateSku])
 
   // Auto-generate slug when name changes
-  const handleNameChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const name = e.target.value
-    form.setValue('name', name)
-    
-    // Only auto-generate slug if it's empty
-    if (name && !form.getValues('slug')) {
+  const handleNameChange = useCallback(async (name: string) => {
+    // Only auto-generate slug if it's empty and name is not empty
+    if (name && name.trim() && !form.getValues('slug')) {
       try {
+        console.log('Generating slug for name:', name);
         const slug = await generateSlug.mutateAsync(name)
+        console.log('Generated slug:', slug);
         form.setValue('slug', slug)
       } catch (error) {
         console.error('Failed to generate slug:', error)
@@ -305,17 +312,41 @@ export default function NewProductPage() {
   }
 
   const onSubmit = async (data: ProductFormData) => {
+    console.log('🚀 onSubmit called with data:', data);
+    console.log('🔍 Current step:', currentStep, 'Total steps:', steps.length);
+    console.log('🏢 Site ID:', siteId);
+    
+    // Only submit if we're on the review step (last step)
+    if (currentStep !== steps.length - 1) {
+      console.log('❌ Not on final step, returning early');
+      return;
+    }
+    
+    console.log('✅ On final step, proceeding with submission');
     setIsSubmitting(true)
     
     try {
+      console.log('🔄 Starting product creation process...');
+      
+      // Check if siteId is available
+      if (!siteId) {
+        throw new Error('Site ID is required but not available');
+      }
+      
       // Generate unique slug if not provided
       if (!data.slug) {
+        console.log('🏷️ Generating slug for:', data.name);
         data.slug = await generateSlug.mutateAsync(data.name)
+        console.log('✅ Generated slug:', data.slug);
       }
 
       // Validate SKU one more time before submission
+      console.log('🔍 Validating SKU:', data.sku);
       const skuAvailable = await validateSku.mutateAsync({ sku: data.sku })
+      console.log('✅ SKU validation result:', skuAvailable);
+      
       if (!skuAvailable) {
+        console.log('❌ SKU not available');
         form.setError('sku', {
           type: 'manual',
           message: 'This SKU is already in use',
@@ -325,7 +356,9 @@ export default function NewProductPage() {
       }
 
       // Create the product
+      console.log('🏭 Creating product with data:', data);
       const newProduct = await createProduct.mutateAsync(data)
+      console.log('✅ Product created:', newProduct);
       
       if (!newProduct?.id) {
         throw new Error('Failed to create product - no ID returned')
@@ -333,9 +366,12 @@ export default function NewProductPage() {
 
       // Associate images with the created product
       if (productImages.length > 0) {
+        console.log('🖼️ Associating', productImages.length, 'images with product');
         await associateImages(newProduct.id, productImages)
+        console.log('✅ Images associated successfully');
       }
 
+      console.log('🎉 Product creation completed successfully');
       toast.success('Product created successfully!')
       router.push('/dashboard/products')
       
@@ -363,9 +399,23 @@ export default function NewProductPage() {
     }
   }
 
-  const nextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1)
+  const nextStep = async () => {
+    // Validate current step before moving forward
+    let isValid = true;
+    
+    if (currentStep === 0) {
+      // Validate basic info
+      isValid = await form.trigger(['name', 'sku', 'category']);
+    } else if (currentStep === 1) {
+      // Validate pricing
+      isValid = await form.trigger(['price']);
+    } else if (currentStep === 2) {
+      // Validate inventory
+      isValid = await form.trigger(['inventory_count']);
+    }
+    
+    if (isValid && currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
     }
   }
 
@@ -415,7 +465,15 @@ export default function NewProductPage() {
 
       {/* Form */}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form 
+          onSubmit={form.handleSubmit(onSubmit)} 
+          onKeyDown={(e) => {
+            // Prevent form submission on Enter key except on the last step
+            if (e.key === 'Enter' && currentStep !== steps.length - 1) {
+              e.preventDefault();
+            }
+          }}
+          className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>{steps[currentStep].title}</CardTitle>
@@ -441,7 +499,12 @@ export default function NewProductPage() {
                           <Input 
                             placeholder="e.g., Red Geranium" 
                             {...field}
-                            onChange={handleNameChange}
+                            value={field.value || ''}
+                            onChange={field.onChange}
+                            onBlur={(e) => {
+                              field.onBlur();
+                              handleNameChange(e.target.value);
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -481,6 +544,7 @@ export default function NewProductPage() {
                           <Input 
                             placeholder="auto-generated-from-name" 
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormDescription>URL-friendly version of the product name (auto-generated)</FormDescription>
@@ -549,7 +613,11 @@ export default function NewProductPage() {
                         <FormItem>
                           <FormLabel>Subcategory</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., Annual Flowers" {...field} />
+                            <Input 
+                              placeholder="e.g., Annual Flowers" 
+                              {...field}
+                              value={field.value || ''}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -668,7 +736,11 @@ export default function NewProductPage() {
                       <FormItem>
                         <FormLabel>Unit of Measure</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., per plant, per pack, per lb" {...field} />
+                          <Input 
+                            placeholder="e.g., per plant, per pack, per lb" 
+                            {...field}
+                            value={field.value || ''}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -849,7 +921,13 @@ export default function NewProductPage() {
             </Button>
 
             {currentStep < steps.length - 1 ? (
-              <Button type="button" onClick={nextStep}>
+              <Button 
+                type="button" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  nextStep();
+                }}
+              >
                 Next
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>

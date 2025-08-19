@@ -243,17 +243,25 @@ export async function createProduct(
   data: InsertProduct,
   tagIds?: string[]
 ): Promise<Product> {
+  console.log('🏭 createProduct function called with data:', data);
+  console.log('🏷️ Tags to add:', tagIds);
+  
   // Create product
+  console.log('🔄 Inserting product into database...');
   const response = await supabase
     .from('products')
     .insert(data)
     .select()
     .single();
 
+  console.log('✅ Database insert response:', response);
+  
   const product = await handleSingleResponse(response);
+  console.log('✅ Product created successfully:', product);
 
   // Add tags if provided
   if (tagIds && tagIds.length > 0) {
+    console.log('🏷️ Adding tags to product:', tagIds);
     const taggings = tagIds.map(tagId => ({
       tag_id: tagId,
       taggable_id: product.id,
@@ -267,9 +275,12 @@ export async function createProduct(
     if (error) {
       console.error('Failed to add tags:', error);
       // Don't throw - product was created successfully
+    } else {
+      console.log('✅ Tags added successfully');
     }
   }
 
+  console.log('🎉 createProduct function completed, returning:', product);
   return product;
 }
 
@@ -617,6 +628,10 @@ export async function generateUniqueSlug(
   name: string,
   siteId: string
 ): Promise<string> {
+  console.log('[generateUniqueSlug] Input name:', name);
+  console.log('[generateUniqueSlug] Site ID:', siteId);
+  
+  // Generate the full base slug from the entire name
   const baseSlug = name
     .toLowerCase()
     .trim()
@@ -624,21 +639,42 @@ export async function generateUniqueSlug(
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '');
   
+  console.log('[generateUniqueSlug] Generated base slug:', baseSlug);
+  
+  // If the slug is empty after cleanup, use a fallback
+  if (!baseSlug) {
+    return 'product-' + Date.now();
+  }
+  
+  // First check if the exact slug exists
+  const { data: exactMatch } = await supabase
+    .from('products')
+    .select('slug')
+    .eq('site_id', siteId)
+    .eq('slug', baseSlug)
+    .maybeSingle();
+  
+  // If exact slug doesn't exist, use it
+  if (!exactMatch) {
+    return baseSlug;
+  }
+  
+  // Otherwise, find all slugs that match the pattern "baseSlug" or "baseSlug-N"
   const { data } = await supabase
     .from('products')
     .select('slug')
     .eq('site_id', siteId)
-    .like('slug', `${baseSlug}%`);
+    .or(`slug.eq.${baseSlug},slug.like.${baseSlug}-*`);
   
   if (!data || data.length === 0) return baseSlug;
   
   const slugs = data.map(p => p.slug);
   let counter = 1;
-  let uniqueSlug = baseSlug;
+  let uniqueSlug = `${baseSlug}-${counter}`;
   
   while (slugs.includes(uniqueSlug)) {
-    uniqueSlug = `${baseSlug}-${counter}`;
     counter++;
+    uniqueSlug = `${baseSlug}-${counter}`;
   }
   
   return uniqueSlug;

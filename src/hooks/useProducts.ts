@@ -88,37 +88,124 @@ export function useCreateProduct() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: Omit<ProductInsert, 'site_id'>) => 
-      createProduct(supabase, { ...data, site_id: siteId! }),
+    mutationFn: (data: Omit<ProductInsert, 'site_id'>) => {
+      console.log('🏭 useCreateProduct mutation called with:', { data, siteId });
+      if (!siteId) {
+        console.error('❌ Create product: siteId is missing!');
+        throw new Error('Site ID is required for product creation');
+      }
+      console.log('🔄 Calling createProduct function...');
+      return createProduct(supabase, { ...data, site_id: siteId });
+    },
     onMutate: async (newProduct) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.products.all(siteId!) });
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: queryKeys.products.lists(siteId!) });
       
-      const previousProducts = queryClient.getQueryData(queryKeys.products.all(siteId!));
+      // Snapshot the previous value
+      const previousProducts = queryClient.getQueriesData({ queryKey: queryKeys.products.lists(siteId!) });
       
-      queryClient.setQueryData(queryKeys.products.all(siteId!), (old: Product[] = []) => [
-        {
-          ...newProduct,
-          id: crypto.randomUUID(),
-          site_id: siteId!,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        } as Product,
-        ...old,
-      ]);
+      // Optimistically update to the new value
+      const tempProduct = {
+        ...newProduct,
+        id: crypto.randomUUID(),
+        site_id: siteId!,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as Product;
+      
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.products.lists(siteId!) },
+        (old: any) => {
+          if (!old) {
+            return {
+              data: [tempProduct],
+              count: 1,
+              page: 1,
+              pageSize: 12,
+              totalPages: 1,
+              hasNextPage: false,
+              hasPreviousPage: false
+            };
+          }
+          
+          if (old.data && Array.isArray(old.data)) {
+            return {
+              ...old,
+              data: [tempProduct, ...old.data],
+              count: old.count + 1,
+              totalPages: Math.ceil((old.count + 1) / old.pageSize)
+            };
+          }
+          
+          if (Array.isArray(old)) {
+            return [tempProduct, ...old];
+          }
+          
+          return old;
+        }
+      );
       
       return { previousProducts };
     },
     onError: (err, newProduct, context) => {
+      // Rollback the optimistic update on error
       if (context?.previousProducts) {
-        queryClient.setQueryData(queryKeys.products.all(siteId!), context.previousProducts);
+        context.previousProducts.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
       }
       toast.error('Failed to create product');
     },
-    onSuccess: () => {
+    onSuccess: (newProduct) => {
+      // Update the cache with the actual product from the server
+      // Handle the paginated response structure properly
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.products.lists(siteId!) },
+        (old: any) => {
+          if (!old) {
+            // If no existing data, create a new paginated response
+            return {
+              data: [newProduct],
+              count: 1,
+              page: 1,
+              pageSize: 12,
+              totalPages: 1,
+              hasNextPage: false,
+              hasPreviousPage: false
+            };
+          }
+          
+          // If it's a paginated response, add the new product to the beginning
+          if (old.data && Array.isArray(old.data)) {
+            return {
+              ...old,
+              data: [newProduct, ...old.data],
+              count: old.count + 1,
+              totalPages: Math.ceil((old.count + 1) / old.pageSize)
+            };
+          }
+          
+          // If it's just an array (shouldn't happen but handle it)
+          if (Array.isArray(old)) {
+            return [newProduct, ...old];
+          }
+          
+          return old;
+        }
+      );
+      
       toast.success('Product created successfully');
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
+      // Invalidate and refetch immediately
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.products.all(siteId!),
+        refetchType: 'all' 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.products.list(siteId!),
+        refetchType: 'all' 
+      });
     },
   });
 }
@@ -337,8 +424,15 @@ export function useSkuValidation() {
   
   return useMutation({
     mutationFn: async ({ sku, excludeId }: { sku: string; excludeId?: string }) => {
-      if (!siteId || !sku) return true;
-      return checkSkuAvailability(supabase, siteId, sku, excludeId);
+      console.log('🔍 SKU validation called with:', { sku, excludeId, siteId });
+      if (!siteId || !sku) {
+        console.log('❌ SKU validation: missing siteId or sku');
+        return true;
+      }
+      console.log('🔄 Checking SKU availability...');
+      const result = await checkSkuAvailability(supabase, siteId, sku, excludeId);
+      console.log('✅ SKU availability result:', result);
+      return result;
     },
   });
 }
@@ -349,8 +443,15 @@ export function useSlugGeneration() {
   
   return useMutation({
     mutationFn: async (name: string) => {
-      if (!siteId || !name) return '';
-      return generateUniqueSlug(supabase, name, siteId);
+      console.log('🏷️ Slug generation called with:', { name, siteId });
+      if (!siteId || !name) {
+        console.log('❌ Slug generation: missing siteId or name');
+        return '';
+      }
+      console.log('🔄 Generating unique slug...');
+      const result = await generateUniqueSlug(supabase, name, siteId);
+      console.log('✅ Generated slug:', result);
+      return result;
     },
   });
 }
