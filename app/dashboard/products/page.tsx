@@ -51,6 +51,10 @@ import {
 } from '@/src/contexts/ProductSelectionContext';
 import { BulkActionsToolbar } from '@/src/components/products/BulkActionsToolbar';
 import { ImportExportDialog } from '@/src/components/products/ImportExportDialog';
+import { ProductEditModal } from '@/src/components/products/ProductEditModal';
+import { useSitePermissions, useSiteContext } from '@/src/contexts/SiteContext';
+import { useProductEdit } from '@/src/hooks/useProductEdit';
+import type { Tables } from '@/src/lib/database/types';
 
 // Lazy load the ProductCard component
 const ProductCard = lazy(() =>
@@ -80,11 +84,21 @@ function ProductsPageContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [activeTab, setActiveTab] = useState('catalogue');
+  
+  // Edit modal state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editingProductRef, setEditingProductRef] = useState<HTMLElement | null>(null);
 
   // Fetch real product data
   const { data: productsResponse, isLoading } = useProducts();
   const { data: categoriesData = [] } = useProductCategories();
   const updateProduct = useUpdateProduct();
+  
+  // Permissions and edit functionality
+  const { canEdit } = useSitePermissions();
+  const { currentSite } = useSiteContext();
+  const productEdit = useProductEdit();
 
   // Extract products array from response
   const products = Array.isArray(productsResponse)
@@ -160,6 +174,90 @@ function ProductsPageContent() {
       });
     },
     [updateProduct]
+  );
+
+  // Handle product edit
+  const handleProductEdit = useCallback(
+    (productId: string) => {
+      // Check permissions before allowing edit
+      if (!canEdit) {
+        toast.error('You do not have permission to edit products');
+        return;
+      }
+
+      // Find the product in our current data
+      const productToEdit = products.find(p => p.id === productId);
+      
+      if (!productToEdit) {
+        toast.error('Product not found');
+        return;
+      }
+
+      // Store reference to currently focused element for focus return
+      setEditingProductRef(document.activeElement as HTMLElement);
+
+      // Convert the product to ProductWithSite format for the modal
+      const productWithSite = {
+        ...productToEdit,
+        site_id: currentSite?.id || productToEdit.site_id,
+        site_name: currentSite?.name,
+        site_subdomain: currentSite?.subdomain
+      };
+
+      setEditingProduct(productWithSite);
+      setEditModalOpen(true);
+    },
+    [canEdit, products, currentSite]
+  );
+
+  // Handle modal close
+  const handleEditModalClose = useCallback(() => {
+    setEditModalOpen(false);
+    setEditingProduct(null);
+    setEditingProductRef(null);
+  }, []);
+
+  // Return focus to the element that triggered the edit
+  const handleReturnFocus = useCallback(() => {
+    if (editingProductRef && typeof editingProductRef.focus === 'function') {
+      try {
+        editingProductRef.focus();
+      } catch (error) {
+        // Fallback: focus the first focusable element in the page
+        const firstFocusable = document.querySelector('[tabindex="0"], button, input, select, textarea') as HTMLElement;
+        firstFocusable?.focus();
+      }
+    }
+  }, [editingProductRef]);
+
+  // Custom save handler that uses useProductEdit hook
+  const customSaveHandler = useCallback(
+    async (productId: string, updates: Partial<Tables<'products'>>): Promise<Tables<'products'>> => {
+      return new Promise((resolve, reject) => {
+        productEdit.mutate(
+          { id: productId, ...updates },
+          {
+            onSuccess: (data) => {
+              resolve(data);
+            },
+            onError: (error) => {
+              reject(error);
+            }
+          }
+        );
+      });
+    },
+    [productEdit]
+  );
+
+  // Handle product save
+  const handleProductSave = useCallback(
+    (updatedProduct: Tables<'products'>) => {
+      // Close the modal - the useProductEdit hook already handles the database update and optimistic updates
+      setEditModalOpen(false);
+      setEditingProduct(null);
+    },
+    []
   );
 
   // Memoize stats calculations
@@ -341,7 +439,10 @@ function ProductsPageContent() {
                   <Checkbox
                     checked={allSelected}
                     ref={(el) => {
-                      if (el) el.indeterminate = indeterminate;
+                      if (el) {
+                        const input = el.querySelector('input');
+                        if (input) input.indeterminate = indeterminate;
+                      }
                     }}
                     onCheckedChange={handleSelectAll}
                     className='data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600'
@@ -453,6 +554,8 @@ function ProductsPageContent() {
                         onAddToSite={handleAddToSite}
                         onRemoveFromSite={handleRemoveFromSite}
                         showSelection={showBulkSelection}
+                        onEdit={canEdit ? handleProductEdit : undefined}
+                        isEditLoading={productEdit.isPending}
                       />
                     </Suspense>
                   ))}
@@ -471,6 +574,16 @@ function ProductsPageContent() {
         open={showImportExport}
         onOpenChange={setShowImportExport}
         selectedProductIds={selectedIds}
+      />
+
+      {/* Product Edit Modal */}
+      <ProductEditModal
+        product={editingProduct}
+        isOpen={editModalOpen}
+        onClose={handleEditModalClose}
+        onSave={handleProductSave}
+        customSaveHandler={customSaveHandler}
+        onReturnFocus={handleReturnFocus}
       />
     </div>
   );
