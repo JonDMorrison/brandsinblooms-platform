@@ -52,3 +52,13 @@ pnpm-debug.log*
 
 .claude/
 .local/
+
+# TypeScript build info
+tsconfig.tsbuildinfo
+
+# Debug/temporary files
+debug-*.js
+debug-*.ts
+
+# Supabase config (local development)
+supabase/config/
