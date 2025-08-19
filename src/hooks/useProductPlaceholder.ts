@@ -5,7 +5,7 @@ import { useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { queryKeys } from '@/lib/queries/keys';
 import { useSiteId } from '@/contexts/SiteContext';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from 'next-themes';
 import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
 import { handleError } from '@/lib/types/error-handling';
 import {

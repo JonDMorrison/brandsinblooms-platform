@@ -57,63 +57,45 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {/* Only provide SiteContext for non-admin routes */}
-        {!isAdminRoute ? (
-          <AdminAuthProvider>
-            <AdminImpersonationProvider>
-              <SiteProvider 
-                initialHostname={initialHostname}
-                initialSiteData={initialSiteData}
-              >
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="light"
-                enableSystem={false}
-                disableTransitionOnChange
-              >
-                {/* Show impersonation banner for site routes */}
-                {impersonationData && (
-                  <ImpersonationBanner showAdminLink={true} />
-                )}
-                {children}
-                <Toaster 
-                  position="top-right" 
-                  toastOptions={{
-                    duration: 4000,
-                    style: {
-                      background: 'var(--background)',
-                      color: 'var(--foreground)',
-                      border: '1px solid var(--border)',
-                    },
-                  }}
-                />
-              </ThemeProvider>
-            </SiteProvider>
-          </AdminImpersonationProvider>
-          </AdminAuthProvider>
-        ) : (
-          <AdminAuthProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {/* Only provide SiteContext for non-admin routes */}
+          {!isAdminRoute ? (
+            <AdminAuthProvider>
+              <AdminImpersonationProvider>
+                <SiteProvider 
+                  initialHostname={initialHostname}
+                  initialSiteData={initialSiteData}
+                >
+                  {/* Show impersonation banner for site routes */}
+                  {impersonationData && (
+                    <ImpersonationBanner showAdminLink={true} />
+                  )}
+                  {children}
+                </SiteProvider>
+              </AdminImpersonationProvider>
+            </AdminAuthProvider>
+          ) : (
+            <AdminAuthProvider>
               {children}
-              <Toaster 
-                position="top-right" 
-                toastOptions={{
-                  duration: 4000,
-                  style: {
-                    background: 'var(--background)',
-                    color: 'var(--foreground)',
-                    border: '1px solid var(--border)',
-                  },
-                }}
-              />
-            </ThemeProvider>
-          </AdminAuthProvider>
-        )}
+            </AdminAuthProvider>
+          )}
+          <Toaster 
+            position="top-right" 
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: 'var(--background)',
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+              },
+            }}
+          />
+        </ThemeProvider>
       </AuthProvider>
       {process.env.NODE_ENV === 'development' && (
         <Suspense fallback={null}>
