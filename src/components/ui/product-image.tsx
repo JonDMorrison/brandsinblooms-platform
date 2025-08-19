@@ -421,13 +421,21 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
         )}
         {/* Show placeholder icon when no valid image or loading */}
         {(shouldShowPlaceholder || isSvg) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+          <div 
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              background: placeholder.type === 'gradient' && placeholder.config?.colors
+                ? `linear-gradient(135deg, ${(placeholder.config.colors as string[])[0]} 0%, ${(placeholder.config.colors as string[])[1]} 100%)`
+                : undefined,
+              backgroundColor: !placeholder.config?.colors ? 'hsl(var(--muted))' : undefined
+            }}
+          >
             {placeholder.staticFallback === 'user' ? (
-              <User className="h-12 w-12 text-muted-foreground" />
+              <User className="h-12 w-12 text-muted-foreground/60 drop-shadow-sm" />
             ) : placeholder.staticFallback === 'image' ? (
-              <ImageIcon className="h-12 w-12 text-muted-foreground" />
+              <ImageIcon className="h-12 w-12 text-muted-foreground/60 drop-shadow-sm" />
             ) : (
-              <Package className="h-12 w-12 text-muted-foreground" />
+              <Package className="h-12 w-12 text-muted-foreground/60 drop-shadow-sm" />
             )}
           </div>
         )}
