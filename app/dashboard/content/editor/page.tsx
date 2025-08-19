@@ -353,8 +353,8 @@ export default function PageEditorPage() {
             </Button>
             <Separator orientation="vertical" className="h-8" />
             <div className="flex items-center gap-3">
-              <div className="p-1.5 rounded-md bg-blue-100 dark:bg-blue-900">
-                <LayoutIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <div className="p-1.5 rounded-md bg-blue-100 ">
+                <LayoutIcon className="h-4 w-4 text-blue-600 " />
               </div>
               <div>
                 <div className="flex items-center gap-2">

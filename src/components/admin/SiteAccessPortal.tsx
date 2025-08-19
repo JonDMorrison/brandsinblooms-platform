@@ -163,8 +163,8 @@ export function SiteAccessPortal({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
-              <Globe className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 ">
+              <Globe className="h-5 w-5 text-green-600 " />
             </div>
             <div>
               <CardTitle className="text-lg">Site Access Portal</CardTitle>
@@ -227,12 +227,12 @@ export function SiteAccessPortal({
 
               {/* Impersonated URL (if active) */}
               {isImpersonatingThisSite && (
-                <div className="flex items-center gap-2 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                <div className="flex items-center gap-2 p-3 bg-orange-50  rounded-lg border border-orange-200 ">
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-orange-900 dark:text-orange-100">
+                    <div className="text-sm font-medium text-orange-900 ">
                       Impersonated URL
                     </div>
-                    <div className="text-xs text-orange-700 dark:text-orange-300 font-mono truncate">
+                    <div className="text-xs text-orange-700  font-mono truncate">
                       {impersonatedUrl}
                     </div>
                   </div>
@@ -240,7 +240,7 @@ export function SiteAccessPortal({
                     variant="ghost"
                     size="sm"
                     onClick={() => copyUrl(impersonatedUrl, 'Impersonated URL')}
-                    className="shrink-0 text-orange-700 hover:text-orange-900 dark:text-orange-300 dark:hover:text-orange-100"
+                    className="shrink-0 text-orange-700 hover:text-orange-900  "
                   >
                     {copiedUrl === impersonatedUrl ? (
                       <CheckCircle className="h-4 w-4 text-green-600" />
@@ -256,9 +256,9 @@ export function SiteAccessPortal({
 
             {/* Error Display */}
             {error && (
-              <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
+              <Alert className="border-red-200 bg-red-50  ">
                 <AlertCircle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-800 dark:text-red-200">
+                <AlertDescription className="text-red-800 ">
                   {error}
                 </AlertDescription>
               </Alert>

@@ -68,7 +68,7 @@ export function NotificationEmpty({
             </div>
           </div>
           <div className="absolute -bottom-1 -left-3">
-            <div className="rounded-full bg-green-100 dark:bg-green-900 p-2">
+            <div className="rounded-full bg-green-100  p-2">
               <CheckCircle className="h-4 w-4 text-green-600" />
             </div>
           </div>
@@ -107,7 +107,7 @@ export function NotificationEmpty({
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
             <div className="flex items-start gap-3">
-              <div className="rounded-md bg-blue-100 dark:bg-blue-900 p-2 flex-shrink-0">
+              <div className="rounded-md bg-blue-100  p-2 flex-shrink-0">
                 <Bell className="h-4 w-4 text-blue-600" />
               </div>
               <div>
@@ -119,7 +119,7 @@ export function NotificationEmpty({
             </div>
             
             <div className="flex items-start gap-3">
-              <div className="rounded-md bg-green-100 dark:bg-green-900 p-2 flex-shrink-0">
+              <div className="rounded-md bg-green-100  p-2 flex-shrink-0">
                 <BellRing className="h-4 w-4 text-green-600" />
               </div>
               <div>
@@ -131,7 +131,7 @@ export function NotificationEmpty({
             </div>
             
             <div className="flex items-start gap-3">
-              <div className="rounded-md bg-purple-100 dark:bg-purple-900 p-2 flex-shrink-0">
+              <div className="rounded-md bg-purple-100  p-2 flex-shrink-0">
                 <Sparkles className="h-4 w-4 text-purple-600" />
               </div>
               <div>

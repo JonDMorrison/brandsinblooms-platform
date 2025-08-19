@@ -22,15 +22,15 @@ function PaymentStatusBadge({ status }: { status: string | null }) {
   const getStatusConfig = (status: string) => {
     switch (status.toLowerCase()) {
       case 'paid':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+        return 'bg-green-100 text-green-800'
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+        return 'bg-yellow-100 text-yellow-800'
       case 'failed':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+        return 'bg-red-100 text-red-800'
       case 'refunded':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+        return 'bg-gray-100 text-gray-800'
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -144,10 +144,10 @@ export default function OrderDetailPage() {
           </div>
         </div>
         
-        <Card className="border-red-200 dark:border-red-800">
+        <Card className="border-red-200">
           <CardContent className="p-8 text-center">
             <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="font-medium text-red-600 dark:text-red-400 mb-2">Failed to Load Order</h3>
+            <h3 className="font-medium text-red-600 mb-2">Failed to Load Order</h3>
             <p className="text-sm text-muted-foreground mb-4">
               {error instanceof Error ? error.message : 'The order could not be found or loaded'}
             </p>
@@ -181,10 +181,10 @@ export default function OrderDetailPage() {
           </div>
         </div>
         
-        <Card className="border-gray-200 dark:border-gray-800">
+        <Card className="border-gray-200">
           <CardContent className="p-8 text-center">
             <Package className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-            <h3 className="font-medium text-gray-600 dark:text-gray-400 mb-2">Order Not Found</h3>
+            <h3 className="font-medium text-gray-600 mb-2">Order Not Found</h3>
             <p className="text-sm text-muted-foreground mb-4">
               The order could not be found or you don't have permission to view it.
             </p>

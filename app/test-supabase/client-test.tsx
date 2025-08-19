@@ -30,12 +30,12 @@ export default function ClientTest() {
   }, [])
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+    <div className="bg-gray-100  p-4 rounded-lg">
       <h2 className="text-lg font-semibold mb-2">Browser Client Test</h2>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
+      <p className="text-sm text-gray-600 ">
         Browser client: {status}
       </p>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
+      <p className="text-sm text-gray-600 ">
         Session check: {error ? `❌ ${error}` : session ? `✅ User: ${session.user.email}` : '✅ No session (not logged in)'}
       </p>
     </div>

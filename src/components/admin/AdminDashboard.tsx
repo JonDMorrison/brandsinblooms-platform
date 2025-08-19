@@ -107,8 +107,8 @@ export function AdminDashboard() {
           <Card className="group hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                  <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 ">
+                  <Globe className="h-5 w-5 text-blue-600 " />
                 </div>
                 <div>
                   <CardTitle className="text-lg">Sites Management</CardTitle>
@@ -149,8 +149,8 @@ export function AdminDashboard() {
           <Card className="group hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
-                  <Users className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 ">
+                  <Users className="h-5 w-5 text-green-600 " />
                 </div>
                 <div>
                   <CardTitle className="text-lg">User Management</CardTitle>
@@ -182,8 +182,8 @@ export function AdminDashboard() {
           <Card className="group hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
-                  <Activity className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 ">
+                  <Activity className="h-5 w-5 text-indigo-600 " />
                 </div>
                 <div>
                   <CardTitle className="text-lg">Analytics & Monitoring</CardTitle>
@@ -224,8 +224,8 @@ export function AdminDashboard() {
           <Card className="group hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/20">
-                  <Settings className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 ">
+                  <Settings className="h-5 w-5 text-purple-600 " />
                 </div>
                 <div>
                   <CardTitle className="text-lg">Platform Settings</CardTitle>

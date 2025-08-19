@@ -249,17 +249,17 @@ export function SectionManager({
             <div className="text-lg font-medium">{sectionStats.total}</div>
             <div className="text-xs text-muted-foreground">Total</div>
           </div>
-          <div className="text-center p-2 bg-blue-50 dark:bg-blue-950 rounded">
-            <div className="text-lg font-medium text-blue-600 dark:text-blue-400">
+          <div className="text-center p-2 bg-blue-50 rounded">
+            <div className="text-lg font-medium text-blue-600">
               {sectionStats.visible}
             </div>
-            <div className="text-xs text-blue-600 dark:text-blue-400">Visible</div>
+            <div className="text-xs text-blue-600">Visible</div>
           </div>
-          <div className="text-center p-2 bg-green-50 dark:bg-green-950 rounded">
-            <div className="text-lg font-medium text-green-600 dark:text-green-400">
+          <div className="text-center p-2 bg-green-50 rounded">
+            <div className="text-lg font-medium text-green-600">
               {sectionStats.completed}
             </div>
-            <div className="text-xs text-green-600 dark:text-green-400">Complete</div>
+            <div className="text-xs text-green-600">Complete</div>
           </div>
         </div>
       </div>

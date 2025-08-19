@@ -27,21 +27,21 @@ export interface ContentItem {
 const getStatusColor = (status: ContentItem['status']) => {
   switch (status) {
     case 'published':
-      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+      return 'bg-green-100 text-green-800  '
     case 'draft':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+      return 'bg-yellow-100 text-yellow-800  '
     case 'archived':
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+      return 'bg-gray-100 text-gray-800  '
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+      return 'bg-gray-100 text-gray-800  '
   }
 }
 
 const getTypeIcon = (type: ContentItem['type']) => {
   return type === 'blog' ? (
-    <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded text-blue-600 dark:text-blue-300 text-xs font-medium">B</span>
+    <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100  rounded text-blue-600  text-xs font-medium">B</span>
   ) : (
-    <span className="inline-flex items-center justify-center w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded text-purple-600 dark:text-purple-300 text-xs font-medium">P</span>
+    <span className="inline-flex items-center justify-center w-6 h-6 bg-purple-100  rounded text-purple-600  text-xs font-medium">P</span>
   )
 }
 

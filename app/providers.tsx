@@ -67,8 +67,8 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
               >
               <ThemeProvider
                 attribute="class"
-                defaultTheme="system"
-                enableSystem
+                defaultTheme="light"
+                enableSystem={false}
                 disableTransitionOnChange
               >
                 {/* Show impersonation banner for site routes */}

@@ -125,9 +125,9 @@ export default function SiteAccessPage() {
         <ImpersonationBanner />
         <ImpersonationSpacer>
           <div className="mx-auto max-w-7xl px-6 py-8">
-            <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
+            <Alert className="border-red-200 bg-red-50  ">
               <AlertTriangle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800 dark:text-red-200">
+              <AlertDescription className="text-red-800 ">
                 {error || 'Site not found'}
               </AlertDescription>
             </Alert>

@@ -264,7 +264,7 @@ export default function CreateContentPage() {
               w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
               ${step >= stepNumber 
                 ? 'bg-blue-600 text-white' 
-                : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                : 'bg-gray-200 text-gray-600  '
               }
             `}>
               {step > stepNumber ? <Check className="h-4 w-4" /> : stepNumber}
@@ -272,7 +272,7 @@ export default function CreateContentPage() {
             {stepNumber < 3 && (
               <div className={`
                 w-12 h-1 mx-2
-                ${step > stepNumber ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}
+                ${step > stepNumber ? 'bg-blue-600' : 'bg-gray-200 '}
               `} />
             )}
           </div>
@@ -354,8 +354,8 @@ export default function CreateContentPage() {
                       className={`
                         relative p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md
                         ${selectedLayout === layout.id 
-                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-950' 
-                          : 'border-gray-200 dark:border-gray-700'
+                          ? 'border-blue-600 bg-blue-50 ' 
+                          : 'border-gray-200 '
                         }
                       `}
                       onClick={() => handleLayoutSelect(layout.id)}
@@ -372,7 +372,7 @@ export default function CreateContentPage() {
                           p-2 rounded-md 
                           ${selectedLayout === layout.id 
                             ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                            : 'bg-gray-100 text-gray-600  '
                           }
                         `}>
                           {layout.icon}
@@ -380,18 +380,18 @@ export default function CreateContentPage() {
                         
                         <div className="flex-1">
                           <h3 className={`font-semibold text-lg ${
-                            selectedLayout === layout.id ? 'text-blue-900 dark:text-blue-100' : ''
+                            selectedLayout === layout.id ? 'text-blue-900 ' : ''
                           }`}>{layout.name}</h3>
                           <p className={`text-sm mb-2 ${
                             selectedLayout === layout.id 
-                              ? 'text-blue-800 dark:text-blue-200' 
+                              ? 'text-blue-800 ' 
                               : 'text-muted-foreground'
                           }`}>
                             {layout.description}
                           </p>
                           <p className={`text-xs mb-3 ${
                             selectedLayout === layout.id 
-                              ? 'text-blue-700 dark:text-blue-300' 
+                              ? 'text-blue-700 ' 
                               : 'text-muted-foreground'
                           }`}>
                             {layout.preview}
@@ -404,7 +404,7 @@ export default function CreateContentPage() {
                                 variant="outline" 
                                 className={`text-xs ${
                                   selectedLayout === layout.id 
-                                    ? 'border-blue-600 text-blue-800 dark:text-blue-200 dark:border-blue-400' 
+                                    ? 'border-blue-600 text-blue-800  ' 
                                     : ''
                                 }`}
                               >

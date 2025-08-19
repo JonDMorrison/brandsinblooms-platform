@@ -101,8 +101,8 @@ export function SectionEditor({
         )}>
           {/* Content Warning for Hidden Sections */}
           {!section.isVisible && (
-            <div className="px-6 py-3 bg-amber-50 border-b border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
-              <p className="text-sm text-amber-800 dark:text-amber-200">
+            <div className="px-6 py-3 bg-amber-50 border-b border-amber-200">
+              <p className="text-sm text-amber-800">
                 This section is hidden and will not be visible to visitors.
                 Enable visibility to make it accessible.
               </p>

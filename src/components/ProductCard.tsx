@@ -42,9 +42,9 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
   }
 
   const stockColors = {
-    'in-stock': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-    'low-stock': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-    'out-of-stock': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+    'in-stock': 'bg-green-100 text-green-800  ',
+    'low-stock': 'bg-yellow-100 text-yellow-800  ',
+    'out-of-stock': 'bg-red-100 text-red-800  '
   }
 
   const stockLabels = {
@@ -60,7 +60,7 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
         className={`h-3 w-3 ${
           i < Math.floor(rating) 
             ? 'fill-yellow-400 text-yellow-400' 
-            : 'text-gray-300 dark:text-gray-600'
+            : 'text-gray-300 '
         }`}
       />
     ))
@@ -83,7 +83,7 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
             )}
             
             {/* Product Image */}
-            <div className="w-20 h-20 bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900 dark:to-purple-900 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-20 h-20 bg-gradient-to-br from-pink-100 to-purple-100   rounded-lg flex items-center justify-center flex-shrink-0">
               <Package className="h-8 w-8 text-gray-500" />
             </div>
 
@@ -175,14 +175,14 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
             <Checkbox
               checked={selected}
               onCheckedChange={handleSelectionChange}
-              className="bg-white dark:bg-gray-800 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+              className="bg-white  data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
             />
           </div>
         )}
         
         {/* Product Image */}
         <div className="relative mb-4">
-          <div className="aspect-square bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900 dark:to-purple-900 rounded-lg flex items-center justify-center">
+          <div className="aspect-square bg-gradient-to-br from-pink-100 to-purple-100   rounded-lg flex items-center justify-center">
             <Package className="h-12 w-12 text-gray-500" />
           </div>
           
@@ -199,10 +199,10 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
           {/* Hover Actions */}
           {isHovered && (
             <div className="absolute top-2 right-2 flex flex-col gap-1">
-              <Button variant="outline" size="icon" className="h-8 w-8 bg-white dark:bg-gray-800">
+              <Button variant="outline" size="icon" className="h-8 w-8 bg-white ">
                 <Heart className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8 bg-white dark:bg-gray-800">
+              <Button variant="outline" size="icon" className="h-8 w-8 bg-white ">
                 <Eye className="h-4 w-4" />
               </Button>
             </div>

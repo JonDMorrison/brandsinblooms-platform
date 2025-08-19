@@ -153,17 +153,17 @@ export function SiteImpersonationControls({
 
   if (isImpersonatingThisSite) {
     return (
-      <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/20">
+      <Card className="border-orange-200 bg-orange-50  ">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30">
-              <UserCheck className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 ">
+              <UserCheck className="h-5 w-5 text-orange-600 " />
             </div>
             <div>
-              <CardTitle className="text-lg text-orange-900 dark:text-orange-100">
+              <CardTitle className="text-lg text-orange-900 ">
                 Active Impersonation
               </CardTitle>
-              <CardDescription className="text-orange-700 dark:text-orange-300">
+              <CardDescription className="text-orange-700 ">
                 You are currently viewing this site as an admin
               </CardDescription>
             </div>
@@ -233,9 +233,9 @@ export function SiteImpersonationControls({
 
             {/* Warning for expiring session */}
             {session && new Date(session.expires_at).getTime() - Date.now() < 10 * 60 * 1000 && (
-              <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
+              <Alert className="border-amber-200 bg-amber-50  ">
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-800 dark:text-amber-200">
+                <AlertDescription className="text-amber-800 ">
                   This impersonation session will expire soon. You may need to start a new session to continue.
                 </AlertDescription>
               </Alert>
@@ -250,8 +250,8 @@ export function SiteImpersonationControls({
     <Card>
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-            <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 ">
+            <Eye className="h-5 w-5 text-blue-600 " />
           </div>
           <div>
             <CardTitle className="text-lg">Site Impersonation</CardTitle>
@@ -289,9 +289,9 @@ export function SiteImpersonationControls({
 
           {/* Error Display */}
           {error && (
-            <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
+            <Alert className="border-red-200 bg-red-50  ">
               <AlertTriangle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800 dark:text-red-200">
+              <AlertDescription className="text-red-800 ">
                 {error}
               </AlertDescription>
             </Alert>

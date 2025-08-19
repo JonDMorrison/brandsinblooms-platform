@@ -64,10 +64,10 @@ export function OrderStats({ className }: OrderStatsProps) {
   if (error) {
     return (
       <div className={`space-y-4 ${className || ''}`}>
-        <Card className="fade-in-up border-red-200 dark:border-red-800">
+        <Card className="fade-in-up border-red-200 ">
           <CardContent className="p-4 text-center">
             <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-            <h3 className="font-medium text-red-600 dark:text-red-400">Failed to Load Order Stats</h3>
+            <h3 className="font-medium text-red-600 ">Failed to Load Order Stats</h3>
             <p className="text-sm text-muted-foreground mt-1">
               {error instanceof Error ? error.message : 'An error occurred while loading order statistics'}
             </p>
@@ -144,33 +144,33 @@ export function OrderStats({ className }: OrderStatsProps) {
       title: 'Processing',
       value: metrics.processingOrders,
       icon: Package,
-      color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+      color: 'bg-yellow-100 text-yellow-800  '
     },
     {
       title: 'Shipped',
       value: metrics.shippedOrders,
       icon: Truck,
-      color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+      color: 'bg-blue-100 text-blue-800  '
     },
     {
       title: 'Delivered',
       value: metrics.deliveredOrders,
       icon: CheckCircle,
-      color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+      color: 'bg-green-100 text-green-800  '
     },
     {
       title: 'Cancelled',
       value: metrics.cancelledOrders,
       icon: XCircle,
-      color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+      color: 'bg-red-100 text-red-800  '
     }
   ]
 
   const colorClasses = {
-    blue: 'bg-blue-100 dark:bg-blue-900 text-blue-600',
-    green: 'bg-green-100 dark:bg-green-900 text-green-600',
-    purple: 'bg-purple-100 dark:bg-purple-900 text-purple-600',
-    emerald: 'bg-emerald-100 dark:bg-emerald-900 text-emerald-600'
+    blue: 'bg-blue-100  text-blue-600',
+    green: 'bg-green-100  text-green-600',
+    purple: 'bg-purple-100  text-purple-600',
+    emerald: 'bg-emerald-100  text-emerald-600'
   }
 
   return (

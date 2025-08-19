@@ -23,7 +23,7 @@ interface ContactServicesPreviewProps {
 
 export function ContactServicesPreview({ title, subtitle }: ContactServicesPreviewProps) {
   return (
-    <div className="w-full h-full bg-gray-50 dark:bg-gray-900 p-6 space-y-8">
+    <div className="w-full h-full bg-gray-50  p-6 space-y-8">
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold">{title}</h1>
@@ -125,7 +125,7 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
                 const Icon = service.icon
                 return (
                   <div key={i} className="flex items-start gap-3">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-md">
+                    <div className="p-2 bg-blue-100  rounded-md">
                       <Icon className="h-4 w-4 text-blue-600" />
                     </div>
                     <div className="flex-1">
@@ -141,7 +141,7 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
           {/* Map Placeholder */}
           <Card className="p-6">
             <h2 className="text-xl font-bold mb-4">Find Us</h2>
-            <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 rounded-lg flex items-center justify-center">
+            <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100   rounded-lg flex items-center justify-center">
               <div className="text-center">
                 <MapPin className="h-8 w-8 mx-auto mb-2 text-blue-600" />
                 <span className="text-muted-foreground">Interactive Map</span>

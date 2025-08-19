@@ -105,7 +105,7 @@ export function OrderEmptyState({
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
             <div className="flex items-start gap-3">
-              <div className="rounded-md bg-blue-100 dark:bg-blue-900 p-2 flex-shrink-0">
+              <div className="rounded-md bg-blue-100  p-2 flex-shrink-0">
                 <Package className="h-4 w-4 text-blue-600" />
               </div>
               <div>
@@ -117,7 +117,7 @@ export function OrderEmptyState({
             </div>
             
             <div className="flex items-start gap-3">
-              <div className="rounded-md bg-green-100 dark:bg-green-900 p-2 flex-shrink-0">
+              <div className="rounded-md bg-green-100  p-2 flex-shrink-0">
                 <Search className="h-4 w-4 text-green-600" />
               </div>
               <div>
@@ -129,7 +129,7 @@ export function OrderEmptyState({
             </div>
             
             <div className="flex items-start gap-3">
-              <div className="rounded-md bg-purple-100 dark:bg-purple-900 p-2 flex-shrink-0">
+              <div className="rounded-md bg-purple-100  p-2 flex-shrink-0">
                 <ShoppingCart className="h-4 w-4 text-purple-600" />
               </div>
               <div>

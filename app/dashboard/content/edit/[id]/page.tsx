@@ -161,7 +161,7 @@ export default function EditContentPage() {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="border-b bg-white dark:bg-gray-900 px-6 py-4">
+      <div className="border-b bg-white  px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={() => router.push('/dashboard/content')}>
@@ -264,7 +264,7 @@ export default function EditContentPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar (Edit Mode) */}
         {!isPreviewMode && (
-          <div className="w-80 border-r bg-gray-50 dark:bg-gray-900 overflow-y-auto">
+          <div className="w-80 border-r bg-gray-50  overflow-y-auto">
             <div className="p-6">
               <Tabs defaultValue="layout" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
@@ -287,8 +287,8 @@ export default function EditContentPage() {
                             className={`
                               p-3 border rounded-lg cursor-pointer transition-all hover:shadow-sm
                               ${isActive 
-                                ? 'border-blue-600 bg-blue-50 dark:bg-blue-950' 
-                                : 'border-gray-200 dark:border-gray-700'
+                                ? 'border-blue-600 bg-blue-50 ' 
+                                : 'border-gray-200 '
                               }
                             `}
                             onClick={() => handleLayoutChange(layoutKey as LayoutType)}
@@ -298,7 +298,7 @@ export default function EditContentPage() {
                                 p-2 rounded-md 
                                 ${isActive 
                                   ? 'bg-blue-600 text-white' 
-                                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                                  : 'bg-gray-100 text-gray-600  '
                                 }
                               `}>
                                 <Icon className="h-4 w-4" />
@@ -357,10 +357,10 @@ export default function EditContentPage() {
         )}
 
         {/* Preview Area */}
-        <div className="flex-1 bg-gray-100 dark:bg-gray-800 p-6 overflow-auto">
+        <div className="flex-1 bg-gray-100  p-6 overflow-auto">
           <div className="flex justify-center">
             <div 
-              className="bg-white dark:bg-gray-900 shadow-lg rounded-lg overflow-hidden transition-all duration-300"
+              className="bg-white  shadow-lg rounded-lg overflow-hidden transition-all duration-300"
               style={{ 
                 width: viewportSizes[activeViewport].width,
                 minHeight: '600px',
@@ -377,7 +377,7 @@ export default function EditContentPage() {
       </div>
 
       {/* Status Bar */}
-      <div className="border-t bg-gray-50 dark:bg-gray-900 px-6 py-2">
+      <div className="border-t bg-gray-50  px-6 py-2">
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-4">
             <span>Layout: {layoutInfo[pageData.layout].name}</span>

@@ -186,7 +186,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                     key={notification.id}
                     className={cn(
                       "px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer",
-                      isUnread && "bg-blue-50/20 dark:bg-blue-950/10"
+                      isUnread && "bg-blue-50/20 "
                     )}
                     onClick={() => handleNotificationClick(notification.id, notification.is_read)}
                   >

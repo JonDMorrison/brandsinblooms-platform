@@ -102,8 +102,8 @@ export function ActiveImpersonationSessions() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
-              <UserCheck className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 ">
+              <UserCheck className="h-5 w-5 text-orange-600 " />
             </div>
             <div>
               <CardTitle className="text-lg">Active Impersonation Sessions</CardTitle>
@@ -130,8 +130,8 @@ export function ActiveImpersonationSessions() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
-              <UserCheck className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 ">
+              <UserCheck className="h-5 w-5 text-orange-600 " />
             </div>
             <div>
               <CardTitle className="text-lg">Active Impersonation Sessions</CardTitle>
@@ -162,14 +162,14 @@ export function ActiveImpersonationSessions() {
       <CardContent>
         {/* Error Display */}
         {error && (
-          <Alert className="mb-4 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
+          <Alert className="mb-4 border-red-200 bg-red-50  ">
             <AlertTriangle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800 dark:text-red-200">
+            <AlertDescription className="text-red-800 ">
               {error}
               <Button
                 variant="link"
                 onClick={clearError}
-                className="h-auto p-0 ml-2 text-red-800 dark:text-red-200"
+                className="h-auto p-0 ml-2 text-red-800 "
               >
                 Dismiss
               </Button>
@@ -195,7 +195,7 @@ export function ActiveImpersonationSessions() {
                 key={session.id}
                 className={`p-4 rounded-lg border ${
                   isExpiringSoon(session.expires_at)
-                    ? 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20'
+                    ? 'border-amber-200 bg-amber-50  '
                     : 'border-border bg-card'
                 }`}
               >

@@ -52,7 +52,7 @@ export function NotificationBadge({
         ],
         variant === 'secondary' && 'bg-gray-500',
         variant === 'outline' && 'bg-white text-gray-900 border border-gray-300',
-        variant === 'default' && 'bg-gray-900 text-white dark:bg-white dark:text-gray-900',
+        variant === 'default' && 'bg-gray-900 text-white  ',
         className
       )}
     >

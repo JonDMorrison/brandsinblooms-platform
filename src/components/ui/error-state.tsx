@@ -27,8 +27,8 @@ export function ErrorState({
     <div className="flex items-center justify-center min-h-[400px] p-4">
       <Card className="w-full max-w-md text-center">
         <CardHeader>
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-            <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 ">
+            <AlertCircle className="h-6 w-6 text-red-600 " />
           </div>
           <CardTitle className="mt-4">{title}</CardTitle>
           <CardDescription>{description}</CardDescription>

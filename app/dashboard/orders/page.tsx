@@ -179,9 +179,9 @@ export default function OrdersPage() {
             <p className="text-muted-foreground">Manage your orders and track performance</p>
           </div>
         </div>
-        <Card className="border-red-200 dark:border-red-800">
+        <Card className="border-red-200 ">
           <CardContent className="p-8 text-center">
-            <h3 className="font-medium text-red-600 dark:text-red-400 mb-2">Failed to Load Orders</h3>
+            <h3 className="font-medium text-red-600  mb-2">Failed to Load Orders</h3>
             <p className="text-sm text-muted-foreground mb-4">
               {error instanceof Error ? error.message : 'An error occurred while loading orders'}
             </p>

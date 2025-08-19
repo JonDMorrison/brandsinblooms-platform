@@ -23,8 +23,8 @@ export function MobileCard({
   compact = false
 }: MobileCardProps) {
   const trendColors = {
-    positive: 'text-green-600 dark:text-green-400',
-    negative: 'text-red-600 dark:text-red-400',
+    positive: 'text-green-600 ',
+    negative: 'text-red-600 ',
     neutral: 'text-muted-foreground'
   }
 

@@ -229,7 +229,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                 <div className="space-y-4">
                   {order.order_items.map((item: any) => (
                     <div key={item.id} className="flex items-center gap-4 p-3 border rounded-lg">
-                      <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
                         <Package className="h-6 w-6 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
@@ -300,8 +300,8 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                     <span>Status</span>
                     <Badge className={
                       order.payment_status === 'paid' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
                     }>
                       {order.payment_status || 'pending'}
                     </Badge>
