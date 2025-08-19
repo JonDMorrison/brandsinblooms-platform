@@ -8,9 +8,11 @@ import { Database, Tables, TablesUpdate } from '@/lib/database/types';
 import { 
   handleQueryResponse, 
   handleSingleResponse,
-  filterUndefined
+  filterUndefined,
+  withRetry
 } from '../base';
 import { SupabaseError } from '../errors';
+import { handleError } from '@/lib/types/error-handling';
 
 type Product = Tables<'products'>;
 type UpdateProduct = TablesUpdate<'products'>;
@@ -51,7 +53,7 @@ export interface ProductExportData {
 }
 
 /**
- * Bulk update products
+ * Bulk update products using atomic RPC function
  */
 export async function bulkUpdateProducts(
   supabase: SupabaseClient<Database>,
@@ -63,23 +65,37 @@ export async function bulkUpdateProducts(
     throw new Error('No products selected for update');
   }
 
-  const filteredUpdates = filterUndefined({
-    ...updates,
-    updated_at: new Date().toISOString(),
-  });
+  const filteredUpdates = filterUndefined(updates);
 
-  const response = await supabase
-    .from('products')
-    .update(filteredUpdates)
-    .eq('site_id', siteId)
-    .in('id', productIds)
-    .select();
+  try {
+    const { data, error } = await withRetry(
+      () => supabase.rpc('bulk_update_products_atomic', {
+        p_site_id: siteId,
+        p_product_ids: productIds,
+        p_updates: filteredUpdates
+      }),
+      3,
+      1000
+    );
 
-  return handleQueryResponse(response);
+    if (error) {
+      throw SupabaseError.fromPostgrestError(error);
+    }
+
+    if (!data || !data.success) {
+      throw new Error(data?.error || 'Bulk update failed');
+    }
+
+    return data.products as Product[];
+  } catch (error) {
+    const { message } = handleError(error);
+    console.error('Bulk update failed:', error);
+    throw new Error(`Failed to update products: ${message}`);
+  }
 }
 
 /**
- * Bulk delete products
+ * Bulk delete products using atomic RPC function
  */
 export async function bulkDeleteProducts(
   supabase: SupabaseClient<Database>,
@@ -90,27 +106,63 @@ export async function bulkDeleteProducts(
     throw new Error('No products selected for deletion');
   }
 
-  // Delete associated taggings first
-  await supabase
-    .from('taggings')
-    .delete()
-    .in('taggable_id', productIds)
-    .eq('taggable_type', 'product');
+  try {
+    const { data, error } = await withRetry(
+      () => supabase.rpc('bulk_delete_products_atomic', {
+        p_site_id: siteId,
+        p_product_ids: productIds
+      }),
+      3,
+      1000
+    );
 
-  // Delete products
-  const response = await supabase
-    .from('products')
-    .delete()
-    .eq('site_id', siteId)
-    .in('id', productIds);
+    if (error) {
+      throw SupabaseError.fromPostgrestError(error);
+    }
 
-  if (response.error) {
-    throw SupabaseError.fromPostgrestError(response.error);
+    if (!data || !data.success) {
+      throw new Error(data?.error || 'Bulk delete failed');
+    }
+
+    // Clean up storage if image URLs returned (non-blocking)
+    if (data.image_urls && Array.isArray(data.image_urls) && data.image_urls.length > 0) {
+      cleanupProductImages(supabase, data.image_urls).catch(console.error);
+    }
+  } catch (error) {
+    const { message } = handleError(error);
+    console.error('Bulk delete failed:', error);
+    throw new Error(`Failed to delete products: ${message}`);
   }
 }
 
 /**
- * Bulk duplicate products
+ * Helper function to clean up product images from storage
+ */
+async function cleanupProductImages(
+  supabase: SupabaseClient<Database>,
+  imageUrls: string[]
+): Promise<void> {
+  const bucket = 'product-images';
+  
+  for (const url of imageUrls) {
+    if (!url) continue;
+    
+    try {
+      // Extract path from URL
+      const urlObj = new URL(url);
+      const path = urlObj.pathname.split('/').pop();
+      
+      if (path) {
+        await supabase.storage.from(bucket).remove([path]);
+      }
+    } catch (error) {
+      console.error('Failed to delete image:', url, error);
+    }
+  }
+}
+
+/**
+ * Bulk duplicate products using atomic RPC function
  */
 export async function bulkDuplicateProducts(
   supabase: SupabaseClient<Database>,
@@ -121,42 +173,34 @@ export async function bulkDuplicateProducts(
     throw new Error('No products selected for duplication');
   }
 
-  // Get products to duplicate
-  const { data: productsToClone, error: fetchError } = await supabase
-    .from('products')
-    .select('*')
-    .eq('site_id', siteId)
-    .in('id', productIds);
+  try {
+    const { data, error } = await withRetry(
+      () => supabase.rpc('bulk_duplicate_products_atomic', {
+        p_site_id: siteId,
+        p_product_ids: productIds
+      }),
+      3,
+      1000
+    );
 
-  if (fetchError) {
-    throw SupabaseError.fromPostgrestError(fetchError);
+    if (error) {
+      throw SupabaseError.fromPostgrestError(error);
+    }
+
+    if (!data || !data.success) {
+      throw new Error(data?.error || 'Bulk duplicate failed');
+    }
+
+    return data.products as Product[];
+  } catch (error) {
+    const { message } = handleError(error);
+    console.error('Bulk duplicate failed:', error);
+    throw new Error(`Failed to duplicate products: ${message}`);
   }
-
-  if (!productsToClone || productsToClone.length === 0) {
-    throw new Error('No products found to duplicate');
-  }
-
-  // Create duplicates
-  const duplicates = productsToClone.map((product, index) => {
-    const { id, created_at, updated_at, ...productData } = product;
-    return {
-      ...productData,
-      name: `${product.name} (Copy${index > 0 ? ` ${index + 1}` : ''})`,
-      sku: product.sku ? `${product.sku}-copy-${Date.now()}-${index}` : null,
-      is_active: false, // New duplicates start as inactive
-    };
-  });
-
-  const response = await supabase
-    .from('products')
-    .insert(duplicates)
-    .select();
-
-  return handleQueryResponse(response);
 }
 
 /**
- * Bulk update prices
+ * Bulk update prices using atomic RPC function
  */
 export async function bulkUpdatePrices(
   supabase: SupabaseClient<Database>,
@@ -168,65 +212,70 @@ export async function bulkUpdatePrices(
     throw new Error('No products selected for price update');
   }
 
-  // Get current products to calculate new prices
-  const { data: currentProducts, error: fetchError } = await supabase
-    .from('products')
-    .select('id, price')
-    .eq('site_id', siteId)
-    .in('id', productIds);
+  try {
+    // Get current products to calculate new prices
+    const { data: currentProducts, error: fetchError } = await supabase
+      .from('products')
+      .select('id, price')
+      .eq('site_id', siteId)
+      .in('id', productIds);
 
-  if (fetchError) {
-    throw SupabaseError.fromPostgrestError(fetchError);
-  }
-
-  if (!currentProducts || currentProducts.length === 0) {
-    throw new Error('No products found for price update');
-  }
-
-  // Calculate new prices
-  const updates = currentProducts.map(product => {
-    const currentPrice = product.price || 0;
-    let newPrice = currentPrice;
-    
-    if (priceUpdate.type === 'percentage') {
-      const multiplier = priceUpdate.operation === 'increase' 
-        ? (1 + priceUpdate.value / 100)
-        : (1 - priceUpdate.value / 100);
-      newPrice = Math.round(currentPrice * multiplier * 100) / 100;
-    } else {
-      // Fixed amount
-      newPrice = priceUpdate.operation === 'increase'
-        ? currentPrice + priceUpdate.value
-        : currentPrice - priceUpdate.value;
-      newPrice = Math.max(0, Math.round(newPrice * 100) / 100); // Ensure non-negative
+    if (fetchError) {
+      throw SupabaseError.fromPostgrestError(fetchError);
     }
 
-    return {
-      id: product.id,
-      price: newPrice
-    };
-  });
+    if (!currentProducts || currentProducts.length === 0) {
+      throw new Error('No products found for price update');
+    }
 
-  // Update products one by one to handle individual prices
-  const updatedProducts: Product[] = [];
-  
-  for (const update of updates) {
-    const response = await supabase
-      .from('products')
-      .update({
-        price: update.price,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('site_id', siteId)
-      .eq('id', update.id)
-      .select()
-      .single();
+    // Calculate new prices
+    const updates = currentProducts.map(product => {
+      const currentPrice = product.price || 0;
+      let newPrice = currentPrice;
+      
+      if (priceUpdate.type === 'percentage') {
+        const multiplier = priceUpdate.operation === 'increase' 
+          ? (1 + priceUpdate.value / 100)
+          : (1 - priceUpdate.value / 100);
+        newPrice = Math.round(currentPrice * multiplier * 100) / 100;
+      } else {
+        // Fixed amount
+        newPrice = priceUpdate.operation === 'increase'
+          ? currentPrice + priceUpdate.value
+          : currentPrice - priceUpdate.value;
+        newPrice = Math.max(0, Math.round(newPrice * 100) / 100); // Ensure non-negative
+      }
 
-    const updatedProduct = await handleSingleResponse(response);
-    updatedProducts.push(updatedProduct);
+      return {
+        product_id: product.id,
+        price: newPrice
+      };
+    });
+
+    // Use RPC function for atomic price updates
+    const { data, error } = await withRetry(
+      () => supabase.rpc('bulk_update_prices_atomic', {
+        p_site_id: siteId,
+        p_updates: updates
+      }),
+      3,
+      1000
+    );
+
+    if (error) {
+      throw SupabaseError.fromPostgrestError(error);
+    }
+
+    if (!data || !data.success) {
+      throw new Error(data?.error || 'Bulk price update failed');
+    }
+
+    return data.products as Product[];
+  } catch (error) {
+    const { message } = handleError(error);
+    console.error('Bulk price update failed:', error);
+    throw new Error(`Failed to update prices: ${message}`);
   }
-
-  return updatedProducts;
 }
 
 /**
@@ -331,29 +380,87 @@ export function generateProductCSV(products: ProductExportData[]): string {
 }
 
 /**
- * Bulk activate products
+ * Bulk activate products using atomic RPC function
  */
 export async function bulkActivateProducts(
   supabase: SupabaseClient<Database>,
   siteId: string,
   productIds: string[]
 ): Promise<Product[]> {
-  return bulkUpdateProducts(supabase, siteId, productIds, { is_active: true });
+  if (productIds.length === 0) {
+    throw new Error('No products selected for activation');
+  }
+
+  try {
+    const { data, error } = await withRetry(
+      () => supabase.rpc('bulk_update_status_atomic', {
+        p_site_id: siteId,
+        p_product_ids: productIds,
+        p_status_type: 'active',
+        p_status_value: true
+      }),
+      3,
+      1000
+    );
+
+    if (error) {
+      throw SupabaseError.fromPostgrestError(error);
+    }
+
+    if (!data || !data.success) {
+      throw new Error(data?.error || 'Bulk activate failed');
+    }
+
+    return data.products as Product[];
+  } catch (error) {
+    const { message } = handleError(error);
+    console.error('Bulk activate failed:', error);
+    throw new Error(`Failed to activate products: ${message}`);
+  }
 }
 
 /**
- * Bulk deactivate products
+ * Bulk deactivate products using atomic RPC function
  */
 export async function bulkDeactivateProducts(
   supabase: SupabaseClient<Database>,
   siteId: string,
   productIds: string[]
 ): Promise<Product[]> {
-  return bulkUpdateProducts(supabase, siteId, productIds, { is_active: false });
+  if (productIds.length === 0) {
+    throw new Error('No products selected for deactivation');
+  }
+
+  try {
+    const { data, error } = await withRetry(
+      () => supabase.rpc('bulk_update_status_atomic', {
+        p_site_id: siteId,
+        p_product_ids: productIds,
+        p_status_type: 'active',
+        p_status_value: false
+      }),
+      3,
+      1000
+    );
+
+    if (error) {
+      throw SupabaseError.fromPostgrestError(error);
+    }
+
+    if (!data || !data.success) {
+      throw new Error(data?.error || 'Bulk deactivate failed');
+    }
+
+    return data.products as Product[];
+  } catch (error) {
+    const { message } = handleError(error);
+    console.error('Bulk deactivate failed:', error);
+    throw new Error(`Failed to deactivate products: ${message}`);
+  }
 }
 
 /**
- * Bulk set featured status
+ * Bulk set featured status using atomic RPC function
  */
 export async function bulkSetFeatured(
   supabase: SupabaseClient<Database>,
@@ -361,7 +468,36 @@ export async function bulkSetFeatured(
   productIds: string[],
   featured: boolean
 ): Promise<Product[]> {
-  return bulkUpdateProducts(supabase, siteId, productIds, { is_featured: featured });
+  if (productIds.length === 0) {
+    throw new Error('No products selected for featured status update');
+  }
+
+  try {
+    const { data, error } = await withRetry(
+      () => supabase.rpc('bulk_update_status_atomic', {
+        p_site_id: siteId,
+        p_product_ids: productIds,
+        p_status_type: 'featured',
+        p_status_value: featured
+      }),
+      3,
+      1000
+    );
+
+    if (error) {
+      throw SupabaseError.fromPostgrestError(error);
+    }
+
+    if (!data || !data.success) {
+      throw new Error(data?.error || 'Bulk featured status update failed');
+    }
+
+    return data.products as Product[];
+  } catch (error) {
+    const { message } = handleError(error);
+    console.error('Bulk featured status update failed:', error);
+    throw new Error(`Failed to update featured status: ${message}`);
+  }
 }
 
 /**
@@ -380,3 +516,63 @@ export async function bulkUpdateCategory(
   }
   return bulkUpdateProducts(supabase, siteId, productIds, updates);
 }
+
+/**
+ * Batch processor for handling large bulk operations
+ */
+export class BulkOperationProcessor {
+  private readonly BATCH_SIZE = 50;
+  private readonly DELAY_MS = 100;
+  
+  async processBatches<T>(
+    items: string[],
+    operation: (batch: string[]) => Promise<T[]>,
+    onProgress?: (current: number, total: number) => void
+  ): Promise<T[]> {
+    const results: T[] = [];
+    const batches = this.chunkArray(items, this.BATCH_SIZE);
+    let processedCount = 0;
+    
+    for (let i = 0; i < batches.length; i++) {
+      try {
+        const batchResults = await withRetry(
+          () => operation(batches[i]),
+          3,
+          1000
+        );
+        results.push(...batchResults);
+        
+        processedCount += batches[i].length;
+        if (onProgress) {
+          onProgress(processedCount, items.length);
+        }
+        
+        // Add delay between batches to avoid rate limiting
+        if (i < batches.length - 1) {
+          await this.delay(this.DELAY_MS);
+        }
+      } catch (error) {
+        // Log partial failure but continue
+        console.error(`Batch ${i + 1} failed:`, error);
+        throw new Error(`Partial failure at batch ${i + 1} of ${batches.length}: ${handleError(error).message}`);
+      }
+    }
+    
+    return results;
+  }
+  
+  private chunkArray<T>(array: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
+  }
+  
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+
+// Export processor instance
+export const bulkProcessor = new BulkOperationProcessor();

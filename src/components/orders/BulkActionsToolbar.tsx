@@ -162,7 +162,7 @@ export function BulkActionsToolbar({
 
   return (
     <>
-      <Card className="border-primary/20 bg-primary/5">
+      <Card className="border-primary/20 bg-white/95 backdrop-blur-sm">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* Selection Info */}

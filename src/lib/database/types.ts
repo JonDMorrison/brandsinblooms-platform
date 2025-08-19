@@ -18,9 +18,9 @@ export type Database = {
       graphql: {
         Args: {
           query?: string
-          operationName?: string
-          variables?: Json
           extensions?: Json
+          variables?: Json
+          operationName?: string
         }
         Returns: Json
       }
@@ -535,6 +535,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "sites"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "customer_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "notifications_with_user"
+            referencedColumns: ["profile_user_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1256,6 +1277,13 @@ export type Database = {
             foreignKeyName: "site_memberships_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "notifications_with_user"
+            referencedColumns: ["profile_user_id"]
+          },
+          {
+            foreignKeyName: "site_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
@@ -1668,6 +1696,82 @@ export type Database = {
             referencedRelation: "sites"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "customer_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "notifications_with_user"
+            referencedColumns: ["profile_user_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      notifications_with_user: {
+        Row: {
+          action_url: string | null
+          avatar_url: string | null
+          category: string | null
+          created_at: string | null
+          data: Json | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          is_archived: boolean | null
+          is_read: boolean | null
+          message: string | null
+          priority: string | null
+          profile_user_id: string | null
+          read_at: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          site_id: string | null
+          title: string | null
+          type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "customer_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "notifications_with_user"
+            referencedColumns: ["profile_user_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       order_stats_by_site: {
@@ -1781,6 +1885,27 @@ export type Database = {
             referencedRelation: "sites"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "customer_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "notifications_with_user"
+            referencedColumns: ["profile_user_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
     }
@@ -1788,15 +1913,15 @@ export type Database = {
       admin_bulk_update_content: {
         Args: {
           content_ids: string[]
-          admin_notes?: string
           bulk_updates: Json
+          admin_notes?: string
         }
         Returns: Json
       }
       admin_bulk_update_products: {
         Args: {
-          bulk_updates: Json
           product_ids: string[]
+          bulk_updates: Json
           admin_notes?: string
         }
         Returns: Json
@@ -1806,57 +1931,57 @@ export type Database = {
         Returns: boolean
       }
       admin_get_content_analytics: {
-        Args: { end_date?: string; start_date?: string; site_uuid: string }
+        Args: { site_uuid: string; start_date?: string; end_date?: string }
         Returns: Json
       }
       admin_get_product_analytics: {
-        Args: { end_date?: string; start_date?: string; site_uuid: string }
+        Args: { end_date?: string; site_uuid: string; start_date?: string }
         Returns: Json
       }
       admin_get_site_content: {
         Args: {
+          site_uuid: string
           search_query?: string
+          content_type_filter?: string
           status_filter?: string
           limit_count?: number
           offset_count?: number
-          site_uuid: string
-          content_type_filter?: string
         }
         Returns: Json
       }
       admin_get_site_products: {
         Args: {
-          offset_count?: number
           site_uuid: string
           search_query?: string
           category_filter?: string
           status_filter?: string
           limit_count?: number
+          offset_count?: number
         }
         Returns: Json
       }
       admin_update_content: {
         Args: {
-          admin_notes?: string
           content_uuid: string
           content_updates: Json
+          admin_notes?: string
         }
         Returns: Json
       }
       admin_update_product: {
         Args: {
-          product_updates: Json
           product_uuid: string
+          product_updates: Json
           admin_notes?: string
         }
         Returns: Json
       }
       admin_update_site_status: {
         Args: {
-          new_is_published?: boolean
-          notes?: string
           site_uuid: string
           new_is_active?: boolean
+          new_is_published?: boolean
+          notes?: string
         }
         Returns: boolean
       }
@@ -1882,19 +2007,19 @@ export type Database = {
       }
       create_site_with_template: {
         Args: {
-          site_subdomain: string
-          business_info?: Json
-          site_name: string
-          template_slug: string
           owner_email: string
+          business_info?: Json
+          template_slug: string
+          site_name: string
+          site_subdomain: string
         }
         Returns: Json
       }
       end_impersonation_session: {
         Args: {
-          end_reason_param?: string
-          session_id_param?: string
           session_token_param?: string
+          session_id_param?: string
+          end_reason_param?: string
         }
         Returns: Json
       }
@@ -1908,22 +2033,22 @@ export type Database = {
       }
       get_active_impersonation_sessions: {
         Args: {
-          limit_count?: number
           admin_user_uuid?: string
           site_uuid?: string
+          limit_count?: number
         }
         Returns: Json
       }
       get_admin_action_logs: {
         Args: {
-          start_date?: string
-          end_date?: string
-          limit_count?: number
-          offset_count?: number
           site_uuid?: string
           admin_user_uuid?: string
           action_type_filter?: string
           target_type_filter?: string
+          start_date?: string
+          end_date?: string
+          limit_count?: number
+          offset_count?: number
         }
         Returns: Json
       }
@@ -1941,10 +2066,10 @@ export type Database = {
         Returns: Json
       }
       get_order_summary_stats: {
-        Args: { p_site_id: string; p_date_range?: unknown }
+        Args: { p_date_range?: unknown; p_site_id: string }
         Returns: {
-          total_revenue: number
           total_orders: number
+          total_revenue: number
           average_order_value: number
           conversion_rate: number
           pending_orders: number
@@ -1961,11 +2086,11 @@ export type Database = {
         Args: { p_site_id: string }
         Returns: {
           out_of_stock: number
-          low_stock: number
           average_rating: number
           total_reviews: number
           total_products: number
           active_products: number
+          low_stock: number
         }[]
       }
       get_site_analytics: {
@@ -1973,7 +2098,7 @@ export type Database = {
         Returns: Json
       }
       get_site_health_summary: {
-        Args: { days_back?: number; site_uuid: string }
+        Args: { site_uuid: string; days_back?: number }
         Returns: Json
       }
       get_site_summary_stats: {
@@ -1981,7 +2106,7 @@ export type Database = {
         Returns: Json
       }
       get_site_templates: {
-        Args: { active_only?: boolean; category_filter?: string }
+        Args: { category_filter?: string; active_only?: boolean }
         Returns: Json
       }
       get_unread_notification_count: {
@@ -1998,7 +2123,6 @@ export type Database = {
       }
       log_admin_action: {
         Args: {
-          user_agent_val?: string
           admin_id: string
           site_uuid: string
           action_type_val: string
@@ -2008,6 +2132,7 @@ export type Database = {
           new_vals?: Json
           details?: string
           ip_addr?: unknown
+          user_agent_val?: string
         }
         Returns: string
       }
@@ -2025,36 +2150,36 @@ export type Database = {
       }
       search_content_global: {
         Args: {
-          search_query: string
           result_limit?: number
+          search_query: string
           site_id_param: string
         }
         Returns: {
-          updated_at: string
-          id: string
           title: string
-          relevance: number
-          is_published: boolean
-          excerpt: string
-          slug: string
           content_type: string
+          slug: string
+          is_published: boolean
+          updated_at: string
+          relevance: number
+          excerpt: string
+          id: string
         }[]
       }
       search_orders: {
         Args: {
-          p_payment_status?: string
-          p_status?: string
-          p_site_id: string
           p_search_term?: string
+          p_site_id: string
+          p_status?: string
+          p_payment_status?: string
           p_limit?: number
           p_offset?: number
         }
         Returns: {
-          payment_status: string
           total_amount: number
-          created_at: string
           customer_email: string
           status: string
+          payment_status: string
+          created_at: string
           id: string
           order_number: string
           customer_name: string
@@ -2062,18 +2187,18 @@ export type Database = {
       }
       start_admin_impersonation: {
         Args: {
-          user_agent_val?: string
           site_uuid: string
           impersonated_user_uuid?: string
           purpose_text?: string
           duration_hours?: number
           allowed_actions_list?: string[]
           ip_addr?: unknown
+          user_agent_val?: string
         }
         Returns: Json
       }
       update_product_inventory: {
-        Args: { p_change: number; p_product_id: string }
+        Args: { p_product_id: string; p_change: number }
         Returns: {
           attributes: Json | null
           care_instructions: string | null

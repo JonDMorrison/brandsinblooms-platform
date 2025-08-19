@@ -158,7 +158,7 @@ export function BulkActionsToolbar({ className = '' }: BulkActionsToolbarProps) 
     <>
       {/* Floating Toolbar */}
       <div className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 ${className}`}>
-        <Card className="shadow-lg border">
+        <Card className="shadow-lg border bg-white/95 backdrop-blur-sm">
           <CardContent className="px-4 py-3">
             <div className="flex items-center gap-4">
               {/* Selection count */}
