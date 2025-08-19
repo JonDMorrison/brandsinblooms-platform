@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { queryKeys } from '@/lib/queries/keys';
@@ -12,10 +13,37 @@ import {
 import { useSiteId } from '@/contexts/SiteContext';
 import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
 import { handleError } from '@/lib/types/error-handling';
+import { 
+  useProductPlaceholder, 
+  useProductPlaceholderUrl,
+  type ProductPlaceholderParams 
+} from '@/hooks/useProductPlaceholder';
 
 type ProductImage = Tables<'product_images'>;
 type ProductImageInsert = TablesInsert<'product_images'>;
 type ProductImageUpdate = TablesUpdate<'product_images'>;
+
+// Extended types for enhanced functionality
+type LegacyProductImage = {
+  id: string;
+  url: string;
+  alt_text: string;
+  position: number;
+  is_primary: boolean;
+  is_legacy: true;
+};
+
+type PlaceholderProductImage = {
+  id: string;
+  url: string;
+  alt_text: string;
+  position: number;
+  is_primary: boolean;
+  is_placeholder: true;
+  is_legacy: false;
+};
+
+type EnhancedProductImage = (ProductImage & { is_legacy: false }) | LegacyProductImage | PlaceholderProductImage;
 
 /**
  * Get product images query
@@ -597,4 +625,263 @@ export function useSetPrimaryProductImage() {
       toast.success('Primary image updated');
     },
   });
+}
+
+/**
+ * Enhanced product images hook with placeholder support
+ */
+export function useProductImagesWithPlaceholders(
+  productId?: string,
+  placeholderParams?: ProductPlaceholderParams
+) {
+  const siteId = useSiteId();
+  
+  // Get product images
+  const imagesQuery = useProductImages(productId);
+  
+  // Get product details for placeholder generation
+  const productQuery = useQuery({
+    queryKey: queryKeys.products.detail(siteId!, productId!),
+    queryFn: async () => {
+      if (!siteId || !productId) return null;
+      
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, category, images')
+        .eq('id', productId)
+        .eq('site_id', siteId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!siteId && !!productId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Generate placeholder based on product data
+  const productPlaceholderParams: ProductPlaceholderParams = {
+    productId,
+    productName: productQuery.data?.name,
+    category: productQuery.data?.category || undefined,
+    ...placeholderParams,
+  };
+
+  const placeholderQuery = useProductPlaceholder(productPlaceholderParams);
+
+  // Check for legacy images in the products.images field
+  const legacyImages = useMemo((): LegacyProductImage[] => {
+    if (!productQuery.data?.images) return [];
+    
+    try {
+      const images = productQuery.data.images as unknown;
+      if (Array.isArray(images)) {
+        return images
+          .filter((img): img is string => typeof img === 'string')
+          .map((url, index) => ({
+            id: `legacy-${index}`,
+            url,
+            alt_text: `${productQuery.data?.name || 'Product'} image ${index + 1}`,
+            position: index + 1,
+            is_primary: index === 0,
+            is_legacy: true,
+          }));
+      }
+    } catch (error: unknown) {
+      console.warn('Failed to parse legacy images:', handleError(error).message);
+    }
+    
+    return [];
+  }, [productQuery.data?.images, productQuery.data?.name]);
+
+  // Combine modern and legacy images
+  const allImages = useMemo((): EnhancedProductImage[] => {
+    const modernImages = imagesQuery.data || [];
+    
+    // If we have modern images, use them
+    if (modernImages.length > 0) {
+      return modernImages.map(img => ({ ...img, is_legacy: false }));
+    }
+    
+    // Fall back to legacy images if no modern images
+    return legacyImages;
+  }, [imagesQuery.data, legacyImages]);
+
+  // Get primary image or fallback to placeholder
+  const primaryImage = useMemo((): EnhancedProductImage | null => {
+    const primary = allImages.find(img => img.is_primary);
+    
+    if (primary) {
+      return {
+        ...primary,
+        fallbackUrl: placeholderQuery.data?.dataUrl,
+      };
+    }
+
+    // Return placeholder as primary if no images
+    if (placeholderQuery.data) {
+      return {
+        id: 'placeholder',
+        url: placeholderQuery.data.dataUrl,
+        alt_text: `${productQuery.data?.name || 'Product'} placeholder`,
+        position: 0,
+        is_primary: true,
+        is_placeholder: true,
+        is_legacy: false,
+      } as PlaceholderProductImage;
+    }
+
+    return null;
+  }, [allImages, placeholderQuery.data, productQuery.data?.name]);
+
+  // Enhanced error handling with placeholder fallbacks
+  const hasImages = allImages.length > 0;
+  const hasValidImages = allImages.some(img => 
+    img.url && !('is_placeholder' in img && img.is_placeholder)
+  );
+  const isLoadingImages = imagesQuery.isLoading || productQuery.isLoading;
+  const hasImageErrors = imagesQuery.error || productQuery.error;
+  const isPlaceholderReady = !!placeholderQuery.data && !placeholderQuery.isLoading;
+
+  return {
+    // Core data
+    images: allImages,
+    primaryImage,
+    legacyImages,
+    modernImages: imagesQuery.data || [],
+    
+    // Placeholder data
+    placeholder: placeholderQuery.data,
+    placeholderUrl: placeholderQuery.data?.dataUrl,
+    
+    // Loading states
+    isLoading: isLoadingImages,
+    isLoadingPlaceholder: placeholderQuery.isLoading,
+    
+    // Status flags
+    hasImages,
+    hasValidImages,
+    hasLegacyImages: legacyImages.length > 0,
+    hasModernImages: (imagesQuery.data?.length || 0) > 0,
+    isPlaceholderReady,
+    
+    // Error states
+    error: hasImageErrors ? (imagesQuery.error || productQuery.error) : null,
+    placeholderError: placeholderQuery.error,
+    
+    // Utility functions
+    getImageUrl: (imageId?: string) => {
+      if (!imageId) return primaryImage?.url || placeholderQuery.data?.dataUrl;
+      
+      const image = allImages.find(img => img.id === imageId);
+      return image?.url || placeholderQuery.data?.dataUrl;
+    },
+    
+    getImageWithFallback: (imageId?: string) => {
+      const image = imageId 
+        ? allImages.find(img => img.id === imageId)
+        : primaryImage;
+      
+      return {
+        ...image,
+        url: image?.url || placeholderQuery.data?.dataUrl,
+        fallbackUrl: placeholderQuery.data?.dataUrl,
+        isUsingFallback: !image?.url && !!placeholderQuery.data?.dataUrl,
+      };
+    },
+
+    // Query objects for manual handling
+    imagesQuery,
+    productQuery,
+    placeholderQuery,
+  };
+}
+
+/**
+ * Get product image URL with automatic placeholder fallback
+ */
+export function useProductImageUrl(
+  productId?: string,
+  imageId?: string,
+  placeholderParams?: ProductPlaceholderParams
+) {
+  const { getImageUrl, isLoading, error } = useProductImagesWithPlaceholders(
+    productId,
+    placeholderParams
+  );
+
+  return useMemo(() => ({
+    url: getImageUrl(imageId),
+    isLoading,
+    error,
+  }), [getImageUrl, imageId, isLoading, error]);
+}
+
+/**
+ * Preload product images with placeholder support
+ */
+export function usePreloadProductImages(productIds: string[] = []) {
+  const siteId = useSiteId();
+  const queryClient = useQueryClient();
+
+  const preloadImages = useCallback(async () => {
+    if (!siteId || productIds.length === 0) return;
+
+    const preloadPromises = productIds.map(async (productId) => {
+      // Preload product images
+      const imagesKey = queryKeys.products.images(siteId, productId);
+      const productKey = queryKeys.products.detail(siteId, productId);
+
+      try {
+        // Check if already cached
+        const existingImages = queryClient.getQueryData(imagesKey);
+        const existingProduct = queryClient.getQueryData(productKey);
+
+        if (!existingImages) {
+          await queryClient.prefetchQuery({
+            queryKey: imagesKey,
+            queryFn: async () => {
+              const { data, error } = await supabase
+                .from('product_images')
+                .select('*')
+                .eq('site_id', siteId)
+                .eq('product_id', productId)
+                .order('position', { ascending: true });
+
+              if (error) throw error;
+              return data || [];
+            },
+            staleTime: 30 * 1000,
+          });
+        }
+
+        if (!existingProduct) {
+          await queryClient.prefetchQuery({
+            queryKey: productKey,
+            queryFn: async () => {
+              const { data, error } = await supabase
+                .from('products')
+                .select('id, name, category, images')
+                .eq('id', productId)
+                .eq('site_id', siteId)
+                .single();
+
+              if (error) throw error;
+              return data;
+            },
+            staleTime: 5 * 60 * 1000,
+          });
+        }
+      } catch (error: unknown) {
+        console.warn(`Failed to preload images for product ${productId}:`, handleError(error).message);
+      }
+    });
+
+    await Promise.all(preloadPromises);
+  }, [productIds, siteId, queryClient]);
+
+  return {
+    preloadImages,
+    canPreload: !!siteId && productIds.length > 0,
+  };
 }

@@ -4,9 +4,10 @@ import { Card, CardContent } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Checkbox } from '@/src/components/ui/checkbox'
-import { Star, ShoppingCart, Eye, Heart, Package } from 'lucide-react'
+import { Star, ShoppingCart, Eye, Heart } from 'lucide-react'
 import { useState } from 'react'
 import { useProductSelection } from '@/contexts/ProductSelectionContext'
+import { ProductImage } from '@/src/components/ui/product-image'
 
 interface Product {
   id: string
@@ -83,9 +84,22 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
             )}
             
             {/* Product Image */}
-            <div className="w-20 h-20 bg-gradient-to-br from-pink-100 to-purple-100   rounded-lg flex items-center justify-center flex-shrink-0">
-              <Package className="h-8 w-8 text-gray-500" />
-            </div>
+            <ProductImage
+              src={product.image}
+              alt={product.name}
+              productName={product.name}
+              width={80}
+              height={80}
+              className="w-20 h-20 rounded-lg flex-shrink-0"
+              placeholder={{
+                type: 'gradient',
+                config: { 
+                  colors: product.category === 'flowers' ? ['#fce7f3', '#fbbf24'] : 
+                          product.category === 'plants' ? ['#d9f99d', '#84cc16'] :
+                          ['#e9d5ff', '#c084fc']
+                }
+              }}
+            />
 
             {/* Product Details */}
             <div className="flex-1 min-w-0">
@@ -182,9 +196,23 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
         
         {/* Product Image */}
         <div className="relative mb-4">
-          <div className="aspect-square bg-gradient-to-br from-pink-100 to-purple-100   rounded-lg flex items-center justify-center">
-            <Package className="h-12 w-12 text-gray-500" />
-          </div>
+          <ProductImage
+            src={product.image}
+            alt={product.name}
+            productName={product.name}
+            width={300}
+            height={300}
+            className="aspect-square rounded-lg"
+            placeholder={{
+              type: 'gradient',
+              config: { 
+                colors: product.category === 'flowers' ? ['#fce7f3', '#fbbf24'] : 
+                        product.category === 'plants' ? ['#d9f99d', '#84cc16'] :
+                        ['#e9d5ff', '#c084fc']
+              }
+            }}
+            priority={product.featured}
+          />
           
           {/* Badges */}
           <div className={`absolute top-2 ${showSelection ? 'left-10' : 'left-2'} flex flex-col gap-1`}>

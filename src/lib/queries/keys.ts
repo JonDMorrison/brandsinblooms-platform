@@ -23,6 +23,8 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.sites.details(), id] as const,
     memberships: (siteId: string) => 
       [...queryKeys.sites.detail(siteId), 'memberships'] as const,
+    placeholderSettings: (siteId: string) => 
+      [...queryKeys.sites.detail(siteId), 'placeholder-settings'] as const,
   },
   
   // Content queries
@@ -85,6 +87,10 @@ export const queryKeys = {
       [...queryKeys.products.detail(siteId, productId), 'rating'] as const,
     userReview: (siteId: string, productId: string, profileId: string) => 
       [...queryKeys.products.reviews(siteId, productId), 'user', profileId] as const,
+    placeholders: (siteId: string) => 
+      [...queryKeys.products.all(siteId), 'placeholder'] as const,
+    placeholder: (siteId: string, cacheKey: string) => 
+      [...queryKeys.products.placeholders(siteId), cacheKey] as const,
   },
 
   // Review queries

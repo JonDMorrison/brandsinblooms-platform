@@ -29,6 +29,7 @@ import {
   Check,
 } from 'lucide-react';
 import { validateImageFile } from '@/lib/supabase/storage';
+import { ProductImage as ProductImageComponent } from '@/src/components/ui/product-image';
 
 /**
  * Product image data structure
@@ -154,10 +155,14 @@ function SortableImageItem({
 
           {/* Image preview */}
           <div className="relative flex-shrink-0">
-            <img
+            <ProductImageComponent
               src={image.url}
               alt={image.alt_text || `Product image ${image.position}`}
-              className="w-16 h-16 object-cover rounded-md border"
+              productName="Product"
+              width={64}
+              height={64}
+              className="w-16 h-16 rounded-md border"
+              placeholder={{ type: 'gradient' }}
             />
             {image.is_primary && (
               <div className="absolute -top-1 -right-1">
@@ -624,10 +629,14 @@ export function ImageUpload({
                     <CardContent className="p-3">
                       <div className="flex gap-3">
                         <GripVertical className="h-4 w-4 text-muted-foreground self-start mt-1" />
-                        <img
+                        <ProductImageComponent
                           src={activeImage.url}
                           alt={activeImage.alt_text || 'Dragging image'}
-                          className="w-16 h-16 object-cover rounded-md border"
+                          productName="Product"
+                          width={64}
+                          height={64}
+                          className="w-16 h-16 rounded-md border"
+                          placeholder={{ type: 'gradient' }}
                         />
                         <div>
                           <p className="text-sm font-medium">
