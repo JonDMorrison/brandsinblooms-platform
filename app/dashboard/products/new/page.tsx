@@ -1,11 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useCreateProduct } from '@/src/hooks/useProducts'
+import { 
+  useCreateProduct, 
+  useSkuValidation, 
+  useSlugGeneration,
+  useProductCategories 
+} from '@/src/hooks/useProducts'
 import { useUploadMultipleProductImages } from '@/src/hooks/useProductImages'
 import { ImageUpload } from '@/src/components/products/ImageUpload'
 import type { ProductImage } from '@/src/components/products/ImageUpload'
@@ -38,6 +43,22 @@ import {
   Tag,
   Loader2
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
+import { useSiteId } from '@/contexts/SiteContext'
+import { handleError } from '@/lib/types/error-handling'
+import { TablesInsert } from '@/lib/database/types'
+
+type ProductImageInsert = TablesInsert<'product_images'>
+
+// Enhanced tracked image interface
+interface TrackedImage extends ProductImage {
+  file?: File
+  width?: number
+  height?: number
+  size?: number
+  tempPath?: string
+  altText?: string
+}
 
 // Product form schema
 const productSchema = z.object({
@@ -61,8 +82,8 @@ const productSchema = z.object({
 
 type ProductFormData = z.infer<typeof productSchema>
 
-// Common categories for garden centers
-const categories = [
+// Fallback categories if none exist in database
+const fallbackCategories = [
   'Annuals',
   'Perennials',
   'Trees',
@@ -77,16 +98,36 @@ const categories = [
   'Other'
 ]
 
+// Helper function to get image dimensions
+const getImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve) => {
+    const img = document.createElement('img')
+    img.onload = () => resolve({ width: img.width, height: img.height })
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 export default function NewProductPage() {
   const router = useRouter()
+  const siteId = useSiteId()
   const createProduct = useCreateProduct()
   const uploadImages = useUploadMultipleProductImages()
+  const validateSku = useSkuValidation()
+  const generateSlug = useSlugGeneration()
+  const { data: dbCategories = [], isLoading: categoriesLoading } = useProductCategories()
+  
   const [currentStep, setCurrentStep] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [productImages, setProductImages] = useState<ProductImage[]>([])
+  const [productImages, setProductImages] = useState<TrackedImage[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<Map<string, File>>(new Map())
+
+  // Use database categories if available, otherwise use fallback
+  const categories = dbCategories.length > 0 
+    ? [...dbCategories.map(c => c.category), 'Other']
+    : fallbackCategories
 
   const form = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as any,
     defaultValues: {
       name: '',
       description: '',
@@ -108,39 +149,215 @@ export default function NewProductPage() {
     { title: 'Review', icon: <Check className="h-4 w-4" /> },
   ]
 
-  const onSubmit = async (data: ProductFormData) => {
-    setIsSubmitting(true)
+  // SKU validation on blur
+  const handleSkuBlur = useCallback(async (e: React.FocusEvent<HTMLInputElement>) => {
+    const sku = e.target.value
+    if (sku) {
+      const result = await validateSku.mutateAsync({ sku })
+      if (!result) {
+        form.setError('sku', {
+          type: 'manual',
+          message: 'This SKU is already in use',
+        })
+      } else {
+        form.clearErrors('sku')
+      }
+    }
+  }, [form, validateSku])
+
+  // Auto-generate slug when name changes
+  const handleNameChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value
+    form.setValue('name', name)
+    
+    // Only auto-generate slug if it's empty
+    if (name && !form.getValues('slug')) {
+      try {
+        const slug = await generateSlug.mutateAsync(name)
+        form.setValue('slug', slug)
+      } catch (error) {
+        console.error('Failed to generate slug:', error)
+      }
+    }
+  }, [form, generateSlug])
+
+  // Enhanced image upload handler with metadata tracking
+  const handleImageUpload = useCallback(async (files: File[]) => {
     try {
-      // Generate slug from name if not provided
-      if (!data.slug) {
-        data.slug = data.name
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, '')
+      // Store files for later association
+      const newUploadedFiles = new Map(uploadedFiles)
+      
+      // Get dimensions for each file
+      const filesWithDimensions = await Promise.all(
+        files.map(async (file) => {
+          const dimensions = await getImageDimensions(file)
+          return { file, dimensions }
+        })
+      )
+
+      // Upload to temporary location
+      const results = await uploadImages.mutateAsync({
+        files,
+        onProgress: (completed, total) => {
+          console.log(`Upload progress: ${completed}/${total}`)
+        }
+      })
+
+      // Process results and track metadata
+      const processedResults = results.results.map((result, index) => {
+        if (result.success && result.data) {
+          const fileData = filesWithDimensions[index]
+          const fileId = `temp-${Date.now()}-${index}`
+          
+          // Store the original file for later
+          newUploadedFiles.set(fileId, fileData.file)
+          
+          return {
+            success: true,
+            data: {
+              ...result.data,
+              id: fileId,
+              width: fileData.dimensions.width,
+              height: fileData.dimensions.height,
+              size: fileData.file.size,
+              tempPath: result.data.path || result.data.url,
+              file: fileData.file
+            }
+          }
+        }
+        return result
+      })
+
+      setUploadedFiles(newUploadedFiles)
+      return processedResults
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error('Failed to upload images')
+      throw error
+    }
+  }, [uploadImages, uploadedFiles])
+
+  // Associate images with the created product
+  const associateImages = async (productId: string, images: TrackedImage[]) => {
+    if (!siteId || images.length === 0) return
+
+    try {
+      const imageRecords: ProductImageInsert[] = images.map((img, index) => ({
+        product_id: productId,
+        site_id: siteId,
+        url: img.url,
+        alt_text: img.altText || img.alt_text || `${form.getValues('name')} - Image ${index + 1}`,
+        caption: img.caption || null,
+        position: index,
+        is_primary: index === 0,
+        width: img.width || null,
+        height: img.height || null,
+        size_bytes: img.size || null,
+      }))
+
+      const { error } = await supabase
+        .from('product_images')
+        .insert(imageRecords)
+
+      if (error) {
+        console.error('Failed to associate images:', error)
+        throw new Error('Product created but images failed to save')
       }
 
-      // Create the product first
+      // Clean up temp files after successful association
+      const tempPaths = images
+        .filter(img => img.tempPath)
+        .map(img => img.tempPath!)
+
+      if (tempPaths.length > 0) {
+        // Move from temp to permanent location
+        for (let i = 0; i < images.length; i++) {
+          if (images[i].tempPath && images[i].file) {
+            const permanentPath = `${siteId}/${productId}/${i}-${Date.now()}.jpg`
+            
+            // Re-upload to permanent location
+            const { error: uploadError } = await supabase.storage
+              .from('product-images')
+              .upload(permanentPath, images[i].file!, {
+                cacheControl: '3600',
+                contentType: images[i].file!.type,
+              })
+
+            if (!uploadError) {
+              // Update the image record with new URL
+              const { data: { publicUrl } } = supabase.storage
+                .from('product-images')
+                .getPublicUrl(permanentPath)
+
+              await supabase
+                .from('product_images')
+                .update({ url: publicUrl })
+                .eq('product_id', productId)
+                .eq('position', i)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error associating images:', error)
+      throw error
+    }
+  }
+
+  const onSubmit = async (data: ProductFormData) => {
+    setIsSubmitting(true)
+    
+    try {
+      // Generate unique slug if not provided
+      if (!data.slug) {
+        data.slug = await generateSlug.mutateAsync(data.name)
+      }
+
+      // Validate SKU one more time before submission
+      const skuAvailable = await validateSku.mutateAsync({ sku: data.sku })
+      if (!skuAvailable) {
+        form.setError('sku', {
+          type: 'manual',
+          message: 'This SKU is already in use',
+        })
+        setIsSubmitting(false)
+        return
+      }
+
+      // Create the product
       const newProduct = await createProduct.mutateAsync(data)
       
-      // If we have images, upload them and associate with the product
+      if (!newProduct?.id) {
+        throw new Error('Failed to create product - no ID returned')
+      }
+
+      // Associate images with the created product
       if (productImages.length > 0) {
-        // Extract files from temporary uploads and upload to final location
-        const imageFiles = productImages.map((img, index) => {
-          // Create a dummy file object for the upload
-          // In a real implementation, you'd keep track of the original files
-          // For now, we'll skip the re-upload since images are already uploaded
-          console.log('Would upload image:', img.url)
-        })
-        
-        // Note: In a production app, you'd want to handle image association differently
-        // This is a simplified example
+        await associateImages(newProduct.id, productImages)
       }
 
       toast.success('Product created successfully!')
       router.push('/dashboard/products')
-    } catch (error) {
+      
+    } catch (error: unknown) {
       console.error('Error creating product:', error)
-      toast.error('Failed to create product')
+      const errorMessage = handleError(error)
+      
+      // Cleanup uploaded images on failure
+      if (productImages.length > 0) {
+        const tempPaths = productImages
+          .filter(img => img.tempPath)
+          .map(img => img.tempPath!)
+        
+        if (tempPaths.length > 0) {
+          await supabase.storage
+            .from('product-images')
+            .remove(tempPaths)
+            .catch(err => console.error('Failed to cleanup temp images:', err))
+        }
+      }
+      
+      toast.error(errorMessage.message || 'Failed to create product')
     } finally {
       setIsSubmitting(false)
     }
@@ -150,22 +367,6 @@ export default function NewProductPage() {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
     }
-  }
-
-  const handleImageUpload = async (files: File[]) => {
-    // For new products, we'll upload to temporary location
-    const results = await uploadImages.mutateAsync({
-      files,
-      onProgress: (completed, total) => {
-        console.log(`Upload progress: ${completed}/${total}`)
-      }
-    })
-
-    return results.results.map(result => ({
-      success: result.success,
-      data: result.data,
-      error: result.error
-    }))
   }
 
   const prevStep = () => {
@@ -237,7 +438,11 @@ export default function NewProductPage() {
                       <FormItem>
                         <FormLabel>Product Name *</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Red Geranium" {...field} />
+                          <Input 
+                            placeholder="e.g., Red Geranium" 
+                            {...field}
+                            onChange={handleNameChange}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -251,9 +456,34 @@ export default function NewProductPage() {
                       <FormItem>
                         <FormLabel>SKU *</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., FLW-GER-RED-001" {...field} />
+                          <Input 
+                            placeholder="e.g., FLW-GER-RED-001" 
+                            {...field}
+                            onBlur={(e) => {
+                              field.onBlur()
+                              handleSkuBlur(e)
+                            }}
+                          />
                         </FormControl>
                         <FormDescription>Unique identifier for inventory tracking</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="slug"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>URL Slug</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="auto-generated-from-name" 
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>URL-friendly version of the product name (auto-generated)</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -284,10 +514,16 @@ export default function NewProductPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Category *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                            disabled={categoriesLoading}
+                          >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select a category" />
+                                <SelectValue placeholder={
+                                  categoriesLoading ? "Loading categories..." : "Select a category"
+                                } />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -298,6 +534,9 @@ export default function NewProductPage() {
                               ))}
                             </SelectContent>
                           </Select>
+                          <FormDescription>
+                            Product category for organization
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -553,6 +792,10 @@ export default function NewProductPage() {
                         <p className="font-medium">{form.watch('sku') || 'Not set'}</p>
                       </div>
                       <div>
+                        <span className="text-muted-foreground">Slug:</span>
+                        <p className="font-medium">{form.watch('slug') || 'Auto-generated'}</p>
+                      </div>
+                      <div>
                         <span className="text-muted-foreground">Category:</span>
                         <p className="font-medium">{form.watch('category') || 'Not set'}</p>
                       </div>
@@ -563,6 +806,10 @@ export default function NewProductPage() {
                       <div>
                         <span className="text-muted-foreground">Stock:</span>
                         <p className="font-medium">{form.watch('inventory_count')} units</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Images:</span>
+                        <p className="font-medium">{productImages.length} image(s)</p>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Status:</span>

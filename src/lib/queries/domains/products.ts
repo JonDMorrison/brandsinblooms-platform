@@ -610,6 +610,41 @@ export async function checkSkuAvailability(
 }
 
 /**
+ * Generate unique slug for product
+ */
+export async function generateUniqueSlug(
+  supabase: SupabaseClient<Database>,
+  name: string,
+  siteId: string
+): Promise<string> {
+  const baseSlug = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  
+  const { data } = await supabase
+    .from('products')
+    .select('slug')
+    .eq('site_id', siteId)
+    .like('slug', `${baseSlug}%`);
+  
+  if (!data || data.length === 0) return baseSlug;
+  
+  const slugs = data.map(p => p.slug);
+  let counter = 1;
+  let uniqueSlug = baseSlug;
+  
+  while (slugs.includes(uniqueSlug)) {
+    uniqueSlug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+  
+  return uniqueSlug;
+}
+
+/**
  * Parse product images from JSON
  */
 export function parseProductImages(images: Json): ProductImage[] {

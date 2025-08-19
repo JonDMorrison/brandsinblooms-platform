@@ -15,6 +15,8 @@ import {
   searchProducts,
   getProductCategories,
   updateProductInventory,
+  checkSkuAvailability,
+  generateUniqueSlug,
   ProductFilters
 } from '@/lib/queries/domains/products';
 import { checkAndCreateLowStockNotification } from '../../app/actions/low-stock-notification';
@@ -327,4 +329,28 @@ export function useProductInventoryRealtime() {
       supabase.removeChannel(channel);
     };
   }, [siteId, queryClient]);
+}
+
+// SKU validation hook
+export function useSkuValidation() {
+  const siteId = useSiteId();
+  
+  return useMutation({
+    mutationFn: async ({ sku, excludeId }: { sku: string; excludeId?: string }) => {
+      if (!siteId || !sku) return true;
+      return checkSkuAvailability(supabase, siteId, sku, excludeId);
+    },
+  });
+}
+
+// Slug generation hook
+export function useSlugGeneration() {
+  const siteId = useSiteId();
+  
+  return useMutation({
+    mutationFn: async (name: string) => {
+      if (!siteId || !name) return '';
+      return generateUniqueSlug(supabase, name, siteId);
+    },
+  });
 }
