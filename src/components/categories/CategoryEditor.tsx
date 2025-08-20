@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -190,44 +189,28 @@ export function CategoryEditor({
   };
 
   return (
-    <Card className={className}>
-      <CardHeader>
+    <div className={cn("", className)}>
+      <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
               <Package className="h-5 w-5" />
               {title}
-            </CardTitle>
-            <CardDescription>
+            </h2>
+            <p className="text-sm text-muted-foreground">
               {isEditing 
                 ? 'Update category information and settings'
                 : 'Create a new product category'
               }
-            </CardDescription>
+            </p>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={onCancel} disabled={isSaving}>
-              <X className="h-4 w-4 mr-2" />
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSubmit(onSubmit)}
-              disabled={isSaving || !isDirty}
-            >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              {isEditing ? 'Update' : 'Create'} Category
-            </Button>
-          </div>
+          {/* Buttons moved to form */}
         </div>
         
         {/* Preview */}
         {watchedName && (
-          <div className="border rounded-lg p-3 bg-muted/20">
+          <div className="border rounded-lg p-2 bg-muted/20 mt-2">
             <div className="flex items-center gap-2">
               {selectedColor && (
                 <div
@@ -248,13 +231,13 @@ export function CategoryEditor({
             </div>
           </div>
         )}
-      </CardHeader>
+      </div>
 
-      <CardContent>
+      <div className="px-4 sm:px-6 pt-0 pb-4">
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
                 <TabsTrigger value="basic">
                   <Tag className="h-4 w-4 mr-2" />
                   Basic Info
@@ -270,7 +253,7 @@ export function CategoryEditor({
               </TabsList>
 
               {/* Basic Information */}
-              <TabsContent value="basic" className="space-y-4">
+              <TabsContent value="basic" className="space-y-3 sm:space-y-4 mt-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -338,8 +321,8 @@ export function CategoryEditor({
                       <FormItem>
                         <FormLabel>Parent Category</FormLabel>
                         <Select 
-                          onValueChange={field.onChange} 
-                          value={field.value || ''}
+                          onValueChange={(value) => field.onChange(value === 'none' ? null : value)} 
+                          value={field.value || 'none'}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -347,7 +330,7 @@ export function CategoryEditor({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">
+                            <SelectItem value="none">
                               <span className="text-muted-foreground">No parent (root level)</span>
                             </SelectItem>
                             {buildParentOptions(availableParents)}
@@ -409,7 +392,7 @@ export function CategoryEditor({
               </TabsContent>
 
               {/* Appearance */}
-              <TabsContent value="appearance" className="space-y-4">
+              <TabsContent value="appearance" className="space-y-3 sm:space-y-4 mt-4">
                 <FormField
                   control={form.control}
                   name="icon"
@@ -442,10 +425,10 @@ export function CategoryEditor({
                               key={color}
                               type="button"
                               className={cn(
-                                'w-8 h-8 rounded-lg border-2 transition-all',
+                                'w-8 h-8 rounded-lg border-2 transition-all cursor-pointer',
                                 selectedColor === color 
-                                  ? 'border-primary ring-2 ring-primary/20' 
-                                  : 'border-border hover:border-muted-foreground'
+                                  ? 'border-primary ring-2 ring-primary/20 scale-110' 
+                                  : 'border-border hover:border-muted-foreground hover:scale-105'
                               )}
                               style={{ backgroundColor: color }}
                               onClick={() => handleColorSelect(color)}
@@ -509,7 +492,7 @@ export function CategoryEditor({
               </TabsContent>
 
               {/* SEO */}
-              <TabsContent value="seo" className="space-y-4">
+              <TabsContent value="seo" className="space-y-3 sm:space-y-4 mt-4">
                 <Alert>
                   <Search className="h-4 w-4" />
                   <AlertDescription>
@@ -564,9 +547,36 @@ export function CategoryEditor({
                 />
               </TabsContent>
             </Tabs>
+            {/* Form Actions */}
+            <div className="flex items-center justify-end gap-2 pt-4 border-t">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onCancel} 
+                disabled={isSaving}
+                type="button"
+                className="hover:bg-accent cursor-pointer"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+              <Button 
+                disabled={isSaving || (isEditing && !isDirty)}
+                type="submit"
+                size="sm"
+                className="hover:bg-primary/90 cursor-pointer"
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {isEditing ? 'Update' : 'Create'} Category
+              </Button>
+            </div>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

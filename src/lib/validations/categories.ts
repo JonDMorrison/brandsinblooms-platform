@@ -45,21 +45,29 @@ export const categorySchema = z.object({
     .nullable()
     .optional(),
   
-  image_url: z.string()
-    .url('Invalid image URL')
-    .max(500, 'Image URL must be less than 500 characters')
-    .nullable()
-    .optional(),
+  image_url: z.union([
+    z.string().url('Invalid image URL').max(500, 'Image URL must be less than 500 characters'),
+    z.literal(''),
+    z.null(),
+  ])
+    .optional()
+    .transform(val => (val === '' ? null : val)),
   
-  meta_title: z.string()
-    .max(60, 'Meta title should be less than 60 characters for SEO')
-    .nullable()
-    .optional(),
+  meta_title: z.union([
+    z.string().min(1).max(60, 'Meta title should be less than 60 characters for SEO'),
+    z.literal(''),
+    z.null(),
+  ])
+    .optional()
+    .transform(val => (val === '' ? null : val)),
   
-  meta_description: z.string()
-    .max(160, 'Meta description should be less than 160 characters for SEO')
-    .nullable()
-    .optional(),
+  meta_description: z.union([
+    z.string().min(1).max(160, 'Meta description should be less than 160 characters for SEO'),
+    z.literal(''),
+    z.null(),
+  ])
+    .optional()
+    .transform(val => (val === '' ? null : val)),
 });
 
 /**

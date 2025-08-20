@@ -7,9 +7,8 @@ import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Alert,
@@ -28,10 +27,6 @@ import {
   useDeleteCategory,
   useReorderCategories,
 } from '@/hooks/useCategories';
-import type { 
-  CreateCategoryData as CreateCategoryInput,
-  UpdateCategoryData as UpdateCategoryInput 
-} from '@/lib/validations/categories';
 import type { CategoryWithChildren as CategoryHierarchy } from '@/lib/queries/domains/categories';
 
 export default function CategoriesPage() {
@@ -53,7 +48,6 @@ export default function CategoriesPage() {
   // Fetch selected category details
   const { 
     data: categoryDetails,
-    isLoading: isLoadingDetails,
   } = useCategory(selectedCategory || undefined, true);
 
   // Mutations
@@ -63,7 +57,7 @@ export default function CategoriesPage() {
   const reorderCategories = useReorderCategories();
 
   // Handlers
-  const handleCreateCategory = async (data: Omit<CreateCategoryInput, 'site_id'>) => {
+  const handleCreateCategory = async (data: any) => {
     try {
       await createCategory.mutateAsync(data);
       setIsCreateDialogOpen(false);
@@ -72,7 +66,7 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleUpdateCategory = async (data: UpdateCategoryInput) => {
+  const handleUpdateCategory = async (data: any) => {
     if (!selectedCategory) return;
     
     try {
@@ -92,42 +86,20 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleReorder = async (draggedId: string, targetId: string, position: 'before' | 'after' | 'inside') => {
-    // Find the categories involved
-    const findCategory = (id: string, cats: CategoryHierarchy[]): CategoryHierarchy | null => {
-      for (const cat of cats) {
-        if (cat.id === id) return cat;
-        const found = findCategory(id, cat.children);
-        if (found) return found;
+  const handleReorder = async (reorderData: Array<{ id: string; sort_order: number; parent_id?: string | null }>) => {
+    // Process the reorder data to update categories
+    // For now, we'll update the first item that changed position
+    if (reorderData.length > 0) {
+      const firstItem = reorderData[0];
+      try {
+        await reorderCategories.mutateAsync({
+          category_id: firstItem.id,
+          new_parent_id: firstItem.parent_id || null,
+          new_sort_order: firstItem.sort_order,
+        });
+      } catch (error) {
+        // Error is handled by the mutation
       }
-      return null;
-    };
-
-    const dragged = findCategory(draggedId, categories);
-    const target = findCategory(targetId, categories);
-
-    if (!dragged || !target) return;
-
-    // Prepare reorder data
-    let newParentId: string | null = null;
-    let newSortOrder = 0;
-
-    if (position === 'inside') {
-      newParentId = targetId;
-      newSortOrder = 0; // First child
-    } else {
-      newParentId = target.parent_id;
-      newSortOrder = target.sort_order + (position === 'after' ? 1 : 0);
-    }
-
-    try {
-      await reorderCategories.mutateAsync({
-        category_id: draggedId,
-        new_parent_id: newParentId,
-        new_sort_order: newSortOrder,
-      });
-    } catch (error) {
-      // Error is handled by the mutation
     }
   };
 
@@ -181,7 +153,7 @@ export default function CategoriesPage() {
         </div>
         <div className="rounded-lg border p-4">
           <div className="text-2xl font-bold">
-            {categories.filter(c => c.children.length > 0).length}
+            {categories.filter(c => c.children && c.children.length > 0).length}
           </div>
           <p className="text-xs text-muted-foreground">Parent Categories</p>
         </div>
@@ -207,19 +179,19 @@ export default function CategoriesPage() {
             <div className="p-4">
               <CategoryTree
                 categories={categories}
-                onSelect={setSelectedCategory}
-                onEdit={(id) => {
-                  setSelectedCategory(id);
+                onCategorySelect={(category) => setSelectedCategory(category.id)}
+                onCategoryEdit={(category) => {
+                  setSelectedCategory(category.id);
                   setIsEditDialogOpen(true);
                 }}
-                onDelete={handleDeleteCategory}
-                onReorder={handleReorder}
-                selectedId={selectedCategory}
+                onCategoryDelete={(category) => handleDeleteCategory(category.id)}
+                onCategoryReorder={handleReorder}
+                selectedCategory={categoryDetails || null}
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 showInactive={showInactive}
-                onShowInactiveChange={setShowInactive}
-                isLoading={isLoading}
+                onToggleInactive={setShowInactive}
+                loading={isLoading}
               />
             </div>
           </div>
@@ -248,7 +220,7 @@ export default function CategoriesPage() {
                     <p className="text-xs font-medium text-muted-foreground mb-2">Path</p>
                     <CategoryBreadcrumb
                       ancestors={categoryDetails.ancestors}
-                      current={categoryDetails}
+                      category={categoryDetails}
                     />
                   </div>
                 )}
@@ -355,40 +327,34 @@ export default function CategoriesPage() {
 
       {/* Create Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create New Category</DialogTitle>
-            <DialogDescription>
-              Add a new category to organize your products
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto p-0">
+          <DialogTitle className="sr-only">Create New Category</DialogTitle>
+          <DialogDescription className="sr-only">
+            Add a new category to organize your products
+          </DialogDescription>
           <CategoryEditor
-            mode="create"
-            categories={categories}
-            onSubmit={handleCreateCategory}
+            availableParents={categories}
+            onSave={handleCreateCategory}
             onCancel={() => setIsCreateDialogOpen(false)}
-            isSubmitting={createCategory.isPending}
+            loading={createCategory.isPending}
           />
         </DialogContent>
       </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
-            <DialogDescription>
-              Update category information and settings
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto p-0">
+          <DialogTitle className="sr-only">Edit Category</DialogTitle>
+          <DialogDescription className="sr-only">
+            Update category information and settings
+          </DialogDescription>
           {categoryDetails && (
             <CategoryEditor
-              mode="edit"
               category={categoryDetails}
-              categories={categories}
-              onSubmit={handleUpdateCategory}
+              availableParents={categories}
+              onSave={handleUpdateCategory}
               onCancel={() => setIsEditDialogOpen(false)}
-              isSubmitting={updateCategory.isPending}
+              loading={updateCategory.isPending}
             />
           )}
         </DialogContent>

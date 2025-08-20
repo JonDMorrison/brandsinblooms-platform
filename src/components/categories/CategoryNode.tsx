@@ -117,9 +117,14 @@ export function CategoryNode({
     >
       <div
         className={cn(
-          'flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-muted/50',
-          'border border-transparent hover:border-muted-foreground/20',
-          isSelected && 'bg-primary/10 border-primary/20',
+          'flex items-center gap-2 p-2 rounded-lg transition-all cursor-pointer',
+          'border border-transparent',
+          // Hover states
+          'hover:bg-muted/50 hover:border-muted-foreground/20',
+          // Selected states
+          isSelected && category.is_active && 'bg-primary/10 border-primary ring-1 ring-primary/20',
+          isSelected && !category.is_active && 'bg-muted/30 border-muted-foreground/30',
+          // Inactive state
           !category.is_active && 'opacity-60'
         )}
         style={{ paddingLeft: `${level * 24 + 8}px` }}
@@ -143,7 +148,7 @@ export function CategoryNode({
           variant="ghost"
           size="sm"
           className={cn(
-            'h-6 w-6 p-0 hover:bg-muted',
+            'h-6 w-6 p-0 hover:bg-muted cursor-pointer',
             !hasChildren && 'invisible'
           )}
           onClick={handleToggleExpand}
@@ -186,24 +191,30 @@ export function CategoryNode({
         )}
 
         {/* Active Status Indicator */}
-        <div className="flex items-center">
+        <div className="flex items-center" title={category.is_active ? 'Active' : 'Inactive'}>
           {category.is_active ? (
-            <Eye className="h-3 w-3 text-green-600" title="Active" />
+            <Badge variant="default" className="bg-green-500/10 text-green-700 border-green-500/20 px-1.5 py-0 text-xs">
+              <Eye className="h-3 w-3 mr-1" />
+              Active
+            </Badge>
           ) : (
-            <EyeOff className="h-3 w-3 text-muted-foreground" title="Inactive" />
+            <Badge variant="secondary" className="px-1.5 py-0 text-xs">
+              <EyeOff className="h-3 w-3 mr-1" />
+              Inactive
+            </Badge>
           )}
         </div>
 
         {/* Action Buttons */}
         <div className={cn(
-          'flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity',
+          'flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer',
           isDragOverlay && 'opacity-100'
         )}>
           {onEdit && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 hover:bg-muted"
+              className="h-6 w-6 p-0 hover:bg-muted cursor-pointer"
               onClick={handleEdit}
               title="Edit category"
             >
@@ -215,7 +226,7 @@ export function CategoryNode({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+              className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
               onClick={handleDelete}
               title="Delete category"
             >
