@@ -91,6 +91,8 @@ export const queryKeys = {
       [...queryKeys.products.all(siteId), 'placeholder'] as const,
     placeholder: (siteId: string, cacheKey: string) => 
       [...queryKeys.products.placeholders(siteId), cacheKey] as const,
+    stats: (siteId: string) => 
+      [...queryKeys.products.all(siteId), 'stats'] as const,
   },
 
   // Review queries

@@ -525,7 +525,7 @@ export async function getProductCategories(
 }
 
 /**
- * Get product statistics
+ * Get product statistics with enhanced metrics
  */
 export async function getProductStats(
   supabase: SupabaseClient<Database>,
@@ -537,58 +537,80 @@ export async function getProductStats(
   inStock: number;
   outOfStock: number;
   avgPrice: number;
+  inventoryValue: number;
+  totalInventoryUnits: number;
+  avgRating: number;
+  totalReviews: number;
+  lowStockCount: number;
 }> {
-  const [
-    total,
-    active,
-    featured,
-    inStock,
-    avgPriceResult
-  ] = await Promise.all([
-    supabase
-      .from('products')
-      .select('id', { count: 'exact', head: true })
-      .eq('site_id', siteId),
-    supabase
-      .from('products')
-      .select('id', { count: 'exact', head: true })
-      .eq('site_id', siteId)
-      .eq('is_active', true),
-    supabase
-      .from('products')
-      .select('id', { count: 'exact', head: true })
-      .eq('site_id', siteId)
-      .eq('is_featured', true),
-    supabase
-      .from('products')
-      .select('id', { count: 'exact', head: true })
-      .eq('site_id', siteId)
-      .eq('in_stock', true),
-    supabase
-      .from('products')
-      .select('price')
-      .eq('site_id', siteId)
-      .eq('is_active', true)
-      .not('price', 'is', null),
-  ]);
-
-  const totalCount = total.count || 0;
-  const activeCount = active.count || 0;
-  const inStockCount = inStock.count || 0;
+  // The current database function doesn't include inventory value calculations
+  // So we'll always use client-side calculation for consistency
+  // In the future, the database function could be enhanced to include these fields
   
-  // Calculate average price
-  const prices = (avgPriceResult.data || []).map(p => p.price).filter(p => p !== null) as number[];
-  const avgPrice = prices.length > 0 
-    ? prices.reduce((sum, price) => sum + price, 0) / prices.length 
-    : 0;
-
+  // Fallback to client-side calculation
+  const { data: products, error } = await supabase
+    .from('products')
+    .select('price, inventory_count, rating, review_count, is_active, is_featured, in_stock')
+    .eq('site_id', siteId);
+  
+  if (error) throw SupabaseError.fromPostgrestError(error);
+  
+  const stats = (products || []).reduce((acc, product) => {
+    const inventory = product.inventory_count ?? 0;
+    const price = product.price ?? 0;
+    const rating = product.rating ?? 0;
+    const reviews = product.review_count ?? 0;
+    
+    // Skip invalid data
+    if (inventory < 0 || price < 0) {
+      return acc;
+    }
+    
+    return {
+      total: acc.total + 1,
+      active: acc.active + (product.is_active ? 1 : 0),
+      featured: acc.featured + (product.is_featured ? 1 : 0),
+      inStock: acc.inStock + (product.in_stock ? 1 : 0),
+      outOfStock: acc.outOfStock + (!product.in_stock ? 1 : 0),
+      inventoryValue: acc.inventoryValue + (inventory * price),
+      totalInventoryUnits: acc.totalInventoryUnits + inventory,
+      totalRatings: acc.totalRatings + rating,
+      totalReviews: acc.totalReviews + reviews,
+      lowStockCount: acc.lowStockCount + (inventory > 0 && inventory <= 10 ? 1 : 0),
+      priceSum: acc.priceSum + (product.is_active && price > 0 ? price : 0),
+      priceCount: acc.priceCount + (product.is_active && price > 0 ? 1 : 0),
+    };
+  }, {
+    total: 0,
+    active: 0,
+    featured: 0,
+    inStock: 0,
+    outOfStock: 0,
+    inventoryValue: 0,
+    totalInventoryUnits: 0,
+    totalRatings: 0,
+    totalReviews: 0,
+    lowStockCount: 0,
+    priceSum: 0,
+    priceCount: 0,
+  });
+  
   return {
-    total: totalCount,
-    active: activeCount,
-    featured: featured.count || 0,
-    inStock: inStockCount,
-    outOfStock: activeCount - inStockCount,
-    avgPrice: Math.round(avgPrice * 100) / 100,
+    total: stats.total,
+    active: stats.active,
+    featured: stats.featured,
+    inStock: stats.inStock,
+    outOfStock: stats.outOfStock,
+    avgPrice: stats.priceCount > 0 
+      ? Math.round((stats.priceSum / stats.priceCount) * 100) / 100 
+      : 0,
+    inventoryValue: Math.round(stats.inventoryValue * 100) / 100,
+    totalInventoryUnits: stats.totalInventoryUnits,
+    avgRating: stats.total > 0 
+      ? Math.round((stats.totalRatings / stats.total) * 10) / 10 
+      : 0,
+    totalReviews: stats.totalReviews,
+    lowStockCount: stats.lowStockCount,
   };
 }
 

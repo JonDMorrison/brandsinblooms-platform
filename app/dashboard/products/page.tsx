@@ -43,6 +43,7 @@ import {
   useProductCategories,
   useUpdateProduct,
 } from '@/src/hooks/useProducts';
+import { useProductStats } from '@/src/hooks/useProductStats';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/src/components/ui/skeleton';
 import {
@@ -260,18 +261,16 @@ function ProductsPageContent() {
     []
   );
 
-  // Memoize stats calculations
-  const stats = useMemo(() => {
-    const totalProducts = displayProducts.length;
+  // Use dedicated hook for product statistics
+  const { data: productStats, isLoading: statsLoading } = useProductStats();
+  
+  // Local stats for addedToSite count (specific to current filter)
+  const localStats = useMemo(() => {
     const siteProducts = displayProducts.filter((p) => p.addedToSite);
-    const addedToSite = siteProducts.length;
-    const totalRevenue = siteProducts.reduce((sum, p) => sum + p.price, 0);
-    const avgRating =
-      totalProducts > 0
-        ? displayProducts.reduce((sum, p) => sum + p.rating, 0) / totalProducts
-        : 0;
-
-    return { totalProducts, addedToSite, totalRevenue, avgRating };
+    return {
+      displayCount: displayProducts.length,
+      addedToSite: siteProducts.length,
+    };
   }, [displayProducts]);
 
   const {
@@ -362,7 +361,11 @@ function ProductsPageContent() {
                     <p className='text-sm text-muted-foreground'>
                       Total Products
                     </p>
-                    <p className='text-xl font-bold'>{stats.totalProducts}</p>
+                    {statsLoading ? (
+                      <Skeleton className='h-7 w-16' />
+                    ) : (
+                      <p className='text-xl font-bold'>{productStats?.totalProducts || 0}</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -375,8 +378,19 @@ function ProductsPageContent() {
                     <ShoppingCart className='h-5 w-5 text-green-600' />
                   </div>
                   <div>
-                    <p className='text-sm text-muted-foreground'>On Site</p>
-                    <p className='text-xl font-bold'>{stats.addedToSite}</p>
+                    <p className='text-sm text-muted-foreground'>Active Products</p>
+                    {statsLoading ? (
+                      <Skeleton className='h-7 w-16' />
+                    ) : (
+                      <>
+                        <p className='text-xl font-bold'>{productStats?.activeProducts || 0}</p>
+                        {productStats && productStats.totalProducts > 0 && (
+                          <p className='text-xs text-muted-foreground'>
+                            {Math.round((productStats.activeProducts / productStats.totalProducts) * 100)}% active
+                          </p>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -389,10 +403,24 @@ function ProductsPageContent() {
                     <DollarSign className='h-5 w-5 text-purple-600' />
                   </div>
                   <div>
-                    <p className='text-sm text-muted-foreground'>Total Value</p>
-                    <p className='text-xl font-bold'>
-                      ${stats.totalRevenue.toFixed(2)}
-                    </p>
+                    <p className='text-sm text-muted-foreground'>Inventory Value</p>
+                    {statsLoading ? (
+                      <Skeleton className='h-7 w-24' />
+                    ) : (
+                      <>
+                        <p className='text-xl font-bold'>
+                          ${(productStats?.inventoryValue || 0).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </p>
+                        {productStats && productStats.totalInventoryUnits > 0 && (
+                          <p className='text-xs text-muted-foreground'>
+                            {productStats.totalInventoryUnits.toLocaleString()} units
+                          </p>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -406,9 +434,20 @@ function ProductsPageContent() {
                   </div>
                   <div>
                     <p className='text-sm text-muted-foreground'>Avg Rating</p>
-                    <p className='text-xl font-bold'>
-                      {stats.avgRating.toFixed(1)}
-                    </p>
+                    {statsLoading ? (
+                      <Skeleton className='h-7 w-16' />
+                    ) : (
+                      <>
+                        <p className='text-xl font-bold'>
+                          {(productStats?.averageRating || 0).toFixed(1)} ★
+                        </p>
+                        {productStats && productStats.totalReviews > 0 && (
+                          <p className='text-xs text-muted-foreground'>
+                            {productStats.totalReviews} reviews
+                          </p>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -428,7 +467,7 @@ function ProductsPageContent() {
             <TabsList>
               <TabsTrigger value='catalogue'>Product Catalogue</TabsTrigger>
               <TabsTrigger value='my-products'>
-                My Products ({stats.addedToSite})
+                My Products ({localStats.addedToSite})
               </TabsTrigger>
             </TabsList>
 
