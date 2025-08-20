@@ -36,6 +36,7 @@ import {
   Star,
   Download,
   Upload,
+  FolderTree,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -315,6 +316,13 @@ function ProductsPageContent() {
           </p>
         </div>
         <div className='flex gap-2'>
+          <Button 
+            variant="outline" 
+            onClick={() => router.push('/dashboard/products/categories')}
+          >
+            <FolderTree className='h-4 w-4 mr-2' />
+            Manage Categories
+          </Button>
           <Button onClick={() => router.push('/dashboard/products/new')}>
             <Plus className='h-4 w-4 mr-2' />
             Add New Product
