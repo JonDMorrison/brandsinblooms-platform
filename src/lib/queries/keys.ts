@@ -95,6 +95,40 @@ export const queryKeys = {
       [...queryKeys.products.all(siteId), 'stats'] as const,
   },
 
+  // Category queries
+  categories: {
+    all: (siteId: string) => [...queryKeys.all, 'categories', siteId] as const,
+    lists: (siteId: string) => [...queryKeys.categories.all(siteId), 'list'] as const,
+    list: (siteId: string, filters?: {
+      active?: boolean;
+      parentId?: string | null;
+      level?: number;
+      includeInactive?: boolean;
+      search?: string;
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    }) => [...queryKeys.categories.lists(siteId), filters] as const,
+    details: (siteId: string) => [...queryKeys.categories.all(siteId), 'detail'] as const,
+    detail: (siteId: string, id: string) => 
+      [...queryKeys.categories.details(siteId), id] as const,
+    hierarchy: (siteId: string, filters?: {
+      active?: boolean;
+      includeInactive?: boolean;
+    }) => [...queryKeys.categories.all(siteId), 'hierarchy', filters] as const,
+    ancestors: (siteId: string, categoryId: string) => 
+      [...queryKeys.categories.detail(siteId, categoryId), 'ancestors'] as const,
+    products: (siteId: string, categoryId: string) => 
+      [...queryKeys.categories.detail(siteId, categoryId), 'products'] as const,
+    productsList: (siteId: string, categoryId: string, filters?: {
+      page?: number;
+      limit?: number;
+      includeInactive?: boolean;
+      primaryOnly?: boolean;
+    }) => [...queryKeys.categories.products(siteId, categoryId), 'list', filters] as const,
+  },
+
   // Review queries
   reviews: {
     all: (siteId: string) => [...queryKeys.all, 'reviews', siteId] as const,

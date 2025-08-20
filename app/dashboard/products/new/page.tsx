@@ -7,9 +7,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { 
   useCreateProduct, 
-  useSkuValidation, 
-  useProductCategories 
+  useSkuValidation
 } from '@/src/hooks/useProducts'
+import { useCategoriesList } from '@/src/hooks/useCategories'
 import { useSlugField } from '@/src/hooks/useSlugGeneration'
 import { validateSlug } from '@/src/lib/utils/slug'
 import { useUploadMultipleProductImages } from '@/src/hooks/useProductImages'
@@ -21,7 +21,7 @@ import { Input } from '@/src/components/ui/input'
 import { Textarea } from '@/src/components/ui/textarea'
 import { Label } from '@/src/components/ui/label'
 import { Switch } from '@/src/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
+import { CategorySelect } from '@/src/components/categories/CategorySelect'
 import {
   Form,
   FormControl,
@@ -68,8 +68,8 @@ const productSchema = z.object({
   name: z.string().min(1, 'Product name is required').max(255),
   description: z.string().optional(),
   sku: z.string().min(1, 'SKU is required').max(100),
-  category: z.string().min(1, 'Category is required'),
-  subcategory: z.string().optional(),
+  primary_category_id: z.string().min(1, 'Category is required'),
+  category_ids: z.array(z.string()).optional(),
   price: z.coerce.number().min(0, 'Price must be positive'),
   sale_price: z.coerce.number().min(0).optional().nullable(),
   compare_at_price: z.coerce.number().min(0).optional().nullable(),
@@ -91,21 +91,6 @@ const productSchema = z.object({
 
 type ProductFormData = z.infer<typeof productSchema>
 
-// Fallback categories if none exist in database
-const fallbackCategories = [
-  'Annuals',
-  'Perennials',
-  'Trees',
-  'Shrubs',
-  'Houseplants',
-  'Garden Supplies',
-  'Tools',
-  'Fertilizers',
-  'Seeds',
-  'Pottery',
-  'Decor',
-  'Other'
-]
 
 // Helper function to get image dimensions
 const getImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
@@ -122,7 +107,7 @@ export default function NewProductPage() {
   const createProduct = useCreateProduct()
   const uploadImages = useUploadMultipleProductImages()
   const validateSku = useSkuValidation()
-  const { data: dbCategories = [], isLoading: categoriesLoading } = useProductCategories()
+  const { data: categories = [], isLoading: categoriesLoading } = useCategoriesList()
   
   // Initialize slug field management
   const {
@@ -157,10 +142,6 @@ export default function NewProductPage() {
     }
   }, [currentStep, isSubmitting, steps.length])
 
-  // Use database categories if available, otherwise use fallback
-  const categories = dbCategories.length > 0 
-    ? [...new Set([...dbCategories.map(c => c.category), 'Other'])] // Use Set to ensure uniqueness
-    : fallbackCategories
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as any,
@@ -169,7 +150,7 @@ export default function NewProductPage() {
       description: '',
       sku: '',
       slug: '',
-      category: '',
+      primary_category_id: '',
       price: 0,
       inventory_count: 0,
       low_stock_threshold: 10,
@@ -478,7 +459,7 @@ export default function NewProductPage() {
     
     if (currentStep === 0) {
       // Validate basic info
-      isValid = await form.trigger(['name', 'sku', 'slug', 'category']);
+      isValid = await form.trigger(['name', 'sku', 'slug', 'primary_category_id']);
       if (isValid && currentSlug) {
         // Ensure slug is validated
         const slugIsValid = await validateCurrentSlug();
@@ -684,59 +665,54 @@ export default function NewProductPage() {
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Category *</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
+                  <FormField
+                    control={form.control}
+                    name="primary_category_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category *</FormLabel>
+                        <FormControl>
+                          <CategorySelect
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            categories={categories}
+                            placeholder="Select a category"
                             disabled={categoriesLoading}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={
-                                  categoriesLoading ? "Loading categories..." : "Select a category"
-                                } />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {categories.map((category) => (
-                                <SelectItem key={category} value={category}>
-                                  {category}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Product category for organization
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            error={form.formState.errors.primary_category_id?.message}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Product category for organization
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    <FormField
-                      control={form.control}
-                      name="subcategory"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Subcategory</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="e.g., Annual Flowers" 
-                              {...field}
-                              value={field.value || ''}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="category_ids"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Additional Categories</FormLabel>
+                        <FormControl>
+                          <CategorySelect
+                            value={field.value || []}
+                            onValueChange={field.onChange}
+                            categories={categories}
+                            placeholder="Select additional categories"
+                            multiple={true}
+                            disabled={categoriesLoading}
+                            excludeIds={form.watch('primary_category_id') ? [form.watch('primary_category_id')] : []}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Optionally assign to multiple categories
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
@@ -982,7 +958,11 @@ export default function NewProductPage() {
                       </div>
                       <div>
                         <span className="text-muted-foreground">Category:</span>
-                        <p className="font-medium">{form.watch('category') || 'Not set'}</p>
+                        <p className="font-medium">
+                          {form.watch('primary_category_id') 
+                            ? categories.find(c => c.id === form.watch('primary_category_id'))?.name || 'Not set'
+                            : 'Not set'}
+                        </p>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Price:</span>

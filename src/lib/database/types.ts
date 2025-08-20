@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
+          extensions?: Json
+          operationName?: string
           query?: string
           variables?: Json
-          operationName?: string
-          extensions?: Json
         }
         Returns: Json
       }
@@ -261,6 +261,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "content"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_inquiries_related_product_id_fkey"
+            columns: ["related_product_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories_expanded"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "contact_inquiries_related_product_id_fkey"
@@ -672,6 +679,13 @@ export type Database = {
             foreignKeyName: "order_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "product_categories_expanded"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -931,6 +945,158 @@ export type Database = {
           },
         ]
       }
+      product_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          level: number
+          meta_description: string | null
+          meta_title: string | null
+          name: string
+          parent_id: string | null
+          path: string
+          site_id: string
+          slug: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          level?: number
+          meta_description?: string | null
+          meta_title?: string | null
+          name: string
+          parent_id?: string | null
+          path: string
+          site_id: string
+          slug: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          level?: number
+          meta_description?: string | null
+          meta_title?: string | null
+          name?: string
+          parent_id?: string | null
+          path?: string
+          site_id?: string
+          slug?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "category_product_counts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories_expanded"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "product_categories_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_category_assignments: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          product_id: string
+          sort_order: number | null
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          product_id: string
+          sort_order?: number | null
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          product_id?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_category_assignments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_product_counts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_category_assignments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_category_assignments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories_expanded"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "product_category_assignments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories_expanded"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_category_assignments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_favorites: {
         Row: {
           created_at: string | null
@@ -954,6 +1120,13 @@ export type Database = {
           site_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "product_favorites_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories_expanded"
+            referencedColumns: ["product_id"]
+          },
           {
             foreignKeyName: "product_favorites_product_id_fkey"
             columns: ["product_id"]
@@ -1028,6 +1201,13 @@ export type Database = {
             foreignKeyName: "product_images_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "product_categories_expanded"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -1088,6 +1268,13 @@ export type Database = {
             foreignKeyName: "product_reviews_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "product_categories_expanded"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -1128,6 +1315,7 @@ export type Database = {
           meta_description: string | null
           name: string
           price: number | null
+          primary_category_id: string | null
           rating: number | null
           review_count: number | null
           sale_price: number | null
@@ -1159,6 +1347,7 @@ export type Database = {
           meta_description?: string | null
           name: string
           price?: number | null
+          primary_category_id?: string | null
           rating?: number | null
           review_count?: number | null
           sale_price?: number | null
@@ -1190,6 +1379,7 @@ export type Database = {
           meta_description?: string | null
           name?: string
           price?: number | null
+          primary_category_id?: string | null
           rating?: number | null
           review_count?: number | null
           sale_price?: number | null
@@ -1202,6 +1392,27 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "products_primary_category_id_fkey"
+            columns: ["primary_category_id"]
+            isOneToOne: false
+            referencedRelation: "category_product_counts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_primary_category_id_fkey"
+            columns: ["primary_category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_primary_category_id_fkey"
+            columns: ["primary_category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories_expanded"
+            referencedColumns: ["category_id"]
+          },
           {
             foreignKeyName: "products_site_id_fkey"
             columns: ["site_id"]
@@ -1762,6 +1973,50 @@ export type Database = {
       }
     }
     Views: {
+      category_product_counts: {
+        Row: {
+          active_product_count: number | null
+          id: string | null
+          is_active: boolean | null
+          level: number | null
+          name: string | null
+          parent_id: string | null
+          path: string | null
+          product_count: number | null
+          site_id: string | null
+          slug: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "category_product_counts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories_expanded"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "product_categories_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_stats: {
         Row: {
           avatar_url: string | null
@@ -1951,6 +2206,29 @@ export type Database = {
           },
         ]
       }
+      product_categories_expanded: {
+        Row: {
+          category_id: string | null
+          category_name: string | null
+          category_path: string | null
+          category_slug: string | null
+          is_primary: boolean | null
+          product_id: string | null
+          product_name: string | null
+          site_id: string | null
+          sku: string | null
+          sort_order: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unread_notifications: {
         Row: {
           action_url: string | null
@@ -2008,22 +2286,22 @@ export type Database = {
     }
     Functions: {
       acquire_migration_lock: {
-        Args: { p_migration_batch: string; p_instance_id: string }
+        Args: { p_instance_id: string; p_migration_batch: string }
         Returns: boolean
       }
       admin_bulk_update_content: {
         Args: {
+          content_ids: string[]
           bulk_updates: Json
           admin_notes?: string
-          content_ids: string[]
         }
         Returns: Json
       }
       admin_bulk_update_products: {
         Args: {
+          product_ids: string[]
           admin_notes?: string
           bulk_updates: Json
-          product_ids: string[]
         }
         Returns: Json
       }
@@ -2032,17 +2310,17 @@ export type Database = {
         Returns: boolean
       }
       admin_get_content_analytics: {
-        Args: { site_uuid: string; start_date?: string; end_date?: string }
+        Args: { site_uuid: string; end_date?: string; start_date?: string }
         Returns: Json
       }
       admin_get_product_analytics: {
-        Args: { site_uuid: string; end_date?: string; start_date?: string }
+        Args: { end_date?: string; site_uuid: string; start_date?: string }
         Returns: Json
       }
       admin_get_site_content: {
         Args: {
-          site_uuid: string
           search_query?: string
+          site_uuid: string
           content_type_filter?: string
           status_filter?: string
           limit_count?: number
@@ -2071,18 +2349,18 @@ export type Database = {
       }
       admin_update_product: {
         Args: {
-          admin_notes?: string
           product_uuid: string
+          admin_notes?: string
           product_updates: Json
         }
         Returns: Json
       }
       admin_update_site_status: {
         Args: {
-          new_is_published?: boolean
-          site_uuid: string
-          new_is_active?: boolean
           notes?: string
+          new_is_published?: boolean
+          new_is_active?: boolean
+          site_uuid: string
         }
         Returns: boolean
       }
@@ -2091,7 +2369,7 @@ export type Database = {
         Returns: string
       }
       can_upload_product_image: {
-        Args: { user_id_param: string; site_id_param: string }
+        Args: { site_id_param: string; user_id_param: string }
         Returns: boolean
       }
       check_site_health: {
@@ -2116,9 +2394,9 @@ export type Database = {
       }
       create_site_with_template: {
         Args: {
+          site_subdomain: string
           template_slug: string
           site_name: string
-          site_subdomain: string
           owner_email: string
           business_info?: Json
         }
@@ -2127,8 +2405,8 @@ export type Database = {
       end_impersonation_session: {
         Args: {
           session_token_param?: string
-          session_id_param?: string
           end_reason_param?: string
+          session_id_param?: string
         }
         Returns: Json
       }
@@ -2142,6 +2420,10 @@ export type Database = {
       }
       generate_order_number: {
         Args: { site_prefix?: string }
+        Returns: string
+      }
+      generate_unique_slug: {
+        Args: { p_exclude_id?: string; p_name: string; p_site_id: string }
         Returns: string
       }
       get_active_impersonation_sessions: {
@@ -2167,28 +2449,57 @@ export type Database = {
       }
       get_all_sites_with_stats: {
         Args: {
-          search_query?: string
           status_filter?: string
           limit_count?: number
+          search_query?: string
           offset_count?: number
         }
         Returns: Json
+      }
+      get_category_ancestors: {
+        Args: { p_category_id: string }
+        Returns: {
+          level: number
+          id: string
+          parent_id: string
+          name: string
+          slug: string
+        }[]
+      }
+      get_category_tree: {
+        Args: { p_site_id: string }
+        Returns: {
+          id: string
+          parent_id: string
+          name: string
+          slug: string
+          description: string
+          image_url: string
+          icon: string
+          color: string
+          path: string
+          level: number
+          sort_order: number
+          is_active: boolean
+          product_count: number
+          children_count: number
+        }[]
       }
       get_impersonation_context: {
         Args: { token: string }
         Returns: Json
       }
       get_order_summary_stats: {
-        Args: { p_date_range?: unknown; p_site_id: string }
+        Args: { p_site_id: string; p_date_range?: unknown }
         Returns: {
-          total_revenue: number
-          total_orders: number
           processing_orders: number
-          pending_orders: number
           delivered_orders: number
-          shipped_orders: number
-          conversion_rate: number
+          total_orders: number
+          total_revenue: number
           average_order_value: number
+          conversion_rate: number
+          pending_orders: number
+          shipped_orders: number
         }[]
       }
       get_platform_analytics_summary: {
@@ -2199,10 +2510,10 @@ export type Database = {
         Args: { p_site_id: string }
         Returns: {
           average_rating: number
-          out_of_stock: number
-          active_products: number
-          total_products: number
           total_reviews: number
+          total_products: number
+          active_products: number
+          out_of_stock: number
           low_stock: number
         }[]
       }
@@ -2211,7 +2522,7 @@ export type Database = {
         Returns: Json
       }
       get_site_health_summary: {
-        Args: { site_uuid: string; days_back?: number }
+        Args: { days_back?: number; site_uuid: string }
         Returns: Json
       }
       get_site_summary_stats: {
@@ -2236,6 +2547,7 @@ export type Database = {
       }
       log_admin_action: {
         Args: {
+          ip_addr?: unknown
           admin_id: string
           site_uuid: string
           action_type_val: string
@@ -2243,9 +2555,8 @@ export type Database = {
           target_uuid?: string
           old_vals?: Json
           new_vals?: Json
-          details?: string
-          ip_addr?: unknown
           user_agent_val?: string
+          details?: string
         }
         Returns: string
       }
@@ -2257,13 +2568,25 @@ export type Database = {
         Args: { notification_id: string }
         Returns: boolean
       }
+      migrate_existing_categories: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      reassign_category_products: {
+        Args: { p_category_id: string; p_new_category_id?: string }
+        Returns: number
+      }
       release_migration_lock: {
-        Args: { p_migration_batch: string; p_instance_id: string }
+        Args: { p_instance_id: string; p_migration_batch: string }
         Returns: boolean
       }
       run_platform_health_checks: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      sanitize_slug: {
+        Args: { input_text: string }
+        Returns: string
       }
       search_content_global: {
         Args: {
@@ -2272,50 +2595,58 @@ export type Database = {
           result_limit?: number
         }
         Returns: {
-          is_published: boolean
-          updated_at: string
-          relevance: number
-          excerpt: string
           id: string
           title: string
           content_type: string
           slug: string
+          excerpt: string
+          is_published: boolean
+          relevance: number
+          updated_at: string
         }[]
       }
       search_orders: {
         Args: {
-          p_payment_status?: string
-          p_limit?: number
-          p_offset?: number
           p_site_id: string
           p_search_term?: string
           p_status?: string
+          p_payment_status?: string
+          p_limit?: number
+          p_offset?: number
         }
         Returns: {
           id: string
+          order_number: string
           customer_name: string
           customer_email: string
           status: string
           payment_status: string
-          created_at: string
           total_amount: number
-          order_number: string
+          created_at: string
         }[]
       }
       start_admin_impersonation: {
         Args: {
-          user_agent_val?: string
-          impersonated_user_uuid?: string
           site_uuid: string
-          allowed_actions_list?: string[]
+          impersonated_user_uuid?: string
+          user_agent_val?: string
           duration_hours?: number
-          purpose_text?: string
+          allowed_actions_list?: string[]
           ip_addr?: unknown
+          purpose_text?: string
         }
         Returns: Json
       }
+      unaccent: {
+        Args: { "": string }
+        Returns: string
+      }
+      unaccent_init: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       update_product_inventory: {
-        Args: { p_change: number; p_product_id: string }
+        Args: { p_product_id: string; p_change: number }
         Returns: {
           attributes: Json | null
           care_instructions: string | null
@@ -2336,6 +2667,7 @@ export type Database = {
           meta_description: string | null
           name: string
           price: number | null
+          primary_category_id: string | null
           rating: number | null
           review_count: number | null
           sale_price: number | null

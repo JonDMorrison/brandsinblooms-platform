@@ -236,21 +236,30 @@ export async function getProductBySku(
 }
 
 /**
- * Create new product
+ * Create new product with category assignments
  */
 export async function createProduct(
   supabase: SupabaseClient<Database>,
-  data: InsertProduct,
+  data: InsertProduct & { 
+    primary_category_id?: string;
+    category_ids?: string[];
+  },
   tagIds?: string[]
 ): Promise<Product> {
   console.log('🏭 createProduct function called with data:', data);
   console.log('🏷️ Tags to add:', tagIds);
   
-  // Create product
+  // Extract category data from the product data
+  const { primary_category_id, category_ids, ...productData } = data;
+  
+  // Create product with primary_category_id if provided
   console.log('🔄 Inserting product into database...');
   const response = await supabase
     .from('products')
-    .insert(data)
+    .insert({
+      ...productData,
+      primary_category_id: primary_category_id || null
+    })
     .select()
     .single();
 
@@ -258,6 +267,49 @@ export async function createProduct(
   
   const product = await handleSingleResponse(response);
   console.log('✅ Product created successfully:', product);
+
+  // Add category assignments if provided
+  if (primary_category_id || (category_ids && category_ids.length > 0)) {
+    console.log('📁 Adding category assignments...');
+    
+    const assignments = [];
+    
+    // Add primary category assignment
+    if (primary_category_id) {
+      assignments.push({
+        product_id: product.id,
+        category_id: primary_category_id,
+        is_primary: true,
+        sort_order: 0
+      });
+    }
+    
+    // Add additional category assignments
+    if (category_ids && category_ids.length > 0) {
+      const additionalAssignments = category_ids
+        .filter(id => id !== primary_category_id) // Exclude primary if it's in the list
+        .map((categoryId, index) => ({
+          product_id: product.id,
+          category_id: categoryId,
+          is_primary: false,
+          sort_order: index + 1
+        }));
+      assignments.push(...additionalAssignments);
+    }
+    
+    if (assignments.length > 0) {
+      const { error } = await supabase
+        .from('product_category_assignments')
+        .insert(assignments);
+      
+      if (error) {
+        console.error('Failed to add category assignments:', error);
+        // Don't throw - product was created successfully
+      } else {
+        console.log('✅ Category assignments added successfully');
+      }
+    }
+  }
 
   // Add tags if provided
   if (tagIds && tagIds.length > 0) {
@@ -285,30 +337,86 @@ export async function createProduct(
 }
 
 /**
- * Update product
+ * Update product with category assignments
  */
 export async function updateProduct(
   supabase: SupabaseClient<Database>,
   siteId: string,
   productId: string,
-  data: UpdateProduct,
+  data: UpdateProduct & {
+    primary_category_id?: string | null;
+    category_ids?: string[];
+  },
   tagIds?: string[]
 ): Promise<Product> {
-  const filteredData = filterUndefined(data);
+  // Extract category data from the update data
+  const { primary_category_id, category_ids, ...productData } = data;
+  const filteredData = filterUndefined(productData);
   
-  // Update product
+  // Update product with primary_category_id if provided
+  const updateData = {
+    ...filteredData,
+    updated_at: new Date().toISOString(),
+  };
+  
+  // Handle primary_category_id explicitly (can be null to clear it)
+  if (primary_category_id !== undefined) {
+    updateData.primary_category_id = primary_category_id;
+  }
+  
   const response = await supabase
     .from('products')
-    .update({
-      ...filteredData,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateData)
     .eq('site_id', siteId)
     .eq('id', productId)
     .select()
     .single();
 
   const product = await handleSingleResponse(response);
+  
+  // Update category assignments if provided
+  if (primary_category_id !== undefined || category_ids !== undefined) {
+    // Remove existing assignments
+    await supabase
+      .from('product_category_assignments')
+      .delete()
+      .eq('product_id', productId);
+    
+    const assignments = [];
+    
+    // Add primary category assignment
+    if (primary_category_id) {
+      assignments.push({
+        product_id: productId,
+        category_id: primary_category_id,
+        is_primary: true,
+        sort_order: 0
+      });
+    }
+    
+    // Add additional category assignments
+    if (category_ids && category_ids.length > 0) {
+      const additionalAssignments = category_ids
+        .filter(id => id !== primary_category_id) // Exclude primary if it's in the list
+        .map((categoryId, index) => ({
+          product_id: productId,
+          category_id: categoryId,
+          is_primary: false,
+          sort_order: index + 1
+        }));
+      assignments.push(...additionalAssignments);
+    }
+    
+    if (assignments.length > 0) {
+      const { error } = await supabase
+        .from('product_category_assignments')
+        .insert(assignments);
+      
+      if (error) {
+        console.error('Failed to update category assignments:', error);
+      }
+    }
+  }
 
   // Update tags if provided
   if (tagIds !== undefined) {

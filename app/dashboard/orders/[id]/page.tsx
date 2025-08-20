@@ -186,7 +186,7 @@ export default function OrderDetailPage() {
             <Package className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <h3 className="font-medium text-gray-600 mb-2">Order Not Found</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              The order could not be found or you don't have permission to view it.
+              The order could not be found or you don&apos;t have permission to view it.
             </p>
             <Button onClick={() => router.push('/dashboard/orders')} variant="default">
               Back to Orders
