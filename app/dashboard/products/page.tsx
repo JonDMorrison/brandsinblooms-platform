@@ -111,34 +111,60 @@ function ProductsPageContent() {
   const displayProducts: ProductDisplay[] = useMemo(() => {
     if (!products || !Array.isArray(products)) return [];
 
-    return products.map((product) => ({
-      id: product.id,
-      name: product.name,
-      description: product.description || '',
-      price: product.price,
-      originalPrice: product.compare_at_price || undefined,
-      rating: product.rating || 0,
-      reviews: product.review_count || 0,
-      category: product.category || 'Uncategorized',
-      stock:
-        product.inventory_count === 0
-          ? 'out-of-stock'
-          : product.inventory_count < 10
-          ? 'low-stock'
-          : 'in-stock',
-      image: product.images?.[0] || '',
-      featured: product.is_featured || false,
-      addedToSite: product.is_active || false,
-    }));
+    return products.map((product: any) => {
+      // Get category name from primary_category or first category assignment
+      let categoryName = 'Uncategorized';
+      if (product.primary_category?.name) {
+        categoryName = product.primary_category.name;
+      } else if (product.product_category_assignments?.length > 0) {
+        const firstAssignment = product.product_category_assignments[0];
+        if (firstAssignment.category?.name) {
+          categoryName = firstAssignment.category.name;
+        }
+      } else if (product.category) {
+        // Fallback to old category field if it exists
+        categoryName = product.category;
+      }
+
+      return {
+        id: product.id,
+        name: product.name,
+        description: product.description || '',
+        price: product.price,
+        originalPrice: product.compare_at_price || undefined,
+        rating: product.rating || 0,
+        reviews: product.review_count || 0,
+        category: categoryName,
+        stock:
+          product.inventory_count === 0
+            ? 'out-of-stock'
+            : product.inventory_count < 10
+            ? 'low-stock'
+            : 'in-stock',
+        image: product.images?.[0] || '',
+        featured: product.is_featured || false,
+        addedToSite: product.is_active || false,
+      };
+    });
   }, [products]);
 
   const categories = useMemo(() => {
-    const categoryStrings = categoriesData
-      .map((cat) => (typeof cat === 'string' ? cat : cat.category))
-      .filter(Boolean);
-    const uniqueCategories = Array.from(new Set(categoryStrings));
-    return ['All', ...uniqueCategories];
-  }, [categoriesData]);
+    // categoriesData now contains objects with id, name, slug, count, etc.
+    const categoryOptions = categoriesData
+      .map((cat) => ({
+        value: cat.name,
+        label: cat.name,
+        count: cat.count,
+        icon: cat.icon,
+        color: cat.color
+      }));
+    
+    // Add "All" option at the beginning
+    return [
+      { value: 'All', label: 'All', count: displayProducts.length, icon: undefined, color: undefined },
+      ...categoryOptions
+    ];
+  }, [categoriesData, displayProducts.length]);
 
   // Memoize filtered products to prevent unnecessary recalculations
   const filteredProducts = useMemo(() => {
@@ -234,10 +260,10 @@ function ProductsPageContent() {
 
   // Custom save handler that uses useProductEdit hook
   const customSaveHandler = useCallback(
-    async (productId: string, updates: Partial<Tables<'products'>>): Promise<Tables<'products'>> => {
+    async (productId: string, updates: Partial<Tables<'products'> & { category_ids?: string[] }>): Promise<Tables<'products'>> => {
       return new Promise((resolve, reject) => {
         productEdit.mutate(
-          { id: productId, ...updates },
+          { id: productId, ...updates } as any,
           {
             onSuccess: (data) => {
               resolve(data);
@@ -531,8 +557,14 @@ function ProductsPageContent() {
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
+                      <SelectItem key={category.value} value={category.value}>
+                        <div className='flex items-center gap-2'>
+                          {category.icon && <span>{category.icon}</span>}
+                          <span>{category.label}</span>
+                          {category.count !== undefined && (
+                            <span className='text-muted-foreground text-xs'>({category.count})</span>
+                          )}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -24,36 +24,31 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
+  FormDescription
 } from '@/src/components/ui/form'
 import { Input } from '@/src/components/ui/input'
 import { Textarea } from '@/src/components/ui/textarea'
 import { Button } from '@/src/components/ui/button'
 import { Checkbox } from '@/src/components/ui/checkbox'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/src/components/ui/select'
 import { Loader2 } from 'lucide-react'
 import { useIsMobile } from '@/src/hooks/use-mobile'
 import { cn } from '@/src/lib/utils'
 import { 
   updateProduct,
-  getProductCategories,
   type ProductWithSite,
   AdminProductError
 } from '@/src/lib/admin/products'
+import { CategorySelect } from '@/src/components/categories/CategorySelect'
+import { useCategoriesList } from '@/src/hooks/useCategories'
 import type { Tables, TablesUpdate } from '@/src/lib/database/types'
 
 // Zod schema for form validation
 const productEditSchema = z.object({
   name: z.string().min(1, 'Product name is required').max(255, 'Product name is too long'),
   sku: z.string().optional(),
-  category: z.string().optional(),
-  subcategory: z.string().optional(),
+  primary_category_id: z.string().optional().nullable(),
+  category_ids: z.array(z.string()).optional(),
   price: z.string().optional().refine((val) => {
     if (!val || val === '') return true
     const num = parseFloat(val)
@@ -80,7 +75,7 @@ interface ProductEditModalProps {
   isOpen: boolean
   onClose: () => void
   onSave?: (updatedProduct: Tables<'products'>) => void
-  customSaveHandler?: (productId: string, updates: Partial<TablesUpdate<'products'>>) => Promise<Tables<'products'>>
+  customSaveHandler?: (productId: string, updates: Partial<TablesUpdate<'products'> & { category_ids?: string[] }>) => Promise<Tables<'products'>>
   onReturnFocus?: () => void
 }
 
@@ -94,10 +89,7 @@ export function ProductEditModal({
 }: ProductEditModalProps) {
   const isMobile = useIsMobile()
   const [isLoading, setIsLoading] = useState(false)
-  const [categories, setCategories] = useState<{
-    categories: string[]
-    subcategories: Record<string, string[]>
-  }>({ categories: [], subcategories: {} })
+  const { data: categories = [], isLoading: categoriesLoading } = useCategoriesList()
   const firstInputRef = useRef<HTMLInputElement>(null)
   const lastFocusableRef = useRef<HTMLButtonElement>(null)
 
@@ -106,8 +98,8 @@ export function ProductEditModal({
     defaultValues: {
       name: '',
       sku: '',
-      category: '',
-      subcategory: '',
+      primary_category_id: null,
+      category_ids: [],
       price: '',
       sale_price: '',
       description: '',
@@ -120,34 +112,28 @@ export function ProductEditModal({
     }
   })
 
-  const watchedCategory = form.watch('category')
-
-  // Load categories on mount
-  useEffect(() => {
-    const loadCategories = async () => {
-      if (!product?.site_id) return
-
-      try {
-        const categoriesData = await getProductCategories(product.site_id)
-        setCategories(categoriesData)
-      } catch (error) {
-        console.error('Failed to load categories:', error)
-      }
-    }
-
-    if (isOpen && product) {
-      loadCategories()
-    }
-  }, [isOpen, product?.site_id])
 
   // Populate form when product changes
   useEffect(() => {
     if (product && isOpen) {
+      // Get category IDs from product
+      let primaryCategoryId = product.primary_category_id || null
+      let additionalCategoryIds: string[] = []
+      
+      // If product has extended data with category assignments, extract the IDs
+      // Note: The extended product data would need to be passed in, for now we just use primary_category_id
+      if ((product as any).product_category_assignments && Array.isArray((product as any).product_category_assignments)) {
+        const categoryIds = (product as any).product_category_assignments
+          .map((assignment: any) => assignment.category_id)
+          .filter((id: string) => id && id !== primaryCategoryId)
+        additionalCategoryIds = categoryIds
+      }
+      
       form.reset({
         name: product.name || '',
         sku: product.sku || '',
-        category: product.category || 'none',
-        subcategory: product.subcategory || 'none',
+        primary_category_id: primaryCategoryId,
+        category_ids: additionalCategoryIds,
         price: product.price?.toString() || '',
         sale_price: product.sale_price?.toString() || '',
         description: product.description || '',
@@ -161,12 +147,6 @@ export function ProductEditModal({
     }
   }, [product, isOpen, form])
 
-  // Reset subcategory when category changes
-  useEffect(() => {
-    if (watchedCategory !== form.getValues('category')) {
-      form.setValue('subcategory', '')
-    }
-  }, [watchedCategory, form])
 
   const handleSave = async (data: ProductEditFormData) => {
     if (!product) return
@@ -174,11 +154,11 @@ export function ProductEditModal({
     setIsLoading(true)
     
     try {
-      const updates: Partial<TablesUpdate<'products'>> = {
+      const updates: Partial<TablesUpdate<'products'> & { category_ids?: string[] }> = {
         name: data.name,
         sku: data.sku || null,
-        category: data.category === 'none' ? null : data.category || null,
-        subcategory: data.subcategory === 'none' ? null : data.subcategory || null,
+        primary_category_id: data.primary_category_id || null,
+        category_ids: data.category_ids || [],
         description: data.description || null,
         care_instructions: data.care_instructions || null,
         is_active: data.is_active,
@@ -330,31 +310,27 @@ export function ProductEditModal({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
           <FormField
             control={form.control}
-            name="category"
+            name="primary_category_id"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
-                  <FormControl>
-                    <SelectTrigger aria-describedby="category-description">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">No category</SelectItem>
-                    {categories.categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div id="category-description" className="sr-only">
-                  Choose a product category. Selecting a category will show relevant subcategories.
-                </div>
+                <FormControl>
+                  <CategorySelect
+                    name="primary_category_id"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    categories={categories}
+                    placeholder="Select a category"
+                    disabled={categoriesLoading || isLoading}
+                    error={form.formState.errors.primary_category_id?.message}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Main category for this product
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -362,35 +338,25 @@ export function ProductEditModal({
 
           <FormField
             control={form.control}
-            name="subcategory"
+            name="category_ids"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Subcategory</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  value={field.value} 
-                  disabled={isLoading || !watchedCategory}
-                >
-                  <FormControl>
-                    <SelectTrigger aria-describedby="subcategory-description">
-                      <SelectValue placeholder="Select subcategory" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">No subcategory</SelectItem>
-                    {watchedCategory && categories.subcategories[watchedCategory]?.map((subcategory) => (
-                      <SelectItem key={subcategory} value={subcategory}>
-                        {subcategory}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div id="subcategory-description" className="sr-only">
-                  {!watchedCategory ? 
-                    'Select a category first to see available subcategories.' :
-                    `Choose a subcategory within ${watchedCategory}.`
-                  }
-                </div>
+                <FormLabel>Additional Categories</FormLabel>
+                <FormControl>
+                  <CategorySelect
+                    name="category_ids"
+                    value={field.value || []}
+                    onValueChange={field.onChange}
+                    categories={categories}
+                    placeholder="Select additional categories"
+                    multiple={true}
+                    disabled={categoriesLoading || isLoading}
+                    excludeIds={form.watch('primary_category_id') ? [form.watch('primary_category_id')].filter(Boolean) as string[] : []}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Optionally assign to multiple categories
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
