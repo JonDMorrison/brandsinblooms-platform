@@ -78,7 +78,7 @@ export async function getProducts(
     sortOrder = 'desc'
   } = filters;
 
-  // Build base query
+  // Build base query with category associations
   let countQuery = supabase
     .from('products')
     .select('*', { count: 'exact', head: true })
@@ -86,7 +86,25 @@ export async function getProducts(
 
   let dataQuery = supabase
     .from('products')
-    .select('*')
+    .select(`
+      *,
+      primary_category:product_categories!products_primary_category_id_fkey (
+        id,
+        name,
+        slug,
+        icon,
+        color
+      ),
+      product_category_assignments (
+        category:product_categories (
+          id,
+          name,
+          slug,
+          icon,
+          color
+        )
+      )
+    `)
     .eq('site_id', siteId);
 
   // Apply filters
@@ -608,28 +626,41 @@ export async function updateProductInventory(
 export async function getProductCategories(
   supabase: SupabaseClient<Database>,
   siteId: string
-): Promise<Array<{ category: string; count: number }>> {
-  const response = await supabase
-    .from('products')
-    .select('category')
+): Promise<Array<{ id: string; name: string; slug: string; count: number; icon?: string; color?: string }>> {
+  // Fetch all active categories for the site
+  const categoriesResponse = await supabase
+    .from('product_categories')
+    .select(`
+      id,
+      name,
+      slug,
+      icon,
+      color,
+      product_category_assignments!product_category_assignments_category_id_fkey(
+        product_id
+      )
+    `)
     .eq('site_id', siteId)
     .eq('is_active', true)
-    .not('category', 'is', null);
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true });
 
-  const products = await handleQueryResponse(response);
+  const categories = await handleQueryResponse(categoriesResponse);
 
-  // Count products per category
-  const categoryMap = products.reduce((acc, product) => {
-    const category = product.category as string;
-    if (category) {
-      acc[category] = (acc[category] || 0) + 1;
-    }
-    return acc;
-  }, {} as Record<string, number>);
-
-  return Object.entries(categoryMap)
-    .map(([category, count]) => ({ category, count: Number(count) }))
-    .sort((a, b) => b.count - a.count);
+  // Transform to include count of products in each category
+  return categories.map((category) => {
+    const category_assignments = category.product_category_assignments as any[] || [];
+    const productCount = category_assignments.length;
+    
+    return {
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      count: productCount,
+      icon: category.icon || undefined,
+      color: category.color || undefined
+    };
+  }).filter(cat => cat.count > 0 || true); // Show all categories, even empty ones
 }
 
 /**
