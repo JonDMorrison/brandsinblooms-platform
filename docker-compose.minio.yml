@@ -1,0 +1,97 @@
+# Docker Compose configuration for MinIO (S3-compatible storage)
+# Used for local development to simulate S3/R2 storage
+version: '3.8'
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: brands-in-blooms-minio
+    ports:
+      - "9000:9000"   # API port
+      - "9001:9001"   # Console port
+    environment:
+      # Default MinIO credentials (change in production)
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      
+      # Server configuration
+      MINIO_ADDRESS: ":9000"
+      MINIO_CONSOLE_ADDRESS: ":9001"
+      
+      # Browser access
+      MINIO_BROWSER: "on"
+      
+      # Storage options
+      MINIO_DOMAIN: localhost
+      
+      # Health check configuration  
+      MINIO_PROMETHEUS_AUTH_TYPE: public
+    volumes:
+      # Persistent storage for MinIO data
+      - minio_data:/data
+      
+      # Optional: mount a local directory for easier access
+      # - ./minio-data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
+    networks:
+      - brands-in-blooms-network
+
+  # MinIO client for initial setup and bucket creation
+  minio-setup:
+    image: minio/mc:latest
+    container_name: brands-in-blooms-minio-setup
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO to be ready...';
+      sleep 10;
+      
+      echo 'Configuring MinIO client...';
+      mc alias set local http://minio:9000 minioadmin minioadmin;
+      
+      echo 'Creating default bucket: local-images...';
+      mc mb local/local-images --ignore-existing;
+      
+      echo 'Setting public access policy for local-images bucket...';
+      mc anonymous set public local/local-images;
+      
+      echo 'Creating additional buckets for different environments...';
+      mc mb local/dev-images --ignore-existing;
+      mc mb local/test-images --ignore-existing;
+      
+      echo 'Setting up bucket policies...';
+      mc anonymous set public local/dev-images;
+      mc anonymous set public local/test-images;
+      
+      echo 'MinIO setup completed successfully!';
+      echo 'MinIO Console: http://localhost:9001';
+      echo 'API Endpoint: http://localhost:9000';
+      echo 'Access Key: minioadmin';
+      echo 'Secret Key: minioadmin';
+      echo 'Default Bucket: local-images';
+      "
+    networks:
+      - brands-in-blooms-network
+
+volumes:
+  minio_data:
+    driver: local
+    name: brands-in-blooms-minio-data
+
+networks:
+  brands-in-blooms-network:
+    driver: bridge
+    name: brands-in-blooms-network

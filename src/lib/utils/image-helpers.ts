@@ -52,6 +52,11 @@ export function validateImageUrl(url: string): ImageValidationResult {
     return { isValid: true };
   }
 
+  // Check if it's a blob URL
+  if (url.startsWith('blob:')) {
+    return { isValid: true };
+  }
+
   // Check if it's a relative path for static assets
   if (url.startsWith('/')) {
     return { isValid: true };

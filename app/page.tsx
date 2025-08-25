@@ -1,13 +1,13 @@
 import { Suspense } from 'react'
 import { SiteHomepage } from '@/src/components/site/SiteHomepage'
-import HomePageClient from './home-client'
+import HomePlatform from './home-platform'
 
 export default function HomePage() {
   return (
     <SiteHomepage 
       fallbackContent={
         <Suspense fallback={null}>
-          <HomePageClient />
+          <HomePlatform />
         </Suspense>
       }
     />

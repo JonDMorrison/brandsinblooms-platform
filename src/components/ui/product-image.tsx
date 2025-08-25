@@ -173,8 +173,6 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
         return createBlurDataUrl(10, 10, isDark ? '#374151' : '#f3f4f6')
       }
 
-      const startTime = performance.now()
-      
       // Generate dynamic placeholder based on product data
       const placeholderParams = {
         width,
@@ -190,18 +188,6 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
       }
 
       const result = generatePlaceholderSVGCached(placeholderParams)
-      const genTime = performance.now() - startTime
-      
-      // Store placeholder generation metrics
-      setPerformanceMetrics(prev => prev ? {
-        ...prev,
-        placeholderGenTime: genTime,
-      } : {
-        loadTime: 0,
-        fromCache: false,
-        placeholderGenTime: genTime,
-      })
-
       return result.dataUrl
     }, [optimizePlaceholder, isValidSrc, isDark, width, height, placeholder, category])
 
@@ -324,11 +310,10 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
           img.onload = () => {
             const loadTime = performance.now() - startTime
             setImageLoaded(true)
-            setPerformanceMetrics(prev => ({
+            setPerformanceMetrics({
               loadTime,
               fromCache: loadTime < 10, // Assume cached if very fast
-              placeholderGenTime: prev?.placeholderGenTime,
-            }))
+            })
             resolve()
           }
           img.onerror = reject
@@ -371,7 +356,7 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
     const responsiveSizes = sizes || generateImageSizes()
 
     // Determine if we should show the placeholder
-    const shouldShowPlaceholder = !isValidSrc || loadingState !== 'loaded'
+    const shouldShowPlaceholder = !isValidSrc || (loadingState === 'error')
     const placeholderSrc = getPlaceholderSrc()
     const imageSrc = shouldShowPlaceholder ? placeholderSrc : currentSrc
     
@@ -440,8 +425,8 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
           </div>
         )}
         
-        {/* Only show actual image when it's not an SVG and we have a valid source */}
-        {!isSvg && !shouldShowPlaceholder && (
+        {/* Show actual image when we have a valid source */}
+        {isValidSrc && (
           <Image
             ref={ref}
             src={currentSrc}
@@ -475,7 +460,7 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
         )}
 
         {/* Loading overlay - only show when actually loading a real image, not for placeholders */}
-        {loadingState === 'loading' && showLoadingState && !shouldShowPlaceholder && !isSvg && (
+        {loadingState === 'loading' && showLoadingState && isValidSrc && !imageLoaded && (
           <div 
             className="absolute inset-0 flex items-center justify-center bg-muted/50"
             aria-hidden="true"

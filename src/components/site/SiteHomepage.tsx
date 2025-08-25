@@ -15,8 +15,25 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
   const { site, loading, error, isLoaded } = useCurrentSite()
   const { user, loading: authLoading } = useAuth()
 
+  // Debug logging
+  console.log('[SiteHomepage] Render state:', {
+    site: site?.id || 'null',
+    siteName: site?.name || 'null',
+    loading,
+    authLoading,
+    error,
+    isLoaded,
+    user: user?.email || 'null',
+    hasFallback: !!fallbackContent,
+    timestamp: new Date().toISOString()
+  })
+
   // Show loading state
   if (loading || authLoading) {
+    console.log('[SiteHomepage] Showing loading because:', {
+      siteLoading: loading,
+      authLoading: authLoading
+    })
     return <SiteHomepageLoading />
   }
 
@@ -28,6 +45,11 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
   // Show site not found if no site and no fallback
   if (!site && !fallbackContent) {
     return <SiteNotFound />
+  }
+
+  // If no site but we have fallback content, show that
+  if (!site && fallbackContent) {
+    return <>{fallbackContent}</>
   }
 
   // If user is authenticated and this is their site, redirect to dashboard

@@ -1,0 +1,791 @@
+/**
+ * S3 Upload utilities for the Brands in Blooms platform
+ * Handles S3 presigned URLs, multipart uploads, and direct S3 operations
+ */
+
+import { handleError } from '@/lib/types/error-handling';
+import { Tables } from '@/lib/database/types';
+
+type MediaFile = Tables<'media_files'>;
+
+/**
+ * S3 configuration and settings
+ */
+export const S3_CONFIG = {
+  region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1',
+  bucket: process.env.NEXT_PUBLIC_S3_BUCKET || '',
+  cdnUrl: process.env.NEXT_PUBLIC_CDN_URL || '',
+  maxFileSize: 100 * 1024 * 1024, // 100MB
+  multipartThreshold: 10 * 1024 * 1024, // 10MB - files larger than this use multipart upload
+  allowedTypes: [
+    'image/jpeg',
+    'image/png', 
+    'image/webp',
+    'image/avif',
+    'image/gif',
+    'video/mp4',
+    'video/webm',
+    'application/pdf',
+    'text/plain',
+    'application/json',
+  ] as string[],
+} as const;
+
+/**
+ * Upload progress callback type
+ */
+export type UploadProgressCallback = (progress: number) => void;
+
+/**
+ * S3 upload result
+ */
+export interface S3UploadResult {
+  success: boolean;
+  data?: {
+    key: string;
+    url: string;
+    cdnUrl?: string;
+    etag: string;
+    size: number;
+    contentType: string;
+  };
+  error?: string;
+}
+
+/**
+ * S3 multipart upload result
+ */
+export interface S3MultipartUploadResult {
+  success: boolean;
+  data?: {
+    key: string;
+    url: string;
+    cdnUrl?: string;
+    uploadId: string;
+    etag: string;
+    size: number;
+    contentType: string;
+  };
+  error?: string;
+}
+
+/**
+ * S3 delete result
+ */
+export interface S3DeleteResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * Presigned URL configuration
+ */
+export interface PresignedUrlConfig {
+  key: string;
+  fileName: string;
+  siteId: string;
+  productId?: string;
+  contentType: string;
+  contentLength: number;
+  expires?: number; // seconds, defaults to 3600 (1 hour)
+  metadata?: Record<string, string>;
+}
+
+/**
+ * Multipart upload configuration
+ */
+export interface MultipartUploadConfig {
+  fileName: string;
+  siteId: string;
+  productId?: string;
+  contentType: string;
+  contentLength: number;
+  partSize?: number; // bytes, defaults to 10MB
+  metadata?: Record<string, string>;
+}
+
+/**
+ * Generates a unique S3 key for a file
+ */
+export function generateS3Key(
+  siteId: string,
+  resourceType: 'products' | 'media' | 'profiles' | 'content',
+  resourceId: string,
+  filename: string,
+  options?: {
+    timestamp?: boolean;
+    randomSuffix?: boolean;
+  }
+): string {
+  const { timestamp = true, randomSuffix = true } = options || {};
+  
+  // Clean the filename
+  const cleanFilename = filename
+    .replace(/[^a-zA-Z0-9.-]/g, '_')
+    .replace(/_{2,}/g, '_')
+    .toLowerCase();
+  
+  // Extract extension
+  const parts = cleanFilename.split('.');
+  const extension = parts.length > 1 ? `.${parts.pop()}` : '';
+  const baseName = parts.join('.').substring(0, 50); // Limit base name length
+  
+  // Build key components
+  const keyParts = [siteId, resourceType, resourceId];
+  
+  // Add timestamp and random suffix if requested
+  let finalFilename = baseName;
+  if (timestamp) {
+    finalFilename += `_${Date.now()}`;
+  }
+  if (randomSuffix) {
+    finalFilename += `_${Math.random().toString(36).substring(2, 8)}`;
+  }
+  finalFilename += extension;
+  
+  keyParts.push(finalFilename);
+  
+  return keyParts.join('/');
+}
+
+/**
+ * Validates file for S3 upload
+ */
+export function validateFileForS3(file: File): { isValid: boolean; error?: string } {
+  // Check file size
+  if (file.size > S3_CONFIG.maxFileSize) {
+    return {
+      isValid: false,
+      error: `File size must be less than ${S3_CONFIG.maxFileSize / 1024 / 1024}MB`,
+    };
+  }
+
+  // Check file type
+  if (!S3_CONFIG.allowedTypes.includes(file.type)) {
+    return {
+      isValid: false,
+      error: `File type ${file.type} is not supported. Allowed types: ${S3_CONFIG.allowedTypes.join(', ')}`,
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Gets a presigned URL for direct S3 upload
+ */
+export async function getPresignedUploadUrl(
+  config: PresignedUrlConfig
+): Promise<{
+  success: boolean;
+  data?: {
+    uploadUrl: string;
+    fields: Record<string, string>;
+    url: string;
+    cdnUrl?: string;
+  };
+  error?: string;
+}> {
+  try {
+    const response = await fetch('/api/upload/presigned', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fileName: config.fileName,
+        contentType: config.contentType,
+        fileSize: config.contentLength,
+        siteId: config.siteId,
+        productId: config.productId,
+        metadata: config.metadata,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get presigned URL: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to generate presigned URL');
+    }
+
+    return {
+      success: true,
+      data: {
+        uploadUrl: result.data.uploadUrl,
+        fields: result.data.fields || {},
+        url: result.data.publicUrl || result.data.url,
+        cdnUrl: result.data.cdnUrl,
+      },
+    };
+  } catch (error) {
+    const handled = handleError(error);
+    return {
+      success: false,
+      error: handled.message,
+    };
+  }
+}
+
+/**
+ * Uploads a file directly to S3 using presigned URL
+ */
+export async function uploadToS3(
+  file: File,
+  uploadUrl: string,
+  fields: Record<string, string>,
+  onProgress?: UploadProgressCallback
+): Promise<S3UploadResult> {
+  try {
+    // Validate file
+    const validation = validateFileForS3(file);
+    if (!validation.isValid) {
+      throw new Error(validation.error);
+    }
+
+    // Create form data
+    const formData = new FormData();
+    
+    // Add fields first (order matters for S3)
+    Object.entries(fields).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+    
+    // Add file last
+    formData.append('file', file);
+
+    // Upload with progress tracking
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      // Track upload progress
+      if (onProgress) {
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const progress = (event.loaded / event.total) * 100;
+            onProgress(progress);
+          }
+        });
+      }
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          // Extract key from fields
+          const key = fields.key || '';
+          const bucket = fields.bucket || S3_CONFIG.bucket;
+          const region = fields['x-amz-region'] || S3_CONFIG.region;
+          
+          resolve({
+            success: true,
+            data: {
+              key,
+              url: `https://${bucket}.s3.${region}.amazonaws.com/${key}`,
+              cdnUrl: S3_CONFIG.cdnUrl ? `${S3_CONFIG.cdnUrl}/${key}` : undefined,
+              etag: xhr.getResponseHeader('ETag')?.replace(/"/g, '') || '',
+              size: file.size,
+              contentType: file.type,
+            },
+          });
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.statusText}`));
+        }
+      });
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('Upload failed due to network error'));
+      });
+
+      xhr.addEventListener('abort', () => {
+        reject(new Error('Upload was aborted'));
+      });
+
+      xhr.open('POST', uploadUrl, true);
+      xhr.send(formData);
+    });
+  } catch (error) {
+    const handled = handleError(error);
+    return {
+      success: false,
+      error: handled.message,
+    };
+  }
+}
+
+/**
+ * Initiates a multipart upload for large files
+ */
+export async function initializeMultipartUpload(
+  config: MultipartUploadConfig
+): Promise<{
+  success: boolean;
+  data?: {
+    uploadId: string;
+    key: string;
+  };
+  error?: string;
+}> {
+  try {
+    const response = await fetch('/api/upload/multipart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'initiate',
+        fileName: config.fileName,
+        contentType: config.contentType,
+        fileSize: config.contentLength,
+        siteId: config.siteId,
+        productId: config.productId,
+        partSize: config.partSize,
+        metadata: config.metadata,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to initialize multipart upload: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to initialize multipart upload');
+    }
+
+    return {
+      success: true,
+      data: {
+        uploadId: result.data.sessionId, // API returns sessionId, not uploadId
+        key: result.data.key,
+      },
+    };
+  } catch (error) {
+    const handled = handleError(error);
+    return {
+      success: false,
+      error: handled.message,
+    };
+  }
+}
+
+/**
+ * Uploads a file part in multipart upload
+ */
+export async function uploadMultipartPart(
+  file: File,
+  uploadId: string,
+  key: string,
+  partNumber: number,
+  start: number,
+  end: number,
+  onProgress?: UploadProgressCallback
+): Promise<{
+  success: boolean;
+  data?: {
+    partNumber: number;
+    etag: string;
+  };
+  error?: string;
+}> {
+  try {
+    // Get presigned URL for this part
+    const response = await fetch('/api/upload/multipart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'upload-part',
+        sessionId: uploadId, // The multipart API uses sessionId instead of uploadId
+        partNumber,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get part upload URL: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to get part upload URL');
+    }
+
+    // Extract part from file
+    const part = file.slice(start, end);
+    
+    // Upload the part
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      if (onProgress) {
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const progress = (event.loaded / event.total) * 100;
+            onProgress(progress);
+          }
+        });
+      }
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const etag = xhr.getResponseHeader('ETag')?.replace(/"/g, '') || '';
+          resolve({
+            success: true,
+            data: {
+              partNumber,
+              etag,
+            },
+          });
+        } else {
+          reject(new Error(`Part upload failed with status ${xhr.status}: ${xhr.statusText}`));
+        }
+      });
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('Part upload failed due to network error'));
+      });
+
+      xhr.open('PUT', result.data.uploadUrl, true);
+      xhr.send(part);
+    });
+  } catch (error) {
+    const handled = handleError(error);
+    return {
+      success: false,
+      error: handled.message,
+    };
+  }
+}
+
+/**
+ * Completes a multipart upload
+ */
+export async function completeMultipartUpload(
+  uploadId: string,
+  key: string,
+  parts: Array<{ partNumber: number; etag: string }>
+): Promise<S3MultipartUploadResult> {
+  try {
+    const response = await fetch('/api/upload/multipart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'complete',
+        sessionId: uploadId, // The multipart API uses sessionId instead of uploadId
+        parts: parts.sort((a, b) => a.partNumber - b.partNumber),
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to complete multipart upload: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to complete multipart upload');
+    }
+
+    return {
+      success: true,
+      data: {
+        key: result.data.key,
+        url: result.data.publicUrl || result.data.url,
+        cdnUrl: result.data.cdnUrl,
+        uploadId,
+        etag: result.data.etag || '',
+        size: 0, // Size info not returned by API
+        contentType: '', // Content type not returned by API
+      },
+    };
+  } catch (error) {
+    const handled = handleError(error);
+    return {
+      success: false,
+      error: handled.message,
+    };
+  }
+}
+
+/**
+ * Aborts a multipart upload
+ */
+export async function abortMultipartUpload(
+  uploadId: string,
+  key: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await fetch('/api/upload/multipart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'abort',
+        sessionId: uploadId, // The multipart API uses sessionId instead of uploadId
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to abort multipart upload: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to abort multipart upload');
+    }
+
+    return { success: true };
+  } catch (error) {
+    const handled = handleError(error);
+    return {
+      success: false,
+      error: handled.message,
+    };
+  }
+}
+
+/**
+ * Uploads a large file using multipart upload
+ */
+export async function uploadLargeFileToS3(
+  file: File,
+  siteId: string,
+  productId?: string,
+  options?: {
+    partSize?: number;
+    onProgress?: UploadProgressCallback;
+    metadata?: Record<string, string>;
+  }
+): Promise<S3MultipartUploadResult> {
+  const { 
+    partSize = S3_CONFIG.multipartThreshold, 
+    onProgress,
+    metadata 
+  } = options || {};
+
+  try {
+    // Validate file
+    const validation = validateFileForS3(file);
+    if (!validation.isValid) {
+      throw new Error(validation.error);
+    }
+
+    // Initialize multipart upload
+    const initResult = await initializeMultipartUpload({
+      fileName: file.name,
+      siteId,
+      productId,
+      contentType: file.type,
+      contentLength: file.size,
+      partSize,
+      metadata,
+    });
+
+    if (!initResult.success || !initResult.data) {
+      throw new Error(initResult.error || 'Failed to initialize upload');
+    }
+
+    const { uploadId } = initResult.data;
+    
+    try {
+      // Calculate parts
+      const totalParts = Math.ceil(file.size / partSize);
+      const parts: Array<{ partNumber: number; etag: string }> = [];
+      
+      // Upload parts
+      for (let i = 0; i < totalParts; i++) {
+        const partNumber = i + 1;
+        const start = i * partSize;
+        const end = Math.min(start + partSize, file.size);
+        
+        const partResult = await uploadMultipartPart(
+          file,
+          uploadId,
+          key,
+          partNumber,
+          start,
+          end,
+          onProgress ? (progress) => {
+            const overallProgress = ((i + progress / 100) / totalParts) * 100;
+            onProgress(overallProgress);
+          } : undefined
+        );
+
+        if (!partResult.success || !partResult.data) {
+          throw new Error(partResult.error || `Failed to upload part ${partNumber}`);
+        }
+
+        parts.push({
+          partNumber: partResult.data.partNumber,
+          etag: partResult.data.etag,
+        });
+      }
+
+      // Complete multipart upload
+      const completeResult = await completeMultipartUpload(uploadId, key, parts);
+      
+      if (!completeResult.success) {
+        throw new Error(completeResult.error || 'Failed to complete upload');
+      }
+
+      return completeResult;
+    } catch (error) {
+      // Abort the multipart upload on error
+      await abortMultipartUpload(uploadId, key).catch((abortError) => {
+        console.warn('Failed to abort multipart upload:', abortError);
+      });
+      throw error;
+    }
+  } catch (error) {
+    const handled = handleError(error);
+    return {
+      success: false,
+      error: handled.message,
+    };
+  }
+}
+
+/**
+ * Deletes an object from S3
+ */
+export async function deleteFromS3(key: string): Promise<S3DeleteResult> {
+  try {
+    const response = await fetch('/api/storage/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ key }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete file: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to delete file');
+    }
+
+    return { success: true };
+  } catch (error) {
+    const handled = handleError(error);
+    return {
+      success: false,
+      error: handled.message,
+    };
+  }
+}
+
+/**
+ * Gets the CDN URL for an S3 object
+ */
+export function getCdnUrl(key: string): string {
+  if (S3_CONFIG.cdnUrl) {
+    return `${S3_CONFIG.cdnUrl}/${key}`;
+  }
+  // Fallback to direct S3 URL
+  return `https://${S3_CONFIG.bucket}.s3.${S3_CONFIG.region}.amazonaws.com/${key}`;
+}
+
+/**
+ * Gets a signed URL for private S3 objects
+ */
+export async function getSignedS3Url(
+  key: string,
+  expires: number = 3600
+): Promise<{
+  success: boolean;
+  url?: string;
+  error?: string;
+}> {
+  try {
+    const response = await fetch('/api/storage/signed-url', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ key, expires }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get signed URL: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to generate signed URL');
+    }
+
+    return {
+      success: true,
+      url: result.data.url,
+    };
+  } catch (error) {
+    const handled = handleError(error);
+    return {
+      success: false,
+      error: handled.message,
+    };
+  }
+}
+
+/**
+ * High-level upload function that chooses between regular and multipart upload
+ */
+export async function uploadFileToS3(
+  file: File,
+  siteId: string,
+  resourceType: 'products' | 'media' | 'profiles' | 'content',
+  resourceId: string,
+  options?: {
+    filename?: string;
+    onProgress?: UploadProgressCallback;
+    metadata?: Record<string, string>;
+  }
+): Promise<S3UploadResult | S3MultipartUploadResult> {
+  const { filename, onProgress, metadata } = options || {};
+  
+  // Generate S3 key
+  const key = generateS3Key(siteId, resourceType, resourceId, filename || file.name);
+  
+  // Choose upload method based on file size
+  if (file.size > S3_CONFIG.multipartThreshold) {
+    return uploadLargeFileToS3(file, siteId, resourceId, { onProgress, metadata });
+  } else {
+    // Get presigned URL and upload
+    const presignedResult = await getPresignedUploadUrl({
+      key,
+      fileName: filename || file.name,
+      siteId,
+      productId: resourceId,
+      contentType: file.type,
+      contentLength: file.size,
+      metadata,
+    });
+
+    if (!presignedResult.success || !presignedResult.data) {
+      return {
+        success: false,
+        error: presignedResult.error || 'Failed to get upload URL',
+      };
+    }
+
+    return uploadToS3(
+      file,
+      presignedResult.data.uploadUrl,
+      presignedResult.data.fields,
+      onProgress
+    );
+  }
+}

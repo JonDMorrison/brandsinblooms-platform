@@ -15,8 +15,8 @@ import {
   useReorderProductImages,
   useSetPrimaryProductImage 
 } from '@/src/hooks/useProductImages'
-import { ImageUpload } from '@/src/components/products/ImageUpload'
-import type { ProductImage } from '@/src/components/products/ImageUpload'
+import { ImageUploadS3 } from '@/src/components/products/ImageUploadS3'
+import type { ProductImage } from '@/src/components/products/ImageUploadS3'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
@@ -760,13 +760,14 @@ export default function EditProductPage({ params }: EditProductPageProps) {
 
               {/* Step 4: Images */}
               {currentStep === 3 && (
-                <ImageUpload
+                <ImageUploadS3
                   images={productImages.map(img => ({ ...img, position: img.position ?? 0, is_primary: img.is_primary ?? false }))}
                   onImagesChange={handleImagesReorder}
-                  onUpload={handleImageUpload}
                   onUpdate={handleImageUpdate}
                   onRemove={handleImageRemove}
                   onSetPrimary={handleSetPrimary}
+                  productId={product?.id || ''}
+                  siteId={site?.id || ''}
                   maxImages={10}
                   disabled={isSubmitting || imagesLoading}
                 />

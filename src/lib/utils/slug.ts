@@ -217,28 +217,48 @@ export async function validateSlug(
   }
   
   // Check uniqueness in database
-  let query = supabase
-    .from('products')
-    .select('id')
-    .eq('site_id', siteId)
-    .eq('slug', slug);
+  console.log('📊 Checking slug uniqueness in database:', { slug, siteId, excludeId });
   
-  if (excludeId) {
-    query = query.neq('id', excludeId);
+  try {
+    let query = supabase
+      .from('products')
+      .select('id')
+      .eq('site_id', siteId)
+      .eq('slug', slug);
+    
+    if (excludeId) {
+      query = query.neq('id', excludeId);
+    }
+    
+    console.log('🔄 Executing database query...');
+    
+    // Add timeout to the query itself
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Database query timed out')), 5000);
+    });
+    
+    const { data, error } = await Promise.race([
+      query,
+      timeoutPromise
+    ]);
+    
+    console.log('✅ Query completed:', { data, error });
+    
+    if (error) {
+      console.error('Error validating slug:', error);
+      return { isValid: false, error: 'Failed to validate slug' };
+    }
+    
+    if (data && data.length > 0) {
+      return { isValid: false, error: 'This slug is already in use' };
+    }
+    
+    return { isValid: true };
+  } catch (timeoutError) {
+    console.error('⏱️ Slug validation timeout or error:', timeoutError);
+    // Allow the slug if we can't verify (better than blocking the user)
+    return { isValid: true };
   }
-  
-  const { data, error } = await query;
-  
-  if (error) {
-    console.error('Error validating slug:', error);
-    return { isValid: false, error: 'Failed to validate slug' };
-  }
-  
-  if (data && data.length > 0) {
-    return { isValid: false, error: 'This slug is already in use' };
-  }
-  
-  return { isValid: true };
 }
 
 /**

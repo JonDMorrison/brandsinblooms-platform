@@ -18,9 +18,9 @@ export type Database = {
       graphql: {
         Args: {
           extensions?: Json
-          operationName?: string
-          query?: string
           variables?: Json
+          query?: string
+          operationName?: string
         }
         Returns: Json
       }
@@ -403,35 +403,53 @@ export type Database = {
       media_files: {
         Row: {
           alt_text: string | null
+          cdn_url: string | null
           created_at: string
           file_name: string
           file_size_bytes: number | null
           file_type: string | null
           file_url: string
           id: string
+          migrated_at: string | null
+          s3_bucket: string | null
+          s3_key: string | null
           site_id: string
+          storage_type: string | null
+          upload_metadata: Json | null
           uploaded_by: string | null
         }
         Insert: {
           alt_text?: string | null
+          cdn_url?: string | null
           created_at?: string
           file_name: string
           file_size_bytes?: number | null
           file_type?: string | null
           file_url: string
           id?: string
+          migrated_at?: string | null
+          s3_bucket?: string | null
+          s3_key?: string | null
           site_id: string
+          storage_type?: string | null
+          upload_metadata?: Json | null
           uploaded_by?: string | null
         }
         Update: {
           alt_text?: string | null
+          cdn_url?: string | null
           created_at?: string
           file_name?: string
           file_size_bytes?: number | null
           file_type?: string | null
           file_url?: string
           id?: string
+          migrated_at?: string | null
+          s3_bucket?: string | null
+          s3_key?: string | null
           site_id?: string
+          storage_type?: string | null
+          upload_metadata?: Json | null
           uploaded_by?: string | null
         }
         Relationships: [
@@ -952,6 +970,11 @@ export type Database = {
           description: string | null
           icon: string | null
           id: string
+          image_cdn_url: string | null
+          image_migrated_at: string | null
+          image_s3_bucket: string | null
+          image_s3_key: string | null
+          image_storage_type: string | null
           image_url: string | null
           is_active: boolean | null
           level: number
@@ -971,6 +994,11 @@ export type Database = {
           description?: string | null
           icon?: string | null
           id?: string
+          image_cdn_url?: string | null
+          image_migrated_at?: string | null
+          image_s3_bucket?: string | null
+          image_s3_key?: string | null
+          image_storage_type?: string | null
           image_url?: string | null
           is_active?: boolean | null
           level?: number
@@ -990,6 +1018,11 @@ export type Database = {
           description?: string | null
           icon?: string | null
           id?: string
+          image_cdn_url?: string | null
+          image_migrated_at?: string | null
+          image_s3_bucket?: string | null
+          image_s3_key?: string | null
+          image_storage_type?: string | null
           image_url?: string | null
           is_active?: boolean | null
           level?: number
@@ -1154,45 +1187,63 @@ export type Database = {
         Row: {
           alt_text: string | null
           caption: string | null
+          cdn_url: string | null
           created_at: string
           height: number | null
           id: string
           is_primary: boolean | null
+          migrated_at: string | null
           position: number | null
           product_id: string
+          s3_bucket: string | null
+          s3_key: string | null
           site_id: string
           size_bytes: number | null
+          storage_type: string | null
           updated_at: string
+          upload_metadata: Json | null
           url: string
           width: number | null
         }
         Insert: {
           alt_text?: string | null
           caption?: string | null
+          cdn_url?: string | null
           created_at?: string
           height?: number | null
           id?: string
           is_primary?: boolean | null
+          migrated_at?: string | null
           position?: number | null
           product_id: string
+          s3_bucket?: string | null
+          s3_key?: string | null
           site_id: string
           size_bytes?: number | null
+          storage_type?: string | null
           updated_at?: string
+          upload_metadata?: Json | null
           url: string
           width?: number | null
         }
         Update: {
           alt_text?: string | null
           caption?: string | null
+          cdn_url?: string | null
           created_at?: string
           height?: number | null
           id?: string
           is_primary?: boolean | null
+          migrated_at?: string | null
           position?: number | null
           product_id?: string
+          s3_bucket?: string | null
+          s3_key?: string | null
           site_id?: string
           size_bytes?: number | null
+          storage_type?: string | null
           updated_at?: string
+          upload_metadata?: Json | null
           url?: string
           width?: number | null
         }
@@ -1424,6 +1475,11 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_cdn_url: string | null
+          avatar_migrated_at: string | null
+          avatar_s3_bucket: string | null
+          avatar_s3_key: string | null
+          avatar_storage_type: string | null
           avatar_url: string | null
           bio: string | null
           created_at: string
@@ -1437,6 +1493,11 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          avatar_cdn_url?: string | null
+          avatar_migrated_at?: string | null
+          avatar_s3_bucket?: string | null
+          avatar_s3_key?: string | null
+          avatar_storage_type?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
@@ -1450,6 +1511,11 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          avatar_cdn_url?: string | null
+          avatar_migrated_at?: string | null
+          avatar_s3_bucket?: string | null
+          avatar_s3_key?: string | null
+          avatar_storage_type?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
@@ -1843,6 +1909,11 @@ export type Database = {
           is_published: boolean | null
           last_activity_at: string | null
           latitude: number | null
+          logo_cdn_url: string | null
+          logo_migrated_at: string | null
+          logo_s3_bucket: string | null
+          logo_s3_key: string | null
+          logo_storage_type: string | null
           logo_url: string | null
           longitude: number | null
           name: string
@@ -1868,6 +1939,11 @@ export type Database = {
           is_published?: boolean | null
           last_activity_at?: string | null
           latitude?: number | null
+          logo_cdn_url?: string | null
+          logo_migrated_at?: string | null
+          logo_s3_bucket?: string | null
+          logo_s3_key?: string | null
+          logo_storage_type?: string | null
           logo_url?: string | null
           longitude?: number | null
           name: string
@@ -1893,6 +1969,11 @@ export type Database = {
           is_published?: boolean | null
           last_activity_at?: string | null
           latitude?: number | null
+          logo_cdn_url?: string | null
+          logo_migrated_at?: string | null
+          logo_s3_bucket?: string | null
+          logo_s3_key?: string | null
+          logo_storage_type?: string | null
           logo_url?: string | null
           longitude?: number | null
           name?: string
@@ -1901,6 +1982,54 @@ export type Database = {
           theme_settings?: Json | null
           timezone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      storage_migration_log: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: number
+          new_storage_type: string
+          new_url: string | null
+          old_storage_type: string
+          old_url: string | null
+          record_id: string
+          s3_key: string | null
+          started_at: string | null
+          status: string
+          table_name: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: number
+          new_storage_type: string
+          new_url?: string | null
+          old_storage_type: string
+          old_url?: string | null
+          record_id: string
+          s3_key?: string | null
+          started_at?: string | null
+          status?: string
+          table_name: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: number
+          new_storage_type?: string
+          new_url?: string | null
+          old_storage_type?: string
+          old_url?: string | null
+          record_id?: string
+          s3_key?: string | null
+          started_at?: string | null
+          status?: string
+          table_name?: string
         }
         Relationships: []
       }
@@ -2283,6 +2412,129 @@ export type Database = {
           },
         ]
       }
+      v_media_files_compatible: {
+        Row: {
+          alt_text: string | null
+          cdn_url: string | null
+          created_at: string | null
+          file_name: string | null
+          file_size_bytes: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string | null
+          s3_key: string | null
+          site_id: string | null
+          storage_type: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          alt_text?: string | null
+          cdn_url?: string | null
+          created_at?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          file_type?: string | null
+          file_url?: never
+          id?: string | null
+          s3_key?: string | null
+          site_id?: string | null
+          storage_type?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          alt_text?: string | null
+          cdn_url?: string | null
+          created_at?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          file_type?: string | null
+          file_url?: never
+          id?: string | null
+          s3_key?: string | null
+          site_id?: string | null
+          storage_type?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_files_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_product_images_compatible: {
+        Row: {
+          alt_text: string | null
+          caption: string | null
+          cdn_url: string | null
+          created_at: string | null
+          id: string | null
+          is_primary: boolean | null
+          position: number | null
+          product_id: string | null
+          s3_key: string | null
+          site_id: string | null
+          storage_type: string | null
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          alt_text?: string | null
+          caption?: string | null
+          cdn_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_primary?: boolean | null
+          position?: number | null
+          product_id?: string | null
+          s3_key?: string | null
+          site_id?: string | null
+          storage_type?: string | null
+          updated_at?: string | null
+          url?: never
+        }
+        Update: {
+          alt_text?: string | null
+          caption?: string | null
+          cdn_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_primary?: boolean | null
+          position?: number | null
+          product_id?: string | null
+          s3_key?: string | null
+          site_id?: string | null
+          storage_type?: string | null
+          updated_at?: string | null
+          url?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories_expanded"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_images_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       acquire_migration_lock: {
@@ -2314,16 +2566,16 @@ export type Database = {
         Returns: Json
       }
       admin_get_product_analytics: {
-        Args: { end_date?: string; site_uuid: string; start_date?: string }
+        Args: { end_date?: string; start_date?: string; site_uuid: string }
         Returns: Json
       }
       admin_get_site_content: {
         Args: {
-          search_query?: string
+          limit_count?: number
           site_uuid: string
+          search_query?: string
           content_type_filter?: string
           status_filter?: string
-          limit_count?: number
           offset_count?: number
         }
         Returns: Json
@@ -2341,8 +2593,8 @@ export type Database = {
       }
       admin_update_content: {
         Args: {
-          content_uuid: string
           content_updates: Json
+          content_uuid: string
           admin_notes?: string
         }
         Returns: Json
@@ -2357,10 +2609,10 @@ export type Database = {
       }
       admin_update_site_status: {
         Args: {
-          notes?: string
-          new_is_published?: boolean
           new_is_active?: boolean
           site_uuid: string
+          notes?: string
+          new_is_published?: boolean
         }
         Returns: boolean
       }
@@ -2394,18 +2646,18 @@ export type Database = {
       }
       create_site_with_template: {
         Args: {
-          site_subdomain: string
-          template_slug: string
-          site_name: string
           owner_email: string
           business_info?: Json
+          template_slug: string
+          site_name: string
+          site_subdomain: string
         }
         Returns: Json
       }
       end_impersonation_session: {
         Args: {
-          session_token_param?: string
           end_reason_param?: string
+          session_token_param?: string
           session_id_param?: string
         }
         Returns: Json
@@ -2422,60 +2674,69 @@ export type Database = {
         Args: { site_prefix?: string }
         Returns: string
       }
+      generate_s3_key: {
+        Args: {
+          site_id: string
+          resource_type: string
+          resource_id: string
+          filename: string
+        }
+        Returns: string
+      }
       generate_unique_slug: {
-        Args: { p_exclude_id?: string; p_name: string; p_site_id: string }
+        Args: { p_name: string; p_exclude_id?: string; p_site_id: string }
         Returns: string
       }
       get_active_impersonation_sessions: {
         Args: {
-          limit_count?: number
           site_uuid?: string
           admin_user_uuid?: string
+          limit_count?: number
         }
         Returns: Json
       }
       get_admin_action_logs: {
         Args: {
-          start_date?: string
+          limit_count?: number
           site_uuid?: string
           admin_user_uuid?: string
           action_type_filter?: string
           target_type_filter?: string
-          end_date?: string
-          limit_count?: number
+          start_date?: string
           offset_count?: number
+          end_date?: string
         }
         Returns: Json
       }
       get_all_sites_with_stats: {
         Args: {
-          status_filter?: string
-          limit_count?: number
-          search_query?: string
           offset_count?: number
+          limit_count?: number
+          status_filter?: string
+          search_query?: string
         }
         Returns: Json
       }
       get_category_ancestors: {
         Args: { p_category_id: string }
         Returns: {
-          level: number
           id: string
           parent_id: string
           name: string
           slug: string
+          level: number
         }[]
       }
       get_category_tree: {
         Args: { p_site_id: string }
         Returns: {
+          icon: string
           id: string
           parent_id: string
           name: string
           slug: string
           description: string
           image_url: string
-          icon: string
           color: string
           path: string
           level: number
@@ -2485,21 +2746,36 @@ export type Database = {
           children_count: number
         }[]
       }
+      get_image_url: {
+        Args: { storage_type: string; supabase_url: string; cdn_url: string }
+        Returns: string
+      }
       get_impersonation_context: {
         Args: { token: string }
         Returns: Json
       }
+      get_migration_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          migration_percentage: number
+          failed_records: number
+          table_name: string
+          total_records: number
+          migrated_records: number
+          pending_records: number
+        }[]
+      }
       get_order_summary_stats: {
         Args: { p_site_id: string; p_date_range?: unknown }
         Returns: {
-          processing_orders: number
-          delivered_orders: number
+          shipped_orders: number
           total_orders: number
           total_revenue: number
           average_order_value: number
           conversion_rate: number
           pending_orders: number
-          shipped_orders: number
+          processing_orders: number
+          delivered_orders: number
         }[]
       }
       get_platform_analytics_summary: {
@@ -2509,12 +2785,12 @@ export type Database = {
       get_product_stats: {
         Args: { p_site_id: string }
         Returns: {
-          average_rating: number
-          total_reviews: number
           total_products: number
           active_products: number
           out_of_stock: number
           low_stock: number
+          average_rating: number
+          total_reviews: number
         }[]
       }
       get_site_analytics: {
@@ -2530,7 +2806,7 @@ export type Database = {
         Returns: Json
       }
       get_site_templates: {
-        Args: { category_filter?: string; active_only?: boolean }
+        Args: { active_only?: boolean; category_filter?: string }
         Returns: Json
       }
       get_unread_notification_count: {
@@ -2547,7 +2823,6 @@ export type Database = {
       }
       log_admin_action: {
         Args: {
-          ip_addr?: unknown
           admin_id: string
           site_uuid: string
           action_type_val: string
@@ -2555,14 +2830,25 @@ export type Database = {
           target_uuid?: string
           old_vals?: Json
           new_vals?: Json
-          user_agent_val?: string
           details?: string
+          ip_addr?: unknown
+          user_agent_val?: string
         }
         Returns: string
       }
       mark_all_notifications_read: {
         Args: { p_site_id: string }
         Returns: number
+      }
+      mark_image_migrated: {
+        Args: {
+          p_table_name: string
+          p_record_id: string
+          p_s3_key: string
+          p_s3_bucket: string
+          p_cdn_url: string
+        }
+        Returns: boolean
       }
       mark_notification_read: {
         Args: { notification_id: string }
@@ -2580,6 +2866,10 @@ export type Database = {
         Args: { p_instance_id: string; p_migration_batch: string }
         Returns: boolean
       }
+      rollback_image_migration: {
+        Args: { p_table_name: string; p_record_id: string }
+        Returns: boolean
+      }
       run_platform_health_checks: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -2590,9 +2880,9 @@ export type Database = {
       }
       search_content_global: {
         Args: {
-          search_query: string
           site_id_param: string
           result_limit?: number
+          search_query: string
         }
         Returns: {
           id: string
@@ -2615,25 +2905,25 @@ export type Database = {
           p_offset?: number
         }
         Returns: {
+          total_amount: number
           id: string
           order_number: string
           customer_name: string
           customer_email: string
           status: string
           payment_status: string
-          total_amount: number
           created_at: string
         }[]
       }
       start_admin_impersonation: {
         Args: {
+          ip_addr?: unknown
+          user_agent_val?: string
           site_uuid: string
           impersonated_user_uuid?: string
-          user_agent_val?: string
+          purpose_text?: string
           duration_hours?: number
           allowed_actions_list?: string[]
-          ip_addr?: unknown
-          purpose_text?: string
         }
         Returns: Json
       }
@@ -2681,7 +2971,7 @@ export type Database = {
         }
       }
       user_has_site_access: {
-        Args: { p_site_id: string; p_role?: string }
+        Args: { p_role?: string; p_site_id: string }
         Returns: boolean
       }
     }

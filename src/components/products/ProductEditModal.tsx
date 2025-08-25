@@ -31,7 +31,7 @@ import { Input } from '@/src/components/ui/input'
 import { Textarea } from '@/src/components/ui/textarea'
 import { Button } from '@/src/components/ui/button'
 import { Checkbox } from '@/src/components/ui/checkbox'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Image, AlertCircle } from 'lucide-react'
 import { useIsMobile } from '@/src/hooks/use-mobile'
 import { cn } from '@/src/lib/utils'
 import { 
@@ -41,7 +41,12 @@ import {
 } from '@/src/lib/admin/products'
 import { CategorySelect } from '@/src/components/categories/CategorySelect'
 import { useCategoriesList } from '@/src/hooks/useCategories'
-import type { Tables, TablesUpdate } from '@/src/lib/database/types'
+import { ImageUploadS3, type ProductImage } from '@/src/components/products/ImageUploadS3'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
+import { supabase } from '@/src/lib/supabase/client'
+import type { Tables, TablesUpdate, TablesInsert } from '@/src/lib/database/types'
+
+type ProductImageInsert = TablesInsert<'product_images'>
 
 // Zod schema for form validation
 const productEditSchema = z.object({
@@ -89,6 +94,9 @@ export function ProductEditModal({
 }: ProductEditModalProps) {
   const isMobile = useIsMobile()
   const [isLoading, setIsLoading] = useState(false)
+  const [productImages, setProductImages] = useState<ProductImage[]>([])
+  const [loadingImages, setLoadingImages] = useState(false)
+  const [hasUnsavedImages, setHasUnsavedImages] = useState(false)
   const { data: categories = [], isLoading: categoriesLoading } = useCategoriesList()
   const firstInputRef = useRef<HTMLInputElement>(null)
   const lastFocusableRef = useRef<HTMLButtonElement>(null)
@@ -144,21 +152,60 @@ export function ProductEditModal({
         stock_status: product.stock_status || '',
         admin_notes: ''
       })
+
+      // Load existing product images
+      loadProductImages(product.id)
     }
   }, [product, isOpen, form])
 
+  // Load product images from the database
+  const loadProductImages = async (productId: string) => {
+    setLoadingImages(true)
+    try {
+      const { data: images, error } = await supabase
+        .from('product_images')
+        .select('*')
+        .eq('product_id', productId)
+        .order('position', { ascending: true })
+
+      if (error) throw error
+
+      const formattedImages: ProductImage[] = images.map(img => ({
+        id: img.id,
+        url: img.url,
+        alt_text: img.alt_text,
+        caption: img.caption,
+        position: img.position,
+        is_primary: img.is_primary,
+        width: img.width,
+        height: img.height,
+        size: img.size_bytes,
+        filename: img.url.split('/').pop(),
+        s3_key: img.url.includes('/api/images/') ? img.url.split('/api/images/')[1] : undefined,
+        storage_type: img.url.includes('/api/images/') ? 's3' : 'local',
+      }))
+
+      setProductImages(formattedImages)
+    } catch (error) {
+      console.error('Error loading product images:', error)
+      toast.error('Failed to load product images')
+    } finally {
+      setLoadingImages(false)
+    }
+  }
+
 
   const handleSave = async (data: ProductEditFormData) => {
-    if (!product) return
+    if (!product) return;
 
     setIsLoading(true)
     
     try {
-      const updates: Partial<TablesUpdate<'products'> & { category_ids?: string[] }> = {
+      // Remove category_ids from updates as it's not a real column
+      const updates: Partial<TablesUpdate<'products'>> = {
         name: data.name,
         sku: data.sku || null,
         primary_category_id: data.primary_category_id || null,
-        category_ids: data.category_ids || [],
         description: data.description || null,
         care_instructions: data.care_instructions || null,
         is_active: data.is_active,
@@ -175,14 +222,32 @@ export function ProductEditModal({
         updates.sale_price = parseFloat(data.sale_price)
       }
 
-      const updatedProduct = customSaveHandler 
-        ? await customSaveHandler(product.id, updates)
-        : await updateProduct(
-            product.id,
-            updates,
-            data.admin_notes || `Updated product: ${data.name}`
-          )
+      
+      // Use direct Supabase update instead of RPC function
+      let updatedProduct;
+      if (customSaveHandler) {
+        updatedProduct = await customSaveHandler(product.id, updates);
+      } else {
+        // Direct update to bypass potentially hanging RPC
+        const { data: updateData, error: updateError } = await supabase
+          .from('products')
+          .update(updates)
+          .eq('id', product.id)
+          .select()
+          .single();
+        
+        if (updateError) {
+          console.error('Direct update error:', updateError);
+          throw updateError;
+        }
+        
+        updatedProduct = updateData;
+      }
+      
+      // Update product images
+      await updateProductImages(product.id)
 
+      setHasUnsavedImages(false)
       toast.success('Product updated successfully')
       onSave?.(updatedProduct)
       onClose()
@@ -193,6 +258,46 @@ export function ProductEditModal({
       toast.error(`Error: ${errorMessage}`)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Update product images in the database
+  const updateProductImages = async (productId: string) => {
+    if (!product?.site_id) return;
+
+    try {
+      // Delete existing product images
+      const { error: deleteError } = await supabase
+        .from('product_images')
+        .delete()
+        .eq('product_id', productId)
+
+      if (deleteError) throw deleteError;
+
+      // Insert new product images
+      if (productImages.length > 0) {
+        const imageRecords: ProductImageInsert[] = productImages.map((img, index) => ({
+          product_id: productId,
+          site_id: product.site_id!,
+          url: img.url,
+          alt_text: img.alt_text || null,
+          caption: img.caption || null,
+          position: index,
+          is_primary: img.is_primary,
+          width: img.width || null,
+          height: img.height || null,
+          size_bytes: img.size || null,
+        }))
+
+        const { error: insertError } = await supabase
+          .from('product_images')
+          .insert(imageRecords)
+
+        if (insertError) throw insertError;
+      }
+    } catch (error) {
+      console.error('Error updating product images:', error)
+      throw new Error('Failed to update product images')
     }
   }
 
@@ -247,9 +352,12 @@ export function ProductEditModal({
   const content = (
     <Form {...form}>
       <form 
-        onSubmit={form.handleSubmit(handleSave)} 
+        id="product-edit-form"
+        onSubmit={form.handleSubmit(handleSave, () => {
+          toast.error('Please fill in all required fields');
+        })}
         className={cn(
-          "space-y-6 transition-opacity",
+          "w-full",
           isLoading && "opacity-75"
         )}
         onKeyDown={handleKeyDown}
@@ -257,15 +365,31 @@ export function ProductEditModal({
         aria-label={`Edit product: ${product?.name || 'Unknown product'}`}
         aria-busy={isLoading}
       >
-        {isLoading && (
-          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
-            <div className="flex items-center space-x-3 bg-background border rounded-lg p-4 shadow-lg">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="text-sm font-medium">Saving changes...</span>
-            </div>
-          </div>
-        )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="images" className="flex items-center gap-2">
+              <Image className="h-4 w-4" />
+              Images
+              {productImages.length > 0 && (
+                <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                  {productImages.length}
+                </span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="details" className="mt-4">
+            <div className="space-y-6 transition-opacity">
+            {isLoading && (
+              <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
+                <div className="flex items-center space-x-3 bg-background border rounded-lg p-4 shadow-lg">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm font-medium">Saving changes...</span>
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="name"
@@ -544,27 +668,75 @@ export function ProductEditModal({
             </FormItem>
           )}
         />
+            </div>
+      </TabsContent>
 
-        <div className="flex justify-end space-x-3 pt-4">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={handleClose}
-            disabled={isLoading}
-            aria-label="Cancel editing and close modal"
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={isLoading}
-            ref={lastFocusableRef}
-            aria-label={isLoading ? 'Saving product changes' : 'Save product changes'}
-          >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
-            {isLoading ? 'Saving...' : 'Save Changes'}
-          </Button>
+      <TabsContent value="images" className="mt-4">
+        <div className="space-y-4">
+          {hasUnsavedImages && (
+            <div className="bg-amber-50 dark:bg-amber-950 border-2 border-amber-300 dark:border-amber-700 rounded-lg p-4 text-sm">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-medium text-amber-900 dark:text-amber-100">
+                    You have uploaded new images
+                  </p>
+                  <p className="text-amber-700 dark:text-amber-200 mt-1">
+                    Click "Save Changes" below to save them to your product.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          {loadingImages ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <ImageUploadS3
+              images={productImages}
+              onImagesChange={(images) => {
+                setProductImages(images)
+                setHasUnsavedImages(true)
+              }}
+              productId={product.id}
+              siteId={product.site_id || ''}
+              maxImages={10}
+              disabled={isLoading}
+            />
+          )}
         </div>
+      </TabsContent>
+
+      <div className="flex justify-end space-x-3 pt-4 border-t mt-6">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleClose}
+          disabled={isLoading}
+          aria-label="Cancel editing and close modal"
+        >
+          Cancel
+        </Button>
+        <Button 
+          form="product-edit-form"
+          type="submit" 
+          disabled={isLoading}
+          ref={lastFocusableRef}
+          variant={hasUnsavedImages ? 'default' : 'secondary'}
+          className={cn(
+            !isLoading && "cursor-pointer",
+            hasUnsavedImages && !isLoading && "animate-pulse",
+            hasUnsavedImages && "bg-primary hover:bg-primary/90"
+          )}
+          style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
+          aria-label={isLoading ? 'Saving product changes' : hasUnsavedImages ? 'Save product changes including new images' : 'Save product changes'}
+        >
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
+          {isLoading ? 'Saving...' : hasUnsavedImages ? 'Save Changes (Including Images)' : 'Save Changes'}
+        </Button>
+      </div>
+    </Tabs>
       </form>
     </Form>
   )
@@ -584,7 +756,7 @@ export function ProductEditModal({
             }
           }}
         >
-          <SheetHeader className="sticky top-0 bg-background border-b pb-3 mb-3">
+          <SheetHeader className="sticky top-0 bg-background/95 backdrop-blur-sm border-b pb-3 mb-3 z-10">
             <SheetTitle className="text-left text-lg font-semibold">
               Edit Product: {product?.name}
             </SheetTitle>
@@ -611,7 +783,7 @@ export function ProductEditModal({
           }
         }}
       >
-        <DialogHeader className="sticky top-0 bg-background border-b pb-3 mb-3">
+        <DialogHeader className="sticky top-0 bg-background/95 backdrop-blur-sm border-b pb-3 mb-3 z-10">
           <DialogTitle className="text-xl font-semibold">
             Edit Product: {product?.name}
           </DialogTitle>

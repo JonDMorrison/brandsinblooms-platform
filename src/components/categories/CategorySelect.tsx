@@ -230,14 +230,14 @@ export function CategorySelect<
   }, [multiple, onValueChange]);
 
   // Render category item
-  const renderCategoryItem = (category: FlattenedCategory, selectedIds: string[], onChange?: (value: any) => void) => {
+  const renderCategoryItem = (category: FlattenedCategory, selectedIds: string[], onChange?: (value: any) => void, index?: number) => {
     const isSelected = selectedIds.includes(category.id);
     const IconComponent = getIconComponent(category.icon);
     const indentation = category.level * 12;
 
     return (
       <CommandItem
-        key={category.id}
+        key={`${category.id}-${index ?? 0}`}
         value={`${category.name} ${category.breadcrumb.join(' ')}`}
         onSelect={() => handleSelect(category.id, multiple ? selectedIds : (selectedIds[0] || null), onChange)}
         className="cursor-pointer"
@@ -459,11 +459,12 @@ export function CategorySelect<
                       ) : (
                         <CommandGroup className="bg-white">
                           <ScrollArea className="h-64">
-                            {filteredCategories.map(category => 
+                            {filteredCategories.map((category, index) => 
                               renderCategoryItem(
                                 category, 
                                 Array.isArray(field.value) ? field.value : (field.value ? [field.value] : []),
-                                field.onChange
+                                field.onChange,
+                                index
                               )
                             )}
                           </ScrollArea>
@@ -677,10 +678,12 @@ export function CategorySelect<
               ) : (
                 <CommandGroup className="bg-white">
                   <ScrollArea className="h-64">
-                    {filteredCategories.map(category => 
+                    {filteredCategories.map((category, index) => 
                       renderCategoryItem(
                         category, 
-                        Array.isArray(value) ? value : (value ? [value] : [])
+                        Array.isArray(value) ? value : (value ? [value] : []),
+                        undefined,
+                        index
                       )
                     )}
                   </ScrollArea>
