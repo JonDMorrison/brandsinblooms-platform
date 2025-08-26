@@ -126,6 +126,24 @@ function ProductsPageContent() {
         categoryName = product.category;
       }
 
+      // Get the primary image or first image from product_images
+      let imageUrl = '';
+      if (product.product_images && Array.isArray(product.product_images) && product.product_images.length > 0) {
+        // Sort by is_primary first, then by position
+        const sortedImages = [...product.product_images].sort((a, b) => {
+          if (a.is_primary && !b.is_primary) return -1;
+          if (!a.is_primary && b.is_primary) return 1;
+          return (a.position || 0) - (b.position || 0);
+        });
+        
+        const firstImage = sortedImages[0];
+        // Use cdn_url if available (S3), otherwise use regular url (Supabase)
+        imageUrl = firstImage.cdn_url || firstImage.url || '';
+      } else if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+        // Fallback to legacy images field if it exists
+        imageUrl = product.images[0];
+      }
+
       return {
         id: product.id,
         name: product.name,
@@ -141,7 +159,7 @@ function ProductsPageContent() {
             : product.inventory_count < 10
             ? 'low-stock'
             : 'in-stock',
-        image: product.images?.[0] || '',
+        image: imageUrl,
         featured: product.is_featured || false,
         addedToSite: product.is_active || false,
       };

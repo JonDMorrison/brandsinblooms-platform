@@ -5,7 +5,7 @@ import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Checkbox } from '@/src/components/ui/checkbox'
 import { Star, ShoppingCart, Eye, Heart } from 'lucide-react'
-import { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, memo, useMemo } from 'react'
 import { useProductSelection } from '@/src/contexts/ProductSelectionContext'
 import { ProductImage } from '@/src/components/ui/product-image'
 import { useProductFavorites } from '@/src/hooks/useProductFavorites'
@@ -38,6 +38,9 @@ interface ProductCardProps {
   isEditLoading?: boolean
 }
 
+// Memoized product image component to prevent re-renders on hover
+const MemoizedProductImage = memo(ProductImage)
+
 export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, showSelection = false, onEdit, isEditLoading = false }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [quickViewOpen, setQuickViewOpen] = useState(false)
@@ -50,6 +53,16 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
   
   const selected = isSelected(product.id)
   const isProductFavorite = isFavorite(product.id)
+  
+  // Memoize placeholder config to prevent recreation on every render
+  const placeholderConfig = useMemo(() => ({
+    type: 'gradient' as const,
+    config: { 
+      colors: product.category === 'flowers' ? ['#fce7f3', '#fbbf24'] : 
+              product.category === 'plants' ? ['#d9f99d', '#84cc16'] :
+              ['#e9d5ff', '#c084fc']
+    }
+  }), [product.category])
   
   // Long press for mobile (with improved touch handling)
   const bind = useLongPress(() => {
@@ -204,21 +217,17 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
             )}
             
             {/* Product Image */}
-            <ProductImage
+            <MemoizedProductImage
               src={product.image}
               alt={product.name}
               productName={product.name}
               width={80}
               height={80}
               className="w-20 h-20 rounded-lg flex-shrink-0"
-              placeholder={{
-                type: 'gradient',
-                config: { 
-                  colors: product.category === 'flowers' ? ['#fce7f3', '#fbbf24'] : 
-                          product.category === 'plants' ? ['#d9f99d', '#84cc16'] :
-                          ['#e9d5ff', '#c084fc']
-                }
-              }}
+              placeholder={placeholderConfig}
+              priority={false}
+              loading="lazy"
+              showLoadingState={false}
             />
 
             {/* Product Details */}
@@ -378,22 +387,16 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
         
         {/* Product Image */}
         <div className="relative mb-4">
-          <ProductImage
+          <MemoizedProductImage
             src={product.image}
             alt={product.name}
             productName={product.name}
             width={300}
             height={300}
             className="aspect-square rounded-lg"
-            placeholder={{
-              type: 'gradient',
-              config: { 
-                colors: product.category === 'flowers' ? ['#fce7f3', '#fbbf24'] : 
-                        product.category === 'plants' ? ['#d9f99d', '#84cc16'] :
-                        ['#e9d5ff', '#c084fc']
-              }
-            }}
+            placeholder={placeholderConfig}
             priority={product.featured}
+            showLoadingState={false}
           />
           
           {/* Badges */}

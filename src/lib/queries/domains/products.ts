@@ -103,6 +103,16 @@ export async function getProducts(
           icon,
           color
         )
+      ),
+      product_images (
+        id,
+        url,
+        position,
+        is_primary,
+        alt_text,
+        caption,
+        storage_type,
+        cdn_url
       )
     `)
     .eq('site_id', siteId);
@@ -185,7 +195,35 @@ export async function getProductById(
 ): Promise<ProductWithTags> {
   const response = await supabase
     .from('products')
-    .select('*')
+    .select(`
+      *,
+      primary_category:product_categories!products_primary_category_id_fkey (
+        id,
+        name,
+        slug,
+        icon,
+        color
+      ),
+      product_category_assignments (
+        category:product_categories (
+          id,
+          name,
+          slug,
+          icon,
+          color
+        )
+      ),
+      product_images (
+        id,
+        url,
+        position,
+        is_primary,
+        alt_text,
+        caption,
+        storage_type,
+        cdn_url
+      )
+    `)
     .eq('site_id', siteId)
     .eq('id', productId)
     .single();

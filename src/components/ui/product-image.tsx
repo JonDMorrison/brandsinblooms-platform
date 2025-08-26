@@ -134,8 +134,9 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
       placeholderGenTime?: number
     } | null>(null)
     
-    const [imageManager] = useState(() => 
-      new ImageLoadingManager(retryConfig, setLoadingState)
+    const imageManager = useMemo(() => 
+      new ImageLoadingManager(retryConfig, setLoadingState),
+      [] // Only create once, don't recreate on retryConfig changes
     )
     
     // Performance mode configuration
@@ -223,9 +224,11 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
       (event: React.SyntheticEvent<HTMLImageElement>) => {
         imageManager.markLoaded()
         setRetryCount(0)
+        setImageLoaded(true)
+        setLoadingState('loaded')
         onLoad?.(event)
       },
-      [imageManager, onLoad]
+      [onLoad] // Remove imageManager from dependencies
     )
 
     // Handle image load error with retry logic
@@ -324,12 +327,15 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
 
     // Reset state when src changes
     useEffect(() => {
-      setCurrentSrc(src)
-      imageManager.reset()
-      setRetryCount(0)
-      setImageLoaded(false)
-      setShowSkeleton(enableSkeletonTransition)
-    }, [src, imageManager, enableSkeletonTransition])
+      // Only reset if src actually changed
+      if (currentSrc !== src) {
+        setCurrentSrc(src)
+        imageManager.reset()
+        setRetryCount(0)
+        setImageLoaded(false)
+        setShowSkeleton(enableSkeletonTransition)
+      }
+    }, [src]) // Remove imageManager and enableSkeletonTransition from dependencies
 
     // Preload image if not valid src
     useEffect(() => {
@@ -348,9 +354,12 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
     // Trigger loading immediately if lazy load is disabled
     useEffect(() => {
       if (!performanceConfig.lazyLoad || priority) {
-        lazyLoad.triggerLoad()
+        // Only trigger if not already loaded
+        if (!imageLoaded) {
+          lazyLoad.triggerLoad()
+        }
       }
-    }, [performanceConfig.lazyLoad, priority, lazyLoad])
+    }, [performanceConfig.lazyLoad, priority]) // Remove lazyLoad from dependencies
 
     // Generate responsive sizes if not provided
     const responsiveSizes = sizes || generateImageSizes()
