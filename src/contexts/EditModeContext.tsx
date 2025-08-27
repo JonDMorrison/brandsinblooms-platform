@@ -29,7 +29,7 @@ interface EditModeProviderProps {
 
 export function EditModeProvider({ 
   children, 
-  defaultMode = 'form' 
+  defaultMode = 'inline' 
 }: EditModeProviderProps) {
   const [editMode, setEditMode] = useState<EditMode>(defaultMode);
   const [isDirty, setIsDirty] = useState(false);

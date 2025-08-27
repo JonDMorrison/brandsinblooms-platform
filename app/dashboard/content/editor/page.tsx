@@ -408,15 +408,6 @@ function PageEditorContent() {
             {/* Mode Toggle */}
             <div className="flex items-center bg-muted rounded-md p-1">
               <Button
-                variant={editMode === 'preview' ? 'secondary' : 'ghost'}
-                size="sm"
-                className="h-8 px-3 cursor-pointer transition-all hover:bg-gray-100"
-                onClick={() => setEditMode('preview')}
-              >
-                <Eye className="h-3.5 w-3.5 mr-1.5" />
-                Preview
-              </Button>
-              <Button
                 variant={editMode === 'inline' ? 'secondary' : 'ghost'}
                 size="sm"
                 className="h-8 px-3 cursor-pointer transition-all hover:bg-gray-100"
@@ -573,7 +564,7 @@ function PageEditorContent() {
                 backgroundColor: theme?.colors?.background || '#FFFFFF'
               }}
             >
-              {validLayout === 'landing' && (editMode === 'inline' || editMode === 'preview') ? (
+              {validLayout === 'landing' && editMode === 'inline' ? (
                 <EditableLandingPagePreview
                   title={pageData.title}
                   subtitle={
@@ -641,7 +632,7 @@ function PageEditorContent() {
 
 export default function PageEditorPage() {
   return (
-    <EditModeProvider defaultMode="preview">
+    <EditModeProvider defaultMode="inline">
       <PageEditorContent />
     </EditModeProvider>
   )
