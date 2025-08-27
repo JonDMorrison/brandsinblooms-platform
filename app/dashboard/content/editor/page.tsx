@@ -104,12 +104,18 @@ export default function PageEditorPage() {
           // Extract page data from the content
           const metaData = content.meta_data as Record<string, unknown>
           const contentData = content.content as Record<string, unknown>
-          const layout = metaData?.layout || contentData?.layout || 'landing'
+          const rawLayout = metaData?.layout || contentData?.layout || 'landing'
+          
+          // Validate layout is one of the supported types
+          const validLayouts: LayoutType[] = ['landing', 'blog', 'portfolio', 'about', 'product', 'contact']
+          const layout = validLayouts.includes(rawLayout as LayoutType) 
+            ? rawLayout as LayoutType 
+            : 'landing'
           
           const pageData: PageData = {
             title: content.title,
             subtitle: typeof metaData?.subtitle === 'string' ? metaData.subtitle : '',
-            layout: layout as LayoutType
+            layout: layout
           }
           
           setPageData(pageData)
@@ -270,8 +276,10 @@ export default function PageEditorPage() {
     )
   }
 
-  const CurrentLayoutComponent = layoutInfo[pageData.layout].component
-  const LayoutIcon = layoutInfo[pageData.layout].icon
+  // Validate layout exists in layoutInfo
+  const validLayout = pageData.layout in layoutInfo ? pageData.layout : 'landing'
+  const CurrentLayoutComponent = layoutInfo[validLayout].component
+  const LayoutIcon = layoutInfo[validLayout].icon
 
   const handleSave = async () => {
     if (!contentId || !currentSite?.id || !unifiedContent) {
@@ -366,7 +374,7 @@ export default function PageEditorPage() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {layoutInfo[pageData.layout].name}
+                  {layoutInfo[validLayout].name}
                 </p>
               </div>
             </div>
@@ -458,7 +466,7 @@ export default function PageEditorPage() {
                       <div className="space-y-2">
                         {Object.entries(layoutInfo).map(([layoutKey, info]) => {
                           const Icon = info.icon
-                          const isActive = pageData.layout === layoutKey
+                          const isActive = validLayout === layoutKey
                           return (
                             <div
                               key={layoutKey}
@@ -508,7 +516,7 @@ export default function PageEditorPage() {
                         ref={contentEditorRef}
                         contentId={contentId}
                         siteId={currentSite.id}
-                        layout={pageData.layout as ContentLayoutType}
+                        layout={validLayout as ContentLayoutType}
                         initialContent={pageContent || undefined}
                         onSave={handleContentSave}
                         onContentChange={handleContentChange}
@@ -523,7 +531,7 @@ export default function PageEditorPage() {
                   {pageContent && (
                     <SectionManager
                       content={pageContent}
-                      layout={pageData.layout as ContentLayoutType}
+                      layout={validLayout as ContentLayoutType}
                       onToggleVisibility={() => {}} // Handled by ContentEditor
                       onMoveUp={() => {}} // Handled by ContentEditor
                       onMoveDown={() => {}} // Handled by ContentEditor
@@ -562,7 +570,7 @@ export default function PageEditorPage() {
       <div className="border-t bg-muted/30 px-6 py-2">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-3">
-            <span className="font-medium">{layoutInfo[pageData.layout].name}</span>
+            <span className="font-medium">{layoutInfo[validLayout].name}</span>
             <span className="text-muted-foreground/50">•</span>
             <span>{viewportSizes[activeViewport].label} View</span>
           </div>
