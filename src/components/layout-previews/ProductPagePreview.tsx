@@ -6,6 +6,7 @@ import { Star, ShoppingCart, Heart, Share, Truck, Shield, RotateCcw } from 'luci
 import { PageContent, LegacyContent, isPageContent } from '@/src/lib/content/schema'
 import { DynamicSection } from '@/src/components/preview/DynamicSection'
 import { getLayoutSections, convertLegacyContent, getSpacingClass } from '@/src/lib/preview/section-renderers'
+import { SiteThemeProvider, ThemeWrapper } from '@/src/components/theme/ThemeProvider'
 
 interface ProductPagePreviewProps {
   title?: string
@@ -23,7 +24,8 @@ export function ProductPagePreview({ title, subtitle, content }: ProductPagePrev
     const spacingClass = getSpacingClass(content.settings?.layout?.spacing)
     
     return (
-      <div className={`w-full h-full bg-white p-6 ${spacingClass}`}>
+      <SiteThemeProvider>
+        <ThemeWrapper className={`w-full h-full bg-white p-6 ${spacingClass}`}>
         {sections.map(({ key, section }) => {
           // Special handling for product header section
           if (key === 'header' || section.type === 'hero') {
@@ -115,7 +117,8 @@ export function ProductPagePreview({ title, subtitle, content }: ProductPagePrev
             />
           )
         })}
-      </div>
+        </ThemeWrapper>
+      </SiteThemeProvider>
     )
   }
   
@@ -125,7 +128,8 @@ export function ProductPagePreview({ title, subtitle, content }: ProductPagePrev
   
   if (legacyTitle || legacySubtitle) {
     return (
-      <div className="w-full h-full bg-white p-6 space-y-6">
+      <SiteThemeProvider>
+        <ThemeWrapper className="w-full h-full bg-white p-6 space-y-6">
         {/* Product Header */}
         <div className="flex flex-col gap-8">
           {/* Product Images */}
@@ -174,7 +178,7 @@ export function ProductPagePreview({ title, subtitle, content }: ProductPagePrev
             {/* Actions */}
             <div className="space-y-3">
               <div className="flex gap-3">
-                <Button className="flex-1">
+                <Button className="flex-1 btn-theme-primary">
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Add to Cart
                 </Button>
@@ -218,17 +222,20 @@ export function ProductPagePreview({ title, subtitle, content }: ProductPagePrev
             }
           </p>
         </Card>
-      </div>
+        </ThemeWrapper>
+      </SiteThemeProvider>
     )
   }
   
   // Empty state
   return (
-    <div className="w-full h-full bg-white p-6 flex items-center justify-center">
-      <div className="text-center text-gray-500">
-        <h3 className="text-xl font-semibold mb-2">Product Page Preview</h3>
-        <p>Add content to see your product page design</p>
-      </div>
-    </div>
+    <SiteThemeProvider>
+      <ThemeWrapper className="w-full h-full bg-white p-6 flex items-center justify-center">
+        <div className="text-center text-gray-500">
+          <h3 className="text-xl font-semibold mb-2">Product Page Preview</h3>
+          <p>Add content to see your product page design</p>
+        </div>
+      </ThemeWrapper>
+    </SiteThemeProvider>
   )
 }

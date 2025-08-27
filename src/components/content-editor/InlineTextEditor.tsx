@@ -22,6 +22,7 @@ export interface InlineTextEditorProps {
   fieldPath: string; // e.g., "sections.hero.data.title"
   format?: 'plain' | 'rich';
   className?: string;
+  style?: React.CSSProperties;
   placeholder?: string;
   debounceDelay?: number;
   showToolbar?: boolean;
@@ -34,6 +35,7 @@ const InlineTextEditorComponent = ({
   fieldPath,
   format = 'plain',
   className,
+  style,
   placeholder = 'Click to edit...',
   debounceDelay = 500,
   showToolbar = true
@@ -85,7 +87,11 @@ const InlineTextEditorComponent = ({
     editable: isEditing && isEnabled,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
-      debouncedUpdate(editor.getHTML());
+      // For plain format, extract text without HTML tags
+      const newContent = format === 'plain' 
+        ? editor.getText() 
+        : editor.getHTML();
+      debouncedUpdate(newContent);
     },
     onSelectionUpdate: ({ editor }) => {
       const { from, to } = editor.state.selection;
@@ -122,10 +128,16 @@ const InlineTextEditorComponent = ({
   
   // Update editor content when prop changes
   useEffect(() => {
-    if (editor && !editor.isFocused && content !== editor.getHTML()) {
-      editor.commands.setContent(content);
+    if (editor && !editor.isFocused) {
+      const currentContent = format === 'plain' 
+        ? editor.getText() 
+        : editor.getHTML();
+      
+      if (content !== currentContent) {
+        editor.commands.setContent(content);
+      }
     }
-  }, [content, editor]);
+  }, [content, editor, format]);
   
   // Update editable state
   useEffect(() => {
@@ -209,6 +221,7 @@ const InlineTextEditorComponent = ({
             '[&_.ProseMirror_em]:italic',
           ]
         )}
+        style={style}
       />
       
       {showFloatingToolbar && editor && (
@@ -231,6 +244,7 @@ export const InlineTextEditor = memo(InlineTextEditorComponent, (prevProps, next
     prevProps.fieldPath === nextProps.fieldPath &&
     prevProps.format === nextProps.format &&
     prevProps.className === nextProps.className &&
+    prevProps.style === nextProps.style &&
     prevProps.placeholder === nextProps.placeholder &&
     prevProps.debounceDelay === nextProps.debounceDelay &&
     prevProps.showToolbar === nextProps.showToolbar

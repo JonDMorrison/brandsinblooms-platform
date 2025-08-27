@@ -6,6 +6,7 @@ import { Flower, AlertCircle } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import Link from 'next/link'
+import { SiteThemeProvider } from '@/src/components/theme/ThemeProvider'
 
 interface SiteHomepageProps {
   fallbackContent?: React.ReactNode
@@ -59,76 +60,78 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
 
   // Show site homepage for unauthenticated users or public view
   return (
-    <div className="min-h-screen bg-gradient-hero">
-      {/* Site Header */}
-      <header className="relative z-10">
-        <nav className="brand-container py-6">
-          <div className="flex items-center justify-between">
-            <SiteBranding site={site} />
-            
-            {/* Authentication Links */}
-            <div className="flex items-center space-x-4">
-              <Link href="/login">
-                <Button variant="ghost" size="sm">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/signup">
-                <Button size="sm" className="btn-gradient-primary">
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </nav>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center py-12">
-        <div className="brand-container">
-          <div className="text-center space-y-8">
-            {/* Welcome Message */}
-            <div className="space-y-4">
-              <h1 className="text-4xl md:text-6xl font-brand-heading text-gradient-primary">
-                Welcome to {site?.name || 'Our Site'}
-              </h1>
+    <SiteThemeProvider applyToDocument={true}>
+      <div className="min-h-screen bg-gradient-hero">
+        {/* Site Header */}
+        <header className="relative z-10">
+          <nav className="brand-container py-6">
+            <div className="flex items-center justify-between">
+              <SiteBranding site={site} />
               
-              {site?.description && (
-                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                  {site.description}
-                </p>
-              )}
+              {/* Authentication Links */}
+              <div className="flex items-center space-x-4">
+                <Link href="/login">
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button size="sm" className="btn-theme-primary">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
             </div>
+          </nav>
+        </header>
 
-            {/* Call to Action */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/login">
-                <Button size="lg" className="btn-gradient-primary min-w-[160px]">
-                  Get Started
-                </Button>
-              </Link>
-              
-              <Link href="/about">
-                <Button variant="outline" size="lg" className="min-w-[160px]">
-                  Learn More
-                </Button>
-              </Link>
-            </div>
-
-            {/* Future: Site Features can be added here when settings are implemented */}
-          </div>
-        </div>
-      </main>
-
-      {/* Fallback content if provided */}
-      {fallbackContent && (
-        <section className="py-12 border-t">
+        {/* Main Content */}
+        <main className="flex-1 flex items-center justify-center py-12">
           <div className="brand-container">
-            {fallbackContent}
+            <div className="text-center space-y-8">
+              {/* Welcome Message */}
+              <div className="space-y-4">
+                <h1 className="text-4xl md:text-6xl font-brand-heading">
+                  Welcome to {site?.name || 'Our Site'}
+                </h1>
+                
+                {site?.description && (
+                  <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                    {site.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Call to Action */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link href="/login">
+                  <Button size="lg" className="btn-theme-primary min-w-[160px]">
+                    Get Started
+                  </Button>
+                </Link>
+                
+                <Link href="/about">
+                  <Button variant="outline" size="lg" className="min-w-[160px]">
+                    Learn More
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Future: Site Features can be added here when settings are implemented */}
+            </div>
           </div>
-        </section>
-      )}
-    </div>
+        </main>
+
+        {/* Fallback content if provided */}
+        {fallbackContent && (
+          <section className="py-12 border-t">
+            <div className="brand-container">
+              {fallbackContent}
+            </div>
+          </section>
+        )}
+      </div>
+    </SiteThemeProvider>
   )
 }
 
@@ -158,38 +161,40 @@ function SiteBranding({ site }: { site: any }) {
 
 function AuthenticatedSiteView({ site, user }: { site: any; user: any }) {
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
-      <div className="brand-container">
-        <div className="text-center space-y-6">
-          <SiteBranding site={site} />
-          
-          <div className="space-y-4">
-            <h1 className="text-3xl md:text-4xl font-brand-heading text-gradient-primary">
-              Welcome back to {site.name}!
-            </h1>
+    <SiteThemeProvider applyToDocument={true}>
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="brand-container">
+          <div className="text-center space-y-6">
+            <SiteBranding site={site} />
             
-            <p className="text-lg text-muted-foreground">
-              Hello {user.email}, ready to continue?
-            </p>
-          </div>
+            <div className="space-y-4">
+              <h1 className="text-3xl md:text-4xl font-brand-heading">
+                Welcome back to {site.name}!
+              </h1>
+              
+              <p className="text-lg text-muted-foreground">
+                Hello {user.email}, ready to continue?
+              </p>
+            </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/dashboard">
-              <Button size="lg" className="btn-gradient-primary min-w-[160px]">
-                Go to Dashboard
-              </Button>
-            </Link>
-            
-            {/* Temporarily hidden - My Sites page not ready yet
-            <Link href="/sites">
-              <Button variant="outline" size="lg" className="min-w-[160px]">
-                My Sites
-              </Button>
-            </Link> */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/dashboard">
+                <Button size="lg" className="btn-theme-primary min-w-[160px]">
+                  Go to Dashboard
+                </Button>
+              </Link>
+              
+              {/* Temporarily hidden - My Sites page not ready yet
+              <Link href="/sites">
+                <Button variant="outline" size="lg" className="min-w-[160px]">
+                  My Sites
+                </Button>
+              </Link> */}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </SiteThemeProvider>
   )
 }
 

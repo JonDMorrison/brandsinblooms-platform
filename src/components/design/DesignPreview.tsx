@@ -7,6 +7,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/src/components/ui/toggle-group'
 import { Monitor, Tablet, Smartphone, RefreshCw, ExternalLink } from 'lucide-react'
 import { ThemeSettings } from '@/src/lib/queries/domains/theme'
 import { useSiteId } from '@/contexts/SiteContext'
+import { useThemeCSS } from '@/hooks/useThemeCSS'
 
 interface DesignPreviewProps {
   settings: ThemeSettings
@@ -27,163 +28,8 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const siteId = useSiteId()
   
-  // Generate CSS variables from theme settings
-  const generateCSSVariables = (theme: ThemeSettings): string => {
-    const { colors, typography, layout } = theme
-    
-    // Font size scales
-    const fontSizeMap = {
-      small: '14px',
-      medium: '16px',
-      large: '18px'
-    }
-    
-    return `
-      :root {
-        /* Colors */
-        --color-primary: ${colors.primary};
-        --color-secondary: ${colors.secondary};
-        --color-accent: ${colors.accent};
-        --color-background: ${colors.background};
-        --color-text: ${colors.text || '#1a1a1a'};
-        
-        /* Typography */
-        --font-heading: '${typography.headingFont}', system-ui, sans-serif;
-        --font-body: '${typography.bodyFont}', system-ui, sans-serif;
-        --font-size-base: ${fontSizeMap[typography.fontSize] || '16px'};
-        --font-weight-heading: ${typography.headingWeight || '700'};
-        --font-weight-body: ${typography.bodyWeight || '400'};
-        
-        /* Layout */
-        --header-style: ${layout.headerStyle};
-        --footer-style: ${layout.footerStyle};
-        --menu-style: ${layout.menuStyle};
-        
-        /* Derived colors */
-        --color-primary-rgb: ${hexToRgb(colors.primary)};
-        --color-secondary-rgb: ${hexToRgb(colors.secondary)};
-        --color-accent-rgb: ${hexToRgb(colors.accent)};
-      }
-      
-      body {
-        background-color: var(--color-background);
-        color: var(--color-text);
-        font-family: var(--font-body);
-        font-size: var(--font-size-base);
-        font-weight: var(--font-weight-body);
-      }
-      
-      h1, h2, h3, h4, h5, h6 {
-        font-family: var(--font-heading);
-        font-weight: var(--font-weight-heading);
-        color: var(--color-primary);
-      }
-      
-      a {
-        color: var(--color-primary);
-        text-decoration: none;
-      }
-      
-      a:hover {
-        color: var(--color-secondary);
-      }
-      
-      .btn-primary {
-        background-color: var(--color-primary);
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
-        font-weight: 500;
-        cursor: pointer;
-      }
-      
-      .btn-primary:hover {
-        opacity: 0.9;
-      }
-      
-      .btn-secondary {
-        background-color: var(--color-secondary);
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
-        font-weight: 500;
-        cursor: pointer;
-      }
-      
-      .accent {
-        color: var(--color-accent);
-      }
-      
-      /* Layout styles based on settings */
-      [data-header-style="${layout.headerStyle}"] header {
-        ${getHeaderStyles(layout.headerStyle)}
-      }
-      
-      [data-footer-style="${layout.footerStyle}"] footer {
-        ${getFooterStyles(layout.footerStyle)}
-      }
-      
-      [data-menu-style="${layout.menuStyle}"] nav {
-        ${getMenuStyles(layout.menuStyle)}
-      }
-    `
-  }
-  
-  // Helper function to convert hex to RGB
-  const hexToRgb = (hex: string): string => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-    if (result) {
-      const r = parseInt(result[1], 16)
-      const g = parseInt(result[2], 16)
-      const b = parseInt(result[3], 16)
-      return `${r}, ${g}, ${b}`
-    }
-    return '0, 0, 0'
-  }
-  
-  // Get header-specific styles
-  const getHeaderStyles = (style: string): string => {
-    switch (style) {
-      case 'modern':
-        return 'padding: 1.5rem 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);'
-      case 'classic':
-        return 'padding: 1rem 0; background: white; border-bottom: 2px solid var(--color-primary);'
-      case 'minimal':
-        return 'padding: 1rem 0; background: transparent; border-bottom: 1px solid rgba(0,0,0,0.1);'
-      default:
-        return ''
-    }
-  }
-  
-  // Get footer-specific styles
-  const getFooterStyles = (style: string): string => {
-    switch (style) {
-      case 'minimal':
-        return 'padding: 2rem 0; background: transparent; border-top: 1px solid rgba(0,0,0,0.1);'
-      case 'detailed':
-        return 'padding: 3rem 0; background: var(--color-primary); color: white;'
-      case 'hidden':
-        return 'display: none;'
-      default:
-        return ''
-    }
-  }
-  
-  // Get menu-specific styles
-  const getMenuStyles = (style: string): string => {
-    switch (style) {
-      case 'horizontal':
-        return 'display: flex; gap: 2rem; align-items: center;'
-      case 'vertical':
-        return 'display: flex; flex-direction: column; gap: 1rem;'
-      case 'sidebar':
-        return 'position: fixed; left: 0; top: 0; height: 100%; width: 250px; background: white;'
-      default:
-        return ''
-    }
-  }
+  // Use centralized theme CSS generation
+  const { fullCSS } = useThemeCSS(settings)
   
   // Inject styles into iframe
   useEffect(() => {
@@ -202,10 +48,11 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
       // Create and inject new style element
       const styleElement = iframe.contentDocument.createElement('style')
       styleElement.id = 'design-preview-styles'
-      styleElement.textContent = generateCSSVariables(settings)
+      styleElement.textContent = fullCSS
       iframe.contentDocument.head.appendChild(styleElement)
       
       // Add body attributes for layout styles
+      iframe.contentDocument.body.setAttribute('data-theme-applied', 'true')
       iframe.contentDocument.body.setAttribute('data-header-style', settings.layout.headerStyle)
       iframe.contentDocument.body.setAttribute('data-footer-style', settings.layout.footerStyle)
       iframe.contentDocument.body.setAttribute('data-menu-style', settings.layout.menuStyle)
@@ -233,7 +80,7 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
     return () => {
       iframeRef.current?.removeEventListener('load', handleLoad)
     }
-  }, [settings])
+  }, [settings, fullCSS])
   
   // Re-inject styles when settings change
   useEffect(() => {
@@ -241,9 +88,9 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
     
     const styleElement = iframeRef.current.contentDocument.getElementById('design-preview-styles')
     if (styleElement) {
-      styleElement.textContent = generateCSSVariables(settings)
+      styleElement.textContent = fullCSS
     }
-  }, [settings])
+  }, [settings, fullCSS])
   
   const handleRefresh = () => {
     if (iframeRef.current) {

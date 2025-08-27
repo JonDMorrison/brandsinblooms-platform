@@ -9,6 +9,8 @@ import { getLayoutSections, convertLegacyContent, getSpacingClass } from '@/src/
 import { InlineTextEditor } from '@/components/content-editor/InlineTextEditor'
 import { useIsInlineEditEnabled } from '@/contexts/EditModeContext'
 import React, { memo, useCallback } from 'react'
+import { SiteThemeProvider, ThemeWrapper } from '@/components/theme/ThemeProvider'
+import { useSiteTheme } from '@/hooks/useSiteTheme'
 
 interface EditableLandingPagePreviewProps {
   title?: string
@@ -19,7 +21,7 @@ interface EditableLandingPagePreviewProps {
   onSubtitleChange?: (subtitle: string) => void
 }
 
-export const EditableLandingPagePreview = memo(function EditableLandingPagePreview({ 
+const EditableLandingPagePreviewContent = memo(function EditableLandingPagePreviewContent({ 
   title, 
   subtitle, 
   content,
@@ -28,6 +30,7 @@ export const EditableLandingPagePreview = memo(function EditableLandingPagePrevi
   onSubtitleChange
 }: EditableLandingPagePreviewProps) {
   const isInlineEditEnabled = useIsInlineEditEnabled();
+  const { theme } = useSiteTheme();
   
   // Handle section updates for enhanced content
   const handleSectionUpdate = useCallback((sectionKey: string, field: string, value: string) => {
@@ -65,25 +68,37 @@ export const EditableLandingPagePreview = memo(function EditableLandingPagePrevi
               isEnabled={isInlineEditEnabled && (!!onTitleChange || !!onContentChange)}
               fieldPath={`sections.${key}.data.title`}
               format="plain"
-              className="text-4xl font-bold text-gray-900"
+              className="text-4xl font-bold"
+              style={{ 
+                color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+                fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+              }}
               placeholder="Enter page title..."
             />
           ) : null}
           
-          {(subtitle || sectionData.subtitle) ? (
-            <InlineTextEditor
-              content={subtitle || String(sectionData.subtitle || '')}
-              onUpdate={onSubtitleChange || ((value) => handleSectionUpdate(key, 'subtitle', value))}
-              isEnabled={isInlineEditEnabled && (!!onSubtitleChange || !!onContentChange)}
-              fieldPath={`sections.${key}.data.subtitle`}
-              format="plain"
-              className="text-xl text-gray-600"
-              placeholder="Enter subtitle..."
-            />
-          ) : null}
+          <InlineTextEditor
+            content={subtitle || String(sectionData.subtitle || '')}
+            onUpdate={onSubtitleChange || ((value) => handleSectionUpdate(key, 'subtitle', value))}
+            isEnabled={isInlineEditEnabled && (!!onSubtitleChange || !!onContentChange)}
+            fieldPath={`sections.${key}.data.subtitle`}
+            format="plain"
+            className="text-xl"
+            style={{ 
+              color: theme?.colors?.text || 'var(--theme-text, #666666)',
+              fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+            }}
+            placeholder="Enter subtitle..."
+          />
           
           {sectionData.ctaText ? (
-            <Button className="mt-4">
+            <Button 
+              className="mt-4"
+              style={{
+                backgroundColor: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+                color: 'white'
+              }}
+            >
               {String(sectionData.ctaText)}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
@@ -112,8 +127,18 @@ export const EditableLandingPagePreview = memo(function EditableLandingPagePrevi
     const spacingClass = getSpacingClass(content.settings?.layout?.spacing)
     
     return (
-      <div className={`w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 p-6 ${spacingClass}`}>
-        {sections.map(({ key, section }) => renderEditableSection(key, section))}
+      <div 
+        className={`w-full h-full p-6 ${spacingClass}`}
+        style={{
+          backgroundColor: theme?.colors?.background || 'var(--theme-background, #FFFFFF)',
+          background: theme?.colors?.background ? undefined : 'linear-gradient(to bottom right, rgba(239, 246, 255, 0.5), rgba(243, 232, 255, 0.5))'
+        }}
+      >
+        {sections.map(({ key, section }) => (
+          <React.Fragment key={key}>
+            {renderEditableSection(key, section)}
+          </React.Fragment>
+        ))}
       </div>
     )
   }
@@ -124,7 +149,13 @@ export const EditableLandingPagePreview = memo(function EditableLandingPagePrevi
   
   if (legacyTitle || legacySubtitle) {
     return (
-      <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 p-6 space-y-8">
+      <div 
+        className="w-full h-full p-6 space-y-8"
+        style={{
+          backgroundColor: theme?.colors?.background || 'var(--theme-background, #FFFFFF)',
+          background: theme?.colors?.background ? undefined : 'linear-gradient(to bottom right, rgba(239, 246, 255, 0.5), rgba(243, 232, 255, 0.5))'
+        }}
+      >
         {/* Editable Hero Section */}
         <div className="text-center space-y-4 py-12">
           <InlineTextEditor
@@ -133,7 +164,11 @@ export const EditableLandingPagePreview = memo(function EditableLandingPagePrevi
             isEnabled={isInlineEditEnabled && !!onTitleChange}
             fieldPath="title"
             format="plain"
-            className="text-4xl font-bold text-gray-900"
+            className="text-4xl font-bold"
+            style={{ 
+              color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+              fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+            }}
             placeholder="Enter page title..."
           />
           
@@ -143,7 +178,11 @@ export const EditableLandingPagePreview = memo(function EditableLandingPagePrevi
             isEnabled={isInlineEditEnabled && !!onSubtitleChange}
             fieldPath="subtitle"
             format="plain"
-            className="text-xl text-gray-600"
+            className="text-xl"
+            style={{ 
+              color: theme?.colors?.text || 'var(--theme-text, #666666)',
+              fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+            }}
             placeholder="Enter subtitle..."
           />
         </div>
@@ -161,20 +200,65 @@ export const EditableLandingPagePreview = memo(function EditableLandingPagePrevi
             { title: 'Feature Three', desc: 'Easy to use' }
           ].map((feature, i) => (
             <Card key={i} className="p-4 text-center bg-white border-gray-200">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Star className="h-6 w-6 text-blue-600" />
+              <div 
+                className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+                style={{
+                  backgroundColor: theme?.colors?.accent ? `${theme.colors.accent}20` : 'var(--theme-accent, #F59E0B)20'
+                }}
+              >
+                <Star 
+                  className="h-6 w-6" 
+                  style={{ color: theme?.colors?.accent || 'var(--theme-accent, #F59E0B)' }}
+                />
               </div>
-              <h3 className="font-semibold mb-2 text-gray-900">{feature.title}</h3>
-              <p className="text-sm text-gray-600">{feature.desc}</p>
+              <h3 
+                className="font-semibold mb-2"
+                style={{ 
+                  color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+                  fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+                }}
+              >
+                {feature.title}
+              </h3>
+              <p 
+                className="text-sm"
+                style={{ 
+                  color: theme?.colors?.text || 'var(--theme-text, #666666)',
+                  fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+                }}
+              >
+                {feature.desc}
+              </p>
             </Card>
           ))}
         </div>
 
         {/* Default call to action for legacy content */}
         <div className="text-center bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-2 text-gray-900">Ready to Get Started?</h2>
-          <p className="text-gray-600 mb-4">Join thousands of satisfied customers</p>
-          <Button>
+          <h2 
+            className="text-2xl font-bold mb-2"
+            style={{ 
+              color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+              fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+            }}
+          >
+            Ready to Get Started?
+          </h2>
+          <p 
+            className="mb-4"
+            style={{ 
+              color: theme?.colors?.text || 'var(--theme-text, #666666)',
+              fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+            }}
+          >
+            Join thousands of satisfied customers
+          </p>
+          <Button
+            style={{
+              backgroundColor: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+              color: 'white'
+            }}
+          >
             Start Now
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
@@ -185,11 +269,43 @@ export const EditableLandingPagePreview = memo(function EditableLandingPagePrevi
   
   // Empty state
   return (
-    <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 p-6 flex items-center justify-center">
-      <div className="text-center text-gray-500">
-        <h3 className="text-xl font-semibold mb-2">Landing Page Preview</h3>
-        <p>Add content to see your landing page design</p>
+    <div 
+      className="w-full h-full p-6 flex items-center justify-center"
+      style={{
+        backgroundColor: theme?.colors?.background || 'var(--theme-background, #FFFFFF)',
+        background: theme?.colors?.background ? undefined : 'linear-gradient(to bottom right, rgba(239, 246, 255, 0.5), rgba(243, 232, 255, 0.5))'
+      }}
+    >
+      <div className="text-center">
+        <h3 
+          className="text-xl font-semibold mb-2"
+          style={{ 
+            color: theme?.colors?.text || 'var(--theme-text, #666666)',
+            fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+          }}
+        >
+          Landing Page Preview
+        </h3>
+        <p
+          style={{ 
+            color: theme?.colors?.text || 'var(--theme-text, #666666)',
+            fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+          }}
+        >
+          Add content to see your landing page design
+        </p>
       </div>
     </div>
+  )
+})
+
+// Export wrapped component with theme provider
+export const EditableLandingPagePreview = memo(function EditableLandingPagePreview(props: EditableLandingPagePreviewProps) {
+  return (
+    <SiteThemeProvider>
+      <ThemeWrapper className="w-full h-full">
+        <EditableLandingPagePreviewContent {...props} />
+      </ThemeWrapper>
+    </SiteThemeProvider>
   )
 })

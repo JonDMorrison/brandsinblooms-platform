@@ -130,10 +130,10 @@ function PageEditorContent() {
             if (deserialized) {
               // Migrate subtitle from meta_data to hero section if needed
               const heroSection = deserialized.sections.hero || deserialized.sections.header
-              if (heroSection && metaData?.subtitle && !heroSection.data.subtitle) {
+              if (heroSection && typeof metaData?.subtitle === 'string' && !heroSection.data.subtitle) {
                 heroSection.data = {
                   ...heroSection.data,
-                  subtitle: metaData.subtitle
+                  subtitle: metaData.subtitle as string
                 }
               }
               
@@ -573,7 +573,13 @@ function PageEditorContent() {
               {validLayout === 'landing' && (editMode === 'inline' || editMode === 'preview') ? (
                 <EditableLandingPagePreview
                   title={pageData.title}
-                  subtitle={pageData.subtitle}
+                  subtitle={
+                    typeof pageContent?.sections?.hero?.data?.subtitle === 'string' 
+                      ? pageContent.sections.hero.data.subtitle
+                      : typeof pageContent?.sections?.header?.data?.subtitle === 'string'
+                      ? pageContent.sections.header.data.subtitle  
+                      : pageData.subtitle
+                  }
                   content={pageContent || undefined}
                   onContentChange={editMode === 'inline' ? (content) => {
                     if (isPageContent(content)) {
@@ -589,6 +595,13 @@ function PageEditorContent() {
               ) : (
                 <CurrentLayoutComponent 
                   title={pageData.title}
+                  subtitle={
+                    typeof pageContent?.sections?.hero?.data?.subtitle === 'string' 
+                      ? pageContent.sections.hero.data.subtitle
+                      : typeof pageContent?.sections?.header?.data?.subtitle === 'string'
+                      ? pageContent.sections.header.data.subtitle  
+                      : pageData.subtitle
+                  }
                   content={pageContent || undefined}
                 />
               )}

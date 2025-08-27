@@ -5,6 +5,7 @@ import { Calendar, Clock, User } from 'lucide-react'
 import { PageContent, LegacyContent, isPageContent } from '@/src/lib/content/schema'
 import { DynamicSection } from '@/src/components/preview/DynamicSection'
 import { getLayoutSections, convertLegacyContent, getSpacingClass } from '@/src/lib/preview/section-renderers'
+import { SiteThemeProvider, ThemeWrapper } from '@/src/components/theme/ThemeProvider'
 
 interface BlogArticlePreviewProps {
   title?: string
@@ -22,7 +23,8 @@ export function BlogArticlePreview({ title, subtitle, content }: BlogArticlePrev
     const spacingClass = getSpacingClass(content.settings?.layout?.spacing)
     
     return (
-      <div className={`w-full h-full bg-white p-6 ${spacingClass}`}>
+      <SiteThemeProvider>
+        <ThemeWrapper className={`w-full h-full bg-white p-6 ${spacingClass}`}>
         {sections.map(({ key, section }) => {
           // Special handling for blog header section
           if (key === 'header' || section.type === 'hero') {
@@ -77,7 +79,8 @@ export function BlogArticlePreview({ title, subtitle, content }: BlogArticlePrev
             </div>
           )
         })}
-      </div>
+        </ThemeWrapper>
+      </SiteThemeProvider>
     )
   }
   
@@ -87,7 +90,8 @@ export function BlogArticlePreview({ title, subtitle, content }: BlogArticlePrev
   
   if (legacyTitle || legacySubtitle) {
     return (
-      <div className="w-full h-full bg-white p-6 space-y-6">
+      <SiteThemeProvider>
+        <ThemeWrapper className="w-full h-full bg-white p-6 space-y-6">
         {/* Article Header */}
         <div className="text-center space-y-4 border-b pb-6">
           <div className="flex justify-center gap-2">
@@ -159,17 +163,20 @@ export function BlogArticlePreview({ title, subtitle, content }: BlogArticlePrev
             </Card>
           </div>
         </div>
-      </div>
+        </ThemeWrapper>
+      </SiteThemeProvider>
     )
   }
   
   // Empty state
   return (
-    <div className="w-full h-full bg-white p-6 flex items-center justify-center">
-      <div className="text-center text-gray-500">
-        <h3 className="text-xl font-semibold mb-2">Blog Article Preview</h3>
-        <p>Add content to see your blog article design</p>
-      </div>
-    </div>
+    <SiteThemeProvider>
+      <ThemeWrapper className="w-full h-full bg-white p-6 flex items-center justify-center">
+        <div className="text-center text-gray-500">
+          <h3 className="text-xl font-semibold mb-2">Blog Article Preview</h3>
+          <p>Add content to see your blog article design</p>
+        </div>
+      </ThemeWrapper>
+    </SiteThemeProvider>
   )
 }
