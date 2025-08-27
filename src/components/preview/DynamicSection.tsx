@@ -150,18 +150,22 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title }:
             </div>
           )}
           {data.items && Array.isArray(data.items) && data.items.length > 0 && (
-            <div className="flex justify-center gap-4 flex-wrap">
-              {data.items.slice(0, 2).map(item => item as unknown as ContentItem).filter(item => 
-                item && typeof item === 'object' && item.id && item.title // Only show buttons with text
-              ).map((item: ContentItem, index: number) => {
-                // Determine variant based on position in filtered array
-                const filteredButtons = data.items?.slice(0, 2).filter((i: any) => i?.title)
-                const isFirst = filteredButtons?.[0]?.id === item.id
+            <div className="flex justify-center gap-4 flex-wrap mt-6">
+              {data.items.slice(0, 2).map((item: any, index: number) => {
+                if (!item || !item.title) return null;
+                const isFirst = index === 0;
                 return (
-                  <Button key={item.id || index} variant={isFirst ? 'default' : 'outline'}>
+                  <Button 
+                    key={item.id || index} 
+                    variant={isFirst ? 'default' : 'outline'}
+                    style={isFirst ? {
+                      backgroundColor: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+                      color: 'white'
+                    } : {}}
+                  >
                     {item.title}
                   </Button>
-                )
+                );
               })}
             </div>
           )}
