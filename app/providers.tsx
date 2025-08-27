@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
 import { useState, lazy, Suspense } from 'react'
-import { Toaster } from 'sonner'
+import { Toaster } from '@/src/components/ui/sonner'
 import { AuthProvider } from '@/src/contexts/AuthContext'
 import { ProfileProvider } from '@/src/contexts/ProfileContext'
 import { SiteProvider } from '@/src/contexts/SiteContext'
@@ -88,14 +88,7 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
           )}
           <Toaster 
             position="top-right" 
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: 'var(--background)',
-                color: 'var(--foreground)',
-                border: '1px solid var(--border)',
-              },
-            }}
+            duration={4000}
           />
           </ThemeProvider>
         </ProfileProvider>
