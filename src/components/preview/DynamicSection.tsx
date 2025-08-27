@@ -138,8 +138,10 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title }:
               {data.subtitle}
             </p>
           )}
-          {/* Render additional content */}
-          {data.content && (
+          {/* Render additional content (but avoid duplicating title) */}
+          {data.content && 
+           data.content !== title && 
+           data.content !== 'Welcome to Dev Site' && (
             <div className="space-y-4">
               <ContentRenderer 
                 content={data.content} 

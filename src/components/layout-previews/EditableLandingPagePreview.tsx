@@ -91,7 +91,46 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
             placeholder="Enter subtitle..."
           />
           
-          {sectionData.ctaText ? (
+          {/* Render additional content if present (but avoid duplicating title/subtitle) */}
+          {sectionData.content && 
+           String(sectionData.content) !== '' &&
+           String(sectionData.content) !== title &&
+           String(sectionData.content) !== 'Welcome to Dev Site' ? (
+            <InlineTextEditor
+              content={String(sectionData.content || '')}
+              onUpdate={(value) => handleSectionUpdate(key, 'content', value)}
+              isEnabled={isInlineEditEnabled && !!onContentChange}
+              fieldPath={`sections.${key}.data.content`}
+              format="rich"
+              className="text-lg text-gray-700"
+              placeholder="Enter additional content..."
+            />
+          ) : null}
+          
+          {/* Render buttons from items array */}
+          {sectionData.items && Array.isArray(sectionData.items) && sectionData.items.length > 0 && (
+            <div className="flex justify-center gap-4 flex-wrap mt-6">
+              {sectionData.items.slice(0, 2).map((item: any, index: number) => {
+                if (!item || !item.title) return null;
+                const isFirst = index === 0;
+                return (
+                  <Button 
+                    key={item.id || index} 
+                    variant={isFirst ? 'default' : 'outline'}
+                    style={isFirst ? {
+                      backgroundColor: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+                      color: 'white'
+                    } : {}}
+                  >
+                    {item.title}
+                  </Button>
+                );
+              })}
+            </div>
+          )}
+          
+          {/* Legacy CTA button support */}
+          {sectionData.ctaText && !sectionData.items ? (
             <Button 
               className="mt-4"
               style={{
