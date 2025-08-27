@@ -130,8 +130,10 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
       <div 
         className={`w-full h-full p-6 ${spacingClass}`}
         style={{
-          backgroundColor: theme?.colors?.background || 'var(--theme-background, #FFFFFF)',
-          background: theme?.colors?.background ? undefined : 'linear-gradient(to bottom right, rgba(239, 246, 255, 0.5), rgba(243, 232, 255, 0.5))'
+          backgroundColor: theme?.colors?.background || '#FFFFFF',
+          backgroundImage: theme?.colors?.primary && theme?.colors?.secondary 
+            ? `linear-gradient(to bottom right, ${theme.colors.primary}33, ${theme.colors.secondary}33)`
+            : undefined
         }}
       >
         {sections.map(({ key, section }) => (
@@ -152,8 +154,10 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
       <div 
         className="w-full h-full p-6 space-y-8"
         style={{
-          backgroundColor: theme?.colors?.background || 'var(--theme-background, #FFFFFF)',
-          background: theme?.colors?.background ? undefined : 'linear-gradient(to bottom right, rgba(239, 246, 255, 0.5), rgba(243, 232, 255, 0.5))'
+          backgroundColor: theme?.colors?.background || '#FFFFFF',
+          backgroundImage: theme?.colors?.primary && theme?.colors?.secondary 
+            ? `linear-gradient(to bottom right, ${theme.colors.primary}33, ${theme.colors.secondary}33)`
+            : undefined
         }}
       >
         {/* Editable Hero Section */}
@@ -273,7 +277,9 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
       className="w-full h-full p-6 flex items-center justify-center"
       style={{
         backgroundColor: theme?.colors?.background || 'var(--theme-background, #FFFFFF)',
-        background: theme?.colors?.background ? undefined : 'linear-gradient(to bottom right, rgba(239, 246, 255, 0.5), rgba(243, 232, 255, 0.5))'
+        background: theme?.colors?.primary && theme?.colors?.secondary 
+          ? `linear-gradient(to bottom right, ${theme.colors.primary}33, ${theme.colors.secondary}33)`
+          : undefined
       }}
     >
       <div className="text-center">

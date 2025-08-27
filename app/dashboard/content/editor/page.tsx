@@ -44,6 +44,7 @@ import { SaveIndicator } from '@/src/components/content-editor/SaveIndicator'
 import { PageContent, LayoutType as ContentLayoutType, serializePageContent, deserializePageContent, isPageContent } from '@/src/lib/content'
 import { handleError } from '@/src/lib/types/error-handling'
 import { EditModeProvider, useEditMode, EditMode } from '@/src/contexts/EditModeContext'
+import { useSiteTheme } from '@/src/hooks/useSiteTheme'
 
 type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact'
 type ViewportSize = 'mobile' | 'tablet' | 'desktop'
@@ -80,6 +81,7 @@ function PageEditorContent() {
   const contentId = searchParams?.get('id') || null
   const { currentSite } = useSiteContext()
   const { editMode, setEditMode, isDirty, setIsDirty } = useEditMode()
+  const { theme } = useSiteTheme()
   
   const [pageData, setPageData] = useState<PageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -562,12 +564,13 @@ function PageEditorContent() {
         <div className="flex-1 bg-muted/20 overflow-auto">
           <div className="min-h-full p-6 flex items-start justify-center">
             <div 
-              className="bg-background border rounded-lg shadow-sm overflow-hidden transition-all duration-300"
+              className="border rounded-lg shadow-sm overflow-hidden transition-all duration-300"
               style={{ 
                 width: viewportSizes[activeViewport].width,
                 minHeight: '600px',
                 maxWidth: '100%',
-                containerType: 'inline-size'
+                containerType: 'inline-size',
+                backgroundColor: theme?.colors?.background || '#FFFFFF'
               }}
             >
               {validLayout === 'landing' && (editMode === 'inline' || editMode === 'preview') ? (

@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { ContentSection, ContentItem } from '@/src/lib/content/schema'
 import { ContentRenderer } from './ContentRenderer'
@@ -7,6 +9,7 @@ import { Badge } from '@/src/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/src/components/ui/avatar'
 import * as LucideIcons from 'lucide-react'
 import { LucideIcon } from 'lucide-react'
+import { useSiteTheme } from '@/hooks/useSiteTheme'
 
 interface DynamicSectionProps {
   section: ContentSection
@@ -16,6 +19,8 @@ interface DynamicSectionProps {
 }
 
 function DynamicSectionComponent({ section, sectionKey, className = '', title }: DynamicSectionProps) {
+  const { theme } = useSiteTheme()
+  
   // Don't render if section is not visible or has no data
   if (!section.visible) {
     return null
@@ -111,13 +116,27 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title }:
         <div className={`text-center space-y-4 ${className}`}>
           {/* Render title from props */}
           {title && (
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 
+              className="text-4xl font-bold"
+              style={{ 
+                color: theme?.colors?.primary || 'var(--theme-primary, #417505)',
+                fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+              }}
+            >
               {title}
             </h1>
           )}
           {/* Render subtitle from section data */}
           {data.subtitle && (
-            <p className="text-xl text-gray-600">{data.subtitle}</p>
+            <p 
+              className="text-xl"
+              style={{ 
+                color: theme?.colors?.text || 'var(--theme-text, #666666)',
+                fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+              }}
+            >
+              {data.subtitle}
+            </p>
           )}
           {/* Render additional content */}
           {data.content && (

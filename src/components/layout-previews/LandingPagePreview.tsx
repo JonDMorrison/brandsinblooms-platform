@@ -1,10 +1,12 @@
+'use client'
+
 import { Card } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Star, ArrowRight } from 'lucide-react'
 import { PageContent, LegacyContent, isPageContent } from '@/src/lib/content/schema'
 import { DynamicSection } from '@/src/components/preview/DynamicSection'
 import { getLayoutSections, convertLegacyContent, getSpacingClass } from '@/src/lib/preview/section-renderers'
-import { SiteThemeProvider, ThemeWrapper } from '@/src/components/theme/ThemeProvider'
+import { SiteThemeProvider, ThemeWrapper, useSiteThemeContext } from '@/src/components/theme/ThemeProvider'
 
 interface LandingPagePreviewProps {
   title?: string
@@ -12,7 +14,9 @@ interface LandingPagePreviewProps {
   content?: PageContent | LegacyContent
 }
 
-export function LandingPagePreview({ title, subtitle, content }: LandingPagePreviewProps) {
+function LandingPagePreviewContent({ title, subtitle, content }: LandingPagePreviewProps) {
+  const { theme } = useSiteThemeContext()
+  
   // Determine if we have enhanced content or need to use legacy format
   const isEnhanced = content && isPageContent(content)
   
@@ -22,8 +26,14 @@ export function LandingPagePreview({ title, subtitle, content }: LandingPagePrev
     const spacingClass = getSpacingClass(content.settings?.layout?.spacing)
     
     return (
-      <SiteThemeProvider>
-        <ThemeWrapper className={`w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 p-6 ${spacingClass}`}>
+      <div 
+        className={`w-full h-full p-6 ${spacingClass}`}
+        style={{
+          backgroundColor: theme?.colors?.background || '#FFFFFF',
+          backgroundImage: theme?.colors?.primary && theme?.colors?.secondary 
+            ? `linear-gradient(to bottom right, ${theme.colors.primary}33, ${theme.colors.secondary}33)`
+            : undefined
+        }}>
           {sections.map(({ key, section }) => (
             <DynamicSection
               key={key}
@@ -33,8 +43,7 @@ export function LandingPagePreview({ title, subtitle, content }: LandingPagePrev
               title={key === 'hero' || key === 'header' ? title : undefined}
             />
           ))}
-        </ThemeWrapper>
-      </SiteThemeProvider>
+      </div>
     )
   }
   
@@ -48,8 +57,14 @@ export function LandingPagePreview({ title, subtitle, content }: LandingPagePrev
     const sections = getLayoutSections(convertedSections, 'landing')
     
     return (
-      <SiteThemeProvider>
-        <ThemeWrapper className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 p-6 space-y-8">
+      <div 
+        className="w-full h-full p-6 space-y-8"
+        style={{
+          backgroundColor: theme?.colors?.background || '#FFFFFF',
+          backgroundImage: theme?.colors?.primary && theme?.colors?.secondary 
+            ? `linear-gradient(to bottom right, ${theme.colors.primary}33, ${theme.colors.secondary}33)`
+            : undefined
+        }}>
           {sections.map(({ key, section }) => (
             <DynamicSection
               key={key}
@@ -90,19 +105,33 @@ export function LandingPagePreview({ title, subtitle, content }: LandingPagePrev
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </div>
-        </ThemeWrapper>
-      </SiteThemeProvider>
+      </div>
     )
   }
   
   // Empty state
   return (
-    <SiteThemeProvider>
-      <ThemeWrapper className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 p-6 flex items-center justify-center">
+    <div 
+      className="w-full h-full p-6 flex items-center justify-center"
+      style={{
+        backgroundColor: theme?.colors?.background || 'var(--theme-background, #FFFFFF)',
+        background: theme?.colors?.primary && theme?.colors?.secondary 
+          ? `linear-gradient(to bottom right, ${theme.colors.primary}33, ${theme.colors.secondary}33)`
+          : undefined
+      }}>
         <div className="text-center text-gray-500">
           <h3 className="text-xl font-semibold mb-2">Landing Page Preview</h3>
           <p>Add content to see your landing page design</p>
         </div>
+    </div>
+  )
+}
+
+export function LandingPagePreview(props: LandingPagePreviewProps) {
+  return (
+    <SiteThemeProvider>
+      <ThemeWrapper className="w-full h-full">
+        <LandingPagePreviewContent {...props} />
       </ThemeWrapper>
     </SiteThemeProvider>
   )

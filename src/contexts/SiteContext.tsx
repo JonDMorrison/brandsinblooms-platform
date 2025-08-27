@@ -386,8 +386,15 @@ export function SiteProvider({
       return
     }
     
-    // Skip if no sites available or still loading
-    if (userSites.length === 0 || userSitesLoading) {
+    // Skip if user sites are still loading
+    if (userSitesLoading) {
+      console.log('[SiteContext] Auto-select: Waiting for user sites to load')
+      return
+    }
+    
+    // If no sites available after loading, that's OK - user might not have any sites
+    if (userSites.length === 0) {
+      console.log('[SiteContext] Auto-select: No sites available for user')
       return
     }
     
@@ -491,13 +498,28 @@ export const useSiteContext = () => {
  * Hook to access current site with loading state
  */
 export const useCurrentSite = () => {
-  const { currentSite, loading, error } = useSiteContext()
+  const { currentSite, loading, error, userSitesLoading } = useSiteContext()
+  
+  // For main domain (localhost, staging, etc.), consider loaded when:
+  // - Not loading AND
+  // - Either have a current site OR user sites have finished loading
+  const isMainDomain = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname.includes('staging') ||
+    window.location.hostname.includes('.vercel.app') ||
+    window.location.hostname.includes('.railway.app')
+  )
+  
+  const isLoaded = !loading && !error && (
+    currentSite !== null || 
+    (isMainDomain && !userSitesLoading)
+  )
   
   const result = { 
     site: currentSite, 
     loading, 
     error,
-    isLoaded: !loading && !error && currentSite !== null
+    isLoaded
   }
   
   console.log('[useCurrentSite] Returning:', {
@@ -505,6 +527,8 @@ export const useCurrentSite = () => {
     loading,
     hasError: !!error,
     isLoaded: result.isLoaded,
+    userSitesLoading,
+    isMainDomain,
     timestamp: new Date().toISOString()
   })
   
