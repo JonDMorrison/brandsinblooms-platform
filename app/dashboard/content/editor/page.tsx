@@ -24,12 +24,14 @@ import {
   Grid3X3,
   User,
   Package,
-  Phone
+  Phone,
+  Edit2
 } from 'lucide-react'
 import { toast } from 'sonner'
 
 // Import layout preview components
 import { LandingPagePreview } from '@/src/components/layout-previews/LandingPagePreview'
+import { EditableLandingPagePreview } from '@/src/components/layout-previews/EditableLandingPagePreview'
 import { BlogArticlePreview } from '@/src/components/layout-previews/BlogArticlePreview'
 import { PortfolioGridPreview } from '@/src/components/layout-previews/PortfolioGridPreview'
 import { AboutCompanyPreview } from '@/src/components/layout-previews/AboutCompanyPreview'
@@ -38,8 +40,10 @@ import { ContactServicesPreview } from '@/src/components/layout-previews/Contact
 
 // Import enhanced content editor components
 import { ContentEditor, SectionManager } from '@/src/components/content-editor'
-import { PageContent, LayoutType as ContentLayoutType, serializePageContent, deserializePageContent } from '@/src/lib/content'
+import { SaveIndicator } from '@/src/components/content-editor/SaveIndicator'
+import { PageContent, LayoutType as ContentLayoutType, serializePageContent, deserializePageContent, isPageContent } from '@/src/lib/content'
 import { handleError } from '@/src/lib/types/error-handling'
+import { EditModeProvider, useEditMode, EditMode } from '@/src/contexts/EditModeContext'
 
 type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact'
 type ViewportSize = 'mobile' | 'tablet' | 'desktop'
@@ -70,16 +74,16 @@ const viewportSizes = {
   desktop: { width: '100%', icon: Monitor, label: 'Desktop' }
 }
 
-export default function PageEditorPage() {
+function PageEditorContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const contentId = searchParams?.get('id') || null
   const { currentSite } = useSiteContext()
+  const { editMode, setEditMode, isDirty, setIsDirty } = useEditMode()
   
   const [pageData, setPageData] = useState<PageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeViewport, setActiveViewport] = useState<ViewportSize>('desktop')
-  const [isPreviewMode, setIsPreviewMode] = useState(true)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [pageContent, setPageContent] = useState<PageContent | null>(null)
@@ -402,22 +406,31 @@ export default function PageEditorPage() {
             {/* Mode Toggle */}
             <div className="flex items-center bg-muted rounded-md p-1">
               <Button
-                variant={isPreviewMode ? 'secondary' : 'ghost'}
+                variant={editMode === 'preview' ? 'secondary' : 'ghost'}
                 size="sm"
                 className="h-8 px-3 cursor-pointer transition-all hover:bg-gray-100"
-                onClick={() => setIsPreviewMode(true)}
+                onClick={() => setEditMode('preview')}
               >
                 <Eye className="h-3.5 w-3.5 mr-1.5" />
                 Preview
               </Button>
               <Button
-                variant={!isPreviewMode ? 'secondary' : 'ghost'}
+                variant={editMode === 'inline' ? 'secondary' : 'ghost'}
                 size="sm"
                 className="h-8 px-3 cursor-pointer transition-all hover:bg-gray-100"
-                onClick={() => setIsPreviewMode(false)}
+                onClick={() => setEditMode('inline')}
+              >
+                <Edit2 className="h-3.5 w-3.5 mr-1.5" />
+                Inline
+              </Button>
+              <Button
+                variant={editMode === 'form' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="h-8 px-3 cursor-pointer transition-all hover:bg-gray-100"
+                onClick={() => setEditMode('form')}
               >
                 <Settings className="h-3.5 w-3.5 mr-1.5" />
-                Edit
+                Form
               </Button>
             </div>
 
@@ -446,8 +459,8 @@ export default function PageEditorPage() {
 
       {/* Main Content */}
       <div className="flex-1 flex">
-        {/* Sidebar (Edit Mode) */}
-        {!isPreviewMode && (
+        {/* Sidebar (Form Edit Mode) */}
+        {editMode === 'form' && (
           <div className="w-96 border-r bg-muted/30 overflow-y-auto flex">
             <div className="flex-1">
               <Tabs defaultValue="content" className="w-full h-full flex flex-col">
@@ -557,10 +570,28 @@ export default function PageEditorPage() {
                 containerType: 'inline-size'
               }}
             >
-              <CurrentLayoutComponent 
-                title={pageData.title}
-                content={pageContent || undefined}
-              />
+              {validLayout === 'landing' && (editMode === 'inline' || editMode === 'preview') ? (
+                <EditableLandingPagePreview
+                  title={pageData.title}
+                  subtitle={pageData.subtitle}
+                  content={pageContent || undefined}
+                  onContentChange={editMode === 'inline' ? (content) => {
+                    if (isPageContent(content)) {
+                      handleContentChange(content, true)
+                    }
+                  } : undefined}
+                  onTitleChange={editMode === 'inline' ? handleTitleChange : undefined}
+                  onSubtitleChange={editMode === 'inline' ? (subtitle) => {
+                    setPageData(prev => prev ? { ...prev, subtitle } : null)
+                    setHasUnsavedChanges(true)
+                  } : undefined}
+                />
+              ) : (
+                <CurrentLayoutComponent 
+                  title={pageData.title}
+                  content={pageContent || undefined}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -585,6 +616,17 @@ export default function PageEditorPage() {
           </div>
         </div>
       </div>
+      
+      {/* Save Indicator for inline editing mode */}
+      <SaveIndicator />
     </div>
+  )
+}
+
+export default function PageEditorPage() {
+  return (
+    <EditModeProvider defaultMode="preview">
+      <PageEditorContent />
+    </EditModeProvider>
   )
 }

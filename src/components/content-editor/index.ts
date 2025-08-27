@@ -7,6 +7,13 @@ export { RichTextEditor } from './RichTextEditor';
 export { EditorToolbar } from './EditorToolbar';
 export type { RichTextEditorProps, RichTextEditorRef } from './RichTextEditor';
 
+// Inline Editing Components
+export { InlineTextEditor } from './InlineTextEditor';
+export { FloatingToolbar } from './FloatingToolbar';
+export { EditableWrapper } from './EditableWrapper';
+export { SaveIndicator } from './SaveIndicator';
+export type { InlineTextEditorProps } from './InlineTextEditor';
+
 // Input Components
 export { SimpleTextInput } from './inputs/SimpleTextInput';
 export { ImageInput } from './inputs/ImageInput';

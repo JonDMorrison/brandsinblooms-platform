@@ -1,0 +1,235 @@
+'use client';
+
+/**
+ * Floating toolbar for inline text editing
+ * Provides minimal formatting options with smart positioning
+ */
+
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useFloating, autoUpdate, offset, flip, shift, arrow } from '@floating-ui/react';
+import { Bold, Italic, Link, Type, Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import type { Editor } from '@tiptap/react';
+
+interface FloatingToolbarProps {
+  editor: Editor | null;
+  anchorEl: HTMLElement | null;
+  format?: 'plain' | 'rich';
+  onClose?: () => void;
+}
+
+export const FloatingToolbar = ({ 
+  editor, 
+  anchorEl,
+  format = 'plain',
+  onClose
+}: FloatingToolbarProps) => {
+  const [showLinkInput, setShowLinkInput] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const arrowRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  
+  const { refs, floatingStyles, context } = useFloating({
+    whileElementsMounted: autoUpdate,
+    middleware: [
+      offset(10),
+      flip({ 
+        padding: 8,
+        fallbackAxisSideDirection: 'start'
+      }),
+      shift({ 
+        padding: 8,
+        crossAxis: true
+      }),
+      arrow({
+        element: arrowRef
+      })
+    ],
+    placement: 'top'
+  });
+  
+  useEffect(() => {
+    if (anchorEl) {
+      // Get selection range for more precise positioning
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        
+        // Create a virtual element for the selection
+        const virtualEl = {
+          getBoundingClientRect: () => rect,
+          contextElement: anchorEl
+        };
+        
+        refs.setReference(virtualEl as any);
+      } else {
+        refs.setReference(anchorEl);
+      }
+    }
+  }, [anchorEl, refs]);
+  
+  const handleBold = useCallback(() => {
+    editor?.chain().focus().toggleBold().run();
+  }, [editor]);
+  
+  const handleItalic = useCallback(() => {
+    editor?.chain().focus().toggleItalic().run();
+  }, [editor]);
+  
+  const handleHeading = useCallback(() => {
+    editor?.chain().focus().toggleHeading({ level: 2 }).run();
+  }, [editor]);
+  
+  const handleLink = useCallback(() => {
+    const previousUrl = editor?.getAttributes('link').href || '';
+    setLinkUrl(previousUrl);
+    setShowLinkInput(true);
+  }, [editor]);
+  
+  const applyLink = useCallback(() => {
+    if (linkUrl === '') {
+      editor?.chain().focus().unsetLink().run();
+    } else {
+      editor?.chain().focus().setLink({ href: linkUrl }).run();
+    }
+    setShowLinkInput(false);
+    setLinkUrl('');
+  }, [editor, linkUrl]);
+  
+  const cancelLink = useCallback(() => {
+    setShowLinkInput(false);
+    setLinkUrl('');
+    editor?.commands.focus();
+  }, [editor]);
+  
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && showLinkInput) {
+      e.preventDefault();
+      applyLink();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      if (showLinkInput) {
+        cancelLink();
+      } else if (onClose) {
+        onClose();
+      }
+    }
+  }, [showLinkInput, applyLink, cancelLink, onClose]);
+  
+  if (!editor) return null;
+  
+  return (
+    <div
+      ref={(el) => {
+        refs.setFloating(el);
+        toolbarRef.current = el;
+      }}
+      style={floatingStyles}
+      className={cn(
+        "inline-toolbar z-50 flex items-center gap-1 rounded-md border bg-popover p-1 shadow-md",
+        "animate-in fade-in-0 zoom-in-95"
+      )}
+      onMouseDown={(e) => e.preventDefault()} // Prevent blur
+      onKeyDown={handleKeyDown}
+      data-state="open"
+    >
+      <div 
+        ref={arrowRef}
+        className="absolute w-2 h-2 bg-popover border rotate-45"
+        style={{
+          bottom: '-5px',
+          left: '50%',
+          transform: 'translateX(-50%) rotate(45deg)',
+        }}
+      />
+      
+      {!showLinkInput ? (
+        <>
+          <Button
+            size="sm"
+            variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
+            onClick={handleBold}
+            className="h-7 w-7 p-0"
+            title="Bold (Ctrl+B)"
+          >
+            <Bold className="h-3.5 w-3.5" />
+          </Button>
+          
+          <Button
+            size="sm"
+            variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
+            onClick={handleItalic}
+            className="h-7 w-7 p-0"
+            title="Italic (Ctrl+I)"
+          >
+            <Italic className="h-3.5 w-3.5" />
+          </Button>
+          
+          {format === 'rich' && (
+            <>
+              <div className="w-px h-5 bg-border mx-0.5" />
+              
+              <Button
+                size="sm"
+                variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'}
+                onClick={handleHeading}
+                className="h-7 w-7 p-0"
+                title="Heading"
+              >
+                <Type className="h-3.5 w-3.5" />
+              </Button>
+              
+              <Button
+                size="sm"
+                variant={editor.isActive('link') ? 'secondary' : 'ghost'}
+                onClick={handleLink}
+                className="h-7 w-7 p-0"
+                title="Link (Ctrl+K)"
+              >
+                <Link className="h-3.5 w-3.5" />
+              </Button>
+            </>
+          )}
+        </>
+      ) : (
+        <div className="flex items-center gap-1">
+          <Input
+            value={linkUrl}
+            onChange={(e) => setLinkUrl(e.target.value)}
+            placeholder="Enter URL..."
+            className="h-7 w-48 text-xs"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                applyLink();
+              }
+            }}
+          />
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={applyLink}
+            className="h-7 w-7 p-0"
+            title="Apply"
+          >
+            <Check className="h-3.5 w-3.5 text-green-600" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={cancelLink}
+            className="h-7 w-7 p-0"
+            title="Cancel"
+          >
+            <X className="h-3.5 w-3.5 text-red-600" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
