@@ -11,6 +11,7 @@ import { handleError } from '@/lib/types/error-handling';
 export interface UseRichTextEditorOptions {
   initialContent?: string | object;
   placeholder?: string;
+  onChange?: (content: string) => void;
   onSave?: (content: EditorContent) => void | Promise<void>;
   saveDelay?: number;
   readOnly?: boolean;
@@ -34,6 +35,7 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
   const {
     initialContent = '',
     placeholder,
+    onChange,
     onSave,
     saveDelay = 1000,
     readOnly = false,
@@ -71,11 +73,15 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
       const newContent = exportEditorContent(editorInstance);
       setContentState(newContent);
       setError(null);
+      // Call onChange with HTML content if provided
+      if (onChange) {
+        onChange(newContent.html);
+      }
     } catch (error: unknown) {
       const errorDetails = handleError(error);
       setError(errorDetails.message);
     }
-  }, []);
+  }, [onChange]);
 
   // Save function
   const save = useCallback(async (): Promise<void> => {

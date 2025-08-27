@@ -182,7 +182,7 @@ const RichTextEditorComponent = React.forwardRef<RichTextEditorRef, RichTextEdit
 export const RichTextEditor = React.memo(RichTextEditorComponent, (prevProps, nextProps) => {
   // Custom comparison function for better performance
   return (
-    prevProps.content === nextProps.content &&
+    prevProps.initialContent === nextProps.initialContent &&
     prevProps.readOnly === nextProps.readOnly &&
     prevProps.placeholder === nextProps.placeholder &&
     prevProps.className === nextProps.className &&

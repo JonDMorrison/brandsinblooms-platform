@@ -218,7 +218,7 @@ const SectionEditor = function SectionEditor({
             </div>
             
             <RichTextEditor
-              content={section.data.content || ''}
+              initialContent={section.data.content || ''}
               onChange={(content) => handleDataChange({ content })}
               placeholder="Enter additional hero content..."
             />
@@ -230,7 +230,7 @@ const SectionEditor = function SectionEditor({
       case 'mission':
         return (
           <RichTextEditor
-            content={section.data.content || ''}
+            initialContent={section.data.content || ''}
             onChange={(content) => handleDataChange({ content })}
             placeholder={`Enter ${section.type} content...`}
           />
