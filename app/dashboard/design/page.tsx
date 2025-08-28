@@ -5,13 +5,21 @@ import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { Button } from '@/src/components/ui/button'
-import { Palette, Type, Layout, Upload, Eye, Wand2, Loader2, X, History } from 'lucide-react'
+import { Palette, Type, Layout, Upload, Eye, Wand2, Loader2, X, History, Sparkles } from 'lucide-react'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { toast } from 'sonner'
 import { useDesignSettings, useUpdateDesignSettings, useResetDesignSettings } from '@/src/hooks/useDesignSettings'
 import { useDebounceCallback } from '@/src/hooks/useDebounce'
 import { useDesignHistory, useDesignHistoryKeyboardShortcuts } from '@/src/hooks/useDesignHistory'
 import { ThemeSettings } from '@/src/lib/queries/domains/theme'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/src/components/ui/dialog'
 
 // Dynamic imports for design components with loading states
 const ColorCustomization = dynamic(
@@ -66,6 +74,7 @@ export default function DesignPage() {
   const [activeTab, setActiveTab] = useState<string>('colors')
   const [previewMode, setPreviewMode] = useState<boolean>(false)
   const [showHistory, setShowHistory] = useState<boolean>(false)
+  const [showAIAssistant, setShowAIAssistant] = useState<boolean>(false)
   
   // Design history management
   const {
@@ -211,56 +220,97 @@ export default function DesignPage() {
         </div>
       </div>
 
-      {/* Two Column Layout for Assistant and History */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* AI Design Assistant */}
-        <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-          <AIDesignAssistant
-            currentSettings={localSettings}
-            onApplyColors={(colors) => handleSettingChange('colors', colors)}
-            onApplyTypography={(typography) => handleSettingChange('typography', typography)}
-            onApplyLayout={(layout) => handleSettingChange('layout', layout)}
-          />
-        </Suspense>
-        
-        {/* Design History */}
-        {showHistory && (
-          <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-            <DesignHistory
-              history={history}
-              currentIndex={currentIndex}
-              canUndo={canUndo}
-              canRedo={canRedo}
-              onUndo={() => {
-                const settings = undo()
-                if (settings) {
+      {/* AI Design Assistant Button Card */}
+      <Card className="fade-in-up border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50" style={{ animationDelay: '0.1s' }}>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Sparkles className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">AI Design Assistant</h3>
+                <p className="text-sm text-gray-600">Let AI help you create the perfect design for your brand</p>
+              </div>
+            </div>
+            <Dialog open={showAIAssistant} onOpenChange={setShowAIAssistant}>
+              <DialogTrigger asChild>
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  Open AI Assistant
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>AI Design Assistant</DialogTitle>
+                  <DialogDescription>
+                    Let AI help you create the perfect design for your brand
+                  </DialogDescription>
+                </DialogHeader>
+                <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
+                  <AIDesignAssistant
+                    currentSettings={localSettings}
+                    onApplyColors={(colors) => {
+                      handleSettingChange('colors', colors)
+                      setShowAIAssistant(false)
+                    }}
+                    onApplyTypography={(typography) => {
+                      handleSettingChange('typography', typography)
+                      setShowAIAssistant(false)
+                    }}
+                    onApplyLayout={(layout) => {
+                      handleSettingChange('layout', layout)
+                      setShowAIAssistant(false)
+                    }}
+                  />
+                </Suspense>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Design History - Show when toggled */}
+      {showHistory && (
+        <Card className="fade-in-up" style={{ animationDelay: '0.15s' }}>
+          <CardContent className="p-6">
+            <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
+              <DesignHistory
+                history={history}
+                currentIndex={currentIndex}
+                canUndo={canUndo}
+                canRedo={canRedo}
+                onUndo={() => {
+                  const settings = undo()
+                  if (settings) {
+                    setLocalSettings(settings)
+                    updateSettings(settings)
+                  }
+                }}
+                onRedo={() => {
+                  const settings = redo()
+                  if (settings) {
+                    setLocalSettings(settings)
+                    updateSettings(settings)
+                  }
+                }}
+                onJumpTo={(index) => {
+                  const settings = jumpToHistory(index)
+                  if (settings) {
+                    setLocalSettings(settings)
+                    updateSettings(settings)
+                  }
+                }}
+                onClear={clearHistory}
+                onApply={(settings) => {
                   setLocalSettings(settings)
                   updateSettings(settings)
-                }
-              }}
-              onRedo={() => {
-                const settings = redo()
-                if (settings) {
-                  setLocalSettings(settings)
-                  updateSettings(settings)
-                }
-              }}
-              onJumpTo={(index) => {
-                const settings = jumpToHistory(index)
-                if (settings) {
-                  setLocalSettings(settings)
-                  updateSettings(settings)
-                }
-              }}
-              onClear={clearHistory}
-              onApply={(settings) => {
-                setLocalSettings(settings)
-                updateSettings(settings)
-              }}
-            />
-          </Suspense>
-        )}
-      </div>
+                }}
+              />
+            </Suspense>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Design Customization Tabs */}
       <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
