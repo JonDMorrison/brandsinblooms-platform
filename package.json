@@ -28,6 +28,7 @@
     "test:integration": "node tests/integration/setup.ts && jest tests/integration",
     "test:all": "pnpm test:unit && pnpm test:integration",
     "deploy": "node scripts/deploy.js",
+    "seed:demo-content": "node scripts/seed-demo-content.mjs",
     "deploy:staging": "node scripts/deploy.js --env staging",
     "deploy:production": "node scripts/deploy.js --env production",
     "deploy:preview": "node scripts/deploy.js --preview",

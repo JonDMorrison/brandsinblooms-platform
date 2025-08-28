@@ -45,15 +45,22 @@ export default function ContentPage() {
   const contentItems: ContentItem[] = useMemo(() => {
     if (!content || !Array.isArray(content)) return []
     
-    return content.map(item => ({
-      id: item.id,
-      title: item.title,
-      type: item.content_type === 'blog_post' ? 'blog' : 'page',
-      status: item.is_published ? 'published' : 'draft',
-      lastModified: new Date(item.updated_at),
-      views: item.view_count || 0,
-      author: item.author?.full_name || 'Unknown'
-    }))
+    return content.map(item => {
+      // Extract layout from meta_data if available
+      const metaData = item.meta_data as Record<string, unknown> | null
+      const layout = metaData?.layout as ContentItem['layout'] | undefined
+      
+      return {
+        id: item.id,
+        title: item.title,
+        type: item.content_type === 'blog_post' ? 'blog' : 'page',
+        layout: layout,
+        status: item.is_published ? 'published' : 'draft',
+        lastModified: new Date(item.updated_at),
+        views: item.view_count || 0,
+        author: item.author?.full_name || 'Unknown'
+      }
+    })
   }, [content])
 
   const filteredContent = contentItems.filter(item => {

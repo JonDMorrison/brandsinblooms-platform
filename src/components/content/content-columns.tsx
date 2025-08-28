@@ -18,6 +18,7 @@ export interface ContentItem {
   id: string
   title: string
   type: 'page' | 'blog'
+  layout?: 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact' | 'other'
   status: 'published' | 'draft' | 'archived'
   lastModified: Date
   views: number
@@ -37,12 +38,50 @@ const getStatusColor = (status: ContentItem['status']) => {
   }
 }
 
-const getTypeIcon = (type: ContentItem['type']) => {
+const getTypeIcon = (type: ContentItem['type'], layout?: ContentItem['layout']) => {
+  // Use layout-specific icons if available
+  if (layout) {
+    const layoutIcons = {
+      landing: { bg: 'bg-blue-100', text: 'text-blue-600', icon: 'L' },
+      blog: { bg: 'bg-green-100', text: 'text-green-600', icon: 'B' },
+      portfolio: { bg: 'bg-purple-100', text: 'text-purple-600', icon: 'P' },
+      about: { bg: 'bg-orange-100', text: 'text-orange-600', icon: 'A' },
+      product: { bg: 'bg-pink-100', text: 'text-pink-600', icon: 'Pr' },
+      contact: { bg: 'bg-cyan-100', text: 'text-cyan-600', icon: 'C' },
+      other: { bg: 'bg-gray-100', text: 'text-gray-600', icon: 'P' }  // Generic page
+    }
+    const config = layoutIcons[layout]
+    if (config) {
+      return (
+        <span className={`inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1 ${config.bg} rounded ${config.text} text-xs font-medium`}>
+          {config.icon}
+        </span>
+      )
+    }
+  }
+  
+  // Fallback to type-based icons
   return type === 'blog' ? (
-    <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100  rounded text-blue-600  text-xs font-medium">B</span>
+    <span className="inline-flex items-center justify-center w-6 h-6 bg-green-100  rounded text-green-600  text-xs font-medium">B</span>
   ) : (
-    <span className="inline-flex items-center justify-center w-6 h-6 bg-purple-100  rounded text-purple-600  text-xs font-medium">P</span>
+    <span className="inline-flex items-center justify-center w-6 h-6 bg-gray-100  rounded text-gray-600  text-xs font-medium">P</span>
   )
+}
+
+const getLayoutLabel = (layout?: ContentItem['layout'], type?: ContentItem['type']) => {
+  if (!layout) return type === 'blog' ? 'Blog' : 'Page'
+  
+  const labels = {
+    landing: 'Landing',
+    blog: 'Blog',
+    portfolio: 'Portfolio',
+    about: 'About',
+    product: 'Product',
+    contact: 'Contact',
+    other: 'Page'  // 'other' layout shows as generic 'Page'
+  }
+  
+  return labels[layout] || 'Page'
 }
 
 // Actions cell component to handle navigation
@@ -117,7 +156,7 @@ export const contentColumns: ColumnDef<ContentItem>[] = [
       const item = row.original
       return (
         <div className="flex items-center gap-3">
-          {getTypeIcon(item.type)}
+          {getTypeIcon(item.type, item.layout)}
           <span className="font-medium">{item.title}</span>
         </div>
       )
@@ -137,9 +176,10 @@ export const contentColumns: ColumnDef<ContentItem>[] = [
       )
     },
     cell: ({ row }) => {
+      const item = row.original
       return (
         <Badge variant="outline" className="capitalize">
-          {row.getValue("type")}
+          {getLayoutLabel(item.layout, item.type)}
         </Badge>
       )
     },
