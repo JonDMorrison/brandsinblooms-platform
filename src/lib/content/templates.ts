@@ -4,11 +4,63 @@
  */
 
 import { PageContent, LayoutType } from './schema'
+import {
+  generateTestimonials,
+  generatePricingTiers,
+  generateFeatures,
+  generateTeamMembers,
+  generateGalleryItems,
+  MOCK_DATA_PRESETS,
+  type MockDataConfig
+} from './mock-data'
 
 /**
  * Get default template content for a specific layout
  */
 export function getLayoutTemplate(layout: LayoutType, title: string, subtitle?: string): PageContent {
+  // Basic templates without rich mock data
+  return getBasicLayoutTemplate(layout, title, subtitle)
+}
+
+/**
+ * Get enhanced template content with rich mock data
+ */
+export function getEnhancedLayoutTemplate(
+  layout: LayoutType,
+  title: string,
+  subtitle?: string,
+  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+): PageContent {
+  const baseTemplate = getBasicLayoutTemplate(layout, title, subtitle)
+  
+  // If basic quality is requested, return the simple template
+  if (config.quality === 'basic') {
+    return baseTemplate
+  }
+  
+  // Enhance templates based on layout type
+  switch (layout) {
+    case 'landing':
+      return enhanceLandingTemplate(title, subtitle, config)
+    case 'about':
+      return enhanceAboutTemplate(title, subtitle, config)
+    case 'product':
+      return enhanceProductTemplate(title, subtitle, config)
+    case 'contact':
+      return enhanceContactTemplate(title, subtitle, config)
+    case 'blog':
+      return enhanceBlogTemplate(title, subtitle, config)
+    case 'portfolio':
+      return enhancePortfolioTemplate(title, subtitle, config)
+    default:
+      return baseTemplate
+  }
+}
+
+/**
+ * Get basic template content (original implementation)
+ */
+function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: string): PageContent {
   const templates: Record<LayoutType, PageContent> = {
     landing: {
       version: '1.0',
@@ -423,4 +475,629 @@ export function getLayoutTemplate(layout: LayoutType, title: string, subtitle?: 
   }
 
   return templates[layout]
+}
+
+/**
+ * Enhanced landing page template with rich mock data
+ */
+function enhanceLandingTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+): PageContent {
+  const features = generateFeatures(6, config)
+  const testimonials = generateTestimonials(3, config)
+  const pricingTiers = generatePricingTiers()
+
+  return {
+    version: '1.0',
+    layout: 'landing',
+    sections: {
+      hero: {
+        type: 'hero',
+        visible: true,
+        order: 0,
+        data: {
+          content: `<h1>${title || 'Transform Your Business Today'}</h1>
+<p class="text-xl text-gray-600">${subtitle || 'Powerful solutions that drive real results for modern teams.'}</p>
+<p>Join thousands of companies already using our platform to accelerate growth, streamline operations, and deliver exceptional customer experiences.</p>`,
+          items: [
+            {
+              id: 'cta-primary',
+              title: 'Get Started Free',
+              url: '/signup',
+              metadata: { variant: 'primary' }
+            },
+            {
+              id: 'cta-secondary',
+              title: 'Watch Demo',
+              url: '/demo',
+              metadata: { variant: 'secondary' }
+            }
+          ],
+          image: config.includeImages ? `/api/placeholder/1200/600/gradient/${encodeURIComponent(JSON.stringify({
+            colors: ['#3b82f6', '#8b5cf6'],
+            direction: 'diagonal'
+          }))}` : undefined
+        }
+      },
+      features: {
+        type: 'features',
+        visible: true,
+        order: 1,
+        data: {
+          items: features
+        }
+      },
+      testimonials: {
+        type: 'testimonials',
+        visible: true,
+        order: 2,
+        data: {
+          items: testimonials
+        }
+      },
+      pricing: {
+        type: 'pricing',
+        visible: true,
+        order: 3,
+        data: {
+          items: pricingTiers
+        }
+      },
+      cta: {
+        type: 'cta',
+        visible: true,
+        order: 4,
+        data: {
+          content: `<h2>Ready to Get Started?</h2>
+<p>Join thousands of successful businesses already using our platform.</p>
+<p><strong>No credit card required</strong> · 14-day free trial · Cancel anytime</p>`,
+          items: [
+            {
+              id: 'cta-bottom',
+              title: 'Start Your Free Trial',
+              url: '/signup'
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Enhanced about page template with rich mock data
+ */
+function enhanceAboutTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+): PageContent {
+  const teamMembers = generateTeamMembers(4, config)
+  const testimonials = generateTestimonials(2, config)
+
+  return {
+    version: '1.0',
+    layout: 'about',
+    sections: {
+      header: {
+        type: 'hero',
+        visible: true,
+        order: 0,
+        data: {
+          content: `<h1>${title || 'About Our Company'}</h1>
+<p class="text-xl text-gray-600">${subtitle || 'Building the future of digital transformation since 2020.'}</p>`,
+          image: config.includeImages ? `/api/placeholder/1200/400/gradient/${encodeURIComponent(JSON.stringify({
+            colors: ['#f59e0b', '#dc2626'],
+            direction: 'horizontal'
+          }))}` : undefined
+        }
+      },
+      mission: {
+        type: 'mission',
+        visible: true,
+        order: 1,
+        data: {
+          content: `<h2>Our Mission</h2>
+<p>We believe in empowering businesses with tools that make complex tasks simple, enabling teams to focus on what truly matters: innovation and growth.</p>
+<p>Through cutting-edge technology and unwavering commitment to customer success, we're creating a world where every business can thrive in the digital age.</p>
+<p>Our approach combines deep industry expertise with innovative thinking to deliver solutions that not only meet today's challenges but anticipate tomorrow's opportunities.</p>`
+        }
+      },
+      values: {
+        type: 'values',
+        visible: true,
+        order: 2,
+        data: {
+          items: [
+            {
+              id: `value-${Date.now()}-1`,
+              title: 'Integrity',
+              content: 'We build trust through transparency and ethical practices in everything we do.',
+              icon: 'Shield',
+              order: 0
+            },
+            {
+              id: `value-${Date.now()}-2`,
+              title: 'Innovation',
+              content: 'We constantly push boundaries to deliver cutting-edge solutions that shape the future.',
+              icon: 'Lightbulb',
+              order: 1
+            },
+            {
+              id: `value-${Date.now()}-3`,
+              title: 'Collaboration',
+              content: 'We believe great things happen when talented people work together toward a common goal.',
+              icon: 'Users',
+              order: 2
+            },
+            {
+              id: `value-${Date.now()}-4`,
+              title: 'Excellence',
+              content: 'We strive for excellence in every product we build and service we provide.',
+              icon: 'Award',
+              order: 3
+            },
+            {
+              id: `value-${Date.now()}-5`,
+              title: 'Customer Focus',
+              content: 'Your success is our success. We obsess over delivering value to our customers.',
+              icon: 'Heart',
+              order: 4
+            },
+            {
+              id: `value-${Date.now()}-6`,
+              title: 'Sustainability',
+              content: 'We are committed to building a sustainable future for our planet and communities.',
+              icon: 'Leaf',
+              order: 5
+            }
+          ]
+        }
+      },
+      team: {
+        type: 'team',
+        visible: true,
+        order: 3,
+        data: {
+          items: teamMembers
+        }
+      },
+      testimonials: {
+        type: 'testimonials',
+        visible: true,
+        order: 4,
+        data: {
+          items: testimonials
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Enhanced product page template with rich mock data
+ */
+function enhanceProductTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+): PageContent {
+  const features = generateFeatures(6, config)
+  const gallery = generateGalleryItems(4, 'product')
+  const pricingTiers = generatePricingTiers()
+  const testimonials = generateTestimonials(3, config)
+
+  return {
+    version: '1.0',
+    layout: 'product',
+    sections: {
+      header: {
+        type: 'hero',
+        visible: true,
+        order: 0,
+        data: {
+          content: `<h1>${title || 'Professional Platform Suite'}</h1>
+<p class="text-xl text-gray-600">${subtitle || 'Everything you need to run your business in one integrated platform.'}</p>`
+        }
+      },
+      gallery: {
+        type: 'gallery',
+        visible: true,
+        order: 1,
+        data: {
+          items: gallery
+        }
+      },
+      features: {
+        type: 'features',
+        visible: true,
+        order: 2,
+        data: {
+          items: features
+        }
+      },
+      specifications: {
+        type: 'specifications',
+        visible: true,
+        order: 3,
+        data: {
+          content: `<h3>Technical Specifications</h3>
+<table class="w-full">
+  <tr><td class="font-semibold">Platform</td><td>Cloud-based SaaS</td></tr>
+  <tr><td class="font-semibold">Availability</td><td>99.9% SLA guaranteed</td></tr>
+  <tr><td class="font-semibold">API</td><td>RESTful & GraphQL</td></tr>
+  <tr><td class="font-semibold">Security</td><td>SOC 2 Type II certified</td></tr>
+  <tr><td class="font-semibold">Compliance</td><td>GDPR, CCPA, HIPAA</td></tr>
+  <tr><td class="font-semibold">Integrations</td><td>500+ native integrations</td></tr>
+  <tr><td class="font-semibold">Support</td><td>24/7 dedicated support</td></tr>
+  <tr><td class="font-semibold">Languages</td><td>15+ languages supported</td></tr>
+  <tr><td class="font-semibold">Mobile</td><td>iOS & Android apps</td></tr>
+  <tr><td class="font-semibold">Data Export</td><td>CSV, JSON, API</td></tr>
+</table>`
+        }
+      },
+      pricing: {
+        type: 'pricing',
+        visible: true,
+        order: 4,
+        data: {
+          items: pricingTiers
+        }
+      },
+      testimonials: {
+        type: 'testimonials',
+        visible: true,
+        order: 5,
+        data: {
+          items: testimonials
+        }
+      },
+      cta: {
+        type: 'cta',
+        visible: true,
+        order: 6,
+        data: {
+          content: `<h2>Start Your Free Trial</h2>
+<p>Experience the full power of our platform with a 14-day free trial.</p>`,
+          items: [
+            {
+              id: 'trial-cta',
+              title: 'Start Free Trial',
+              url: '/signup',
+              metadata: { variant: 'primary' }
+            },
+            {
+              id: 'demo-cta',
+              title: 'Schedule Demo',
+              url: '/demo',
+              metadata: { variant: 'secondary' }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Enhanced contact page template with rich mock data
+ */
+function enhanceContactTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+): PageContent {
+  return {
+    version: '1.0',
+    layout: 'contact',
+    sections: {
+      header: {
+        type: 'hero',
+        visible: true,
+        order: 0,
+        data: {
+          content: `<h1>${title || 'Get in Touch'}</h1>
+<p class="text-xl text-gray-600">${subtitle || "We'd love to hear from you. Send us a message and we'll respond within 24 hours."}</p>`
+        }
+      },
+      form: {
+        type: 'form',
+        visible: true,
+        order: 1,
+        data: {
+          fields: [
+            {
+              id: 'name',
+              type: 'text',
+              label: 'Full Name',
+              placeholder: 'John Doe',
+              required: true,
+              order: 0
+            },
+            {
+              id: 'email',
+              type: 'email',
+              label: 'Email Address',
+              placeholder: 'john@example.com',
+              required: true,
+              validation: {
+                pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
+                message: 'Please enter a valid email address'
+              },
+              order: 1
+            },
+            {
+              id: 'phone',
+              type: 'phone',
+              label: 'Phone Number',
+              placeholder: '+1 (555) 123-4567',
+              required: false,
+              order: 2
+            },
+            {
+              id: 'company',
+              type: 'text',
+              label: 'Company',
+              placeholder: 'Acme Corp',
+              required: false,
+              order: 3
+            },
+            {
+              id: 'department',
+              type: 'select',
+              label: 'How can we help?',
+              required: true,
+              options: ['Sales', 'Support', 'Partnerships', 'Media', 'Careers', 'Other'],
+              order: 4
+            },
+            {
+              id: 'message',
+              type: 'textarea',
+              label: 'Message',
+              placeholder: 'Tell us more about how we can help you...',
+              required: true,
+              validation: {
+                minLength: 10,
+                message: 'Please enter at least 10 characters'
+              },
+              order: 5
+            },
+            {
+              id: 'newsletter',
+              type: 'checkbox',
+              label: "I'd like to receive updates and newsletters",
+              required: false,
+              order: 6
+            }
+          ]
+        }
+      },
+      features: {
+        type: 'features',
+        visible: true,
+        order: 2,
+        data: {
+          items: [
+            {
+              id: 'contact-email',
+              title: 'Email Us',
+              content: 'hello@example.com\nFor general inquiries',
+              icon: 'Mail',
+              order: 0
+            },
+            {
+              id: 'contact-phone',
+              title: 'Call Us',
+              content: '+1 (555) 123-4567\nMon-Fri, 9am-6pm PST',
+              icon: 'Phone',
+              order: 1
+            },
+            {
+              id: 'contact-office',
+              title: 'Visit Us',
+              content: '123 Business Ave, Suite 100\nSan Francisco, CA 94105',
+              icon: 'MapPin',
+              order: 2
+            },
+            {
+              id: 'contact-support',
+              title: 'Support Center',
+              content: 'support.example.com\n24/7 help documentation',
+              icon: 'HelpCircle',
+              order: 3
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Enhanced blog page template with rich mock data
+ */
+function enhanceBlogTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+): PageContent {
+  const richContent = config.quality === 'premium'
+    ? `<h2>Introduction</h2>
+<p>In today's rapidly evolving digital landscape, businesses face unprecedented challenges and opportunities. This comprehensive guide explores the strategies and technologies that are reshaping industries and driving innovation forward.</p>
+
+<h2>The Current State of Digital Transformation</h2>
+<p>Digital transformation has moved from a competitive advantage to a business necessity. Organizations that fail to adapt risk becoming obsolete in an increasingly connected world. Recent studies show that 87% of companies believe digital will disrupt their industry, yet only 44% are adequately prepared.</p>
+
+<blockquote>
+<p>"The future belongs to those who understand that doing more of the same is not going to be enough." - Industry Leader</p>
+</blockquote>
+
+<h3>Key Drivers of Change</h3>
+<ul>
+<li><strong>Customer Expectations:</strong> Modern consumers demand seamless, personalized experiences across all touchpoints</li>
+<li><strong>Technological Advancement:</strong> AI, ML, and automation are creating new possibilities</li>
+<li><strong>Market Dynamics:</strong> Increased competition from digital-native companies</li>
+<li><strong>Regulatory Requirements:</strong> Evolving compliance and data protection standards</li>
+</ul>
+
+<h2>Strategic Implementation Framework</h2>
+<p>Successful digital transformation requires a holistic approach that encompasses people, processes, and technology. Here's our proven framework for driving meaningful change:</p>
+
+<ol>
+<li><strong>Assessment Phase:</strong> Evaluate current capabilities and identify gaps</li>
+<li><strong>Strategy Development:</strong> Define clear objectives and success metrics</li>
+<li><strong>Technology Selection:</strong> Choose platforms that align with business goals</li>
+<li><strong>Change Management:</strong> Prepare organization for cultural shift</li>
+<li><strong>Implementation:</strong> Execute in phases with continuous feedback</li>
+<li><strong>Optimization:</strong> Refine and scale successful initiatives</li>
+</ol>
+
+<h2>Real-World Success Stories</h2>
+<p>Leading organizations across industries have achieved remarkable results through strategic digital initiatives. These case studies illustrate the transformative power of well-executed digital strategies.</p>
+
+<h3>Case Study: Global Retailer</h3>
+<p>By implementing an omnichannel strategy powered by AI-driven personalization, this retailer increased customer engagement by 45% and reduced cart abandonment by 30% within six months.</p>
+
+<h3>Case Study: Financial Services</h3>
+<p>A traditional bank transformed its customer experience through mobile-first design and automated processes, resulting in 60% reduction in processing time and 25% increase in customer satisfaction scores.</p>
+
+<h2>Looking Ahead: Future Trends</h2>
+<p>As we look toward the future, several emerging trends will shape the next wave of digital innovation:</p>
+
+<ul>
+<li>Hyper-personalization through advanced AI</li>
+<li>Edge computing and 5G enabling real-time experiences</li>
+<li>Sustainable technology and green computing initiatives</li>
+<li>Quantum computing opening new possibilities</li>
+<li>Extended reality (XR) transforming interaction models</li>
+</ul>
+
+<h2>Conclusion</h2>
+<p>Digital transformation is not a destination but a continuous journey of adaptation and innovation. Organizations that embrace change, invest in the right technologies, and prioritize customer value will thrive in the digital economy.</p>
+
+<p>The path forward requires bold leadership, strategic thinking, and a willingness to challenge the status quo. By following the frameworks and insights presented in this guide, your organization can navigate the complexities of digital transformation and emerge stronger, more agile, and better positioned for long-term success.</p>
+
+<h3>Next Steps</h3>
+<p>Ready to begin your transformation journey? Contact our team of experts to discuss how we can help you achieve your digital objectives and drive meaningful business outcomes.</p>`
+    : config.quality === 'detailed'
+    ? `<h2>Introduction</h2>
+<p>Welcome to our exploration of modern business transformation and the technologies driving change across industries. This article provides insights and strategies for navigating today's digital landscape.</p>
+
+<h2>Understanding the Challenge</h2>
+<p>Organizations today face increasing pressure to adapt and evolve. Traditional business models are being disrupted by new technologies and changing customer expectations. Success requires a strategic approach to transformation.</p>
+
+<h3>Key Considerations</h3>
+<ul>
+<li>Customer experience as a differentiator</li>
+<li>Data-driven decision making</li>
+<li>Agile and flexible operations</li>
+<li>Continuous innovation and learning</li>
+</ul>
+
+<h2>Our Approach</h2>
+<p>We believe in a practical, results-oriented approach to transformation. By focusing on tangible outcomes and measurable progress, organizations can achieve sustainable growth while managing risk effectively.</p>
+
+<blockquote>
+<p>"Innovation distinguishes between a leader and a follower." - Steve Jobs</p>
+</blockquote>
+
+<h2>Implementation Strategy</h2>
+<p>Successful transformation requires careful planning and execution. Our methodology emphasizes iterative progress, continuous feedback, and alignment with business objectives.</p>
+
+<h2>Conclusion</h2>
+<p>The journey of transformation is unique for every organization. By understanding your specific challenges and opportunities, you can chart a path toward sustainable success in the digital age.</p>`
+    : `<h2>Introduction</h2>
+<p>Start your blog post with an engaging introduction that captures your reader's attention and sets the context for your discussion.</p>
+
+<h2>Main Content</h2>
+<p>This is where you'll add the main body of your blog post. Use headings, paragraphs, lists, and images to structure your content effectively.</p>
+
+<h2>Key Points</h2>
+<ul>
+<li>First important point</li>
+<li>Second important point</li>
+<li>Third important point</li>
+</ul>
+
+<h2>Conclusion</h2>
+<p>Wrap up your post with a strong conclusion that summarizes your key points and encourages reader engagement.</p>`
+
+  return {
+    version: '1.0',
+    layout: 'blog',
+    sections: {
+      header: {
+        type: 'hero',
+        visible: true,
+        order: 0,
+        data: {
+          content: `<h1>${title || 'Digital Transformation: A Strategic Guide'}</h1>
+<p class="text-xl text-gray-600">${subtitle || 'Insights and strategies for navigating the modern business landscape'}</p>
+<p class="text-sm text-gray-500">Published on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} · 8 min read</p>`
+        }
+      },
+      content: {
+        type: 'richText',
+        visible: true,
+        order: 1,
+        data: {
+          content: richContent
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Enhanced portfolio page template with rich mock data
+ */
+function enhancePortfolioTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+): PageContent {
+  const gallery = generateGalleryItems(9, 'portfolio')
+
+  return {
+    version: '1.0',
+    layout: 'portfolio',
+    sections: {
+      header: {
+        type: 'hero',
+        visible: true,
+        order: 0,
+        data: {
+          content: `<h1>${title || 'Our Portfolio'}</h1>
+<p class="text-xl text-gray-600">${subtitle || 'Showcasing our best work and successful projects'}</p>
+<p>Explore our collection of innovative solutions and creative achievements that demonstrate our expertise and commitment to excellence.</p>`
+        }
+      },
+      gallery: {
+        type: 'gallery',
+        visible: true,
+        order: 1,
+        data: {
+          items: gallery
+        }
+      },
+      cta: {
+        type: 'cta',
+        visible: true,
+        order: 2,
+        data: {
+          content: `<h2>Like What You See?</h2>
+<p>Let's discuss how we can help bring your vision to life.</p>`,
+          items: [
+            {
+              id: 'portfolio-cta',
+              title: 'Start a Project',
+              url: '/contact'
+            }
+          ]
+        }
+      }
+    }
+  }
 }

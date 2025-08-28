@@ -8,7 +8,8 @@ import { z } from 'zod'
 import { createContent } from '@/src/lib/queries/domains/content'
 import { supabase } from '@/src/lib/supabase/client'
 import { useSiteContext } from '@/src/contexts/SiteContext'
-import { getLayoutTemplate } from '@/src/lib/content/templates'
+import { getLayoutTemplate, getEnhancedLayoutTemplate } from '@/src/lib/content/templates'
+import { MOCK_DATA_PRESETS } from '@/src/lib/content/mock-data'
 import { serializePageContent } from '@/src/lib/content'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
@@ -36,8 +37,10 @@ import {
   Package,
   Phone,
   Sparkles,
-  Layers
+  Layers,
+  Wand2
 } from 'lucide-react'
+import { Switch } from '@/src/components/ui/switch'
 
 const createContentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -129,6 +132,7 @@ export default function CreateContentPage() {
   const [step, setStep] = useState(1)
   const [selectedLayout, setSelectedLayout] = useState<CreateContentForm['layout'] | null>('landing')
   const [isCreating, setIsCreating] = useState(false)
+  const [useMockData, setUseMockData] = useState(true)
 
   const form = useForm<CreateContentForm>({
     resolver: zodResolver(createContentSchema),
@@ -175,8 +179,10 @@ export default function CreateContentPage() {
       
       console.log('Generated slug:', slug)
       
-      // Get template content for the selected layout
-      const templateContent = getLayoutTemplate(data.layout, data.title, data.subtitle)
+      // Get template content for the selected layout (with or without mock data)
+      const templateContent = useMockData 
+        ? getEnhancedLayoutTemplate(data.layout, data.title, data.subtitle, MOCK_DATA_PRESETS.technology)
+        : getLayoutTemplate(data.layout, data.title, data.subtitle)
       const serializedContent = serializePageContent(templateContent)
       
       const contentData = {
@@ -337,6 +343,29 @@ export default function CreateContentPage() {
                   )}
                 />
 
+                <div className="p-4 border rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-md">
+                        <Wand2 className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <Label htmlFor="mock-data" className="font-medium">
+                          Include Sample Content
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Automatically populate with professional content examples
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      id="mock-data"
+                      checked={useMockData}
+                      onCheckedChange={setUseMockData}
+                    />
+                  </div>
+                </div>
+
                 <div className="flex justify-end">
                   <Button type="button" onClick={nextStep}>
                     Continue
@@ -492,6 +521,19 @@ export default function CreateContentPage() {
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Sample Content</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      {useMockData ? (
+                        <><Badge variant="default" className="bg-green-600">Enabled</Badge>
+                        <span className="text-sm text-muted-foreground">Page will include professional sample content</span></>
+                      ) : (
+                        <><Badge variant="outline">Disabled</Badge>
+                        <span className="text-sm text-muted-foreground">Page will start with minimal content</span></>
+                      )}
+                    </div>
                   </div>
                 </div>
 
