@@ -16,7 +16,6 @@ import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import { toast } from 'sonner'
 import { useSupabase } from '@/hooks/useSupabase'
 import { useSiteId } from '@/contexts/SiteContext'
-import { uploadMedia } from '@/lib/queries/domains/media'
 import { handleError } from '@/lib/types/error-handling'
 
 interface LogoCustomizationProps {
@@ -152,22 +151,60 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
         throw new Error('No site ID available')
       }
 
-      // Upload to Supabase Storage
-      const result = await uploadMedia(supabase, siteId, file, {
-        path: 'logos',
-        altText: 'Site logo'
+      // Request presigned URL from API
+      const response = await fetch('/api/upload/presigned', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          fileSize: file.size,
+          siteId,
+        }),
       })
+
+      if (!response.ok) {
+        const error = await response.text()
+        console.error('Failed to get upload URL:', error)
+        throw new Error('Failed to get upload URL')
+      }
+
+      const result = await response.json()
+      
+      if (!result.success || !result.data) {
+        throw new Error('Invalid presigned URL response')
+      }
+      
+      const { uploadUrl, publicUrl } = result.data
+
+      // Upload file to S3
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+          'Content-Length': file.size.toString(),
+        },
+        body: file,
+      })
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text()
+        console.error('Upload failed:', uploadResponse.status, errorText)
+        throw new Error(`Failed to upload file: ${uploadResponse.status}`)
+      }
 
       setUploadProgress(100)
       
       // Update logo URL
-      handleLogoChange({ url: result.file_url })
+      handleLogoChange({ url: publicUrl })
       
       // Also update the site's logo_url field
       const { error: updateError } = await supabase
         .from('sites')
         .update({ 
-          logo_url: result.file_url,
+          logo_url: publicUrl,
           updated_at: new Date().toISOString()
         })
         .eq('id', siteId)
