@@ -393,6 +393,32 @@ export function getLayoutTemplate(layout: LayoutType, title: string, subtitle?: 
           }
         }
       }
+    },
+    other: {
+      version: '1.0',
+      layout: 'other',
+      sections: {
+        hero: {
+          type: 'hero',
+          visible: true,
+          order: 0,
+          data: {
+            content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p>This is a flexible layout where you can add any content sections you need.</p>`,
+            subtitle: subtitle || '',
+            alignment: 'center'
+          }
+        }
+      },
+      settings: {
+        seo: {
+          title: title,
+          description: subtitle || 'Custom page with flexible content sections'
+        },
+        layout: {
+          containerWidth: 'normal',
+          spacing: 'normal'
+        }
+      }
     }
   }
 

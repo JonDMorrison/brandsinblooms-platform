@@ -8,7 +8,7 @@ import { Json } from '@/lib/database/types'
 /**
  * Layout types supported by the content system
  */
-export type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact'
+export type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact' | 'other'
 
 /**
  * Content section types for different layout components
@@ -410,6 +410,170 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         },
         visible: false,
         order: 4
+      }
+    }
+  },
+  other: {
+    required: [], // No required sections - complete flexibility
+    optional: [
+      'hero', 'text', 'richText', 'image', 'icon', 'gallery', 
+      'features', 'cta', 'testimonials', 'form', 'pricing', 
+      'team', 'mission', 'values', 'specifications'
+    ],
+    defaultSections: {
+      hero: {
+        type: 'hero',
+        data: {
+          content: '',
+          alignment: 'center'
+        },
+        visible: false,
+        order: 1
+      },
+      text: {
+        type: 'text',
+        data: {
+          content: ''
+        },
+        visible: false,
+        order: 2
+      },
+      richText: {
+        type: 'richText',
+        data: {
+          content: '',
+          json: null
+        },
+        visible: false,
+        order: 3
+      },
+      image: {
+        type: 'image',
+        data: {
+          url: '',
+          alt: '',
+          caption: ''
+        },
+        visible: false,
+        order: 4
+      },
+      icon: {
+        type: 'icon',
+        data: {
+          icon: 'Star',
+          iconSize: 'md'
+        },
+        visible: false,
+        order: 5
+      },
+      gallery: {
+        type: 'gallery',
+        data: {
+          items: [],
+          columns: 3
+        },
+        visible: false,
+        order: 6
+      },
+      features: {
+        type: 'features',
+        data: {
+          items: [],
+          columns: 3
+        },
+        visible: false,
+        order: 7
+      },
+      cta: {
+        type: 'cta',
+        data: {
+          content: '',
+          alignment: 'center'
+        },
+        visible: false,
+        order: 8
+      },
+      testimonials: {
+        type: 'testimonials',
+        data: {
+          items: [],
+          columns: 2
+        },
+        visible: false,
+        order: 9
+      },
+      form: {
+        type: 'form',
+        data: {
+          fields: [
+            {
+              id: 'name',
+              type: 'text',
+              label: 'Name',
+              required: true,
+              order: 1
+            },
+            {
+              id: 'email',
+              type: 'email',
+              label: 'Email',
+              required: true,
+              order: 2
+            },
+            {
+              id: 'message',
+              type: 'textarea',
+              label: 'Message',
+              required: true,
+              order: 3
+            }
+          ]
+        },
+        visible: false,
+        order: 10
+      },
+      pricing: {
+        type: 'pricing',
+        data: {
+          items: [],
+          columns: 3
+        },
+        visible: false,
+        order: 11
+      },
+      team: {
+        type: 'team',
+        data: {
+          items: [],
+          columns: 3
+        },
+        visible: false,
+        order: 12
+      },
+      mission: {
+        type: 'mission',
+        data: {
+          content: ''
+        },
+        visible: false,
+        order: 13
+      },
+      values: {
+        type: 'values',
+        data: {
+          items: [],
+          columns: 2
+        },
+        visible: false,
+        order: 14
+      },
+      specifications: {
+        type: 'specifications',
+        data: {
+          items: []
+        },
+        visible: false,
+        order: 15
       }
     }
   }

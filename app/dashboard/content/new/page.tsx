@@ -35,13 +35,14 @@ import {
   User,
   Package,
   Phone,
-  Sparkles
+  Sparkles,
+  Layers
 } from 'lucide-react'
 
 const createContentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   subtitle: z.string().optional(),
-  layout: z.enum(['landing', 'blog', 'portfolio', 'about', 'product', 'contact'])
+  layout: z.enum(['landing', 'blog', 'portfolio', 'about', 'product', 'contact', 'other'])
 })
 
 type CreateContentForm = z.infer<typeof createContentSchema>
@@ -109,6 +110,15 @@ const layoutOptions: LayoutOption[] = [
     icon: <Phone className="h-6 w-6" />,
     preview: 'Contact form, location map, service list',
     features: ['Contact Form', 'Location Map', 'Service List', 'Business Hours'],
+    recommended: false
+  },
+  {
+    id: 'other',
+    name: 'Custom/Other',
+    description: 'Complete flexibility with access to all content blocks',
+    icon: <Layers className="h-6 w-6" />,
+    preview: 'Build your own layout with any combination of sections',
+    features: ['All Content Blocks', 'No Requirements', 'Full Flexibility', 'Mix & Match Sections'],
     recommended: false
   }
 ]

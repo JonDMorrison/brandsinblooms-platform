@@ -25,7 +25,8 @@ import {
   User,
   Package,
   Phone,
-  Edit2
+  Edit2,
+  Layers
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -37,6 +38,7 @@ import { PortfolioGridPreview } from '@/src/components/layout-previews/Portfolio
 import { AboutCompanyPreview } from '@/src/components/layout-previews/AboutCompanyPreview'
 import { ProductPagePreview } from '@/src/components/layout-previews/ProductPagePreview'
 import { ContactServicesPreview } from '@/src/components/layout-previews/ContactServicesPreview'
+import { OtherLayoutPreview } from '@/src/components/layout-previews/OtherLayoutPreview'
 
 // Import enhanced content editor components
 import { ContentEditor, SectionManager } from '@/src/components/content-editor'
@@ -46,7 +48,7 @@ import { handleError } from '@/src/lib/types/error-handling'
 import { EditModeProvider, useEditMode, EditMode } from '@/src/contexts/EditModeContext'
 import { useSiteTheme } from '@/src/hooks/useSiteTheme'
 
-type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact'
+type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact' | 'other'
 type ViewportSize = 'mobile' | 'tablet' | 'desktop'
 
 interface PageData {
@@ -66,7 +68,8 @@ const layoutInfo = {
   portfolio: { name: 'Portfolio Grid', icon: Grid3X3, component: PortfolioGridPreview },
   about: { name: 'About/Company', icon: User, component: AboutCompanyPreview },
   product: { name: 'Product Page', icon: Package, component: ProductPagePreview },
-  contact: { name: 'Contact/Services', icon: Phone, component: ContactServicesPreview }
+  contact: { name: 'Contact/Services', icon: Phone, component: ContactServicesPreview },
+  other: { name: 'Custom/Other', icon: Layers, component: OtherLayoutPreview }
 }
 
 const viewportSizes = {
@@ -113,7 +116,7 @@ function PageEditorContent() {
           const rawLayout = metaData?.layout || contentData?.layout || 'landing'
           
           // Validate layout is one of the supported types
-          const validLayouts: LayoutType[] = ['landing', 'blog', 'portfolio', 'about', 'product', 'contact']
+          const validLayouts: LayoutType[] = ['landing', 'blog', 'portfolio', 'about', 'product', 'contact', 'other']
           const layout = validLayouts.includes(rawLayout as LayoutType) 
             ? rawLayout as LayoutType 
             : 'landing'
