@@ -20,6 +20,17 @@ import { toast } from 'sonner'
 // Import existing components
 import { RichTextEditor, ImageInput, IconPicker, SimpleTextInput } from '@/src/components/content-editor'
 
+// Import new section editors
+import { FeaturesEditor } from '@/src/components/content-sections/editors/FeaturesEditor'
+import { TestimonialsEditor } from '@/src/components/content-sections/editors/TestimonialsEditor'
+import { TeamEditor } from '@/src/components/content-sections/editors/TeamEditor'
+import { ValuesEditor } from '@/src/components/content-sections/editors/ValuesEditor'
+import { GalleryEditor } from '@/src/components/content-sections/editors/GalleryEditor'
+import { PricingEditor } from '@/src/components/content-sections/editors/PricingEditor'
+import { MissionEditor } from '@/src/components/content-sections/editors/MissionEditor'
+import { SpecificationsEditor } from '@/src/components/content-sections/editors/SpecificationsEditor'
+import { FormBuilder } from '@/src/components/content-sections/editors/FormBuilder'
+
 // Import schemas and types
 import { 
   PageContent, 
@@ -227,12 +238,19 @@ const SectionEditor = function SectionEditor({
       
       case 'richText':
       case 'cta':
-      case 'mission':
         return (
           <RichTextEditor
             initialContent={section.data.content || ''}
             onChange={(content) => handleDataChange({ content })}
             placeholder={`Enter ${section.type} content...`}
+          />
+        )
+      
+      case 'mission':
+        return (
+          <MissionEditor
+            section={section}
+            onUpdate={handleDataChange}
           />
         )
 
@@ -279,41 +297,66 @@ const SectionEditor = function SectionEditor({
         )
 
       case 'features':
+        return (
+          <FeaturesEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
       case 'testimonials':
+        return (
+          <TestimonialsEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
       case 'team':
+        return (
+          <TeamEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
       case 'values':
+        return (
+          <ValuesEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
       case 'gallery':
+        return (
+          <GalleryEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
       case 'pricing':
         return (
-          <div className="p-4 border rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground text-center">
-              {section.type.charAt(0).toUpperCase() + section.type.slice(1)} editor coming soon
-            </p>
-            <p className="text-xs text-muted-foreground text-center mt-1">
-              Will support adding/editing items dynamically
-            </p>
-          </div>
+          <PricingEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
         )
 
       case 'form':
         return (
-          <div className="p-4 border rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground text-center">
-              Form builder coming soon
-            </p>
-            <p className="text-xs text-muted-foreground text-center mt-1">
-              Will support drag-and-drop form fields
-            </p>
-          </div>
+          <FormBuilder
+            section={section}
+            onUpdate={handleDataChange}
+          />
         )
 
       case 'specifications':
         return (
-          <SimpleTextInput
-            value={section.data.content || ''}
-            onChange={(content) => handleDataChange({ content })}
-            placeholder="Enter specifications..."
-            multiline
+          <SpecificationsEditor
+            section={section}
+            onUpdate={handleDataChange}
           />
         )
 
