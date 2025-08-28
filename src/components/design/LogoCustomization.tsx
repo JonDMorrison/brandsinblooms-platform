@@ -11,8 +11,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/ta
 import { RadioGroup, RadioGroupItem } from '@/src/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
 import { Separator } from '@/src/components/ui/separator'
-import { Upload, Wand2, Image as ImageIcon, Type, Trash2, Download, Loader2 } from 'lucide-react'
+import { Upload, Wand2, Image as ImageIcon, Type, Trash2, Download, Loader2, Plus } from 'lucide-react'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/src/components/ui/dialog'
 import { toast } from 'sonner'
 import { useSupabase } from '@/hooks/useSupabase'
 import { useSiteId } from '@/contexts/SiteContext'
@@ -108,6 +116,7 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
   const [isUploading, setIsUploading] = useState(false)
   const [textLogo, setTextLogo] = useState({ text: 'Your Brand', style: 'modern' })
   const [activeTab, setActiveTab] = useState('upload')
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = useSupabase()
   const siteId = useSiteId()
@@ -214,6 +223,7 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
       }
 
       toast.success('Logo uploaded successfully')
+      setIsModalOpen(false) // Close modal on successful upload
     } catch (error) {
       handleError(error)
       toast.error('Failed to upload logo')
@@ -264,6 +274,7 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
     
     handleLogoChange({ url: svg })
     toast.success('AI logo generated')
+    setIsModalOpen(false) // Close modal after generation
   }
 
   const generateTextLogo = () => {
@@ -283,6 +294,7 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
     
     handleLogoChange({ url: svg })
     toast.success('Text logo generated')
+    setIsModalOpen(false) // Close modal after generation
   }
 
   const removeLogo = async () => {
@@ -349,66 +361,62 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
               </div>
             </div>
 
-            {/* Logo Info */}
-            {logo.url && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span>Position: <strong>{logo.position}</strong></span>
-                  <span>Size: <strong>{logo.size}</strong></span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      if (logo.url) {
-                        window.open(logo.url, '_blank')
-                      }
-                    }}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={removeLogo}>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Remove
-                  </Button>
-                </div>
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                {logo.url && (
+                  <>
+                    <span>Position: <strong>{logo.position}</strong></span>
+                    <span>Size: <strong>{logo.size}</strong></span>
+                  </>
+                )}
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="flex items-center gap-2">
+                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant={logo.url ? "outline" : "default"}>
+                      {logo.url ? (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Replace Logo
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Upload Logo
+                        </>
+                      )}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Upload Logo</DialogTitle>
+                      <DialogDescription>
+                        Choose how you want to add your logo
+                      </DialogDescription>
+                    </DialogHeader>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="upload" className="flex items-center gap-2">
-            <Upload className="h-4 w-4" />
-            Upload Logo
-          </TabsTrigger>
-          <TabsTrigger value="text" className="flex items-center gap-2">
-            <Type className="h-4 w-4" />
-            Text Logo
-          </TabsTrigger>
-          <TabsTrigger value="ai" className="flex items-center gap-2">
-            <Wand2 className="h-4 w-4" />
-            AI Generator
-          </TabsTrigger>
-        </TabsList>
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="upload" className="flex items-center gap-2">
+                          <Upload className="h-4 w-4" />
+                          Upload Logo
+                        </TabsTrigger>
+                        <TabsTrigger value="text" className="flex items-center gap-2">
+                          <Type className="h-4 w-4" />
+                          Text Logo
+                        </TabsTrigger>
+                        <TabsTrigger value="ai" className="flex items-center gap-2">
+                          <Wand2 className="h-4 w-4" />
+                          AI Generator
+                        </TabsTrigger>
+                      </TabsList>
 
-        {/* Upload Logo Tab */}
-        <TabsContent value="upload" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Upload Your Logo</CardTitle>
-              <CardDescription>
-                Upload your existing logo file (PNG, JPG, SVG recommended)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* File Upload Area */}
-                <div
+                      {/* Upload Logo Tab */}
+                      <TabsContent value="upload" className="space-y-6">
+                        <div className="space-y-4">
+                          {/* File Upload Area */}
+                          <div
                   className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                     dragActive ? 'border-primary bg-primary/5' : 'border-gray-300'
                   } ${isUploading ? 'pointer-events-none opacity-50' : ''}`}
@@ -441,40 +449,31 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
                       </Button>
                     </div>
                   )}
-                </div>
+                          </div>
 
-                <input
+                          <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   onChange={handleFileSelect}
                   className="hidden"
-                />
+                          />
 
-                {/* Upload Guidelines */}
-                <Alert>
+                          {/* Upload Guidelines */}
+                          <Alert>
                   <AlertDescription>
                     <strong>Logo Guidelines:</strong> For best results, upload a high-resolution logo (at least 300x300px) 
                     with a transparent background (PNG format recommended). Maximum file size is 5MB.
                   </AlertDescription>
-                </Alert>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                          </Alert>
+                        </div>
+                      </TabsContent>
 
-        {/* Text Logo Tab */}
-        <TabsContent value="text" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Create Text Logo</CardTitle>
-              <CardDescription>
-                Design a text-based logo using your brand name
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Text Input */}
-              <div className="space-y-2">
+                      {/* Text Logo Tab */}
+                      <TabsContent value="text" className="space-y-6">
+                        <div className="space-y-6">
+                          {/* Text Input */}
+                          <div className="space-y-2">
                 <Label>Brand Name</Label>
                 <Input
                   value={textLogo.text}
@@ -482,10 +481,10 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
                   placeholder="Enter your brand name"
                   className="text-lg"
                 />
-              </div>
+                          </div>
 
-              {/* Style Selection */}
-              <div className="space-y-3">
+                          {/* Style Selection */}
+                          <div className="space-y-3">
                 <Label>Text Style</Label>
                 <RadioGroup 
                   value={textLogo.style} 
@@ -514,46 +513,42 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
                     ))}
                   </div>
                 </RadioGroup>
-              </div>
+                          </div>
 
-              {/* Generate Button */}
-              <Button 
+                          {/* Generate Button */}
+                          <Button 
                 onClick={generateTextLogo}
                 className="w-full"
                 disabled={!textLogo.text.trim()}
               >
                 <Type className="h-4 w-4 mr-2" />
                 Generate Text Logo
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                          </Button>
+                        </div>
+                      </TabsContent>
 
-        {/* AI Generator Tab */}
-        <TabsContent value="ai" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wand2 className="h-5 w-5 text-purple-600" />
-                AI Logo Generator
-              </CardTitle>
-              <CardDescription>
-                Let AI create a unique logo for your brand
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Brand Name Input */}
-              <div className="space-y-2">
+                      {/* AI Generator Tab */}
+                      <TabsContent value="ai" className="space-y-6">
+                        <div className="space-y-6">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Wand2 className="h-5 w-5 text-purple-600" />
+                            <span className="font-medium">AI Logo Generator</span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Let AI create a unique logo for your brand
+                          </p>
+                          {/* Brand Name Input */}
+                          <div className="space-y-2">
                 <Label>Brand Name</Label>
                 <Input
                   value={textLogo.text}
                   onChange={(e) => setTextLogo({ ...textLogo, text: e.target.value })}
                   placeholder="Enter your brand name"
                 />
-              </div>
+                          </div>
 
-              {/* Logo Templates */}
-              <div className="space-y-3">
+                          {/* Logo Templates */}
+                          <div className="space-y-3">
                 <Label>Choose a Style</Label>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   {logoTemplates.map((template) => (
@@ -575,12 +570,12 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
                     </Button>
                   ))}
                 </div>
-              </div>
+                          </div>
 
-              <Separator />
+                          <Separator />
 
-              {/* Advanced AI Options */}
-              <div className="space-y-4">
+                          {/* Advanced AI Options */}
+                          <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Wand2 className="h-4 w-4 text-purple-600" />
                   <Label>Advanced Options</Label>
@@ -622,11 +617,37 @@ export default function LogoCustomization({ logo, onLogoChange }: LogoCustomizat
                     </Select>
                   </div>
                 </div>
+                          </div>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </DialogContent>
+                </Dialog>
+                {logo.url && (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        if (logo.url) {
+                          window.open(logo.url, '_blank')
+                        }
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={removeLogo}>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Remove
+                    </Button>
+                  </>
+                )}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Logo Settings */}
       <Card>
