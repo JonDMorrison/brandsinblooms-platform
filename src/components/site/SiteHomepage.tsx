@@ -6,7 +6,7 @@ import { Flower, AlertCircle } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import Link from 'next/link'
-import { SiteThemeProvider } from '@/src/components/theme/ThemeProvider'
+import { SiteThemeProvider, ThemeWrapper } from '@/src/components/theme/ThemeProvider'
 
 interface SiteHomepageProps {
   fallbackContent?: React.ReactNode
@@ -60,8 +60,8 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
 
   // Show site homepage for unauthenticated users or public view
   return (
-    <SiteThemeProvider applyToDocument={true}>
-      <div className="min-h-screen bg-gradient-hero">
+    <SiteThemeProvider applyToDocument={false}>
+      <ThemeWrapper className="min-h-screen bg-gradient-hero">
         {/* Site Header */}
         <header className="relative z-10">
           <nav className="brand-container py-6">
@@ -130,7 +130,7 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
             </div>
           </section>
         )}
-      </div>
+      </ThemeWrapper>
     </SiteThemeProvider>
   )
 }
@@ -161,8 +161,8 @@ function SiteBranding({ site }: { site: any }) {
 
 function AuthenticatedSiteView({ site, user }: { site: any; user: any }) {
   return (
-    <SiteThemeProvider applyToDocument={true}>
-      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+    <SiteThemeProvider applyToDocument={false}>
+      <ThemeWrapper className="min-h-screen bg-gradient-hero flex items-center justify-center">
         <div className="brand-container">
           <div className="text-center space-y-6">
             <SiteBranding site={site} />
@@ -193,7 +193,7 @@ function AuthenticatedSiteView({ site, user }: { site: any; user: any }) {
             </div>
           </div>
         </div>
-      </div>
+      </ThemeWrapper>
     </SiteThemeProvider>
   )
 }
