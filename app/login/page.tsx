@@ -9,8 +9,9 @@ function LoginRedirect() {
   const redirectTo = searchParams.get('redirectTo')
 
   useEffect(() => {
-    // Redirect to homepage with signup parameter if needed
+    // Redirect to homepage with signin parameter
     const url = new URL('/', window.location.origin)
+    url.searchParams.set('signin', 'true')
     if (redirectTo) {
       url.searchParams.set('redirectTo', redirectTo)
     }

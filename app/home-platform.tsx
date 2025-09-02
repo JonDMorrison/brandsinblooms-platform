@@ -6,15 +6,13 @@ import { Flower, Sparkles, Globe, Shield, Zap, Users, ArrowRight, Check } from '
 import { Button } from '@/src/components/ui/button';
 import { Card, CardContent } from '@/src/components/ui/card';
 import { useAuth } from '@/src/contexts/AuthContext';
-import SignIn from '@/components/auth/SignIn';
-import SignUp from '@/components/auth/SignUp';
+import AuthModal from '@/components/auth/AuthModal';
 import Link from 'next/link';
 
 export default function HomePlatform() {
   const searchParams = useSearchParams();
-  const [isSignUp, setIsSignUp] = useState(
-    searchParams.get('signup') === 'true'
-  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -24,18 +22,11 @@ export default function HomePlatform() {
     }
   }, [user, loading, router]);
 
-  useEffect(() => {
-    setIsSignUp(searchParams.get('signup') === 'true');
-  }, [searchParams]);
-
-  const handleToggle = (signUp: boolean) => {
-    setIsSignUp(signUp);
+  const openAuthModal = (mode: 'signin' | 'signup') => {
+    setAuthMode(mode);
+    setIsModalOpen(true);
     const url = new URL(window.location.href);
-    if (signUp) {
-      url.searchParams.set('signup', 'true');
-    } else {
-      url.searchParams.delete('signup');
-    }
+    url.searchParams.set(mode, 'true');
     window.history.replaceState({}, '', url.toString());
   };
 
@@ -81,14 +72,14 @@ export default function HomePlatform() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleToggle(false)}
+                onClick={() => openAuthModal('signin')}
               >
                 Sign In
               </Button>
               <Button
                 size="sm"
                 className="btn-gradient-primary"
-                onClick={() => handleToggle(true)}
+                onClick={() => openAuthModal('signup')}
               >
                 Get Started
               </Button>
@@ -123,7 +114,7 @@ export default function HomePlatform() {
                 <Button 
                   size="lg" 
                   className="btn-gradient-primary"
-                  onClick={() => handleToggle(true)}
+                  onClick={() => openAuthModal('signup')}
                 >
                   Start Building <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -152,33 +143,33 @@ export default function HomePlatform() {
               </div>
             </div>
             
-            {/* Right Content - Auth Form */}
+            {/* Right Content - Hero Image/Graphic */}
             <div className='lg:pl-12'>
-              <Card className='border-muted/50 shadow-xl'>
-                <CardContent className='p-6'>
-                  {/* Auth Toggle */}
-                  <div className='flex items-center space-x-1 bg-muted p-1 rounded-lg mb-6'>
-                    <Button
-                      variant={!isSignUp ? 'default' : 'ghost'}
-                      size='sm'
-                      onClick={() => handleToggle(false)}
-                      className={`flex-1 ${!isSignUp ? 'btn-gradient-primary' : ''}`}
+              <Card className='border-muted/50 shadow-xl bg-gradient-to-br from-primary/5 to-secondary/5'>
+                <CardContent className='p-12 text-center'>
+                  <div className='flex items-center justify-center mb-6'>
+                    <div className='flex items-center justify-center w-24 h-24 bg-gradient-primary rounded-2xl'>
+                      <Flower className='h-12 w-12 text-white' />
+                    </div>
+                  </div>
+                  <h3 className='text-2xl font-brand-heading mb-4'>Ready to grow your brands?</h3>
+                  <p className='text-muted-foreground mb-6'>Join thousands of businesses already using our platform.</p>
+                  <div className='flex flex-col gap-3'>
+                    <Button 
+                      size="lg" 
+                      className="w-full btn-gradient-primary"
+                      onClick={() => openAuthModal('signup')}
+                    >
+                      Get Started Free
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      className="w-full"
+                      onClick={() => openAuthModal('signin')}
                     >
                       Sign In
                     </Button>
-                    <Button
-                      variant={isSignUp ? 'default' : 'ghost'}
-                      size='sm'
-                      onClick={() => handleToggle(true)}
-                      className={`flex-1 ${isSignUp ? 'btn-gradient-primary' : ''}`}
-                    >
-                      Sign Up
-                    </Button>
-                  </div>
-                  
-                  {/* Auth Form */}
-                  <div className='transition-all duration-200 ease-in-out'>
-                    {isSignUp ? <SignUp /> : <SignIn />}
                   </div>
                 </CardContent>
               </Card>
@@ -289,7 +280,7 @@ export default function HomePlatform() {
             <Button 
               size="lg" 
               variant="secondary"
-              onClick={() => handleToggle(true)}
+              onClick={() => openAuthModal('signup')}
             >
               Create Your First Site <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -324,6 +315,14 @@ export default function HomePlatform() {
           </div>
         </div>
       </footer>
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        mode={authMode}
+        onModeChange={setAuthMode}
+      />
     </div>
   );
 }

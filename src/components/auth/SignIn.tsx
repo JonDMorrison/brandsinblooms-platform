@@ -203,12 +203,18 @@ export default function SignIn() {
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-sm text-center text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <Link
-              href="/?signup=true"
+            <button
+              type="button"
+              onClick={() => {
+                const url = new URL(window.location.href)
+                url.searchParams.delete('signin')
+                url.searchParams.set('signup', 'true')
+                window.history.replaceState({}, '', url.toString())
+              }}
               className="text-primary hover:text-primary/80 font-medium transition-colors"
             >
               Sign up
-            </Link>
+            </button>
           </div>
           <Separator />
           <div className="grid grid-cols-2 gap-4 w-full">
