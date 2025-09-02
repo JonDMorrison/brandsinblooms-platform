@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import SignIn from './SignIn'
 import SignUp from './SignUp'
 
@@ -42,6 +43,14 @@ export default function AuthModal({ open, onOpenChange, mode, onModeChange }: Au
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="p-0 w-[95%] max-w-md overflow-hidden border-0" showCloseButton={false}>
+        <VisuallyHidden>
+          <DialogTitle>{mode === 'signup' ? 'Create an Account' : 'Sign In'}</DialogTitle>
+          <DialogDescription>
+            {mode === 'signup' 
+              ? 'Join Brands in Blooms to start creating beautiful websites' 
+              : 'Sign in to your Brands in Blooms account'}
+          </DialogDescription>
+        </VisuallyHidden>
         {mode === 'signup' ? <SignUp /> : <SignIn />}
       </DialogContent>
     </Dialog>
