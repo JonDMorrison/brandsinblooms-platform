@@ -229,22 +229,33 @@ export default function SignUp() {
                           onBlur={field.onBlur}
                           disabled={field.disabled}
                           ref={field.ref}
+                          className="mt-1"
                         />
                       </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel htmlFor={acceptTermsId}>
-                        I agree to the{' '}
-                        <Link href="/terms" className="text-primary hover:underline">
-                          Terms of Service
-                        </Link>{' '}
-                        and{' '}
-                        <Link href="/privacy" className="text-primary hover:underline">
-                          Privacy Policy
-                        </Link>
-                      </FormLabel>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
+                      <div className="space-y-1 leading-relaxed">
+                        <FormLabel htmlFor={acceptTermsId} className="text-sm font-normal inline">
+                          <span className="inline">I agree to the </span>
+                          <Link 
+                            href="/platform/terms" 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium text-primary hover:underline inline whitespace-nowrap"
+                          >
+                            Terms of Service
+                          </Link>
+                          <span className="inline"> and </span>
+                          <Link 
+                            href="/platform/privacy" 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium text-primary hover:underline inline whitespace-nowrap"
+                          >
+                            Privacy Policy
+                          </Link>
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
                   )
                 }}
               />
