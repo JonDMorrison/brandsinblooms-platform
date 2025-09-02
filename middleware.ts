@@ -32,8 +32,9 @@ const publicRoutes = [
   '/auth/callback',
   '/auth/verify-email',
   '/auth/reset-password',
-  '/terms',
-  '/privacy',
+  '/platform/terms',
+  '/platform/privacy',
+  '/platform/contact',
 ]
 
 // Define routes that should redirect to dashboard if authenticated (for main app domain)

@@ -302,13 +302,13 @@ export default function HomePlatform() {
             </div>
             
             <div className='flex items-center space-x-6'>
-              <Link href="/privacy" className='text-sm text-muted-foreground hover:text-primary'>
+              <Link href="/platform/privacy" className='text-sm text-muted-foreground hover:text-primary'>
                 Privacy Policy
               </Link>
-              <Link href="/terms" className='text-sm text-muted-foreground hover:text-primary'>
+              <Link href="/platform/terms" className='text-sm text-muted-foreground hover:text-primary'>
                 Terms of Service
               </Link>
-              <Link href="/contact" className='text-sm text-muted-foreground hover:text-primary'>
+              <Link href="/platform/contact" className='text-sm text-muted-foreground hover:text-primary'>
                 Contact
               </Link>
             </div>
