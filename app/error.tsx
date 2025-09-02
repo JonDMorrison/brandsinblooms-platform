@@ -5,13 +5,12 @@ import { Button } from '@/src/components/ui/button'
 import { AlertCircle, RefreshCw, Home } from 'lucide-react'
 import Link from 'next/link'
 
-export default function Error({
-  error,
-  reset,
-}: {
+interface ErrorProps {
   error: Error & { digest?: string }
   reset: () => void
-}) {
+}
+
+export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
     // Log the error to an error reporting service
     console.error('Application error:', error)
@@ -47,21 +46,24 @@ export default function Error({
         </div>
         
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gradient-primary">
-            Oops! Something went wrong
+          <h1 className="text-6xl font-bold text-gradient-primary">
+            500
           </h1>
+          <h2 className="text-2xl font-semibold text-foreground">
+            Something went wrong
+          </h2>
           <p className="text-muted-foreground">
-            We apologize for the inconvenience. An unexpected error has occurred.
+            We apologize for the inconvenience. An unexpected error has occurred while processing your request.
           </p>
         </div>
 
         {process.env.NODE_ENV === 'development' && (
-          <div className="bg-gray-100 p-4 rounded-lg text-left">
-            <p className="text-sm font-mono text-gray-700 break-all">
+          <div className="bg-muted/50 p-4 rounded-lg text-left">
+            <p className="text-sm font-mono text-muted-foreground break-all">
               {error.message}
             </p>
             {error.digest && (
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-muted-foreground/70 mt-2">
                 Error ID: {error.digest}
               </p>
             )}
@@ -84,12 +86,19 @@ export default function Error({
           </Button>
         </div>
 
-        <p className="text-sm text-muted-foreground">
-          If this problem persists, please{' '}
-          <Link href="/contact" className="text-primary hover:underline">
-            contact support
-          </Link>
-        </p>
+        <div className="pt-6 space-y-2">
+          <p className="text-sm text-muted-foreground">
+            If this problem persists, please{' '}
+            <Link href="/contact" className="text-primary hover:underline">
+              contact support
+            </Link>
+          </p>
+          {error.digest && process.env.NODE_ENV === 'production' && (
+            <p className="text-xs text-muted-foreground/70">
+              Error Reference: {error.digest}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   )
