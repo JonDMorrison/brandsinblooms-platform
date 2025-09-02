@@ -121,15 +121,6 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
             </div>
           </div>
         </main>
-
-        {/* Fallback content if provided */}
-        {fallbackContent && (
-          <section className="py-12 border-t">
-            <div className="brand-container">
-              {fallbackContent}
-            </div>
-          </section>
-        )}
       </ThemeWrapper>
     </SiteThemeProvider>
   )

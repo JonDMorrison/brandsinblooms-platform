@@ -132,7 +132,13 @@ export async function middleware(request: NextRequest) {
 
     // Handle development environment
     if (isDevelopmentEnvironment(hostname)) {
-      return handleDevelopmentRequest(request, supabaseResponse, hostname, user)
+      const devResponse = handleDevelopmentRequest(request, supabaseResponse, hostname, user)
+      // If handleDevelopmentRequest returns null, continue to site domain handling
+      if (devResponse === null) {
+        // Continue to site domain resolution below
+      } else {
+        return devResponse
+      }
     }
 
     // Check if this is the main app domain - if so, handle authentication
@@ -270,36 +276,40 @@ function handleMainAppAuthentication(
 
 /**
  * Handles development environment requests
+ * Returns null if the request should be handled as a site domain
  */
 function handleDevelopmentRequest(
   request: NextRequest, 
   response: NextResponse, 
   hostname: string,
   user: User | null
-): NextResponse {
+): NextResponse | null {
   const url = request.nextUrl.clone()
   const pathname = url.pathname
   
-  // Site URL parameter feature has been removed
-  
-  // For subdomain.localhost, extract subdomain
+  // For subdomain.localhost, treat it as a site domain (not main app)
   if (hostname.includes('.localhost')) {
     const subdomain = hostname.split('.')[0]
     if (subdomain && subdomain !== 'localhost') {
+      // Don't handle this as main app - let it fall through to site domain handling
+      // This will trigger the site resolution logic
       response.cookies.set('x-dev-subdomain', subdomain, {
         httpOnly: true,
         maxAge: 60 * 60 * 24, // 1 day
       })
       response.headers.set('x-dev-subdomain', subdomain)
+      
+      // Return null to indicate this should be handled as a site domain
+      return null
     }
   }
   
-  // Handle main app authentication in development
+  // Handle main app authentication in development (only for localhost without subdomain)
   if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('localhost:')) {
     return handleMainAppAuthentication(request, response, user, pathname)
   }
   
-  logDomainResolution(hostname, siteParam || 'dev', 'DEVELOPMENT', 0)
+  logDomainResolution(hostname, 'dev', 'DEVELOPMENT', 0)
   
   return response
 }

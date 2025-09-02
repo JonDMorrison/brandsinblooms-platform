@@ -433,7 +433,10 @@ export function applySecurityHeaders(
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
-      "connect-src 'self' wss: https:",
+      // Allow local development connections to Supabase
+      process.env.NODE_ENV === 'development' 
+        ? "connect-src 'self' wss: https: http://localhost:* http://127.0.0.1:*"
+        : "connect-src 'self' wss: https:",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
