@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import { ProductCatalog } from '@/src/components/site/ProductCatalog'
 import { ShoppingCart } from '@/src/components/site/ShoppingCart'
 import { SiteLayout } from '@/src/components/layout/SiteLayout'
@@ -10,13 +11,34 @@ export const metadata: Metadata = {
 }
 
 interface SitePageProps {
-  params: { 
+  params: Promise<{ 
     slug?: string[] 
-  }
+  }>
 }
 
-export default function SitePage({ params }: SitePageProps) {
-  const path = params.slug?.join('/') || ''
+export default async function SitePage({ params }: SitePageProps) {
+  const { slug } = await params
+  const path = slug?.join('/') || ''
+  
+  // Check if we're on the platform domain
+  const headersList = await headers()
+  const hostname = headersList.get('host') || ''
+  const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+  
+  // Determine if this is the main platform domain
+  // In staging, APP_DOMAIN is already 'staging.blooms.cc'
+  const isMainPlatform = 
+    hostname === 'localhost:3001' || 
+    hostname === 'localhost' ||
+    hostname === APP_DOMAIN || // This handles both blooms.cc and staging.blooms.cc
+    hostname.endsWith('.vercel.app') ||
+    hostname.endsWith('.railway.app')
+  
+  // If on platform domain, return 404 for site-specific routes
+  // This prevents customer site content from appearing on the main platform
+  if (isMainPlatform) {
+    return notFound()
+  }
   
   // Route to appropriate component based on path
   switch (path) {
