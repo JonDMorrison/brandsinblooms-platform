@@ -33,12 +33,12 @@ export default function HomePlatform() {
   if (loading) {
     return (
       <div className='min-h-screen bg-gradient-hero flex items-center justify-center'>
-        <div className='flex items-center space-x-3'>
-          <div className='flex items-center justify-center w-10 h-10 bg-gradient-primary rounded-lg'>
-            <Flower className='h-6 w-6 text-white animate-spin' />
+        <div className='flex items-center space-x-2 sm:space-x-3'>
+          <div className='flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 bg-gradient-primary rounded-lg flex-shrink-0'>
+            <Flower className='h-5 w-5 sm:h-6 sm:w-6 text-white animate-spin' />
           </div>
           <div>
-            <h1 className='text-xl font-brand-heading text-gradient-primary'>
+            <h1 className='text-base sm:text-xl font-brand-heading text-gradient-primary'>
               Loading...
             </h1>
           </div>
@@ -57,12 +57,12 @@ export default function HomePlatform() {
       <header className='relative z-10'>
         <nav className='brand-container py-6'>
           <div className='flex items-center justify-between'>
-            <div className='flex items-center space-x-3'>
-              <div className='flex items-center justify-center w-10 h-10 bg-gradient-primary rounded-lg'>
-                <Flower className='h-6 w-6 text-white' />
+            <div className='flex items-center space-x-2 sm:space-x-3'>
+              <div className='flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 bg-gradient-primary rounded-lg flex-shrink-0'>
+                <Flower className='h-5 w-5 sm:h-6 sm:w-6 text-white' />
               </div>
               <div>
-                <h1 className='text-xl font-brand-heading text-gradient-primary'>
+                <h1 className='text-base sm:text-xl font-brand-heading text-gradient-primary'>
                   Brands in Blooms
                 </h1>
               </div>
@@ -89,7 +89,7 @@ export default function HomePlatform() {
       </header>
 
       {/* Hero Section */}
-      <section className='relative py-20'>
+      <section className='relative py-12 sm:py-16 md:py-20'>
         <div className='brand-container'>
           <div className='grid lg:grid-cols-2 gap-12 items-center'>
             {/* Left Content */}
@@ -101,11 +101,11 @@ export default function HomePlatform() {
                 </span>
               </div>
               
-              <h1 className='text-4xl md:text-6xl font-brand-heading text-gradient-primary'>
+              <h1 className='text-3xl sm:text-4xl md:text-6xl font-brand-heading text-gradient-primary'>
                 Build Beautiful Sites for Your Brands
               </h1>
               
-              <p className='text-lg md:text-xl text-muted-foreground'>
+              <p className='text-base sm:text-lg md:text-xl text-muted-foreground'>
                 Create and manage multiple branded websites with our powerful platform. 
                 Perfect for agencies, franchises, and multi-brand businesses.
               </p>
@@ -179,13 +179,13 @@ export default function HomePlatform() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className='py-20 bg-muted/30'>
+      <section id="features" className='py-12 sm:py-16 md:py-20 bg-muted/30'>
         <div className='brand-container'>
-          <div className='text-center mb-12'>
-            <h2 className='text-3xl md:text-4xl font-brand-heading text-gradient-primary mb-4'>
+          <div className='text-center mb-8 sm:mb-10 md:mb-12'>
+            <h2 className='text-2xl sm:text-3xl md:text-4xl font-brand-heading text-gradient-primary mb-4'>
               Everything You Need to Succeed
             </h2>
-            <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
+            <p className='text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto'>
               Our platform provides all the tools you need to create, manage, and grow your branded websites.
             </p>
           </div>
@@ -268,13 +268,13 @@ export default function HomePlatform() {
       </section>
 
       {/* CTA Section */}
-      <section className='py-20'>
+      <section className='py-12 sm:py-16 md:py-20'>
         <div className='brand-container'>
-          <div className='bg-gradient-primary rounded-2xl p-12 text-center text-white'>
-            <h2 className='text-3xl md:text-4xl font-brand-heading mb-4'>
+          <div className='bg-gradient-primary rounded-2xl p-8 sm:p-10 md:p-12 text-center text-white'>
+            <h2 className='text-2xl sm:text-3xl md:text-4xl font-brand-heading mb-4'>
               Ready to Get Started?
             </h2>
-            <p className='text-lg mb-8 opacity-90 max-w-2xl mx-auto'>
+            <p className='text-base sm:text-lg mb-8 opacity-90 max-w-2xl mx-auto'>
               Join thousands of businesses already using our platform to manage their online presence.
             </p>
             <Button 
