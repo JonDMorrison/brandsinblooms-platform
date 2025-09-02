@@ -3,6 +3,30 @@ import { Database } from '@/lib/database/types';
 import { Site } from '@/lib/database/aliases';
 // No longer need executeQuery imports - using direct Supabase queries
 
+// Navigation item interface
+export interface NavigationItem {
+  label: string;
+  href: string;
+  icon?: string;
+  children?: NavigationItem[];
+}
+
+// Footer column interface
+export interface FooterColumn {
+  title: string;
+  links: Array<{
+    label: string;
+    href: string;
+  }>;
+}
+
+// Social link interface
+export interface SocialLink {
+  platform: string;
+  url: string;
+  icon?: string;
+}
+
 // Theme settings interface
 export interface ThemeSettings {
   colors: {
@@ -21,13 +45,37 @@ export interface ThemeSettings {
   };
   layout: {
     headerStyle: 'modern' | 'classic' | 'minimal';
-    footerStyle: 'minimal' | 'detailed' | 'hidden';
-    menuStyle: 'horizontal' | 'vertical' | 'sidebar';
+    footerStyle: 'minimal' | 'comprehensive' | 'centered' | 'newsletter';
+    menuStyle: 'horizontal' | 'sidebar' | 'hamburger' | 'mega';
+    headerHeight?: 'compact' | 'normal' | 'tall';
+    stickyHeader?: boolean;
+    transparentHeader?: boolean;
+    ctaButton?: {
+      text?: string;
+      href?: string;
+      variant?: string;
+    };
   };
   logo: {
     url: string | null;
     position: 'left' | 'center' | 'right';
     size: 'small' | 'medium' | 'large';
+  };
+  navigation?: {
+    items: NavigationItem[];
+    style: 'horizontal' | 'sidebar' | 'hamburger' | 'mega';
+  };
+  footer?: {
+    style: 'minimal' | 'comprehensive' | 'centered' | 'newsletter';
+    columns: FooterColumn[];
+    newsletter: boolean;
+    socialLinks: SocialLink[];
+    copyright: string;
+    paymentBadges: string[];
+    trustBadges?: {
+      secure?: boolean;
+      shipping?: boolean;
+    };
   };
 }
 
@@ -88,6 +136,8 @@ export async function updateSiteTheme(
     typography: { ...currentTheme.typography, ...theme.typography },
     layout: { ...currentTheme.layout, ...theme.layout },
     logo: { ...currentTheme.logo, ...theme.logo },
+    navigation: theme.navigation ? { ...currentTheme.navigation, ...theme.navigation } : currentTheme.navigation,
+    footer: theme.footer ? { ...currentTheme.footer, ...theme.footer } : currentTheme.footer,
   };
   
   const { data, error } = await client

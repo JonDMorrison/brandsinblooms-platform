@@ -38,6 +38,14 @@ const LogoCustomization = dynamic(
   () => import('@/src/components/design/LogoCustomization'),
   { loading: () => <Skeleton className="h-[400px] w-full" /> }
 )
+const HeaderCustomization = dynamic(
+  () => import('@/src/components/design/HeaderCustomization').then(mod => mod.HeaderCustomization),
+  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+)
+const FooterCustomization = dynamic(
+  () => import('@/src/components/design/FooterCustomization').then(mod => mod.FooterCustomization),
+  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+)
 const DesignPreview = dynamic(
   () => import('@/src/components/design/DesignPreview').then(mod => mod.DesignPreview),
   { loading: () => <Skeleton className="h-[600px] w-full" /> }
@@ -316,7 +324,7 @@ export default function DesignPage() {
       <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
         <CardContent className="p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="colors" className="flex items-center gap-2">
                 <Palette className="h-4 w-4" />
                 Colors
@@ -336,6 +344,10 @@ export default function DesignPage() {
               <TabsTrigger value="layout" className="flex items-center gap-2">
                 <Layout className="h-4 w-4" />
                 Layout
+              </TabsTrigger>
+              <TabsTrigger value="footer" className="flex items-center gap-2">
+                <Layout className="h-4 w-4" />
+                Footer
               </TabsTrigger>
             </TabsList>
 
@@ -369,10 +381,9 @@ export default function DesignPage() {
 
               <TabsContent value="header" className="space-y-6">
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
-                  <LayoutCustomization
-                    layout={localSettings.layout}
-                    onLayoutChange={(layout) => handleSettingChange('layout', layout as Partial<ThemeSettings['layout']>)}
-                    section="header"
+                  <HeaderCustomization
+                    value={localSettings}
+                    onChange={setLocalSettings}
                   />
                 </Suspense>
               </TabsContent>
@@ -383,6 +394,15 @@ export default function DesignPage() {
                     layout={localSettings.layout}
                     onLayoutChange={(layout) => handleSettingChange('layout', layout as Partial<ThemeSettings['layout']>)}
                     section="all"
+                  />
+                </Suspense>
+              </TabsContent>
+
+              <TabsContent value="footer" className="space-y-6">
+                <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
+                  <FooterCustomization
+                    value={localSettings}
+                    onChange={setLocalSettings}
                   />
                 </Suspense>
               </TabsContent>

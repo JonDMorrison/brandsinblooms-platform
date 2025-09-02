@@ -386,7 +386,7 @@ export async function getCategoryProducts(
 
   // Get count first
   const countResponse = await query;
-  let allAssignments = await handleQueryResponse(countResponse);
+  const allAssignments = await handleQueryResponse(countResponse);
 
   // Filter products by site and active status
   const validAssignments = allAssignments.filter(assignment => {

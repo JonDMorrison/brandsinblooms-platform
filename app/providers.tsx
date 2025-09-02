@@ -61,8 +61,8 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
         <ProfileProvider>
           <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           {/* Only provide SiteContext for non-admin routes */}

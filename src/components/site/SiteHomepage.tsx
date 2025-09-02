@@ -7,6 +7,8 @@ import { Button } from '@/src/components/ui/button'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import Link from 'next/link'
 import { SiteThemeProvider, ThemeWrapper } from '@/src/components/theme/ThemeProvider'
+import { SiteLayout } from '@/src/components/layout/SiteLayout'
+import { ProductCatalog } from '@/src/components/site/ProductCatalog'
 
 interface SiteHomepageProps {
   fallbackContent?: React.ReactNode
@@ -60,69 +62,72 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
 
   // Show site homepage for unauthenticated users or public view
   return (
-    <SiteThemeProvider applyToDocument={false}>
-      <ThemeWrapper className="min-h-screen bg-gradient-hero">
-        {/* Site Header */}
-        <header className="relative z-10">
-          <nav className="brand-container py-6">
-            <div className="flex items-center justify-between">
-              <SiteBranding site={site} />
-              
-              {/* Authentication Links */}
-              <div className="flex items-center space-x-4">
-                <Link href="/login">
-                  <Button variant="ghost" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/signup">
-                  <Button size="sm" className="btn-theme-primary">
-                    Sign Up
-                  </Button>
-                </Link>
+    <SiteLayout>
+      {/* Hero Section */}
+      <section className="py-20 bg-gradient-to-b from-background to-muted/20">
+            <div className="brand-container">
+              <div className="text-center space-y-8">
+                {/* Welcome Message */}
+                <div className="space-y-4">
+                  <h1 className="text-4xl md:text-6xl font-brand-heading">
+                    Welcome to {site?.name || 'Our Store'}
+                  </h1>
+                  
+                  {site?.description && (
+                    <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                      {site.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Call to Action */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <Link href="/products">
+                    <Button size="lg" className="btn-theme-primary min-w-[160px]">
+                      Shop Now
+                    </Button>
+                  </Link>
+                  
+                  <Link href="/about">
+                    <Button variant="outline" size="lg" className="min-w-[160px]">
+                      Learn More
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
-          </nav>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 flex items-center justify-center py-12">
-          <div className="brand-container">
-            <div className="text-center space-y-8">
-              {/* Welcome Message */}
-              <div className="space-y-4">
-                <h1 className="text-4xl md:text-6xl font-brand-heading">
-                  Welcome to {site?.name || 'Our Site'}
-                </h1>
-                
-                {site?.description && (
-                  <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                    {site.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Call to Action */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/login">
-                  <Button size="lg" className="btn-theme-primary min-w-[160px]">
-                    Get Started
-                  </Button>
-                </Link>
-                
-                <Link href="/about">
-                  <Button variant="outline" size="lg" className="min-w-[160px]">
-                    Learn More
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Future: Site Features can be added here when settings are implemented */}
+          </section>
+          
+          {/* Featured Products Section */}
+          <section className="py-16">
+            <div className="brand-container">
+              <h2 className="text-3xl font-bold text-center mb-12">Featured Products</h2>
+              <ProductCatalog featured={true} limit={8} />
             </div>
-          </div>
-        </main>
-      </ThemeWrapper>
-    </SiteThemeProvider>
+          </section>
+          
+          {/* Categories Section */}
+          <section className="py-16 bg-muted/20">
+            <div className="brand-container">
+              <h2 className="text-3xl font-bold text-center mb-12">Shop by Category</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {/* Category cards would go here */}
+                <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow">
+                  <h3 className="font-semibold">Flowers</h3>
+                </div>
+                <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow">
+                  <h3 className="font-semibold">Plants</h3>
+                </div>
+                <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow">
+                  <h3 className="font-semibold">Gifts</h3>
+                </div>
+                <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow">
+                  <h3 className="font-semibold">Occasions</h3>
+                </div>
+              </div>
+            </div>
+          </section>
+    </SiteLayout>
   )
 }
 

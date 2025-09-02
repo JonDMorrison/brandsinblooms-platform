@@ -128,7 +128,7 @@ export function ProductEditModal({
   useEffect(() => {
     if (product && isOpen) {
       // Get category IDs from product
-      let primaryCategoryId = product.primary_category_id || null
+      const primaryCategoryId = product.primary_category_id || null
       let additionalCategoryIds: string[] = []
       
       // If product has extended data with category assignments, extract the IDs
