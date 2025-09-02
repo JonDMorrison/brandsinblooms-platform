@@ -41,10 +41,8 @@ export default function AuthModal({ open, onOpenChange, mode, onModeChange }: Au
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="p-0 max-w-md overflow-hidden" showCloseButton={true}>
-        <div className="p-6">
-          {mode === 'signup' ? <SignUp /> : <SignIn />}
-        </div>
+      <DialogContent className="p-0 max-w-md overflow-hidden border-0" showCloseButton={false}>
+        {mode === 'signup' ? <SignUp /> : <SignIn />}
       </DialogContent>
     </Dialog>
   )

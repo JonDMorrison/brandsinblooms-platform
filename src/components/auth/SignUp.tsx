@@ -12,7 +12,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { signUpSchema, type SignUpData } from '@/lib/validations/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
@@ -78,17 +77,17 @@ export default function SignUp() {
   const strengthColor = strengthScore < 2 ? 'text-red-500' : strengthScore < 4 ? 'text-yellow-500' : 'text-green-500'
 
   return (
-    <div className="w-full max-w-md">
-      <Card className="gradient-card shadow-lg hover-scale-sm">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-brand-heading text-primary">
+    <div className="w-full p-6">
+      <div className="space-y-6">
+        <div className="space-y-2 text-center">
+          <h2 className="text-2xl font-brand-heading text-primary">
             Create an Account
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
+          </h2>
+          <p className="text-muted-foreground">
             Join Brands in Blooms to start creating beautiful websites
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -251,7 +250,7 @@ export default function SignUp() {
               />
               <Button
                 type="submit"
-                className="w-full btn-gradient-primary fade-in-up"
+                className="w-full btn-gradient-primary fade-in-up cursor-pointer"
                 style={{ animationDelay: '0.4s' }}
                 disabled={form.formState.isSubmitting}
               >
@@ -266,8 +265,8 @@ export default function SignUp() {
               </Button>
             </form>
           </Form>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
+        </div>
+        <div className="flex flex-col space-y-4">
           <div className="text-sm text-center text-muted-foreground">
             Already have an account?{' '}
             <button
@@ -278,7 +277,7 @@ export default function SignUp() {
                 url.searchParams.set('signin', 'true')
                 window.history.replaceState({}, '', url.toString())
               }}
-              className="text-primary hover:text-primary/80 font-medium transition-colors"
+              className="text-primary hover:text-primary/80 font-medium transition-colors cursor-pointer"
             >
               Sign in
             </button>
@@ -287,7 +286,7 @@ export default function SignUp() {
           <div className="grid grid-cols-2 gap-4 w-full">
             <Button
               variant="outline"
-              className="interactive"
+              className="cursor-pointer"
               onClick={() => handleProviderSignIn('google')}
               disabled={isLoadingProvider === 'google'}
             >
@@ -317,7 +316,7 @@ export default function SignUp() {
             </Button>
             <Button
               variant="outline"
-              className="interactive"
+              className="cursor-pointer"
               onClick={() => handleProviderSignIn('github')}
               disabled={isLoadingProvider === 'github'}
             >
@@ -331,8 +330,8 @@ export default function SignUp() {
               GitHub
             </Button>
           </div>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

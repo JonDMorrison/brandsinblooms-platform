@@ -12,7 +12,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { signInSchema, type SignInData } from '@/lib/validations/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Separator } from '@/components/ui/separator'
 import { signInWithProvider, signInWithMagicLink, handleAuthError } from '@/lib/auth/client'
@@ -81,17 +80,17 @@ export default function SignIn() {
   }
 
   return (
-    <div className="w-full max-w-md">
-      <Card className="gradient-card shadow-lg hover-scale-sm">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-brand-heading text-primary">
+    <div className="w-full p-6">
+      <div className="space-y-6">
+        <div className="space-y-2 text-center">
+          <h2 className="text-2xl font-brand-heading text-primary">
             Welcome Back
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
+          </h2>
+          <p className="text-muted-foreground">
             Sign in to your Brands in Blooms account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -165,7 +164,7 @@ export default function SignIn() {
               </div>
               <Button
                 type="submit"
-                className="w-full btn-gradient-primary fade-in-up"
+                className="w-full btn-gradient-primary fade-in-up cursor-pointer"
                 style={{ animationDelay: '0.3s' }}
                 disabled={form.formState.isSubmitting}
               >
@@ -181,7 +180,7 @@ export default function SignIn() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="w-full cursor-pointer"
                 onClick={handleMagicLinkSignIn}
                 disabled={isLoadingMagicLink}
               >
@@ -199,8 +198,8 @@ export default function SignIn() {
               </Button>
             </form>
           </Form>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
+        </div>
+        <div className="flex flex-col space-y-4">
           <div className="text-sm text-center text-muted-foreground">
             Don&apos;t have an account?{' '}
             <button
@@ -211,7 +210,7 @@ export default function SignIn() {
                 url.searchParams.set('signup', 'true')
                 window.history.replaceState({}, '', url.toString())
               }}
-              className="text-primary hover:text-primary/80 font-medium transition-colors"
+              className="text-primary hover:text-primary/80 font-medium transition-colors cursor-pointer"
             >
               Sign up
             </button>
@@ -220,7 +219,7 @@ export default function SignIn() {
           <div className="grid grid-cols-2 gap-4 w-full">
             <Button
               variant="outline"
-              className="interactive"
+              className="cursor-pointer"
               onClick={() => handleProviderSignIn('google')}
               disabled={isLoadingProvider === 'google'}
             >
@@ -250,7 +249,7 @@ export default function SignIn() {
             </Button>
             <Button
               variant="outline"
-              className="interactive"
+              className="cursor-pointer"
               onClick={() => handleProviderSignIn('github')}
               disabled={isLoadingProvider === 'github'}
             >
@@ -264,8 +263,8 @@ export default function SignIn() {
               GitHub
             </Button>
           </div>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }
