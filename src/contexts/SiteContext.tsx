@@ -301,34 +301,20 @@ export function SiteProvider({
 
   // Initialize site resolution on mount
   useEffect(() => {
-    console.log('[SiteContext] Initialize resolution effect:', {
-      authLoading,
-      hasInitialSiteData: !!initialSiteData,
-      initialSiteId,
-      initialHostname,
-      isClient: typeof window !== 'undefined',
-      currentLoading: loading,
-      timestamp: new Date().toISOString()
-    })
-
     if (authLoading) {
-      console.log('[SiteContext] Skipping - auth still loading')
       return
     }
 
     // If we already have initial site data, don't reload
     if (initialSiteData) {
-      console.log('[SiteContext] Have initial site data, setting loading to false')
       setLoading(false)
       return
     }
 
     // Priority: initialSiteId > initialHostname > current URL
     if (initialSiteId) {
-      console.log('[SiteContext] Loading site by initial ID:', initialSiteId)
       loadSiteById(initialSiteId)
     } else if (initialHostname) {
-      console.log('[SiteContext] Resolving from initial hostname:', initialHostname)
       resolveSiteFromUrl(`https://${initialHostname}`)
     } else if (typeof window !== 'undefined') {
       // Check if we're on the main app domain
@@ -340,23 +326,14 @@ export function SiteProvider({
                           hostname.endsWith('.vercel.app') || 
                           hostname.endsWith('.railway.app')
       
-      console.log('[SiteContext] Client-side check:', {
-        hostname,
-        appDomain,
-        isMainDomain
-      })
-      
       if (!isMainDomain) {
         // Only try to resolve from URL if we're on a site-specific domain
-        console.log('[SiteContext] Not main domain, resolving from URL')
         resolveSiteFromUrl(window.location.href)
       } else {
         // On main domain, let the URL/localStorage effect handle site selection
-        console.log('[SiteContext] Main domain, setting loading to false')
         setLoading(false)
       }
     } else {
-      console.log('[SiteContext] Server-side or no action needed, setting loading to false')
       setLoading(false)
     }
   }, [authLoading, initialSiteId, initialHostname, initialSiteData, loadSiteById, resolveSiteFromUrl])
@@ -388,13 +365,11 @@ export function SiteProvider({
     
     // Skip if user sites are still loading
     if (userSitesLoading) {
-      console.log('[SiteContext] Auto-select: Waiting for user sites to load')
       return
     }
     
     // If no sites available after loading, that's OK - user might not have any sites
     if (userSites.length === 0) {
-      console.log('[SiteContext] Auto-select: No sites available for user')
       return
     }
     
@@ -515,24 +490,12 @@ export const useCurrentSite = () => {
     (isMainDomain && !userSitesLoading)
   )
   
-  const result = { 
+  return { 
     site: currentSite, 
     loading, 
     error,
     isLoaded
   }
-  
-  console.log('[useCurrentSite] Returning:', {
-    siteId: currentSite?.id || 'null',
-    loading,
-    hasError: !!error,
-    isLoaded: result.isLoaded,
-    userSitesLoading,
-    isMainDomain,
-    timestamp: new Date().toISOString()
-  })
-  
-  return result
 }
 
 /**

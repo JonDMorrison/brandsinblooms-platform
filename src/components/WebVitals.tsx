@@ -46,7 +46,10 @@ function sendToAnalytics(metric: WebVitalsMetric) {
       }
     }
 
-    console.log(`[Web Vitals] ${metric.name}: ${metric.value} (${status})`, body)
+    // Commented out - uncomment if you need to debug web vitals
+    // if (process.env.NODE_ENV === 'development') {
+    //   console.log(`[Web Vitals] ${metric.name}: ${metric.value} (${status})`, body)
+    // }
   }
 
   // In production, send to your analytics endpoint
@@ -88,11 +91,14 @@ export function WebVitals() {
       const longTaskObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
           if (entry.duration > 150) {
-            console.warn('[Performance] Long task detected:', {
-              duration: entry.duration,
-              startTime: entry.startTime,
-              name: entry.name,
-            })
+            // Only warn in development
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[Performance] Long task detected:', {
+                duration: entry.duration,
+                startTime: entry.startTime,
+                name: entry.name,
+              })
+            }
           }
         }
       })

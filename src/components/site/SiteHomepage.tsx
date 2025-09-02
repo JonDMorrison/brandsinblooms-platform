@@ -18,25 +18,9 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
   const { site, loading, error, isLoaded } = useCurrentSite()
   const { user, loading: authLoading } = useAuth()
 
-  // Debug logging
-  console.log('[SiteHomepage] Render state:', {
-    site: site?.id || 'null',
-    siteName: site?.name || 'null',
-    loading,
-    authLoading,
-    error,
-    isLoaded,
-    user: user?.email || 'null',
-    hasFallback: !!fallbackContent,
-    timestamp: new Date().toISOString()
-  })
 
   // Show loading state
   if (loading || authLoading) {
-    console.log('[SiteHomepage] Showing loading because:', {
-      siteLoading: loading,
-      authLoading: authLoading
-    })
     return <SiteHomepageLoading />
   }
 
