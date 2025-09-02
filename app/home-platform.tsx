@@ -2,12 +2,39 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Flower, Sparkles, Globe, Shield, Zap, Users, ArrowRight, Check } from 'lucide-react';
+import { Flower, Sparkles, Globe, Shield, Zap, Users, ArrowRight, Check, Settings, Plus } from 'lucide-react';
 import { Button } from '@/src/components/ui/button';
 import { Card, CardContent } from '@/src/components/ui/card';
 import { useAuth } from '@/src/contexts/AuthContext';
+import { useCurrentSite, useUserSites } from '@/src/contexts/SiteContext';
 import AuthModal from '@/components/auth/AuthModal';
 import Link from 'next/link';
+// Simple SiteBranding component
+function SiteBranding({ site }: { site: any }) {
+  return (
+    <div className="flex items-center justify-center space-x-3">
+      {site?.logo_url ? (
+        <img 
+          src={site.logo_url} 
+          alt={`${site.name} logo`}
+          className="h-16 w-16 object-contain"
+        />
+      ) : (
+        <div className="flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-xl">
+          <Flower className="h-8 w-8 text-white" />
+        </div>
+      )}
+      <div className="text-left">
+        <h2 className="text-2xl font-brand-heading text-gradient-primary">
+          {site.name}
+        </h2>
+        {site.business_name && site.business_name !== site.name && (
+          <p className="text-sm text-muted-foreground">{site.business_name}</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function HomePlatform() {
   const searchParams = useSearchParams();
@@ -16,11 +43,12 @@ export default function HomePlatform() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && user) {
-      router.push('/dashboard');
-    }
-  }, [user, loading, router]);
+  // Remove automatic redirect - we'll show welcome screen instead
+  // useEffect(() => {
+  //   if (!loading && user) {
+  //     router.push('/dashboard');
+  //   }
+  // }, [user, loading, router]);
 
   const openAuthModal = (mode: 'signin' | 'signup') => {
     setAuthMode(mode);
@@ -48,7 +76,188 @@ export default function HomePlatform() {
   }
 
   if (user) {
-    return null; // Will redirect to dashboard
+    // Show welcome screen for authenticated users
+    const { site: currentSite, loading: siteLoading } = useCurrentSite();
+    const { sites, loading: sitesLoading } = useUserSites();
+    
+    return (
+      <div className='min-h-screen bg-gradient-hero'>
+        {/* Header */}
+        <header className='relative z-10 border-b bg-background/95 backdrop-blur'>
+          <nav className='brand-container py-6'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center space-x-2 sm:space-x-3'>
+                <div className='flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 bg-gradient-primary rounded-lg flex-shrink-0'>
+                  <Flower className='h-5 w-5 sm:h-6 sm:w-6 text-white' />
+                </div>
+                <div>
+                  <h1 className='text-base sm:text-xl font-brand-heading text-gradient-primary'>
+                    Brands in Blooms
+                  </h1>
+                </div>
+              </div>
+              
+              <div className='flex items-center space-x-4'>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push('/sites')}
+                >
+                  My Sites
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    const { supabase } = await import('@/src/lib/supabase/client');
+                    await supabase.auth.signOut();
+                    router.refresh();
+                  }}
+                >
+                  Sign Out
+                </Button>
+              </div>
+            </div>
+          </nav>
+        </header>
+
+        {/* Welcome Section */}
+        <section className='relative py-12 sm:py-16 md:py-20'>
+          <div className='brand-container'>
+            <div className='text-center space-y-8'>
+              {/* Current Site Display */}
+              {currentSite && (
+                <div className='mb-8'>
+                  <SiteBranding site={currentSite} />
+                  <p className='text-sm text-muted-foreground mt-2'>
+                    Currently selected site
+                  </p>
+                </div>
+              )}
+              
+              <div className='space-y-4'>
+                <h1 className='text-3xl sm:text-4xl md:text-5xl font-brand-heading text-gradient-primary'>
+                  Welcome back{currentSite ? ` to ${currentSite.name}` : ''}!
+                </h1>
+                <p className='text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto'>
+                  Hello {user.email?.split('@')[0]}, ready to continue?
+                </p>
+              </div>
+
+              {/* Action Cards */}
+              <div className='grid md:grid-cols-3 gap-6 max-w-4xl mx-auto'>
+                <Card className='hover:shadow-lg transition-shadow cursor-pointer' onClick={() => router.push('/dashboard')}>
+                  <CardContent className='p-6 text-center space-y-4'>
+                    <div className='flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-xl mx-auto'>
+                      <Settings className='h-8 w-8 text-white' />
+                    </div>
+                    <h3 className='text-lg font-semibold'>Go to Dashboard</h3>
+                    <p className='text-sm text-muted-foreground'>
+                      {currentSite ? `Manage ${currentSite.name}` : 'View analytics and manage your site'}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className='hover:shadow-lg transition-shadow cursor-pointer' onClick={() => router.push('/sites')}>
+                  <CardContent className='p-6 text-center space-y-4'>
+                    <div className='flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-xl mx-auto'>
+                      <Globe className='h-8 w-8 text-white' />
+                    </div>
+                    <h3 className='text-lg font-semibold'>My Sites</h3>
+                    <p className='text-sm text-muted-foreground'>
+                      {sites.length > 0 ? `Manage your ${sites.length} site${sites.length > 1 ? 's' : ''}` : 'Create your first site'}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className='hover:shadow-lg transition-shadow cursor-pointer' onClick={() => currentSite ? router.push('/dashboard/design') : router.push('/sites')}>
+                  <CardContent className='p-6 text-center space-y-4'>
+                    <div className='flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-xl mx-auto'>
+                      {currentSite ? <Sparkles className='h-8 w-8 text-white' /> : <Plus className='h-8 w-8 text-white' />}
+                    </div>
+                    <h3 className='text-lg font-semibold'>{currentSite ? 'Customize Design' : 'Create New Site'}</h3>
+                    <p className='text-sm text-muted-foreground'>
+                      {currentSite ? "Update your site's appearance" : 'Start building your website'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Quick Actions for Current Site */}
+              {currentSite && (
+                <div className='pt-8'>
+                  <h3 className='text-lg font-semibold mb-4'>Quick Actions</h3>
+                  <div className='flex justify-center gap-4 flex-wrap'>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push('/dashboard/content')}
+                    >
+                      Manage Content
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push('/dashboard/products')}
+                    >
+                      Products
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const domain = currentSite.custom_domain || `${currentSite.subdomain}.${process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'}`;
+                        window.open(`https://${domain}`, '_blank');
+                      }}
+                    >
+                      View Live Site
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push('/dashboard/settings')}
+                    >
+                      Site Settings
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* No Site Selected Message */}
+              {!siteLoading && !currentSite && sites.length > 0 && (
+                <Card className='bg-muted/50 max-w-md mx-auto'>
+                  <CardContent className='p-6 text-center'>
+                    <p className='text-sm text-muted-foreground mb-4'>
+                      No site selected. Choose a site to get started.
+                    </p>
+                    <Button onClick={() => router.push('/sites')}>
+                      Select a Site
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Create First Site Prompt */}
+              {!siteLoading && !sitesLoading && sites.length === 0 && (
+                <Card className='bg-muted/50 max-w-md mx-auto'>
+                  <CardContent className='p-6 text-center'>
+                    <Globe className='h-12 w-12 text-muted-foreground mx-auto mb-4' />
+                    <h3 className='text-lg font-semibold mb-2'>No sites yet</h3>
+                    <p className='text-sm text-muted-foreground mb-4'>
+                      Create your first site to get started with Brands in Blooms.
+                    </p>
+                    <Button className='btn-gradient-primary' onClick={() => router.push('/sites')}>
+                      <Plus className='h-4 w-4 mr-2' />
+                      Create Your First Site
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </section>
+      </div>
+    );
   }
 
   return (
