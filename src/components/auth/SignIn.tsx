@@ -41,7 +41,7 @@ export default function SignIn() {
     try {
       await signIn(data.email, data.password)
       toast.success('Successfully signed in!')
-      router.push('/dashboard')
+      router.push('/')
     } catch (error: unknown) {
       const message = handleAuthError(error as AuthError)
       toast.error(message)

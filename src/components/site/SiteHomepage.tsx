@@ -34,11 +34,6 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
     return <SiteNotFound />
   }
 
-  // If no site but we have fallback content, show that
-  if (!site && fallbackContent) {
-    return <>{fallbackContent}</>
-  }
-
   // Check if we're on the main app domain
   const isMainDomain = typeof window !== 'undefined' && (
     window.location.hostname === 'localhost' ||
@@ -48,12 +43,19 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
     window.location.hostname === process.env.NEXT_PUBLIC_APP_DOMAIN
   )
 
+  // On main domain, always show the fallback content (HomePlatform)
+  // This ensures the platform landing page is shown on localhost, not a site
+  if (isMainDomain && fallbackContent) {
+    return <>{fallbackContent}</>
+  }
+
+  // If no site but we have fallback content, show that
+  if (!site && fallbackContent) {
+    return <>{fallbackContent}</>
+  }
+
   // If user is authenticated and this is their site
   if (user && site) {
-    // On main domain, show the fallback content (HomePlatform) instead
-    if (isMainDomain && fallbackContent) {
-      return <>{fallbackContent}</>
-    }
     // On site-specific domains, show the authenticated site view
     return <AuthenticatedSiteView site={site} user={user} />
   }

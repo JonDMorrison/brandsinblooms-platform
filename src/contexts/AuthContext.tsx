@@ -66,6 +66,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
+    
+    // Clear site-related cookies when signing out to ensure clean state
+    if (typeof window !== 'undefined') {
+      document.cookie = 'x-site-id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+      document.cookie = 'x-site-subdomain=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+      document.cookie = 'x-site-custom-domain=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    }
   }
 
   return (

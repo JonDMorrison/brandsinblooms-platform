@@ -40,8 +40,12 @@ export default function HomePlatform() {
   const searchParams = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const router = useRouter();
+  
+  // Always call hooks unconditionally
+  const { site: currentSite, loading: siteLoading } = useCurrentSite();
+  const { sites, loading: sitesLoading } = useUserSites();
 
   // Remove automatic redirect - we'll show welcome screen instead
   // useEffect(() => {
@@ -77,9 +81,6 @@ export default function HomePlatform() {
 
   if (user) {
     // Show welcome screen for authenticated users
-    const { site: currentSite, loading: siteLoading } = useCurrentSite();
-    const { sites, loading: sitesLoading } = useUserSites();
-    
     return (
       <div className='min-h-screen bg-gradient-hero'>
         {/* Header */}
@@ -109,9 +110,7 @@ export default function HomePlatform() {
                   variant="ghost"
                   size="sm"
                   onClick={async () => {
-                    const { supabase } = await import('@/src/lib/supabase/client');
-                    await supabase.auth.signOut();
-                    router.refresh();
+                    await signOut();
                   }}
                 >
                   Sign Out
