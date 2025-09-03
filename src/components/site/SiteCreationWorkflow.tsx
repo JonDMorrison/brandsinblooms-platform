@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -138,6 +138,16 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
       template: '',
     },
   })
+
+  // Extract domain from window location or use default
+  const appDomain = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      // In browser, use current host
+      return window.location.host
+    }
+    // Fallback for SSR
+    return 'localhost:3001'
+  }, [])
 
   // Check subdomain availability when it changes
   React.useEffect(() => {
@@ -305,7 +315,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
                     <div className="flex items-center">
                       <Input placeholder="my-site" {...field} />
                       <span className="ml-2 text-sm text-muted-foreground">
-                        .blooms.cc
+                        .{appDomain}
                       </span>
                     </div>
                   </FormControl>
@@ -466,7 +476,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
                   <div>
                     <p className="text-sm font-medium">URL</p>
                     <p className="text-sm text-muted-foreground">
-                      https://{form.getValues('subdomain')}.blooms.cc
+                      https://{form.getValues('subdomain')}.{appDomain}
                     </p>
                   </div>
                   <div>

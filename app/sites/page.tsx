@@ -146,8 +146,14 @@ export default function SitesPage() {
     if (site.custom_domain) {
       return `https://${site.custom_domain}`
     }
-    const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
-    return `https://${site.subdomain}.${appDomain}`
+    // Extract domain from NEXT_PUBLIC_APP_DOMAIN or use current host
+    const appDomain = typeof window !== 'undefined' 
+      ? window.location.host 
+      : 'localhost:3001'
+    const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' 
+      ? 'https' 
+      : 'http'
+    return `${protocol}://${site.subdomain}.${appDomain}`
   }
 
   if (authLoading || loading) {
@@ -255,7 +261,7 @@ export default function SitesPage() {
                           rel="noopener noreferrer"
                           className="hover:text-primary flex items-center"
                         >
-                          {site.custom_domain || `${site.subdomain}.${process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'}`}
+                          {site.custom_domain || `${site.subdomain}.${typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}`}
                           <ExternalLink className="h-3 w-3 ml-1" />
                         </a>
                       </div>
@@ -336,7 +342,7 @@ export default function SitesPage() {
                   onChange={(e) => setNewSite({ ...newSite, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
                 />
                 <span className="text-sm text-muted-foreground">
-                  .{process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'}
+                  .{typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
