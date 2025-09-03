@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Globe, Calendar, Settings, ExternalLink, Loader2 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/src/components/ui/card'
@@ -18,21 +19,19 @@ import { supabase } from '@/src/lib/supabase/client'
 interface Site {
   id: string
   name: string
-  business_name: string
+  business_name: string | null
   subdomain: string
   custom_domain: string | null
   created_at: string
-  is_active: boolean
+  is_active: boolean | null
   role: string
 }
 
 export default function SitesPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const [sites, setSites] = useState<Site[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isCreating, setIsCreating] = useState(false)
   const [newSite, setNewSite] = useState({
     name: '',
     business_name: '',
@@ -40,53 +39,37 @@ export default function SitesPage() {
     description: ''
   })
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/')
-      return
-    }
-
-    if (user) {
-      loadSites()
-    }
-  }, [user, authLoading, router])
-
-  const loadSites = async () => {
-    if (!user) return
-
-    try {
-      setLoading(true)
+  // Fetch sites using React Query
+  const { 
+    data: sitesData, 
+    isLoading, 
+    error,
+    refetch 
+  } = useQuery({
+    queryKey: ['user-sites', user?.id],
+    queryFn: async () => {
+      if (!user) return []
       const result = await getUserSites(user.id)
-      
-      if (result.data) {
-        setSites(result.data.map(access => ({
-          id: access.site.id,
-          name: access.site.name,
-          business_name: access.site.business_name,
-          subdomain: access.site.subdomain,
-          custom_domain: access.site.custom_domain,
-          created_at: access.site.created_at,
-          is_active: access.site.is_active,
-          role: access.role
-        })))
+      if (result.error) {
+        throw new Error(result.error.message)
       }
-    } catch (error) {
-      toast.error('Failed to load sites')
-    } finally {
-      setLoading(false)
-    }
-  }
+      return result.data || []
+    },
+    enabled: !!user && !authLoading,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
+  })
 
-  const handleCreateSite = async () => {
-    if (!user) return
-
-    try {
-      setIsCreating(true)
+  // Create site mutation (must be before conditionals for hooks rules)
+  const createSiteMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('User not authenticated')
 
       // Validate inputs
       if (!newSite.name || !newSite.subdomain) {
-        toast.error('Please fill in all required fields')
-        return
+        throw new Error('Please fill in all required fields')
       }
 
       // Check if subdomain is available
@@ -97,8 +80,7 @@ export default function SitesPage() {
         .single()
 
       if (existingSite) {
-        toast.error('This subdomain is already taken')
-        return
+        throw new Error('This subdomain is already taken')
       }
 
       // Create the site
@@ -119,7 +101,7 @@ export default function SitesPage() {
 
       // Create owner membership
       const { error: memberError } = await supabase
-        .from('site_members')
+        .from('site_memberships')
         .insert({
           site_id: site.id,
           user_id: user.id,
@@ -128,18 +110,45 @@ export default function SitesPage() {
 
       if (memberError) throw memberError
 
+      return site
+    },
+    onSuccess: (site) => {
       toast.success('Site created successfully!')
       setIsCreateModalOpen(false)
       setNewSite({ name: '', business_name: '', subdomain: '', description: '' })
-      loadSites()
+      
+      // Invalidate and refetch sites
+      queryClient.invalidateQueries({ queryKey: ['user-sites', user?.id] })
       
       // Redirect to the new site's dashboard
       router.push(`/dashboard?site=${site.id}`)
-    } catch (error) {
-      toast.error('Failed to create site')
-    } finally {
-      setIsCreating(false)
+    },
+    onError: (error: Error) => {
+      console.error('Error creating site:', error)
+      toast.error(error.message || 'Failed to create site')
     }
+  })
+
+  const handleCreateSite = () => {
+    createSiteMutation.mutate()
+  }
+
+  // Transform sites data
+  const sites: Site[] = (sitesData || []).map(access => ({
+    id: access.site.id,
+    name: access.site.name,
+    business_name: access.site.business_name || null,
+    subdomain: access.site.subdomain,
+    custom_domain: access.site.custom_domain,
+    created_at: access.site.created_at,
+    is_active: access.site.is_active ?? true,
+    role: access.role
+  }))
+
+  // Redirect if not authenticated
+  if (!authLoading && !user) {
+    router.push('/')
+    return null
   }
 
   const getSiteUrl = (site: Site) => {
@@ -156,12 +165,25 @@ export default function SitesPage() {
     return `${protocol}://${site.subdomain}.${appDomain}`
   }
 
-  if (authLoading || loading) {
+  // Show loading spinner
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
         <div className="flex items-center space-x-3">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
           <span className="text-lg">Loading sites...</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">Failed to load sites</p>
+          <Button onClick={() => refetch()}>Try Again</Button>
         </div>
       </div>
     )
@@ -242,9 +264,11 @@ export default function SitesPage() {
                     <div className="flex items-start justify-between">
                       <div>
                         <CardTitle className="text-lg">{site.name}</CardTitle>
-                        <CardDescription className="mt-1">
-                          {site.business_name}
-                        </CardDescription>
+                        {site.business_name && (
+                          <CardDescription className="mt-1">
+                            {site.business_name}
+                          </CardDescription>
+                        )}
                       </div>
                       <Badge variant={site.is_active ? "default" : "secondary"}>
                         {site.is_active ? "Active" : "Inactive"}
@@ -366,16 +390,16 @@ export default function SitesPage() {
             <Button
               variant="outline"
               onClick={() => setIsCreateModalOpen(false)}
-              disabled={isCreating}
+              disabled={createSiteMutation.isPending}
             >
               Cancel
             </Button>
             <Button
               className="btn-gradient-primary"
               onClick={handleCreateSite}
-              disabled={isCreating || !newSite.name || !newSite.subdomain}
+              disabled={createSiteMutation.isPending || !newSite.name || !newSite.subdomain}
             >
-              {isCreating ? (
+              {createSiteMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Creating...
