@@ -20,7 +20,7 @@ import {
   ProductFilters
 } from '@/lib/queries/domains/products';
 import { checkAndCreateLowStockNotification } from '../../app/actions/low-stock-notification';
-import { useSiteId } from '@/contexts/SiteContext';
+import { useSiteId } from '@/src/contexts/SiteContext';
 import { Product, ProductInsert, ProductUpdate } from '@/lib/database/aliases';
 
 // Main products query hook

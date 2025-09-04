@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
-import { useSiteId } from '@/contexts/SiteContext';
+import { useSiteId } from '@/src/contexts/SiteContext';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { getUnreadNotificationCount } from '@/lib/queries/domains/notifications';
 import { useEffect, useCallback } from 'react';

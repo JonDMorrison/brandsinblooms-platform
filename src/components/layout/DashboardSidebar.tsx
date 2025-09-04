@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import { 
   Home, 
@@ -32,13 +32,24 @@ const navigationItems = [
 export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Preserve site parameter in navigation
+  const preserveSiteParam = (href: string) => {
+    const siteParam = searchParams.get('site')
+    if (siteParam) {
+      const separator = href.includes('?') ? '&' : '?'
+      return `${href}${separator}site=${siteParam}`
+    }
+    return href
+  }
 
   // Prefetch dashboard routes on component mount
   useEffect(() => {
     navigationItems.forEach(item => {
-      router.prefetch(item.href)
+      router.prefetch(preserveSiteParam(item.href))
     })
-  }, [router])
+  }, [router, searchParams])
 
   return (
     <div className="h-full flex flex-col bg-white border-r shadow-lg">
@@ -78,7 +89,7 @@ export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={preserveSiteParam(item.href)}
               onClick={onClose}
               className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
                 isActive

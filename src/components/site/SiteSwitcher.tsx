@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { 
   useSiteSwitcher, 
   useCurrentSite, 
@@ -24,6 +25,9 @@ export function SiteSwitcher() {
   const { site: currentSite, loading } = useCurrentSite()
   const { role, canManage } = useSitePermissions()
   const [switching, setSwitching] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   const handleSiteSwitch = async (siteId: string | null) => {
     if (siteId === currentSiteId || switching) return
@@ -31,6 +35,15 @@ export function SiteSwitcher() {
     try {
       setSwitching(true)
       await switchSite(siteId)
+      
+      // Update URL with new site parameter
+      const params = new URLSearchParams(searchParams)
+      if (siteId) {
+        params.set('site', siteId)
+      } else {
+        params.delete('site')
+      }
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
     } catch (error) {
       console.error('Failed to switch site:', error)
     } finally {
@@ -143,6 +156,9 @@ export function CompactSiteSwitcher() {
   const { switchSite, availableSites, currentSiteId } = useSiteSwitcher()
   const { site: currentSite, loading } = useCurrentSite()
   const [switching, setSwitching] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   const handleSiteSwitch = async (siteId: string | null) => {
     if (siteId === currentSiteId || switching) return
@@ -150,6 +166,15 @@ export function CompactSiteSwitcher() {
     try {
       setSwitching(true)
       await switchSite(siteId)
+      
+      // Update URL with new site parameter
+      const params = new URLSearchParams(searchParams)
+      if (siteId) {
+        params.set('site', siteId)
+      } else {
+        params.delete('site')
+      }
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
     } catch (error) {
       console.error('Failed to switch site:', error)
     } finally {

@@ -10,7 +10,7 @@ import {
   uploadMultipleProductImages, 
   deleteProductImage 
 } from '@/lib/supabase/storage';
-import { useSiteId } from '@/contexts/SiteContext';
+import { useSiteId } from '@/src/contexts/SiteContext';
 import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
 import { handleError } from '@/lib/types/error-handling';
 import { 

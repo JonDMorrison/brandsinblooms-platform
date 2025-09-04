@@ -21,6 +21,10 @@ export const queryKeys = {
       [...queryKeys.sites.lists(), filters] as const,
     details: () => [...queryKeys.sites.all(), 'detail'] as const,
     detail: (id: string) => [...queryKeys.sites.details(), id] as const,
+    current: () => [...queryKeys.sites.all(), 'current'] as const,
+    userSites: (userId: string) => [...queryKeys.sites.all(), 'user', userId] as const,
+    access: (userId: string, siteId: string) => 
+      [...queryKeys.sites.all(), 'access', userId, siteId] as const,
     memberships: (siteId: string) => 
       [...queryKeys.sites.detail(siteId), 'memberships'] as const,
     placeholderSettings: (siteId: string) => 

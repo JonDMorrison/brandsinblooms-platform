@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useSiteId } from '@/contexts/SiteContext';
+import { useSiteId } from '@/src/contexts/SiteContext';
 import { handleError } from '@/lib/types/error-handling';
 import { queryKeys } from '@/lib/queries/keys';
 import { 

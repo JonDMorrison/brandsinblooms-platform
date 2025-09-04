@@ -5,7 +5,8 @@ import {
   useContext, 
   useEffect, 
   useState, 
-  useCallback, 
+  useCallback,
+  useRef, 
   ReactNode 
 } from 'react'
 import { useAuth } from './AuthContext'
@@ -81,6 +82,10 @@ export function SiteProvider({
   const [userSitesError, setUserSitesError] = useState<SiteQueryError | null>(null)
 
   const { user, loading: authLoading } = useAuth()
+  
+  // AbortController refs for cancelling in-flight requests
+  const siteLoadAbortRef = useRef<AbortController>()
+  const userSitesAbortRef = useRef<AbortController>()
 
   /**
    * Resolves and loads a site from hostname
@@ -175,6 +180,11 @@ export function SiteProvider({
    * Loads a site by ID and sets it as current
    */
   const loadSiteById = useCallback(async (siteId: string, updateUrl = true) => {
+    // Cancel any previous load operation
+    siteLoadAbortRef.current?.abort()
+    siteLoadAbortRef.current = new AbortController()
+    const abortSignal = siteLoadAbortRef.current.signal
+    
     try {
       setLoading(true)
       setError(null)
@@ -190,22 +200,32 @@ export function SiteProvider({
 
       const accessResult = await checkUserSiteAccess(user.id, siteId)
       
+      // Check if request was aborted
+      if (abortSignal.aborted) return
+      
       if (accessResult.error) {
-        setError(accessResult.error)
-        setCurrentSite(null)
-        setUserAccess(null)
+        if (!abortSignal.aborted) {
+          setError(accessResult.error)
+          setCurrentSite(null)
+          setUserAccess(null)
+        }
         return
       }
 
       if (!accessResult.data) {
-        setError({
-          code: 'ACCESS_DENIED',
-          message: 'User does not have access to this site'
-        })
-        setCurrentSite(null)
-        setUserAccess(null)
+        if (!abortSignal.aborted) {
+          setError({
+            code: 'ACCESS_DENIED',
+            message: 'User does not have access to this site'
+          })
+          setCurrentSite(null)
+          setUserAccess(null)
+        }
         return
       }
+
+      // Final check before updating state
+      if (abortSignal.aborted) return
 
       setCurrentSite(accessResult.data.site)
       setUserAccess(accessResult.data)
@@ -214,6 +234,13 @@ export function SiteProvider({
 
       // Clear site resolution since we're loading by ID
       setSiteResolution(null)
+      
+      // Update URL with site parameter when requested
+      if (updateUrl && typeof window !== 'undefined') {
+        const url = new URL(window.location.href)
+        url.searchParams.set('site', siteId)
+        window.history.replaceState({}, '', url.toString())
+      }
       
       // Save to localStorage when site is successfully loaded
       if (typeof window !== 'undefined') {
@@ -242,19 +269,32 @@ export function SiteProvider({
       return
     }
 
+    // Cancel any previous user sites load operation
+    userSitesAbortRef.current?.abort()
+    userSitesAbortRef.current = new AbortController()
+    const abortSignal = userSitesAbortRef.current.signal
+
     try {
       setUserSitesLoading(true)
       setUserSitesError(null)
 
       const result = await getUserSites(user.id)
       
+      // Check if request was aborted
+      if (abortSignal.aborted) return
+      
       if (result.error) {
-        setUserSitesError(result.error)
-        setUserSites([])
+        if (!abortSignal.aborted) {
+          setUserSitesError(result.error)
+          setUserSites([])
+        }
         return
       }
 
-      setUserSites(result.data || [])
+      // Final check before updating state
+      if (!abortSignal.aborted) {
+        setUserSites(result.data || [])
+      }
     } catch (err) {
       setUserSitesError({
         code: 'LOAD_FAILED',
@@ -426,6 +466,14 @@ export function SiteProvider({
       })
     }
   }, [currentSite?.id, user?.id, userAccess])
+
+  // Cleanup on unmount - cancel any pending requests
+  useEffect(() => {
+    return () => {
+      siteLoadAbortRef.current?.abort()
+      userSitesAbortRef.current?.abort()
+    }
+  }, [])
 
   const value: SiteContextType = {
     // Current site state

@@ -20,7 +20,7 @@ import {
   ReviewWithProfile,
   ProductRatingAggregation
 } from '@/lib/queries/domains/reviews';
-import { useSiteId } from '@/contexts/SiteContext';
+import { useSiteId } from '@/src/contexts/SiteContext';
 import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
 
 type ProductReview = Tables<'product_reviews'>;

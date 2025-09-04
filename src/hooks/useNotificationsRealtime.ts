@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
-import { useSiteId } from '@/contexts/SiteContext';
+import { useSiteId } from '@/src/contexts/SiteContext';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { queryKeys } from '@/lib/queries/keys';
 import { NotificationWithUser } from '@/lib/types/notifications';

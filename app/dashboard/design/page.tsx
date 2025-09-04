@@ -125,12 +125,12 @@ export default function DesignPage() {
     addToHistory(settings)
   }, 1000)
   
-  // Initialize local settings from database
+  // Initialize and update local settings from database when site changes
   useEffect(() => {
-    if (designSettings && !localSettings) {
+    if (designSettings) {
       setLocalSettings(designSettings)
     }
-  }, [designSettings, localSettings])
+  }, [designSettings])
   
   // Update handler that saves to both local state and database
   const handleSettingChange = (category: keyof ThemeSettings, value: Partial<ThemeSettings[keyof ThemeSettings]>) => {

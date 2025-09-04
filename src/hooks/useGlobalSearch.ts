@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
-import { useSiteId } from '@/contexts/SiteContext';
+import { useSiteId } from '@/src/contexts/SiteContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { searchContentEnhanced, EnhancedSearchResult } from '@/lib/queries/domains/content';
 import { handleError } from '@/lib/types/error-handling';

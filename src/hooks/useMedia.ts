@@ -9,7 +9,7 @@ import {
   deleteMediaWithStorage,
   getMediaStats
 } from '@/lib/queries/domains/media';
-import { useSiteId } from '@/contexts/SiteContext';
+import { useSiteId } from '@/src/contexts/SiteContext';
 import { supabase } from '@/lib/supabase/client';
 
 // Get all media files

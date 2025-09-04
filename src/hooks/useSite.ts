@@ -11,7 +11,7 @@ import { Site } from '@/lib/database/aliases'
 // Import hooks from SiteContext
 import {
   useSiteContext,
-} from '@/contexts/SiteContext'
+} from '@/src/contexts/SiteContext'
 
 // Re-export existing hooks from SiteContext
 export { 
@@ -20,10 +20,10 @@ export {
   useUserSites,
   useSitePermissions,
   useSiteSwitcher
-} from '@/contexts/SiteContext'
+} from '@/src/contexts/SiteContext'
 
 // Re-export types for convenience
-export type { SiteContextType } from '@/contexts/SiteContext'
+export type { SiteContextType } from '@/src/contexts/SiteContext'
 export type { 
   Site, 
   SiteMembership, 

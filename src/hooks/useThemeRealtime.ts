@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
-import { useSiteId } from '@/contexts/SiteContext';
+import { useSiteId } from '@/src/contexts/SiteContext';
 import { queryKeys } from '@/lib/queries/keys';
 import { ThemeSettings } from '@/lib/queries/domains/theme';
 import { applyThemeToDOM } from '@/lib/queries/domains/theme';

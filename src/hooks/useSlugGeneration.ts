@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
-import { useSiteId } from '@/contexts/SiteContext';
+import { useSiteId } from '@/src/contexts/SiteContext';
 import { useDebounceCallback } from '@/hooks/useDebounce';
 import { generateUniqueSlug, validateSlug, sanitizeSlug } from '@/lib/utils/slug';
 import { handleError } from '@/lib/types/error-handling';

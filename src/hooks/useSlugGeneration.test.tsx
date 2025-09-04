@@ -14,7 +14,7 @@ jest.mock('@supabase/auth-helpers-nextjs', () => ({
   createClientComponentClient: jest.fn(() => mockSupabase),
 }))
 
-jest.mock('@/contexts/SiteContext', () => ({
+jest.mock('@/src/contexts/SiteContext', () => ({
   useSiteId: jest.fn(() => 'test-site-id'),
 }))
 
