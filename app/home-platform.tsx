@@ -182,45 +182,6 @@ export default function HomePlatform() {
                 </Card>
               </div>
 
-              {/* Quick Actions for Current Site */}
-              {currentSite && (
-                <div className='pt-8'>
-                  <h3 className='text-lg font-semibold mb-4'>Quick Actions</h3>
-                  <div className='flex justify-center gap-4 flex-wrap'>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.push('/dashboard/content')}
-                    >
-                      Manage Content
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.push('/dashboard/products')}
-                    >
-                      Products
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const domain = currentSite.custom_domain || `${currentSite.subdomain}.${process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'}`;
-                        window.open(`https://${domain}`, '_blank');
-                      }}
-                    >
-                      View Live Site
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.push('/dashboard/settings')}
-                    >
-                      Site Settings
-                    </Button>
-                  </div>
-                </div>
-              )}
 
               {/* No Site Selected Message */}
               {!siteLoading && !currentSite && sites.length > 0 && (
