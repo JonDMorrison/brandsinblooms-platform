@@ -5,13 +5,13 @@ import {
   extractHostname as extractHostnameFromResolution,
   isValidSubdomain,
   isValidCustomDomain
-} from '@/src/lib/site/resolution'
-import { getSiteFromCache, setSiteCache } from '@/src/lib/cache/site-cache'
+} from '@/lib/site/resolution'
+import { getSiteFromCache, setSiteCache } from '@/lib/cache/site-cache'
 // Import Redis cache functions dynamically to avoid bundling Node.js built-ins
-// import { getSiteFromRedisCache, setSiteInRedisCache } from '@/src/lib/cache/redis-site-cache.server'
-import { logDomainResolution } from '@/src/lib/site/middleware-utils'
-import { applyMultiDomainSecurity } from '@/src/lib/security/multi-domain-security'
-import { trackDomainResolution, trackPerformance } from '@/src/lib/monitoring/site-analytics'
+// import { getSiteFromRedisCache, setSiteInRedisCache } from '@/lib/cache/redis-site-cache.server'
+import { logDomainResolution } from '@/lib/site/middleware-utils'
+import { applyMultiDomainSecurity } from '@/lib/security/multi-domain-security'
+import { trackDomainResolution, trackPerformance } from '@/lib/monitoring/site-analytics'
 
 // Environment configuration
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
@@ -306,7 +306,10 @@ function handleDevelopmentRequest(
   }
   
   // Handle main app authentication in development (only for localhost without subdomain)
-  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('localhost:')) {
+  // For plain localhost (main platform domain), don't require authentication for public routes
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || (hostname.includes('localhost:') && !hostname.includes('.'))) {
+    // This is the main platform domain, not a site domain
+    // Allow access to public routes without authentication
     return handleMainAppAuthentication(request, response, user, pathname)
   }
   
@@ -532,7 +535,7 @@ async function handleSiteDomain(
   if (false && USE_REDIS_CACHE) {
     try {
       // Dynamic import to avoid bundling Redis client with Node.js built-ins
-      const { getSiteFromRedisCache } = await import('@/src/lib/cache/redis-site-cache.server')
+      const { getSiteFromRedisCache } = await import('@/lib/cache/redis-site-cache.server')
       site = await getSiteFromRedisCache(siteResolution.value, siteResolution.type)
     } catch (importError) {
       console.warn('[Middleware] Redis cache import failed, falling back to memory cache:', importError)
@@ -573,7 +576,7 @@ async function handleSiteDomain(
       if (false && USE_REDIS_CACHE) {
         try {
           // Dynamic import to avoid bundling Redis client with Node.js built-ins
-          const { setSiteInRedisCache } = await import('@/src/lib/cache/redis-site-cache.server')
+          const { setSiteInRedisCache } = await import('@/lib/cache/redis-site-cache.server')
           await setSiteInRedisCache(siteResolution.value, siteResolution.type, site)
         } catch (importError) {
           console.warn('[Middleware] Redis cache import failed, falling back to memory cache:', importError)
