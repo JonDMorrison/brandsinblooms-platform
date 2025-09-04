@@ -162,7 +162,7 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
             )}
             <iframe
               ref={iframeRef}
-              src={`/?preview=true&siteId=${siteId}`}
+              src={`/preview?siteId=${siteId}`}
               className="w-full h-full border-0"
               title="Design Preview"
               sandbox="allow-same-origin allow-scripts allow-forms"
