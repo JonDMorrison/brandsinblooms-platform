@@ -104,9 +104,6 @@ dependencies:
   '@supabase/supabase-js':
     specifier: ^2.53.0
     version: 2.53.0
-  '@tanstack/react-query':
-    specifier: ^5.83.1
-    version: 5.83.1(react@19.1.1)
   '@tanstack/react-table':
     specifier: ^8.21.3
     version: 8.21.3(react-dom@19.1.1)(react@19.1.1)
@@ -133,7 +130,7 @@ dependencies:
     version: 3.2.0
   '@tiptap/react':
     specifier: ^3.2.0
-    version: 3.2.0(@floating-ui/dom@1.7.3)(@tiptap/core@3.2.0)(@tiptap/pm@3.2.0)(react-dom@19.1.1)(react@19.1.1)
+    version: 3.2.0(@floating-ui/dom@1.7.4)(@tiptap/core@3.2.0)(@tiptap/pm@3.2.0)(react-dom@19.1.1)(react@19.1.1)
   '@tiptap/starter-kit':
     specifier: ^3.2.0
     version: 3.2.0
@@ -220,9 +217,6 @@ devDependencies:
   '@tailwindcss/postcss':
     specifier: ^4.1.11
     version: 4.1.11
-  '@tanstack/react-query-devtools':
-    specifier: ^5.83.1
-    version: 5.83.1(@tanstack/react-query@5.83.1)(react@19.1.1)
   '@testing-library/jest-dom':
     specifier: ^6.6.4
     version: 6.6.4
@@ -4364,32 +4358,6 @@ packages:
       tailwindcss: 4.1.11
     dev: true
 
-  /@tanstack/query-core@5.83.1:
-    resolution: {integrity: sha512-OG69LQgT7jSp+5pPuCfzltq/+7l2xoweggjme9vlbCPa/d7D7zaqv5vN/S82SzSYZ4EDLTxNO1PWrv49RAS64Q==}
-
-  /@tanstack/query-devtools@5.83.1:
-    resolution: {integrity: sha512-KOQ3SMLnHHrnwwAHflK50QT8zEHg3rjPZx6cd+G7yZl4vU9moctTQU1A3zvHYEXabzKu5G31bcll6qhNCya9+w==}
-    dev: true
-
-  /@tanstack/react-query-devtools@5.83.1(@tanstack/react-query@5.83.1)(react@19.1.1):
-    resolution: {integrity: sha512-t5zcIHoSbT4ducv5YBYULgol6mt1gflHBLbN9oMa/VvPxVtQBY7nyDWFzOYycGXLlH3RrSp7w+oFBTB2GS04Ug==}
-    peerDependencies:
-      '@tanstack/react-query': ^5.83.1
-      react: ^18 || ^19
-    dependencies:
-      '@tanstack/query-devtools': 5.83.1
-      '@tanstack/react-query': 5.83.1(react@19.1.1)
-      react: 19.1.1
-    dev: true
-
-  /@tanstack/react-query@5.83.1(react@19.1.1):
-    resolution: {integrity: sha512-JHZ3xox3p0sqCgM7ykBRtMWSLmWgjR7I+oJMAZ1beK/O/gfShI2b/PdovL2/ivVLUZklXgBenQu4ZjPhIM+yrw==}
-    peerDependencies:
-      react: ^18 || ^19
-    dependencies:
-      '@tanstack/query-core': 5.83.1
-      react: 19.1.1
-
   /@tanstack/react-table@8.21.3(react-dom@19.1.1)(react@19.1.1):
     resolution: {integrity: sha512-5nNMTSETP4ykGegmVkhjcS8tTLW6Vl4axfEGQN3v0zdHYbK4UfoqfPChclTrJ4EoK9QynqAu9oUf8VEmrpZ5Ww==}
     engines: {node: '>=12'}
@@ -4553,7 +4521,7 @@ packages:
       '@tiptap/extensions': 3.2.0(@tiptap/core@3.2.0)(@tiptap/pm@3.2.0)
     dev: false
 
-  /@tiptap/extension-floating-menu@3.2.0(@floating-ui/dom@1.7.3)(@tiptap/core@3.2.0)(@tiptap/pm@3.2.0):
+  /@tiptap/extension-floating-menu@3.2.0(@floating-ui/dom@1.7.4)(@tiptap/core@3.2.0)(@tiptap/pm@3.2.0):
     resolution: {integrity: sha512-CZJztT6eC8QKNwx+89PeJGhxSsGeU04/fPS18/y2DP4bEumrfTEq7jbtholJsLqErpghOdmm0XS+byYI6Dk9pg==}
     requiresBuild: true
     peerDependencies:
@@ -4561,7 +4529,7 @@ packages:
       '@tiptap/core': ^3.2.0
       '@tiptap/pm': ^3.2.0
     dependencies:
-      '@floating-ui/dom': 1.7.3
+      '@floating-ui/dom': 1.7.4
       '@tiptap/core': 3.2.0(@tiptap/pm@3.2.0)
       '@tiptap/pm': 3.2.0
     dev: false
@@ -4751,7 +4719,7 @@ packages:
       prosemirror-view: 1.40.1
     dev: false
 
-  /@tiptap/react@3.2.0(@floating-ui/dom@1.7.3)(@tiptap/core@3.2.0)(@tiptap/pm@3.2.0)(react-dom@19.1.1)(react@19.1.1):
+  /@tiptap/react@3.2.0(@floating-ui/dom@1.7.4)(@tiptap/core@3.2.0)(@tiptap/pm@3.2.0)(react-dom@19.1.1)(react@19.1.1):
     resolution: {integrity: sha512-rsro1+1yP3vLJ+YAQpWhJv/WftBr3hCGTfK6168jeX5INSjulUgALpA57o4rzp3LoNDwKreWu9iSp1JS4rsjFA==}
     peerDependencies:
       '@tiptap/core': ^3.2.0
@@ -4768,7 +4736,7 @@ packages:
       use-sync-external-store: 1.5.0(react@19.1.1)
     optionalDependencies:
       '@tiptap/extension-bubble-menu': 3.2.0(@tiptap/core@3.2.0)(@tiptap/pm@3.2.0)
-      '@tiptap/extension-floating-menu': 3.2.0(@floating-ui/dom@1.7.3)(@tiptap/core@3.2.0)(@tiptap/pm@3.2.0)
+      '@tiptap/extension-floating-menu': 3.2.0(@floating-ui/dom@1.7.4)(@tiptap/core@3.2.0)(@tiptap/pm@3.2.0)
     transitivePeerDependencies:
       - '@floating-ui/dom'
     dev: false
