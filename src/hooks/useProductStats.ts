@@ -2,7 +2,6 @@
 
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { supabase } from '@/lib/supabase/client';
-import { queryKeys } from '@/lib/queries/keys';
 import { getProductStats } from '@/lib/queries/domains/products';
 import { useSiteId } from '@/src/contexts/SiteContext';
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
-import { queryKeys } from '@/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useAuth } from '@/src/contexts/AuthContext';

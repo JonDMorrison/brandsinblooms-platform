@@ -3,7 +3,6 @@
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
-import { queryKeys } from '@/lib/queries/keys';
 import { 
   getTags, 
   getPopularTags, 

@@ -2,7 +2,6 @@
 
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
-import { queryKeys } from '@/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { updateProduct } from '@/lib/queries/domains/products';

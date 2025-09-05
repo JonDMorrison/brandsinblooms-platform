@@ -5,7 +5,6 @@ import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { queryKeys } from '@/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import {
   getCategoriesHierarchy,
