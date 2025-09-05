@@ -1,6 +1,7 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/src/contexts/AuthContext';
@@ -33,9 +34,8 @@ export function useNotificationPreferences() {
   const supabase = useSupabase();
   const { user } = useAuth();
 
-  return useQuery({
-    queryKey: ['notification-preferences', user?.id],
-    queryFn: async (): Promise<NotificationPreferencesFormData> => {
+  return useSupabaseQuery<NotificationPreferencesFormData>(
+    async (signal): Promise<NotificationPreferencesFormData> => {
       if (!user) {
         throw new Error('No authenticated user');
       }
@@ -62,21 +62,23 @@ export function useNotificationPreferences() {
         digest_frequency: data.digest_frequency as 'daily' | 'weekly' | 'monthly' | 'never',
       };
     },
-    enabled: !!user,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+    {
+      enabled: !!user,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      persistKey: user ? `notification-preferences-${user.id}` : undefined,
+    }
+  );
 }
 
 /**
  * Hook to update notification preferences with optimistic updates
  */
 export function useUpdateNotificationPreferences() {
-  const queryClient = useQueryClient();
   const supabase = useSupabase();
   const { user } = useAuth();
   
-  return useMutation({
-    mutationFn: async (preferences: NotificationPreferencesFormData): Promise<NotificationPreferences> => {
+  return useSupabaseMutation<NotificationPreferences, NotificationPreferencesFormData>(
+    async (preferences: NotificationPreferencesFormData, signal: AbortSignal): Promise<NotificationPreferences> => {
       if (!user) {
         throw new Error('No authenticated user');
       }
@@ -133,46 +135,11 @@ export function useUpdateNotificationPreferences() {
         return data;
       }
     },
-    onMutate: async (newPreferences) => {
-      if (!user) return;
-
-      const queryKey = ['notification-preferences', user.id];
-      
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey });
-      
-      // Snapshot the previous value
-      const previousPreferences = queryClient.getQueryData<NotificationPreferencesFormData>(queryKey);
-      
-      // Optimistically update to the new value
-      queryClient.setQueryData(queryKey, newPreferences);
-      
-      // Return a context object with the snapshotted value
-      return { previousPreferences };
-    },
-    onError: (err: unknown, newPreferences, context) => {
-      if (!user) return;
-
-      // Rollback to previous value on error
-      if (context?.previousPreferences) {
-        queryClient.setQueryData(['notification-preferences', user.id], context.previousPreferences);
-      }
-      
-      const errorDetails = handleError(err);
-      toast.error(`Failed to save notification preferences: ${errorDetails.message}`);
-      
-      console.error('Notification preferences update error:', errorDetails);
-    },
-    onSuccess: () => {
-      toast.success('Notification preferences saved successfully');
-    },
-    onSettled: () => {
-      // Always refetch after error or success to ensure consistency
-      if (user) {
-        queryClient.invalidateQueries({ queryKey: ['notification-preferences', user.id] });
-      }
-    },
-  });
+    {
+      showSuccessToast: 'Notification preferences saved successfully',
+      showErrorToast: true
+    }
+  );
 }
 
 /**
@@ -180,12 +147,11 @@ export function useUpdateNotificationPreferences() {
  * This can be called during user onboarding or first settings visit
  */
 export function useCreateNotificationPreferences() {
-  const queryClient = useQueryClient();
   const supabase = useSupabase();
   const { user } = useAuth();
   
-  return useMutation({
-    mutationFn: async (preferences: Partial<NotificationPreferencesFormData> = {}): Promise<NotificationPreferences> => {
+  return useSupabaseMutation<NotificationPreferences, Partial<NotificationPreferencesFormData>>(
+    async (preferences: Partial<NotificationPreferencesFormData> = {}, signal: AbortSignal): Promise<NotificationPreferences> => {
       if (!user) {
         throw new Error('No authenticated user');
       }
@@ -210,15 +176,9 @@ export function useCreateNotificationPreferences() {
 
       return data;
     },
-    onError: (err: unknown) => {
-      const errorDetails = handleError(err);
-      toast.error(`Failed to create notification preferences: ${errorDetails.message}`);
-      console.error('Notification preferences creation error:', errorDetails);
-    },
-    onSuccess: () => {
-      if (user) {
-        queryClient.invalidateQueries({ queryKey: ['notification-preferences', user.id] });
-      }
-    },
-  });
+    {
+      showSuccessToast: false,
+      showErrorToast: true
+    }
+  );
 }

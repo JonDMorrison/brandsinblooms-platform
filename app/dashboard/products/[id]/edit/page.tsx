@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useProduct, useUpdateProduct } from '@/src/hooks/useProducts'
+import { useCurrentSite } from '@/src/contexts/SiteContext'
 import { useSlugField } from '@/src/hooks/useSlugGeneration'
 import { 
   useProductImages, 
@@ -103,6 +104,7 @@ interface EditProductPageProps {
 export default function EditProductPage({ params }: EditProductPageProps) {
   const router = useRouter()
   const [productId, setProductId] = useState<string | null>(null)
+  const { site } = useCurrentSite()
   
   useEffect(() => {
     async function getParams() {
@@ -112,7 +114,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
     getParams()
   }, [params])
   
-  const { data: product, isLoading, error, isError } = useProduct(productId || '')
+  const { data: product, loading, error } = useProduct(productId || '')
   const updateProduct = useUpdateProduct()
   const [currentStep, setCurrentStep] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -156,7 +158,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   })
 
   // Image management hooks
-  const { data: productImages = [], isLoading: imagesLoading } = useProductImages(productId || '')
+  const { data: productImages = [], loading: imagesLoading } = useProductImages(productId || '')
   const uploadImages = useUploadMultipleProductImages()
   const updateImage = useUpdateProductImage()
   const deleteImage = useDeleteProductImage()

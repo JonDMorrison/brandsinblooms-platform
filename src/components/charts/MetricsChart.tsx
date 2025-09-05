@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
-import { useQuery } from '@tanstack/react-query'
+import React, { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useSiteId } from '@/contexts/SiteContext'
 import { Skeleton } from '@/src/components/ui/skeleton'
@@ -16,47 +16,61 @@ interface MetricsChartProps {
 export function MetricsChart({ title, description, type }: MetricsChartProps) {
   const siteId = useSiteId()
   
-  const { data, isLoading } = useQuery({
-    queryKey: ['chart-data', siteId, type],
-    queryFn: async () => {
-      if (!siteId) return null
-      
-      // Get last 30 days of data
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-      
-      if (type === 'views') {
-        const { data: metrics } = await supabase
-          .from('site_metrics')
-          .select('metric_date, page_views')
-          .eq('site_id', siteId)
-          .gte('metric_date', thirtyDaysAgo.toISOString().split('T')[0])
-          .order('metric_date', { ascending: true })
-        
-        return {
-          data: metrics || [],
-          total: metrics?.reduce((sum, item) => sum + (item.page_views || 0), 0) || 0,
-          trend: calculateTrend(metrics?.map(m => m.page_views || 0) || [])
-        }
-      } else {
-        // For orders, we'll use inquiry_count as a proxy for now
-        const { data: metrics } = await supabase
-          .from('site_metrics')
-          .select('metric_date, inquiry_count')
-          .eq('site_id', siteId)
-          .gte('metric_date', thirtyDaysAgo.toISOString().split('T')[0])
-          .order('metric_date', { ascending: true })
-        
-        return {
-          data: metrics?.map(m => ({ metric_date: m.metric_date, orders: m.inquiry_count })) || [],
-          total: metrics?.reduce((sum, item) => sum + (item.inquiry_count || 0), 0) || 0,
-          trend: calculateTrend(metrics?.map(m => m.inquiry_count || 0) || [])
-        }
+  const [data, setData] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!siteId) {
+        setData(null)
+        setIsLoading(false)
+        return
       }
-    },
-    enabled: !!siteId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  })
+      
+      setIsLoading(true)
+      try {
+        // Get last 30 days of data
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+        
+        if (type === 'views') {
+          const { data: metrics } = await supabase
+            .from('site_metrics')
+            .select('metric_date, page_views')
+            .eq('site_id', siteId)
+            .gte('metric_date', thirtyDaysAgo.toISOString().split('T')[0])
+            .order('metric_date', { ascending: true })
+          
+          setData({
+            data: metrics || [],
+            total: metrics?.reduce((sum, item) => sum + (item.page_views || 0), 0) || 0,
+            trend: calculateTrend(metrics?.map(m => m.page_views || 0) || [])
+          })
+        } else {
+          // For orders, we'll use inquiry_count as a proxy for now
+          const { data: metrics } = await supabase
+            .from('site_metrics')
+            .select('metric_date, inquiry_count')
+            .eq('site_id', siteId)
+            .gte('metric_date', thirtyDaysAgo.toISOString().split('T')[0])
+            .order('metric_date', { ascending: true })
+          
+          setData({
+            data: metrics?.map(m => ({ metric_date: m.metric_date, orders: m.inquiry_count })) || [],
+            total: metrics?.reduce((sum, item) => sum + (item.inquiry_count || 0), 0) || 0,
+            trend: calculateTrend(metrics?.map(m => m.inquiry_count || 0) || [])
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch chart data:', error)
+        setData(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [siteId, type])
   
   if (isLoading) {
     return (

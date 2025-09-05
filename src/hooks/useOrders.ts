@@ -1,22 +1,22 @@
 /**
  * Orders hook - Main hook for fetching orders list with infinite pagination
  * Provides filtered orders list with site context integration
+ * Migrated to use Supabase-only base hooks
  */
 
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/keys';
+import { useInfiniteSupabase } from '@/hooks/base/useInfiniteSupabase';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import {
-  getOrders,
+  getOrdersInfinite,
   OrderFilters,
-  PaginatedOrders,
+  OrderWithCustomer,
 } from '@/lib/queries/domains/orders';
 
-export interface UseOrdersOptions extends OrderFilters {
+export interface UseOrdersOptions extends Omit<OrderFilters, 'cursor' | 'limit'> {
   enabled?: boolean;
-  staleTime?: number;
-  refetchInterval?: number;
+  pageSize?: number;
+  persistKey?: string;
 }
 
 /**
@@ -28,29 +28,22 @@ export function useOrders(options: UseOrdersOptions = {}) {
   
   const {
     enabled = true,
-    staleTime = 30 * 1000, // 30 seconds
-    refetchInterval,
+    pageSize = 20,
+    persistKey,
     ...filters
   } = options;
   
-  return useInfiniteQuery({
-    queryKey: queryKeys.orders.list(siteId!, filters),
-    queryFn: ({ pageParam }) => 
-      getOrders(client, siteId!, { 
-        ...filters, 
-        cursor: pageParam,
-      }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage: PaginatedOrders) => {
-      return lastPage.hasMore ? lastPage.nextCursor : undefined;
-    },
-    enabled: !!siteId && enabled,
-    staleTime,
-    refetchInterval,
-    // Optimize for better UX
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-  });
+  // Create the query function for useInfiniteSupabase
+  const queryFn = siteId ? getOrdersInfinite(client, siteId, filters) : null;
+  
+  return useInfiniteSupabase<OrderWithCustomer>(
+    queryFn!,
+    {
+      enabled: !!siteId && !!queryFn && enabled,
+      pageSize,
+      persistKey: persistKey || (siteId ? `orders-${siteId}` : undefined),
+    }
+  );
 }
 
 /**
@@ -59,12 +52,10 @@ export function useOrders(options: UseOrdersOptions = {}) {
 export function useOrdersFlat(options: UseOrdersOptions = {}) {
   const ordersQuery = useOrders(options);
   
-  const orders = ordersQuery.data?.pages.flatMap(page => page.orders) || [];
-  
   return {
     ...ordersQuery,
-    orders,
-    totalCount: ordersQuery.data?.pages[0]?.orders.length || 0,
+    orders: ordersQuery.data,
+    totalCount: ordersQuery.data.length,
   };
 }
 
@@ -111,4 +102,4 @@ export function useSearchOrders(
 }
 
 // Export types for consumers
-export type { OrderFilters, PaginatedOrders };
+export type { OrderFilters, OrderWithCustomer };

@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { queryKeys } from '@/lib/queries/keys';
 import { ThemeSettings } from '@/lib/queries/domains/theme';
 import { applyThemeToDOM } from '@/lib/queries/domains/theme';
 import { toast } from 'sonner';
@@ -37,8 +35,8 @@ export function useThemeRealtime({
   autoApplyTheme = true,
 }: UseThemeRealtimeOptions = {}) {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { refresh } = useSiteTheme();
   const lastUpdateTime = useRef<number>(0);
   const isUpdatingLocally = useRef(false);
 
@@ -69,12 +67,6 @@ export function useThemeRealtime({
       const newTheme = 'theme_settings' in updatedSite ? updatedSite.theme_settings : null;
       if (!newTheme) return;
       
-      // Update cache
-      queryClient.setQueryData(
-        queryKeys.theme.settings(siteId!),
-        newTheme
-      );
-      
       // Apply theme to DOM if enabled
       if (autoApplyTheme) {
         applyThemeToDOM(newTheme);
@@ -89,9 +81,7 @@ export function useThemeRealtime({
             label: 'Refresh',
             onClick: () => {
               // Force refetch to ensure consistency
-              queryClient.invalidateQueries({
-                queryKey: queryKeys.theme.settings(siteId!),
-              });
+              refresh();
             },
           },
         });
@@ -104,22 +94,13 @@ export function useThemeRealtime({
 
   // Track local updates to prevent feedback loops
   useEffect(() => {
-    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
-      if (
-        event.type === 'updated' &&
-        event.query.queryKey[0] === 'sites' &&
-        event.query.queryKey[1] === siteId &&
-        event.query.queryKey[2] === 'theme'
-      ) {
-        isUpdatingLocally.current = true;
-        setTimeout(() => {
-          isUpdatingLocally.current = false;
-        }, 2000); // Reset after 2 seconds
-      }
-    });
+    // Simple timer-based approach instead of query cache subscription
+    const interval = setInterval(() => {
+      isUpdatingLocally.current = false;
+    }, 2000);
 
-    return unsubscribe;
-  }, [queryClient, siteId]);
+    return () => clearInterval(interval);
+  }, [siteId]);
 
   return channel;
 }
@@ -215,7 +196,6 @@ export function useThemeEditorPresence() {
  */
 export function useThemeConflictResolution() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   const { theme: currentTheme } = useSiteTheme();
   const pendingChanges = useRef<ThemeSettings | null>(null);
 

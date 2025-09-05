@@ -62,14 +62,14 @@ export function SecuritySettings() {
   const enroll2FA = useEnroll2FA()
   const verify2FA = useVerify2FA()
   const unenroll2FA = useUnenroll2FA()
-  const { data: mfaFactors = [], isLoading: loadingFactors } = useMFAFactors()
+  const { data: mfaFactors = [], loading: loadingFactors } = useMFAFactors()
   const revokeSession = useRevokeSession()
   const revokeAllSessions = useRevokeAllSessions()
   const updateSecurityNotifications = useUpdateSecurityNotifications()
-  const { data: securityPrefs, isLoading: loadingPrefs } = useSecurityNotificationPreferences()
+  const { data: securityPrefs, loading: loadingPrefs } = useSecurityNotificationPreferences()
   
   const twoFactorEnabled = mfaFactors.some(factor => factor.status === 'verified')
-  const isLoading = changePassword.isPending
+  const isLoading = changePassword.loading
 
   const form = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
@@ -363,7 +363,7 @@ export function SecuritySettings() {
             <Switch
               checked={twoFactorEnabled}
               onCheckedChange={handle2FAToggle}
-              disabled={loadingFactors || enroll2FA.isPending || unenroll2FA.isPending}
+              disabled={loadingFactors || enroll2FA.loading || unenroll2FA.loading}
             />
           </div>
 
@@ -378,9 +378,9 @@ export function SecuritySettings() {
                   size="sm" 
                   variant="destructive"
                   onClick={() => handle2FAToggle(false)}
-                  disabled={unenroll2FA.isPending}
+                  disabled={unenroll2FA.loading}
                 >
-                  {unenroll2FA.isPending ? 'Disabling...' : 'Disable 2FA'}
+                  {unenroll2FA.loading ? 'Disabling...' : 'Disable 2FA'}
                 </Button>
               </div>
             </div>
@@ -410,7 +410,7 @@ export function SecuritySettings() {
             <Switch
               checked={securityPrefs?.emailNotifications ?? true}
               onCheckedChange={(checked) => handleSecurityNotificationChange('email', checked)}
-              disabled={loadingPrefs || updateSecurityNotifications.isPending}
+              disabled={loadingPrefs || updateSecurityNotifications.loading}
             />
           </div>
 
@@ -424,7 +424,7 @@ export function SecuritySettings() {
             <Switch
               checked={securityPrefs?.loginAlerts ?? true}
               onCheckedChange={(checked) => handleSecurityNotificationChange('login', checked)}
-              disabled={loadingPrefs || updateSecurityNotifications.isPending}
+              disabled={loadingPrefs || updateSecurityNotifications.loading}
             />
           </div>
         </CardContent>
@@ -474,7 +474,7 @@ export function SecuritySettings() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleRevokeSession(session.id)}
-                    disabled={revokeSession.isPending}
+                    disabled={revokeSession.loading}
                   >
                     Revoke
                   </Button>
@@ -489,9 +489,9 @@ export function SecuritySettings() {
               variant="destructive" 
               size="sm" 
               onClick={handleRevokeAllSessions}
-              disabled={revokeAllSessions.isPending}
+              disabled={revokeAllSessions.loading}
             >
-              {revokeAllSessions.isPending ? 'Revoking...' : 'Revoke All Other Sessions'}
+              {revokeAllSessions.loading ? 'Revoking...' : 'Revoke All Other Sessions'}
             </Button>
             <p className="text-sm text-muted-foreground mt-2">
               This will sign you out of all other devices and browsers.
@@ -545,9 +545,9 @@ export function SecuritySettings() {
             </Button>
             <Button
               onClick={handleVerify2FA}
-              disabled={!verificationCode || verify2FA.isPending}
+              disabled={!verificationCode || verify2FA.loading}
             >
-              {verify2FA.isPending ? 'Verifying...' : 'Verify and Enable'}
+              {verify2FA.loading ? 'Verifying...' : 'Verify and Enable'}
             </Button>
           </div>
         </div>

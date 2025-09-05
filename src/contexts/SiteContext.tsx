@@ -179,7 +179,7 @@ export function SiteProvider({
   /**
    * Loads a site by ID and sets it as current
    */
-  const loadSiteById = useCallback(async (siteId: string, updateUrl = true) => {
+  const loadSiteById = useCallback(async (siteId: string) => {
     // Cancel any previous load operation
     siteLoadAbortRef.current?.abort()
     siteLoadAbortRef.current = new AbortController()
@@ -234,13 +234,6 @@ export function SiteProvider({
 
       // Clear site resolution since we're loading by ID
       setSiteResolution(null)
-      
-      // Update URL with site parameter when requested
-      if (updateUrl && typeof window !== 'undefined') {
-        const url = new URL(window.location.href)
-        url.searchParams.set('site', siteId)
-        window.history.replaceState({}, '', url.toString())
-      }
       
       // Save to localStorage when site is successfully loaded
       if (typeof window !== 'undefined') {
@@ -390,7 +383,7 @@ export function SiteProvider({
     }
   }, [user?.id, authLoading, refreshUserSites])
 
-  // Auto-select site based on URL, localStorage, or first available
+  // Auto-select site based on localStorage or first available
   useEffect(() => {
     // Only run on main app domain where we need site selection
     if (typeof window === 'undefined') return
@@ -413,30 +406,12 @@ export function SiteProvider({
       return
     }
     
-    // 1. Check URL params first (always check, even if currentSite exists)
-    const urlParams = new URLSearchParams(window.location.search)
-    const urlSiteId = urlParams.get('site')
-    
-    if (urlSiteId) {
-      // If URL has a site ID and it's different from current, switch to it
-      if (urlSiteId !== currentSite?.id) {
-        const urlSite = userSites.find(s => s.site.id === urlSiteId)
-        if (urlSite) {
-          loadSiteById(urlSiteId, false) // Don't update URL since we're loading from URL
-          return
-        }
-      } else {
-        // URL matches current site, no action needed
-        return
-      }
-    }
-    
     // Skip auto-select if we already have a current site
     if (currentSite) {
       return
     }
     
-    // 2. Check localStorage
+    // 1. Check localStorage first
     const storedSiteId = localStorage.getItem('selectedSiteId')
     if (storedSiteId) {
       const storedSite = userSites.find(s => s.site.id === storedSiteId)
@@ -446,7 +421,7 @@ export function SiteProvider({
       }
     }
     
-    // 3. Auto-select first available site
+    // 2. Auto-select first available site
     if (userSites.length > 0) {
       const firstSiteId = userSites[0].site.id
       loadSiteById(firstSiteId)

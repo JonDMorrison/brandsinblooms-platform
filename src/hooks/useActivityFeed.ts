@@ -1,5 +1,6 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/keys';
+import { useInfiniteSupabase } from '@/hooks/base/useInfiniteSupabase';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import {
@@ -19,18 +20,28 @@ export function useActivityFeed(filters?: ActivityFilters) {
   const client = useSupabase();
   const siteId = useSiteId();
   
-  return useInfiniteQuery({
-    queryKey: queryKeys.activity.list(siteId!, filters),
-    queryFn: ({ pageParam }) => 
-      getActivityLogs(client, siteId!, { 
+  return useInfiniteSupabase<ActivityLogWithUser>(
+    async (cursor, pageSize, signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      
+      const result = await getActivityLogs(client, siteId, { 
         ...filters, 
-        cursor: pageParam,
-      }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!siteId,
-    staleTime: 30 * 1000, // 30 seconds
-  });
+        cursor,
+        limit: pageSize,
+      });
+      
+      return {
+        items: result.data || [],
+        nextCursor: result.nextCursor,
+        hasMore: !!result.nextCursor,
+      };
+    },
+    {
+      enabled: !!siteId,
+      pageSize: 20,
+      persistKey: siteId ? `activity-feed-${siteId}` : undefined,
+    }
+  );
 }
 
 // Hook for entity-specific activity
@@ -42,11 +53,19 @@ export function useEntityActivity(
   const client = useSupabase();
   const siteId = useSiteId();
   
-  return useQuery<ActivityLogWithUser[]>({
-    queryKey: queryKeys.activity.byEntity(siteId!, entityType, entityId),
-    queryFn: () => getEntityActivityLogs(client, siteId!, entityType, entityId, limit),
-    enabled: !!siteId && !!entityType && !!entityId,
-  });
+  return useSupabaseQuery<ActivityLogWithUser[]>(
+    async (signal) => {
+      if (!siteId || !entityType || !entityId) {
+        throw new Error('Site ID, entity type, and entity ID are required');
+      }
+      return getEntityActivityLogs(client, siteId, entityType, entityId, limit);
+    },
+    {
+      enabled: !!siteId && !!entityType && !!entityId,
+      persistKey: `entity-activity-${entityType}-${entityId}`,
+      staleTime: 2 * 60 * 1000, // 2 minutes
+    }
+  );
 }
 
 // Hook for recent activity (dashboard widget)
@@ -54,31 +73,35 @@ export function useRecentActivity(limit: number = 10) {
   const client = useSupabase();
   const siteId = useSiteId();
   
-  return useQuery<ActivityLogWithUser[]>({
-    queryKey: [...queryKeys.activity.all(siteId!), 'recent', limit],
-    queryFn: () => getRecentActivity(client, siteId!, limit),
-    enabled: !!siteId,
-    staleTime: 60 * 1000, // 1 minute
-    refetchInterval: 2 * 60 * 1000, // Refetch every 2 minutes
-  });
+  return useSupabaseQuery<ActivityLogWithUser[]>(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getRecentActivity(client, siteId, limit);
+    },
+    {
+      enabled: !!siteId,
+      staleTime: 60 * 1000, // 1 minute
+      refetchInterval: 2 * 60 * 1000, // Refetch every 2 minutes
+      persistKey: siteId ? `recent-activity-${siteId}-${limit}` : undefined,
+    }
+  );
 }
 
 // Hook for creating activity logs
 export function useCreateActivity() {
   const client = useSupabase();
-  const queryClient = useQueryClient();
   const siteId = useSiteId();
   
-  return useMutation({
-    mutationFn: (activity: Omit<ActivityLogInsert, 'site_id'>) =>
-      createActivityLog(client, { ...activity, site_id: siteId! }),
-    onSuccess: () => {
-      // Invalidate all activity queries for this site
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.activity.all(siteId!),
-      });
+  return useSupabaseMutation<any, Omit<ActivityLogInsert, 'site_id'>>(
+    async (activity: Omit<ActivityLogInsert, 'site_id'>, signal: AbortSignal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return createActivityLog(client, { ...activity, site_id: siteId });
     },
-  });
+    {
+      showSuccessToast: false,
+      showErrorToast: true
+    }
+  );
 }
 
 // Hook for activity summary/analytics
@@ -86,23 +109,34 @@ export function useActivitySummary(days: number = 7) {
   const client = useSupabase();
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: [...queryKeys.activity.all(siteId!), 'summary', days],
-    queryFn: () => getActivitySummary(client, siteId!, days),
-    enabled: !!siteId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getActivitySummary(client, siteId, days);
+    },
+    {
+      enabled: !!siteId,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      persistKey: siteId ? `activity-summary-${siteId}-${days}` : undefined,
+    }
+  );
 }
 
 // Hook for user activity timeline
 export function useUserActivityTimeline(userId: string, limit: number = 50) {
   const client = useSupabase();
   
-  return useQuery<ActivityLogWithUser[]>({
-    queryKey: ['users', userId, 'activity', limit],
-    queryFn: () => getUserActivityTimeline(client, userId, limit),
-    enabled: !!userId,
-  });
+  return useSupabaseQuery<ActivityLogWithUser[]>(
+    async (signal) => {
+      if (!userId) throw new Error('User ID is required');
+      return getUserActivityTimeline(client, userId, limit);
+    },
+    {
+      enabled: !!userId,
+      persistKey: `user-activity-${userId}-${limit}`,
+      staleTime: 2 * 60 * 1000, // 2 minutes
+    }
+  );
 }
 
 // Composite hook for activity dashboard
@@ -113,7 +147,7 @@ export function useActivityDashboard() {
   return {
     recentActivity: recentActivity.data || [],
     summary: summary.data,
-    isLoading: recentActivity.isLoading || summary.isLoading,
+    isLoading: recentActivity.loading || summary.loading,
     error: recentActivity.error || summary.error,
   };
 }

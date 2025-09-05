@@ -6,10 +6,9 @@ import { Badge } from '@/src/components/ui/badge'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import { TrendingUp, TrendingDown, Minus, AlertCircle } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
 import { useSiteId } from '@/contexts/SiteContext'
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 
 interface MetricItem {
   id: string
@@ -74,38 +73,56 @@ const getTrendIcon = (type: MetricItem['change']['type']) => {
 export function PerformanceMetrics() {
   const siteId = useSiteId()
   
-  const { data: performanceData, isLoading: isLoadingCurrent, error: currentError } = useQuery({
-    queryKey: ['performance-metrics', siteId],
-    queryFn: async () => {
-      if (!siteId) return null
+  const [performanceData, setPerformanceData] = useState<any>(null)
+  const [isLoadingCurrent, setIsLoadingCurrent] = useState(true)
+  const [currentError, setCurrentError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!siteId) {
+        setPerformanceData(null)
+        setIsLoadingCurrent(false)
+        return
+      }
       
-      // Get the latest performance metrics
-      const { data: latest } = await supabase
-        .from('site_performance_metrics')
-        .select('*')
-        .eq('site_id', siteId)
-        .order('recorded_at', { ascending: false })
-        .limit(1)
-        .single()
-      
-      // Get previous week's metrics for comparison
-      const oneWeekAgo = new Date()
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
-      
-      const { data: previous } = await supabase
-        .from('site_performance_metrics')
-        .select('*')
-        .eq('site_id', siteId)
-        .lte('recorded_at', oneWeekAgo.toISOString())
-        .order('recorded_at', { ascending: false })
-        .limit(1)
-        .single()
-      
-      return { latest, previous }
-    },
-    enabled: !!siteId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  })
+      setIsLoadingCurrent(true)
+      try {
+        // Get the latest performance metrics
+        const { data: latest } = await supabase
+          .from('site_performance_metrics')
+          .select('*')
+          .eq('site_id', siteId)
+          .order('recorded_at', { ascending: false })
+          .limit(1)
+          .single()
+        
+        // Get previous week's metrics for comparison
+        const oneWeekAgo = new Date()
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+        
+        const { data: previous } = await supabase
+          .from('site_performance_metrics')
+          .select('*')
+          .eq('site_id', siteId)
+          .lte('recorded_at', oneWeekAgo.toISOString())
+          .order('recorded_at', { ascending: false })
+          .limit(1)
+          .single()
+        
+        setPerformanceData({ latest, previous })
+        setCurrentError(null)
+      } catch (error) {
+        setCurrentError(error as Error)
+        setPerformanceData(null)
+      } finally {
+        setIsLoadingCurrent(false)
+      }
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 5 * 60 * 1000) // 5 minutes
+    return () => clearInterval(interval)
+  }, [siteId])
   
   // Calculate metric changes from history
   const metrics = useMemo(() => {

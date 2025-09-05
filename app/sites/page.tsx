@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Globe, Calendar, Settings, ExternalLink, Loader2 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/src/components/ui/card'
@@ -30,7 +29,6 @@ interface Site {
 export default function SitesPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const queryClient = useQueryClient()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [newSite, setNewSite] = useState({
     name: '',
@@ -38,40 +36,54 @@ export default function SitesPage() {
     subdomain: '',
     description: ''
   })
+  
+  // Direct state management instead of React Query
+  const [sitesData, setSitesData] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
+  const [isCreating, setIsCreating] = useState(false)
 
-  // Fetch sites using React Query
-  const { 
-    data: sitesData, 
-    isLoading, 
-    error,
-    refetch 
-  } = useQuery({
-    queryKey: ['user-sites', user?.id],
-    queryFn: async () => {
-      if (!user) return []
+  // Fetch sites function
+  const fetchSites = async () => {
+    if (!user || authLoading) return
+    
+    setIsLoading(true)
+    setError(null)
+    
+    try {
       const result = await getUserSites(user.id)
       if (result.error) {
         throw new Error(result.error.message)
       }
-      return result.data || []
-    },
-    enabled: !!user && !authLoading,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes cache
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
-  })
+      setSitesData(result.data || [])
+    } catch (err) {
+      setError(err as Error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
+  // Fetch sites on mount and when user changes
+  useEffect(() => {
+    fetchSites()
+  }, [user?.id, authLoading])
 
-  // Create site mutation (must be before conditionals for hooks rules)
-  const createSiteMutation = useMutation({
-    mutationFn: async () => {
-      if (!user) throw new Error('User not authenticated')
+  // Create site function
+  const createSite = async () => {
+    if (!user) {
+      toast.error('User not authenticated')
+      return
+    }
 
-      // Validate inputs
-      if (!newSite.name || !newSite.subdomain) {
-        throw new Error('Please fill in all required fields')
-      }
+    // Validate inputs
+    if (!newSite.name || !newSite.subdomain) {
+      toast.error('Please fill in all required fields')
+      return
+    }
 
+    setIsCreating(true)
+    
+    try {
       // Check if subdomain is available
       const { data: existingSite } = await supabase
         .from('sites')
@@ -80,7 +92,8 @@ export default function SitesPage() {
         .single()
 
       if (existingSite) {
-        throw new Error('This subdomain is already taken')
+        toast.error('This subdomain is already taken')
+        return
       }
 
       // Create the site
@@ -110,27 +123,26 @@ export default function SitesPage() {
 
       if (memberError) throw memberError
 
-      return site
-    },
-    onSuccess: (site) => {
       toast.success('Site created successfully!')
       setIsCreateModalOpen(false)
       setNewSite({ name: '', business_name: '', subdomain: '', description: '' })
       
-      // Invalidate and refetch sites
-      queryClient.invalidateQueries({ queryKey: ['user-sites', user?.id] })
+      // Refetch sites
+      await fetchSites()
       
       // Redirect to the new site's dashboard
-      router.push(`/dashboard?site=${site.id}`)
-    },
-    onError: (error: Error) => {
-      console.error('Error creating site:', error)
-      toast.error(error.message || 'Failed to create site')
+      router.push(`/dashboard`)
+    } catch (error: unknown) {
+      const err = error as Error
+      console.error('Error creating site:', err)
+      toast.error(err.message || 'Failed to create site')
+    } finally {
+      setIsCreating(false)
     }
-  })
+  }
 
   const handleCreateSite = () => {
-    createSiteMutation.mutate()
+    createSite()
   }
 
   // Transform sites data
@@ -183,7 +195,7 @@ export default function SitesPage() {
       <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500 mb-4">Failed to load sites</p>
-          <Button onClick={() => refetch()}>Try Again</Button>
+          <Button onClick={() => fetchSites()}>Try Again</Button>
         </div>
       </div>
     )
@@ -304,7 +316,11 @@ export default function SitesPage() {
                         variant="outline"
                         size="sm"
                         className="flex-1"
-                        onClick={() => router.push(`/dashboard?site=${site.id}`)}
+                        onClick={() => {
+                          // Switch to this site first, then navigate to dashboard
+                          localStorage.setItem('selectedSiteId', site.id)
+                          router.push('/dashboard')
+                        }}
                       >
                         Dashboard
                       </Button>
@@ -390,16 +406,16 @@ export default function SitesPage() {
             <Button
               variant="outline"
               onClick={() => setIsCreateModalOpen(false)}
-              disabled={createSiteMutation.isPending}
+              disabled={isCreating}
             >
               Cancel
             </Button>
             <Button
               className="btn-gradient-primary"
               onClick={handleCreateSite}
-              disabled={createSiteMutation.isPending || !newSite.name || !newSite.subdomain}
+              disabled={isCreating || !newSite.name || !newSite.subdomain}
             >
-              {createSiteMutation.isPending ? (
+              {isCreating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Creating...

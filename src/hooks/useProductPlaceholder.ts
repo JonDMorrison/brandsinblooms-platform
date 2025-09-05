@@ -1,9 +1,9 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { queryKeys } from '@/lib/queries/keys';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useTheme } from 'next-themes';
 import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
@@ -81,10 +81,9 @@ export interface GeneratedPlaceholder {
 export function useSitePlaceholderSettings() {
   const siteId = useSiteId();
 
-  return useQuery({
-    queryKey: siteId ? queryKeys.sites.placeholderSettings(siteId) : [],
-    queryFn: async () => {
-      if (!siteId) return null;
+  return useSupabaseQuery<SitePlaceholderSettings>(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
 
       const { data, error } = await supabase
         .from('sites')
@@ -104,9 +103,12 @@ export function useSitePlaceholderSettings() {
         preloadStrategy: 'critical' as const,
       };
     },
-    enabled: !!siteId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+    {
+      enabled: !!siteId,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      persistKey: siteId ? `placeholder-settings-${siteId}` : undefined,
+    }
+  );
 }
 
 /**
@@ -209,9 +211,8 @@ export function useProductPlaceholder(params: ProductPlaceholderParams = {}) {
     [placeholderParams]
   );
 
-  return useQuery({
-    queryKey: siteId ? queryKeys.products.placeholder(siteId, cacheKey) : [],
-    queryFn: async (): Promise<GeneratedPlaceholder> => {
+  return useSupabaseQuery<GeneratedPlaceholder>(
+    async (signal): Promise<GeneratedPlaceholder> => {
       if (!siteId) throw new Error('Site ID is required');
 
       // Validate dimensions
@@ -235,17 +236,18 @@ export function useProductPlaceholder(params: ProductPlaceholderParams = {}) {
         cacheKey,
       };
     },
-    enabled: !!siteId && !!siteSettings,
-    staleTime: siteSettings?.cacheStrategy === 'persistent' ? 24 * 60 * 60 * 1000 : 60 * 1000, // 24h for persistent, 1min for others
-    gcTime: siteSettings?.cacheStrategy === 'memory' ? 5 * 60 * 1000 : 24 * 60 * 60 * 1000, // 5min for memory, 24h for others
-  });
+    {
+      enabled: !!siteId && !!siteSettings,
+      staleTime: siteSettings?.cacheStrategy === 'persistent' ? 24 * 60 * 60 * 1000 : 60 * 1000, // 24h for persistent, 1min for others
+      persistKey: `product-placeholder-${cacheKey}`,
+    }
+  );
 }
 
 /**
  * Preload placeholders for a list of products
  */
 export function usePreloadProductPlaceholders(products: Product[] = []) {
-  const queryClient = useQueryClient();
   const siteId = useSiteId();
   const { data: siteSettings } = useSitePlaceholderSettings();
 
@@ -259,54 +261,45 @@ export function usePreloadProductPlaceholders(products: Product[] = []) {
       : products.slice(0, 10);
 
     const preloadPromises = productsToPreload.map(async (product) => {
-      const params: ProductPlaceholderParams = {
-        productId: product.id,
-        productName: product.name,
-        category: product.category || undefined,
-        width: 400,
-        height: 400,
-      };
-
-      const placeholderParams: PlaceholderParams = {
+      const params: PlaceholderParams = {
         width: 400,
         height: 400,
         type: siteSettings.defaultType || 'gradient',
         config: DEFAULT_CONFIGS[siteSettings.defaultType || 'gradient'],
       };
 
-      const cacheKey = createCacheKey(placeholderParams);
-      const queryKey = queryKeys.products.placeholder(siteId, cacheKey);
+      const cacheKey = createCacheKey(params);
 
-      // Check if already cached
-      const existing = queryClient.getQueryData(queryKey);
+      // Check if already in localStorage
+      const storageKey = `product-placeholder-${cacheKey}`;
+      const existing = localStorage.getItem(storageKey);
       if (existing) return;
 
-      // Prefetch the placeholder
+      // Generate and store the placeholder
       try {
-        await queryClient.prefetchQuery({
-          queryKey,
-          queryFn: async (): Promise<GeneratedPlaceholder> => {
-            const svg = generatePlaceholderSVG(placeholderParams);
-            const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+        const svg = generatePlaceholderSVG(params);
+        const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
 
-            return {
-              id: cacheKey,
-              svg,
-              dataUrl,
-              params: placeholderParams,
-              createdAt: new Date().toISOString(),
-              cacheKey,
-            };
-          },
-          staleTime: 60 * 1000,
-        });
+        const placeholder: GeneratedPlaceholder = {
+          id: cacheKey,
+          svg,
+          dataUrl,
+          params,
+          createdAt: new Date().toISOString(),
+          cacheKey,
+        };
+
+        localStorage.setItem(storageKey, JSON.stringify({
+          data: placeholder,
+          timestamp: new Date().toISOString()
+        }));
       } catch (error: unknown) {
         console.warn('Failed to preload placeholder:', handleError(error).message);
       }
     });
 
     await Promise.all(preloadPromises);
-  }, [products, siteId, siteSettings, queryClient]);
+  }, [products, siteId, siteSettings]);
 
   return {
     preloadPlaceholders,
@@ -320,10 +313,10 @@ export function usePreloadProductPlaceholders(products: Product[] = []) {
  */
 export function useUpdateSitePlaceholderSettings() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
+  const { refresh } = useSitePlaceholderSettings();
 
-  return useMutation({
-    mutationFn: async (settings: Partial<SitePlaceholderSettings>) => {
+  return useSupabaseMutation<SitePlaceholderSettings, Partial<SitePlaceholderSettings>>(
+    async (settings: Partial<SitePlaceholderSettings>, signal: AbortSignal) => {
       if (!siteId) throw new Error('Site ID is required');
 
       // Get current theme settings
@@ -364,24 +357,28 @@ export function useUpdateSitePlaceholderSettings() {
 
       return updatedPlaceholderSettings;
     },
-    onSuccess: (updatedSettings) => {
-      // Invalidate related queries
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.sites.placeholderSettings(siteId!),
-      });
-      
-      // Clear placeholder cache if settings changed significantly
-      if (updatedSettings.defaultType || updatedSettings.cacheStrategy) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.products.placeholders(siteId!),
-        });
-      }
-    },
-    onError: (error) => {
-      const handled = handleError(error);
-      console.error('Failed to update placeholder settings:', handled.message);
-    },
-  });
+    {
+      onSuccess: (updatedSettings) => {
+        // Refresh placeholder settings
+        refresh();
+        
+        // Clear localStorage cache if settings changed significantly
+        if (updatedSettings.defaultType || updatedSettings.cacheStrategy) {
+          // Clear related localStorage entries
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key?.startsWith('product-placeholder-')) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+        }
+      },
+      showSuccessToast: 'Placeholder settings updated',
+      showErrorToast: true
+    }
+  );
 }
 
 /**
@@ -404,13 +401,18 @@ export function useProductPlaceholderUrl(params: ProductPlaceholderParams = {}) 
  */
 export function useClearPlaceholderCache() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
   return useCallback(() => {
     if (!siteId) return;
 
-    queryClient.removeQueries({
-      queryKey: queryKeys.products.placeholders(siteId),
-    });
-  }, [siteId, queryClient]);
+    // Clear localStorage entries for placeholders
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('product-placeholder-') || key?.startsWith(`placeholder-settings-${siteId}`)) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+  }, [siteId]);
 }

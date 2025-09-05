@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { queryKeys } from '@/lib/queries/keys';
 import { ActivityLogWithUser } from '@/lib/queries/domains/activity';
 import { toast } from 'sonner';
 
@@ -28,7 +26,6 @@ export function useActivityRealtime({
   notificationFilter,
 }: UseActivityRealtimeOptions = {}) {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   const processedActivities = useRef(new Set<string>());
 
   // Subscribe to activity_logs table changes
@@ -49,35 +46,6 @@ export function useActivityRealtime({
         return;
       }
       processedActivities.current.add(newActivity.id);
-      
-      // Update infinite query cache by prepending new activity
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.activity.lists(siteId!) },
-        (oldData: any) => {
-          if (!oldData?.pages) return oldData;
-          
-          // Clone the pages array
-          const newPages = [...oldData.pages];
-          
-          // Prepend to first page
-          if (newPages[0]) {
-            newPages[0] = {
-              ...newPages[0],
-              data: [newActivity, ...newPages[0].data],
-            };
-          }
-          
-          return {
-            ...oldData,
-            pages: newPages,
-          };
-        }
-      );
-      
-      // Invalidate recent activity query
-      queryClient.invalidateQueries({
-        queryKey: [...queryKeys.activity.all(siteId!), 'recent'],
-      });
       
       // Show notification if enabled
       if (showNotifications && (!notificationFilter || notificationFilter(newActivity))) {
@@ -135,18 +103,15 @@ export function useEntityActivityRealtime(
   options?: Omit<UseActivityRealtimeOptions, 'enabled'>
 ) {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
   return useRealtimeSubscription({
     table: 'activity_logs',
     event: 'INSERT',
     filter: `entity_type=eq.${entityType},entity_id=eq.${entityId}`,
     enabled: !!entityType && !!entityId && !!siteId,
-    onInsert: () => {
-      // Invalidate entity activity query
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.activity.byEntity(siteId!, entityType, entityId),
-      });
+    onInsert: (payload) => {
+      // Call the onNewActivity callback if provided
+      options?.onNewActivity?.(payload.new);
     },
     ...options,
   });
@@ -160,19 +125,12 @@ export function useUserActivityRealtime(
   userId: string,
   options?: UseActivityRealtimeOptions
 ) {
-  const queryClient = useQueryClient();
-  
   return useRealtimeSubscription({
     table: 'activity_logs',
     event: 'INSERT',
     filter: `user_id=eq.${userId}`,
     enabled: !!userId && (options?.enabled ?? true),
     onInsert: (payload) => {
-      // Invalidate user activity timeline
-      queryClient.invalidateQueries({
-        queryKey: ['users', userId, 'activity'],
-      });
-      
       options?.onNewActivity?.(payload.new);
     },
   });
@@ -182,22 +140,19 @@ export function useUserActivityRealtime(
  * Hook for real-time activity summary updates
  * Useful for dashboard widgets showing activity metrics
  */
-export function useActivitySummaryRealtime(days: number = 7) {
+export function useActivitySummaryRealtime(
+  days: number = 7,
+  onActivityInsert?: (activity: ActivityLogWithUser) => void
+) {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
   return useRealtimeSubscription({
     table: 'activity_logs',
     event: 'INSERT',
     enabled: !!siteId,
-    onInsert: () => {
-      // Debounce summary invalidation
-      clearTimeout((window as any).__activitySummaryTimeout);
-      (window as any).__activitySummaryTimeout = setTimeout(() => {
-        queryClient.invalidateQueries({
-          queryKey: [...queryKeys.activity.all(siteId!), 'summary', days],
-        });
-      }, 1000); // Wait 1 second before invalidating
+    onInsert: (payload) => {
+      // Debounced handling could be implemented by the consumer if needed
+      onActivityInsert?.(payload.new);
     },
   });
 }

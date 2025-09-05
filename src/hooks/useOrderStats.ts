@@ -3,7 +3,7 @@
  * Provides total orders, revenue, average order value, and status breakdowns
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { queryKeys } from '@/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
@@ -50,15 +50,14 @@ export function useOrderStats(options: UseOrderStatsOptions = {}) {
     refetchInterval = 5 * 60 * 1000, // 5 minutes
   } = options;
   
-  return useQuery<OrderStats>({
-    queryKey: queryKeys.orders.stats(siteId!),
-    queryFn: () => getOrderStats(client, siteId!),
-    enabled: !!siteId && enabled,
-    staleTime,
-    refetchInterval,
-    // Keep previous data while refetching for better UX
-    placeholderData: (previousData) => previousData,
-  });
+  return useSupabaseQuery<OrderStats>(
+    (signal) => getOrderStats(client, siteId!),
+    {
+      enabled: !!siteId && enabled,
+      staleTime,
+      refetchInterval,
+    }
+  );
 }
 
 /**
@@ -77,9 +76,8 @@ export function useOrderTrends(
     refetchInterval = 10 * 60 * 1000, // 10 minutes
   } = options;
   
-  return useQuery({
-    queryKey: [...queryKeys.orders.stats(siteId!), 'trends', days],
-    queryFn: async () => {
+  return useSupabaseQuery(
+    async (signal) => {
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(endDate.getDate() - days);
@@ -126,10 +124,12 @@ export function useOrderTrends(
       
       return trends;
     },
-    enabled: !!siteId && enabled,
-    staleTime,
-    refetchInterval,
-  });
+    {
+      enabled: !!siteId && enabled,
+      staleTime,
+      refetchInterval,
+    }
+  );
 }
 
 /**
@@ -145,9 +145,8 @@ export function useOrderMetrics(options: UseOrderStatsOptions = {}) {
   } = options;
   
   // Calculate growth rates and additional metrics
-  const metricsQuery = useQuery({
-    queryKey: [...queryKeys.orders.stats(stats.data ? 'computed' : 'loading'), 'metrics'],
-    queryFn: async () => {
+  const metricsQuery = useSupabaseQuery(
+    async (signal) => {
       if (!stats.data || !trends.data) return null;
       
       const currentPeriodTrends = trends.data.slice(-15); // Last 15 days
@@ -180,14 +179,15 @@ export function useOrderMetrics(options: UseOrderStatsOptions = {}) {
       
       return metrics;
     },
-    enabled: !!stats.data && !!trends.data && enabled,
-    staleTime,
-  });
+    {
+      enabled: !!stats.data && !!trends.data && enabled,
+      staleTime,
+    }
+  );
   
   return {
     ...metricsQuery,
-    isLoading: stats.isLoading || trends.isLoading || metricsQuery.isLoading,
-    isError: stats.isError || trends.isError || metricsQuery.isError,
+    loading: stats.loading || trends.loading || metricsQuery.loading,
     error: stats.error || trends.error || metricsQuery.error,
   };
 }
@@ -198,9 +198,8 @@ export function useOrderMetrics(options: UseOrderStatsOptions = {}) {
 export function useOrderStatusDistribution(options: UseOrderStatsOptions = {}) {
   const stats = useOrderStats(options);
   
-  return useQuery({
-    queryKey: [...queryKeys.orders.stats(stats.data ? 'loaded' : 'loading'), 'distribution'],
-    queryFn: () => {
+  return useSupabaseQuery(
+    (signal) => {
       if (!stats.data) return null;
       
       const total = stats.data.totalOrders;
@@ -233,9 +232,11 @@ export function useOrderStatusDistribution(options: UseOrderStatsOptions = {}) {
         },
       ].filter(item => item.count > 0);
     },
-    enabled: !!stats.data,
-    staleTime: 60 * 1000,
-  });
+    {
+      enabled: !!stats.data,
+      staleTime: 60 * 1000,
+    }
+  );
 }
 
 /**
@@ -245,9 +246,8 @@ export function useRecentOrderActivity(limit: number = 10) {
   const client = useSupabase();
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: [...queryKeys.orders.all(siteId!), 'recent-activity', limit],
-    queryFn: async () => {
+  return useSupabaseQuery(
+    async (signal) => {
       const { data, error } = await client
         .from('orders')
         .select(`
@@ -266,10 +266,12 @@ export function useRecentOrderActivity(limit: number = 10) {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!siteId,
-    staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 60 * 1000, // 1 minute
-  });
+    {
+      enabled: !!siteId,
+      staleTime: 30 * 1000, // 30 seconds
+      refetchInterval: 60 * 1000, // 1 minute
+    }
+  );
 }
 
 // Export types for consumers

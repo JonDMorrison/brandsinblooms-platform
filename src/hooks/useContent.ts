@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
-import { queryKeys } from '@/lib/queries/keys';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { 
   getContent, 
   getContentById, 
@@ -20,96 +20,144 @@ import {
 } from '@/lib/queries/domains/content';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { Content, InsertContent, ContentUpdate } from '@/lib/database/aliases';
+import { handleError } from '@/lib/types/error-handling';
+
+// Cache management utilities
+const clearContentCaches = (siteId: string) => {
+  if (typeof window === 'undefined') return;
+  
+  const keys = Object.keys(localStorage);
+  const contentKeys = keys.filter(key => 
+    key.includes(`content-`) && key.includes(`-${siteId}-`)
+  );
+  
+  contentKeys.forEach(key => {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.warn('Failed to clear cache key:', key, error);
+    }
+  });
+};
+
+const clearSpecificContentCache = (siteId: string, contentId?: string) => {
+  if (typeof window === 'undefined') return;
+  
+  const keys = Object.keys(localStorage);
+  const keysToRemove = contentId 
+    ? keys.filter(key => 
+        key.includes(`content-`) && 
+        key.includes(`-${siteId}-`) && 
+        (key.includes(`-${contentId}`) || key.includes('list') || key.includes('stats'))
+      )
+    : keys.filter(key => 
+        key.includes(`content-`) && key.includes(`-${siteId}-`)
+      );
+  
+  keysToRemove.forEach(key => {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.warn('Failed to clear cache key:', key, error);
+    }
+  });
+};
 
 // Main content query hook
 export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.content.list(siteId!, filters),
-    queryFn: () => getContent(supabase, siteId!, filters),
-    enabled: !!siteId,
-    staleTime: 30 * 1000, // 30 seconds
-  });
+  return useSupabaseQuery(
+    (signal) => getContent(supabase, siteId!, filters),
+    {
+      enabled: !!siteId,
+      staleTime: 30 * 1000, // 30 seconds
+      persistKey: `content-list-${siteId}-${JSON.stringify(filters || {})}`,
+    }
+  );
 }
 
 // Get single content item
 export function useContentItem(contentId: string) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.content.detail(siteId!, contentId),
-    queryFn: () => getContentById(supabase, siteId!, contentId),
-    enabled: !!siteId && !!contentId,
-  });
+  return useSupabaseQuery(
+    (signal) => getContentById(supabase, siteId!, contentId),
+    {
+      enabled: !!siteId && !!contentId,
+      persistKey: `content-detail-${siteId}-${contentId}`,
+    }
+  );
 }
 
 // Get content by type
 export function useContentByType(contentType: 'page' | 'blog_post' | 'event') {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.content.list(siteId!, { type: contentType }),
-    queryFn: () => getContentByType(supabase, siteId!, contentType),
-    enabled: !!siteId,
-    staleTime: 30 * 1000,
-  });
+  return useSupabaseQuery(
+    (signal) => getContentByType(supabase, siteId!, contentType),
+    {
+      enabled: !!siteId,
+      staleTime: 30 * 1000,
+      persistKey: `content-by-type-${siteId}-${contentType}`,
+    }
+  );
 }
 
 // Get published content
 export function usePublishedContent(contentType?: 'page' | 'blog_post' | 'event') {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: [...queryKeys.content.all(siteId!), 'published', contentType],
-    queryFn: () => getPublishedContent(supabase, siteId!, contentType),
-    enabled: !!siteId,
-    staleTime: 60 * 1000, // 1 minute for published content
-  });
+  return useSupabaseQuery(
+    (signal) => getPublishedContent(supabase, siteId!, contentType),
+    {
+      enabled: !!siteId,
+      staleTime: 60 * 1000, // 1 minute for published content
+      persistKey: `content-published-${siteId}-${contentType || 'all'}`,
+    }
+  );
 }
 
 // Search content
 export function useSearchContent(searchQuery: string) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: [...queryKeys.content.all(siteId!), 'search', searchQuery],
-    queryFn: () => searchContent(supabase, siteId!, searchQuery),
-    enabled: !!siteId && searchQuery.length > 2,
-    staleTime: 10 * 1000,
-  });
+  return useSupabaseQuery(
+    (signal) => searchContent(supabase, siteId!, searchQuery),
+    {
+      enabled: !!siteId && searchQuery.length > 2,
+      staleTime: 10 * 1000,
+      persistKey: `content-search-${siteId}-${searchQuery}`,
+    }
+  );
 }
 
 // Content statistics
 export function useContentStats() {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: [...queryKeys.content.all(siteId!), 'stats'],
-    queryFn: () => getContentStats(supabase, siteId!),
-    enabled: !!siteId,
-    staleTime: 60 * 1000,
-  });
+  return useSupabaseQuery(
+    (signal) => getContentStats(supabase, siteId!),
+    {
+      enabled: !!siteId,
+      staleTime: 60 * 1000,
+      persistKey: `content-stats-${siteId}`,
+    }
+  );
 }
 
 // Create content mutation
 export function useCreateContent() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
+  const [optimisticContent, setOptimisticContent] = useState<Content | null>(null);
   
-  return useMutation({
-    mutationFn: (data: Omit<InsertContent, 'site_id' | 'author_id'>) => 
-      createContent(supabase, { ...data, site_id: siteId! }),
-    onMutate: async (newContent) => {
-      // Cancel in-flight queries
-      await queryClient.cancelQueries({ queryKey: queryKeys.content.all(siteId!) });
-      
-      // Snapshot previous value
-      const previousContent = queryClient.getQueryData(queryKeys.content.all(siteId!));
-      
-      // Optimistically update
-      queryClient.setQueryData(queryKeys.content.all(siteId!), (old: Content[] = []) => [
-        {
+  const mutation = useSupabaseMutation<Content, Omit<InsertContent, 'site_id' | 'author_id'>>(
+    (data, signal) => createContent(supabase, { ...data, site_id: siteId! }),
+    {
+      showSuccessToast: 'Content created successfully',
+      optimisticUpdate: (newContent) => {
+        // Store optimistic content for UI updates
+        const optimistic = {
           ...newContent,
           id: crypto.randomUUID(),
           site_id: siteId!,
@@ -117,106 +165,114 @@ export function useCreateContent() {
           view_count: 0,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as Content,
-        ...old,
-      ]);
-      
-      return { previousContent };
-    },
-    onError: (err, newContent, context) => {
-      // Revert on error
-      if (context?.previousContent) {
-        queryClient.setQueryData(queryKeys.content.all(siteId!), context.previousContent);
+        } as Content;
+        
+        setOptimisticContent(optimistic);
+      },
+      rollbackOnError: () => {
+        setOptimisticContent(null);
+      },
+      onSuccess: () => {
+        setOptimisticContent(null);
+        clearContentCaches(siteId!);
+      },
+      onError: () => {
+        setOptimisticContent(null);
       }
-      toast.error('Failed to create content');
-    },
-    onSuccess: (data) => {
-      toast.success('Content created successfully');
-    },
-    onSettled: () => {
-      // Always refetch after mutation
-      queryClient.invalidateQueries({ queryKey: queryKeys.content.all(siteId!) });
-    },
-  });
+    }
+  );
+  
+  return {
+    ...mutation,
+    optimisticContent
+  };
 }
 
 // Update content mutation
 export function useUpdateContent() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
+  const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, Partial<Content>>>({});
   
-  return useMutation({
-    mutationFn: ({ id, ...data }: ContentUpdate & { id: string }) => 
-      updateContent(supabase, siteId!, id, data),
-    onMutate: async ({ id, ...updates }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.content.detail(siteId!, id) });
-      
-      const previousContent = queryClient.getQueryData(queryKeys.content.detail(siteId!, id));
-      
-      queryClient.setQueryData(queryKeys.content.detail(siteId!, id), (old: Content) => ({
-        ...old,
-        ...updates,
-        updated_at: new Date().toISOString(),
-      }));
-      
-      return { previousContent };
-    },
-    onError: (err, variables, context) => {
-      if (context?.previousContent) {
-        queryClient.setQueryData(
-          queryKeys.content.detail(siteId!, variables.id), 
-          context.previousContent
-        );
+  const mutation = useSupabaseMutation<Content, ContentUpdate & { id: string }>(
+    ({ id, ...data }, signal) => updateContent(supabase, siteId!, id, data),
+    {
+      showSuccessToast: 'Content updated successfully',
+      optimisticUpdate: ({ id, ...updates }) => {
+        setOptimisticUpdates(prev => ({
+          ...prev,
+          [id]: {
+            ...updates,
+            updated_at: new Date().toISOString(),
+          }
+        }));
+      },
+      rollbackOnError: () => {
+        setOptimisticUpdates({});
+      },
+      onSuccess: (data, variables) => {
+        setOptimisticUpdates(prev => {
+          const { [variables.id]: removed, ...rest } = prev;
+          return rest;
+        });
+        clearSpecificContentCache(siteId!, variables.id);
+      },
+      onError: (error, variables) => {
+        setOptimisticUpdates(prev => {
+          const { [variables.id]: removed, ...rest } = prev;
+          return rest;
+        });
       }
-      toast.error('Failed to update content');
-    },
-    onSuccess: () => {
-      toast.success('Content updated successfully');
-    },
-    onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.content.all(siteId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.content.detail(siteId!, variables.id) });
-    },
-  });
+    }
+  );
+  
+  return {
+    ...mutation,
+    optimisticUpdates
+  };
 }
 
 // Delete content mutation
 export function useDeleteContent() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   
-  return useMutation({
-    mutationFn: (id: string) => deleteContent(supabase, siteId!, id),
-    onMutate: async (contentId) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.content.all(siteId!) });
-      
-      const previousContent = queryClient.getQueryData(queryKeys.content.all(siteId!));
-      
-      queryClient.setQueryData(queryKeys.content.all(siteId!), (old: Content[] = []) => 
-        old.filter(content => content.id !== contentId)
-      );
-      
-      return { previousContent };
-    },
-    onError: (err, contentId, context) => {
-      if (context?.previousContent) {
-        queryClient.setQueryData(queryKeys.content.all(siteId!), context.previousContent);
+  const mutation = useSupabaseMutation<void, string>(
+    (id, signal) => deleteContent(supabase, siteId!, id),
+    {
+      showSuccessToast: 'Content deleted successfully',
+      optimisticUpdate: (contentId) => {
+        setDeletingIds(prev => new Set([...prev, contentId]));
+      },
+      rollbackOnError: () => {
+        setDeletingIds(new Set());
+      },
+      onSuccess: (data, contentId) => {
+        setDeletingIds(prev => {
+          const updated = new Set(prev);
+          updated.delete(contentId);
+          return updated;
+        });
+        clearSpecificContentCache(siteId!, contentId);
+      },
+      onError: (error, contentId) => {
+        setDeletingIds(prev => {
+          const updated = new Set(prev);
+          updated.delete(contentId);
+          return updated;
+        });
       }
-      toast.error('Failed to delete content');
-    },
-    onSuccess: () => {
-      toast.success('Content deleted successfully');
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.content.all(siteId!) });
-    },
-  });
+    }
+  );
+  
+  return {
+    ...mutation,
+    deletingIds
+  };
 }
 
 // Real-time subscription hook
 export function useContentRealtime() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
   useEffect(() => {
     if (!siteId) return;
@@ -232,16 +288,14 @@ export function useContentRealtime() {
           filter: `site_id=eq.${siteId}`,
         },
         (payload) => {
-          // Invalidate queries when data changes
-          queryClient.invalidateQueries({ queryKey: queryKeys.content.all(siteId) });
-          
-          // Handle specific events if needed
+          // Clear relevant caches when data changes
           if (payload.eventType === 'INSERT') {
+            clearContentCaches(siteId);
             toast.info('New content added');
           } else if (payload.eventType === 'UPDATE') {
-            queryClient.invalidateQueries({ 
-              queryKey: queryKeys.content.detail(siteId, payload.new.id) 
-            });
+            clearSpecificContentCache(siteId, payload.new?.id);
+          } else if (payload.eventType === 'DELETE') {
+            clearSpecificContentCache(siteId, payload.old?.id);
           }
         }
       )
@@ -250,5 +304,5 @@ export function useContentRealtime() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [siteId, queryClient]);
+  }, [siteId]);
 }

@@ -11,11 +11,11 @@ import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/
 import { handleError } from '@/src/lib/types/error-handling'
 
 export function NotificationSettings() {
-  const { data: preferences, isLoading, error } = useNotificationPreferences()
+  const { data: preferences, loading, error } = useNotificationPreferences()
   const updatePreferences = useUpdateNotificationPreferences()
 
   // Handle loading and error states
-  if (isLoading) {
+  if (loading) {
     return <NotificationSettingsLoading />
   }
 

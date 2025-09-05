@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation'
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { handleError } from '@/lib/types/error-handling'
@@ -30,8 +31,8 @@ interface MFAFactor {
 export function useChangePassword() {
   const supabase = createClient()
 
-  return useMutation({
-    mutationFn: async ({ currentPassword, newPassword }: PasswordChangeData) => {
+  return useSupabaseMutation<{ success: boolean }, PasswordChangeData>(
+    async ({ currentPassword, newPassword }: PasswordChangeData, signal: AbortSignal) => {
       // First verify the current password by attempting to sign in
       const { data: { user } } = await supabase.auth.getUser()
       if (!user?.email) {
@@ -59,22 +60,18 @@ export function useChangePassword() {
 
       return { success: true }
     },
-    onSuccess: () => {
-      toast.success('Password changed successfully!')
-    },
-    onError: (error: unknown) => {
-      const errorDetails = handleError(error)
-      toast.error(errorDetails.message)
+    {
+      showSuccessToast: 'Password changed successfully!',
+      showErrorToast: true
     }
-  })
+  )
 }
 
 export function useEnroll2FA() {
   const supabase = createClient()
-  const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (): Promise<MFAEnrollmentData> => {
+  return useSupabaseMutation<MFAEnrollmentData, void>(
+    async (_, signal: AbortSignal): Promise<MFAEnrollmentData> => {
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
         friendlyName: 'Authenticator App'
@@ -90,23 +87,18 @@ export function useEnroll2FA() {
 
       return data as MFAEnrollmentData
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mfa-factors'] })
-      toast.success('2FA enrollment started. Please scan the QR code.')
-    },
-    onError: (error: unknown) => {
-      const errorDetails = handleError(error)
-      toast.error(`Failed to enroll 2FA: ${errorDetails.message}`)
+    {
+      showSuccessToast: '2FA enrollment started. Please scan the QR code.',
+      showErrorToast: true
     }
-  })
+  )
 }
 
 export function useVerify2FA() {
   const supabase = createClient()
-  const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async ({ factorId, code }: { factorId: string; code: string }) => {
+  return useSupabaseMutation<any, { factorId: string; code: string }>(
+    async ({ factorId, code }: { factorId: string; code: string }, signal: AbortSignal) => {
       const { data, error } = await supabase.auth.mfa.challenge({
         factorId
       })
@@ -127,23 +119,18 @@ export function useVerify2FA() {
 
       return verifyData
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mfa-factors'] })
-      toast.success('2FA has been successfully enabled!')
-    },
-    onError: (error: unknown) => {
-      const errorDetails = handleError(error)
-      toast.error(`Verification failed: ${errorDetails.message}`)
+    {
+      showSuccessToast: '2FA has been successfully enabled!',
+      showErrorToast: true
     }
-  })
+  )
 }
 
 export function useUnenroll2FA() {
   const supabase = createClient()
-  const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (factorId: string) => {
+  return useSupabaseMutation<{ success: boolean }, string>(
+    async (factorId: string, signal: AbortSignal) => {
       const { error } = await supabase.auth.mfa.unenroll({
         factorId
       })
@@ -154,23 +141,18 @@ export function useUnenroll2FA() {
 
       return { success: true }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mfa-factors'] })
-      toast.success('2FA has been disabled')
-    },
-    onError: (error: unknown) => {
-      const errorDetails = handleError(error)
-      toast.error(`Failed to disable 2FA: ${errorDetails.message}`)
+    {
+      showSuccessToast: '2FA has been disabled',
+      showErrorToast: true
     }
-  })
+  )
 }
 
 export function useMFAFactors() {
   const supabase = createClient()
 
-  return useQuery({
-    queryKey: ['mfa-factors'],
-    queryFn: async (): Promise<MFAFactor[]> => {
+  return useSupabaseQuery<MFAFactor[]>(
+    async (signal): Promise<MFAFactor[]> => {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
@@ -184,15 +166,19 @@ export function useMFAFactors() {
       }
 
       return (data?.totp || []) as MFAFactor[]
+    },
+    {
+      persistKey: 'mfa-factors',
+      staleTime: 5 * 60 * 1000, // 5 minutes
     }
-  })
+  )
 }
 
 export function useRevokeSession() {
   const supabase = createClient()
 
-  return useMutation({
-    mutationFn: async (sessionId: string) => {
+  return useSupabaseMutation<{ success: boolean; sessionId: string }, string>(
+    async (sessionId: string, signal: AbortSignal) => {
       // Note: Supabase doesn't directly expose session revocation via client SDK
       // This would typically be handled through a server-side API endpoint
       // For now, we'll simulate the functionality
@@ -207,21 +193,18 @@ export function useRevokeSession() {
       
       return { success: true, sessionId }
     },
-    onSuccess: () => {
-      toast.success('Session revoked successfully!')
-    },
-    onError: (error: unknown) => {
-      const errorDetails = handleError(error)
-      toast.error(`Failed to revoke session: ${errorDetails.message}`)
+    {
+      showSuccessToast: 'Session revoked successfully!',
+      showErrorToast: true
     }
-  })
+  )
 }
 
 export function useRevokeAllSessions() {
   const supabase = createClient()
 
-  return useMutation({
-    mutationFn: async () => {
+  return useSupabaseMutation<{ success: boolean }, void>(
+    async (_, signal: AbortSignal) => {
       // Sign out from all devices (this will invalidate all refresh tokens)
       const { error } = await supabase.auth.signOut({ scope: 'global' })
 
@@ -233,23 +216,19 @@ export function useRevokeAllSessions() {
       // Note: In production, you'd want to handle this more gracefully
       return { success: true }
     },
-    onSuccess: () => {
-      toast.success('All other sessions have been revoked!')
-    },
-    onError: (error: unknown) => {
-      const errorDetails = handleError(error)
-      toast.error(`Failed to revoke sessions: ${errorDetails.message}`)
+    {
+      showSuccessToast: 'All other sessions have been revoked!',
+      showErrorToast: true
     }
-  })
+  )
 }
 
 // Security notification preferences (these would be stored in user metadata or a separate table)
 export function useUpdateSecurityNotifications() {
   const supabase = createClient()
-  const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (preferences: { emailNotifications: boolean; loginAlerts: boolean }) => {
+  return useSupabaseMutation<{ emailNotifications: boolean; loginAlerts: boolean }, { emailNotifications: boolean; loginAlerts: boolean }>(
+    async (preferences: { emailNotifications: boolean; loginAlerts: boolean }, signal: AbortSignal) => {
       const { error } = await supabase.auth.updateUser({
         data: {
           security_notifications: {
@@ -265,23 +244,18 @@ export function useUpdateSecurityNotifications() {
 
       return preferences
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] })
-      toast.success('Security notification preferences updated')
-    },
-    onError: (error: unknown) => {
-      const errorDetails = handleError(error)
-      toast.error(`Failed to update preferences: ${errorDetails.message}`)
+    {
+      showSuccessToast: 'Security notification preferences updated',
+      showErrorToast: true
     }
-  })
+  )
 }
 
 export function useSecurityNotificationPreferences() {
   const supabase = createClient()
 
-  return useQuery({
-    queryKey: ['security-preferences'],
-    queryFn: async () => {
+  return useSupabaseQuery<{ emailNotifications: boolean; loginAlerts: boolean }>(
+    async (signal) => {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
@@ -301,6 +275,10 @@ export function useSecurityNotificationPreferences() {
         emailNotifications: preferences.email_notifications ?? true,
         loginAlerts: preferences.login_alerts ?? true
       }
+    },
+    {
+      persistKey: 'security-preferences',
+      staleTime: 5 * 60 * 1000, // 5 minutes
     }
-  })
+  )
 }

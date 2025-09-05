@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/src/contexts/AuthContext';
@@ -22,12 +22,11 @@ export interface ProfileFormData {
 }
 
 export function useUpdateProfile() {
-  const queryClient = useQueryClient();
   const supabase = useSupabase();
   const { user } = useAuth();
   
-  return useMutation({
-    mutationFn: async (data: ProfileFormData) => {
+  return useSupabaseMutation(
+    async (data: ProfileFormData, signal: AbortSignal) => {
       if (!user) {
         throw new Error('No authenticated user');
       }
@@ -46,7 +45,8 @@ export function useUpdateProfile() {
       const { error: profileError } = await supabase
         .from('profiles')
         .update(profileData)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .abortSignal(signal);
 
       if (profileError) {
         throw profileError;
@@ -71,52 +71,18 @@ export function useUpdateProfile() {
 
       return { success: true };
     },
-    onMutate: async (newData) => {
-      if (!user) return;
-
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['profile', user.id] });
-      
-      // Snapshot the previous value
-      const previousUser = user;
-      
-      // Optimistically update user context (this would happen naturally through auth state change)
-      // We don't directly update the user state here as it's managed by AuthContext
-      
-      // Return a context object with the snapshotted value
-      return { previousUser };
-    },
-    onError: (err: unknown, newData, context) => {
-      // Handle the error
-      const errorDetails = handleError(err);
-      toast.error(`Failed to update profile: ${errorDetails.message}`);
-      
-      // The auth state will revert naturally if the mutation failed
-      console.error('Profile update error:', errorDetails);
-    },
-    onSuccess: () => {
-      toast.success('Profile updated successfully');
-      
-      // Invalidate and refetch profile-related queries
-      if (user) {
-        queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
-      }
-    },
-    onSettled: () => {
-      // Always refetch after error or success to ensure consistency
-      if (user) {
-        queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
-      }
-    },
-  });
+    {
+      showSuccessToast: 'Profile updated successfully'
+    }
+  );
 }
 
 export function useUploadAvatar() {
   const supabase = useSupabase();
   const { user } = useAuth();
   
-  return useMutation({
-    mutationFn: async (file: File): Promise<string> => {
+  return useSupabaseMutation(
+    async (file: File, signal: AbortSignal): Promise<string> => {
       if (!user) {
         throw new Error('No authenticated user');
       }
@@ -156,22 +122,18 @@ export function useUploadAvatar() {
 
       return publicUrl;
     },
-    onError: (err: unknown) => {
-      const errorDetails = handleError(err);
-      toast.error(`Failed to upload avatar: ${errorDetails.message}`);
-    },
-    onSuccess: () => {
-      toast.success('Avatar uploaded successfully');
-    },
-  });
+    {
+      showSuccessToast: 'Avatar uploaded successfully'
+    }
+  );
 }
 
 export function useDeleteAvatar() {
   const supabase = useSupabase();
   const { user } = useAuth();
   
-  return useMutation({
-    mutationFn: async (avatarUrl: string) => {
+  return useSupabaseMutation(
+    async (avatarUrl: string, signal: AbortSignal) => {
       if (!user) {
         throw new Error('No authenticated user');
       }
@@ -198,7 +160,8 @@ export function useDeleteAvatar() {
           avatar_url: null,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .abortSignal(signal);
 
       if (profileError) {
         throw profileError;
@@ -217,12 +180,8 @@ export function useDeleteAvatar() {
 
       return { success: true };
     },
-    onError: (err: unknown) => {
-      const errorDetails = handleError(err);
-      toast.error(`Failed to delete avatar: ${errorDetails.message}`);
-    },
-    onSuccess: () => {
-      toast.success('Avatar deleted successfully');
-    },
-  });
+    {
+      showSuccessToast: 'Avatar deleted successfully'
+    }
+  );
 }

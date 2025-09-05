@@ -93,7 +93,7 @@ function ProductsPageContent() {
   const [editingProductRef, setEditingProductRef] = useState<HTMLElement | null>(null);
 
   // Fetch real product data
-  const { data: productsResponse, isLoading } = useProducts();
+  const { data: productsResponse, loading } = useProducts();
   const { data: categoriesData = [] } = useProductCategories();
   const updateProduct = useUpdateProduct();
   
@@ -386,7 +386,7 @@ function ProductsPageContent() {
 
       {/* Stats Cards */}
       <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
-        {isLoading ? (
+        {loading ? (
           // Loading skeletons
           Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
@@ -606,7 +606,7 @@ function ProductsPageContent() {
               </div>
 
               {/* Products Grid/List */}
-              {isLoading ? (
+              {loading ? (
                 <div
                   className={
                     viewMode === 'grid'

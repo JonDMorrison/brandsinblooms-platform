@@ -73,8 +73,8 @@ function DesignPageSkeleton() {
 }
 
 export default function DesignPage() {
-  const { data: designSettings, isLoading } = useDesignSettings()
-  const { mutate: updateSettings, isPending: isSaving } = useUpdateDesignSettings()
+  const { data: designSettings, loading: isLoading } = useDesignSettings()
+  const { mutate: updateSettings, loading: isSaving } = useUpdateDesignSettings()
   const resetSettings = useResetDesignSettings()
   
   // Local state for immediate UI updates

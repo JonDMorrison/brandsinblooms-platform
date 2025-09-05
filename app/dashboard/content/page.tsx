@@ -27,8 +27,8 @@ export default function ContentPage() {
   const { loading: siteLoading } = useSiteContext()
   
   // Fetch real content data
-  const { data: contentResponse, isLoading, error, refetch } = useContent()
-  const { data: contentStats, isLoading: statsLoading, refetch: refetchStats } = useContentStats()
+  const { data: contentResponse, loading: isLoading, error, refresh: refetch } = useContent()
+  const { data: contentStats, loading: statsLoading, refresh: refetchStats } = useContentStats()
   
   // Refetch data when siteId becomes available
   useEffect(() => {

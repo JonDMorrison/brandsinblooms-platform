@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { supabase } from '@/lib/supabase/client';
 import { queryKeys } from '@/lib/queries/keys';
 import { getProductStats } from '@/lib/queries/domains/products';
@@ -26,9 +26,8 @@ export interface ProductStats {
 export function useProductStats() {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.products.stats(siteId!),
-    queryFn: async () => {
+  return useSupabaseQuery<ProductStats>(
+    async (signal) => {
       if (!siteId) throw new Error('No site selected');
       
       const stats = await getProductStats(supabase, siteId);
@@ -48,10 +47,11 @@ export function useProductStats() {
         lowStockCount: stats.lowStockCount,
       } as ProductStats;
     },
-    enabled: !!siteId,
-    staleTime: 30 * 1000, // 30 seconds, consistent with other product queries
-    gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
-  });
+    {
+      enabled: !!siteId,
+      staleTime: 30 * 1000, // 30 seconds, consistent with other product queries
+    }
+  );
 }
 
 /**
@@ -59,14 +59,10 @@ export function useProductStats() {
  * Useful after bulk operations or product updates
  */
 export function useInvalidateProductStats() {
-  const siteId = useSiteId();
-  const queryClient = useQueryClient();
+  const productStats = useProductStats();
   
   return () => {
-    if (siteId) {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.products.stats(siteId),
-      });
-    }
+    // Refresh the product stats instead of invalidating
+    productStats.refresh();
   };
 }

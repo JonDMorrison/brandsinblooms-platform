@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/keys';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import {
@@ -20,14 +20,18 @@ import { useEffect } from 'react';
 export function useSiteTheme() {
   const client = useSupabase();
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  const query = useQuery<ThemeSettings>({
-    queryKey: queryKeys.theme.settings(siteId!),
-    queryFn: () => getSiteTheme(client, siteId!),
-    enabled: !!siteId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  });
+  const query = useSupabaseQuery<ThemeSettings>(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getSiteTheme(client, siteId);
+    },
+    {
+      enabled: !!siteId,
+      staleTime: 10 * 60 * 1000, // 10 minutes
+      persistKey: siteId ? `site-theme-${siteId}` : undefined,
+    }
+  );
   
   // Apply theme to DOM when it loads
   useEffect(() => {
@@ -36,59 +40,30 @@ export function useSiteTheme() {
     }
   }, [query.data]);
   
-  const mutation = useMutation({
-    mutationFn: (theme: ThemeSettings) => 
-      updateSiteTheme(client, siteId!, theme),
-    onMutate: async (newTheme) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.theme.settings(siteId!)
-      });
-      
-      // Snapshot the previous value
-      const previousTheme = queryClient.getQueryData<ThemeSettings>(
-        queryKeys.theme.settings(siteId!)
-      );
-      
-      // Optimistically update to the new value
-      queryClient.setQueryData(
-        queryKeys.theme.settings(siteId!),
-        newTheme
-      );
-      
-      // Apply theme immediately for instant feedback
-      applyThemeToDOM(newTheme);
-      
-      return { previousTheme };
+  const mutation = useSupabaseMutation<any, ThemeSettings>(
+    async (theme: ThemeSettings, signal: AbortSignal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return updateSiteTheme(client, siteId, theme);
     },
-    onError: (err, newTheme, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.previousTheme) {
-        queryClient.setQueryData(
-          queryKeys.theme.settings(siteId!),
-          context.previousTheme
-        );
-        applyThemeToDOM(context.previousTheme);
-      }
-      toast.error('Failed to save theme settings');
-    },
-    onSuccess: () => {
-      toast.success('Theme settings saved');
-    },
-    onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.theme.settings(siteId!)
-      });
-    },
-  });
+    {
+      onSuccess: () => {
+        // Apply theme immediately for instant feedback
+        if (query.data) {
+          applyThemeToDOM(query.data);
+        }
+        query.refresh(); // Refresh the query data
+      },
+      showSuccessToast: 'Theme settings saved',
+      showErrorToast: true
+    }
+  );
   
   return {
     theme: query.data,
-    isLoading: query.isLoading,
+    isLoading: query.loading,
     error: query.error,
     saveTheme: mutation.mutate,
-    isSaving: mutation.isPending,
+    isSaving: mutation.loading,
   };
 }
 
@@ -96,70 +71,64 @@ export function useSiteTheme() {
 export function useResetTheme() {
   const client = useSupabase();
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: () => resetTheme(client, siteId!),
-    onSuccess: (site) => {
-      // Update cache with the reset theme
-      queryClient.setQueryData(
-        queryKeys.theme.settings(siteId!),
-        site.theme_settings
-      );
-      
-      // Apply the reset theme
-      if (site.theme_settings) {
-        applyThemeToDOM(site.theme_settings as unknown as ThemeSettings);
-      }
-      
-      toast.success('Theme reset to defaults');
+  return useSupabaseMutation<any, void>(
+    async (_, signal: AbortSignal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return resetTheme(client, siteId);
     },
-    onError: (error) => {
-      toast.error('Failed to reset theme');
-      console.error('Reset theme error:', error);
-    },
-  });
+    {
+      onSuccess: (site) => {
+        // Apply the reset theme
+        if (site.theme_settings) {
+          applyThemeToDOM(site.theme_settings as unknown as ThemeSettings);
+        }
+      },
+      showSuccessToast: 'Theme reset to defaults',
+      showErrorToast: true
+    }
+  );
 }
 
 // Hook for applying theme presets
 export function useApplyThemePreset() {
   const { saveTheme } = useSiteTheme();
   
-  return useMutation({
-    mutationFn: (presetName: keyof typeof themePresets) => {
+  return useSupabaseMutation<ThemeSettings, keyof typeof themePresets>(
+    async (presetName: keyof typeof themePresets, signal: AbortSignal) => {
       const preset = themePresets[presetName];
       if (!preset) {
         throw new Error(`Theme preset "${presetName}" not found`);
       }
-      return Promise.resolve(preset);
+      return preset;
     },
-    onSuccess: (preset) => {
-      saveTheme(preset);
-    },
-  });
+    {
+      onSuccess: (preset) => {
+        saveTheme(preset);
+      },
+      showSuccessToast: false,
+      showErrorToast: true
+    }
+  );
 }
 
 // Hook for importing theme from JSON
 export function useImportTheme() {
   const { saveTheme } = useSiteTheme();
   
-  return useMutation({
-    mutationFn: (jsonString: string) => {
-      try {
-        const theme = importTheme(jsonString);
-        return Promise.resolve(theme);
-      } catch (error) {
-        return Promise.reject(error);
-      }
+  return useSupabaseMutation<ThemeSettings, string>(
+    async (jsonString: string, signal: AbortSignal) => {
+      const theme = importTheme(jsonString);
+      return theme;
     },
-    onSuccess: (theme) => {
-      saveTheme(theme);
-      toast.success('Theme imported successfully');
-    },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : 'Failed to import theme');
-    },
-  });
+    {
+      onSuccess: (theme) => {
+        saveTheme(theme);
+      },
+      showSuccessToast: 'Theme imported successfully',
+      showErrorToast: true
+    }
+  );
 }
 
 // Hook for exporting theme
@@ -196,20 +165,19 @@ export function useExportTheme() {
 export function useGenerateTheme() {
   const { saveTheme } = useSiteTheme();
   
-  return useMutation({
-    mutationFn: (brandColor: string) => {
+  return useSupabaseMutation<ThemeSettings, string>(
+    async (brandColor: string, signal: AbortSignal) => {
       const theme = generateThemeFromBrandColor(brandColor);
-      return Promise.resolve(theme);
+      return theme;
     },
-    onSuccess: (theme) => {
-      saveTheme(theme);
-      toast.success('Theme generated from brand color');
-    },
-    onError: (error) => {
-      toast.error('Failed to generate theme');
-      console.error('Generate theme error:', error);
-    },
-  });
+    {
+      onSuccess: (theme) => {
+        saveTheme(theme);
+      },
+      showSuccessToast: 'Theme generated from brand color',
+      showErrorToast: true
+    }
+  );
 }
 
 // Hook for live theme preview (without saving)

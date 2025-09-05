@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { handleError } from '@/lib/types/error-handling';
-import { queryKeys } from '@/lib/queries/keys';
 import { 
   uploadFileToS3, 
   validateFileForS3,
@@ -85,7 +84,6 @@ export function useBetterUpload(options: UploadOptions = {}) {
   } = options;
 
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
   // State
   const [files, setFiles] = useState<FileUploadState[]>([]);
@@ -173,8 +171,8 @@ export function useBetterUpload(options: UploadOptions = {}) {
   /**
    * Uploads a single file
    */
-  const uploadSingleFile = useMutation({
-    mutationFn: async (fileState: FileUploadState): Promise<FileUploadState> => {
+  const uploadSingleFile = useSupabaseMutation<FileUploadState, FileUploadState>(
+    async (fileState: FileUploadState, signal: AbortSignal): Promise<FileUploadState> => {
       if (!siteId) throw new Error('Site ID is required');
 
       const effectiveResourceId = resourceId || 'general';
@@ -219,34 +217,30 @@ export function useBetterUpload(options: UploadOptions = {}) {
         mediaRecord: mediaRecord || undefined,
       };
     },
-    onSuccess: (updatedFile) => {
-      setFiles(prev => prev.map(f => 
-        f.id === updatedFile.id ? updatedFile : f
-      ));
-      onSuccess?.(updatedFile);
-      
-      // Invalidate relevant queries
-      if (createMediaRecord) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.media.all(siteId!) });
-      }
-      
-      toast.success(`${updatedFile.file.name} uploaded successfully`);
-    },
-    onError: (error, fileState) => {
-      const handled = handleError(error);
-      const updatedFile: FileUploadState = {
-        ...fileState,
-        status: 'error',
-        error: handled.message,
-      };
-      
-      setFiles(prev => prev.map(f => 
-        f.id === fileState.id ? updatedFile : f
-      ));
-      onError?.(updatedFile);
-      toast.error(`Failed to upload ${fileState.file.name}: ${handled.message}`);
-    },
-  });
+    {
+      onSuccess: (updatedFile) => {
+        setFiles(prev => prev.map(f => 
+          f.id === updatedFile.id ? updatedFile : f
+        ));
+        onSuccess?.(updatedFile);
+        
+        toast.success(`${updatedFile.file.name} uploaded successfully`);
+      },
+      onError: (error, fileState) => {
+        const updatedFile: FileUploadState = {
+          ...fileState,
+          status: 'error',
+          error: error.message,
+        };
+        
+        setFiles(prev => prev.map(f => 
+          f.id === fileState.id ? updatedFile : f
+        ));
+        onError?.(updatedFile);
+        toast.error(`Failed to upload ${fileState.file.name}: ${error.message}`);
+      },
+    }
+  );
 
   /**
    * Adds files to the upload queue
@@ -498,7 +492,7 @@ export function useBetterUpload(options: UploadOptions = {}) {
     getFilesByStatus: (status: UploadStatus) => files.filter(f => f.status === status),
     
     // Upload mutation state
-    isUploading: uploadSingleFile.isPending || isUploading,
+    isUploading: uploadSingleFile.loading || isUploading,
     uploadError: uploadSingleFile.error,
   };
 }

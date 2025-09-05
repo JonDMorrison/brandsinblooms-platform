@@ -1,9 +1,9 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
-import { queryKeys } from '@/lib/queries/keys';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import {
   getProductReviews,
   getReviewById,
@@ -31,347 +31,358 @@ type ReviewUpdate = TablesUpdate<'product_reviews'>;
 export function useProductReviews(productId: string, filters?: ReviewFilters) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.products.reviewsList(siteId!, productId, filters),
-    queryFn: () => getProductReviews(supabase, siteId!, productId, filters),
-    enabled: !!siteId && !!productId,
-    staleTime: 30 * 1000, // 30 seconds
-  });
+  const cacheKey = `product_reviews_${siteId}_${productId}_${JSON.stringify(filters || {})}`;
+  
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || !productId) throw new Error('Site ID and Product ID are required');
+      return getProductReviews(supabase, siteId, productId, filters, signal);
+    },
+    {
+      enabled: !!siteId && !!productId,
+      persistKey: cacheKey,
+      staleTime: 30 * 1000, // 30 seconds
+      onError: (error) => {
+        console.error('Failed to fetch product reviews:', error.message);
+      },
+    }
+  );
 }
 
 // Get single review by ID
 export function useReview(reviewId: string) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.reviews.detail(siteId!, reviewId),
-    queryFn: () => getReviewById(supabase, siteId!, reviewId),
-    enabled: !!siteId && !!reviewId,
-  });
+  const cacheKey = `review_${siteId}_${reviewId}`;
+  
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || !reviewId) throw new Error('Site ID and Review ID are required');
+      return getReviewById(supabase, siteId, reviewId, signal);
+    },
+    {
+      enabled: !!siteId && !!reviewId,
+      persistKey: cacheKey,
+      onError: (error) => {
+        console.error('Failed to fetch review:', error.message);
+      },
+    }
+  );
 }
 
 // Get product rating aggregation
 export function useProductRating(productId: string) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.products.rating(siteId!, productId),
-    queryFn: () => getProductRatingAggregation(supabase, siteId!, productId),
-    enabled: !!siteId && !!productId,
-    staleTime: 60 * 1000, // 1 minute
-  });
+  const cacheKey = `product_rating_${siteId}_${productId}`;
+  
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || !productId) throw new Error('Site ID and Product ID are required');
+      return getProductRatingAggregation(supabase, siteId, productId, signal);
+    },
+    {
+      enabled: !!siteId && !!productId,
+      persistKey: cacheKey,
+      staleTime: 60 * 1000, // 1 minute
+      onError: (error) => {
+        console.error('Failed to fetch product rating:', error.message);
+      },
+    }
+  );
 }
 
 // Get user's review for a product
 export function useUserProductReview(productId: string, profileId?: string) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.products.userReview(siteId!, productId, profileId!),
-    queryFn: () => getUserProductReview(supabase, siteId!, productId, profileId!),
-    enabled: !!siteId && !!productId && !!profileId,
-    staleTime: 60 * 1000, // 1 minute
-  });
+  const cacheKey = `user_product_review_${siteId}_${productId}_${profileId}`;
+  
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || !productId || !profileId) throw new Error('Site ID, Product ID, and Profile ID are required');
+      return getUserProductReview(supabase, siteId, productId, profileId, signal);
+    },
+    {
+      enabled: !!siteId && !!productId && !!profileId,
+      persistKey: cacheKey,
+      staleTime: 60 * 1000, // 1 minute
+      onError: (error) => {
+        console.error('Failed to fetch user product review:', error.message);
+      },
+    }
+  );
 }
 
 // Get reviews by profile
 export function useReviewsByProfile(profileId: string, filters?: Omit<ReviewFilters, 'profileId'>) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.reviews.byProfile(siteId!, profileId),
-    queryFn: () => getReviewsByProfile(supabase, siteId!, profileId, filters),
-    enabled: !!siteId && !!profileId,
-    staleTime: 30 * 1000,
-  });
+  const cacheKey = `reviews_by_profile_${siteId}_${profileId}_${JSON.stringify(filters || {})}`;
+  
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || !profileId) throw new Error('Site ID and Profile ID are required');
+      return getReviewsByProfile(supabase, siteId, profileId, filters, signal);
+    },
+    {
+      enabled: !!siteId && !!profileId,
+      persistKey: cacheKey,
+      staleTime: 30 * 1000,
+      onError: (error) => {
+        console.error('Failed to fetch reviews by profile:', error.message);
+      },
+    }
+  );
 }
 
 // Get review statistics
 export function useReviewStats() {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.reviews.stats(siteId!),
-    queryFn: () => getReviewStats(supabase, siteId!),
-    enabled: !!siteId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const cacheKey = `review_stats_${siteId}`;
+  
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getReviewStats(supabase, siteId, signal);
+    },
+    {
+      enabled: !!siteId,
+      persistKey: cacheKey,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      onError: (error) => {
+        console.error('Failed to fetch review stats:', error.message);
+      },
+    }
+  );
 }
 
 // Create review mutation
 export function useCreateReview() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: (data: Omit<ReviewInsert, 'site_id'>) => 
-      createReview(supabase, { ...data, site_id: siteId! }),
-    onMutate: async (newReview) => {
-      const productId = newReview.product_id;
-      
-      // Cancel outgoing queries
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.products.reviews(siteId!, productId) 
-      });
-      
-      // Optimistically update the reviews list
-      const previousReviews = queryClient.getQueryData(
-        queryKeys.products.reviewsList(siteId!, productId)
-      );
-      
-      // Create optimistic review object
-      const optimisticReview: ReviewWithProfile = {
-        ...newReview,
-        id: crypto.randomUUID(),
-        site_id: siteId!,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        helpful_count: 0,
-        is_approved: true, // Assume approved for optimistic update
-        profile: undefined,
-      } as ReviewWithProfile;
-      
-      // Update reviews list
-      queryClient.setQueryData(
-        queryKeys.products.reviewsList(siteId!, productId),
-        (old: any) => {
-          if (!old) return { data: [optimisticReview], count: 1, page: 1, pageSize: 10, totalPages: 1, hasNextPage: false, hasPreviousPage: false };
-          return {
-            ...old,
-            data: [optimisticReview, ...old.data],
-            count: old.count + 1,
-          };
-        }
-      );
-      
-      return { previousReviews, productId };
+  return useSupabaseMutation(
+    async (data: Omit<ReviewInsert, 'site_id'>, signal) => {
+      return createReview(supabase, { ...data, site_id: siteId! }, signal);
     },
-    onError: (err, newReview, context) => {
-      if (context?.previousReviews && context.productId) {
-        queryClient.setQueryData(
-          queryKeys.products.reviewsList(siteId!, context.productId),
-          context.previousReviews
-        );
-      }
-      toast.error('Failed to submit review');
-    },
-    onSuccess: (data, variables) => {
-      toast.success('Review submitted successfully');
-      
-      // Invalidate and refetch related queries
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.reviews(siteId!, variables.product_id) 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.rating(siteId!, variables.product_id) 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.reviews.stats(siteId!) 
-      });
-      
-      // Invalidate user's review for this product
-      if (variables.profile_id) {
-        queryClient.invalidateQueries({ 
-          queryKey: queryKeys.products.userReview(siteId!, variables.product_id, variables.profile_id) 
+    {
+      showSuccessToast: 'Review submitted successfully',
+      optimisticUpdate: (newReview) => {
+        // Clear related localStorage caches
+        const patterns = [
+          `product_reviews_${siteId}_${newReview.product_id}_`,
+          `product_rating_${siteId}_${newReview.product_id}`,
+          `review_stats_${siteId}`,
+          `user_product_review_${siteId}_${newReview.product_id}_${newReview.profile_id}`
+        ];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
         });
-      }
-    },
-  });
+      },
+      onSuccess: (data, variables) => {
+        // Clear related localStorage caches on success
+        const patterns = [
+          `product_reviews_${siteId}_${variables.product_id}_`,
+          `product_rating_${siteId}_${variables.product_id}`,
+          `review_stats_${siteId}`,
+          `user_product_review_${siteId}_${variables.product_id}_${variables.profile_id}`,
+          `reviews_by_profile_${siteId}_${variables.profile_id}_`
+        ];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to create review:', error.message);
+      },
+    }
+  );
 }
 
 // Update review mutation
 export function useUpdateReview() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: ({ id, productId, ...data }: ReviewUpdate & { id: string; productId: string }) => 
-      updateReview(supabase, siteId!, id, data),
-    onMutate: async ({ id, productId, ...updates }) => {
-      // Cancel outgoing queries
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.reviews.detail(siteId!, id) 
-      });
-      
-      const previousReview = queryClient.getQueryData(
-        queryKeys.reviews.detail(siteId!, id)
-      );
-      
-      // Optimistically update the review
-      queryClient.setQueryData(
-        queryKeys.reviews.detail(siteId!, id),
-        (old: ProductReview) => ({
-          ...old,
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-      );
-      
-      // Also update in reviews list
-      queryClient.setQueryData(
-        queryKeys.products.reviewsList(siteId!, productId),
-        (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            data: old.data.map((review: ReviewWithProfile) => 
-              review.id === id 
-                ? { ...review, ...updates, updated_at: new Date().toISOString() }
-                : review
-            )
-          };
-        }
-      );
-      
-      return { previousReview, reviewId: id, productId };
+  return useSupabaseMutation(
+    async (variables: ReviewUpdate & { id: string; productId: string }, signal) => {
+      const { id, productId, ...data } = variables;
+      return updateReview(supabase, siteId!, id, data, signal);
     },
-    onError: (err, variables, context) => {
-      if (context?.previousReview) {
-        queryClient.setQueryData(
-          queryKeys.reviews.detail(siteId!, context.reviewId), 
-          context.previousReview
-        );
-      }
-      toast.error('Failed to update review');
-    },
-    onSuccess: (data, variables) => {
-      toast.success('Review updated successfully');
-      
-      // Invalidate related queries
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.reviews(siteId!, variables.productId) 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.rating(siteId!, variables.productId) 
-      });
-    },
-  });
+    {
+      showSuccessToast: 'Review updated successfully',
+      optimisticUpdate: (variables) => {
+        // Clear related localStorage caches
+        const patterns = [
+          `product_reviews_${siteId}_${variables.productId}_`,
+          `review_${siteId}_${variables.id}`,
+          `product_rating_${siteId}_${variables.productId}`
+        ];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onSuccess: (data, variables) => {
+        // Clear related localStorage caches on success
+        const patterns = [
+          `product_reviews_${siteId}_${variables.productId}_`,
+          `review_${siteId}_${variables.id}`,
+          `product_rating_${siteId}_${variables.productId}`
+        ];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to update review:', error.message);
+      },
+    }
+  );
 }
 
 // Delete review mutation
 export function useDeleteReview() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: ({ reviewId, productId }: { reviewId: string; productId: string }) => 
-      deleteReview(supabase, siteId!, reviewId),
-    onMutate: async ({ reviewId, productId }) => {
-      // Cancel outgoing queries
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.products.reviews(siteId!, productId) 
-      });
-      
-      const previousReviews = queryClient.getQueryData(
-        queryKeys.products.reviewsList(siteId!, productId)
-      );
-      
-      // Remove review from list
-      queryClient.setQueryData(
-        queryKeys.products.reviewsList(siteId!, productId),
-        (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            data: old.data.filter((review: ReviewWithProfile) => review.id !== reviewId),
-            count: Math.max(0, old.count - 1),
-          };
-        }
-      );
-      
-      return { previousReviews, reviewId, productId };
+  return useSupabaseMutation(
+    async (variables: { reviewId: string; productId: string }, signal) => {
+      return deleteReview(supabase, siteId!, variables.reviewId, signal);
     },
-    onError: (err, variables, context) => {
-      if (context?.previousReviews) {
-        queryClient.setQueryData(
-          queryKeys.products.reviewsList(siteId!, context.productId),
-          context.previousReviews
-        );
-      }
-      toast.error('Failed to delete review');
-    },
-    onSuccess: (data, variables) => {
-      toast.success('Review deleted successfully');
-      
-      // Invalidate related queries
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.reviews(siteId!, variables.productId) 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.rating(siteId!, variables.productId) 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.reviews.stats(siteId!) 
-      });
-    },
-  });
+    {
+      showSuccessToast: 'Review deleted successfully',
+      optimisticUpdate: (variables) => {
+        // Clear related localStorage caches
+        const patterns = [
+          `product_reviews_${siteId}_${variables.productId}_`,
+          `review_${siteId}_${variables.reviewId}`,
+          `product_rating_${siteId}_${variables.productId}`,
+          `review_stats_${siteId}`
+        ];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onSuccess: (data, variables) => {
+        // Clear related localStorage caches on success
+        const patterns = [
+          `product_reviews_${siteId}_${variables.productId}_`,
+          `review_${siteId}_${variables.reviewId}`,
+          `product_rating_${siteId}_${variables.productId}`,
+          `review_stats_${siteId}`
+        ];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to delete review:', error.message);
+      },
+    }
+  );
 }
 
 // Mark review as helpful mutation
 export function useMarkReviewHelpful() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: ({ reviewId, productId }: { reviewId: string; productId: string }) => 
-      markReviewHelpful(supabase, siteId!, reviewId),
-    onMutate: async ({ reviewId, productId }) => {
-      // Optimistically update helpful count
-      queryClient.setQueryData(
-        queryKeys.products.reviewsList(siteId!, productId),
-        (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            data: old.data.map((review: ReviewWithProfile) => 
-              review.id === reviewId 
-                ? { ...review, helpful_count: (review.helpful_count || 0) + 1 }
-                : review
-            )
-          };
-        }
-      );
-      
-      return { reviewId, productId };
+  return useSupabaseMutation(
+    async (variables: { reviewId: string; productId: string }, signal) => {
+      return markReviewHelpful(supabase, siteId!, variables.reviewId, signal);
     },
-    onError: (err, variables) => {
-      // Revert optimistic update
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.reviews(siteId!, variables.productId) 
-      });
-      toast.error('Failed to mark review as helpful');
-    },
-    onSuccess: () => {
-      toast.success('Thanks for your feedback!');
-    },
-  });
+    {
+      showSuccessToast: 'Thanks for your feedback!',
+      optimisticUpdate: (variables) => {
+        // Clear related localStorage caches
+        const patterns = [
+          `product_reviews_${siteId}_${variables.productId}_`,
+          `review_${siteId}_${variables.reviewId}`
+        ];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      rollbackOnError: () => {
+        // Clear caches on error to revert optimistic update
+        const patterns = [
+          `product_reviews_${siteId}_`,
+          `review_${siteId}_`
+        ];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to mark review as helpful:', error.message);
+      },
+    }
+  );
 }
 
 // Moderate review mutation (admin only)
 export function useModerateReview() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: ({ reviewId, productId, approved }: { reviewId: string; productId: string; approved: boolean }) => 
-      moderateReview(supabase, siteId!, reviewId, approved),
-    onSuccess: (data, variables) => {
-      const action = variables.approved ? 'approved' : 'rejected';
-      toast.success(`Review ${action} successfully`);
-      
-      // Invalidate related queries
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.reviews(siteId!, variables.productId) 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.rating(siteId!, variables.productId) 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.reviews.stats(siteId!) 
-      });
+  return useSupabaseMutation(
+    async (variables: { reviewId: string; productId: string; approved: boolean }, signal) => {
+      return moderateReview(supabase, siteId!, variables.reviewId, variables.approved, signal);
     },
-    onError: () => {
-      toast.error('Failed to moderate review');
-    },
-  });
+    {
+      onSuccess: (data, variables) => {
+        const action = variables.approved ? 'approved' : 'rejected';
+        toast.success(`Review ${action} successfully`);
+        
+        // Clear related localStorage caches on success
+        const patterns = [
+          `product_reviews_${siteId}_${variables.productId}_`,
+          `review_${siteId}_${variables.reviewId}`,
+          `product_rating_${siteId}_${variables.productId}`,
+          `review_stats_${siteId}`
+        ];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to moderate review:', error.message);
+        toast.error('Failed to moderate review');
+      },
+      showSuccessToast: false, // We handle our own success messages
+    }
+  );
 }

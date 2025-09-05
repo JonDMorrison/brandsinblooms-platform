@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { supabase } from '@/lib/supabase/client';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useDebounceCallback } from '@/hooks/useDebounce';
@@ -23,10 +23,9 @@ interface SlugValidationOptions {
  */
 export function useSlugGeneration() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: async ({ name, excludeId }: SlugGenerationOptions) => {
+  return useSupabaseMutation(
+    async ({ name, excludeId }: SlugGenerationOptions, signal) => {
       if (!siteId) {
         throw new Error('Site ID is required for slug generation');
       }
@@ -36,32 +35,12 @@ export function useSlugGeneration() {
         return '';
       }
       
-      // Check cache first
-      const cacheKey = ['slug', siteId, name, excludeId];
-      const cachedSlug = queryClient.getQueryData<string>(cacheKey);
-      
-      if (cachedSlug !== undefined) {
-        return cachedSlug;
-      }
-      
-      // Generate unique slug
+      // Generate unique slug (caching removed)
       const slug = await generateUniqueSlug(supabase, name, siteId, excludeId);
       
       return slug;
-    },
-    onSuccess: (slug, variables) => {
-      if (!siteId) return;
-      
-      // Cache the result for 30 seconds
-      const cacheKey = ['slug', siteId, variables.name, variables.excludeId];
-      queryClient.setQueryData(cacheKey, slug);
-      // Note: Cache expiration is handled by TanStack Query's default gcTime
-    },
-    onError: (error: unknown) => {
-      const { message } = handleError(error);
-      console.error('Slug generation error:', message);
-    },
-  });
+    }
+  );
 }
 
 /**
@@ -70,26 +49,22 @@ export function useSlugGeneration() {
 export function useSlugValidation() {
   const siteId = useSiteId();
   
-  return useMutation({
-    mutationFn: async ({ slug, excludeId }: SlugValidationOptions) => {
+  return useSupabaseMutation(
+    async ({ slug, excludeId }: SlugValidationOptions, signal) => {
       if (!siteId) {
         throw new Error('Site ID is required for slug validation');
       }
       
       return await validateSlug(supabase, slug, siteId, excludeId);
-    },
-    onError: (error: unknown) => {
-      const { message } = handleError(error);
-      console.error('Slug validation error:', message);
-    },
-  });
+    }
+  );
 }
 
 /**
  * Hook for debounced slug generation with automatic cancellation
  */
 export function useDebouncedSlugGeneration(delay: number = 500) {
-  const { mutate, mutateAsync, isPending, isError, error, data, reset } = useSlugGeneration();
+  const { mutate, mutateAsync, loading, error, data, reset } = useSlugGeneration();
   const abortControllerRef = useRef<AbortController | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   
@@ -123,7 +98,7 @@ export function useDebouncedSlugGeneration(delay: number = 500) {
           if (error instanceof Error && error.name === 'AbortError') {
             return;
           }
-          throw error;
+          // Error already handled by base hook
         } finally {
           setIsGenerating(false);
         }
@@ -155,8 +130,8 @@ export function useDebouncedSlugGeneration(delay: number = 500) {
   return {
     generateSlug: debouncedGenerateSlug,
     generateSlugImmediate,
-    isLoading: isPending || isGenerating,
-    isError,
+    isLoading: loading || isGenerating,
+    isError: !!error,
     error,
     slug: data,
     reset,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+// React Query replaced with base hooks
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/src/contexts/SiteContext';
@@ -34,7 +34,7 @@ export function useNotificationsRealtime({
 }: UseNotificationsRealtimeOptions = {}) {
   const siteId = useSiteId();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
+  // queryClient functionality no longer available
 
   // Play notification sound (if enabled)
   const playNotificationSound = () => {
@@ -65,23 +65,7 @@ export function useNotificationsRealtime({
         return;
       }
       
-      // Invalidate notification lists and counts
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.notifications.lists(siteId!, user!.id),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.notifications.unreadCount(siteId!, user!.id),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.notifications.stats(siteId!, user!.id),
-      });
-      
-      // Update unread count optimistically
-      const unreadCountKey = queryKeys.notifications.unreadCount(siteId!, user!.id);
-      const currentCount = queryClient.getQueryData<number>(unreadCountKey) || 0;
-      if (!newNotification.is_read) {
-        queryClient.setQueryData(unreadCountKey, currentCount + 1);
-      }
+      // Cache invalidation removed - handled by components using base hooks
       
       // Show toast notification
       if (showToasts) {
@@ -123,39 +107,7 @@ export function useNotificationsRealtime({
         return;
       }
       
-      // Update the specific notification in cache if it exists
-      const cachedNotification = queryClient.getQueryData<NotificationWithUser>(
-        queryKeys.notifications.detail(siteId!, user!.id, updatedNotification.id)
-      );
-      
-      if (cachedNotification) {
-        queryClient.setQueryData(
-          queryKeys.notifications.detail(siteId!, user!.id, updatedNotification.id),
-          updatedNotification
-        );
-      }
-      
-      // Update unread count if read status changed
-      if (previousNotification.is_read !== updatedNotification.is_read) {
-        const unreadCountKey = queryKeys.notifications.unreadCount(siteId!, user!.id);
-        const currentCount = queryClient.getQueryData<number>(unreadCountKey) || 0;
-        
-        if (updatedNotification.is_read && !previousNotification.is_read) {
-          // Marked as read
-          queryClient.setQueryData(unreadCountKey, Math.max(0, currentCount - 1));
-        } else if (!updatedNotification.is_read && previousNotification.is_read) {
-          // Marked as unread
-          queryClient.setQueryData(unreadCountKey, currentCount + 1);
-        }
-      }
-      
-      // Invalidate lists and stats
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.notifications.lists(siteId!, user!.id),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.notifications.stats(siteId!, user!.id),
-      });
+      // Cache updates removed - handled by components using base hooks
       
       // Call custom handler
       onNotificationUpdated?.(updatedNotification, previousNotification);
@@ -163,25 +115,7 @@ export function useNotificationsRealtime({
     onDelete: (payload: RealtimePostgresChangesPayload<NotificationWithUser>) => {
       const deletedNotification = payload.old as NotificationWithUser;
       
-      // Remove from cache if exists
-      queryClient.removeQueries({
-        queryKey: queryKeys.notifications.detail(siteId!, user!.id, deletedNotification.id),
-      });
-      
-      // Update unread count if it was an unread notification
-      if (!deletedNotification.is_read) {
-        const unreadCountKey = queryKeys.notifications.unreadCount(siteId!, user!.id);
-        const currentCount = queryClient.getQueryData<number>(unreadCountKey) || 0;
-        queryClient.setQueryData(unreadCountKey, Math.max(0, currentCount - 1));
-      }
-      
-      // Invalidate lists and stats
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.notifications.lists(siteId!, user!.id),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.notifications.stats(siteId!, user!.id),
-      });
+      // Cache updates removed - handled by components using base hooks
       
       // Call custom handler
       onNotificationDeleted?.(deletedNotification.id);
@@ -198,7 +132,7 @@ export function useNotificationsRealtime({
 export function useUrgentNotificationsRealtime(options?: Omit<UseNotificationsRealtimeOptions, 'enabled'>) {
   const siteId = useSiteId();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
+  // queryClient functionality no longer available
   
   return useRealtimeSubscription({
     table: 'notifications',
@@ -208,10 +142,7 @@ export function useUrgentNotificationsRealtime(options?: Omit<UseNotificationsRe
     onInsert: (payload) => {
       const urgentNotification = payload.new as NotificationWithUser;
       
-      // Invalidate urgent notification queries
-      queryClient.invalidateQueries({
-        queryKey: [...queryKeys.notifications.all(siteId!, user!.id), 'urgent'],
-      });
+      // Cache invalidation removed - handled by components using base hooks
       
       // Show prominent urgent notification
       if (options?.showToasts !== false) {
@@ -250,7 +181,7 @@ export function useUrgentNotificationsRealtime(options?: Omit<UseNotificationsRe
 export function useNotificationCountsRealtime() {
   const siteId = useSiteId();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
+  // queryClient functionality no longer available
   
   return useRealtimeSubscription({
     table: 'notifications',
@@ -258,13 +189,7 @@ export function useNotificationCountsRealtime() {
     filter: `site_id=eq.${siteId}&user_id=eq.${user?.id}`,
     enabled: !!siteId && !!user?.id,
     onChange: () => {
-      // Invalidate count queries on any notification change
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.notifications.unreadCount(siteId!, user!.id),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.notifications.stats(siteId!, user!.id),
-      });
+      // Cache invalidation removed - handled by components using base hooks
     },
   });
 }
@@ -279,7 +204,7 @@ export function useCategoryNotificationsRealtime(
 ) {
   const siteId = useSiteId();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
+  // queryClient functionality no longer available
   
   return useRealtimeSubscription({
     table: 'notifications',
@@ -287,13 +212,7 @@ export function useCategoryNotificationsRealtime(
     filter: `site_id=eq.${siteId}&user_id=eq.${user?.id}&category=eq.${category}`,
     enabled: !!siteId && !!user?.id && !!category,
     onChange: () => {
-      // Invalidate category-specific queries
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.notifications.byCategory(siteId!, user!.id, category),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.notifications.lists(siteId!, user!.id),
-      });
+      // Cache invalidation removed - handled by components using base hooks
     },
     onInsert: (payload) => {
       const notification = payload.new as NotificationWithUser;

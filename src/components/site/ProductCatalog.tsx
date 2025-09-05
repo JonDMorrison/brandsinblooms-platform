@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { useCartContext } from '@/src/contexts/CartContext'
-import { useQuery } from '@tanstack/react-query'
 import { useSupabase } from '@/hooks/useSupabase'
 import { Tables } from '@/src/lib/database/types'
 import { Button } from '@/src/components/ui/button'
@@ -57,74 +56,86 @@ export function ProductCatalog({
   const [sortBy, setSortBy] = useState('name')
   const [filterCategory, setFilterCategory] = useState(categoryId || '')
   
-  // Fetch products
-  const { data: products, isLoading } = useQuery({
-    queryKey: ['products', site?.id, filterCategory, featured, sortBy],
-    queryFn: async () => {
-      if (!site?.id) return []
-      
-      let query = supabase
-        .from('products')
-        .select('*')
-        .eq('site_id', site.id)
-        .eq('is_active', true)
-      
-      if (filterCategory) {
-        query = query.eq('category_id', filterCategory)
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Fetch products and categories when dependencies change
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!site?.id) {
+        setProducts([])
+        setCategories([])
+        setIsLoading(false)
+        return
       }
       
-      if (featured) {
-        query = query.eq('is_featured', true)
+      setIsLoading(true)
+      try {
+        // Fetch products
+        let query = supabase
+          .from('products')
+          .select('*')
+          .eq('site_id', site.id)
+          .eq('is_active', true)
+        
+        if (filterCategory) {
+          query = query.eq('category_id', filterCategory)
+        }
+        
+        if (featured) {
+          query = query.eq('is_featured', true)
+        }
+        
+        // Apply sorting
+        switch (sortBy) {
+          case 'price_asc':
+            query = query.order('price', { ascending: true })
+            break
+          case 'price_desc':
+            query = query.order('price', { ascending: false })
+            break
+          case 'name':
+            query = query.order('name', { ascending: true })
+            break
+          case 'newest':
+            query = query.order('created_at', { ascending: false })
+            break
+          default:
+            query = query.order('display_order', { ascending: true })
+        }
+        
+        if (limit) {
+          query = query.limit(limit)
+        }
+        
+        const { data: productsData, error: productsError } = await query
+        
+        if (productsError) throw productsError
+        setProducts(productsData || [])
+
+        // Fetch categories
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('product_categories')
+          .select('*')
+          .eq('site_id', site.id)
+          .order('name')
+        
+        if (categoriesError) {
+          console.error('Failed to load categories:', categoriesError)
+        } else {
+          setCategories(categoriesData || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch products:', error)
+        setProducts([])
+      } finally {
+        setIsLoading(false)
       }
-      
-      // Apply sorting
-      switch (sortBy) {
-        case 'price_asc':
-          query = query.order('price', { ascending: true })
-          break
-        case 'price_desc':
-          query = query.order('price', { ascending: false })
-          break
-        case 'name':
-          query = query.order('name', { ascending: true })
-          break
-        case 'newest':
-          query = query.order('created_at', { ascending: false })
-          break
-        default:
-          query = query.order('display_order', { ascending: true })
-      }
-      
-      if (limit) {
-        query = query.limit(limit)
-      }
-      
-      const { data, error } = await query
-      
-      if (error) throw error
-      return data || []
-    },
-    enabled: !!site?.id,
-    staleTime: 5 * 60 * 1000,
-  })
-  
-  // Fetch categories for filter
-  const { data: categories } = useQuery({
-    queryKey: ['categories', site?.id],
-    queryFn: async () => {
-      if (!site?.id) return []
-      
-      const { data, error } = await supabase
-        .from('product_categories')
-        .select('*')
-        .eq('site_id', site.id)
-        .order('name')
-      
-      if (error) throw error
-      return data || []
-    },
-    enabled: !!site?.id,
-  })
+    }
+
+    fetchData()
+  }, [site?.id, filterCategory, featured, sortBy, limit])
   
   // Filter products by search query
   const filteredProducts = products?.filter(product => {

@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import {
   Card,
   CardContent,
@@ -96,38 +95,71 @@ export function SiteHealthDashboard() {
   const [isRunningHealthCheck, setIsRunningHealthCheck] = useState(false)
   const [lastHealthCheckRun, setLastHealthCheckRun] = useState<string | null>(null)
 
-  // Fetch platform health overview
-  const {
-    data: healthOverview,
-    isLoading: isLoadingOverview,
-    error: overviewError,
-    refetch: refetchOverview
-  } = useQuery<PlatformHealthOverview>({
-    queryKey: ['platform-health-overview'],
-    queryFn: getPlatformHealthOverview,
-    refetchInterval: 60000, // Refresh every minute
-  })
+  const [healthOverview, setHealthOverview] = useState<PlatformHealthOverview | null>(null)
+  const [uptimeTrends, setUptimeTrends] = useState<UptimeTrendData[] | null>(null)
+  const [sitesNeedingAttention, setSitesNeedingAttention] = useState<SiteIssue[] | null>(null)
+  const [isLoadingOverview, setIsLoadingOverview] = useState(true)
+  const [isLoadingTrends, setIsLoadingTrends] = useState(true)
+  const [isLoadingSites, setIsLoadingSites] = useState(true)
+  const [overviewError, setOverviewError] = useState<Error | null>(null)
 
-  // Fetch uptime trends
-  const {
-    data: uptimeTrends,
-    isLoading: isLoadingTrends
-  } = useQuery<UptimeTrendData[]>({
-    queryKey: ['health-trends', 7],
-    queryFn: () => getHealthCheckTrend(undefined, 7, 'uptime'),
-    refetchInterval: 300000, // Refresh every 5 minutes
-  })
+  // Fetch data on component mount and periodically
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoadingOverview(true)
+        const overview = await getPlatformHealthOverview()
+        setHealthOverview(overview)
+        setOverviewError(null)
+      } catch (error) {
+        setOverviewError(error as Error)
+      } finally {
+        setIsLoadingOverview(false)
+      }
 
-  // Fetch sites needing attention
-  const {
-    data: sitesNeedingAttention,
-    isLoading: isLoadingSites,
-    refetch: refetchSites
-  } = useQuery<SiteIssue[]>({
-    queryKey: ['sites-needing-attention'],
-    queryFn: getSitesNeedingAttention,
-    refetchInterval: 120000, // Refresh every 2 minutes
-  })
+      try {
+        setIsLoadingTrends(true)
+        const trends = await getHealthCheckTrend(undefined, 7, 'uptime')
+        setUptimeTrends(trends)
+      } catch (error) {
+        console.error('Failed to load trends:', error)
+      } finally {
+        setIsLoadingTrends(false)
+      }
+
+      try {
+        setIsLoadingSites(true)
+        const sites = await getSitesNeedingAttention()
+        setSitesNeedingAttention(sites)
+      } catch (error) {
+        console.error('Failed to load sites needing attention:', error)
+      } finally {
+        setIsLoadingSites(false)
+      }
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 60000) // Refresh every minute
+    return () => clearInterval(interval)
+  }, [])
+
+  const refetchOverview = async () => {
+    try {
+      const overview = await getPlatformHealthOverview()
+      setHealthOverview(overview)
+    } catch (error) {
+      console.error('Failed to refetch overview:', error)
+    }
+  }
+
+  const refetchSites = async () => {
+    try {
+      const sites = await getSitesNeedingAttention()
+      setSitesNeedingAttention(sites)
+    } catch (error) {
+      console.error('Failed to refetch sites:', error)
+    }
+  }
 
   const handleRunHealthChecks = async () => {
     try {

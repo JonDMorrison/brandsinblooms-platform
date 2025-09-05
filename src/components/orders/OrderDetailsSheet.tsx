@@ -381,7 +381,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                     <Select
                       value={order.status}
                       onValueChange={handleStatusUpdate}
-                      disabled={updateStatus.isPending}
+                      disabled={updateStatus.loading}
                     >
                       <SelectTrigger className="w-48">
                         <SelectValue />

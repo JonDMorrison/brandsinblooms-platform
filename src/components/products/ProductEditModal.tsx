@@ -45,8 +45,6 @@ import { ImageUploadS3, type ProductImage } from '@/src/components/products/Imag
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { supabase } from '@/src/lib/supabase/client'
 import type { Tables, TablesUpdate, TablesInsert } from '@/src/lib/database/types'
-import { useQueryClient } from '@tanstack/react-query'
-import { queryKeys } from '@/src/lib/queries/keys'
 
 type ProductImageInsert = TablesInsert<'product_images'>
 
@@ -95,7 +93,6 @@ export function ProductEditModal({
   onReturnFocus
 }: ProductEditModalProps) {
   const isMobile = useIsMobile()
-  const queryClient = useQueryClient()
   const [isLoading, setIsLoading] = useState(false)
   const [productImages, setProductImages] = useState<ProductImage[]>([])
   const [loadingImages, setLoadingImages] = useState(false)
@@ -250,15 +247,7 @@ export function ProductEditModal({
       // Update product images
       await updateProductImages(product.id)
 
-      // Invalidate product queries to refresh the UI with new images
-      if (product.site_id) {
-        await queryClient.invalidateQueries({ 
-          queryKey: queryKeys.products.all(product.site_id) 
-        })
-        await queryClient.invalidateQueries({ 
-          queryKey: queryKeys.products.detail(product.site_id, product.id) 
-        })
-      }
+      // Note: UI refresh will happen via parent component callback
 
       setHasUnsavedImages(false)
       toast.success('Product updated successfully')

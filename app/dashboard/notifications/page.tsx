@@ -36,17 +36,16 @@ export default function NotificationsPage() {
 
   // Data hooks
   const {
-    data: notificationsData,
-    isLoading,
-    isError,
+    data: notifications,
+    loading,
+    loadingMore,
     error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    refetch,
+    hasMore,
+    loadMore,
+    refresh,
   } = useNotifications(filters)
 
-  const { data: stats, isLoading: statsLoading } = useNotificationStats()
+  const { data: stats, loading: statsLoading } = useNotificationStats()
   const { data: unreadNotifications } = useUnreadNotifications(5)
 
   // Mutation hooks
@@ -55,8 +54,6 @@ export default function NotificationsPage() {
   const bulkDelete = useBulkDelete()
   const markAllAsRead = useMarkAllNotificationsAsRead()
 
-  // Flatten paginated results
-  const notifications = notificationsData?.pages.flatMap(page => page.notifications) || []
   const totalCount = notifications.length
 
   const handleFiltersChange = useCallback((newFilters: {
@@ -84,7 +81,7 @@ export default function NotificationsPage() {
   const handleRefresh = async () => {
     setIsRefreshing(true)
     try {
-      await refetch()
+      await refresh()
       toast.success('Notifications refreshed successfully')
     } catch (error) {
       toast.error('Failed to refresh notifications')
@@ -166,8 +163,8 @@ export default function NotificationsPage() {
   }
 
   const handleLoadMore = () => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage()
+    if (hasMore && !loadingMore) {
+      loadMore()
     }
   }
 
@@ -190,7 +187,7 @@ export default function NotificationsPage() {
   const someSelected = selectedNotificationIds.length > 0
 
   // Show loading skeleton while initial data is loading
-  if (isLoading && !notificationsData) {
+  if (loading && notifications.length === 0) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -231,7 +228,7 @@ export default function NotificationsPage() {
   }
 
   // Show error state
-  if (isError) {
+  if (error) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -244,7 +241,7 @@ export default function NotificationsPage() {
           <CardContent className="p-8 text-center">
             <h3 className="font-medium text-red-600 mb-2">Failed to Load Notifications</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {error instanceof Error ? error.message : 'An error occurred while loading notifications'}
+              {error.message || 'An error occurred while loading notifications'}
             </p>
             <Button onClick={handleRefresh} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -270,7 +267,7 @@ export default function NotificationsPage() {
           <Button 
             variant="outline" 
             onClick={handleMarkAllAsRead} 
-            disabled={markAllAsRead.isPending || (stats?.unread || 0) === 0}
+            disabled={markAllAsRead.loading || (stats?.unread || 0) === 0}
           >
             <CheckCheck className="h-4 w-4 mr-2" />
             Mark All Read
@@ -303,7 +300,7 @@ export default function NotificationsPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleBulkMarkAsRead}
-                  disabled={bulkMarkAsRead.isPending}
+                  disabled={bulkMarkAsRead.loading}
                 >
                   <CheckCheck className="h-4 w-4 mr-2" />
                   Mark Read
@@ -312,7 +309,7 @@ export default function NotificationsPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleBulkArchive}
-                  disabled={bulkArchive.isPending}
+                  disabled={bulkArchive.loading}
                 >
                   <Archive className="h-4 w-4 mr-2" />
                   Archive
@@ -321,7 +318,7 @@ export default function NotificationsPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleBulkDelete}
-                  disabled={bulkDelete.isPending}
+                  disabled={bulkDelete.loading}
                   className="text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
@@ -365,14 +362,14 @@ export default function NotificationsPage() {
               />
               
               {/* Load More Button */}
-              {hasNextPage && (
+              {hasMore && (
                 <div className="flex justify-center mt-6">
                   <Button
                     variant="outline"
                     onClick={handleLoadMore}
-                    disabled={isFetchingNextPage}
+                    disabled={loadingMore}
                   >
-                    {isFetchingNextPage ? (
+                    {loadingMore ? (
                       <>
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                         Loading...

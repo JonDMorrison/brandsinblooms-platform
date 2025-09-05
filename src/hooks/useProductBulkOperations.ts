@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
-import { queryKeys } from '@/lib/queries/keys';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { handleError } from '@/lib/types/error-handling';
 import {
@@ -41,11 +40,11 @@ export interface OperationProgress {
  */
 export function useBulkUpdateProducts() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   const [operationProgress, setOperationProgress] = useState<OperationProgress | null>(null);
 
-  return useMutation({
-    mutationFn: async ({ productIds, updates }: { productIds: string[]; updates: BulkUpdateData }) => {
+  return useSupabaseMutation(
+    async (variables: { productIds: string[]; updates: BulkUpdateData }, signal) => {
+      const { productIds, updates } = variables;
       if (!siteId) throw new Error('Site ID is required');
       
       // Use batch processor for large operations
@@ -76,68 +75,63 @@ export function useBulkUpdateProducts() {
       
       return await bulkUpdateProducts(supabase, siteId, productIds, updates);
     },
-    onMutate: async ({ productIds, updates }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.products.all(siteId!) });
-      
-      const previousProducts = queryClient.getQueryData(queryKeys.products.all(siteId!));
-      
-      // Validate we have the data to update
-      if (!previousProducts) {
-        console.warn('No cached products found for optimistic update');
-        return { previousProducts: [] };
-      }
-      
-      // Optimistically update products in cache
-      queryClient.setQueryData(queryKeys.products.all(siteId!), (old: Product[] = []) =>
-        old.map(product => 
-          productIds.includes(product.id)
-            ? { ...product, ...filterUndefined(updates), updated_at: new Date().toISOString() }
-            : product
-        )
-      );
-      
-      return { previousProducts, productIds, updates };
-    },
-    onError: (error, variables, context) => {
-      // Enhanced error handling with detailed logging
-      console.error('Bulk update error:', {
-        error,
-        variables,
-        context
-      });
-      
-      // Rollback optimistic updates
-      if (context?.previousProducts) {
-        queryClient.setQueryData(queryKeys.products.all(siteId!), context.previousProducts);
-      }
-      
-      // Provide detailed error message
-      const { message } = handleError(error);
-      toast.error(`Failed to update products`, {
-        description: `${message}. ${variables.productIds.length} product(s) were not updated.`
-      });
-    },
-    onSuccess: (data, variables) => {
-      // Verify the operation succeeded
-      if (Array.isArray(data) && data.length !== variables.productIds.length) {
-        console.warn('Partial update detected:', {
-          expected: variables.productIds.length,
-          actual: data.length
+    {
+      optimisticUpdate: (variables) => {
+        // Clear related localStorage caches
+        const patterns = [`products_${siteId}_`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
         });
-        toast.warning(`Partially updated ${data.length} of ${variables.productIds.length} products`);
-      } else {
-        const count = Array.isArray(data) ? data.length : variables.productIds.length;
-        toast.success(`Successfully updated ${count} product${count === 1 ? '' : 's'}`);
-      }
-    },
-    onSettled: () => {
-      // Clean up progress state
-      setOperationProgress(null);
-      
-      // Always invalidate to ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
-    },
-  });
+      },
+      onSuccess: (data, variables) => {
+        // Clean up progress state
+        setOperationProgress(null);
+        
+        // Verify the operation succeeded
+        if (Array.isArray(data) && data.length !== variables.productIds.length) {
+          console.warn('Partial update detected:', {
+            expected: variables.productIds.length,
+            actual: data.length
+          });
+          toast.warning(`Partially updated ${data.length} of ${variables.productIds.length} products`);
+        } else {
+          const count = Array.isArray(data) ? data.length : variables.productIds.length;
+          toast.success(`Successfully updated ${count} product${count === 1 ? '' : 's'}`);
+        }
+        
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error, variables) => {
+        // Clean up progress state
+        setOperationProgress(null);
+        
+        // Enhanced error handling with detailed logging
+        console.error('Bulk update error:', {
+          error,
+          variables
+        });
+        
+        // Provide detailed error message
+        const { message } = handleError(error);
+        toast.error(`Failed to update products`, {
+          description: `${message}. ${variables.productIds.length} product(s) were not updated.`
+        });
+      },
+      showSuccessToast: false, // We handle our own success messages
+    }
+  );
 }
 
 /**
@@ -145,11 +139,10 @@ export function useBulkUpdateProducts() {
  */
 export function useBulkDeleteProducts() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   const [operationProgress, setOperationProgress] = useState<OperationProgress | null>(null);
 
-  return useMutation({
-    mutationFn: async (productIds: string[]) => {
+  return useSupabaseMutation(
+    async (productIds: string[], signal) => {
       if (!siteId) throw new Error('Site ID is required');
       
       // Use batch processor for large operations
@@ -181,38 +174,56 @@ export function useBulkDeleteProducts() {
       
       return await bulkDeleteProducts(supabase, siteId, productIds);
     },
-    onMutate: async (productIds) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.products.all(siteId!) });
-      
-      const previousProducts = queryClient.getQueryData(queryKeys.products.all(siteId!));
-      
-      // Optimistically remove products from cache
-      queryClient.setQueryData(queryKeys.products.all(siteId!), (old: Product[] = []) =>
-        old.filter(product => !productIds.includes(product.id))
-      );
-      
-      return { previousProducts, productIds };
-    },
-    onError: (error, productIds, context) => {
-      console.error('Bulk delete error:', error);
-      
-      if (context?.previousProducts) {
-        queryClient.setQueryData(queryKeys.products.all(siteId!), context.previousProducts);
-      }
-      
-      const { message } = handleError(error);
-      toast.error('Failed to delete products', {
-        description: `${message}. ${productIds.length} product(s) were not deleted.`
-      });
-    },
-    onSuccess: (data, productIds) => {
-      toast.success(`Successfully deleted ${productIds.length} product${productIds.length === 1 ? '' : 's'}`);
-    },
-    onSettled: () => {
-      setOperationProgress(null);
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
-    },
-  });
+    {
+      optimisticUpdate: (productIds) => {
+        // Clear related localStorage caches
+        const patterns = [`products_${siteId}_`, `product_categories_${siteId}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+        
+        // Also clear individual product caches
+        productIds.forEach(productId => {
+          const productKey = `product_${siteId}_${productId}`;
+          localStorage.removeItem(productKey);
+        });
+      },
+      onSuccess: (data, productIds) => {
+        setOperationProgress(null);
+        toast.success(`Successfully deleted ${productIds.length} product${productIds.length === 1 ? '' : 's'}`);
+        
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`, `product_categories_${siteId}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+        
+        // Also clear individual product caches
+        productIds.forEach(productId => {
+          const productKey = `product_${siteId}_${productId}`;
+          localStorage.removeItem(productKey);
+        });
+      },
+      onError: (error, productIds) => {
+        setOperationProgress(null);
+        console.error('Bulk delete error:', error);
+        
+        const { message } = handleError(error);
+        toast.error('Failed to delete products', {
+          description: `${message}. ${productIds.length} product(s) were not deleted.`
+        });
+      },
+      showSuccessToast: false, // We handle our own success messages
+    }
+  );
 }
 
 /**
@@ -220,11 +231,10 @@ export function useBulkDeleteProducts() {
  */
 export function useBulkDuplicateProducts() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   const [operationProgress, setOperationProgress] = useState<OperationProgress | null>(null);
 
-  return useMutation({
-    mutationFn: async (productIds: string[]) => {
+  return useSupabaseMutation(
+    async (productIds: string[], signal) => {
       if (!siteId) throw new Error('Site ID is required');
       
       if (productIds.length > 50) {
@@ -254,21 +264,32 @@ export function useBulkDuplicateProducts() {
       
       return await bulkDuplicateProducts(supabase, siteId, productIds);
     },
-    onSuccess: (data, productIds) => {
-      const count = Array.isArray(data) ? data.length : productIds.length;
-      toast.success(`Successfully duplicated ${count} product${count === 1 ? '' : 's'}`);
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
-    },
-    onError: (error) => {
-      const { message } = handleError(error);
-      toast.error('Failed to duplicate products', {
-        description: message
-      });
-    },
-    onSettled: () => {
-      setOperationProgress(null);
-    },
-  });
+    {
+      onSuccess: (data, productIds) => {
+        setOperationProgress(null);
+        const count = Array.isArray(data) ? data.length : productIds.length;
+        toast.success(`Successfully duplicated ${count} product${count === 1 ? '' : 's'}`);
+        
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`, `product_categories_${siteId}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        setOperationProgress(null);
+        const { message } = handleError(error);
+        toast.error('Failed to duplicate products', {
+          description: message
+        });
+      },
+      showSuccessToast: false, // We handle our own success messages
+    }
+  );
 }
 
 /**
@@ -276,11 +297,11 @@ export function useBulkDuplicateProducts() {
  */
 export function useBulkUpdatePrices() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   const [operationProgress, setOperationProgress] = useState<OperationProgress | null>(null);
 
-  return useMutation({
-    mutationFn: async ({ productIds, priceUpdate }: { productIds: string[]; priceUpdate: BulkPriceUpdate }) => {
+  return useSupabaseMutation(
+    async (variables: { productIds: string[]; priceUpdate: BulkPriceUpdate }, signal) => {
+      const { productIds, priceUpdate } = variables;
       if (!siteId) throw new Error('Site ID is required');
       
       // Validate price update parameters
@@ -319,24 +340,36 @@ export function useBulkUpdatePrices() {
       
       return await bulkUpdatePrices(supabase, siteId, productIds, priceUpdate);
     },
-    onSuccess: (data, { productIds, priceUpdate }) => {
-      const count = Array.isArray(data) ? data.length : productIds.length;
-      const action = priceUpdate.operation === 'increase' ? 'increased' : 'decreased';
-      const amount = priceUpdate.type === 'percentage' ? `${priceUpdate.value}%` : `$${priceUpdate.value}`;
-      
-      toast.success(`Successfully ${action} prices by ${amount} for ${count} product${count === 1 ? '' : 's'}`);
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
-    },
-    onError: (error) => {
-      const { message } = handleError(error);
-      toast.error('Failed to update prices', {
-        description: message
-      });
-    },
-    onSettled: () => {
-      setOperationProgress(null);
-    },
-  });
+    {
+      onSuccess: (data, variables) => {
+        setOperationProgress(null);
+        const { productIds, priceUpdate } = variables;
+        const count = Array.isArray(data) ? data.length : productIds.length;
+        const action = priceUpdate.operation === 'increase' ? 'increased' : 'decreased';
+        const amount = priceUpdate.type === 'percentage' ? `${priceUpdate.value}%` : `$${priceUpdate.value}`;
+        
+        toast.success(`Successfully ${action} prices by ${amount} for ${count} product${count === 1 ? '' : 's'}`);
+        
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        setOperationProgress(null);
+        const { message } = handleError(error);
+        toast.error('Failed to update prices', {
+          description: message
+        });
+      },
+      showSuccessToast: false, // We handle our own success messages
+    }
+  );
 }
 
 /**
@@ -345,8 +378,9 @@ export function useBulkUpdatePrices() {
 export function useExportProducts() {
   const siteId = useSiteId();
 
-  return useMutation({
-    mutationFn: async ({ productIds, filename = 'products' }: { productIds?: string[]; filename?: string }) => {
+  return useSupabaseMutation(
+    async (variables: { productIds?: string[]; filename?: string }, signal) => {
+      const { productIds, filename = 'products' } = variables;
       if (!siteId) throw new Error('Site ID is required');
       
       const products = await exportProducts(supabase, siteId, productIds);
@@ -369,17 +403,22 @@ export function useExportProducts() {
       
       return { products, csvContent };
     },
-    onSuccess: ({ products }, { productIds }) => {
-      const count = productIds ? productIds.length : products.length;
-      toast.success(`Successfully exported ${count} product${count === 1 ? '' : 's'} to CSV`);
-    },
-    onError: (error) => {
-      const { message } = handleError(error);
-      toast.error('Failed to export products', {
-        description: message
-      });
-    },
-  });
+    {
+      onSuccess: (data, variables) => {
+        const { products } = data;
+        const { productIds } = variables;
+        const count = productIds ? productIds.length : products.length;
+        toast.success(`Successfully exported ${count} product${count === 1 ? '' : 's'} to CSV`);
+      },
+      onError: (error) => {
+        const { message } = handleError(error);
+        toast.error('Failed to export products', {
+          description: message
+        });
+      },
+      showSuccessToast: false, // We handle our own success messages
+    }
+  );
 }
 
 /**
@@ -387,25 +426,36 @@ export function useExportProducts() {
  */
 export function useBulkActivateProducts() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (productIds: string[]) => {
+  return useSupabaseMutation(
+    async (productIds: string[], signal) => {
       if (!siteId) throw new Error('Site ID is required');
       return await bulkActivateProducts(supabase, siteId, productIds);
     },
-    onSuccess: (data, productIds) => {
-      const count = Array.isArray(data) ? data.length : productIds.length;
-      toast.success(`Successfully activated ${count} product${count === 1 ? '' : 's'}`);
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
-    },
-    onError: (error) => {
-      const { message } = handleError(error);
-      toast.error('Failed to activate products', {
-        description: message
-      });
-    },
-  });
+    {
+      onSuccess: (data, productIds) => {
+        const count = Array.isArray(data) ? data.length : productIds.length;
+        toast.success(`Successfully activated ${count} product${count === 1 ? '' : 's'}`);
+        
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        const { message } = handleError(error);
+        toast.error('Failed to activate products', {
+          description: message
+        });
+      },
+      showSuccessToast: false, // We handle our own success messages
+    }
+  );
 }
 
 /**
@@ -413,25 +463,36 @@ export function useBulkActivateProducts() {
  */
 export function useBulkDeactivateProducts() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (productIds: string[]) => {
+  return useSupabaseMutation(
+    async (productIds: string[], signal) => {
       if (!siteId) throw new Error('Site ID is required');
       return await bulkDeactivateProducts(supabase, siteId, productIds);
     },
-    onSuccess: (data, productIds) => {
-      const count = Array.isArray(data) ? data.length : productIds.length;
-      toast.success(`Successfully deactivated ${count} product${count === 1 ? '' : 's'}`);
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
-    },
-    onError: (error) => {
-      const { message } = handleError(error);
-      toast.error('Failed to deactivate products', {
-        description: message
-      });
-    },
-  });
+    {
+      onSuccess: (data, productIds) => {
+        const count = Array.isArray(data) ? data.length : productIds.length;
+        toast.success(`Successfully deactivated ${count} product${count === 1 ? '' : 's'}`);
+        
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        const { message } = handleError(error);
+        toast.error('Failed to deactivate products', {
+          description: message
+        });
+      },
+      showSuccessToast: false, // We handle our own success messages
+    }
+  );
 }
 
 /**
@@ -439,26 +500,39 @@ export function useBulkDeactivateProducts() {
  */
 export function useBulkSetFeatured() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({ productIds, featured }: { productIds: string[]; featured: boolean }) => {
+  return useSupabaseMutation(
+    async (variables: { productIds: string[]; featured: boolean }, signal) => {
+      const { productIds, featured } = variables;
       if (!siteId) throw new Error('Site ID is required');
       return await bulkSetFeatured(supabase, siteId, productIds, featured);
     },
-    onSuccess: (data, { productIds, featured }) => {
-      const count = Array.isArray(data) ? data.length : productIds.length;
-      const action = featured ? 'featured' : 'unfeatured';
-      toast.success(`Successfully ${action} ${count} product${count === 1 ? '' : 's'}`);
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
-    },
-    onError: (error) => {
-      const { message } = handleError(error);
-      toast.error('Failed to update featured status', {
-        description: message
-      });
-    },
-  });
+    {
+      onSuccess: (data, variables) => {
+        const { productIds, featured } = variables;
+        const count = Array.isArray(data) ? data.length : productIds.length;
+        const action = featured ? 'featured' : 'unfeatured';
+        toast.success(`Successfully ${action} ${count} product${count === 1 ? '' : 's'}`);
+        
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        const { message } = handleError(error);
+        toast.error('Failed to update featured status', {
+          description: message
+        });
+      },
+      showSuccessToast: false, // We handle our own success messages
+    }
+  );
 }
 
 /**
@@ -466,25 +540,38 @@ export function useBulkSetFeatured() {
  */
 export function useBulkUpdateCategory() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({ productIds, category, subcategory }: { productIds: string[]; category: string; subcategory?: string }) => {
+  return useSupabaseMutation(
+    async (variables: { productIds: string[]; category: string; subcategory?: string }, signal) => {
+      const { productIds, category, subcategory } = variables;
       if (!siteId) throw new Error('Site ID is required');
       return await bulkUpdateCategory(supabase, siteId, productIds, category, subcategory);
     },
-    onSuccess: (data, { productIds, category }) => {
-      const count = Array.isArray(data) ? data.length : productIds.length;
-      toast.success(`Successfully updated category to "${category}" for ${count} product${count === 1 ? '' : 's'}`);
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
-    },
-    onError: (error) => {
-      const { message } = handleError(error);
-      toast.error('Failed to update category', {
-        description: message
-      });
-    },
-  });
+    {
+      onSuccess: (data, variables) => {
+        const { productIds, category } = variables;
+        const count = Array.isArray(data) ? data.length : productIds.length;
+        toast.success(`Successfully updated category to "${category}" for ${count} product${count === 1 ? '' : 's'}`);
+        
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`, `product_categories_${siteId}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        const { message } = handleError(error);
+        toast.error('Failed to update category', {
+          description: message
+        });
+      },
+      showSuccessToast: false, // We handle our own success messages
+    }
+  );
 }
 
 /**
@@ -503,21 +590,21 @@ export function useProductBulkOperations(siteId: string | null) {
 
   // Aggregate operation progress
   const operationProgress = 
-    bulkUpdate.isPending ? (bulkUpdate as any).operationProgress :
-    bulkDelete.isPending ? (bulkDelete as any).operationProgress :
-    bulkDuplicate.isPending ? (bulkDuplicate as any).operationProgress :
-    bulkUpdatePricesHook.isPending ? (bulkUpdatePricesHook as any).operationProgress :
+    bulkUpdate.loading ? (bulkUpdate as any).operationProgress :
+    bulkDelete.loading ? (bulkDelete as any).operationProgress :
+    bulkDuplicate.loading ? (bulkDuplicate as any).operationProgress :
+    bulkUpdatePricesHook.loading ? (bulkUpdatePricesHook as any).operationProgress :
     null;
 
-  const isLoading = bulkUpdate.isPending || 
-                    bulkDelete.isPending || 
-                    bulkDuplicate.isPending || 
-                    bulkUpdatePricesHook.isPending || 
-                    exportProductsHook.isPending ||
-                    bulkActivate.isPending ||
-                    bulkDeactivate.isPending ||
-                    bulkSetFeaturedHook.isPending ||
-                    bulkUpdateCategoryHook.isPending;
+  const isLoading = bulkUpdate.loading || 
+                    bulkDelete.loading || 
+                    bulkDuplicate.loading || 
+                    bulkUpdatePricesHook.loading || 
+                    exportProductsHook.loading ||
+                    bulkActivate.loading ||
+                    bulkDeactivate.loading ||
+                    bulkSetFeaturedHook.loading ||
+                    bulkUpdateCategoryHook.loading;
 
   return {
     // Individual operations

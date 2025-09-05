@@ -3,8 +3,7 @@
  * Includes related data (items, status history, payments, shipments)
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/keys';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import {
@@ -40,28 +39,25 @@ export function useOrderDetails(
     includeFullDetails = true,
   } = options;
   
-  return useQuery<OrderWithDetails>({
-    queryKey: queryKeys.orders.detail(siteId!, orderId),
-    queryFn: async () => {
+  return useSupabaseQuery<OrderWithDetails>(
+    async (signal) => {
+      if (!siteId || !orderId) throw new Error('Site ID and Order ID are required');
+      
       if (includeFullDetails) {
-        return await getOrderById(client, siteId!, orderId);
+        return await getOrderById(client, siteId, orderId);
       } else {
         // Cast OrderWithCustomer to OrderWithDetails for type consistency
-        const order = await getOrder(client, siteId!, orderId);
+        const order = await getOrder(client, siteId, orderId);
         return order as unknown as OrderWithDetails;
       }
     },
-    enabled: !!siteId && !!orderId && enabled,
-    staleTime,
-    refetchInterval,
-    retry: (failureCount, error) => {
-      // Don't retry if order not found
-      if ((error as any)?.message?.includes('not found')) {
-        return false;
-      }
-      return failureCount < 3;
-    },
-  });
+    {
+      enabled: !!siteId && !!orderId && enabled,
+      staleTime,
+      refetchInterval,
+      persistKey: `order-details-${orderId}`,
+    }
+  );
 }
 
 /**
@@ -74,7 +70,7 @@ export function useOrder(
   return useOrderDetails(orderId, {
     ...options,
     includeFullDetails: false,
-  }) as ReturnType<typeof useQuery<OrderWithCustomer>>;
+  });
 }
 
 /**
@@ -93,13 +89,18 @@ export function useOrderItems(
     refetchInterval,
   } = options;
   
-  return useQuery({
-    queryKey: [...queryKeys.orders.detail(siteId!, orderId), 'items'],
-    queryFn: () => getOrderItems(client, siteId!, orderId),
-    enabled: !!siteId && !!orderId && enabled,
-    staleTime,
-    refetchInterval,
-  });
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || !orderId) throw new Error('Site ID and Order ID are required');
+      return getOrderItems(client, siteId, orderId);
+    },
+    {
+      enabled: !!siteId && !!orderId && enabled,
+      staleTime,
+      refetchInterval,
+      persistKey: `order-items-${orderId}`,
+    }
+  );
 }
 
 /**
@@ -118,9 +119,10 @@ export function useOrderStatusHistory(
     refetchInterval,
   } = options;
   
-  return useQuery({
-    queryKey: [...queryKeys.orders.detail(siteId!, orderId), 'status-history'],
-    queryFn: async () => {
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || !orderId) throw new Error('Site ID and Order ID are required');
+      
       const { data, error } = await client
         .from('order_status_history')
         .select('*')
@@ -130,10 +132,13 @@ export function useOrderStatusHistory(
       if (error) throw error;
       return data || [];
     },
-    enabled: !!siteId && !!orderId && enabled,
-    staleTime,
-    refetchInterval,
-  });
+    {
+      enabled: !!siteId && !!orderId && enabled,
+      staleTime,
+      refetchInterval,
+      persistKey: `order-status-history-${orderId}`,
+    }
+  );
 }
 
 /**
@@ -152,9 +157,10 @@ export function useOrderPayments(
     refetchInterval,
   } = options;
   
-  return useQuery({
-    queryKey: [...queryKeys.orders.detail(siteId!, orderId), 'payments'],
-    queryFn: async () => {
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || !orderId) throw new Error('Site ID and Order ID are required');
+      
       const { data, error } = await client
         .from('order_payments')
         .select('*')
@@ -164,10 +170,13 @@ export function useOrderPayments(
       if (error) throw error;
       return data || [];
     },
-    enabled: !!siteId && !!orderId && enabled,
-    staleTime,
-    refetchInterval,
-  });
+    {
+      enabled: !!siteId && !!orderId && enabled,
+      staleTime,
+      refetchInterval,
+      persistKey: `order-payments-${orderId}`,
+    }
+  );
 }
 
 /**
@@ -186,9 +195,10 @@ export function useOrderShipments(
     refetchInterval,
   } = options;
   
-  return useQuery({
-    queryKey: [...queryKeys.orders.detail(siteId!, orderId), 'shipments'],
-    queryFn: async () => {
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || !orderId) throw new Error('Site ID and Order ID are required');
+      
       const { data, error } = await client
         .from('order_shipments')
         .select('*')
@@ -198,10 +208,13 @@ export function useOrderShipments(
       if (error) throw error;
       return data || [];
     },
-    enabled: !!siteId && !!orderId && enabled,
-    staleTime,
-    refetchInterval,
-  });
+    {
+      enabled: !!siteId && !!orderId && enabled,
+      staleTime,
+      refetchInterval,
+      persistKey: `order-shipments-${orderId}`,
+    }
+  );
 }
 
 /**
@@ -221,8 +234,8 @@ export function useOrderFullDetails(
     statusHistory,
     payments,
     shipments,
-    isLoading: orderDetails.isLoading || statusHistory.isLoading || payments.isLoading || shipments.isLoading,
-    isError: orderDetails.isError || statusHistory.isError || payments.isError || shipments.isError,
+    isLoading: orderDetails.loading || statusHistory.loading || payments.loading || shipments.loading,
+    isError: !!(orderDetails.error || statusHistory.error || payments.error || shipments.error),
     error: orderDetails.error || statusHistory.error || payments.error || shipments.error,
   };
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { supabase } from '@/lib/supabase/client';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -37,11 +37,10 @@ export function useGlobalSearch(query: string, limit: number = 10): UseGlobalSea
 
   const {
     data = [],
-    isLoading,
+    loading: isLoading,
     error
-  } = useQuery<EnhancedSearchResult[]>({
-    queryKey: ['globalSearch', siteId, debouncedQuery, limit] as const,
-    queryFn: async () => {
+  } = useSupabaseQuery<EnhancedSearchResult[]>(
+    async (signal: AbortSignal) => {
       if (!siteId) {
         throw new Error('No site ID available');
       }
@@ -54,11 +53,11 @@ export function useGlobalSearch(query: string, limit: number = 10): UseGlobalSea
         throw new Error(errorInfo.message);
       }
     },
-    enabled: shouldSearch,
-    placeholderData: (previousData) => previousData,
-    staleTime: 30000, // Keep data fresh for 30 seconds
-    gcTime: 5 * 60 * 1000, // Cache for 5 minutes
-  });
+    {
+      enabled: shouldSearch,
+      staleTime: 30000, // Keep data fresh for 30 seconds
+    }
+  );
 
   return {
     data: data || [],

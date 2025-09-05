@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { supabase } from '@/lib/supabase/client'
 import { useSite } from '@/src/hooks/useSite'
 import { Tables } from '@/src/lib/database/types'
@@ -8,9 +8,8 @@ type ActivityLog = Tables<'activity_logs'>
 export function useActivityLogs(limit = 10) {
   const { site } = useSite()
 
-  return useQuery<ActivityLog[], Error>({
-    queryKey: ['activity-logs', site?.id, limit],
-    queryFn: async () => {
+  return useSupabaseQuery<ActivityLog[]>(
+    async (signal) => {
       if (!site?.id) {
         return []
       }
@@ -29,7 +28,10 @@ export function useActivityLogs(limit = 10) {
 
       return data || []
     },
-    enabled: !!site?.id,
-    staleTime: 30000, // 30 seconds
-  })
+    {
+      enabled: !!site?.id,
+      staleTime: 30000, // 30 seconds
+      initialData: [],
+    }
+  )
 }

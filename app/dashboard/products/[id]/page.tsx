@@ -31,10 +31,10 @@ export default function ProductDetailPage() {
   // Mock current user profile ID - in real app this would come from auth
   const currentUserProfileId = 'user-123'; // This should come from auth context
   
-  const { data: product, isLoading, error } = useProduct(productId);
+  const { data: product, loading, error } = useProduct(productId);
   const { data: ratingData } = useProductRating(productId);
 
-  if (isLoading) {
+  if (loading) {
     return <ProductDetailSkeleton />;
   }
 

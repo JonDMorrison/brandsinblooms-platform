@@ -1,11 +1,9 @@
 /**
  * Order Mutations hook - All mutation hooks for order management
- * Includes optimistic updates and proper cache invalidation
+ * Migrated to use Supabase-only base hooks with localStorage caching
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { queryKeys } from '@/lib/queries/keys';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import {
@@ -23,7 +21,6 @@ import {
   OrderStatus, 
   Order 
 } from '@/lib/database/aliases';
-import { handleError } from '@/lib/types/error-handling';
 
 /**
  * Hook for creating new orders
@@ -31,44 +28,27 @@ import { handleError } from '@/lib/types/error-handling';
 export function useCreateOrder() {
   const client = useSupabase();
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: (orderData: Omit<OrderInsert, 'site_id' | 'order_number'>) =>
-      createOrder(client, siteId!, orderData),
-    
-    onMutate: async () => {
-      // Cancel any outgoing refetches for orders list and stats
-      await Promise.all([
-        queryClient.cancelQueries({
-          queryKey: queryKeys.orders.lists(siteId!),
-        }),
-        queryClient.cancelQueries({
-          queryKey: queryKeys.orders.stats(siteId!),
-        }),
-      ]);
+  return useSupabaseMutation<Order, Omit<OrderInsert, 'site_id' | 'order_number'>>(
+    async (orderData, signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return createOrder(client, siteId, orderData);
     },
-    
-    onSuccess: (newOrder) => {
-      // Invalidate and refetch orders list and stats
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.all(siteId!),
-      });
-      
-      // Invalidate dashboard metrics
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.dashboard.stats(siteId!),
-      });
-      
-      toast.success(`Order ${newOrder.order_number} created successfully`);
-    },
-    
-    onError: (error: unknown) => {
-      const errorDetails = handleError(error);
-      toast.error(`Failed to create order: ${errorDetails.message}`);
-      console.error('Create order error:', errorDetails);
-    },
-  });
+    {
+      showSuccessToast: true,
+      onSuccess: (newOrder) => {
+        // Clear localStorage caches for orders
+        if (typeof window !== 'undefined' && siteId) {
+          const keysToRemove = [
+            `orders-${siteId}`,
+            `order-stats-${siteId}`,
+            `dashboard-stats-${siteId}`,
+          ];
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+        }
+      },
+    }
+  );
 }
 
 /**
@@ -77,63 +57,27 @@ export function useCreateOrder() {
 export function useUpdateOrder() {
   const client = useSupabase();
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: ({ orderId, updates }: { orderId: string; updates: OrderUpdate }) =>
-      updateOrder(client, siteId!, orderId, updates),
-    
-    onMutate: async ({ orderId, updates }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.orders.detail(siteId!, orderId),
-      });
-      
-      // Snapshot the previous value
-      const previousOrder = queryClient.getQueryData<OrderWithDetails | OrderWithCustomer>(
-        queryKeys.orders.detail(siteId!, orderId)
-      );
-      
-      // Optimistically update
-      if (previousOrder) {
-        queryClient.setQueryData(
-          queryKeys.orders.detail(siteId!, orderId),
-          { ...previousOrder, ...updates, updated_at: new Date().toISOString() }
-        );
-      }
-      
-      return { previousOrder };
+  return useSupabaseMutation<Order, { orderId: string; updates: OrderUpdate }>(
+    async ({ orderId, updates }, signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return updateOrder(client, siteId, orderId, updates);
     },
-    
-    onError: (error: unknown, { orderId }, context) => {
-      // Rollback on error
-      if (context?.previousOrder) {
-        queryClient.setQueryData(
-          queryKeys.orders.detail(siteId!, orderId),
-          context.previousOrder
-        );
-      }
-      
-      const errorDetails = handleError(error);
-      toast.error(`Failed to update order: ${errorDetails.message}`);
-      console.error('Update order error:', errorDetails);
-    },
-    
-    onSuccess: (updatedOrder) => {
-      // Update cache for this specific order
-      queryClient.setQueryData(
-        queryKeys.orders.detail(siteId!, updatedOrder.id),
-        updatedOrder
-      );
-      
-      // Invalidate lists to reflect changes
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.lists(siteId!),
-      });
-      
-      toast.success('Order updated successfully');
-    },
-  });
+    {
+      showSuccessToast: 'Order updated successfully',
+      onSuccess: (updatedOrder, { orderId }) => {
+        // Clear localStorage caches
+        if (typeof window !== 'undefined' && siteId) {
+          const keysToRemove = [
+            `orders-${siteId}`,
+            `order-${siteId}-${orderId}`,
+            `order-stats-${siteId}`,
+          ];
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+        }
+      },
+    }
+  );
 }
 
 /**
@@ -142,100 +86,39 @@ export function useUpdateOrder() {
 export function useUpdateOrderStatus() {
   const client = useSupabase();
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: ({ 
-      orderId, 
-      status, 
-      changedBy, 
-      notes 
-    }: { 
-      orderId: string; 
-      status: OrderStatus;
-      changedBy?: string;
-      notes?: string;
-    }) =>
-      updateOrderStatus(client, siteId!, orderId, status, changedBy, notes),
-    
-    onMutate: async ({ orderId, status }) => {
-      // Cancel any outgoing refetches
-      await Promise.all([
-        queryClient.cancelQueries({
-          queryKey: queryKeys.orders.detail(siteId!, orderId),
-        }),
-        queryClient.cancelQueries({
-          queryKey: queryKeys.orders.lists(siteId!),
-        }),
-      ]);
-      
-      // Snapshot the previous value
-      const previousOrder = queryClient.getQueryData<OrderWithDetails | OrderWithCustomer>(
-        queryKeys.orders.detail(siteId!, orderId)
-      );
-      
-      // Optimistically update
-      if (previousOrder) {
-        const optimisticUpdate: Partial<Order> = { 
-          status,
-          updated_at: new Date().toISOString(),
+  return useSupabaseMutation<Order, {
+    orderId: string; 
+    status: OrderStatus;
+    changedBy?: string;
+    notes?: string;
+  }>(
+    async ({ orderId, status, changedBy, notes }, signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return updateOrderStatus(client, siteId, orderId, status, changedBy, notes);
+    },
+    {
+      onSuccess: (updatedOrder, { status, orderId }) => {
+        const statusMessages: Record<OrderStatus, string> = {
+          processing: 'Order marked as processing',
+          shipped: 'Order marked as shipped',
+          delivered: 'Order marked as delivered',
+          cancelled: 'Order cancelled',
         };
         
-        // Add timestamp fields based on status
-        if (status === 'shipped') optimisticUpdate.shipped_at = new Date().toISOString();
-        if (status === 'delivered') {
-          optimisticUpdate.delivered_at = new Date().toISOString();
-          optimisticUpdate.completed_at = new Date().toISOString();
+        // Clear localStorage caches
+        if (typeof window !== 'undefined' && siteId) {
+          const keysToRemove = [
+            `orders-${siteId}`,
+            `order-${siteId}-${orderId}`,
+            `order-stats-${siteId}`,
+          ];
+          keysToRemove.forEach(key => localStorage.removeItem(key));
         }
-        if (status === 'cancelled') optimisticUpdate.cancelled_at = new Date().toISOString();
-        
-        queryClient.setQueryData(
-          queryKeys.orders.detail(siteId!, orderId),
-          { ...previousOrder, ...optimisticUpdate }
-        );
-      }
-      
-      return { previousOrder };
-    },
-    
-    onError: (error: unknown, { orderId }, context) => {
-      // Rollback on error
-      if (context?.previousOrder) {
-        queryClient.setQueryData(
-          queryKeys.orders.detail(siteId!, orderId),
-          context.previousOrder
-        );
-      }
-      
-      const errorDetails = handleError(error);
-      toast.error(`Failed to update order status: ${errorDetails.message}`);
-      console.error('Update order status error:', errorDetails);
-    },
-    
-    onSuccess: (updatedOrder, { status }) => {
-      // Invalidate stats and lists
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.stats(siteId!),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.lists(siteId!),
-      });
-      
-      // Invalidate status history for this order
-      queryClient.invalidateQueries({
-        queryKey: [...queryKeys.orders.detail(siteId!, updatedOrder.id), 'status-history'],
-      });
-      
-      const statusMessages: Record<OrderStatus, string> = {
-        processing: 'Order marked as processing',
-        shipped: 'Order marked as shipped',
-        delivered: 'Order marked as delivered',
-        cancelled: 'Order cancelled',
-      };
-      
-      toast.success(statusMessages[status] || 'Order status updated');
-    },
-  });
+      },
+      showSuccessToast: false, // We handle success toast in onSuccess
+    }
+  );
 }
 
 /**
@@ -244,61 +127,42 @@ export function useUpdateOrderStatus() {
 export function useBulkUpdateOrders() {
   const client = useSupabase();
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: ({ 
-      orderIds, 
-      status, 
-      changedBy 
-    }: { 
-      orderIds: string[]; 
-      status: OrderStatus;
-      changedBy?: string;
-    }) =>
-      bulkUpdateOrderStatus(client, siteId!, orderIds, status, changedBy),
-    
-    onMutate: async () => {
-      // Cancel any outgoing refetches for orders
-      await Promise.all([
-        queryClient.cancelQueries({
-          queryKey: queryKeys.orders.lists(siteId!),
-        }),
-        queryClient.cancelQueries({
-          queryKey: queryKeys.orders.stats(siteId!),
-        }),
-      ]);
+  return useSupabaseMutation<Order[], {
+    orderIds: string[]; 
+    status: OrderStatus;
+    changedBy?: string;
+  }>(
+    async ({ orderIds, status, changedBy }, signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return bulkUpdateOrderStatus(client, siteId, orderIds, status, changedBy);
     },
-    
-    onSuccess: (updatedOrders, { status }) => {
-      // Invalidate all order queries to ensure consistency
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.all(siteId!),
-      });
-      
-      // Invalidate dashboard stats
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.dashboard.stats(siteId!),
-      });
-      
-      const statusMessages: Record<OrderStatus, string> = {
-        processing: 'marked as processing',
-        shipped: 'marked as shipped',
-        delivered: 'marked as delivered',
-        cancelled: 'cancelled',
-      };
-      
-      toast.success(
-        `${updatedOrders.length} order${updatedOrders.length !== 1 ? 's' : ''} ${statusMessages[status]}`
-      );
-    },
-    
-    onError: (error: unknown) => {
-      const errorDetails = handleError(error);
-      toast.error(`Failed to update orders: ${errorDetails.message}`);
-      console.error('Bulk update error:', errorDetails);
-    },
-  });
+    {
+      showSuccessToast: false, // We handle success toast in onSuccess
+      onSuccess: (updatedOrders, { status }) => {
+        const statusMessages: Record<OrderStatus, string> = {
+          processing: 'marked as processing',
+          shipped: 'marked as shipped',
+          delivered: 'marked as delivered',
+          cancelled: 'cancelled',
+        };
+        
+        // Clear localStorage caches
+        if (typeof window !== 'undefined' && siteId) {
+          const keysToRemove = [
+            `orders-${siteId}`,
+            `order-stats-${siteId}`,
+            `dashboard-stats-${siteId}`,
+          ];
+          // Also clear individual order caches
+          updatedOrders.forEach(order => {
+            localStorage.removeItem(`order-${siteId}-${order.id}`);
+          });
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+        }
+      },
+    }
+  );
 }
 
 /**
@@ -307,36 +171,34 @@ export function useBulkUpdateOrders() {
 export function useDeleteOrders() {
   const client = useSupabase();
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: async (orderIds: string[]) => {
+  return useSupabaseMutation<Order[], string[]>(
+    async (orderIds, signal) => {
+      if (!siteId) throw new Error('Site ID is required');
       const promises = orderIds.map(orderId => 
-        deleteOrder(client, siteId!, orderId)
+        deleteOrder(client, siteId, orderId)
       );
       return Promise.all(promises);
     },
-    
-    onSuccess: (deletedOrders) => {
-      // Invalidate all order-related queries
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.all(siteId!),
-      });
-      
-      // Invalidate dashboard stats
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.dashboard.stats(siteId!),
-      });
-      
-      toast.success(`Successfully deleted ${deletedOrders.length} order${deletedOrders.length !== 1 ? 's' : ''}`);
-    },
-    
-    onError: (error: unknown) => {
-      const errorDetails = handleError(error);
-      toast.error(`Failed to delete orders: ${errorDetails.message}`);
-      console.error('Bulk delete orders error:', errorDetails);
-    },
-  });
+    {
+      showSuccessToast: false, // We handle success toast in onSuccess
+      onSuccess: (deletedOrders) => {
+        // Clear localStorage caches
+        if (typeof window !== 'undefined' && siteId) {
+          const keysToRemove = [
+            `orders-${siteId}`,
+            `order-stats-${siteId}`,
+            `dashboard-stats-${siteId}`,
+          ];
+          // Also clear individual order caches
+          deletedOrders.forEach(order => {
+            localStorage.removeItem(`order-${siteId}-${order.id}`);
+          });
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+        }
+      },
+    }
+  );
 }
 
 /**
@@ -345,58 +207,27 @@ export function useDeleteOrders() {
 export function useDeleteOrder() {
   const client = useSupabase();
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: ({ orderId, deletedBy }: { orderId: string; deletedBy?: string }) =>
-      deleteOrder(client, siteId!, orderId, deletedBy),
-    
-    onMutate: async ({ orderId }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.orders.detail(siteId!, orderId),
-      });
-      
-      // Snapshot the previous value
-      const previousOrder = queryClient.getQueryData<OrderWithDetails | OrderWithCustomer>(
-        queryKeys.orders.detail(siteId!, orderId)
-      );
-      
-      return { previousOrder };
+  return useSupabaseMutation<Order, { orderId: string; deletedBy?: string }>(
+    async ({ orderId, deletedBy }, signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return deleteOrder(client, siteId, orderId, deletedBy);
     },
-    
-    onError: (error: unknown, { orderId }, context) => {
-      // Rollback on error
-      if (context?.previousOrder) {
-        queryClient.setQueryData(
-          queryKeys.orders.detail(siteId!, orderId),
-          context.previousOrder
-        );
-      }
-      
-      const errorDetails = handleError(error);
-      toast.error(`Failed to delete order: ${errorDetails.message}`);
-      console.error('Delete order error:', errorDetails);
-    },
-    
-    onSuccess: (deletedOrder) => {
-      // Remove from cache or mark as cancelled
-      queryClient.setQueryData(
-        queryKeys.orders.detail(siteId!, deletedOrder.id),
-        deletedOrder
-      );
-      
-      // Invalidate lists and stats
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.lists(siteId!),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.stats(siteId!),
-      });
-      
-      toast.success('Order deleted successfully');
-    },
-  });
+    {
+      showSuccessToast: 'Order deleted successfully',
+      onSuccess: (deletedOrder, { orderId }) => {
+        // Clear localStorage caches
+        if (typeof window !== 'undefined' && siteId) {
+          const keysToRemove = [
+            `orders-${siteId}`,
+            `order-${siteId}-${orderId}`,
+            `order-stats-${siteId}`,
+          ];
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+        }
+      },
+    }
+  );
 }
 
 /**
@@ -417,8 +248,8 @@ export function useOrderMutations() {
     deleteOrder,
     
     // Convenience methods
-    isLoading: createOrder.isPending || updateOrder.isPending || updateStatus.isPending || 
-               bulkUpdate.isPending || deleteOrder.isPending,
+    isLoading: createOrder.loading || updateOrder.loading || updateStatus.loading || 
+               bulkUpdate.loading || deleteOrder.loading,
     
     // Status-specific methods
     markAsProcessing: (orderId: string, changedBy?: string) => 

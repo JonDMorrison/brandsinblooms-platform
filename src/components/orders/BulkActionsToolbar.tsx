@@ -347,7 +347,7 @@ export function BulkActionsToolbar({
               onClick={handleDeleteOrders}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteOrders.isPending ? (
+              {deleteOrders.loading ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                   Deleting...

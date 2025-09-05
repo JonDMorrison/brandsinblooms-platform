@@ -1,7 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queries/keys';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { 
   getSiteStatistics,
   getDashboardMetrics,
@@ -17,73 +16,103 @@ import { supabase } from '@/lib/supabase/client';
 export function useDashboardMetrics() {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.dashboard.metrics(siteId!),
-    queryFn: () => getDashboardMetrics(supabase, siteId!),
-    enabled: !!siteId,
-    staleTime: 60 * 1000, // 1 minute
-    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
-  });
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getDashboardMetrics(supabase, siteId);
+    },
+    {
+      enabled: !!siteId,
+      staleTime: 60 * 1000, // 1 minute
+      refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+      persistKey: siteId ? `dashboard-metrics-${siteId}` : undefined,
+    }
+  );
 }
 
 // Site statistics (overall stats)
 export function useSiteStats() {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.siteStatistics(siteId!),
-    queryFn: () => getSiteStatistics(supabase, siteId!),
-    enabled: !!siteId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-  });
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getSiteStatistics(supabase, siteId);
+    },
+    {
+      enabled: !!siteId,
+      staleTime: 2 * 60 * 1000, // 2 minutes
+      persistKey: siteId ? `site-stats-${siteId}` : undefined,
+    }
+  );
 }
 
 // Revenue analytics
 export function useRevenueAnalytics(period: 'day' | 'week' | 'month' | 'year' = 'month') {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.dashboard.revenue(siteId!, period),
-    queryFn: () => getRevenueAnalytics(supabase, siteId!, period),
-    enabled: !!siteId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getRevenueAnalytics(supabase, siteId, period);
+    },
+    {
+      enabled: !!siteId,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      persistKey: siteId ? `revenue-analytics-${siteId}-${period}` : undefined,
+    }
+  );
 }
 
 // Content analytics
 export function useContentAnalytics() {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.dashboard.contentAnalytics(siteId!),
-    queryFn: () => getContentAnalytics(supabase, siteId!),
-    enabled: !!siteId,
-    staleTime: 5 * 60 * 1000,
-  });
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getContentAnalytics(supabase, siteId);
+    },
+    {
+      enabled: !!siteId,
+      staleTime: 5 * 60 * 1000,
+      persistKey: siteId ? `content-analytics-${siteId}` : undefined,
+    }
+  );
 }
 
 // Product analytics
 export function useProductAnalytics() {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.dashboard.productAnalytics(siteId!),
-    queryFn: () => getProductAnalytics(supabase, siteId!),
-    enabled: !!siteId,
-    staleTime: 5 * 60 * 1000,
-  });
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getProductAnalytics(supabase, siteId);
+    },
+    {
+      enabled: !!siteId,
+      staleTime: 5 * 60 * 1000,
+      persistKey: siteId ? `product-analytics-${siteId}` : undefined,
+    }
+  );
 }
 
 // Customer analytics
 export function useCustomerAnalytics() {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.dashboard.customerAnalytics(siteId!),
-    queryFn: () => getCustomerAnalytics(supabase, siteId!),
-    enabled: !!siteId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  });
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getCustomerAnalytics(supabase, siteId);
+    },
+    {
+      enabled: !!siteId,
+      staleTime: 10 * 60 * 1000, // 10 minutes
+      persistKey: siteId ? `customer-analytics-${siteId}` : undefined,
+    }
+  );
 }
 
 // Combined dashboard data hook for easy consumption
@@ -93,8 +122,8 @@ export function useDashboardData() {
   const content = useContentAnalytics();
   const products = useProductAnalytics();
   
-  const isLoading = metrics.isLoading || revenue.isLoading || content.isLoading || products.isLoading;
-  const isError = metrics.isError || revenue.isError || content.isError || products.isError;
+  const isLoading = metrics.loading || revenue.loading || content.loading || products.loading;
+  const isError = !!(metrics.error || revenue.error || content.error || products.error);
   
   return {
     metrics: metrics.data,
@@ -104,10 +133,10 @@ export function useDashboardData() {
     isLoading,
     isError,
     refetch: () => {
-      metrics.refetch();
-      revenue.refetch();
-      content.refetch();
-      products.refetch();
+      metrics.refresh();
+      revenue.refresh();
+      content.refresh();
+      products.refresh();
     }
   };
 }
@@ -116,27 +145,30 @@ export function useDashboardData() {
 export function useActivityFeed(limit: number = 10) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: [...queryKeys.dashboard.activity(siteId!), { limit }],
-    queryFn: async () => {
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
       // This would be implemented as a dedicated activity query
       // For now, returning empty array as placeholder
       return [];
     },
-    enabled: !!siteId,
-    staleTime: 30 * 1000, // 30 seconds for activity feed
-    refetchInterval: 60 * 1000, // Auto-refresh every minute
-  });
+    {
+      enabled: !!siteId,
+      staleTime: 30 * 1000, // 30 seconds for activity feed
+      refetchInterval: 60 * 1000, // Auto-refresh every minute
+      persistKey: siteId ? `activity-feed-${siteId}-${limit}` : undefined,
+    }
+  );
 }
 
 // Quick stats for header/sidebar
 export function useQuickStats() {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: [...queryKeys.dashboard.metrics(siteId!), 'quick'],
-    queryFn: async () => {
-      const stats = await getSiteStatistics(supabase, siteId!);
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      const stats = await getSiteStatistics(supabase, siteId);
       return {
         totalProducts: stats.totalProducts,
         totalContent: stats.totalContent,
@@ -144,7 +176,10 @@ export function useQuickStats() {
         monthlyRevenue: stats.monthlyRevenue || 0,
       };
     },
-    enabled: !!siteId,
-    staleTime: 2 * 60 * 1000,
-  });
+    {
+      enabled: !!siteId,
+      staleTime: 2 * 60 * 1000,
+      persistKey: siteId ? `quick-stats-${siteId}` : undefined,
+    }
+  );
 }

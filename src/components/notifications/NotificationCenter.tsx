@@ -15,8 +15,7 @@ import {
 } from '@/src/components/ui/dropdown-menu'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { ScrollArea } from '@/src/components/ui/scroll-area'
-import { useUnreadNotificationCount } from '@/src/hooks/useUnreadNotificationCount'
-import { useRecentNotifications } from '@/src/hooks/useNotifications'
+import { useUnreadNotificationCount, useRecentNotifications } from '@/src/hooks/useNotifications'
 import {
   useMarkNotificationAsRead,
   useMarkAllNotificationsAsRead
@@ -33,8 +32,8 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
   const [isOpen, setIsOpen] = useState(false)
   
   // Data hooks
-  const { data: unreadCount = 0, isLoading: countLoading } = useUnreadNotificationCount()
-  const { data: recentNotifications = [], isLoading: notificationsLoading } = useRecentNotifications(8)
+  const { data: unreadCount = 0, loading: countLoading } = useUnreadNotificationCount()
+  const { data: recentNotifications = [], loading: notificationsLoading } = useRecentNotifications(8)
   
   // Mutation hooks
   const markAsRead = useMarkNotificationAsRead()
@@ -136,7 +135,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                   variant="outline"
                   size="sm"
                   onClick={handleMarkAllAsRead}
-                  disabled={markAllAsRead.isPending}
+                  disabled={markAllAsRead.loading}
                 >
                   <CheckCheck className="h-3.5 w-3.5" />
                 </Button>

@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
-import { queryKeys } from '@/lib/queries/keys';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { 
   getProducts, 
   getProductById, 
@@ -27,68 +27,117 @@ import { Product, ProductInsert, ProductUpdate } from '@/lib/database/aliases';
 export function useProducts(filters?: ProductFilters) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.products.list(siteId!, filters),
-    queryFn: () => getProducts(supabase, siteId!, filters),
-    enabled: !!siteId,
-    staleTime: 30 * 1000,
-  });
+  const cacheKey = `products_${siteId}_${JSON.stringify(filters || {})}`;
+  
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getProducts(supabase, siteId, filters);
+    },
+    {
+      enabled: !!siteId,
+      persistKey: cacheKey,
+      staleTime: 30 * 1000,
+      onError: (error) => {
+        console.error('Failed to fetch products:', error.message);
+      },
+    }
+  );
 }
 
 // Get single product
 export function useProduct(productId: string) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.products.detail(siteId!, productId),
-    queryFn: () => getProductById(supabase, siteId!, productId),
-    enabled: !!siteId && !!productId,
-  });
+  const cacheKey = `product_${siteId}_${productId}`;
+  
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || !productId) throw new Error('Site ID and Product ID are required');
+      return getProductById(supabase, siteId, productId);
+    },
+    {
+      enabled: !!siteId && !!productId,
+      persistKey: cacheKey,
+      onError: (error) => {
+        console.error('Failed to fetch product:', error.message);
+      },
+    }
+  );
 }
 
 // Get products by category
 export function useProductsByCategory(category: string) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.products.list(siteId!, { category }),
-    queryFn: () => getProductsByCategory(supabase, siteId!, category),
-    enabled: !!siteId && !!category,
-    staleTime: 30 * 1000,
-  });
+  const cacheKey = `products_category_${siteId}_${category}`;
+  
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || !category) throw new Error('Site ID and Category are required');
+      return getProductsByCategory(supabase, siteId, category);
+    },
+    {
+      enabled: !!siteId && !!category,
+      persistKey: cacheKey,
+      staleTime: 30 * 1000,
+      onError: (error) => {
+        console.error('Failed to fetch products by category:', error.message);
+      },
+    }
+  );
 }
 
 // Search products
 export function useSearchProducts(searchQuery: string) {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.products.list(siteId!, { search: searchQuery }),
-    queryFn: () => searchProducts(supabase, siteId!, searchQuery),
-    enabled: !!siteId && searchQuery.length > 2,
-    staleTime: 10 * 1000,
-  });
+  const cacheKey = `products_search_${siteId}_${searchQuery}`;
+  
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId || searchQuery.length <= 2) throw new Error('Site ID is required and search query must be longer than 2 characters');
+      return searchProducts(supabase, siteId, searchQuery);
+    },
+    {
+      enabled: !!siteId && searchQuery.length > 2,
+      persistKey: cacheKey,
+      staleTime: 10 * 1000,
+      onError: (error) => {
+        console.error('Failed to search products:', error.message);
+      },
+    }
+  );
 }
 
 // Get product categories
 export function useProductCategories() {
   const siteId = useSiteId();
   
-  return useQuery({
-    queryKey: queryKeys.products.categories(siteId!),
-    queryFn: () => getProductCategories(supabase, siteId!),
-    enabled: !!siteId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const cacheKey = `product_categories_${siteId}`;
+  
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getProductCategories(supabase, siteId);
+    },
+    {
+      enabled: !!siteId,
+      persistKey: cacheKey,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      onError: (error) => {
+        console.error('Failed to fetch product categories:', error.message);
+      },
+    }
+  );
 }
 
 // Create product mutation
 export function useCreateProduct() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: (data: Omit<ProductInsert, 'site_id'>) => {
+  return useSupabaseMutation(
+    async (data: Omit<ProductInsert, 'site_id'>, signal) => {
       console.log('🏭 useCreateProduct mutation called with:', { data, siteId });
       if (!siteId) {
         console.error('❌ Create product: siteId is missing!');
@@ -97,274 +146,206 @@ export function useCreateProduct() {
       console.log('🔄 Calling createProduct function...');
       return createProduct(supabase, { ...data, site_id: siteId });
     },
-    onMutate: async (newProduct) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: queryKeys.products.lists(siteId!) });
-      
-      // Snapshot the previous value
-      const previousProducts = queryClient.getQueriesData({ queryKey: queryKeys.products.lists(siteId!) });
-      
-      // Optimistically update to the new value
-      const tempProduct = {
-        ...newProduct,
-        id: crypto.randomUUID(),
-        site_id: siteId!,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      } as Product;
-      
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.products.lists(siteId!) },
-        (old: any) => {
-          if (!old) {
-            return {
-              data: [tempProduct],
-              count: 1,
-              page: 1,
-              pageSize: 12,
-              totalPages: 1,
-              hasNextPage: false,
-              hasPreviousPage: false
-            };
-          }
-          
-          if (old.data && Array.isArray(old.data)) {
-            return {
-              ...old,
-              data: [tempProduct, ...old.data],
-              count: old.count + 1,
-              totalPages: Math.ceil((old.count + 1) / old.pageSize)
-            };
-          }
-          
-          if (Array.isArray(old)) {
-            return [tempProduct, ...old];
-          }
-          
-          return old;
-        }
-      );
-      
-      return { previousProducts };
-    },
-    onError: (err, newProduct, context) => {
-      // Rollback the optimistic update on error
-      if (context?.previousProducts) {
-        context.previousProducts.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
+    {
+      showSuccessToast: 'Product created successfully',
+      optimisticUpdate: (newProduct) => {
+        // Clear related localStorage caches
+        const patterns = [`products_${siteId}_`, `product_categories_${siteId}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
         });
-      }
-      toast.error('Failed to create product');
-    },
-    onSuccess: (newProduct) => {
-      // Update the cache with the actual product from the server
-      // Handle the paginated response structure properly
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.products.lists(siteId!) },
-        (old: any) => {
-          if (!old) {
-            // If no existing data, create a new paginated response
-            return {
-              data: [newProduct],
-              count: 1,
-              page: 1,
-              pageSize: 12,
-              totalPages: 1,
-              hasNextPage: false,
-              hasPreviousPage: false
-            };
-          }
-          
-          // If it's a paginated response, add the new product to the beginning
-          if (old.data && Array.isArray(old.data)) {
-            return {
-              ...old,
-              data: [newProduct, ...old.data],
-              count: old.count + 1,
-              totalPages: Math.ceil((old.count + 1) / old.pageSize)
-            };
-          }
-          
-          // If it's just an array (shouldn't happen but handle it)
-          if (Array.isArray(old)) {
-            return [newProduct, ...old];
-          }
-          
-          return old;
-        }
-      );
-      
-      toast.success('Product created successfully');
-    },
-    onSettled: () => {
-      // Invalidate and refetch immediately
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.all(siteId!),
-        refetchType: 'all' 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.list(siteId!),
-        refetchType: 'all' 
-      });
-    },
-  });
+      },
+      onSuccess: async (newProduct) => {
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`, `product_categories_${siteId}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to create product:', error.message);
+      },
+    }
+  );
 }
 
 // Update product mutation
 export function useUpdateProduct() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: ({ id, ...data }: ProductUpdate & { id: string }) => 
-      updateProduct(supabase, siteId!, id, data),
-    onMutate: async ({ id, ...updates }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.products.detail(siteId!, id) });
-      
-      const previousProduct = queryClient.getQueryData(queryKeys.products.detail(siteId!, id));
-      
-      queryClient.setQueryData(queryKeys.products.detail(siteId!, id), (old: Product) => ({
-        ...old,
-        ...updates,
-        updated_at: new Date().toISOString(),
-      }));
-      
-      // Also update in list
-      queryClient.setQueryData(queryKeys.products.all(siteId!), (old: Product[] = []) => 
-        old.map(product => 
-          product.id === id 
-            ? { ...product, ...updates, updated_at: new Date().toISOString() }
-            : product
-        )
-      );
-      
-      return { previousProduct };
+  return useSupabaseMutation(
+    async (variables: ProductUpdate & { id: string }, signal) => {
+      const { id, ...data } = variables;
+      return updateProduct(supabase, siteId!, id, data);
     },
-    onError: (err, variables, context) => {
-      if (context?.previousProduct) {
-        queryClient.setQueryData(
-          queryKeys.products.detail(siteId!, variables.id), 
-          context.previousProduct
-        );
-      }
-      toast.error('Failed to update product');
-    },
-    onSuccess: async (updatedProduct, variables, context) => {
-      // Check for low stock notification after successful update
-      if (updatedProduct && context?.previousProduct) {
-        const previousProduct = context.previousProduct as Product;
-        const currentStock = updatedProduct.inventory_count || 0;
-        const previousStock = previousProduct.inventory_count || 0;
-        
-        // Only send notification if inventory was updated and crossed threshold
-        if (variables.inventory_count !== undefined) {
+    {
+      showSuccessToast: 'Product updated successfully',
+      optimisticUpdate: (variables) => {
+        // Clear related localStorage caches
+        const patterns = [`products_${siteId}_`, `product_${siteId}_${variables.id}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onSuccess: async (updatedProduct, variables) => {
+        // Check for low stock notification after successful update
+        if (updatedProduct && variables.inventory_count !== undefined) {
           try {
+            // Get previous product data if needed for comparison
+            const cacheKey = `product_${siteId}_${variables.id}`;
+            const storedProduct = localStorage.getItem(cacheKey);
+            let previousStock = 0;
+            
+            if (storedProduct) {
+              try {
+                const parsed = JSON.parse(storedProduct);
+                previousStock = parsed.data?.inventory_count || 0;
+              } catch {
+                // Ignore parse errors
+              }
+            }
+            
+            const currentStock = updatedProduct.inventory_count || 0;
             await checkAndCreateLowStockNotification(siteId!, updatedProduct, currentStock, previousStock);
           } catch (error) {
             console.error('Failed to create low stock notification:', error);
           }
         }
-      }
-      
-      toast.success('Product updated successfully');
-    },
-    onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.detail(siteId!, variables.id) });
-    },
-  });
+        
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`, `product_${siteId}_${variables.id}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to update product:', error.message);
+      },
+    }
+  );
 }
 
 // Update inventory mutation
 export function useUpdateInventory() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: ({ productId, quantity }: { productId: string; quantity: number }) => 
-      updateProductInventory(supabase, productId, quantity),
-    onMutate: async ({ productId, quantity }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.products.detail(siteId!, productId) });
-      
-      const previousProduct = queryClient.getQueryData(queryKeys.products.detail(siteId!, productId));
-      
-      queryClient.setQueryData(queryKeys.products.detail(siteId!, productId), (old: Product) => ({
-        ...old,
-        inventory_count: quantity,
-        updated_at: new Date().toISOString(),
-      }));
-      
-      return { previousProduct, productId };
+  return useSupabaseMutation(
+    async (variables: { productId: string; quantity: number }, signal) => {
+      return updateProductInventory(supabase, variables.productId, variables.quantity);
     },
-    onError: (err, variables, context) => {
-      if (context?.previousProduct) {
-        queryClient.setQueryData(
-          queryKeys.products.detail(siteId!, context.productId), 
-          context.previousProduct
-        );
-      }
-      toast.error('Failed to update inventory');
-    },
-    onSuccess: async (updatedProduct, variables, context) => {
-      // Check for low stock notification after successful inventory update
-      if (updatedProduct && context?.previousProduct) {
-        const previousProduct = context.previousProduct as Product;
-        const currentStock = variables.quantity;
-        const previousStock = previousProduct.inventory_count || 0;
-        
-        try {
-          await checkAndCreateLowStockNotification(siteId!, updatedProduct, currentStock, previousStock);
-        } catch (error) {
-          console.error('Failed to create low stock notification:', error);
+    {
+      showSuccessToast: 'Inventory updated successfully',
+      optimisticUpdate: (variables) => {
+        // Clear related localStorage caches
+        const patterns = [`products_${siteId}_`, `product_${siteId}_${variables.productId}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onSuccess: async (updatedProduct, variables) => {
+        // Check for low stock notification after successful inventory update
+        if (updatedProduct) {
+          try {
+            // Get previous product data if needed for comparison
+            const cacheKey = `product_${siteId}_${variables.productId}`;
+            const storedProduct = localStorage.getItem(cacheKey);
+            let previousStock = 0;
+            
+            if (storedProduct) {
+              try {
+                const parsed = JSON.parse(storedProduct);
+                previousStock = parsed.data?.inventory_count || 0;
+              } catch {
+                // Ignore parse errors
+              }
+            }
+            
+            const currentStock = variables.quantity;
+            await checkAndCreateLowStockNotification(siteId!, updatedProduct, currentStock, previousStock);
+          } catch (error) {
+            console.error('Failed to create low stock notification:', error);
+          }
         }
-      }
-      
-      toast.success('Inventory updated successfully');
-    },
-    onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.detail(siteId!, variables.productId) });
-    },
-  });
+        
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`, `product_${siteId}_${variables.productId}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to update inventory:', error.message);
+      },
+    }
+  );
 }
 
 // Delete product mutation
 export function useDeleteProduct() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: (id: string) => deleteProduct(supabase, siteId!, id),
-    onMutate: async (productId) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.products.all(siteId!) });
-      
-      const previousProducts = queryClient.getQueryData(queryKeys.products.all(siteId!));
-      
-      queryClient.setQueryData(queryKeys.products.all(siteId!), (old: Product[] = []) => 
-        old.filter(product => product.id !== productId)
-      );
-      
-      return { previousProducts };
+  return useSupabaseMutation(
+    async (id: string, signal) => {
+      return deleteProduct(supabase, siteId!, id);
     },
-    onError: (err, productId, context) => {
-      if (context?.previousProducts) {
-        queryClient.setQueryData(queryKeys.products.all(siteId!), context.previousProducts);
-      }
-      toast.error('Failed to delete product');
-    },
-    onSuccess: () => {
-      toast.success('Product deleted successfully');
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all(siteId!) });
-    },
-  });
+    {
+      showSuccessToast: 'Product deleted successfully',
+      optimisticUpdate: (productId) => {
+        // Clear related localStorage caches
+        const patterns = [`products_${siteId}_`, `product_${siteId}_${productId}`, `product_categories_${siteId}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onSuccess: (data, productId) => {
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`, `product_${siteId}_${productId}`, `product_categories_${siteId}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        console.error('Failed to delete product:', error.message);
+      },
+    }
+  );
 }
 
 // Real-time inventory updates
 export function useProductInventoryRealtime() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
   useEffect(() => {
     if (!siteId) return;
@@ -380,20 +361,17 @@ export function useProductInventoryRealtime() {
           filter: `site_id=eq.${siteId}`,
         },
         async (payload) => {
-          // Only invalidate if inventory changed
+          // Only handle inventory changes
           if (payload.old.inventory_count !== payload.new.inventory_count) {
-            queryClient.invalidateQueries({ 
-              queryKey: queryKeys.products.detail(siteId, payload.new.id) 
+            // Clear relevant localStorage caches
+            const patterns = [`products_${siteId}_`, `product_${siteId}_${payload.new.id}`];
+            patterns.forEach(pattern => {
+              Object.keys(localStorage).forEach(key => {
+                if (key.startsWith(pattern)) {
+                  localStorage.removeItem(key);
+                }
+              });
             });
-            
-            // Update in list as well
-            queryClient.setQueryData(queryKeys.products.all(siteId), (old: Product[] = []) => 
-              old.map(product => 
-                product.id === payload.new.id 
-                  ? { ...product, ...payload.new }
-                  : product
-              )
-            );
             
             // Check for low stock notification on real-time updates
             const currentStock = payload.new.inventory_count || 0;
@@ -415,15 +393,16 @@ export function useProductInventoryRealtime() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [siteId, queryClient]);
+  }, [siteId]);
 }
 
 // SKU validation hook
 export function useSkuValidation() {
   const siteId = useSiteId();
   
-  return useMutation({
-    mutationFn: async ({ sku, excludeId }: { sku: string; excludeId?: string }) => {
+  return useSupabaseMutation(
+    async (variables: { sku: string; excludeId?: string }, signal) => {
+      const { sku, excludeId } = variables;
       console.log('🔍 SKU validation called with:', { sku, excludeId, siteId });
       if (!siteId || !sku) {
         console.log('❌ SKU validation: missing siteId or sku');
@@ -434,15 +413,22 @@ export function useSkuValidation() {
       console.log('✅ SKU availability result:', result);
       return result;
     },
-  });
+    {
+      showSuccessToast: false,
+      showErrorToast: false,
+      onError: (error) => {
+        console.error('SKU validation error:', error.message);
+      },
+    }
+  );
 }
 
 // Slug generation hook
 export function useSlugGeneration() {
   const siteId = useSiteId();
   
-  return useMutation({
-    mutationFn: async (name: string) => {
+  return useSupabaseMutation(
+    async (name: string, signal) => {
       console.log('🏷️ Slug generation called with:', { name, siteId });
       if (!siteId || !name) {
         console.log('❌ Slug generation: missing siteId or name');
@@ -453,5 +439,12 @@ export function useSlugGeneration() {
       console.log('✅ Generated slug:', result);
       return result;
     },
-  });
+    {
+      showSuccessToast: false,
+      showErrorToast: false,
+      onError: (error) => {
+        console.error('Slug generation error:', error.message);
+      },
+    }
+  );
 }

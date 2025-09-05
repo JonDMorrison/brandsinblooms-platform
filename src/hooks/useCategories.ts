@@ -1,6 +1,8 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import React from 'react';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { queryKeys } from '@/lib/queries/keys';
@@ -33,12 +35,13 @@ export function useCategoriesHierarchy(filters?: CategoryFilters) {
   const siteId = useSiteId();
   const supabase = useSupabase();
 
-  return useQuery({
-    queryKey: queryKeys.categories.hierarchy(siteId!, filters),
-    queryFn: () => getCategoriesHierarchy(supabase, siteId!, filters),
-    enabled: !!siteId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  return useSupabaseQuery(
+    (signal) => getCategoriesHierarchy(supabase, siteId!, filters),
+    {
+      enabled: !!siteId,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    }
+  );
 }
 
 /**
@@ -48,12 +51,13 @@ export function useCategory(categoryId: string | undefined, includeAncestors = f
   const siteId = useSiteId();
   const supabase = useSupabase();
 
-  return useQuery({
-    queryKey: queryKeys.categories.detail(siteId!, categoryId!),
-    queryFn: () => getCategoryById(supabase, siteId!, categoryId!, includeAncestors),
-    enabled: !!siteId && !!categoryId,
-    staleTime: 5 * 60 * 1000,
-  });
+  return useSupabaseQuery(
+    (signal) => getCategoryById(supabase, siteId!, categoryId!, includeAncestors),
+    {
+      enabled: !!siteId && !!categoryId,
+      staleTime: 5 * 60 * 1000,
+    }
+  );
 }
 
 /**
@@ -63,15 +67,16 @@ export function useCategoryAncestors(categoryId: string | undefined) {
   const siteId = useSiteId();
   const supabase = useSupabase();
 
-  return useQuery({
-    queryKey: queryKeys.categories.ancestors(siteId!, categoryId!),
-    queryFn: async () => {
+  return useSupabaseQuery(
+    async (signal) => {
       const result = await getCategoryById(supabase, siteId!, categoryId!, true);
       return result.ancestors || [];
     },
-    enabled: !!siteId && !!categoryId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  });
+    {
+      enabled: !!siteId && !!categoryId,
+      staleTime: 10 * 60 * 1000, // 10 minutes
+    }
+  );
 }
 
 /**
@@ -81,12 +86,13 @@ export function useCategoryProducts(categoryId: string | undefined, filters?: Ca
   const siteId = useSiteId();
   const supabase = useSupabase();
 
-  return useQuery({
-    queryKey: queryKeys.categories.productsList(siteId!, categoryId!, filters),
-    queryFn: () => getCategoryProducts(supabase, siteId!, categoryId!, filters),
-    enabled: !!siteId && !!categoryId,
-    staleTime: 3 * 60 * 1000, // 3 minutes
-  });
+  return useSupabaseQuery(
+    (signal) => getCategoryProducts(supabase, siteId!, categoryId!, filters),
+    {
+      enabled: !!siteId && !!categoryId,
+      staleTime: 3 * 60 * 1000, // 3 minutes
+    }
+  );
 }
 
 /**
@@ -95,102 +101,14 @@ export function useCategoryProducts(categoryId: string | undefined, filters?: Ca
 export function useCreateCategory() {
   const siteId = useSiteId();
   const supabase = useSupabase();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (data: Omit<CreateCategoryInput, 'site_id'>) =>
+  return useSupabaseMutation(
+    (data: Omit<CreateCategoryInput, 'site_id'>, signal) =>
       createCategory(supabase, { ...data, site_id: siteId! }),
-    onMutate: async (newCategory) => {
-      // Cancel outgoing queries
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.categories.all(siteId!) 
-      });
-
-      // Get previous data
-      const previousHierarchy = queryClient.getQueryData<CategoryHierarchy[]>(
-        queryKeys.categories.hierarchy(siteId!)
-      );
-
-      // Optimistically update
-      if (previousHierarchy) {
-        const optimisticCategory: CategoryHierarchy = {
-          id: 'temp-' + Date.now(),
-          site_id: siteId!,
-          name: newCategory.name,
-          slug: newCategory.slug,
-          description: newCategory.description || null,
-          image_url: newCategory.image_url || null,
-          icon: newCategory.icon || null,
-          color: newCategory.color || null,
-          parent_id: newCategory.parent_id || null,
-          path: '/' + newCategory.slug,
-          level: 0,
-          sort_order: newCategory.sort_order || 0,
-          is_active: newCategory.is_active ?? true,
-          meta_title: newCategory.meta_title || null,
-          meta_description: newCategory.meta_description || null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          children: [],
-          product_count: 0,
-        };
-
-        if (newCategory.parent_id) {
-          // Add to parent's children
-          const updateHierarchy = (categories: CategoryHierarchy[]): CategoryHierarchy[] => {
-            return categories.map(cat => {
-              if (cat.id === newCategory.parent_id) {
-                return {
-                  ...cat,
-                  children: [...cat.children, optimisticCategory],
-                };
-              }
-              if (cat.children.length > 0) {
-                return {
-                  ...cat,
-                  children: updateHierarchy(cat.children),
-                };
-              }
-              return cat;
-            });
-          };
-          queryClient.setQueryData(
-            queryKeys.categories.hierarchy(siteId!),
-            updateHierarchy(previousHierarchy)
-          );
-        } else {
-          // Add to root
-          queryClient.setQueryData(
-            queryKeys.categories.hierarchy(siteId!),
-            [...previousHierarchy, optimisticCategory]
-          );
-        }
-      }
-
-      return { previousHierarchy };
-    },
-    onError: (err, newCategory, context) => {
-      // Rollback on error
-      if (context?.previousHierarchy) {
-        queryClient.setQueryData(
-          queryKeys.categories.hierarchy(siteId!),
-          context.previousHierarchy
-        );
-      }
-      
-      // Log the error for debugging
-      console.error('Category creation error:', err);
-      
-      // Don't show toast here - let the component handle it
-      // This prevents double toasts
-    },
-    onSuccess: (data) => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.categories.all(siteId!) 
-      });
-    },
-  });
+    {
+      showSuccessToast: 'Category created successfully',
+    }
+  );
 }
 
 /**
@@ -199,50 +117,14 @@ export function useCreateCategory() {
 export function useUpdateCategory(categoryId: string) {
   const siteId = useSiteId();
   const supabase = useSupabase();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (data: UpdateCategoryInput) =>
+  return useSupabaseMutation(
+    (data: UpdateCategoryInput, signal) =>
       updateCategory(supabase, siteId!, categoryId, data),
-    onMutate: async (updates) => {
-      // Cancel outgoing queries
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.categories.detail(siteId!, categoryId) 
-      });
-
-      // Get previous data
-      const previousCategory = queryClient.getQueryData(
-        queryKeys.categories.detail(siteId!, categoryId)
-      );
-
-      // Optimistically update
-      queryClient.setQueryData(
-        queryKeys.categories.detail(siteId!, categoryId),
-        (old: any) => ({ ...old, ...updates })
-      );
-
-      return { previousCategory };
-    },
-    onError: (err, updates, context) => {
-      // Rollback on error
-      if (context?.previousCategory) {
-        queryClient.setQueryData(
-          queryKeys.categories.detail(siteId!, categoryId),
-          context.previousCategory
-        );
-      }
-      toast.error('Failed to update category', {
-        description: err instanceof Error ? err.message : 'Unknown error',
-      });
-    },
-    onSuccess: () => {
-      toast.success('Category updated successfully');
-      // Invalidate related queries
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.categories.all(siteId!) 
-      });
-    },
-  });
+    {
+      showSuccessToast: 'Category updated successfully',
+    }
+  );
 }
 
 /**
@@ -251,74 +133,26 @@ export function useUpdateCategory(categoryId: string) {
 export function useDeleteCategory() {
   const siteId = useSiteId();
   const supabase = useSupabase();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({ 
+  return useSupabaseMutation(
+    ({ 
       categoryId, 
       reassignToId 
     }: { 
       categoryId: string; 
       reassignToId?: string;
-    }) =>
+    }, signal) =>
       deleteCategory(supabase, siteId!, categoryId, reassignToId),
-    onMutate: async ({ categoryId }) => {
-      // Cancel outgoing queries
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.categories.all(siteId!) 
-      });
-
-      // Get previous data
-      const previousHierarchy = queryClient.getQueryData<CategoryHierarchy[]>(
-        queryKeys.categories.hierarchy(siteId!)
-      );
-
-      // Optimistically remove from hierarchy
-      if (previousHierarchy) {
-        const removeFromHierarchy = (categories: CategoryHierarchy[]): CategoryHierarchy[] => {
-          return categories
-            .filter(cat => cat.id !== categoryId)
-            .map(cat => ({
-              ...cat,
-              children: removeFromHierarchy(cat.children),
-            }));
-        };
-
-        queryClient.setQueryData(
-          queryKeys.categories.hierarchy(siteId!),
-          removeFromHierarchy(previousHierarchy)
-        );
-      }
-
-      return { previousHierarchy };
-    },
-    onError: (err, variables, context) => {
-      // Rollback on error
-      if (context?.previousHierarchy) {
-        queryClient.setQueryData(
-          queryKeys.categories.hierarchy(siteId!),
-          context.previousHierarchy
-        );
-      }
-      toast.error('Failed to delete category', {
-        description: err instanceof Error ? err.message : 'Unknown error',
-      });
-    },
-    onSuccess: (data) => {
-      toast.success('Category deleted successfully', {
-        description: data.affected_products 
-          ? `${data.affected_products} products were updated`
-          : undefined,
-      });
-      // Invalidate related queries
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.categories.all(siteId!) 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.all(siteId!) 
-      });
-    },
-  });
+    {
+      onSuccess: (data) => {
+        toast.success('Category deleted successfully', {
+          description: data.affected_products 
+            ? `${data.affected_products} products were updated`
+            : undefined,
+        });
+      },
+    }
+  );
 }
 
 /**
@@ -327,37 +161,14 @@ export function useDeleteCategory() {
 export function useReorderCategories() {
   const siteId = useSiteId();
   const supabase = useSupabase();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (data: ReorderCategoriesInput) =>
+  return useSupabaseMutation(
+    (data: ReorderCategoriesInput, signal) =>
       reorderCategories(supabase, siteId!, data),
-    onMutate: async (reorderData) => {
-      // Cancel outgoing queries
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.categories.hierarchy(siteId!) 
-      });
-
-      // For optimistic updates, we'll just rely on the drag-and-drop UI
-      // The actual reordering is handled by the component state
-    },
-    onError: (err) => {
-      toast.error('Failed to reorder categories', {
-        description: err instanceof Error ? err.message : 'Unknown error',
-      });
-      // Refetch to restore correct order
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.categories.hierarchy(siteId!) 
-      });
-    },
-    onSuccess: () => {
-      toast.success('Categories reordered successfully');
-      // Invalidate to ensure consistency
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.categories.all(siteId!) 
-      });
-    },
-  });
+    {
+      showSuccessToast: 'Categories reordered successfully',
+    }
+  );
 }
 
 /**
@@ -366,62 +177,71 @@ export function useReorderCategories() {
 export function useAssignProductsToCategory() {
   const siteId = useSiteId();
   const supabase = useSupabase();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (data: BulkAssignInput) =>
+  return useSupabaseMutation(
+    (data: BulkAssignInput, signal) =>
       assignProductsToCategory(supabase, siteId!, data),
-    onError: (err) => {
-      toast.error('Failed to assign products', {
-        description: err instanceof Error ? err.message : 'Unknown error',
-      });
-    },
-    onSuccess: (data) => {
-      toast.success('Products assigned successfully', {
-        description: `${data.assigned} products updated`,
-      });
-      // Invalidate related queries
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.categories.all(siteId!) 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.all(siteId!) 
-      });
-    },
-  });
+    {
+      onSuccess: (data) => {
+        toast.success('Products assigned successfully', {
+          description: `${data.assigned} products updated`,
+        });
+      },
+    }
+  );
 }
 
 /**
  * Hook to get flat list of all categories for select dropdowns
+ * Updated to not use React Query
  */
 export function useCategoriesList(includeInactive = false) {
   const siteId = useSiteId();
   const supabase = useSupabase();
+  const [data, setData] = React.useState<Array<CategoryHierarchy & { level: number }>>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<Error | null>(null);
 
-  return useQuery({
-    queryKey: [...queryKeys.categories.all(siteId!), 'list', includeInactive],
-    queryFn: async () => {
-      const hierarchy = await getCategoriesHierarchy(supabase, siteId!, {
-        active: !includeInactive,
-      });
+  React.useEffect(() => {
+    const fetchCategories = async () => {
+      if (!siteId) {
+        setData([]);
+        setIsLoading(false);
+        return;
+      }
       
-      // Flatten hierarchy into a list
-      const flattenCategories = (
-        categories: CategoryHierarchy[], 
-        level = 0
-      ): Array<CategoryHierarchy & { level: number }> => {
-        return categories.reduce((acc, cat) => {
-          acc.push({ ...cat, level });
-          if (cat.children.length > 0) {
-            acc.push(...flattenCategories(cat.children, level + 1));
-          }
-          return acc;
-        }, [] as Array<CategoryHierarchy & { level: number }>);
-      };
+      setIsLoading(true);
+      try {
+        const hierarchy = await getCategoriesHierarchy(supabase, siteId!, {
+          active: !includeInactive,
+        });
+        
+        // Flatten hierarchy into a list
+        const flattenCategories = (
+          categories: CategoryHierarchy[], 
+          level = 0
+        ): Array<CategoryHierarchy & { level: number }> => {
+          return categories.reduce((acc, cat) => {
+            acc.push({ ...cat, level });
+            if (cat.children.length > 0) {
+              acc.push(...flattenCategories(cat.children, level + 1));
+            }
+            return acc;
+          }, [] as Array<CategoryHierarchy & { level: number }>);
+        };
 
-      return flattenCategories(hierarchy);
-    },
-    enabled: !!siteId,
-    staleTime: 5 * 60 * 1000,
-  });
+        setData(flattenCategories(hierarchy));
+        setError(null);
+      } catch (err) {
+        setError(err as Error);
+        setData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, [siteId, includeInactive, supabase]);
+
+  return { data, isLoading, error };
 }

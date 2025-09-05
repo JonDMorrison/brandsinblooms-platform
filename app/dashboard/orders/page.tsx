@@ -57,13 +57,12 @@ export default function OrdersPage() {
   // Fetch orders with real data
   const {
     data,
-    isLoading,
-    isError,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    refetch,
+    loading: isLoading,
+    error: isError,
+    hasMore: hasNextPage,
+    loadingMore: isFetchingNextPage,
+    loadMore: fetchNextPage,
+    refresh: refetch,
   } = useOrders({
     search: filters.search,
     status: filters.status as 'processing' | 'shipped' | 'delivered' | 'cancelled' | undefined,
@@ -73,9 +72,10 @@ export default function OrdersPage() {
     enabled: true,
   })
 
-  // Flatten paginated results
-  const orders = data?.pages.flatMap(page => page.orders) || []
+  // Use data directly (already flattened)
+  const orders = data || []
   const totalCount = orders.length
+  const error = isError
 
   // Create table instance
   const table = useReactTable({

@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { queryKeys } from '@/lib/queries/keys';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
@@ -14,16 +14,15 @@ export function useUnreadNotificationCount() {
   const siteId = useSiteId();
   const { user } = useAuth();
   
-  return useQuery({
-    queryKey: queryKeys.notifications.unreadCount(siteId!, user?.id!),
-    queryFn: () => getUnreadNotificationCount(client, siteId!, user?.id!),
-    enabled: !!siteId && !!user?.id,
-    staleTime: 30 * 1000, // 30 seconds stale time for aggressive caching
-    refetchInterval: 60 * 1000, // Refetch every minute
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    placeholderData: 0, // Show 0 while loading
-  });
+  return useSupabaseQuery(
+    (signal) => getUnreadNotificationCount(client, siteId!, user?.id!),
+    {
+      enabled: !!siteId && !!user?.id,
+      staleTime: 30 * 1000, // 30 seconds stale time for aggressive caching
+      refetchInterval: 60 * 1000, // Refetch every minute
+      initialData: 0, // Show 0 while loading
+    }
+  );
 }
 
 // Hook for unread count by category
@@ -32,9 +31,8 @@ export function useUnreadCountByCategory() {
   const siteId = useSiteId();
   const { user } = useAuth();
   
-  return useQuery({
-    queryKey: [...queryKeys.notifications.unreadCount(siteId!, user?.id!), 'by-category'],
-    queryFn: async () => {
+  return useSupabaseQuery(
+    async (signal) => {
       // Get unread notifications grouped by category
       const { data, error } = await client
         .from('notifications')
@@ -53,10 +51,12 @@ export function useUnreadCountByCategory() {
       
       return countsByCategory;
     },
-    enabled: !!siteId && !!user?.id,
-    staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 60 * 1000, // Refetch every minute
-  });
+    {
+      enabled: !!siteId && !!user?.id,
+      staleTime: 30 * 1000, // 30 seconds
+      refetchInterval: 60 * 1000, // Refetch every minute
+    }
+  );
 }
 
 // Hook for unread count by priority
@@ -65,9 +65,8 @@ export function useUnreadCountByPriority() {
   const siteId = useSiteId();
   const { user } = useAuth();
   
-  return useQuery({
-    queryKey: [...queryKeys.notifications.unreadCount(siteId!, user?.id!), 'by-priority'],
-    queryFn: async () => {
+  return useSupabaseQuery(
+    async (signal) => {
       // Get unread notifications grouped by priority
       const { data, error } = await client
         .from('notifications')
@@ -86,10 +85,12 @@ export function useUnreadCountByPriority() {
       
       return countsByPriority;
     },
-    enabled: !!siteId && !!user?.id,
-    staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 60 * 1000, // Refetch every minute
-  });
+    {
+      enabled: !!siteId && !!user?.id,
+      staleTime: 30 * 1000, // 30 seconds
+      refetchInterval: 60 * 1000, // Refetch every minute
+    }
+  );
 }
 
 // Hook for urgent notification count (higher priority)
@@ -98,9 +99,8 @@ export function useUrgentNotificationCount() {
   const siteId = useSiteId();
   const { user } = useAuth();
   
-  return useQuery({
-    queryKey: [...queryKeys.notifications.unreadCount(siteId!, user?.id!), 'urgent'],
-    queryFn: async () => {
+  return useSupabaseQuery(
+    async (signal) => {
       const { count, error } = await client
         .from('notifications')
         .select('*', { count: 'exact', head: true })
@@ -113,11 +113,12 @@ export function useUrgentNotificationCount() {
       if (error) throw error;
       return count || 0;
     },
-    enabled: !!siteId && !!user?.id,
-    staleTime: 15 * 1000, // 15 seconds for urgent notifications
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds
-    refetchOnWindowFocus: true,
-  });
+    {
+      enabled: !!siteId && !!user?.id,
+      staleTime: 15 * 1000, // 15 seconds for urgent notifications
+      refetchInterval: 30 * 1000, // Refetch every 30 seconds
+    }
+  );
 }
 
 // Hook for high priority notification count
@@ -126,9 +127,8 @@ export function useHighPriorityNotificationCount() {
   const siteId = useSiteId();
   const { user } = useAuth();
   
-  return useQuery({
-    queryKey: [...queryKeys.notifications.unreadCount(siteId!, user?.id!), 'high-priority'],
-    queryFn: async () => {
+  return useSupabaseQuery(
+    async (signal) => {
       const { count, error } = await client
         .from('notifications')
         .select('*', { count: 'exact', head: true })
@@ -141,46 +141,38 @@ export function useHighPriorityNotificationCount() {
       if (error) throw error;
       return count || 0;
     },
-    enabled: !!siteId && !!user?.id,
-    staleTime: 20 * 1000, // 20 seconds
-    refetchInterval: 45 * 1000, // Refetch every 45 seconds
-  });
+    {
+      enabled: !!siteId && !!user?.id,
+      staleTime: 20 * 1000, // 20 seconds
+      refetchInterval: 45 * 1000, // Refetch every 45 seconds
+    }
+  );
 }
 
 // Hook that provides optimistic updates for unread count
 export function useUnreadNotificationCountWithOptimistic() {
-  const queryClient = useQueryClient();
-  const siteId = useSiteId();
-  const { user } = useAuth();
   const query = useUnreadNotificationCount();
   
-  const incrementCount = useCallback((amount: number = 1) => {
-    if (!siteId || !user?.id) return;
-    
-    const queryKey = queryKeys.notifications.unreadCount(siteId, user.id);
-    queryClient.setQueryData(queryKey, (oldCount: number = 0) => Math.max(0, oldCount + amount));
-  }, [queryClient, siteId, user?.id]);
+  // Optimistic updates no longer available with base hooks
+  const incrementCount = useCallback(() => {
+    // Refresh the query instead
+    query.refresh();
+  }, [query]);
   
-  const decrementCount = useCallback((amount: number = 1) => {
-    if (!siteId || !user?.id) return;
-    
-    const queryKey = queryKeys.notifications.unreadCount(siteId, user.id);
-    queryClient.setQueryData(queryKey, (oldCount: number = 0) => Math.max(0, oldCount - amount));
-  }, [queryClient, siteId, user?.id]);
+  const decrementCount = useCallback(() => {
+    // Refresh the query instead
+    query.refresh();
+  }, [query]);
   
   const resetCount = useCallback(() => {
-    if (!siteId || !user?.id) return;
-    
-    const queryKey = queryKeys.notifications.unreadCount(siteId, user.id);
-    queryClient.setQueryData(queryKey, 0);
-  }, [queryClient, siteId, user?.id]);
+    // Refresh the query instead
+    query.refresh();
+  }, [query]);
   
   const invalidateCount = useCallback(() => {
-    if (!siteId || !user?.id) return;
-    
-    const queryKey = queryKeys.notifications.unreadCount(siteId, user.id);
-    queryClient.invalidateQueries({ queryKey });
-  }, [queryClient, siteId, user?.id]);
+    // Refresh the query instead
+    query.refresh();
+  }, [query]);
   
   return {
     ...query,
@@ -204,42 +196,33 @@ export function useNotificationBadge() {
     hasUnread: (unreadCount.data || 0) > 0,
     hasUrgent: (urgentCount.data || 0) > 0,
     hasHighPriority: (highPriorityCount.data || 0) > 0,
-    isLoading: unreadCount.isLoading || urgentCount.isLoading || highPriorityCount.isLoading,
+    isLoading: unreadCount.loading || urgentCount.loading || highPriorityCount.loading,
     error: unreadCount.error || urgentCount.error || highPriorityCount.error,
   };
 }
 
 // Custom hook that watches for changes and provides live updates
 export function useLiveUnreadNotificationCount() {
-  const queryClient = useQueryClient();
-  const siteId = useSiteId();
-  const { user } = useAuth();
   const query = useUnreadNotificationCount();
   
   // Set up periodic background refetch
   useEffect(() => {
-    if (!siteId || !user?.id) return;
-    
     const interval = setInterval(() => {
-      const queryKey = queryKeys.notifications.unreadCount(siteId, user.id);
-      queryClient.invalidateQueries({ queryKey });
-    }, 30 * 1000); // Invalidate every 30 seconds
+      query.refresh();
+    }, 30 * 1000); // Refresh every 30 seconds
     
     return () => clearInterval(interval);
-  }, [queryClient, siteId, user?.id]);
+  }, [query]);
   
   // Refetch when window gains focus
   useEffect(() => {
     const handleFocus = () => {
-      if (!siteId || !user?.id) return;
-      
-      const queryKey = queryKeys.notifications.unreadCount(siteId, user.id);
-      queryClient.invalidateQueries({ queryKey });
+      query.refresh();
     };
     
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [queryClient, siteId, user?.id]);
+  }, [query]);
   
   return query;
 }

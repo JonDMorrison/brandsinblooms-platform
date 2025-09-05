@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import React, { useState, useEffect } from 'react'
 import {
   Card,
   CardContent,
@@ -104,57 +103,86 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
   const [periodType, setPeriodType] = useState<'daily' | 'weekly' | 'monthly'>('daily')
   const [isExporting, setIsExporting] = useState(false)
 
-  // Fetch site analytics summary
-  const {
-    data: analytics,
-    isLoading: isLoadingAnalytics,
-    error: analyticsError,
-    refetch: refetchAnalytics
-  } = useQuery<SiteAnalyticsSummary>({
-    queryKey: ['site-analytics', siteId, timeRange, periodType],
-    queryFn: () => getSiteAnalytics(siteId, timeRange, periodType),
-    refetchInterval: 300000, // Refresh every 5 minutes
-  })
+  const [analytics, setAnalytics] = useState<SiteAnalyticsSummary | null>(null)
+  const [trafficTrends, setTrafficTrends] = useState<any>(null)
+  const [performanceTrends, setPerformanceTrends] = useState<any>(null)
+  const [coreWebVitals, setCoreWebVitals] = useState<any>(null)
+  const [engagementMetrics, setEngagementMetrics] = useState<any>(null)
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(true)
+  const [isLoadingTraffic, setIsLoadingTraffic] = useState(true)
+  const [isLoadingPerformance, setIsLoadingPerformance] = useState(true)
+  const [isLoadingCWV, setIsLoadingCWV] = useState(true)
+  const [isLoadingEngagement, setIsLoadingEngagement] = useState(true)
+  const [analyticsError, setAnalyticsError] = useState<Error | null>(null)
 
-  // Fetch traffic trends
-  const {
-    data: trafficTrends,
-    isLoading: isLoadingTraffic
-  } = useQuery({
-    queryKey: ['traffic-trends', siteId, timeRange, periodType],
-    queryFn: () => getTrafficTrends(siteId, timeRange, periodType),
-    refetchInterval: 300000,
-  })
+  // Fetch data when timeRange or periodType changes
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoadingAnalytics(true)
+        const analyticsData = await getSiteAnalytics(siteId, timeRange, periodType)
+        setAnalytics(analyticsData)
+        setAnalyticsError(null)
+      } catch (error) {
+        setAnalyticsError(error as Error)
+      } finally {
+        setIsLoadingAnalytics(false)
+      }
 
-  // Fetch performance trends
-  const {
-    data: performanceTrends,
-    isLoading: isLoadingPerformance
-  } = useQuery({
-    queryKey: ['performance-trends', siteId, timeRange, periodType],
-    queryFn: () => getPerformanceTrends(siteId, timeRange, periodType),
-    refetchInterval: 300000,
-  })
+      try {
+        setIsLoadingTraffic(true)
+        const traffic = await getTrafficTrends(siteId, timeRange, periodType)
+        setTrafficTrends(traffic)
+      } catch (error) {
+        console.error('Failed to load traffic trends:', error)
+      } finally {
+        setIsLoadingTraffic(false)
+      }
 
-  // Fetch Core Web Vitals
-  const {
-    data: coreWebVitals,
-    isLoading: isLoadingCWV
-  } = useQuery({
-    queryKey: ['core-web-vitals', siteId, timeRange],
-    queryFn: () => getCoreWebVitalsTrends(siteId, timeRange),
-    refetchInterval: 300000,
-  })
+      try {
+        setIsLoadingPerformance(true)
+        const performance = await getPerformanceTrends(siteId, timeRange, periodType)
+        setPerformanceTrends(performance)
+      } catch (error) {
+        console.error('Failed to load performance trends:', error)
+      } finally {
+        setIsLoadingPerformance(false)
+      }
 
-  // Fetch engagement metrics
-  const {
-    data: engagementMetrics,
-    isLoading: isLoadingEngagement
-  } = useQuery({
-    queryKey: ['engagement-metrics', siteId, timeRange],
-    queryFn: () => getSiteEngagementMetrics(siteId, timeRange),
-    refetchInterval: 300000,
-  })
+      try {
+        setIsLoadingCWV(true)
+        const cwv = await getCoreWebVitalsTrends(siteId, timeRange)
+        setCoreWebVitals(cwv)
+      } catch (error) {
+        console.error('Failed to load core web vitals:', error)
+      } finally {
+        setIsLoadingCWV(false)
+      }
+
+      try {
+        setIsLoadingEngagement(true)
+        const engagement = await getSiteEngagementMetrics(siteId, timeRange)
+        setEngagementMetrics(engagement)
+      } catch (error) {
+        console.error('Failed to load engagement metrics:', error)
+      } finally {
+        setIsLoadingEngagement(false)
+      }
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 300000) // Refresh every 5 minutes
+    return () => clearInterval(interval)
+  }, [siteId, timeRange, periodType])
+
+  const refetchAnalytics = async () => {
+    try {
+      const analyticsData = await getSiteAnalytics(siteId, timeRange, periodType)
+      setAnalytics(analyticsData)
+    } catch (error) {
+      console.error('Failed to refetch analytics:', error)
+    }
+  }
 
   const handleExport = async () => {
     try {

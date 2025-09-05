@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
-import { queryKeys } from '@/lib/queries/keys';
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { 
   uploadProductImage, 
   uploadMultipleProductImages, 
@@ -822,55 +822,51 @@ export function useProductImageUrl(
  */
 export function usePreloadProductImages(productIds: string[] = []) {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
-
   const preloadImages = useCallback(async () => {
     if (!siteId || productIds.length === 0) return;
 
     const preloadPromises = productIds.map(async (productId) => {
-      // Preload product images
-      const imagesKey = queryKeys.products.images(siteId, productId);
-      const productKey = queryKeys.products.detail(siteId, productId);
-
       try {
+        // Preload product images by storing in localStorage
+        const imagesCacheKey = `product_images_${siteId}_${productId}`;
+        const productCacheKey = `product_${siteId}_${productId}`;
+
         // Check if already cached
-        const existingImages = queryClient.getQueryData(imagesKey);
-        const existingProduct = queryClient.getQueryData(productKey);
+        const existingImages = localStorage.getItem(imagesCacheKey);
+        const existingProduct = localStorage.getItem(productCacheKey);
 
         if (!existingImages) {
-          await queryClient.prefetchQuery({
-            queryKey: imagesKey,
-            queryFn: async () => {
-              const { data, error } = await supabase
-                .from('product_images')
-                .select('*')
-                .eq('site_id', siteId)
-                .eq('product_id', productId)
-                .order('position', { ascending: true });
+          const { data: imagesData, error: imagesError } = await supabase
+            .from('product_images')
+            .select('*')
+            .eq('site_id', siteId)
+            .eq('product_id', productId)
+            .order('position', { ascending: true });
 
-              if (error) throw error;
-              return data || [];
-            },
-            staleTime: 30 * 1000,
-          });
+          if (imagesError) throw imagesError;
+          
+          const toStore = {
+            data: imagesData || [],
+            timestamp: new Date().toISOString()
+          };
+          localStorage.setItem(imagesCacheKey, JSON.stringify(toStore));
         }
 
         if (!existingProduct) {
-          await queryClient.prefetchQuery({
-            queryKey: productKey,
-            queryFn: async () => {
-              const { data, error } = await supabase
-                .from('products')
-                .select('id, name, category, images')
-                .eq('id', productId)
-                .eq('site_id', siteId)
-                .single();
+          const { data: productData, error: productError } = await supabase
+            .from('products')
+            .select('id, name, category, images')
+            .eq('id', productId)
+            .eq('site_id', siteId)
+            .single();
 
-              if (error) throw error;
-              return data;
-            },
-            staleTime: 5 * 60 * 1000,
-          });
+          if (productError) throw productError;
+          
+          const toStore = {
+            data: productData,
+            timestamp: new Date().toISOString()
+          };
+          localStorage.setItem(productCacheKey, JSON.stringify(toStore));
         }
       } catch (error: unknown) {
         console.warn(`Failed to preload images for product ${productId}:`, handleError(error).message);
@@ -878,7 +874,7 @@ export function usePreloadProductImages(productIds: string[] = []) {
     });
 
     await Promise.all(preloadPromises);
-  }, [productIds, siteId, queryClient]);
+  }, [productIds, siteId]);
 
   return {
     preloadImages,

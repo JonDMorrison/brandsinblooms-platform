@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { queryKeys } from '@/lib/queries/keys';
 import { OrderWithCustomer } from '@/lib/queries/domains/orders';
 import { toast } from 'sonner';
 
@@ -20,7 +17,7 @@ interface UseOrdersRealtimeOptions {
 /**
  * Real-time subscription hook for orders
  * Subscribes to orders table changes filtered by site_id
- * Automatically invalidates React Query caches on updates
+ * Clears localStorage caches on updates instead of using React Query
  */
 export function useOrdersRealtime({
   enabled = true,
@@ -30,7 +27,6 @@ export function useOrdersRealtime({
   showNotifications = true,
 }: UseOrdersRealtimeOptions = {}) {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
   // Subscribe to orders table changes
   const channel = useRealtimeSubscription({
@@ -45,13 +41,15 @@ export function useOrdersRealtime({
         return;
       }
       
-      // Invalidate orders list and stats
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.lists(siteId!),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.stats(siteId!),
-      });
+      // Clear localStorage caches for orders
+      if (typeof window !== 'undefined' && siteId) {
+        const keysToRemove = [
+          `orders-${siteId}`,
+          `order-stats-${siteId}`,
+          `dashboard-stats-${siteId}`,
+        ];
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+      }
       
       // Show notification
       if (showNotifications) {
@@ -79,25 +77,16 @@ export function useOrdersRealtime({
         return;
       }
       
-      // Update the specific order in cache if it exists
-      const cachedOrder = queryClient.getQueryData<OrderWithCustomer>(
-        queryKeys.orders.detail(siteId!, updatedOrder.id)
-      );
-      
-      if (cachedOrder) {
-        queryClient.setQueryData(
-          queryKeys.orders.detail(siteId!, updatedOrder.id),
-          updatedOrder
-        );
+      // Clear localStorage caches
+      if (typeof window !== 'undefined' && siteId) {
+        const keysToRemove = [
+          `orders-${siteId}`,
+          `order-${siteId}-${updatedOrder.id}`,
+          `order-stats-${siteId}`,
+          `dashboard-stats-${siteId}`,
+        ];
+        keysToRemove.forEach(key => localStorage.removeItem(key));
       }
-      
-      // Invalidate lists and stats
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.lists(siteId!),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.stats(siteId!),
-      });
       
       // Show notification for status changes
       if (showNotifications && previousOrder.status !== updatedOrder.status) {
@@ -120,18 +109,16 @@ export function useOrdersRealtime({
     onDelete: (payload: RealtimePostgresChangesPayload<OrderWithCustomer>) => {
       const deletedOrder = payload.old as OrderWithCustomer;
       
-      // Remove from cache if exists
-      queryClient.removeQueries({
-        queryKey: queryKeys.orders.detail(siteId!, deletedOrder.id),
-      });
-      
-      // Invalidate lists and stats
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.lists(siteId!),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.orders.stats(siteId!),
-      });
+      // Clear localStorage caches
+      if (typeof window !== 'undefined' && siteId) {
+        const keysToRemove = [
+          `orders-${siteId}`,
+          `order-${siteId}-${deletedOrder.id}`,
+          `order-stats-${siteId}`,
+          `dashboard-stats-${siteId}`,
+        ];
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+      }
       
       // Show notification
       if (showNotifications) {
@@ -152,7 +139,6 @@ export function useOrdersRealtime({
  */
 export function useOrderStatusRealtime() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
   
   return useRealtimeSubscription({
     table: 'orders',
@@ -162,11 +148,13 @@ export function useOrderStatusRealtime() {
       const oldStatus = (payload.old as any)?.status;
       const newStatus = (payload.new as any)?.status;
       
-      // Only invalidate stats if status changed
-      if (oldStatus !== newStatus) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.orders.stats(siteId!),
-        });
+      // Only clear cache if status changed
+      if (oldStatus !== newStatus && typeof window !== 'undefined' && siteId) {
+        const keysToRemove = [
+          `order-stats-${siteId}`,
+          `dashboard-stats-${siteId}`,
+        ];
+        keysToRemove.forEach(key => localStorage.removeItem(key));
       }
     },
   });
@@ -180,18 +168,16 @@ export function useCustomerOrdersRealtime(
   customerId: string,
   options?: Omit<UseOrdersRealtimeOptions, 'enabled'>
 ) {
-  const queryClient = useQueryClient();
-  
   return useRealtimeSubscription({
     table: 'orders',
     event: '*',
     filter: `customer_id=eq.${customerId}`,
     enabled: !!customerId,
     onChange: () => {
-      // Invalidate customer orders query
-      queryClient.invalidateQueries({
-        queryKey: ['customers', customerId, 'orders'],
-      });
+      // Clear customer orders cache
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(`customer-orders-${customerId}`);
+      }
     },
     ...options,
   });

@@ -1,9 +1,9 @@
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery'
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { queryKeys } from '@/src/lib/queries/keys'
 import { 
   getSiteById,
   getUserSites,
@@ -21,19 +21,20 @@ export function useCurrentSite() {
   const { user } = useAuth()
   const siteId = searchParams.get('site')
   
-  return useQuery({
-    queryKey: queryKeys.sites.detail(siteId || 'none'),
-    queryFn: async () => {
+  return useSupabaseQuery<Site | null>(
+    async (signal) => {
       if (!siteId || !user?.id) return null
       
       const result = await checkUserSiteAccess(user.id, siteId)
       if (result.error) throw result.error
       return result.data?.site || null
     },
-    enabled: !!siteId && !!user?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-  })
+    {
+      enabled: !!siteId && !!user?.id,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      persistKey: siteId ? `current-site-${siteId}` : undefined,
+    }
+  )
 }
 
 /**
@@ -43,19 +44,20 @@ export function useCurrentSite() {
 export function useUserSites() {
   const { user } = useAuth()
   
-  return useQuery({
-    queryKey: queryKeys.sites.userSites(user?.id || 'none'),
-    queryFn: async () => {
+  return useSupabaseQuery<UserSiteAccess[]>(
+    async (signal) => {
       if (!user?.id) return []
       
       const result = await getUserSites(user.id)
       if (result.error) throw result.error
       return result.data || []
     },
-    enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  })
+    {
+      enabled: !!user?.id,
+      staleTime: 5 * 60 * 1000,
+      persistKey: user?.id ? `user-sites-${user.id}` : undefined,
+    }
+  )
 }
 
 /**
@@ -64,19 +66,20 @@ export function useUserSites() {
 export function useSiteAccess(siteId: string | null) {
   const { user } = useAuth()
   
-  return useQuery({
-    queryKey: queryKeys.sites.access(user?.id || 'none', siteId || 'none'),
-    queryFn: async () => {
+  return useSupabaseQuery<UserSiteAccess | null>(
+    async (signal) => {
       if (!user?.id || !siteId) return null
       
       const result = await checkUserSiteAccess(user.id, siteId)
       if (result.error) throw result.error
       return result.data
     },
-    enabled: !!user?.id && !!siteId,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  })
+    {
+      enabled: !!user?.id && !!siteId,
+      staleTime: 5 * 60 * 1000,
+      persistKey: user?.id && siteId ? `site-access-${user.id}-${siteId}` : undefined,
+    }
+  )
 }
 
 /**
@@ -84,14 +87,13 @@ export function useSiteAccess(siteId: string | null) {
  * Handles URL updates, cache invalidation, and optimistic updates
  */
 export function useSwitchSite() {
-  const queryClient = useQueryClient()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { user } = useAuth()
   
-  return useMutation({
-    mutationFn: async (siteId: string | null) => {
+  return useSupabaseMutation<UserSiteAccess | null, string | null>(
+    async (siteId: string | null, signal: AbortSignal) => {
       if (!user?.id) throw new Error('User not authenticated')
       
       if (!siteId) {
@@ -106,113 +108,30 @@ export function useSwitchSite() {
       
       return result.data
     },
-    
-    onMutate: async (siteId) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.sites.all()
-      })
-      
-      // Save previous data for rollback
-      const previousSite = queryClient.getQueryData(
-        queryKeys.sites.detail(searchParams.get('site') || 'none')
-      )
-      
-      // Optimistically update the current site
-      if (siteId) {
-        const userSites = queryClient.getQueryData<UserSiteAccess[]>(
-          queryKeys.sites.userSites(user?.id || 'none')
-        )
+    {
+      onSuccess: (data, siteId) => {
+        // Update URL with new site parameter
+        const params = new URLSearchParams(searchParams)
         
-        const newSite = userSites?.find(s => s.site.id === siteId)
-        if (newSite) {
-          queryClient.setQueryData(
-            queryKeys.sites.detail(siteId),
-            newSite.site
-          )
+        if (siteId) {
+          params.set('site', siteId)
+        } else {
+          params.delete('site')
         }
-      } else {
-        // Clear current site
-        const oldSiteId = searchParams.get('site')
-        if (oldSiteId) {
-          queryClient.setQueryData(
-            queryKeys.sites.detail(oldSiteId),
-            null
-          )
+        
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+        
+        // Update localStorage for fallback
+        if (siteId) {
+          localStorage.setItem('selectedSiteId', siteId)
+        } else {
+          localStorage.removeItem('selectedSiteId')
         }
-      }
-      
-      return { previousSite }
-    },
-    
-    onSuccess: (data, siteId) => {
-      // Update URL with new site parameter
-      const params = new URLSearchParams(searchParams)
-      
-      if (siteId) {
-        params.set('site', siteId)
-      } else {
-        params.delete('site')
-      }
-      
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
-      
-      // Update localStorage for fallback
-      if (siteId) {
-        localStorage.setItem('selectedSiteId', siteId)
-      } else {
-        localStorage.removeItem('selectedSiteId')
-      }
-      
-      // Invalidate all site-scoped queries
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.content.all(siteId || '') 
-      })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.products.all(siteId || '') 
-      })
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.categories.all(siteId || '') 
-      })
-      
-      // Invalidate design settings and other site-specific queries
-      if (siteId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['site', siteId] 
-        })
-      }
-      
-      // Also invalidate the old site's queries if switching away
-      const previousSiteId = searchParams.get('site')
-      if (previousSiteId && previousSiteId !== siteId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['site', previousSiteId] 
-        })
-      }
-    },
-    
-    onError: (error, siteId, context) => {
-      // Rollback on error
-      if (context?.previousSite) {
-        const oldSiteId = searchParams.get('site')
-        if (oldSiteId) {
-          queryClient.setQueryData(
-            queryKeys.sites.detail(oldSiteId),
-            context.previousSite
-          )
-        }
-      }
-      
-      console.error('Failed to switch site:', error)
-    },
-    
-    onSettled: () => {
-      // Always refetch site data after mutation
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.sites.all() 
-      })
+      },
+      showSuccessToast: false,
+      showErrorToast: true
     }
-  })
+  )
 }
 
 /**
@@ -230,12 +149,12 @@ export function useSiteContextQuery() {
   return {
     // Current site data
     currentSite: currentSiteQuery.data,
-    isLoading: currentSiteQuery.isLoading,
+    isLoading: currentSiteQuery.loading,
     error: currentSiteQuery.error,
     
     // User sites data
     userSites: userSitesQuery.data || [],
-    userSitesLoading: userSitesQuery.isLoading,
+    userSitesLoading: userSitesQuery.loading,
     userSitesError: userSitesQuery.error,
     
     // Site access
@@ -245,11 +164,11 @@ export function useSiteContextQuery() {
     
     // Actions
     switchSite: switchSiteMutation.mutate,
-    isSwitching: switchSiteMutation.isPending,
+    isSwitching: switchSiteMutation.loading,
     switchError: switchSiteMutation.error,
     
     // Refresh functions
-    refreshSite: () => currentSiteQuery.refetch(),
-    refreshUserSites: () => userSitesQuery.refetch(),
+    refreshSite: () => currentSiteQuery.refresh(),
+    refreshUserSites: () => userSitesQuery.refresh(),
   }
 }

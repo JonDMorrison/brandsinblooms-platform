@@ -1,8 +1,7 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import { Toaster } from '@/src/components/ui/sonner'
 import { AuthProvider } from '@/src/contexts/AuthContext'
 import { ProfileProvider } from '@/src/contexts/ProfileContext'
@@ -12,12 +11,6 @@ import { AdminImpersonationProvider } from '@/src/contexts/AdminImpersonationCon
 import { ImpersonationBanner } from '@/src/components/admin/ImpersonationBanner'
 import { Tables } from '@/src/lib/database/types'
 
-// Lazy load React Query Devtools only in development and on client
-const ReactQueryDevtools = lazy(() => 
-  import('@tanstack/react-query-devtools').then(mod => ({
-    default: mod.ReactQueryDevtools,
-  }))
-)
 
 interface ProvidersProps {
   children: React.ReactNode
@@ -32,39 +25,8 @@ interface ProvidersProps {
 }
 
 export function Providers({ children, initialHostname, initialSiteData, isAdminRoute, impersonationData }: ProvidersProps) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 5 * 60 * 1000, // 5 minutes
-            gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-            refetchOnWindowFocus: false,
-            refetchOnMount: false,
-            refetchOnReconnect: false,
-            retry: 1,
-            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-            // Reduce unnecessary re-renders
-            // notifyOnChangeProps: 'tracked', // TODO: Fix type when React Query updates
-          },
-          mutations: {
-            retry: 1,
-            retryDelay: 1000,
-          },
-        },
-      })
-  )
-
-  // Only show devtools on client side after hydration
-  const [showDevtools, setShowDevtools] = useState(false)
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      setShowDevtools(true)
-    }
-  }, [])
 
   return (
-    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ProfileProvider>
           <ThemeProvider
@@ -101,11 +63,5 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
           </ThemeProvider>
         </ProfileProvider>
       </AuthProvider>
-      {showDevtools && (
-        <Suspense fallback={null}>
-          <ReactQueryDevtools initialIsOpen={false} />
-        </Suspense>
-      )}
-    </QueryClientProvider>
   )
 }

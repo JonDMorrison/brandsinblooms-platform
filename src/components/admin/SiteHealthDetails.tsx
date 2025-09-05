@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import React, { useState, useEffect } from 'react'
 import {
   Card,
   CardContent,
@@ -125,48 +124,83 @@ function HealthComponent({ title, status, description, lastChecked, metrics }: H
 export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) {
   const [isRunningHealthCheck, setIsRunningHealthCheck] = useState(false)
 
-  // Fetch current health status
-  const {
-    data: currentHealth,
-    isLoading: isLoadingCurrent,
-    error: currentError,
-    refetch: refetchCurrent
-  } = useQuery<SiteHealthSummary>({
-    queryKey: ['site-health-current', siteId],
-    queryFn: () => checkSiteHealth(siteId),
-    refetchInterval: 60000, // Refresh every minute
-  })
+  const [currentHealth, setCurrentHealth] = useState<SiteHealthSummary | null>(null)
+  const [healthSummary, setHealthSummary] = useState<any>(null)
+  const [recentChecks, setRecentChecks] = useState<SiteHealthCheck[] | null>(null)
+  const [uptimeStats, setUptimeStats] = useState<any>(null)
+  const [isLoadingCurrent, setIsLoadingCurrent] = useState(true)
+  const [isLoadingSummary, setIsLoadingSummary] = useState(true)
+  const [isLoadingChecks, setIsLoadingChecks] = useState(true)
+  const [isLoadingUptime, setIsLoadingUptime] = useState(true)
+  const [currentError, setCurrentError] = useState<Error | null>(null)
 
-  // Fetch health summary with trends
-  const {
-    data: healthSummary,
-    isLoading: isLoadingSummary,
-    refetch: refetchSummary
-  } = useQuery({
-    queryKey: ['site-health-summary', siteId, 7],
-    queryFn: () => getSiteHealthSummary(siteId, 7),
-    refetchInterval: 300000, // Refresh every 5 minutes
-  })
+  // Fetch data on component mount and periodically
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoadingCurrent(true)
+        const health = await checkSiteHealth(siteId)
+        setCurrentHealth(health)
+        setCurrentError(null)
+      } catch (error) {
+        setCurrentError(error as Error)
+      } finally {
+        setIsLoadingCurrent(false)
+      }
 
-  // Fetch recent health checks
-  const {
-    data: recentChecks,
-    isLoading: isLoadingChecks
-  } = useQuery<SiteHealthCheck[]>({
-    queryKey: ['site-health-checks', siteId, 50],
-    queryFn: () => getSiteHealthChecks(siteId, 50),
-    refetchInterval: 120000, // Refresh every 2 minutes
-  })
+      try {
+        setIsLoadingSummary(true)
+        const summary = await getSiteHealthSummary(siteId, 7)
+        setHealthSummary(summary)
+      } catch (error) {
+        console.error('Failed to load health summary:', error)
+      } finally {
+        setIsLoadingSummary(false)
+      }
 
-  // Fetch uptime statistics
-  const {
-    data: uptimeStats,
-    isLoading: isLoadingUptime
-  } = useQuery({
-    queryKey: ['site-uptime-stats', siteId, 30],
-    queryFn: () => getSiteUptimeStats(siteId, 30),
-    refetchInterval: 300000,
-  })
+      try {
+        setIsLoadingChecks(true)
+        const checks = await getSiteHealthChecks(siteId, 50)
+        setRecentChecks(checks)
+      } catch (error) {
+        console.error('Failed to load health checks:', error)
+      } finally {
+        setIsLoadingChecks(false)
+      }
+
+      try {
+        setIsLoadingUptime(true)
+        const uptime = await getSiteUptimeStats(siteId, 30)
+        setUptimeStats(uptime)
+      } catch (error) {
+        console.error('Failed to load uptime stats:', error)
+      } finally {
+        setIsLoadingUptime(false)
+      }
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 60000) // Refresh every minute
+    return () => clearInterval(interval)
+  }, [siteId])
+
+  const refetchCurrent = async () => {
+    try {
+      const health = await checkSiteHealth(siteId)
+      setCurrentHealth(health)
+    } catch (error) {
+      console.error('Failed to refetch current health:', error)
+    }
+  }
+
+  const refetchSummary = async () => {
+    try {
+      const summary = await getSiteHealthSummary(siteId, 7)
+      setHealthSummary(summary)
+    } catch (error) {
+      console.error('Failed to refetch summary:', error)
+    }
+  }
 
   const handleRunHealthCheck = async () => {
     try {

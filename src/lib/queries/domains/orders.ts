@@ -189,6 +189,32 @@ export async function getOrders(
   };
 }
 
+// Get paginated orders with filters (optimized for useInfiniteSupabase)
+export async function getOrdersInfinite(
+  client: SupabaseClient<Database>,
+  siteId: string,
+  filters: Omit<OrderFilters, 'cursor' | 'limit'> = {}
+) {
+  return async (cursor: string | null, pageSize: number, signal: AbortSignal) => {
+    // Check if request was aborted
+    if (signal.aborted) {
+      throw new Error('Request aborted');
+    }
+
+    const result = await getOrders(client, siteId, {
+      ...filters,
+      cursor,
+      limit: pageSize,
+    });
+
+    return {
+      items: result.orders,
+      nextCursor: result.nextCursor,
+      hasMore: result.hasMore,
+    };
+  };
+}
+
 // Get single order with basic details
 export async function getOrder(
   client: SupabaseClient<Database>,

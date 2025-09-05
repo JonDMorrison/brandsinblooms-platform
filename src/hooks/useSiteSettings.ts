@@ -1,7 +1,6 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useSitePermissions } from '@/hooks/useSite';
@@ -26,13 +25,12 @@ export interface SiteSettingsData {
 }
 
 export function useUpdateSiteSettings() {
-  const queryClient = useQueryClient();
   const supabase = useSupabase();
   const siteId = useSiteId();
   const { canManage } = useSitePermissions();
 
-  return useMutation({
-    mutationFn: async (settings: SiteSettingsData) => {
+  return useSupabaseMutation(
+    async (settings: SiteSettingsData, signal: AbortSignal) => {
       if (!siteId) {
         throw new Error('No site ID available');
       }
@@ -53,9 +51,14 @@ export function useUpdateSiteSettings() {
         business_address: settings.business_address || null,
       };
 
-      // Get current site to compare subdomain changes
-      const currentSiteQueryKey = ['site', siteId];
-      const currentSite = queryClient.getQueryData<Site>(currentSiteQueryKey);
+      // For subdomain validation, we'll need to get current site data
+      // This is a simplified approach - in a real implementation you might
+      // want to pass the current site data as part of the settings
+      const { data: currentSite } = await supabase
+        .from('sites')
+        .select('subdomain')
+        .eq('id', siteId)
+        .single();
       
       // Check if subdomain has changed and validate availability if so
       if (currentSite && settings.subdomain !== currentSite.subdomain) {
@@ -87,85 +90,16 @@ export function useUpdateSiteSettings() {
       // Update the site
       return await updateSite(supabase, siteId, siteData);
     },
-
-    onMutate: async (newSettings) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['site', siteId] });
-
-      // Snapshot the previous value
-      const previousSite = queryClient.getQueryData<Site>(['site', siteId]);
-
-      // Optimistically update to the new value
-      if (previousSite) {
-        queryClient.setQueryData<Site>(['site', siteId], (old) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            name: newSettings.name,
-            description: newSettings.description || null,
-            subdomain: newSettings.subdomain,
-            timezone: newSettings.timezone || null,
-            business_name: newSettings.business_name || null,
-            business_email: newSettings.business_email || null,
-            business_phone: newSettings.business_phone || null,
-            business_address: newSettings.business_address || null,
-            updated_at: new Date().toISOString(),
-          };
-        });
-
-        // Also update the sites list if it exists in cache
-        queryClient.setQueryData(['user-sites'], (oldSites: any) => {
-          if (!oldSites || !Array.isArray(oldSites)) return oldSites;
-
-          return oldSites.map((siteWithAccess: any) => {
-            if (siteWithAccess.site?.id === siteId) {
-              return {
-                ...siteWithAccess,
-                site: {
-                  ...siteWithAccess.site,
-                  name: newSettings.name,
-                  description: newSettings.description || null,
-                  subdomain: newSettings.subdomain,
-                  timezone: newSettings.timezone || null,
-                  business_name: newSettings.business_name || null,
-                  business_email: newSettings.business_email || null,
-                  business_phone: newSettings.business_phone || null,
-                  business_address: newSettings.business_address || null,
-                  updated_at: new Date().toISOString(),
-                }
-              };
-            }
-            return siteWithAccess;
-          });
-        });
+    {
+      showSuccessToast: 'Site settings saved successfully',
+      onSuccess: () => {
+        // Clear localStorage cache for site-related data
+        if (typeof window !== 'undefined' && siteId) {
+          Object.keys(localStorage)
+            .filter(key => key.includes(`site-${siteId}`) || key.includes('user-sites'))
+            .forEach(key => localStorage.removeItem(key));
+        }
       }
-
-      // Return a context object with the snapshotted value
-      return { previousSite };
-    },
-
-    onError: (err: unknown, _newSettings, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.previousSite) {
-        queryClient.setQueryData(['site', siteId], context.previousSite);
-      }
-
-      const errorDetails = handleError(err);
-      toast.error(errorDetails.message);
-    },
-
-    onSuccess: (updatedSite) => {
-      toast.success('Site settings saved successfully');
-      
-      // Update the cache with the actual returned site data
-      queryClient.setQueryData(['site', siteId], updatedSite);
-    },
-
-    onSettled: () => {
-      // Always refetch after error or success to ensure cache consistency
-      queryClient.invalidateQueries({ queryKey: ['site', siteId] });
-      queryClient.invalidateQueries({ queryKey: ['user-sites'] });
-    },
-  });
+    }
+  );
 }
