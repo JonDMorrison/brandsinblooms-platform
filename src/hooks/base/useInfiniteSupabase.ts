@@ -70,7 +70,8 @@ export function useInfiniteSupabase<T>(
     return []
   })
 
-  const [loading, setLoading] = useState(false)
+  // Only start with loading true if enabled
+  const [loading, setLoading] = useState(enabled)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<ErrorType | null>(null)
   const [hasMore, setHasMore] = useState(true)
@@ -220,6 +221,9 @@ export function useInfiniteSupabase<T>(
   useEffect(() => {
     if (enabled && !isInitialized) {
       loadInitial()
+    } else if (!enabled && loading) {
+      // If disabled, set loading to false
+      setLoading(false)
     }
 
     return () => {
@@ -242,6 +246,7 @@ export function useInfiniteSupabase<T>(
             setHasMore(parsed.hasMore)
           }
           setIsInitialized(true)
+          setLoading(false) // Data was loaded from cache
         }
       } catch {
         // Ignore parse errors

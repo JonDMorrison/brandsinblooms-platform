@@ -75,7 +75,7 @@ export function BulkActionsToolbar({ className = '' }: BulkActionsToolbarProps) 
   const [priceOperation, setPriceOperation] = useState<'increase' | 'decrease'>('increase');
   const [priceValue, setPriceValue] = useState('');
 
-  const categories = categoriesData.map(cat => 
+  const categories = (categoriesData || []).map(cat => 
     typeof cat === 'string' ? cat : cat.category
   ).filter(Boolean);
 

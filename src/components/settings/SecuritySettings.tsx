@@ -68,7 +68,7 @@ export function SecuritySettings() {
   const updateSecurityNotifications = useUpdateSecurityNotifications()
   const { data: securityPrefs, loading: loadingPrefs } = useSecurityNotificationPreferences()
   
-  const twoFactorEnabled = mfaFactors.some(factor => factor.status === 'verified')
+  const twoFactorEnabled = (mfaFactors || []).some(factor => factor.status === 'verified')
   const isLoading = changePassword.loading
 
   const form = useForm<PasswordFormData>({

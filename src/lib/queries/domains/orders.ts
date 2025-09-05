@@ -190,7 +190,7 @@ export async function getOrders(
 }
 
 // Get paginated orders with filters (optimized for useInfiniteSupabase)
-export async function getOrdersInfinite(
+export function getOrdersInfinite(
   client: SupabaseClient<Database>,
   siteId: string,
   filters: Omit<OrderFilters, 'cursor' | 'limit'> = {}

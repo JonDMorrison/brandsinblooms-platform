@@ -168,7 +168,7 @@ function ProductsPageContent() {
 
   const categories = useMemo(() => {
     // categoriesData now contains objects with id, name, slug, count, etc.
-    const categoryOptions = categoriesData
+    const categoryOptions = (categoriesData || [])
       .map((cat) => ({
         value: cat.name,
         label: cat.name,

@@ -1,7 +1,7 @@
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
-import { supabase } from '@/lib/supabase/client'
-import { useSite } from '@/src/hooks/useSite'
-import { Tables } from '@/src/lib/database/types'
+import { supabase } from '@/lib/supabase/client';
+import { useSite } from '@/hooks/useSite';
+import { Tables } from '@/lib/database/types';
 
 type ActivityLog = Tables<'activity_logs'>
 

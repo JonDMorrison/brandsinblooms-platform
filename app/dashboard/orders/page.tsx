@@ -58,7 +58,7 @@ export default function OrdersPage() {
   const {
     data,
     loading: isLoading,
-    error: isError,
+    error,
     hasMore: hasNextPage,
     loadingMore: isFetchingNextPage,
     loadMore: fetchNextPage,
@@ -75,7 +75,7 @@ export default function OrdersPage() {
   // Use data directly (already flattened)
   const orders = data || []
   const totalCount = orders.length
-  const error = isError
+  const isError = !!error
 
   // Create table instance
   const table = useReactTable({

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
@@ -29,14 +29,6 @@ export default function ContentPage() {
   // Fetch real content data
   const { data: contentResponse, loading: isLoading, error, refresh: refetch } = useContent()
   const { data: contentStats, loading: statsLoading, refresh: refetchStats } = useContentStats()
-  
-  // Refetch data when siteId becomes available
-  useEffect(() => {
-    if (siteId && !siteLoading) {
-      refetch()
-      refetchStats()
-    }
-  }, [siteId, siteLoading, refetch, refetchStats])
   
   // Extract content array from response
   const content = Array.isArray(contentResponse) ? contentResponse : contentResponse?.data || []

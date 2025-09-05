@@ -34,10 +34,17 @@ export function useOrders(options: UseOrdersOptions = {}) {
   } = options;
   
   // Create the query function for useInfiniteSupabase
+  // getOrdersInfinite returns a function that takes (cursor, pageSize, signal)
   const queryFn = siteId ? getOrdersInfinite(client, siteId, filters) : null;
   
+  // The dummy function must match the signature expected by useInfiniteSupabase
+  const dummyQueryFn = async (cursor: string | null, pageSize: number, signal: AbortSignal) => {
+    return { items: [], nextCursor: null, hasMore: false };
+  };
+  
+  // Return with the correct query function or dummy
   return useInfiniteSupabase<OrderWithCustomer>(
-    queryFn!,
+    queryFn || dummyQueryFn,
     {
       enabled: !!siteId && !!queryFn && enabled,
       pageSize,
