@@ -57,6 +57,7 @@ import { ProductEditModal } from '@/src/components/products/ProductEditModal';
 import { useSitePermissions, useSiteContext } from '@/src/contexts/SiteContext';
 import { useProductEdit } from '@/src/hooks/useProductEdit';
 import type { Tables } from '@/src/lib/database/types';
+import { DashboardStats, type DashboardStat } from '@/src/components/DashboardStats';
 
 // Lazy load the ProductCard component
 const ProductCard = lazy(() =>
@@ -309,6 +310,52 @@ function ProductsPageContent() {
   // Use dedicated hook for product statistics
   const { data: productStats, isLoading: statsLoading } = useProductStats();
   
+  // Dashboard stats for the DashboardStats component
+  const dashboardStats: DashboardStat[] = useMemo(() => [
+    {
+      id: '1',
+      title: 'Total Products',
+      count: productStats?.totalProducts || 0,
+      trend: 'All products in catalog',
+      icon: <Package className="h-6 w-6" />,
+      color: 'text-blue-600',
+      showTrendIcon: false
+    },
+    {
+      id: '2',
+      title: 'Active Products',
+      count: productStats?.activeProducts || 0,
+      trend: productStats && productStats.totalProducts > 0 
+        ? `${Math.round((productStats.activeProducts / productStats.totalProducts) * 100)}% active`
+        : 'No products active',
+      icon: <ShoppingCart className="h-6 w-6" />,
+      color: 'text-green-600',
+      showTrendIcon: false
+    },
+    {
+      id: '3',
+      title: 'Inventory Value',
+      count: Math.round(productStats?.inventoryValue || 0),
+      trend: productStats && productStats.totalInventoryUnits > 0
+        ? `${productStats.totalInventoryUnits.toLocaleString()} units`
+        : 'No inventory tracked',
+      icon: <DollarSign className="h-6 w-6" />,
+      color: 'text-purple-600',
+      showTrendIcon: false
+    },
+    {
+      id: '4',
+      title: 'Avg Rating',
+      count: Math.round((productStats?.averageRating || 0) * 10) / 10, // Round to 1 decimal
+      trend: productStats && productStats.totalReviews > 0
+        ? `${productStats.totalReviews} reviews`
+        : 'No reviews yet',
+      icon: <Star className="h-6 w-6" />,
+      color: 'text-orange-600',
+      showTrendIcon: false
+    }
+  ], [productStats]);
+  
   // Local stats for addedToSite count (specific to current filter)
   const localStats = useMemo(() => {
     const siteProducts = displayProducts.filter((p) => p.addedToSite);
@@ -385,128 +432,12 @@ function ProductsPageContent() {
       </div>
 
       {/* Stats Cards */}
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
-        {loading ? (
-          // Loading skeletons
-          Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className='p-4'>
-                <div className='flex items-center gap-3'>
-                  <Skeleton className='h-9 w-9 rounded-md' />
-                  <div className='space-y-2'>
-                    <Skeleton className='h-3 w-20' />
-                    <Skeleton className='h-6 w-12' />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <>
-            <Card className='fade-in-up' style={{ animationDelay: '0.2s' }}>
-              <CardContent className='p-4'>
-                <div className='flex items-center gap-3'>
-                  <div className='p-2 bg-blue-100 rounded-md'>
-                    <Package className='h-5 w-5 text-blue-600' />
-                  </div>
-                  <div>
-                    <p className='text-sm text-muted-foreground'>
-                      Total Products
-                    </p>
-                    {statsLoading ? (
-                      <Skeleton className='h-7 w-16' />
-                    ) : (
-                      <p className='text-xl font-bold'>{productStats?.totalProducts || 0}</p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className='fade-in-up' style={{ animationDelay: '0.3s' }}>
-              <CardContent className='p-4'>
-                <div className='flex items-center gap-3'>
-                  <div className='p-2 bg-green-100 rounded-md'>
-                    <ShoppingCart className='h-5 w-5 text-green-600' />
-                  </div>
-                  <div>
-                    <p className='text-sm text-muted-foreground'>Active Products</p>
-                    {statsLoading ? (
-                      <Skeleton className='h-7 w-16' />
-                    ) : (
-                      <>
-                        <p className='text-xl font-bold'>{productStats?.activeProducts || 0}</p>
-                        {productStats && productStats.totalProducts > 0 && (
-                          <p className='text-xs text-muted-foreground'>
-                            {Math.round((productStats.activeProducts / productStats.totalProducts) * 100)}% active
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className='fade-in-up' style={{ animationDelay: '0.4s' }}>
-              <CardContent className='p-4'>
-                <div className='flex items-center gap-3'>
-                  <div className='p-2 bg-purple-100 rounded-md'>
-                    <DollarSign className='h-5 w-5 text-purple-600' />
-                  </div>
-                  <div>
-                    <p className='text-sm text-muted-foreground'>Inventory Value</p>
-                    {statsLoading ? (
-                      <Skeleton className='h-7 w-24' />
-                    ) : (
-                      <>
-                        <p className='text-xl font-bold'>
-                          ${(productStats?.inventoryValue || 0).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </p>
-                        {productStats && productStats.totalInventoryUnits > 0 && (
-                          <p className='text-xs text-muted-foreground'>
-                            {productStats.totalInventoryUnits.toLocaleString()} units
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className='fade-in-up' style={{ animationDelay: '0.5s' }}>
-              <CardContent className='p-4'>
-                <div className='flex items-center gap-3'>
-                  <div className='p-2 bg-yellow-100 rounded-md'>
-                    <Star className='h-5 w-5 text-yellow-600' />
-                  </div>
-                  <div>
-                    <p className='text-sm text-muted-foreground'>Avg Rating</p>
-                    {statsLoading ? (
-                      <Skeleton className='h-7 w-16' />
-                    ) : (
-                      <>
-                        <p className='text-xl font-bold'>
-                          {(productStats?.averageRating || 0).toFixed(1)} ★
-                        </p>
-                        {productStats && productStats.totalReviews > 0 && (
-                          <p className='text-xs text-muted-foreground'>
-                            {productStats.totalReviews} reviews
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
-      </div>
+      <DashboardStats 
+        stats={dashboardStats}
+        isLoading={loading || statsLoading}
+        className="fade-in-up"
+        animationDelay={0.2}
+      />
 
       {/* Main Content */}
       <Card className='fade-in-up' style={{ animationDelay: '0.7s' }}>

@@ -11,6 +11,8 @@ import {
   XCircle
 } from 'lucide-react'
 import { useOrderMetrics } from '@/hooks/useOrderStats'
+import { DashboardStats, type DashboardStat } from '@/src/components/DashboardStats'
+import { useMemo } from 'react'
 
 interface OrderStatsProps {
   className?: string
@@ -22,26 +24,70 @@ export function OrderStats({ className }: OrderStatsProps) {
     refetchInterval: 5 * 60 * 1000, // 5 minutes
   })
 
+  // Dashboard stats for the DashboardStats component
+  const dashboardStats: DashboardStat[] = useMemo(() => {
+    if (!metrics) return []
+    
+    const deliveryRate = metrics.totalOrders > 0 
+      ? (metrics.deliveredOrders / metrics.totalOrders) * 100 
+      : 0
+
+    const formatTrend = (value: number) => {
+      const isPositive = value >= 0
+      const sign = isPositive ? '+' : ''
+      return `${sign}${value.toFixed(1)}% from last month`
+    }
+
+    return [
+      {
+        id: '1',
+        title: 'Total Orders',
+        count: metrics.totalOrders,
+        trend: formatTrend(metrics.growthRate?.orders || 0),
+        icon: <ShoppingCart className="h-6 w-6" />,
+        color: 'text-blue-600'
+      },
+      {
+        id: '2',
+        title: 'Total Revenue',
+        count: Math.round(metrics.totalRevenue),
+        trend: formatTrend(metrics.growthRate?.revenue || 0),
+        icon: <DollarSign className="h-6 w-6" />,
+        color: 'text-green-600'
+      },
+      {
+        id: '3',
+        title: 'Avg Order Value',
+        count: Math.round(metrics.averageOrderValue),
+        trend: formatTrend(
+          metrics.totalRevenue > 0 && metrics.totalOrders > 0
+            ? ((metrics.averageOrderValue / (metrics.totalRevenue / metrics.totalOrders)) - 1) * 100
+            : 0
+        ),
+        icon: <TrendingUp className="h-6 w-6" />,
+        color: 'text-purple-600'
+      },
+      {
+        id: '4',
+        title: "Today's Orders",
+        count: metrics.todayOrders,
+        trend: `$${metrics.todayRevenue.toFixed(2)} revenue today`,
+        icon: <ShoppingCart className="h-6 w-6" />,
+        color: 'text-orange-600',
+        showTrendIcon: false
+      }
+    ]
+  }, [metrics])
+
   // Show loading skeleton while data is loading
   if (isLoading || !metrics) {
     return (
       <div className={`space-y-4 ${className || ''}`}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, index) => (
-            <Card key={index} className="fade-in-up">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-8 w-24" />
-                    <Skeleton className="h-3 w-16" />
-                  </div>
-                  <Skeleton className="h-12 w-12 rounded-lg" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <DashboardStats 
+          stats={[]} 
+          isLoading={true} 
+          animationDelay={0.2} 
+        />
         <Card className="fade-in-up">
           <CardContent className="p-4">
             <Skeleton className="h-5 w-48 mb-4" />
@@ -77,67 +123,7 @@ export function OrderStats({ className }: OrderStatsProps) {
     )
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount)
-  }
-
-  const formatTrend = (value: number) => {
-    const isPositive = value >= 0
-    const TrendIcon = isPositive ? TrendingUp : TrendingDown
-    const sign = isPositive ? '+' : ''
-    return {
-      text: `${sign}${value.toFixed(1)}%`,
-      icon: TrendIcon,
-      className: isPositive ? 'text-green-600' : 'text-red-600'
-    }
-  }
-
-  const deliveryRate = metrics.totalOrders > 0 
-    ? (metrics.deliveredOrders / metrics.totalOrders) * 100 
-    : 0
-
-  const ordersTrend = formatTrend(metrics.growthRate?.orders || 0)
-  const revenueTrend = formatTrend(metrics.growthRate?.revenue || 0)
-  const avgValueTrend = formatTrend(
-    metrics.totalRevenue > 0 && metrics.totalOrders > 0
-      ? ((metrics.averageOrderValue / (metrics.totalRevenue / metrics.totalOrders)) - 1) * 100
-      : 0
-  )
-  const deliveryTrend = formatTrend(2) // Mock 2% improvement
-
-  const stats = [
-    {
-      title: 'Total Orders',
-      value: metrics.totalOrders.toLocaleString(),
-      trend: ordersTrend,
-      icon: ShoppingCart,
-      color: 'blue'
-    },
-    {
-      title: 'Total Revenue',
-      value: formatCurrency(metrics.totalRevenue),
-      trend: revenueTrend,
-      icon: DollarSign,
-      color: 'green'
-    },
-    {
-      title: 'Avg Order Value',
-      value: formatCurrency(metrics.averageOrderValue),
-      trend: avgValueTrend,
-      icon: TrendingUp,
-      color: 'purple'
-    },
-    {
-      title: 'Delivery Rate',
-      value: `${deliveryRate.toFixed(1)}%`,
-      trend: deliveryTrend,
-      icon: CheckCircle,
-      color: 'emerald'
-    }
-  ]
+  // Status stats for the breakdown section
 
   const statusStats = [
     {
@@ -166,40 +152,15 @@ export function OrderStats({ className }: OrderStatsProps) {
     }
   ]
 
-  const colorClasses = {
-    blue: 'bg-blue-100  text-blue-600',
-    green: 'bg-green-100  text-green-600',
-    purple: 'bg-purple-100  text-purple-600',
-    emerald: 'bg-emerald-100  text-emerald-600'
-  }
 
   return (
     <div className={`space-y-4 ${className || ''}`}>
       {/* Main Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon
-          return (
-            <Card key={index} className="fade-in-up" style={{ animationDelay: `${0.2 + index * 0.1}s` }}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className={`text-xs flex items-center mt-1 ${stat.trend.className}`}>
-                      <stat.trend.icon className="h-3 w-3 mr-1" />
-                      {stat.trend.text} from last period
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-lg ${colorClasses[stat.color as keyof typeof colorClasses]}`}>
-                    <Icon className="h-6 w-6" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
+      <DashboardStats 
+        stats={dashboardStats}
+        isLoading={false}
+        animationDelay={0.2}
+      />
 
       {/* Status Breakdown */}
       <Card className="fade-in-up" style={{ animationDelay: '1s' }}>

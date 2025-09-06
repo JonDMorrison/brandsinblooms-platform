@@ -12,11 +12,13 @@ import {
   Eye, 
   Activity,
   Sparkles,
+  Files,
 } from 'lucide-react'
 import { useContent, useContentStats } from '@/src/hooks/useContent'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { DataTable } from '@/src/components/ui/data-table'
 import { useSiteId, useSiteContext } from '@/src/contexts/SiteContext'
+import { DashboardStats, type DashboardStat } from '@/src/components/DashboardStats'
 
 
 
@@ -69,6 +71,46 @@ export default function ContentPage() {
     return { all, pages, blog }
   }, [contentItems])
 
+  // Dashboard stats for the DashboardStats component
+  const dashboardStats: DashboardStat[] = useMemo(() => [
+    {
+      id: '1',
+      title: 'Pages',
+      count: contentStats?.pages || stats.pages,
+      trend: 'Website pages only',
+      icon: <FileText className="h-6 w-6" />,
+      color: 'text-blue-600',
+      showTrendIcon: false
+    },
+    {
+      id: '2',
+      title: 'Blog Posts',
+      count: contentStats?.blogPosts || stats.blog,
+      trend: 'Articles and guides',
+      icon: <FileText className="h-6 w-6" />,
+      color: 'text-green-600',
+      showTrendIcon: false
+    },
+    {
+      id: '3',
+      title: 'Total Pages',
+      count: (contentStats?.pages || stats.pages) + (contentStats?.blogPosts || stats.blog),
+      trend: 'All content combined',
+      icon: <Files className="h-6 w-6" />,
+      color: 'text-orange-600',
+      showTrendIcon: false
+    },
+    {
+      id: '4',
+      title: 'Published',
+      count: contentStats?.published || contentItems.filter(item => item.status === 'published').length,
+      trend: 'Live content',
+      icon: <Activity className="h-6 w-6" />,
+      color: 'text-purple-600',
+      showTrendIcon: false
+    }
+  ], [contentStats, stats, contentItems])
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -96,70 +138,12 @@ export default function ContentPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        {statsLoading || siteLoading || !siteId ? (
-          // Loading skeletons
-          Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i} className="fade-in-up" style={{ animationDelay: `${0.2 + i * 0.1}s` }}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <Skeleton className="h-4 w-[100px]" />
-                <Skeleton className="h-4 w-4 rounded" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-[60px] mb-2" />
-                <Skeleton className="h-3 w-[80px]" />
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <>
-            <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Pages</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{contentStats?.pages || stats.pages}</div>
-                <p className="text-xs text-muted-foreground">Published and drafts</p>
-              </CardContent>
-            </Card>
-            <Card className="fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Blog Posts</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{contentStats?.blogPosts || stats.blog}</div>
-                <p className="text-xs text-muted-foreground">Articles and guides</p>
-              </CardContent>
-            </Card>
-            <Card className="fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-                <Eye className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(contentItems.reduce((total, item) => total + item.views, 0)).toLocaleString()}
-                </div>
-                <p className="text-xs text-muted-foreground">This month</p>
-              </CardContent>
-            </Card>
-            <Card className="fade-in-up" style={{ animationDelay: '0.5s' }}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Published</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {contentStats?.published || contentItems.filter(item => item.status === 'published').length}
-                </div>
-                <p className="text-xs text-muted-foreground">Live content</p>
-              </CardContent>
-            </Card>
-          </>
-        )}
-      </div>
+      <DashboardStats 
+        stats={dashboardStats}
+        isLoading={statsLoading || siteLoading || !siteId}
+        className="fade-in-up"
+        animationDelay={0.2}
+      />
 
       {/* Content Library with Enhanced Data Table */}
       <Card className="fade-in-up" style={{ animationDelay: '0.7s' }}>

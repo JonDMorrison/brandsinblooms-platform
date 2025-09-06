@@ -136,7 +136,7 @@ export function useOrderTrends(
  */
 export function useOrderMetrics(options: UseOrderStatsOptions = {}) {
   const stats = useOrderStats(options);
-  const trends = useOrderTrends(30, options);
+  const trends = useOrderTrends(60, options); // Need 60 days for monthly comparison
   
   const {
     enabled = true,
@@ -148,8 +148,9 @@ export function useOrderMetrics(options: UseOrderStatsOptions = {}) {
     async (signal) => {
       if (!stats.data || !trends.data) return null;
       
-      const currentPeriodTrends = trends.data.slice(-15); // Last 15 days
-      const previousPeriodTrends = trends.data.slice(-30, -15); // Previous 15 days
+      // Use monthly periods (last 30 days vs previous 30 days)
+      const currentPeriodTrends = trends.data.slice(-30); // Last 30 days (current month)
+      const previousPeriodTrends = trends.data.slice(-60, -30); // Previous 30 days (last month)
       
       const currentOrders = currentPeriodTrends.reduce((sum, day) => sum + day.orders, 0);
       const previousOrders = previousPeriodTrends.reduce((sum, day) => sum + day.orders, 0);
