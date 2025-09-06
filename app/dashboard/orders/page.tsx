@@ -185,10 +185,10 @@ const OrdersPageComponent = () => {
         <div className="fade-in-up" style={{ animationDelay: '0.6s' }}>
           <BulkActionsToolbar
             selectedOrders={selectedOrders}
-            onClearSelection={() => setRowSelection({})}
+            onClearSelection={() => setSelectedOrders([])}
             onOrdersUpdated={() => {
               refetch()
-              setRowSelection({})
+              setSelectedOrders([])
             }}
           />
         </div>
