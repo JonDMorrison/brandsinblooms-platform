@@ -144,17 +144,26 @@ export function useSupabaseQuery<T>(
     }
   }, [lastFetch, staleTime])
 
-  // Initial fetch and refetch logic
+  // Track if this is the first render to prevent duplicate initial fetches
+  const isFirstRenderRef = useRef(true)
+
+  // Combined fetch logic - consolidate initial fetch and dependency-based refetch
   useEffect(() => {
     if (!enabled) return
 
-    // Initial fetch
-    if (refetchOnMount || !data) {
+    // On first render, always fetch if no data or refetchOnMount is true
+    // On subsequent renders (dependency changes), always fetch
+    const shouldFetch = !isFirstRenderRef.current || !data || refetchOnMount
+    
+    if (shouldFetch) {
       execute()
     }
 
-    // Setup refetch interval if specified
-    if (refetchInterval && refetchInterval > 0) {
+    // Mark that we've passed the first render
+    isFirstRenderRef.current = false
+
+    // Setup refetch interval if specified (but only once)
+    if (refetchInterval && refetchInterval > 0 && !intervalRef.current) {
       intervalRef.current = setInterval(execute, refetchInterval)
     }
 
@@ -163,15 +172,10 @@ export function useSupabaseQuery<T>(
       abortRef.current?.abort()
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
+        intervalRef.current = null as any
       }
     }
-  }, [enabled, refetchOnMount, refetchInterval]) // Intentionally not including execute or queryFn
-
-  // Re-fetch when dependencies change (like siteId)
-  useEffect(() => {
-    if (!enabled) return
-    execute()
-  }, deps ? [enabled, ...deps] : [enabled]) // Only re-run if deps provided and changed
+  }, deps ? [enabled, ...deps] : [enabled])
 
   // Handle reconnect
   useEffect(() => {

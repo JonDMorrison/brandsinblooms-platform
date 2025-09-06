@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
@@ -67,14 +67,20 @@ const clearSpecificContentCache = (siteId: string, contentId?: string) => {
 export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) {
   const siteId = useSiteId();
   
+  const memoizedDeps = useMemo(() => [
+    siteId,
+    JSON.stringify(filters || {}),
+    JSON.stringify(sort || {})
+  ], [siteId, filters, sort]);
+  
   return useSupabaseQuery(
     (signal) => getContent(supabase, siteId!, filters),
     {
       enabled: !!siteId,
-      staleTime: 30 * 1000, // 30 seconds
-      persistKey: `content-list-${siteId}-${JSON.stringify(filters || {})}`,
+      staleTime: 2 * 60 * 1000, // 2 minutes for better performance
+      persistKey: `content-list-${siteId}-${JSON.stringify(filters || {})}-${JSON.stringify(sort || {})}`,
     },
-    [siteId, filters] // Re-fetch when siteId or filters change
+    memoizedDeps
   );
 }
 
@@ -145,7 +151,7 @@ export function useContentStats() {
     (signal) => getContentStats(supabase, siteId!),
     {
       enabled: !!siteId,
-      staleTime: 60 * 1000,
+      staleTime: 5 * 60 * 1000, // 5 minutes - stats change less frequently
       persistKey: `content-stats-${siteId}`,
     },
     [siteId] // Re-fetch when siteId changes
