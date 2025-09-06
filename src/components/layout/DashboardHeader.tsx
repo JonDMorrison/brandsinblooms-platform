@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/src/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/src/components/ui/tooltip'
 // ThemeToggle removed - light mode only
 import { useAuth } from '@/src/contexts/AuthContext'
 import { toast } from 'sonner'
@@ -70,6 +71,10 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
     } catch (error) {
       toast.error('Failed to sign out')
     }
+  }
+
+  const handleHelpClick = () => {
+    toast.info('Will open helpdesk / FAQ\'s')
   }
 
   const getUserInitials = () => {
@@ -121,13 +126,20 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             <Search className="h-4 w-4" />
           </Button>
 
-          {/* Notifications */}
-          <NotificationCenter />
+          {/* Notifications - Hidden for now */}
+          {/* <NotificationCenter /> */}
 
           {/* Help */}
-          <Button variant="ghost" size="sm">
-            <HelpCircle className="h-4 w-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" onClick={handleHelpClick}>
+                <HelpCircle className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Help/Support
+            </TooltipContent>
+          </Tooltip>
 
           {/* User menu */}
           <DropdownMenu>
