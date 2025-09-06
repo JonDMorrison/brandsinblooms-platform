@@ -138,7 +138,8 @@ export function GlobalSearchDialog({
     const Icon = config.icon;
 
     return (
-      <CommandGroup key={type} heading={config.label}>
+      <div key={type} className="p-2 mb-2">
+        <div className="font-medium text-sm mb-2 px-2 text-muted-foreground">{config.label}</div>
         {items.map((result, index) => {
           // Calculate global index for keyboard navigation
           const globalIndex = Object.entries(groupedResults)
@@ -148,12 +149,13 @@ export function GlobalSearchDialog({
           const isSelected = globalIndex === selectedIndex;
 
           return (
-            <CommandItem
+            <div
               key={result.id}
-              value={result.id}
-              onSelect={() => handleNavigate(result)}
+              onClick={() => handleNavigate(result)}
               className={cn(
-                "flex items-start gap-3 px-3 py-2 cursor-pointer",
+                "flex items-start gap-3 px-3 py-2 cursor-pointer rounded-md my-1",
+                result.excerpt ? "min-h-[60px]" : "min-h-[40px]",
+                "bg-white border border-gray-200 hover:bg-gray-50",
                 isSelected && "bg-accent text-accent-foreground"
               )}
             >
@@ -168,10 +170,10 @@ export function GlobalSearchDialog({
                   </div>
                 )}
               </div>
-            </CommandItem>
+            </div>
           );
         })}
-      </CommandGroup>
+      </div>
     );
   };
 
@@ -181,15 +183,15 @@ export function GlobalSearchDialog({
       onOpenChange={onOpenChange}
       title="Search Content"
       description="Find and navigate to your content quickly"
-      className="bg-tan-400"
+      className="bg-white sm:max-w-2xl"
     >
       <CommandInput
         placeholder={placeholder}
         value={query}
         onValueChange={setQuery}
-        className="bg-tan-400 border-tan-500"
+        className="bg-white"
       />
-      <CommandList className="max-h-96 bg-tan-400">
+      <CommandList className="max-h-[50vh] sm:max-h-96 bg-white overflow-y-auto">
         {!hasMinLength ? (
           <div className="py-6 text-center text-sm text-muted-foreground">
             Type at least 3 characters to search

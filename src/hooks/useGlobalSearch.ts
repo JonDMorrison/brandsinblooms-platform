@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { supabase } from '@/lib/supabase/client';
 import { useSiteId } from '@/src/contexts/SiteContext';
@@ -30,10 +30,15 @@ export function useGlobalSearch(query: string, limit: number = 10): UseGlobalSea
   const siteId = contextSiteId || '00000000-0000-0000-0000-000000000001';
   const debouncedQuery = useDebounce(query.trim(), 300);
   
+  // Track which query the current data belongs to
+  const dataQueryRef = useRef<string>('');
   
   // Only search if we have a site ID and query has minimum length (3+ characters)
   const hasMinLength = query.trim().length >= 3;
   const shouldSearch = debouncedQuery.length >= 3 && siteId !== null;
+  
+  // Check if we're waiting for debounce (user is still typing)
+  const isWaitingForDebounce = hasMinLength && query.trim() !== debouncedQuery;
 
   const {
     data = [],
@@ -47,6 +52,8 @@ export function useGlobalSearch(query: string, limit: number = 10): UseGlobalSea
       
       try {
         const results = await searchContentEnhanced(supabase, siteId, debouncedQuery, limit);
+        // Mark that this data belongs to the current debounced query
+        dataQueryRef.current = debouncedQuery;
         return results;
       } catch (err: unknown) {
         const errorInfo = handleError(err);
@@ -56,14 +63,24 @@ export function useGlobalSearch(query: string, limit: number = 10): UseGlobalSea
     {
       enabled: shouldSearch,
       staleTime: 30000, // Keep data fresh for 30 seconds
+      // Add query as key to force refresh when search term changes
+      key: [siteId, debouncedQuery, limit],
     }
   );
 
+  // Only show data if:
+  // 1. Not waiting for debounce (query has settled)
+  // 2. Data belongs to current debounced query (prevents stale results)
+  // 3. Should search (meets criteria)
+  const dataMatchesCurrentQuery = dataQueryRef.current === debouncedQuery;
+  const displayData = isWaitingForDebounce ? [] : (shouldSearch && dataMatchesCurrentQuery ? (data || []) : []);
+  const displayLoading = isLoading || isWaitingForDebounce;
+
   return {
-    data: data || [],
-    isLoading,
+    data: displayData,
+    isLoading: displayLoading,
     error: error as Error | null,
-    isEmpty: shouldSearch && !isLoading && (data || []).length === 0,
+    isEmpty: shouldSearch && !displayLoading && displayData.length === 0,
     hasMinLength,
   };
 }
