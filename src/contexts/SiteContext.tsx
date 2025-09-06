@@ -375,7 +375,7 @@ export function SiteProvider({
     } else {
       setLoading(false)
     }
-  }, [authLoading, initialSiteId, initialHostname, initialSiteData, loadSiteById, resolveSiteFromUrl])
+  }, [authLoading, initialSiteId, initialHostname, initialSiteData]) // Remove function dependencies to prevent infinite loops
 
   // Load user sites when user changes
   useEffect(() => {
@@ -389,7 +389,7 @@ export function SiteProvider({
       setCanEdit(false)
       setCanManage(false)
     }
-  }, [user?.id, authLoading, refreshUserSites])
+  }, [user?.id, authLoading]) // Remove function dependencies to prevent infinite loops
 
   // Auto-select site based on localStorage or first available
   useEffect(() => {
@@ -438,7 +438,7 @@ export function SiteProvider({
         loadSiteById(firstSiteId)
       }, 0)
     }
-  }, [userSites, userSitesLoading, currentSite, loadSiteById])
+  }, [userSites, userSitesLoading, currentSite]) // Remove function dependencies to prevent infinite loops
 
   // Update user access when current site or user changes
   useEffect(() => {

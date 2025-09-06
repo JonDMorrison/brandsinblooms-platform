@@ -73,7 +73,8 @@ export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) 
       enabled: !!siteId,
       staleTime: 30 * 1000, // 30 seconds
       persistKey: `content-list-${siteId}-${JSON.stringify(filters || {})}`,
-    }
+    },
+    [siteId, filters] // Re-fetch when siteId or filters change
   );
 }
 
@@ -86,7 +87,8 @@ export function useContentItem(contentId: string) {
     {
       enabled: !!siteId && !!contentId,
       persistKey: `content-detail-${siteId}-${contentId}`,
-    }
+    },
+    [siteId, contentId] // Re-fetch when siteId or contentId changes
   );
 }
 
@@ -100,7 +102,8 @@ export function useContentByType(contentType: 'page' | 'blog_post' | 'event') {
       enabled: !!siteId,
       staleTime: 30 * 1000,
       persistKey: `content-by-type-${siteId}-${contentType}`,
-    }
+    },
+    [siteId, contentType] // Re-fetch when siteId or contentType changes
   );
 }
 
@@ -114,7 +117,8 @@ export function usePublishedContent(contentType?: 'page' | 'blog_post' | 'event'
       enabled: !!siteId,
       staleTime: 60 * 1000, // 1 minute for published content
       persistKey: `content-published-${siteId}-${contentType || 'all'}`,
-    }
+    },
+    [siteId, contentType] // Re-fetch when siteId or contentType changes
   );
 }
 
@@ -128,7 +132,8 @@ export function useSearchContent(searchQuery: string) {
       enabled: !!siteId && searchQuery.length > 2,
       staleTime: 10 * 1000,
       persistKey: `content-search-${siteId}-${searchQuery}`,
-    }
+    },
+    [siteId, searchQuery] // Re-fetch when siteId or searchQuery changes
   );
 }
 
@@ -142,7 +147,8 @@ export function useContentStats() {
       enabled: !!siteId,
       staleTime: 60 * 1000,
       persistKey: `content-stats-${siteId}`,
-    }
+    },
+    [siteId] // Re-fetch when siteId changes
   );
 }
 

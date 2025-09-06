@@ -102,7 +102,7 @@ export default function HomePlatform() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push('/sites')}
+                  onClick={() => router.push('/dashboard/sites')}
                 >
                   My Sites
                 </Button>
@@ -157,7 +157,7 @@ export default function HomePlatform() {
                   </CardContent>
                 </Card>
 
-                <Card className='hover:shadow-lg transition-shadow cursor-pointer' onClick={() => router.push('/sites')}>
+                <Card className='hover:shadow-lg transition-shadow cursor-pointer' onClick={() => router.push('/dashboard/sites')}>
                   <CardContent className='p-6 text-center space-y-4'>
                     <div className='flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-xl mx-auto'>
                       <Globe className='h-8 w-8 text-white' />
@@ -169,7 +169,7 @@ export default function HomePlatform() {
                   </CardContent>
                 </Card>
 
-                <Card className='hover:shadow-lg transition-shadow cursor-pointer' onClick={() => currentSite ? router.push('/dashboard/design') : router.push('/sites')}>
+                <Card className='hover:shadow-lg transition-shadow cursor-pointer' onClick={() => currentSite ? router.push('/dashboard/design') : router.push('/dashboard/sites')}>
                   <CardContent className='p-6 text-center space-y-4'>
                     <div className='flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-xl mx-auto'>
                       {currentSite ? <Sparkles className='h-8 w-8 text-white' /> : <Plus className='h-8 w-8 text-white' />}
@@ -190,7 +190,7 @@ export default function HomePlatform() {
                     <p className='text-sm text-muted-foreground mb-4'>
                       No site selected. Choose a site to get started.
                     </p>
-                    <Button onClick={() => router.push('/sites')}>
+                    <Button onClick={() => router.push('/dashboard/sites')}>
                       Select a Site
                     </Button>
                   </CardContent>
@@ -206,7 +206,7 @@ export default function HomePlatform() {
                     <p className='text-sm text-muted-foreground mb-4'>
                       Create your first site to get started with Brands in Blooms.
                     </p>
-                    <Button className='btn-gradient-primary' onClick={() => router.push('/sites')}>
+                    <Button className='btn-gradient-primary' onClick={() => router.push('/dashboard/sites')}>
                       <Plus className='h-4 w-4 mr-2' />
                       Create Your First Site
                     </Button>

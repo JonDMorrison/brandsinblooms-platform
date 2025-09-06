@@ -39,7 +39,8 @@ export function useCategoriesHierarchy(filters?: CategoryFilters) {
     {
       enabled: !!siteId,
       staleTime: 5 * 60 * 1000, // 5 minutes
-    }
+    },
+    [siteId, filters] // Re-fetch when siteId or filters change
   );
 }
 
@@ -55,7 +56,8 @@ export function useCategory(categoryId: string | undefined, includeAncestors = f
     {
       enabled: !!siteId && !!categoryId,
       staleTime: 5 * 60 * 1000,
-    }
+    },
+    [siteId, categoryId, includeAncestors] // Re-fetch when siteId, categoryId, or includeAncestors changes
   );
 }
 
@@ -74,7 +76,8 @@ export function useCategoryAncestors(categoryId: string | undefined) {
     {
       enabled: !!siteId && !!categoryId,
       staleTime: 10 * 60 * 1000, // 10 minutes
-    }
+    },
+    [siteId, categoryId] // Re-fetch when siteId or categoryId changes
   );
 }
 
@@ -90,7 +93,8 @@ export function useCategoryProducts(categoryId: string | undefined, filters?: Ca
     {
       enabled: !!siteId && !!categoryId,
       staleTime: 3 * 60 * 1000, // 3 minutes
-    }
+    },
+    [siteId, categoryId, filters] // Re-fetch when siteId, categoryId, or filters change
   );
 }
 

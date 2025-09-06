@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { handleError } from '@/lib/types/error-handling'
 
 export interface UseSupabaseQueryOptions<T> {
@@ -39,7 +39,8 @@ export type ErrorType = ReturnType<typeof handleError>
  */
 export function useSupabaseQuery<T>(
   queryFn: (signal: AbortSignal) => Promise<T>,
-  options: UseSupabaseQueryOptions<T> = {}
+  options: UseSupabaseQueryOptions<T> = {},
+  deps?: React.DependencyList // Add dependencies array to track when to refetch
 ): UseSupabaseQueryResult<T> {
   const {
     enabled = true,
@@ -164,7 +165,13 @@ export function useSupabaseQuery<T>(
         clearInterval(intervalRef.current)
       }
     }
-  }, [enabled, refetchOnMount, refetchInterval]) // Intentionally not including execute
+  }, [enabled, refetchOnMount, refetchInterval]) // Intentionally not including execute or queryFn
+
+  // Re-fetch when dependencies change (like siteId)
+  useEffect(() => {
+    if (!enabled) return
+    execute()
+  }, deps ? [enabled, ...deps] : [enabled]) // Only re-run if deps provided and changed
 
   // Handle reconnect
   useEffect(() => {

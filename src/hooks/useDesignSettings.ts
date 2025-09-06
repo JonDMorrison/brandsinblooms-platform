@@ -33,7 +33,8 @@ export function useDesignSettings() {
       enabled: !!siteId,
       staleTime: 5 * 60 * 1000, // 5 minutes
       persistKey: `design-settings-${siteId}`,
-    }
+    },
+    [siteId] // Re-fetch when siteId changes
   );
 }
 

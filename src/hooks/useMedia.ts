@@ -22,7 +22,8 @@ export function useMediaFiles(type?: 'image' | 'video' | 'document') {
       enabled: !!siteId,
       staleTime: 60 * 1000, // 1 minute
       persistKey: `media-files-${siteId}-${type || 'all'}`,
-    }
+    },
+    [siteId, type] // Re-fetch when siteId or type changes
   );
 }
 
@@ -36,7 +37,8 @@ export function useMediaStats() {
       enabled: !!siteId,
       staleTime: 5 * 60 * 1000, // 5 minutes
       persistKey: `media-stats-${siteId}`,
-    }
+    },
+    [siteId] // Re-fetch when siteId changes
   );
 }
 

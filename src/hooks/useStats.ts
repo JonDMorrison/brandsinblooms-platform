@@ -26,7 +26,8 @@ export function useDashboardMetrics() {
       staleTime: 60 * 1000, // 1 minute
       refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
       persistKey: siteId ? `dashboard-metrics-${siteId}` : undefined,
-    }
+    },
+    [siteId] // Re-fetch when siteId changes
   );
 }
 
@@ -43,7 +44,8 @@ export function useSiteStats() {
       enabled: !!siteId,
       staleTime: 2 * 60 * 1000, // 2 minutes
       persistKey: siteId ? `site-stats-${siteId}` : undefined,
-    }
+    },
+    [siteId] // Re-fetch when siteId changes
   );
 }
 
@@ -60,7 +62,8 @@ export function useRevenueAnalytics(period: 'day' | 'week' | 'month' | 'year' = 
       enabled: !!siteId,
       staleTime: 5 * 60 * 1000, // 5 minutes
       persistKey: siteId ? `revenue-analytics-${siteId}-${period}` : undefined,
-    }
+    },
+    [siteId, period] // Re-fetch when siteId or period changes
   );
 }
 
@@ -77,7 +80,8 @@ export function useContentAnalytics() {
       enabled: !!siteId,
       staleTime: 5 * 60 * 1000,
       persistKey: siteId ? `content-analytics-${siteId}` : undefined,
-    }
+    },
+    [siteId] // Re-fetch when siteId changes
   );
 }
 
@@ -94,7 +98,8 @@ export function useProductAnalytics() {
       enabled: !!siteId,
       staleTime: 5 * 60 * 1000,
       persistKey: siteId ? `product-analytics-${siteId}` : undefined,
-    }
+    },
+    [siteId] // Re-fetch when siteId changes
   );
 }
 
@@ -111,7 +116,8 @@ export function useCustomerAnalytics() {
       enabled: !!siteId,
       staleTime: 10 * 60 * 1000, // 10 minutes
       persistKey: siteId ? `customer-analytics-${siteId}` : undefined,
-    }
+    },
+    [siteId] // Re-fetch when siteId changes
   );
 }
 
@@ -157,7 +163,8 @@ export function useActivityFeed(limit: number = 10) {
       staleTime: 30 * 1000, // 30 seconds for activity feed
       refetchInterval: 60 * 1000, // Auto-refresh every minute
       persistKey: siteId ? `activity-feed-${siteId}-${limit}` : undefined,
-    }
+    },
+    [siteId, limit] // Re-fetch when siteId or limit changes
   );
 }
 
@@ -180,6 +187,7 @@ export function useQuickStats() {
       enabled: !!siteId,
       staleTime: 2 * 60 * 1000,
       persistKey: siteId ? `quick-stats-${siteId}` : undefined,
-    }
+    },
+    [siteId] // Re-fetch when siteId changes
   );
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { 
   useSiteSwitcher, 
   useCurrentSite, 
@@ -20,6 +21,7 @@ import { Skeleton } from '@/src/components/ui/skeleton'
 import { ChevronDown, Check, Globe, Settings } from 'lucide-react'
 
 export function SiteSwitcher() {
+  const router = useRouter()
   const { switchSite, availableSites, currentSiteId } = useSiteSwitcher()
   const { site: currentSite, loading } = useCurrentSite()
   const { role, canManage } = useSitePermissions()
@@ -131,6 +133,21 @@ export function SiteSwitcher() {
             No sites available
           </DropdownMenuItem>
         )}
+        
+        {/* View All Sites option */}
+        {availableSites.length > 1 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => router.push('/dashboard/sites')}
+              disabled={switching}
+              className="flex items-center space-x-2 text-muted-foreground"
+            >
+              <Globe className="h-4 w-4" />
+              <span>View All Sites</span>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -140,6 +157,7 @@ export function SiteSwitcher() {
  * Compact version of site switcher for smaller spaces
  */
 export function CompactSiteSwitcher() {
+  const router = useRouter()
   const { switchSite, availableSites, currentSiteId } = useSiteSwitcher()
   const { site: currentSite, loading } = useCurrentSite()
   const [switching, setSwitching] = useState(false)
@@ -218,7 +236,7 @@ export function CompactSiteSwitcher() {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => handleSiteSwitch(null)}
+              onClick={() => router.push('/dashboard/sites')}
               disabled={switching}
               className="flex items-center space-x-2 text-muted-foreground"
             >

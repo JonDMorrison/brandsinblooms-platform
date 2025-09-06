@@ -41,7 +41,8 @@ export function useProducts(filters?: ProductFilters) {
       onError: (error) => {
         console.error('Failed to fetch products:', error.message);
       },
-    }
+    },
+    [siteId, filters] // Re-fetch when siteId or filters change
   );
 }
 
@@ -62,7 +63,8 @@ export function useProduct(productId: string) {
       onError: (error) => {
         console.error('Failed to fetch product:', error.message);
       },
-    }
+    },
+    [siteId, productId] // Re-fetch when siteId or productId changes
   );
 }
 
@@ -84,7 +86,8 @@ export function useProductsByCategory(category: string) {
       onError: (error) => {
         console.error('Failed to fetch products by category:', error.message);
       },
-    }
+    },
+    [siteId, category] // Re-fetch when siteId or category changes
   );
 }
 
@@ -106,7 +109,8 @@ export function useSearchProducts(searchQuery: string) {
       onError: (error) => {
         console.error('Failed to search products:', error.message);
       },
-    }
+    },
+    [siteId, searchQuery] // Re-fetch when siteId or searchQuery changes
   );
 }
 
@@ -128,7 +132,8 @@ export function useProductCategories() {
       onError: (error) => {
         console.error('Failed to fetch product categories:', error.message);
       },
-    }
+    },
+    [siteId] // Re-fetch when siteId changes
   );
 }
 
