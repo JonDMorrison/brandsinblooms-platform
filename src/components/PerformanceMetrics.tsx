@@ -88,26 +88,36 @@ export function PerformanceMetrics() {
       setIsLoadingCurrent(true)
       try {
         // Get the latest performance metrics
-        const { data: latest } = await supabase
+        const { data: latestArray, error: latestError } = await supabase
           .from('site_performance_metrics')
           .select('*')
           .eq('site_id', siteId)
           .order('recorded_at', { ascending: false })
           .limit(1)
-          .single()
+        
+        if (latestError) {
+          throw latestError
+        }
+        
+        const latest = latestArray?.[0] || null
         
         // Get previous week's metrics for comparison
         const oneWeekAgo = new Date()
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
         
-        const { data: previous } = await supabase
+        const { data: previousArray, error: previousError } = await supabase
           .from('site_performance_metrics')
           .select('*')
           .eq('site_id', siteId)
           .lte('recorded_at', oneWeekAgo.toISOString())
           .order('recorded_at', { ascending: false })
           .limit(1)
-          .single()
+        
+        if (previousError) {
+          console.warn('Could not fetch previous week metrics:', previousError)
+        }
+        
+        const previous = previousArray?.[0] || null
         
         setPerformanceData({ latest, previous })
         setCurrentError(null)
