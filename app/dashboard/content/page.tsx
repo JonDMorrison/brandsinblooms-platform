@@ -11,7 +11,6 @@ import {
   Plus, 
   Eye, 
   Activity,
-  Sparkles,
   Files,
 } from 'lucide-react'
 import { useContent, useContentStats } from '@/src/hooks/useContent'
@@ -121,20 +120,13 @@ export default function ContentPage() {
             Create, edit, and manage your website pages and blog posts
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={() => router.push('/dashboard/ai-content')}
-            className="flex items-center gap-2"
-          >
-            <Sparkles className="h-4 w-4" />
-            AI Content Generator
-          </Button>
-          <Button onClick={() => router.push('/dashboard/content/new')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create New
-          </Button>
-        </div>
+        <Button
+          className="btn-gradient-primary"
+          onClick={() => router.push('/dashboard/content/new')}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Create New
+        </Button>
       </div>
 
       {/* Quick Stats */}
