@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
-import { contentColumns, type ContentItem } from '@/src/components/content/content-columns'
+import { createContentColumns, type ContentItem } from '@/src/components/content/content-columns'
 import { 
   FileText, 
   Plus, 
@@ -167,7 +167,7 @@ export default function ContentPage() {
                 </div>
               ) : (
                 <DataTable
-                  columns={contentColumns} 
+                  columns={createContentColumns(refetch, refetchStats)} 
                   data={filteredContent} 
                   searchKey="title"
                   searchPlaceholder="Search content..."

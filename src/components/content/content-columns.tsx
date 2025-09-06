@@ -3,6 +3,7 @@
 import { ColumnDef, Row } from '@tanstack/react-table'
 import { ArrowUpDown, Calendar, Eye, MoreHorizontal, Edit, Trash2, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Checkbox } from '@/src/components/ui/checkbox'
@@ -12,7 +13,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/src/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/src/components/ui/alert-dialog'
 import { formatDistanceToNow } from 'date-fns'
+import { useDeleteContent } from '@/src/hooks/useContent'
+import { toast } from 'sonner'
 
 export interface ContentItem {
   id: string
@@ -85,38 +98,88 @@ const getLayoutLabel = (layout?: ContentItem['layout'], type?: ContentItem['type
 }
 
 // Actions cell component to handle navigation
-function ActionsCell({ row }: { row: Row<ContentItem> }) {
+function ActionsCell({ 
+  row, 
+  onDeleteSuccess 
+}: { 
+  row: Row<ContentItem>
+  onDeleteSuccess?: () => void 
+}) {
   const router = useRouter()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const { mutate: deleteContent, loading: isDeleting } = useDeleteContent()
+  const contentItem = row.original
+
+  const handleDelete = async () => {
+    try {
+      await deleteContent(contentItem.id)
+      setShowDeleteDialog(false)
+      toast.success('Page deleted successfully')
+      // Refresh the content list
+      if (onDeleteSuccess) {
+        onDeleteSuccess()
+      }
+    } catch (error: unknown) {
+      console.error('Delete error:', error)
+      toast.error('Failed to delete content. Please try again.')
+    }
+  }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">Open menu</span>
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem>
-          <Eye className="mr-2 h-4 w-4" />
-          View
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => router.push(`/dashboard/content/editor?id=${row.original.id}`)}
-        >
-          <Edit className="mr-2 h-4 w-4" />
-          Edit
-        </DropdownMenuItem>
-        <DropdownMenuItem className="text-red-600">
-          <Trash2 className="mr-2 h-4 w-4" />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            onClick={() => router.push(`/dashboard/content/editor?id=${row.original.id}`)}
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            className="text-red-600 focus:text-red-600"
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Content</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{contentItem.title}"? This action cannot be undone and will permanently remove this {contentItem.type} from your site.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 
-export const contentColumns: ColumnDef<ContentItem>[] = [
+// Function to create columns with refresh callbacks
+export const createContentColumns = (
+  refreshContent?: () => void,
+  refreshStats?: () => void
+): ColumnDef<ContentItem>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -277,8 +340,19 @@ export const contentColumns: ColumnDef<ContentItem>[] = [
   {
     id: "actions",
     header: "Actions",
-    cell: ActionsCell,
+    cell: ({ row }) => (
+      <ActionsCell 
+        row={row} 
+        onDeleteSuccess={() => {
+          refreshContent?.()
+          refreshStats?.()
+        }} 
+      />
+    ),
     enableSorting: false,
     enableHiding: false,
   },
 ]
+
+// Export the old static columns for backward compatibility
+export const contentColumns = createContentColumns()
