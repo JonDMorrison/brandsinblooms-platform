@@ -37,7 +37,7 @@ export function useProducts(filters?: ProductFilters) {
     {
       enabled: !!siteId,
       persistKey: cacheKey,
-      staleTime: 30 * 1000,
+      staleTime: 5 * 60 * 1000, // 5 minutes for better performance
       onError: (error) => {
         console.error('Failed to fetch products:', error.message);
       },
@@ -82,7 +82,7 @@ export function useProductsByCategory(category: string) {
     {
       enabled: !!siteId && !!category,
       persistKey: cacheKey,
-      staleTime: 30 * 1000,
+      staleTime: 5 * 60 * 1000, // 5 minutes
       onError: (error) => {
         console.error('Failed to fetch products by category:', error.message);
       },

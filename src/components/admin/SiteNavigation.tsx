@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { memo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
@@ -31,15 +31,16 @@ interface SiteNavigationProps {
   showBackButton?: boolean
 }
 
-export function SiteNavigation({ 
+const SiteNavigationComponent = ({ 
   siteId, 
   siteName, 
   siteSubdomain,
   showBackButton = true 
-}: SiteNavigationProps) {
+}: SiteNavigationProps) => {
   const pathname = usePathname()
 
-  const navigationItems = [
+  // Memoize navigation items to prevent recreation on every render
+  const navigationItems = React.useMemo(() => [
     {
       name: 'Site Settings',
       href: `/admin/sites/${siteId}/edit`,
@@ -82,9 +83,9 @@ export function SiteNavigation({
       icon: Eye,
       description: 'Impersonate and preview site'
     }
-  ]
+  ], [siteId])
 
-  const isActive = (href: string) => pathname === href
+  const isActive = React.useCallback((href: string) => pathname === href, [pathname])
 
   return (
     <Card>
@@ -144,3 +145,6 @@ export function SiteNavigation({
     </Card>
   )
 }
+
+// Export memoized component for performance
+export const SiteNavigation = memo(SiteNavigationComponent)

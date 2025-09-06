@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import { preloadOnHover, preloadCriticalChunks, addResourceHints } from '@/src/lib/preloader'
 import { 
   Home, 
   FileText, 
@@ -31,6 +33,25 @@ const navigationItems = [
 export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+
+  // Initialize performance optimizations
+  useEffect(() => {
+    preloadCriticalChunks()
+    addResourceHints()
+  }, [])
+
+  // Preload handlers for navigation items
+  const handleHover = (href: string) => {
+    if (href.includes('/products')) {
+      preloadOnHover.products()
+    } else if (href.includes('/design')) {
+      preloadOnHover.design()
+    } else if (href.includes('/orders')) {
+      preloadOnHover.orders()
+    } else if (href.includes('/dashboard')) {
+      preloadOnHover.dashboard()
+    }
+  }
 
   return (
     <div className="h-full flex flex-col bg-white border-r shadow-lg">
@@ -72,6 +93,7 @@ export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
               key={item.href}
               href={item.href}
               onClick={onClose}
+              onMouseEnter={() => handleHover(item.href)}
               className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
                 isActive
                   ? 'bg-gradient-primary text-white shadow-sm'

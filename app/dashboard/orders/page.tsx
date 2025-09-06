@@ -1,34 +1,14 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, memo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Skeleton } from '@/src/components/ui/skeleton'
-import { RefreshCw, Download, Plus } from 'lucide-react'
+import { RefreshCw, Download } from 'lucide-react'
 import { useOrders } from '@/src/hooks/useOrders'
 import { OrderFilters } from '@/src/components/orders/OrderFilters'
-import { DataTable } from '@/src/components/ui/data-table'
-import { orderColumns } from '@/src/components/orders/order-columns'
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/src/components/ui/table'
+import { OptimizedTable } from '@/src/components/ui/optimized-table'
+import { optimizedOrderColumns } from '@/src/components/orders/optimized-order-columns'
 import { OrderStats } from '@/src/components/OrderStats'
 import { BulkActionsToolbar } from '@/src/components/orders/BulkActionsToolbar'
 import { OrderEmptyState } from '@/src/components/orders/OrderEmptyState'
@@ -44,17 +24,13 @@ interface OrderFilters {
   dateTo?: string
 }
 
-export default function OrdersPage() {
+// Memoized orders page component for better performance
+const OrdersPageComponent = () => {
   const [filters, setFilters] = useState<OrderFilters>({})
   const [isRefreshing, setIsRefreshing] = useState(false)
-  
-  // Table state for row selection
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = useState({})
+  const [selectedOrders, setSelectedOrders] = useState<OrderWithCustomer[]>([])
 
-  // Fetch orders with real data
+  // Fetch orders with real data - memoized hook call
   const {
     data,
     loading: isLoading,
@@ -63,44 +39,19 @@ export default function OrdersPage() {
     loadingMore: isFetchingNextPage,
     loadMore: fetchNextPage,
     refresh: refetch,
-  } = useOrders({
+  } = useOrders(useMemo(() => ({
     search: filters.search,
     status: filters.status as 'processing' | 'shipped' | 'delivered' | 'cancelled' | undefined,
     paymentStatus: filters.paymentStatus,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
     enabled: true,
-  })
+  }), [filters]))
 
-  // Use data directly (already flattened)
-  const orders = data || []
+  // Use data directly (already flattened) - memoized
+  const orders = useMemo(() => data || [], [data])
   const totalCount = orders.length
   const isError = !!error
-
-  // Create table instance
-  const table = useReactTable({
-    data: orders,
-    columns: orderColumns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  })
-
-  // Get selected orders
-  const selectedOrders = useMemo(() => {
-    return table.getFilteredSelectedRowModel().rows.map(row => row.original)
-  }, [table, rowSelection])
 
   const handleFiltersChange = useCallback((newFilters: OrderFilters) => {
     setFilters(newFilters)
@@ -249,97 +200,49 @@ export default function OrdersPage() {
           <CardTitle>Orders ({totalCount})</CardTitle>
         </CardHeader>
         <CardContent>
-          {orders.length === 0 ? (
-            <OrderEmptyState 
-              hasFilters={Object.keys(filters).some(key => filters[key as keyof OrderFilters])} 
-              onClearFilters={() => setFilters({})}
-            />
-          ) : (
-            <>
-              {/* Custom Data Table with Row Selection */}
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => {
-                          return (
-                            <TableHead key={header.id}>
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                  )}
-                            </TableHead>
-                          )
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableHeader>
-                  <TableBody>
-                    {table.getRowModel().rows?.length ? (
-                      table.getRowModel().rows.map((row) => (
-                        <TableRow
-                          key={row.id}
-                          data-state={row.getIsSelected() && "selected"}
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={orderColumns.length}
-                          className="h-24 text-center"
-                        >
-                          No results.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Selection Info */}
-              {selectedOrders.length > 0 && (
-                <div className="flex items-center justify-between py-4">
-                  <div className="text-sm text-gray-500">
-                    {selectedOrders.length} of {orders.length} row(s) selected.
-                  </div>
-                </div>
-              )}
-              
-              {/* Load More Button */}
-              {hasNextPage && (
-                <div className="flex justify-center mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={handleLoadMore}
-                    disabled={isFetchingNextPage}
-                  >
-                    {isFetchingNextPage ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      'Load More Orders'
-                    )}
-                  </Button>
-                </div>
-              )}
-            </>
+          <OptimizedTable
+            data={orders}
+            columns={optimizedOrderColumns}
+            loading={isLoading && !data}
+            searchable={true}
+            sortable={true}
+            selectable={true}
+            pagination={true}
+            pageSize={20}
+            onRowSelect={setSelectedOrders}
+            emptyState={
+              <OrderEmptyState 
+                hasFilters={Object.keys(filters).some(key => filters[key as keyof OrderFilters])} 
+                onClearFilters={() => setFilters({})}
+              />
+            }
+            loadingRows={8}
+          />
+          
+          {/* Load More Button */}
+          {hasNextPage && (
+            <div className="flex justify-center mt-6">
+              <Button
+                variant="outline"
+                onClick={handleLoadMore}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  'Load More Orders'
+                )}
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
     </div>
   )
 }
+
+// Export memoized component for performance
+export default memo(OrdersPageComponent)

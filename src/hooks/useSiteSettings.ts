@@ -93,11 +93,11 @@ export function useUpdateSiteSettings() {
     {
       showSuccessToast: 'Site settings saved successfully',
       onSuccess: () => {
-        // Clear localStorage cache for site-related data
+        // Only clear specific cache keys instead of all site-related data
         if (typeof window !== 'undefined' && siteId) {
-          Object.keys(localStorage)
-            .filter(key => key.includes(`site-${siteId}`) || key.includes('user-sites'))
-            .forEach(key => localStorage.removeItem(key));
+          // Only clear the specific settings cache, not all site data
+          localStorage.removeItem(`site-settings-${siteId}`)
+          localStorage.removeItem('user-sites') // Only clear user sites list
         }
       }
     }

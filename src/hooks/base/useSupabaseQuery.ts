@@ -46,9 +46,9 @@ export function useSupabaseQuery<T>(
     enabled = true,
     initialData = null,
     persistKey,
-    staleTime = 5 * 60 * 1000, // 5 minutes default
+    staleTime = 10 * 60 * 1000, // Increased to 10 minutes for better performance
     refetchInterval = false,
-    refetchOnMount = true,
+    refetchOnMount = false, // Only refetch if no data or explicitly refreshed
     refetchOnReconnect = true,
     onSuccess,
     onError

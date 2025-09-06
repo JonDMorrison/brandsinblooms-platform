@@ -20,6 +20,22 @@ export function formatCurrency(
 }
 
 /**
+ * Format a date string
+ */
+export function formatDate(
+  date: string | Date,
+  options?: Intl.DateTimeFormatOptions
+): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return new Intl.DateTimeFormat('en-US', options || {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    ...options
+  }).format(dateObj);
+}
+
+/**
  * Format file size in human-readable format
  */
 export function formatFileSize(bytes: number): string {

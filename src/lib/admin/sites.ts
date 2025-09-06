@@ -381,8 +381,12 @@ export async function updateSiteStatus(
   }
 }
 
+// In-memory cache for site data to reduce database calls
+const siteCache = new Map<string, { data: Database['public']['Tables']['sites']['Row'], timestamp: number }>()
+const SITE_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 /**
- * Get site details by ID (basic site information)
+ * Get site details by ID (basic site information) with caching
  */
 export async function getSiteById(siteId: string): Promise<Database['public']['Tables']['sites']['Row'] | null> {
   try {
@@ -391,6 +395,12 @@ export async function getSiteById(siteId: string): Promise<Database['public']['T
         'Site ID is required',
         'INVALID_SITE_ID'
       )
+    }
+
+    // Check cache first
+    const cached = siteCache.get(siteId)
+    if (cached && (Date.now() - cached.timestamp) < SITE_CACHE_TTL) {
+      return cached.data
     }
 
     const { data, error } = await supabase
@@ -411,6 +421,11 @@ export async function getSiteById(siteId: string): Promise<Database['public']['T
         'FETCH_SITE_ERROR',
         error
       )
+    }
+
+    // Cache the result
+    if (data) {
+      siteCache.set(siteId, { data, timestamp: Date.now() })
     }
 
     return data

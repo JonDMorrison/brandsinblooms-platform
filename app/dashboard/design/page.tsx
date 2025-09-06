@@ -21,42 +21,69 @@ import {
   DialogTrigger,
 } from '@/src/components/ui/dialog'
 
-// Dynamic imports for design components with loading states
+// Dynamic imports for design components with loading states and lazy loading
 const ColorCustomization = dynamic(
   () => import('@/src/components/design/ColorCustomization').then(mod => mod.ColorCustomization),
-  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+  { 
+    loading: () => <Skeleton className="h-[400px] w-full" />,
+    ssr: false // Disable SSR for better client-side performance
+  }
 )
 const TypographyCustomization = dynamic(
   () => import('@/src/components/design/TypographyCustomization'),
-  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+  { 
+    loading: () => <Skeleton className="h-[400px] w-full" />,
+    ssr: false
+  }
 )
 const LayoutCustomization = dynamic(
   () => import('@/src/components/design/LayoutCustomization'),
-  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+  { 
+    loading: () => <Skeleton className="h-[400px] w-full" />,
+    ssr: false
+  }
 )
 const LogoCustomization = dynamic(
   () => import('@/src/components/design/LogoCustomization'),
-  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+  { 
+    loading: () => <Skeleton className="h-[400px] w-full" />,
+    ssr: false
+  }
 )
 const HeaderCustomization = dynamic(
   () => import('@/src/components/design/HeaderCustomization').then(mod => mod.HeaderCustomization),
-  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+  { 
+    loading: () => <Skeleton className="h-[400px] w-full" />,
+    ssr: false
+  }
 )
 const FooterCustomization = dynamic(
   () => import('@/src/components/design/FooterCustomization').then(mod => mod.FooterCustomization),
-  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+  { 
+    loading: () => <Skeleton className="h-[400px] w-full" />,
+    ssr: false
+  }
 )
 const DesignPreview = dynamic(
   () => import('@/src/components/design/DesignPreview').then(mod => mod.DesignPreview),
-  { loading: () => <Skeleton className="h-[600px] w-full" /> }
+  { 
+    loading: () => <Skeleton className="h-[600px] w-full" />,
+    ssr: false
+  }
 )
 const AIDesignAssistant = dynamic(
   () => import('@/src/components/design/AIDesignAssistant').then(mod => mod.AIDesignAssistant),
-  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+  { 
+    loading: () => <Skeleton className="h-[400px] w-full" />,
+    ssr: false
+  }
 )
 const DesignHistory = dynamic(
   () => import('@/src/components/design/DesignHistory').then(mod => mod.DesignHistory),
-  { loading: () => <Skeleton className="h-[400px] w-full" /> }
+  { 
+    loading: () => <Skeleton className="h-[400px] w-full" />,
+    ssr: false
+  }
 )
 
 function DesignPageSkeleton() {

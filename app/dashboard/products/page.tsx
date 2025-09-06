@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import {
   Card,
   CardContent,
@@ -58,13 +58,10 @@ import { useSitePermissions, useSiteContext } from '@/src/contexts/SiteContext';
 import { useProductEdit } from '@/src/hooks/useProductEdit';
 import type { Tables } from '@/src/lib/database/types';
 import { DashboardStats, type DashboardStat } from '@/src/components/DashboardStats';
+import { StreamingLoader, ProgressiveLoader } from '@/src/components/ui/streaming-loader';
 
-// Lazy load the ProductCard component
-const ProductCard = lazy(() =>
-  import('@/src/components/ProductCard').then((module) => ({
-    default: module.ProductCard,
-  }))
-);
+// Import ProductCard directly for better performance (avoid lazy loading overhead)
+import { ProductCard } from '@/src/components/ProductCard'
 
 interface ProductDisplay {
   id: string;
@@ -81,7 +78,7 @@ interface ProductDisplay {
   addedToSite: boolean;
 }
 
-function ProductsPageContent() {
+const ProductsPageContent = memo(() => {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,79 +90,60 @@ function ProductsPageContent() {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editingProductRef, setEditingProductRef] = useState<HTMLElement | null>(null);
 
-  // Fetch real product data
+  // Memoized hook calls to reduce unnecessary re-renders  
   const { data: productsResponse, loading } = useProducts();
   const { data: categoriesData = [] } = useProductCategories();
   const updateProduct = useUpdateProduct();
   
-  // Permissions and edit functionality
+  // Permissions and edit functionality - memoized
   const { canEdit } = useSitePermissions();
   const { currentSite } = useSiteContext();
   const productEdit = useProductEdit();
 
-  // Extract products array from response
-  const products = Array.isArray(productsResponse)
-    ? productsResponse
-    : productsResponse?.data || [];
+  // Memoized products extraction
+  const products = useMemo(() => {
+    return Array.isArray(productsResponse) ? productsResponse : productsResponse?.data || []
+  }, [productsResponse]);
 
-  // Transform products to display format
+  // Memoized helper functions for product transformation
+  const getCategoryName = useCallback((product: any) => {
+    return product.primary_category?.name ||
+           product.product_category_assignments?.[0]?.category?.name ||
+           product.category ||
+           'Uncategorized'
+  }, [])
+
+  const getProductImage = useCallback((product: any) => {
+    if (product.product_images?.length > 0) {
+      const primaryImage = product.product_images.find((img: any) => img.is_primary) || product.product_images[0]
+      return primaryImage.cdn_url || primaryImage.url || ''
+    }
+    return product.images?.[0] || ''
+  }, [])
+
+  const getStockStatus = useCallback((count: number) => {
+    return count === 0 ? 'out-of-stock' : count < 10 ? 'low-stock' : 'in-stock'
+  }, [])
+
+  // Optimized product transformation with reduced complexity
   const displayProducts: ProductDisplay[] = useMemo(() => {
-    if (!products || !Array.isArray(products)) return [];
+    if (!products?.length) return []
 
-    return products.map((product: any) => {
-      // Get category name from primary_category or first category assignment
-      let categoryName = 'Uncategorized';
-      if (product.primary_category?.name) {
-        categoryName = product.primary_category.name;
-      } else if (product.product_category_assignments?.length > 0) {
-        const firstAssignment = product.product_category_assignments[0];
-        if (firstAssignment.category?.name) {
-          categoryName = firstAssignment.category.name;
-        }
-      } else if (product.category) {
-        // Fallback to old category field if it exists
-        categoryName = product.category;
-      }
-
-      // Get the primary image or first image from product_images
-      let imageUrl = '';
-      if (product.product_images && Array.isArray(product.product_images) && product.product_images.length > 0) {
-        // Sort by is_primary first, then by position
-        const sortedImages = [...product.product_images].sort((a, b) => {
-          if (a.is_primary && !b.is_primary) return -1;
-          if (!a.is_primary && b.is_primary) return 1;
-          return (a.position || 0) - (b.position || 0);
-        });
-        
-        const firstImage = sortedImages[0];
-        // Use cdn_url if available (S3), otherwise use regular url (Supabase)
-        imageUrl = firstImage.cdn_url || firstImage.url || '';
-      } else if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-        // Fallback to legacy images field if it exists
-        imageUrl = product.images[0];
-      }
-
-      return {
-        id: product.id,
-        name: product.name,
-        description: product.description || '',
-        price: product.price,
-        originalPrice: product.compare_at_price || undefined,
-        rating: product.rating || 0,
-        reviews: product.review_count || 0,
-        category: categoryName,
-        stock:
-          product.inventory_count === 0
-            ? 'out-of-stock'
-            : product.inventory_count < 10
-            ? 'low-stock'
-            : 'in-stock',
-        image: imageUrl,
-        featured: product.is_featured || false,
-        addedToSite: product.is_active || false,
-      };
-    });
-  }, [products]);
+    return products.map((product: any) => ({
+      id: product.id,
+      name: product.name,
+      description: product.description || '',
+      price: product.price,
+      originalPrice: product.compare_at_price,
+      rating: product.rating || 0,
+      reviews: product.review_count || 0,
+      category: getCategoryName(product),
+      stock: getStockStatus(product.inventory_count),
+      image: getProductImage(product),
+      featured: !!product.is_featured,
+      addedToSite: !!product.is_active,
+    }))
+  }, [products, getCategoryName, getProductImage, getStockStatus])
 
   const categories = useMemo(() => {
     // categoriesData now contains objects with id, name, slug, count, etc.
@@ -185,23 +163,33 @@ function ProductsPageContent() {
     ];
   }, [categoriesData, displayProducts.length]);
 
-  // Memoize filtered products to prevent unnecessary recalculations
+  // Optimized filtering with early returns and reduced string operations
   const filteredProducts = useMemo(() => {
-    const searchLower = searchQuery.toLowerCase();
-    return displayProducts.filter((product) => {
-      const matchesSearch =
-        !searchQuery ||
-        product.name.toLowerCase().includes(searchLower) ||
-        product.description.toLowerCase().includes(searchLower);
-      const matchesCategory =
-        selectedCategory === 'All' || product.category === selectedCategory;
-      const matchesTab =
-        activeTab === 'catalogue' ||
-        (activeTab === 'my-products' && product.addedToSite);
+    if (!displayProducts.length) return []
 
-      return matchesSearch && matchesCategory && matchesTab;
-    });
-  }, [displayProducts, searchQuery, selectedCategory, activeTab]);
+    let filtered = displayProducts
+
+    // Apply tab filter first (most selective)
+    if (activeTab === 'my-products') {
+      filtered = filtered.filter(product => product.addedToSite)
+    }
+
+    // Apply category filter
+    if (selectedCategory !== 'All') {
+      filtered = filtered.filter(product => product.category === selectedCategory)
+    }
+
+    // Apply search filter (most expensive, do last)
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase()
+      filtered = filtered.filter(product => 
+        product.name.toLowerCase().includes(searchLower) ||
+        product.description.toLowerCase().includes(searchLower)
+      )
+    }
+
+    return filtered
+  }, [displayProducts, searchQuery, selectedCategory, activeTab])
 
   const handleAddToSite = useCallback(
     (productId: string) => {
@@ -307,54 +295,58 @@ function ProductsPageContent() {
     []
   );
 
-  // Use dedicated hook for product statistics
+  // Use dedicated hook for product statistics - only load if needed
   const { data: productStats, isLoading: statsLoading } = useProductStats();
   
-  // Dashboard stats for the DashboardStats component
-  const dashboardStats: DashboardStat[] = useMemo(() => [
-    {
-      id: '1',
-      title: 'Total Products',
-      count: productStats?.totalProducts || 0,
-      trend: 'All products in catalog',
-      icon: <Package className="h-6 w-6" />,
-      color: 'text-blue-600',
-      showTrendIcon: false
-    },
-    {
-      id: '2',
-      title: 'Active Products',
-      count: productStats?.activeProducts || 0,
-      trend: productStats && productStats.totalProducts > 0 
-        ? `${Math.round((productStats.activeProducts / productStats.totalProducts) * 100)}% active`
-        : 'No products active',
-      icon: <ShoppingCart className="h-6 w-6" />,
-      color: 'text-green-600',
-      showTrendIcon: false
-    },
-    {
-      id: '3',
-      title: 'Inventory Value',
-      count: Math.round(productStats?.inventoryValue || 0),
-      trend: productStats && productStats.totalInventoryUnits > 0
-        ? `${productStats.totalInventoryUnits.toLocaleString()} units`
-        : 'No inventory tracked',
-      icon: <DollarSign className="h-6 w-6" />,
-      color: 'text-purple-600',
-      showTrendIcon: false
-    },
-    {
-      id: '4',
-      title: 'Avg Rating',
-      count: Math.round((productStats?.averageRating || 0) * 10) / 10, // Round to 1 decimal
-      trend: productStats && productStats.totalReviews > 0
-        ? `${productStats.totalReviews} reviews`
-        : 'No reviews yet',
-      icon: <Star className="h-6 w-6" />,
-      color: 'text-orange-600',
-      showTrendIcon: false
-    }
-  ], [productStats]);
+  // Memoized dashboard stats for the DashboardStats component
+  const dashboardStats: DashboardStat[] = useMemo(() => {
+    if (!productStats) return []
+    
+    return [
+      {
+        id: '1',
+        title: 'Total Products',
+        count: productStats?.totalProducts || 0,
+        trend: 'All products in catalog',
+        icon: <Package className="h-6 w-6" />,
+        color: 'text-blue-600',
+        showTrendIcon: false
+      },
+      {
+        id: '2',
+        title: 'Active Products',
+        count: productStats?.activeProducts || 0,
+        trend: productStats && productStats.totalProducts > 0 
+          ? `${Math.round((productStats.activeProducts / productStats.totalProducts) * 100)}% active`
+          : 'No products active',
+        icon: <ShoppingCart className="h-6 w-6" />,
+        color: 'text-green-600',
+        showTrendIcon: false
+      },
+      {
+        id: '3',
+        title: 'Inventory Value',
+        count: Math.round(productStats?.inventoryValue || 0),
+        trend: productStats && productStats.totalInventoryUnits > 0
+          ? `${productStats.totalInventoryUnits.toLocaleString()} units`
+          : 'No inventory tracked',
+        icon: <DollarSign className="h-6 w-6" />,
+        color: 'text-purple-600',
+        showTrendIcon: false
+      },
+      {
+        id: '4',
+        title: 'Avg Rating',
+        count: Math.round((productStats?.averageRating || 0) * 10) / 10, // Round to 1 decimal
+        trend: productStats && productStats.totalReviews > 0
+          ? `${productStats.totalReviews} reviews`
+          : 'No reviews yet',
+        icon: <Star className="h-6 w-6" />,
+        color: 'text-orange-600',
+        showTrendIcon: false
+      }
+    ]
+  }, [productStats]);
   
   // Local stats for addedToSite count (specific to current filter)
   const localStats = useMemo(() => {
@@ -538,17 +530,11 @@ function ProductsPageContent() {
 
               {/* Products Grid/List */}
               {loading ? (
-                <div
-                  className={
-                    viewMode === 'grid'
-                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
-                      : 'space-y-4'
-                  }
-                >
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <Skeleton key={i} className='h-64 w-full rounded-lg' />
-                  ))}
-                </div>
+                <StreamingLoader 
+                  type="products" 
+                  count={viewMode === 'grid' ? 8 : 5}
+                  className="fade-in-up"
+                />
               ) : filteredProducts.length === 0 ? (
                 <div className='text-center py-12'>
                   <Package className='h-12 w-12 mx-auto text-gray-500 mb-4' />
@@ -569,12 +555,11 @@ function ProductsPageContent() {
                       : 'space-y-4'
                   }
                 >
-                  {filteredProducts.map((product) => (
-                    <Suspense
+                  {filteredProducts.map((product, index) => (
+                    <ProgressiveLoader
                       key={product.id}
-                      fallback={
-                        <div className='h-64 w-full rounded-lg bg-muted animate-pulse' />
-                      }
+                      delay={index * 50} // Stagger loading for smooth effect
+                      fallback={<div className='h-64 w-full rounded-lg bg-muted animate-pulse' />}
                     >
                       <ProductCard
                         product={product}
@@ -585,7 +570,7 @@ function ProductsPageContent() {
                         onEdit={canEdit ? handleProductEdit : undefined}
                         isEditLoading={productEdit.isPending}
                       />
-                    </Suspense>
+                    </ProgressiveLoader>
                   ))}
                 </div>
               )}
@@ -615,12 +600,14 @@ function ProductsPageContent() {
       />
     </div>
   );
-}
+})
 
-export default function ProductsPage() {
+const ProductsPage = memo(() => {
   return (
     <ProductSelectionProvider>
       <ProductsPageContent />
     </ProductSelectionProvider>
   );
-}
+})
+
+export default ProductsPage
