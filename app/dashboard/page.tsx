@@ -274,11 +274,11 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Activity Feed and Performance Metrics */}
-      <div className="grid gap-6 lg:grid-cols-2 fade-in-up" style={{ animationDelay: '0.9s' }}>
+      {/* Activity Feed and Performance Metrics - Hidden for now */}
+      {/* <div className="grid gap-6 lg:grid-cols-2 fade-in-up" style={{ animationDelay: '0.9s' }}>
         <ActivityFeed />
         <PerformanceMetrics />
-      </div>
+      </div> */}
     </div>
   )
 }
