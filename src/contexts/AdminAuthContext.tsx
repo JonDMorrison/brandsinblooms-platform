@@ -215,21 +215,24 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return
-
-        setSession(session)
-        setUser(session?.user ?? null)
         
-        if (session?.user) {
-          // User signed in - check if they're an admin
-          await fetchAdminProfile(session.user.id)
-        } else {
-          // User signed out - clear admin profile
-          setAdminProfile(null)
-        }
-        
-        setIsLoading(false)
+        // Wrap everything in setTimeout to prevent deadlock
+        setTimeout(async () => {
+          setSession(session)
+          setUser(session?.user ?? null)
+          
+          if (session?.user) {
+            // User signed in - check if they're an admin
+            await fetchAdminProfile(session.user.id)
+          } else {
+            // User signed out - clear admin profile
+            setAdminProfile(null)
+          }
+          
+          setIsLoading(false)
+        }, 0)
       }
     )
 

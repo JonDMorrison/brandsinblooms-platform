@@ -346,9 +346,13 @@ export function SiteProvider({
 
     // Priority: initialSiteId > initialHostname > current URL
     if (initialSiteId) {
-      loadSiteById(initialSiteId)
+      setTimeout(() => {
+        loadSiteById(initialSiteId)
+      }, 0)
     } else if (initialHostname) {
-      resolveSiteFromUrl(`https://${initialHostname}`)
+      setTimeout(() => {
+        resolveSiteFromUrl(`https://${initialHostname}`)
+      }, 0)
     } else if (typeof window !== 'undefined') {
       // Check if we're on the main app domain
       const hostname = window.location.hostname
@@ -361,7 +365,9 @@ export function SiteProvider({
       
       if (!isMainDomain) {
         // Only try to resolve from URL if we're on a site-specific domain
-        resolveSiteFromUrl(window.location.href)
+        setTimeout(() => {
+          resolveSiteFromUrl(window.location.href)
+        }, 0)
       } else {
         // On main domain, let the URL/localStorage effect handle site selection
         setLoading(false)
@@ -374,7 +380,9 @@ export function SiteProvider({
   // Load user sites when user changes
   useEffect(() => {
     if (!authLoading && user?.id) {
-      refreshUserSites()
+      setTimeout(() => {
+        refreshUserSites()
+      }, 0)
     } else if (!user?.id) {
       setUserSites([])
       setUserAccess(null)
@@ -416,7 +424,9 @@ export function SiteProvider({
     if (storedSiteId) {
       const storedSite = userSites.find(s => s.site.id === storedSiteId)
       if (storedSite) {
-        loadSiteById(storedSiteId)
+        setTimeout(() => {
+          loadSiteById(storedSiteId)
+        }, 0)
         return
       }
     }
@@ -424,7 +434,9 @@ export function SiteProvider({
     // 2. Auto-select first available site
     if (userSites.length > 0) {
       const firstSiteId = userSites[0].site.id
-      loadSiteById(firstSiteId)
+      setTimeout(() => {
+        loadSiteById(firstSiteId)
+      }, 0)
     }
   }, [userSites, userSitesLoading, currentSite, loadSiteById])
 
@@ -432,13 +444,15 @@ export function SiteProvider({
   useEffect(() => {
     if (currentSite?.id && user?.id && !userAccess) {
       // Re-check access if we don't have it yet
-      checkUserSiteAccess(user.id, currentSite.id).then(result => {
-        if (result.data) {
-          setUserAccess(result.data)
-          setCanEdit(result.data.canEdit)
-          setCanManage(result.data.canManage)
-        }
-      })
+      setTimeout(() => {
+        checkUserSiteAccess(user.id, currentSite.id).then(result => {
+          if (result.data) {
+            setUserAccess(result.data)
+            setCanEdit(result.data.canEdit)
+            setCanManage(result.data.canManage)
+          }
+        })
+      }, 0)
     }
   }, [currentSite?.id, user?.id, userAccess])
 
