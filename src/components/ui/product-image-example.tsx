@@ -27,7 +27,7 @@ export const ProductImageExample: React.FC = () => {
     <div className="space-y-8 p-6">
       <div>
         <h2 className="text-2xl font-bold mb-4">ProductImage Component Examples</h2>
-        <p className="text-muted-foreground mb-6">
+        <p className="text-gray-500 mb-6">
           These examples demonstrate the ProductImage component with different configurations,
           error handling, and placeholder types.
         </p>

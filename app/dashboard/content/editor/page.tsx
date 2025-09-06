@@ -277,7 +277,7 @@ function PageEditorContent() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             {isLoading ? 'Loading content...' : 'Preparing editor...'}
           </p>
         </div>
@@ -354,15 +354,15 @@ function PageEditorContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-white">
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+      <div className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-10">
         <div className="container flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
             <Button 
               variant="ghost" 
               size="sm"
-              className="cursor-pointer transition-all hover:bg-gray-100"
+              className="cursor-pointer transition-all hover:bg-gradient-primary-50"
               onClick={() => router.push('/dashboard/content')}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -382,7 +382,7 @@ function PageEditorContent() {
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   {layoutInfo[validLayout].name}
                 </p>
               </div>
@@ -399,7 +399,7 @@ function PageEditorContent() {
                     key={size}
                     variant={activeViewport === size ? 'secondary' : 'ghost'}
                     size="sm"
-                    className="h-8 px-3 cursor-pointer transition-all hover:bg-gray-100"
+                    className="h-8 px-3 cursor-pointer transition-all hover:bg-gradient-primary-50"
                     onClick={() => setActiveViewport(size as ViewportSize)}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -413,7 +413,7 @@ function PageEditorContent() {
               <Button
                 variant={editMode === 'inline' ? 'secondary' : 'ghost'}
                 size="sm"
-                className="h-8 px-3 cursor-pointer transition-all hover:bg-gray-100"
+                className="h-8 px-3 cursor-pointer transition-all hover:bg-gradient-primary-50"
                 onClick={() => setEditMode('inline')}
               >
                 <Edit2 className="h-3.5 w-3.5 mr-1.5" />
@@ -422,7 +422,7 @@ function PageEditorContent() {
               <Button
                 variant={editMode === 'form' ? 'secondary' : 'ghost'}
                 size="sm"
-                className="h-8 px-3 cursor-pointer transition-all hover:bg-gray-100"
+                className="h-8 px-3 cursor-pointer transition-all hover:bg-gradient-primary-50"
                 onClick={() => setEditMode('form')}
               >
                 <Settings className="h-3.5 w-3.5 mr-1.5" />
@@ -434,7 +434,7 @@ function PageEditorContent() {
             <Button 
               variant="outline" 
               size="sm"
-              className="cursor-pointer transition-all hover:bg-gray-100"
+              className="cursor-pointer transition-all hover:bg-gradient-primary-50"
               onClick={handlePreview}
             >
               <Eye className="h-3.5 w-3.5 mr-1.5" />
@@ -500,7 +500,7 @@ function PageEditorContent() {
                                 </div>
                                 <div className="flex-1">
                                   <p className="text-sm font-medium">{info.name}</p>
-                                  <p className="text-xs text-muted-foreground">
+                                  <p className="text-xs text-gray-500">
                                     {isActive ? 'Current layout' : 'Click to switch'}
                                   </p>
                                 </div>
@@ -609,17 +609,17 @@ function PageEditorContent() {
 
       {/* Status Bar */}
       <div className="border-t bg-muted/30 px-6 py-2">
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center gap-3">
             <span className="font-medium">{layoutInfo[validLayout].name}</span>
-            <span className="text-muted-foreground/50">•</span>
+            <span className="text-gray-500/50">•</span>
             <span>{viewportSizes[activeViewport].label} View</span>
           </div>
           <div className="flex items-center gap-3">
             <span>Last saved: Never</span>
             {hasUnsavedChanges && (
               <>
-                <span className="text-muted-foreground/50">•</span>
+                <span className="text-gray-500/50">•</span>
                 <span className="text-orange-600">Unsaved changes</span>
               </>
             )}

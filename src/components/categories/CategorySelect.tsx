@@ -265,9 +265,9 @@ export function CategorySelect<
                 style={{ color: category.color || undefined }} 
               />
             ) : category.hasChildren ? (
-              <Folder className="h-3 w-3 text-muted-foreground" />
+              <Folder className="h-3 w-3 text-gray-500" />
             ) : (
-              <Package className="h-3 w-3 text-muted-foreground" />
+              <Package className="h-3 w-3 text-gray-500" />
             )}
           </div>
 
@@ -276,19 +276,19 @@ export function CategorySelect<
             <div className="flex items-center gap-2">
               <span className={cn(
                 'text-sm truncate',
-                !category.is_active && 'text-muted-foreground line-through'
+                !category.is_active && 'text-gray-500 line-through'
               )}>
                 {category.name}
               </span>
               
               {!category.is_active && (
-                <EyeOff className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                <EyeOff className="h-3 w-3 text-gray-500 flex-shrink-0" />
               )}
             </div>
             
             {/* Breadcrumb */}
             {showBreadcrumbs && category.level > 0 && (
-              <div className="text-xs text-muted-foreground truncate">
+              <div className="text-xs text-gray-500 truncate">
                 {category.breadcrumb.slice(0, -1).join(' › ')}
               </div>
             )}
@@ -312,7 +312,7 @@ export function CategorySelect<
     if (selectedCategories.length === 0) {
       return (
         <div className="flex items-center justify-between w-full">
-          <span className="text-muted-foreground">{placeholder}</span>
+          <span className="text-gray-500">{placeholder}</span>
           <ChevronDown className="h-4 w-4 opacity-50" />
         </div>
       );
@@ -334,7 +334,7 @@ export function CategorySelect<
                   <span
                     role="button"
                     tabIndex={0}
-                    className="ml-1 hover:bg-muted-foreground/20 rounded-sm p-0.5 cursor-pointer inline-flex"
+                    className="ml-1 hover:bg-gradient-primary-50-foreground/20 rounded-sm p-0.5 cursor-pointer inline-flex"
                     onClick={(e) => handleRemove(category.id, currentValue, e, onChange)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -371,13 +371,13 @@ export function CategorySelect<
           )}
           <span className="truncate">{category.name}</span>
           {showBreadcrumbs && category.level > 0 && (
-            <span className="text-xs text-muted-foreground truncate">
+            <span className="text-xs text-gray-500 truncate">
               ({category.breadcrumb.slice(0, -1).join(' › ')})
             </span>
           )}
         </div>
         <div className="flex items-center gap-1">
-          {!category.is_active && <EyeOff className="h-3 w-3 text-muted-foreground" />}
+          {!category.is_active && <EyeOff className="h-3 w-3 text-gray-500" />}
           <ChevronDown className="h-4 w-4 opacity-50" />
         </div>
       </div>
@@ -412,7 +412,7 @@ export function CategorySelect<
                     className={cn(
                       "w-full justify-between h-auto min-h-9",
                       fieldError && "border-destructive",
-                      !field.value && "text-muted-foreground"
+                      !field.value && "text-gray-500"
                     )}
                     disabled={disabled}
                   >
@@ -438,9 +438,9 @@ export function CategorySelect<
                       {filteredCategories.length === 0 ? (
                         <CommandEmpty>
                           <div className="flex flex-col items-center justify-center py-6 text-center bg-white">
-                            <Package className="h-8 w-8 text-muted-foreground mb-2" />
-                            <p className="text-sm font-medium text-foreground">No categories found</p>
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <Package className="h-8 w-8 text-gray-500 mb-2" />
+                            <p className="text-sm font-medium text-gray-900">No categories found</p>
+                            <p className="text-xs text-gray-500 mt-1">
                               {searchQuery ? 'Try adjusting your search terms' : 'Click below to create your first category'}
                             </p>
                             {!searchQuery && (
@@ -599,7 +599,7 @@ export function CategorySelect<
                   </p>
                 )}
                 {!fieldError && helperText && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-500">
                     {helperText}
                   </p>
                 )}
@@ -631,7 +631,7 @@ export function CategorySelect<
             className={cn(
               "w-full justify-between h-auto min-h-9",
               error && "border-destructive",
-              !value && "text-muted-foreground"
+              !value && "text-gray-500"
             )}
             disabled={disabled}
           >
@@ -657,9 +657,9 @@ export function CategorySelect<
               {filteredCategories.length === 0 ? (
                 <CommandEmpty>
                   <div className="flex flex-col items-center justify-center py-6 text-center bg-white">
-                    <Package className="h-8 w-8 text-muted-foreground mb-2" />
-                    <p className="text-sm font-medium text-foreground">No categories found</p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <Package className="h-8 w-8 text-gray-500 mb-2" />
+                    <p className="text-sm font-medium text-gray-900">No categories found</p>
+                    <p className="text-xs text-gray-500 mt-1">
                       {searchQuery ? 'Try adjusting your search terms' : 'Click below to create your first category'}
                     </p>
                     {!searchQuery && (
@@ -864,7 +864,7 @@ export function CategorySelect<
           </p>
         )}
         {!error && helperText && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             {helperText}
           </p>
         )}

@@ -67,7 +67,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
       case 'urgent':
         return 'bg-red-500'
       case 'high':
-        return 'bg-orange-500'
+        return 'bg-gray-100'
       case 'medium':
         return 'bg-blue-500'
       case 'normal':
@@ -124,7 +124,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold">Notifications</h3>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <p className="text-sm text-gray-500 mt-0.5">
                 You have {unreadCount} unread notifications
               </p>
             </div>
@@ -172,7 +172,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
             // Empty state
             <div className="p-8 text-center">
               <div className="text-4xl mb-2">🔔</div>
-              <p className="text-sm text-muted-foreground">No notifications yet</p>
+              <p className="text-sm text-gray-500">No notifications yet</p>
             </div>
           ) : (
             // Notifications
@@ -184,7 +184,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                   <div
                     key={notification.id}
                     className={cn(
-                      "px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer",
+                      "px-4 py-3 hover:bg-gradient-primary-50/50 transition-colors cursor-pointer",
                       isUnread && "bg-blue-50/20 "
                     )}
                     onClick={() => handleNotificationClick(notification.id, notification.is_read)}
@@ -197,7 +197,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                           {(notification.priority === 'urgent' || notification.priority === 'high') && (
                             <div className={cn(
                               "absolute -top-1 -right-1 w-2 h-2 rounded-full",
-                              notification.priority === 'urgent' ? 'bg-red-500' : 'bg-orange-500'
+                              notification.priority === 'urgent' ? 'bg-red-500' : 'bg-gray-100'
                             )} />
                           )}
                         </div>
@@ -213,15 +213,15 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                             )}>
                               {notification.title}
                             </p>
-                            <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+                            <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">
                               {notification.message}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-gray-500">
                                 {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                               </span>
-                              <span className="text-xs text-muted-foreground">•</span>
-                              <span className="text-xs text-muted-foreground capitalize">
+                              <span className="text-xs text-gray-500">•</span>
+                              <span className="text-xs text-gray-500 capitalize">
                                 {notification.category}
                               </span>
                             </div>

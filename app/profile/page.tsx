@@ -12,7 +12,7 @@ export default function ProfilePage() {
         <div className="mb-8">
           <Link
             href="/dashboard"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900"
           >
             ← Back to Dashboard
           </Link>
@@ -22,15 +22,15 @@ export default function ProfilePage() {
           <h2 className="text-xl font-semibold mb-4">User Information</h2>
           <div className="space-y-2">
             <div>
-              <span className="text-muted-foreground">Email:</span>{' '}
+              <span className="text-gray-500">Email:</span>{' '}
               <span className="font-medium">{user?.email}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">User ID:</span>{' '}
+              <span className="text-gray-500">User ID:</span>{' '}
               <span className="font-medium">{user?.id}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Created at:</span>{' '}
+              <span className="text-gray-500">Created at:</span>{' '}
               <span className="font-medium">
                 {user?.created_at ? new Date(user.created_at).toLocaleString() : 'N/A'}
               </span>

@@ -110,7 +110,7 @@ export function HeaderCustomization({ value, onChange }: HeaderCustomizationProp
       {/* Header Style */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Layout className="h-4 w-4 text-muted-foreground" />
+          <Layout className="h-4 w-4 text-gray-500" />
           <Label className="text-base font-semibold">Header Style</Label>
         </div>
         <RadioGroup
@@ -122,13 +122,13 @@ export function HeaderCustomization({ value, onChange }: HeaderCustomizationProp
               <label
                 key={style.value}
                 className={cn(
-                  "relative flex flex-col gap-2 rounded-lg border-2 p-4 cursor-pointer hover:bg-accent/50 transition-colors",
-                  value.layout?.headerStyle === style.value ? "border-primary bg-accent/20" : "border-border"
+                  "relative flex flex-col gap-2 rounded-lg border-2 p-4 cursor-pointer hover:bg-gradient-primary-50/50 transition-colors",
+                  value.layout?.headerStyle === style.value ? "border-primary bg-gray-100/20" : "border-border"
                 )}
               >
                 <RadioGroupItem value={style.value} className="sr-only" />
                 <span className="font-medium">{style.label}</span>
-                <span className="text-xs text-muted-foreground">{style.description}</span>
+                <span className="text-xs text-gray-500">{style.description}</span>
               </label>
             ))}
           </div>
@@ -150,8 +150,8 @@ export function HeaderCustomization({ value, onChange }: HeaderCustomizationProp
               <label
                 key={position.value}
                 className={cn(
-                  "flex items-center justify-center p-3 rounded-md border-2 cursor-pointer hover:bg-accent transition-colors",
-                  value.logo?.position === position.value ? "border-primary bg-accent" : "border-border"
+                  "flex items-center justify-center p-3 rounded-md border-2 cursor-pointer hover:bg-gradient-primary-20 transition-colors",
+                  value.logo?.position === position.value ? "border-primary bg-gray-100" : "border-border"
                 )}
               >
                 <RadioGroupItem value={position.value} className="sr-only" />
@@ -174,8 +174,8 @@ export function HeaderCustomization({ value, onChange }: HeaderCustomizationProp
               <label
                 key={style.value}
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-md border-2 cursor-pointer hover:bg-accent transition-colors",
-                  value.layout?.menuStyle === style.value ? "border-primary bg-accent" : "border-border"
+                  "flex items-center gap-3 p-3 rounded-md border-2 cursor-pointer hover:bg-gradient-primary-20 transition-colors",
+                  value.layout?.menuStyle === style.value ? "border-primary bg-gray-100" : "border-border"
                 )}
               >
                 <RadioGroupItem value={style.value} className="sr-only" />
@@ -241,9 +241,9 @@ export function HeaderCustomization({ value, onChange }: HeaderCustomizationProp
           {navigationItems.map((item, index) => (
             <div
               key={index}
-              className="flex items-center gap-2 p-2 rounded-md border bg-background"
+              className="flex items-center gap-2 p-2 rounded-md border bg-white"
             >
-              <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
+              <GripVertical className="h-4 w-4 text-gray-500 cursor-move" />
               {editingNavItem === index ? (
                 <>
                   <Input
@@ -269,7 +269,7 @@ export function HeaderCustomization({ value, onChange }: HeaderCustomizationProp
               ) : (
                 <>
                   <span className="flex-1 text-sm">{item.label}</span>
-                  <span className="text-sm text-muted-foreground">{item.href}</span>
+                  <span className="text-sm text-gray-500">{item.href}</span>
                   <Button
                     size="sm"
                     variant="ghost"

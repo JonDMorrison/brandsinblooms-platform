@@ -28,7 +28,7 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold">{title}</h1>
         {subtitle && (
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{subtitle}</p>
+          <p className="text-lg text-gray-500 max-w-2xl mx-auto">{subtitle}</p>
         )}
       </div>
 
@@ -86,28 +86,28 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
                 <MapPin className="h-5 w-5 text-blue-600" />
                 <div>
                   <p className="font-medium">Address</p>
-                  <p className="text-sm text-muted-foreground">123 Flower Street, Garden City, CA 90210</p>
+                  <p className="text-sm text-gray-500">123 Flower Street, Garden City, CA 90210</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-green-600" />
                 <div>
                   <p className="font-medium">Phone</p>
-                  <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
+                  <p className="text-sm text-gray-500">+1 (555) 123-4567</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-purple-600" />
                 <div>
                   <p className="font-medium">Email</p>
-                  <p className="text-sm text-muted-foreground">hello@blooms.cc</p>
+                  <p className="text-sm text-gray-500">hello@blooms.cc</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Clock className="h-5 w-5 text-orange-600" />
                 <div>
                   <p className="font-medium">Hours</p>
-                  <p className="text-sm text-muted-foreground">Mon-Sat: 9AM-6PM, Sun: 10AM-4PM</p>
+                  <p className="text-sm text-gray-500">Mon-Sat: 9AM-6PM, Sun: 10AM-4PM</p>
                 </div>
               </div>
             </div>
@@ -130,7 +130,7 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
                     </div>
                     <div className="flex-1">
                       <h3 className="font-medium">{service.title}</h3>
-                      <p className="text-sm text-muted-foreground">{service.desc}</p>
+                      <p className="text-sm text-gray-500">{service.desc}</p>
                     </div>
                   </div>
                 )
@@ -144,7 +144,7 @@ export function ContactServicesPreview({ title, subtitle }: ContactServicesPrevi
             <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100   rounded-lg flex items-center justify-center">
               <div className="text-center">
                 <MapPin className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                <span className="text-muted-foreground">Interactive Map</span>
+                <span className="text-gray-500">Interactive Map</span>
               </div>
             </div>
           </Card>

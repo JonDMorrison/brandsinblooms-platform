@@ -27,7 +27,7 @@ function AnalyticsCard({ title, value, change, changeType, icon }: AnalyticsCard
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
-        <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+        <div className="flex items-center space-x-1 text-xs text-gray-500">
           {changeType === 'positive' ? (
             <TrendingUp className="h-3 w-3 text-green-500" />
           ) : (
@@ -53,28 +53,28 @@ export function AnalyticsDashboard() {
           value="$45,231.89"
           change="+20.1%"
           changeType="positive"
-          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+          icon={<DollarSign className="h-4 w-4 text-gray-500" />}
         />
         <AnalyticsCard
           title="Total Orders"
           value="2,350"
           change="+15.2%"
           changeType="positive"
-          icon={<ShoppingCart className="h-4 w-4 text-muted-foreground" />}
+          icon={<ShoppingCart className="h-4 w-4 text-gray-500" />}
         />
         <AnalyticsCard
           title="Site Visitors"
           value="12,234"
           change="+8.1%"
           changeType="positive"
-          icon={<Users className="h-4 w-4 text-muted-foreground" />}
+          icon={<Users className="h-4 w-4 text-gray-500" />}
         />
         <AnalyticsCard
           title="Conversion Rate"
           value="3.2%"
           change="-2.4%"
           changeType="negative"
-          icon={<Activity className="h-4 w-4 text-muted-foreground" />}
+          icon={<Activity className="h-4 w-4 text-gray-500" />}
         />
       </div>
 
@@ -117,7 +117,7 @@ export function AnalyticsDashboard() {
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <span className="text-sm font-medium">{product.name}</span>
-                    <span className="text-xs text-muted-foreground">{product.sales} sales</span>
+                    <span className="text-xs text-gray-500">{product.sales} sales</span>
                   </div>
                   <span className="text-sm font-medium">{product.revenue}</span>
                 </div>
@@ -142,7 +142,7 @@ export function AnalyticsDashboard() {
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <span className="text-sm font-medium">{source.source}</span>
-                    <span className="text-xs text-muted-foreground">{source.visitors} visitors</span>
+                    <span className="text-xs text-gray-500">{source.visitors} visitors</span>
                   </div>
                   <span className="text-sm font-medium">{source.percentage}</span>
                 </div>
@@ -167,9 +167,9 @@ export function AnalyticsDashboard() {
                 <div key={index} className="flex flex-col space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{activity.action}</span>
-                    <span className="text-xs text-muted-foreground">{activity.time}</span>
+                    <span className="text-xs text-gray-500">{activity.time}</span>
                   </div>
-                  <span className="text-xs text-muted-foreground">{activity.customer}</span>
+                  <span className="text-xs text-gray-500">{activity.customer}</span>
                 </div>
               ))}
             </div>

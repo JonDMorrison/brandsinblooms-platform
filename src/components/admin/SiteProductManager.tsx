@@ -441,7 +441,7 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
     if (!product.in_stock) {
       return <Badge variant="destructive">Out of Stock</Badge>
     }
-    return <Badge variant="default" className="bg-green-500 hover:bg-green-600">Active</Badge>
+    return <Badge variant="default" className="bg-gray-1000 hover:bg-green-600">Active</Badge>
   }
 
   const formatPrice = (price: number | null) => {
@@ -457,8 +457,8 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Product Management</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl font-bold text-gray-900">Product Management</h2>
+          <p className="text-gray-500">
             Manage products for {siteName}
           </p>
         </div>
@@ -491,7 +491,7 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <Package className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{analytics.total_products}</div>
@@ -500,7 +500,7 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
+              <Eye className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{analytics.active_products}</div>
@@ -509,7 +509,7 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Featured</CardTitle>
-              <Star className="h-4 w-4 text-muted-foreground" />
+              <Star className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{analytics.featured_products}</div>
@@ -518,7 +518,7 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
-              <PackageX className="h-4 w-4 text-muted-foreground" />
+              <PackageX className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{analytics.out_of_stock_products}</div>
@@ -662,7 +662,7 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-gray-500">
                 {selectedProducts.length} product{selectedProducts.length === 1 ? '' : 's'} selected
               </span>
               <div className="flex gap-2">
@@ -710,7 +710,7 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No products found</p>
+              <p className="text-gray-500">No products found</p>
             </div>
           ) : (
             <>
@@ -745,14 +745,14 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">{product.name}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-gray-500">
                           {product.sku && `SKU: ${product.sku}`}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>{product.category || '—'}</div>
                         {product.subcategory && (
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-gray-500">
                             {product.subcategory}
                           </div>
                         )}
@@ -760,7 +760,7 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
                       <TableCell>
                         <div className="font-medium">{formatPrice(product.price)}</div>
                         {product.sale_price && (
-                          <div className="text-sm text-muted-foreground line-through">
+                          <div className="text-sm text-gray-500 line-through">
                             {formatPrice(product.sale_price)}
                           </div>
                         )}
@@ -768,7 +768,7 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
                       <TableCell>{getStatusBadge(product)}</TableCell>
                       <TableCell>
                         {product.in_stock ? (
-                          <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                          <Badge variant="default" className="bg-gray-1000 hover:bg-green-600">
                             In Stock
                           </Badge>
                         ) : (
@@ -1143,7 +1143,7 @@ export function SiteProductManager({ siteId, siteName }: SiteProductManagerProps
           </DialogHeader>
           
           <div className="py-4">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-500">
               This will export all products that match your current search and filter criteria.
               The exported file will include product details, pricing, categories, and stock information.
             </p>

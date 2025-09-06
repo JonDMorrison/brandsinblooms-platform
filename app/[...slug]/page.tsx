@@ -127,7 +127,7 @@ function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             {/* Cart items would be displayed here */}
-            <p className="text-muted-foreground">Your cart items will appear here</p>
+            <p className="text-gray-500">Your cart items will appear here</p>
           </div>
           <div>
             {/* Order summary */}
@@ -171,10 +171,10 @@ function AccountPage() {
           <div className="md:col-span-1">
             {/* Account navigation */}
             <nav className="space-y-2">
-              <a href="/account" className="block p-3 rounded-md bg-accent">Profile</a>
-              <a href="/account/orders" className="block p-3 rounded-md hover:bg-accent">Orders</a>
-              <a href="/account/addresses" className="block p-3 rounded-md hover:bg-accent">Addresses</a>
-              <a href="/account/settings" className="block p-3 rounded-md hover:bg-accent">Settings</a>
+              <a href="/account" className="block p-3 rounded-md bg-gray-100">Profile</a>
+              <a href="/account/orders" className="block p-3 rounded-md hover:bg-gradient-primary-50">Orders</a>
+              <a href="/account/addresses" className="block p-3 rounded-md hover:bg-gradient-primary-50">Addresses</a>
+              <a href="/account/settings" className="block p-3 rounded-md hover:bg-gradient-primary-50">Settings</a>
             </nav>
           </div>
           <div className="md:col-span-2">
@@ -194,7 +194,7 @@ function OrdersPage() {
       <div className="brand-container py-12">
         <h1 className="text-4xl font-bold mb-8">My Orders</h1>
         {/* Orders list */}
-        <p className="text-muted-foreground">Your order history will appear here</p>
+        <p className="text-gray-500">Your order history will appear here</p>
       </div>
     </SiteLayout>
   )

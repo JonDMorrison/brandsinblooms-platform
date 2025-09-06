@@ -195,7 +195,7 @@ export function ImageInput<
                     
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       {previewState.isLoading && (
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
                       )}
                       {!previewState.isLoading && urlInputValue && (
                         <>
@@ -235,7 +235,7 @@ export function ImageInput<
                   {!fieldError && !previewState.error && helperText && (
                     <p 
                       id={`${field.name}-description`}
-                      className="text-sm text-muted-foreground"
+                      className="text-sm text-gray-500"
                     >
                       {helperText}
                     </p>
@@ -256,7 +256,7 @@ export function ImageInput<
                   disabled={disabled}
                   onChange={(e) => handleAltChange(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   Describe the image for screen readers and accessibility
                 </p>
               </div>
@@ -273,7 +273,7 @@ export function ImageInput<
                       
                       {previewState.isLoading && (
                         <div className="flex items-center justify-center h-32 bg-muted/50 rounded-md">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
                             <Loader2 className="h-4 w-4 animate-spin" />
                             Loading image...
                           </div>
@@ -289,7 +289,7 @@ export function ImageInput<
                             loading="lazy"
                           />
                           {altInputValue && (
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-xs text-gray-500 mt-1">
                               Alt: {altInputValue}
                             </p>
                           )}
@@ -352,7 +352,7 @@ export function ImageInput<
             
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               {previewState.isLoading && (
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
               )}
               {!previewState.isLoading && urlInputValue && (
                 <>
@@ -392,7 +392,7 @@ export function ImageInput<
           {!error && !previewState.error && helperText && (
             <p 
               id={`${name}-description`}
-              className="text-sm text-muted-foreground"
+              className="text-sm text-gray-500"
             >
               {helperText}
             </p>
@@ -413,7 +413,7 @@ export function ImageInput<
           disabled={disabled}
           onChange={(e) => setAltInputValue(e.target.value)}
         />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-gray-500">
           Describe the image for screen readers and accessibility
         </p>
       </div>
@@ -430,7 +430,7 @@ export function ImageInput<
               
               {previewState.isLoading && (
                 <div className="flex items-center justify-center h-32 bg-muted/50 rounded-md">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Loading image...
                   </div>
@@ -446,7 +446,7 @@ export function ImageInput<
                     loading="lazy"
                   />
                   {altInputValue && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-gray-500 mt-1">
                       Alt: {altInputValue}
                     </p>
                   )}

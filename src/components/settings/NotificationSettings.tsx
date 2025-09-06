@@ -24,7 +24,7 @@ export function NotificationSettings() {
     toast.error(`Failed to load notification preferences: ${errorDetails.message}`)
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">Failed to load notification preferences</p>
+        <p className="text-gray-500">Failed to load notification preferences</p>
       </div>
     )
   }
@@ -58,7 +58,7 @@ export function NotificationSettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-base">Marketing Emails</Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Receive updates about new features, tips, and promotional offers
               </p>
             </div>
@@ -75,7 +75,7 @@ export function NotificationSettings() {
                 <Mail className="h-4 w-4" />
                 System Updates
               </Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Important updates about your account, orders, and system changes
               </p>
             </div>
@@ -92,7 +92,7 @@ export function NotificationSettings() {
                 <Smartphone className="h-4 w-4" />
                 Push Notifications
               </Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Receive push notifications in your browser (when supported)
               </p>
             </div>
@@ -111,7 +111,7 @@ export function NotificationSettings() {
                 <Clock className="h-4 w-4" />
                 Email Digest Frequency
               </Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 How often you want to receive email summaries
               </p>
             </div>
@@ -138,7 +138,7 @@ export function NotificationSettings() {
       {updatePreferences.isPending && (
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
               <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
               Saving preferences...
             </div>

@@ -86,7 +86,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
       {/* Bottom Navigation Bar - Mobile Only */}
       <nav
         className={cn(
-          "md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t transition-transform duration-300",
+          "md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t transition-transform duration-300",
           !isVisible && "translate-y-full",
           className
         )}
@@ -101,7 +101,7 @@ export function MobileNavigation({ className }: MobileNavigationProps) {
                 "transition-colors duration-200",
                 item.isActive
                   ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-gray-500 hover:text-gray-900"
               )}
             >
               <div className="relative">
@@ -234,7 +234,7 @@ export function MobileSearchOverlay({
   if (!isOpen) return null
   
   return (
-    <div className="fixed inset-0 z-50 bg-background">
+    <div className="fixed inset-0 z-50 bg-white">
       <div className="flex items-center gap-2 p-4 border-b">
         <Button
           variant="ghost"
@@ -258,7 +258,7 @@ export function MobileSearchOverlay({
         {searchQuery ? (
           <div>
             {/* Search results would go here */}
-            <p className="text-muted-foreground">
+            <p className="text-gray-500">
               Searching for "{searchQuery}"...
             </p>
           </div>
@@ -267,13 +267,13 @@ export function MobileSearchOverlay({
             {/* Recent searches or suggestions */}
             <h3 className="font-medium mb-3">Popular Searches</h3>
             <div className="space-y-2">
-              <button className="block w-full text-left p-2 hover:bg-accent rounded">
+              <button className="block w-full text-left p-2 hover:bg-gradient-primary-50 rounded">
                 Flowers
               </button>
-              <button className="block w-full text-left p-2 hover:bg-accent rounded">
+              <button className="block w-full text-left p-2 hover:bg-gradient-primary-50 rounded">
                 Plants
               </button>
-              <button className="block w-full text-left p-2 hover:bg-accent rounded">
+              <button className="block w-full text-left p-2 hover:bg-gradient-primary-50 rounded">
                 Gifts
               </button>
             </div>

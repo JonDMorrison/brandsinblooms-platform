@@ -13,7 +13,7 @@ export const oauthProviders: OAuthProvider[] = [
     name: 'Google',
     provider: 'google',
     icon: '🔍', // In production, use proper SVG icons
-    bgColor: 'bg-white hover:bg-gray-50',
+    bgColor: 'bg-white hover:bg-gradient-primary-20',
     textColor: 'text-gray-900',
   },
   {

@@ -41,7 +41,7 @@ export function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-6">
+      <div className="min-h-screen bg-white p-6">
         <div className="mx-auto max-w-7xl">
           <div className="animate-pulse">
             <div className="h-8 w-48 bg-muted rounded mb-2"></div>
@@ -58,16 +58,16 @@ export function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b bg-card/50">
         <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
+              <h1 className="text-2xl font-bold text-gray-900">
                 Platform Admin Dashboard
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 Welcome back, {user?.email}
               </p>
             </div>
@@ -120,7 +120,7 @@ export function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   Create new sites using templates, manage existing sites, and 
                   configure domain settings.
                 </p>
@@ -162,7 +162,7 @@ export function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   View user accounts, manage permissions, and handle support 
                   requests. Monitor user activity and engagement.
                 </p>
@@ -195,7 +195,7 @@ export function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   Monitor site performance, health status, and comprehensive 
                   analytics across the platform.
                 </p>
@@ -237,7 +237,7 @@ export function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   Manage system-wide configurations, security settings, and 
                   platform maintenance options.
                 </p>
@@ -256,7 +256,7 @@ export function AdminDashboard() {
 
         {/* Quick Stats Section */}
         <div className="mt-12">
-          <h2 className="text-xl font-semibold text-foreground mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
             Platform Overview
           </h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -264,12 +264,12 @@ export function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">
+                    <p className="text-sm font-medium text-gray-500">
                       Total Sites
                     </p>
-                    <p className="text-2xl font-bold text-foreground">--</p>
+                    <p className="text-2xl font-bold text-gray-900">--</p>
                   </div>
-                  <Globe className="h-8 w-8 text-muted-foreground" />
+                  <Globe className="h-8 w-8 text-gray-500" />
                 </div>
               </CardContent>
             </Card>
@@ -278,12 +278,12 @@ export function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">
+                    <p className="text-sm font-medium text-gray-500">
                       Active Users
                     </p>
-                    <p className="text-2xl font-bold text-foreground">--</p>
+                    <p className="text-2xl font-bold text-gray-900">--</p>
                   </div>
-                  <Users className="h-8 w-8 text-muted-foreground" />
+                  <Users className="h-8 w-8 text-gray-500" />
                 </div>
               </CardContent>
             </Card>
@@ -292,7 +292,7 @@ export function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">
+                    <p className="text-sm font-medium text-gray-500">
                       System Health
                     </p>
                     <p className="text-sm font-medium text-green-600">Healthy</p>
@@ -306,7 +306,7 @@ export function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">
+                    <p className="text-sm font-medium text-gray-500">
                       Uptime
                     </p>
                     <p className="text-sm font-medium text-green-600">99.9%</p>
@@ -320,7 +320,7 @@ export function AdminDashboard() {
 
         {/* Active Impersonation Sessions */}
         <div className="mt-12">
-          <h2 className="text-xl font-semibold text-foreground mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
             Active Sessions
           </h2>
           <ActiveImpersonationSessions />
@@ -328,14 +328,14 @@ export function AdminDashboard() {
 
         {/* Recent Activity Section (Placeholder) */}
         <div className="mt-12">
-          <h2 className="text-xl font-semibold text-foreground mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
             Recent Activity
           </h2>
           <Card>
             <CardContent className="p-6">
               <div className="text-center py-12">
-                <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
+                <Database className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                <p className="text-gray-500">
                   Activity tracking will be implemented soon
                 </p>
               </div>

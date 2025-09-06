@@ -49,21 +49,21 @@ export default function Error({ error, reset }: ErrorProps) {
           <h1 className="text-6xl font-bold text-gradient-primary">
             500
           </h1>
-          <h2 className="text-2xl font-semibold text-foreground">
+          <h2 className="text-2xl font-semibold text-gray-900">
             Something went wrong
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             We apologize for the inconvenience. An unexpected error has occurred while processing your request.
           </p>
         </div>
 
         {process.env.NODE_ENV === 'development' && (
           <div className="bg-muted/50 p-4 rounded-lg text-left">
-            <p className="text-sm font-mono text-muted-foreground break-all">
+            <p className="text-sm font-mono text-gray-500 break-all">
               {error.message}
             </p>
             {error.digest && (
-              <p className="text-xs text-muted-foreground/70 mt-2">
+              <p className="text-xs text-gray-500/70 mt-2">
                 Error ID: {error.digest}
               </p>
             )}
@@ -87,14 +87,14 @@ export default function Error({ error, reset }: ErrorProps) {
         </div>
 
         <div className="pt-6 space-y-2">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             If this problem persists, please{' '}
             <Link href="/contact" className="text-primary hover:underline">
               contact support
             </Link>
           </p>
           {error.digest && process.env.NODE_ENV === 'production' && (
-            <p className="text-xs text-muted-foreground/70">
+            <p className="text-xs text-gray-500/70">
               Error Reference: {error.digest}
             </p>
           )}

@@ -84,7 +84,7 @@ export function ReviewsList({
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">Failed to load reviews. Please try again.</p>
+        <p className="text-gray-500">Failed to load reviews. Please try again.</p>
       </div>
     );
   }
@@ -92,7 +92,7 @@ export function ReviewsList({
   if (!data || data.data.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">No reviews yet. Be the first to review this product!</p>
+        <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
       </div>
     );
   }
@@ -277,7 +277,7 @@ function ReviewCard({
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 {format(new Date(review.created_at), 'MMM dd, yyyy')}
               </p>
             </div>
@@ -309,14 +309,14 @@ function ReviewCard({
         <div className="space-y-2">
           <StarRating value={review.rating} size="sm" />
           {review.title && (
-            <h4 className="font-medium text-foreground">{review.title}</h4>
+            <h4 className="font-medium text-gray-900">{review.title}</h4>
           )}
         </div>
 
         {/* Comment */}
         {review.comment && (
           <div className="prose prose-sm max-w-none">
-            <p className="text-foreground whitespace-pre-wrap">{review.comment}</p>
+            <p className="text-gray-900 whitespace-pre-wrap">{review.comment}</p>
           </div>
         )}
 
@@ -327,7 +327,7 @@ function ReviewCard({
             size="sm"
             onClick={onMarkHelpful}
             disabled={isMarkingHelpful || isCurrentUser}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-gray-500 hover:text-gray-900"
           >
             <ThumbsUp className="h-4 w-4 mr-2" />
             Helpful ({review.helpful_count || 0})

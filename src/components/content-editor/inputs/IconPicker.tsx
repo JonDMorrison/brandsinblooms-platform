@@ -149,8 +149,8 @@ function IconPickerComponent<
     if (!icon) {
       return (
         <div className="flex items-center justify-center h-10 w-full px-3 py-2 bg-muted/50 rounded-md">
-          <Package className="h-4 w-4 text-muted-foreground" />
-          <span className="ml-2 text-sm text-muted-foreground">No icon</span>
+          <Package className="h-4 w-4 text-gray-500" />
+          <span className="ml-2 text-sm text-gray-500">No icon</span>
         </div>
       );
     }
@@ -209,7 +209,7 @@ function IconPickerComponent<
                   <div className="p-3 space-y-3">
                     {showSearch && (
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                         <Input
                           placeholder={searchPlaceholder}
                           value={searchQuery}
@@ -230,7 +230,7 @@ function IconPickerComponent<
                       </div>
                     )}
                     
-                    <div className="text-xs text-muted-foreground px-1">
+                    <div className="text-xs text-gray-500 px-1">
                       {filteredIcons.length} {filteredIcons.length === 1 ? 'icon' : 'icons'}
                       {searchQuery && ` matching "${searchQuery}"`}
                     </div>
@@ -264,7 +264,7 @@ function IconPickerComponent<
                       </div>
                       
                       {filteredIcons.length === 0 && (
-                        <div className="flex items-center justify-center h-32 text-sm text-muted-foreground">
+                        <div className="flex items-center justify-center h-32 text-sm text-gray-500">
                           No icons found
                         </div>
                       )}
@@ -300,7 +300,7 @@ function IconPickerComponent<
                 {!fieldError && helperText && (
                   <p 
                     id={`${name}-description`}
-                    className="text-sm text-muted-foreground"
+                    className="text-sm text-gray-500"
                   >
                     {helperText}
                   </p>
@@ -331,7 +331,7 @@ function IconPickerComponent<
           <div className="p-3 space-y-3">
             {showSearch && (
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <Input
                   placeholder={searchPlaceholder}
                   value={searchQuery}
@@ -352,7 +352,7 @@ function IconPickerComponent<
               </div>
             )}
             
-            <div className="text-xs text-muted-foreground px-1">
+            <div className="text-xs text-gray-500 px-1">
               {filteredIcons.length} {filteredIcons.length === 1 ? 'icon' : 'icons'}
               {searchQuery && ` matching "${searchQuery}"`}
             </div>
@@ -390,7 +390,7 @@ function IconPickerComponent<
               </div>
               
               {filteredIcons.length === 0 && (
-                <div className="flex items-center justify-center h-32 text-sm text-muted-foreground">
+                <div className="flex items-center justify-center h-32 text-sm text-gray-500">
                   No icons found
                 </div>
               )}
@@ -429,7 +429,7 @@ function IconPickerComponent<
         {!error && helperText && (
           <p 
             id={`${name}-description`}
-            className="text-sm text-muted-foreground"
+            className="text-sm text-gray-500"
           >
             {helperText}
           </p>

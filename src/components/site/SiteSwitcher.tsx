@@ -91,14 +91,14 @@ export function SiteSwitcher() {
             key={siteAccess.site.id}
             onClick={() => handleSiteSwitch(siteAccess.site.id)}
             disabled={switching}
-            className="flex items-center justify-between p-3 cursor-pointer"
+            className="flex items-center justify-between p-3 cursor-pointer hover:bg-gradient-primary-20 transition-colors"
           >
             <div className="flex items-center space-x-3 min-w-0 flex-1">
               <div className="flex-shrink-0">
                 {siteAccess.site.id === currentSiteId ? (
                   <Check className="h-4 w-4 text-primary" />
                 ) : (
-                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <Globe className="h-4 w-4 text-gray-500" />
                 )}
               </div>
               
@@ -106,7 +106,7 @@ export function SiteSwitcher() {
                 <div className="font-medium truncate">
                   {siteAccess.site.name}
                 </div>
-                <div className="text-sm text-muted-foreground truncate">
+                <div className="text-sm text-gray-500 truncate">
                   {siteAccess.site.subdomain}
                   {siteAccess.site.custom_domain && ` • ${siteAccess.site.custom_domain}`}
                 </div>
@@ -122,7 +122,7 @@ export function SiteSwitcher() {
               </Badge>
               
               {siteAccess.canManage && (
-                <Settings className="h-3 w-3 text-muted-foreground" />
+                <Settings className="h-3 w-3 text-gray-500" />
               )}
             </div>
           </DropdownMenuItem>
@@ -141,7 +141,7 @@ export function SiteSwitcher() {
             <DropdownMenuItem
               onClick={() => router.push('/dashboard/sites')}
               disabled={switching}
-              className="flex items-center space-x-2 text-muted-foreground"
+              className="flex items-center space-x-2 text-gray-500 cursor-pointer hover:bg-gradient-primary-20 transition-colors"
             >
               <Globe className="h-4 w-4" />
               <span>View All Sites</span>
@@ -181,7 +181,7 @@ export function CompactSiteSwitcher() {
     return (
       <div className="flex items-center space-x-2 text-sm h-8 px-3">
         <Globe className="h-4 w-4 opacity-50" />
-        <span className="text-muted-foreground">Loading...</span>
+        <span className="text-gray-500">Loading...</span>
       </div>
     )
   }
@@ -217,7 +217,7 @@ export function CompactSiteSwitcher() {
             key={siteAccess.site.id}
             onClick={() => handleSiteSwitch(siteAccess.site.id)}
             disabled={switching}
-            className="flex items-center justify-between"
+            className="flex items-center justify-between cursor-pointer hover:bg-gradient-primary-20 transition-colors"
           >
             <div className="flex items-center space-x-2">
               {siteAccess.site.id === currentSiteId && (
@@ -238,7 +238,7 @@ export function CompactSiteSwitcher() {
             <DropdownMenuItem
               onClick={() => router.push('/dashboard/sites')}
               disabled={switching}
-              className="flex items-center space-x-2 text-muted-foreground"
+              className="flex items-center space-x-2 text-gray-500 cursor-pointer hover:bg-gradient-primary-20 transition-colors"
             >
               <Globe className="h-4 w-4" />
               <span>View All Sites</span>

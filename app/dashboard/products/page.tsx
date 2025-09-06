@@ -402,7 +402,7 @@ function ProductsPageContent() {
       >
         <div>
           <h1 className='text-2xl font-bold'>Products</h1>
-          <p className='text-muted-foreground'>
+          <p className='text-gray-500'>
             Manage your product catalog and site products
           </p>
         </div>
@@ -486,7 +486,7 @@ function ProductsPageContent() {
               <div className='flex flex-col sm:flex-row gap-4'>
                 {/* Search */}
                 <div className='relative flex-1'>
-                  <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
+                  <Search className='absolute left-3 top-3 h-4 w-4 text-gray-500' />
                   <Input
                     placeholder='Search products...'
                     className='pl-10'
@@ -511,7 +511,7 @@ function ProductsPageContent() {
                           {category.icon && <span>{category.icon}</span>}
                           <span>{category.label}</span>
                           {category.count !== undefined && (
-                            <span className='text-muted-foreground text-xs'>({category.count})</span>
+                            <span className='text-gray-500 text-xs'>({category.count})</span>
                           )}
                         </div>
                       </SelectItem>
@@ -551,11 +551,11 @@ function ProductsPageContent() {
                 </div>
               ) : filteredProducts.length === 0 ? (
                 <div className='text-center py-12'>
-                  <Package className='h-12 w-12 mx-auto text-muted-foreground mb-4' />
+                  <Package className='h-12 w-12 mx-auto text-gray-500 mb-4' />
                   <h3 className='text-lg font-semibold mb-2'>
                     No products found
                   </h3>
-                  <p className='text-muted-foreground'>
+                  <p className='text-gray-500'>
                     {searchQuery || selectedCategory !== 'All'
                       ? 'Try adjusting your search or filters'
                       : 'Start by adding your first product'}

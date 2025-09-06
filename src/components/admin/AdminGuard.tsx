@@ -64,7 +64,7 @@ export function AdminGuard({ children, fallback }: AdminGuardProps) {
   // Show loading state
   if (isLoading || adminExists === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <Card className="w-full max-w-md">
           <CardHeader>
             <Skeleton className="h-6 w-48 mx-auto" />
@@ -82,7 +82,7 @@ export function AdminGuard({ children, fallback }: AdminGuardProps) {
   // Show error state
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-center text-destructive">Authentication Error</CardTitle>
@@ -100,7 +100,7 @@ export function AdminGuard({ children, fallback }: AdminGuardProps) {
   // No admin exists - show initial admin signup (only on /admin root)
   if (adminExists === false && pathname === '/admin') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <InitialAdminSignup />
       </div>
     )
@@ -120,7 +120,7 @@ export function AdminGuard({ children, fallback }: AdminGuardProps) {
     (isAdmin && pathname === '/admin/login') // Admin on login page (redirecting to dashboard)
   ) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="flex items-center justify-center">
@@ -141,7 +141,7 @@ export function AdminGuard({ children, fallback }: AdminGuardProps) {
   return (
     <>
       {fallback || (
-        <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="min-h-screen flex items-center justify-center bg-white">
           <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle className="text-center">Access Denied</CardTitle>

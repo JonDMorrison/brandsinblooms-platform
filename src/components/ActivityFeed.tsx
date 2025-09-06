@@ -87,7 +87,7 @@ export function ActivityFeed() {
             activities.map((activity) => (
               <div
                 key={activity.id}
-                className='flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors'
+                className='flex items-start space-x-3 p-3 rounded-lg hover:bg-gradient-primary-50/50 transition-colors'
               >
                 <div
                   className={`p-2 rounded-full ${getActivityColor(
@@ -103,10 +103,10 @@ export function ActivityFeed() {
                       {activity.user_id ? 'You' : 'System'}
                     </Badge>
                   </div>
-                  <p className='text-sm text-muted-foreground'>
+                  <p className='text-sm text-gray-500'>
                     {activity.description}
                   </p>
-                  <p className='text-xs text-muted-foreground'>
+                  <p className='text-xs text-gray-500'>
                     {formatDistanceToNow(new Date(activity.created_at), {
                       addSuffix: true,
                     })}
@@ -115,7 +115,7 @@ export function ActivityFeed() {
               </div>
             ))
           ) : (
-            <div className='text-center py-8 text-muted-foreground'>
+            <div className='text-center py-8 text-gray-500'>
               <p className='text-sm'>No recent activity</p>
             </div>
           )}

@@ -425,11 +425,11 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
             }}
           >
             {placeholder.staticFallback === 'user' ? (
-              <User className="h-12 w-12 text-muted-foreground/60 drop-shadow-sm" />
+              <User className="h-12 w-12 text-gray-500/60 drop-shadow-sm" />
             ) : placeholder.staticFallback === 'image' ? (
-              <ImageIcon className="h-12 w-12 text-muted-foreground/60 drop-shadow-sm" />
+              <ImageIcon className="h-12 w-12 text-gray-500/60 drop-shadow-sm" />
             ) : (
-              <Package className="h-12 w-12 text-muted-foreground/60 drop-shadow-sm" />
+              <Package className="h-12 w-12 text-gray-500/60 drop-shadow-sm" />
             )}
           </div>
         )}
@@ -476,7 +476,7 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
           >
             <div className="flex flex-col items-center gap-2">
               <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
-              <span className="text-xs text-muted-foreground">Loading...</span>
+              <span className="text-xs text-gray-500">Loading...</span>
             </div>
           </div>
         )}
@@ -488,12 +488,12 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
             aria-hidden="true"
           >
             <div className="flex flex-col items-center gap-2 text-center p-4">
-              <Package className="h-8 w-8 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">
+              <Package className="h-8 w-8 text-gray-500" />
+              <span className="text-xs text-gray-500">
                 Failed to load image
               </span>
               {retryCount > 0 && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-gray-500">
                   Retried {retryCount} time{retryCount !== 1 ? 's' : ''}
                 </span>
               )}
@@ -536,7 +536,7 @@ export const ProductImageSkeleton: React.FC<{
     >
       <div className="flex items-center justify-center h-full">
         <svg
-          className="h-8 w-8 text-muted-foreground"
+          className="h-8 w-8 text-gray-500"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

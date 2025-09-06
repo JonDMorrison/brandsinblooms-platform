@@ -83,7 +83,7 @@ export default function SignUp() {
           <h2 className="text-2xl font-brand-heading text-primary">
             Create an Account
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             Join Brands in Blooms to start creating beautiful websites
           </p>
         </div>
@@ -139,9 +139,9 @@ export default function SignUp() {
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            <EyeOff className="h-4 w-4 text-gray-500" />
                           ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
+                            <Eye className="h-4 w-4 text-gray-500" />
                           )}
                         </Button>
                       </div>
@@ -152,19 +152,19 @@ export default function SignUp() {
                           Password strength: {strengthScore < 2 ? 'Weak' : strengthScore < 4 ? 'Medium' : 'Strong'}
                         </p>
                         <div className="space-y-1 text-xs">
-                          <div className={`flex items-center gap-1 ${passwordStrength.hasLength ? 'text-green-500' : 'text-muted-foreground'}`}>
+                          <div className={`flex items-center gap-1 ${passwordStrength.hasLength ? 'text-green-500' : 'text-gray-500'}`}>
                             <Check className="h-3 w-3" />
                             At least 8 characters
                           </div>
-                          <div className={`flex items-center gap-1 ${passwordStrength.hasUpperCase && passwordStrength.hasLowerCase ? 'text-green-500' : 'text-muted-foreground'}`}>
+                          <div className={`flex items-center gap-1 ${passwordStrength.hasUpperCase && passwordStrength.hasLowerCase ? 'text-green-500' : 'text-gray-500'}`}>
                             <Check className="h-3 w-3" />
                             Mix of upper & lowercase letters
                           </div>
-                          <div className={`flex items-center gap-1 ${passwordStrength.hasNumber ? 'text-green-500' : 'text-muted-foreground'}`}>
+                          <div className={`flex items-center gap-1 ${passwordStrength.hasNumber ? 'text-green-500' : 'text-gray-500'}`}>
                             <Check className="h-3 w-3" />
                             At least one number
                           </div>
-                          <div className={`flex items-center gap-1 ${passwordStrength.hasSpecial ? 'text-green-500' : 'text-muted-foreground'}`}>
+                          <div className={`flex items-center gap-1 ${passwordStrength.hasSpecial ? 'text-green-500' : 'text-gray-500'}`}>
                             <Check className="h-3 w-3" />
                             At least one special character
                           </div>
@@ -202,9 +202,9 @@ export default function SignUp() {
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         >
                           {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            <EyeOff className="h-4 w-4 text-gray-500" />
                           ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
+                            <Eye className="h-4 w-4 text-gray-500" />
                           )}
                         </Button>
                       </div>
@@ -278,7 +278,7 @@ export default function SignUp() {
           </Form>
         </div>
         <div className="flex flex-col space-y-4">
-          <div className="text-sm text-center text-muted-foreground">
+          <div className="text-sm text-center text-gray-500">
             Already have an account?{' '}
             <button
               type="button"

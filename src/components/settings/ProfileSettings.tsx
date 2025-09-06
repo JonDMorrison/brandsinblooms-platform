@@ -154,7 +154,7 @@ export function ProfileSettings() {
               className="hidden"
               onChange={handleAvatarChange}
             />
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-sm text-gray-500 mt-2">
               JPG, PNG or GIF. Max size 5MB.
             </p>
             {(user?.user_metadata?.avatar_url || avatarPreview) && (
@@ -308,23 +308,23 @@ export function ProfileSettings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-medium">User ID</Label>
-              <p className="text-sm text-muted-foreground font-mono">{user?.id}</p>
+              <p className="text-sm text-gray-500 font-mono">{user?.id}</p>
             </div>
             <div>
               <Label className="text-sm font-medium">Account Created</Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
               </p>
             </div>
             <div>
               <Label className="text-sm font-medium">Last Sign In</Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : 'N/A'}
               </p>
             </div>
             <div>
               <Label className="text-sm font-medium">Email Verified</Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 {user?.email_confirmed_at ? 'Verified' : 'Not verified'}
               </p>
             </div>

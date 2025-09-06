@@ -51,7 +51,7 @@ export function SiteAwareNavigation({
   if (variant === 'header') {
     return (
       <header className={cn(
-        "bg-background/95 backdrop-blur-sm border-b z-50",
+        "bg-white/95 backdrop-blur-sm border-b z-50",
         fixed && "fixed top-0 left-0 right-0",
         className
       )}>
@@ -163,7 +163,7 @@ function SiteBranding({ site }: { site: Tables<'sites'> | null }) {
           {site?.name || 'Site'}
         </span>
         {site?.description && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-500">
             {site.description}
           </p>
         )}
@@ -182,9 +182,9 @@ function NavigationLink({
   onClick?: () => void
 }) {
   const linkClasses = {
-    header: "text-sm font-medium text-muted-foreground hover:text-foreground transition-colors",
-    sidebar: "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
-    minimal: "text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+    header: "text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors",
+    sidebar: "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gradient-primary-20 transition-colors",
+    minimal: "text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
   }
 
   const content = (
@@ -296,7 +296,7 @@ function MobileNavigation({
           <div className="space-y-2">
             <div className="px-3 py-2">
               <p className="text-sm font-medium">{user.user_metadata?.full_name || user.email}</p>
-              <p className="text-xs text-muted-foreground">{user.email}</p>
+              <p className="text-xs text-gray-500">{user.email}</p>
             </div>
             <Link href="/profile" onClick={onNavigate}>
               <Button variant="ghost" size="sm" className="w-full justify-start">
@@ -338,7 +338,7 @@ function NavigationSkeleton({ variant, fixed }: { variant: string; fixed: boolea
   if (variant === 'header') {
     return (
       <header className={cn(
-        "bg-background/95 backdrop-blur-sm border-b",
+        "bg-white/95 backdrop-blur-sm border-b",
         fixed && "fixed top-0 left-0 right-0"
       )}>
         <nav className="brand-container">

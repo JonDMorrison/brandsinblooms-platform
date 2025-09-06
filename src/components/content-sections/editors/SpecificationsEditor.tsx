@@ -98,7 +98,7 @@ export function SpecificationsEditor({ section, onUpdate }: SectionEditorProps) 
         </TabsList>
         
         <TabsContent value="items" className="space-y-4">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-500">
             Add specifications as label-value pairs
           </p>
           <ItemListEditor
@@ -114,7 +114,7 @@ export function SpecificationsEditor({ section, onUpdate }: SectionEditorProps) 
         </TabsContent>
         
         <TabsContent value="content" className="space-y-4">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-500">
             Enter specifications as formatted text
           </p>
           <RichTextEditor

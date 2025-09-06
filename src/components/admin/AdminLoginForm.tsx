@@ -141,8 +141,8 @@ export function AdminLoginForm() {
           <Shield className="w-8 h-8 text-white group-hover:shield-focus transition-transform duration-300" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-3xl font-brand-heading text-foreground hover:animated-gradient-text transition-all duration-500">Platform Admin</h1>
-          <p className="text-muted-foreground font-brand-body">
+          <h1 className="text-3xl font-brand-heading text-gray-900 hover:animated-gradient-text transition-all duration-500">Platform Admin</h1>
+          <p className="text-gray-500 font-brand-body">
             Secure access to your Brands in Blooms platform
           </p>
         </div>
@@ -160,7 +160,7 @@ export function AdminLoginForm() {
 
           <div className="space-y-4">
             <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Label htmlFor="email" className="text-sm font-medium text-gray-900 flex items-center gap-2">
                 Email Address
               </Label>
               <div className="relative">
@@ -173,7 +173,7 @@ export function AdminLoginForm() {
                   disabled={isLoading}
                   aria-invalid={!!errors.email}
                   autoComplete="email"
-                  className={`h-12 pl-4 pr-4 text-base transition-all duration-200 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 hover:border-primary/60 admin-input-glow enhanced-focus-ring interactive-hover ${errors.email ? 'border-destructive focus:border-destructive focus:ring-destructive/20 error-shake' : ''}`}
+                  className={`h-12 pl-4 pr-4 text-base transition-all duration-200 bg-white/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 hover:border-primary/60 admin-input-glow enhanced-focus-ring interactive-hover ${errors.email ? 'border-destructive focus:border-destructive focus:ring-destructive/20 error-shake' : ''}`}
                 />
               </div>
               {errors.email && (
@@ -184,7 +184,7 @@ export function AdminLoginForm() {
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="password" className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Label htmlFor="password" className="text-sm font-medium text-gray-900 flex items-center gap-2">
                 Password
               </Label>
               <div className="relative">
@@ -197,12 +197,12 @@ export function AdminLoginForm() {
                   disabled={isLoading}
                   aria-invalid={!!errors.password}
                   autoComplete="current-password"
-                  className={`h-12 pl-4 pr-12 text-base transition-all duration-200 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 hover:border-primary/60 admin-input-glow enhanced-focus-ring interactive-hover ${errors.password ? 'border-destructive focus:border-destructive focus:ring-destructive/20 error-shake' : ''}`}
+                  className={`h-12 pl-4 pr-12 text-base transition-all duration-200 bg-white/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 hover:border-primary/60 admin-input-glow enhanced-focus-ring interactive-hover ${errors.password ? 'border-destructive focus:border-destructive focus:ring-destructive/20 error-shake' : ''}`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-all duration-200 p-1 rounded-sm hover:bg-accent/50 hover:scale-110 interactive-hover"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 transition-all duration-200 p-1 rounded-sm hover:bg-gradient-primary-50/50 hover:scale-110 interactive-hover"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -238,12 +238,12 @@ export function AdminLoginForm() {
         </form>
 
         <div className="mt-8 text-center space-y-3">
-          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
             <div className="h-px bg-border flex-1"></div>
             <span className="px-2 bg-card">Secure Access</span>
             <div className="h-px bg-border flex-1"></div>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             Need assistance? Contact your system administrator.
           </p>
         </div>

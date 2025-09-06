@@ -84,7 +84,7 @@ export function MobileEditorLayout({
     return (
       <div className={cn('flex flex-col h-full', className)}>
         {/* Mobile header with tabs and sidebar toggle */}
-        <div className="flex items-center justify-between p-2 border-b bg-background">
+        <div className="flex items-center justify-between p-2 border-b bg-white">
           <div className="flex items-center gap-1">
             <Button
               variant={activeTab === 'edit' ? 'default' : 'ghost'}
@@ -160,7 +160,7 @@ export function MobileEditorLayout({
           <div className="flex-1 flex">
             {/* Sidebar */}
             {sidebarOpen && (
-              <div className="w-80 border-r bg-background">
+              <div className="w-80 border-r bg-white">
                 <ScrollArea className="h-full">
                   {sidebar}
                 </ScrollArea>
@@ -190,7 +190,7 @@ export function MobileEditorLayout({
   return (
     <div className={cn('flex h-full', className)}>
       {/* Sidebar */}
-      <div className="w-80 border-r bg-background">
+      <div className="w-80 border-r bg-white">
         <ScrollArea className="h-full">
           {sidebar}
         </ScrollArea>
@@ -253,7 +253,7 @@ export function MobileToolbar({ tools, className = '' }: MobileToolbarProps) {
   const hasMore = tools.length > 6
 
   return (
-    <div className={cn('flex items-center gap-1 p-2 bg-background border-b', className)}>
+    <div className={cn('flex items-center gap-1 p-2 bg-white border-b', className)}>
       <ScrollArea className="flex-1">
         <div className="flex items-center gap-1 min-w-fit">
           {visibleTools.map((tool, index) => (
@@ -423,7 +423,7 @@ export function ResponsivePreview({
 
       {/* Preview frame */}
       <div className={deviceStyles[currentDevice]}>
-        <div className="min-h-96 bg-background">
+        <div className="min-h-96 bg-white">
           {children}
         </div>
       </div>

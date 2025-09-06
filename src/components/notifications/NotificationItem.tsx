@@ -138,8 +138,8 @@ export function NotificationItem({
       className={cn(
         'group flex items-start gap-3 p-3 rounded-lg border transition-all duration-200',
         showSelection ? 'cursor-default' : 'cursor-pointer',
-        'hover:bg-muted/50 hover:border-border/60',
-        isUnread ? 'bg-primary/5 border-primary/20' : 'bg-background border-border/40',
+        'hover:bg-gradient-primary-50/50 hover:border-border/60',
+        isUnread ? 'bg-primary/5 border-primary/20' : 'bg-white border-border/40',
         selected && 'ring-2 ring-primary/20',
         className
       )}
@@ -182,7 +182,7 @@ export function NotificationItem({
             <div className="flex items-center gap-2 mb-1">
               <h4 className={cn(
                 'text-sm font-medium leading-tight',
-                isUnread ? 'text-foreground' : 'text-muted-foreground'
+                isUnread ? 'text-gray-900' : 'text-gray-500'
               )}>
                 {notification.title}
               </h4>
@@ -200,13 +200,13 @@ export function NotificationItem({
             
             <p className={cn(
               'text-sm leading-relaxed mb-2',
-              isUnread ? 'text-muted-foreground' : 'text-muted-foreground/80'
+              isUnread ? 'text-gray-500' : 'text-gray-500/80'
             )}>
               {notification.message}
             </p>
             
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-gray-500">
                 {formattedTime}
               </span>
               

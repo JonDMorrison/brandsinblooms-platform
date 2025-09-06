@@ -115,7 +115,7 @@ export function ActiveImpersonationSessions() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="flex items-center gap-2 text-gray-500">
               <RefreshCw className="h-4 w-4 animate-spin" />
               Loading sessions...
             </div>
@@ -180,11 +180,11 @@ export function ActiveImpersonationSessions() {
         {/* Sessions List */}
         {activeSessions.length === 0 ? (
           <div className="text-center py-8">
-            <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">
+            <Eye className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+            <p className="text-gray-500">
               No active impersonation sessions
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               Start impersonation from individual site management pages
             </p>
           </div>
@@ -214,7 +214,7 @@ export function ActiveImpersonationSessions() {
                       )}
                     </div>
                     
-                    <div className="grid gap-1 text-sm text-muted-foreground">
+                    <div className="grid gap-1 text-sm text-gray-500">
                       <div className="flex items-center gap-2">
                         <span>Admin:</span>
                         <span className="font-medium">

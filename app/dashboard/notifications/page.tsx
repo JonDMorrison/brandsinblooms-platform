@@ -234,13 +234,13 @@ export default function NotificationsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Notifications</h1>
-            <p className="text-muted-foreground">Manage your notifications and stay updated</p>
+            <p className="text-gray-500">Manage your notifications and stay updated</p>
           </div>
         </div>
         <Card className="border-red-200">
           <CardContent className="p-8 text-center">
             <h3 className="font-medium text-red-600 mb-2">Failed to Load Notifications</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-gray-500 mb-4">
               {error.message || 'An error occurred while loading notifications'}
             </p>
             <Button onClick={handleRefresh} variant="outline">
@@ -259,7 +259,7 @@ export default function NotificationsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-in-up" style={{ animationDelay: '0s' }}>
         <div>
           <h1 className="text-2xl font-bold">Notifications</h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             {totalCount > 0 ? `Manage your ${totalCount} notifications and stay updated` : 'Manage your notifications and stay updated'}
           </p>
         </div>
@@ -291,7 +291,7 @@ export default function NotificationsPage() {
                   checked={allSelected}
                   onCheckedChange={handleSelectAll}
                 />
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-gray-500">
                   {selectedNotificationIds.length} of {filteredNotifications.length} selected
                 </span>
               </div>

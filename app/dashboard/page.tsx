@@ -89,7 +89,7 @@ const quickActions: QuickAction[] = [
     description: 'Manage your product catalog',
     href: '/dashboard/products',
     icon: <Package className="h-5 w-5" />,
-    color: 'bg-green-500 hover:bg-green-600'
+    color: 'bg-gray-1000 hover:bg-green-600'
   },
   {
     id: '3',
@@ -179,7 +179,7 @@ export default function DashboardPage() {
       {/* Welcome Header */}
       <div className="fade-in-up" style={{ animationDelay: '0s' }}>
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-gray-500 mt-2">
           Welcome back, {user?.email?.split('@')[0]}! Here&apos;s what&apos;s happening with {currentSite?.business_name || 'your site'}.
         </p>
       </div>
@@ -210,11 +210,11 @@ export default function DashboardPage() {
                   <div className={`p-1.5 sm:p-2 rounded-md ${action.color} text-white`}>
                     {action.icon}
                   </div>
-                  <ArrowUpRight className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+                  <ArrowUpRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
                 </div>
                 <div className="text-left">
                   <div className="font-medium text-sm sm:text-base">{action.title}</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">{action.description}</div>
+                  <div className="text-xs sm:text-sm text-gray-500">{action.description}</div>
                 </div>
               </Button>
             ))}

@@ -88,7 +88,7 @@ export default function ProductDetailPage() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold">{product.name}</h1>
           {product.sku && (
-            <p className="text-muted-foreground">SKU: {product.sku}</p>
+            <p className="text-gray-500">SKU: {product.sku}</p>
           )}
         </div>
         
@@ -124,7 +124,7 @@ export default function ProductDetailPage() {
                       {formatPrice(product.sale_price || product.price)}
                     </div>
                     {product.sale_price && product.compare_at_price && (
-                      <div className="text-lg text-muted-foreground line-through">
+                      <div className="text-lg text-gray-500 line-through">
                         {formatPrice(product.compare_at_price)}
                       </div>
                     )}
@@ -137,7 +137,7 @@ export default function ProductDetailPage() {
                   {ratingData && ratingData.totalReviews > 0 && (
                     <div className="flex items-center gap-2">
                       <CompactRating rating={ratingData.averageRating} />
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-gray-500">
                         ({ratingData.totalReviews} {ratingData.totalReviews === 1 ? 'review' : 'reviews'})
                       </span>
                     </div>
@@ -197,7 +197,7 @@ export default function ProductDetailPage() {
                   {product.care_instructions && (
                     <div>
                       <h4 className="font-medium mb-2">Care Instructions</h4>
-                      <p className="text-muted-foreground text-sm whitespace-pre-wrap">
+                      <p className="text-gray-500 text-sm whitespace-pre-wrap">
                         {product.care_instructions}
                       </p>
                     </div>
@@ -259,26 +259,26 @@ export default function ProductDetailPage() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="text-center p-4 border rounded-lg">
                       <div className="text-2xl font-bold">{ratingData?.totalReviews || 0}</div>
-                      <div className="text-sm text-muted-foreground">Total Reviews</div>
+                      <div className="text-sm text-gray-500">Total Reviews</div>
                     </div>
                     
                     <div className="text-center p-4 border rounded-lg">
                       <div className="text-2xl font-bold">
                         {ratingData?.averageRating?.toFixed(1) || '0.0'}
                       </div>
-                      <div className="text-sm text-muted-foreground">Avg Rating</div>
+                      <div className="text-sm text-gray-500">Avg Rating</div>
                     </div>
                     
                     <div className="text-center p-4 border rounded-lg">
                       <div className="text-2xl font-bold">{product.inventory_count || 0}</div>
-                      <div className="text-sm text-muted-foreground">Stock Level</div>
+                      <div className="text-sm text-gray-500">Stock Level</div>
                     </div>
                     
                     <div className="text-center p-4 border rounded-lg">
                       <div className="text-2xl font-bold">
                         {product.is_active ? 'Active' : 'Inactive'}
                       </div>
-                      <div className="text-sm text-muted-foreground">Status</div>
+                      <div className="text-sm text-gray-500">Status</div>
                     </div>
                   </div>
                 </CardContent>
@@ -296,31 +296,31 @@ export default function ProductDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Status</span>
+                <span className="text-gray-500">Status</span>
                 <Badge variant={product.is_active ? 'default' : 'secondary'}>
                   {product.is_active ? 'Active' : 'Inactive'}
                 </Badge>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Stock</span>
+                <span className="text-gray-500">Stock</span>
                 <span className="font-medium">{product.inventory_count || 0}</span>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Price</span>
+                <span className="text-gray-500">Price</span>
                 <span className="font-medium">{formatPrice(product.price)}</span>
               </div>
               
               {ratingData && (
                 <>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Rating</span>
+                    <span className="text-gray-500">Rating</span>
                     <span className="font-medium">{ratingData.averageRating.toFixed(1)}/5</span>
                   </div>
                   
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Reviews</span>
+                    <span className="text-gray-500">Reviews</span>
                     <span className="font-medium">{ratingData.totalReviews}</span>
                   </div>
                 </>

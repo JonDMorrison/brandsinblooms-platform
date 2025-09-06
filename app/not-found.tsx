@@ -23,17 +23,17 @@ export default function NotFound() {
           <h1 className="text-6xl font-bold text-gradient-primary">
             404
           </h1>
-          <h2 className="text-2xl font-semibold text-foreground">
+          <h2 className="text-2xl font-semibold text-gray-900">
             Page Not Found
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             Sorry, we couldn&apos;t find the page you&apos;re looking for.
             It might have been removed, renamed, or doesn&apos;t exist.
           </p>
         </div>
 
         <div className="bg-muted/50 p-4 rounded-lg">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             Here are some helpful links instead:
           </p>
         </div>
@@ -58,7 +58,7 @@ export default function NotFound() {
         </div>
 
         <div className="pt-6 space-y-2">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             Need help? Try these:
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
@@ -68,14 +68,14 @@ export default function NotFound() {
             >
               Dashboard
             </Link>
-            <span className="text-muted-foreground">•</span>
+            <span className="text-gray-500">•</span>
             <Link
               href="/login"
               className="text-sm text-primary hover:underline"
             >
               Login
             </Link>
-            <span className="text-muted-foreground">•</span>
+            <span className="text-gray-500">•</span>
             <Link
               href="/signup"
               className="text-sm text-primary hover:underline"

@@ -148,7 +148,7 @@ export function AdminActionLog({
     const colorClass = getActionTypeColor(actionType)
     
     if (actionType.includes('create')) {
-      return <Badge variant="default" className="bg-green-500 hover:bg-green-600">{displayName}</Badge>
+      return <Badge variant="default" className="bg-gray-1000 hover:bg-green-600">{displayName}</Badge>
     }
     if (actionType.includes('update')) {
       return <Badge variant="default" className="bg-blue-500 hover:bg-blue-600">{displayName}</Badge>
@@ -157,7 +157,7 @@ export function AdminActionLog({
       return <Badge variant="destructive">{displayName}</Badge>
     }
     if (actionType.includes('impersonation')) {
-      return <Badge variant="default" className="bg-orange-500 hover:bg-orange-600">{displayName}</Badge>
+      return <Badge variant="default" className="bg-gray-100 hover:bg-orange-600">{displayName}</Badge>
     }
     
     return <Badge variant="secondary">{displayName}</Badge>
@@ -166,8 +166,8 @@ export function AdminActionLog({
   const getTargetTypeBadge = (targetType: AuditTargetType) => {
     const colors = {
       content: 'bg-blue-500 hover:bg-blue-600',
-      product: 'bg-green-500 hover:bg-green-600',
-      site: 'bg-orange-500 hover:bg-orange-600',
+      product: 'bg-gray-1000 hover:bg-green-600',
+      site: 'bg-gray-100 hover:bg-orange-600',
       user: 'bg-purple-500 hover:bg-purple-600',
       template: 'bg-indigo-500 hover:bg-indigo-600',
       system: 'bg-gray-500 hover:bg-gray-600'
@@ -193,10 +193,10 @@ export function AdminActionLog({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">
+          <h2 className="text-2xl font-bold text-gray-900">
             {siteId ? `Activity Log - ${siteName}` : 'Admin Activity Log'}
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             {adminUserId 
               ? `Actions by ${adminUserName || 'Admin User'}`
               : 'Track all administrative actions and changes'
@@ -343,7 +343,7 @@ export function AdminActionLog({
             </div>
           ) : logs.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No activity logs found</p>
+              <p className="text-gray-500">No activity logs found</p>
             </div>
           ) : (
             <>
@@ -365,7 +365,7 @@ export function AdminActionLog({
                     
                     return (
                       <React.Fragment key={log.id}>
-                        <TableRow className="cursor-pointer hover:bg-muted/50">
+                        <TableRow className="cursor-pointer hover:bg-gradient-primary-50/50">
                           <TableCell>
                             <Button
                               variant="ghost"
@@ -395,7 +395,7 @@ export function AdminActionLog({
                                 <div className="font-medium text-sm">
                                   {log.admin_user_name || 'Unknown Admin'}
                                 </div>
-                                <div className="text-xs text-muted-foreground">
+                                <div className="text-xs text-gray-500">
                                   {log.admin_user_email}
                                 </div>
                               </div>
@@ -404,7 +404,7 @@ export function AdminActionLog({
                           <TableCell>
                             <div className="space-y-1">
                               {getActionTypeBadge(log.action_type)}
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-xs text-gray-500">
                                 {formatActionDetails(
                                   log.action_type,
                                   log.target_type,
@@ -419,7 +419,7 @@ export function AdminActionLog({
                             <div className="space-y-1">
                               {getTargetTypeBadge(log.target_type)}
                               {log.target_id && (
-                                <div className="text-xs text-muted-foreground font-mono">
+                                <div className="text-xs text-gray-500 font-mono">
                                   {log.target_id.slice(0, 8)}...
                                 </div>
                               )}
@@ -433,7 +433,7 @@ export function AdminActionLog({
                           <TableCell>
                             <div className="text-sm">
                               <div>{date}</div>
-                              <div className="text-xs text-muted-foreground">{time}</div>
+                              <div className="text-xs text-gray-500">{time}</div>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -460,7 +460,7 @@ export function AdminActionLog({
                                     {log.old_values && (
                                       <div>
                                         <Label className="text-xs font-medium">Previous Values</Label>
-                                        <pre className="text-xs mt-1 p-2 bg-background rounded border overflow-auto max-h-32">
+                                        <pre className="text-xs mt-1 p-2 bg-white rounded border overflow-auto max-h-32">
                                           {JSON.stringify(log.old_values, null, 2)}
                                         </pre>
                                       </div>
@@ -469,14 +469,14 @@ export function AdminActionLog({
                                     {log.new_values && (
                                       <div>
                                         <Label className="text-xs font-medium">New Values</Label>
-                                        <pre className="text-xs mt-1 p-2 bg-background rounded border overflow-auto max-h-32">
+                                        <pre className="text-xs mt-1 p-2 bg-white rounded border overflow-auto max-h-32">
                                           {JSON.stringify(log.new_values, null, 2)}
                                         </pre>
                                       </div>
                                     )}
                                   </div>
                                   
-                                  <div className="grid gap-3 md:grid-cols-2 text-xs text-muted-foreground">
+                                  <div className="grid gap-3 md:grid-cols-2 text-xs text-gray-500">
                                     {log.ip_address && (
                                       <div>
                                         <span className="font-medium">IP Address:</span> {log.ip_address}

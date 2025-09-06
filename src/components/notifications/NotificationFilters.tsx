@@ -188,7 +188,7 @@ export function NotificationFilters({ onFiltersChange }: NotificationFiltersProp
           {/* Top row - Search and main filters */}
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 placeholder="Search notifications..."
                 value={filters.search}
@@ -263,7 +263,7 @@ export function NotificationFilters({ onFiltersChange }: NotificationFiltersProp
                   <Button 
                     variant="outline" 
                     className={`w-full sm:w-[140px] justify-start text-left font-normal ${
-                      filters.dateFrom || filters.dateTo ? 'text-foreground' : 'text-muted-foreground'
+                      filters.dateFrom || filters.dateTo ? 'text-gray-900' : 'text-gray-500'
                     }`}
                   >
                     <Calendar className="h-4 w-4 mr-2" />
@@ -330,7 +330,7 @@ export function NotificationFilters({ onFiltersChange }: NotificationFiltersProp
           {/* Active filters display */}
           {activeFiltersCount > 0 && (
             <div className="flex items-center gap-2 pt-2 border-t">
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1 text-sm text-gray-500">
                 <Filter className="h-3 w-3" />
                 Active filters:
               </div>
@@ -393,7 +393,7 @@ export function NotificationFilters({ onFiltersChange }: NotificationFiltersProp
                 variant="ghost" 
                 size="sm" 
                 onClick={clearFilters}
-                className="ml-auto text-muted-foreground hover:text-foreground"
+                className="ml-auto text-gray-500 hover:text-gray-900"
               >
                 Clear All
               </Button>

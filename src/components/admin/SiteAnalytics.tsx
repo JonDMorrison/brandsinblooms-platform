@@ -83,7 +83,7 @@ function MetricCard({ title, value, subtitle, icon, trend }: MetricCardProps) {
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
         {subtitle && (
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
+          <p className="text-xs text-gray-500">{subtitle}</p>
         )}
         {trend && (
           <div className={`flex items-center text-xs ${
@@ -228,9 +228,9 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
     return (
       <div className="p-6">
         <div className="text-center py-8">
-          <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-500" />
           <p className="text-lg font-medium">Failed to load analytics</p>
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-gray-500 mb-4">
             There was an error loading the analytics data
           </p>
           <Button onClick={() => refetchAnalytics()}>
@@ -248,7 +248,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Site Analytics</h1>
-          <p className="text-muted-foreground">{siteName}</p>
+          <p className="text-gray-500">{siteName}</p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={timeRange.toString()} onValueChange={(value) => setTimeRange(Number(value))}>
@@ -305,13 +305,13 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
               title="Unique Visitors"
               value={formatNumber(analytics.summary_metrics.total_unique_visitors)}
               subtitle={`${timeRange} days`}
-              icon={<Users className="h-4 w-4 text-muted-foreground" />}
+              icon={<Users className="h-4 w-4 text-gray-500" />}
             />
             <MetricCard
               title="Page Views"
               value={formatNumber(analytics.summary_metrics.total_page_views)}
               subtitle={`${timeRange} days`}
-              icon={<Eye className="h-4 w-4 text-muted-foreground" />}
+              icon={<Eye className="h-4 w-4 text-gray-500" />}
             />
             <MetricCard
               title="Avg. Session Duration"
@@ -320,7 +320,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                 : 'N/A'
               }
               subtitle="Per session"
-              icon={<Activity className="h-4 w-4 text-muted-foreground" />}
+              icon={<Activity className="h-4 w-4 text-gray-500" />}
             />
             <MetricCard
               title="Bounce Rate"
@@ -329,7 +329,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                 : 'N/A'
               }
               subtitle="Visitors leaving immediately"
-              icon={<MousePointer className="h-4 w-4 text-muted-foreground" />}
+              icon={<MousePointer className="h-4 w-4 text-gray-500" />}
             />
           </div>
 
@@ -393,7 +393,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                         </ResponsiveContainer>
                       </div>
                     ) : (
-                      <div className="h-80 flex items-center justify-center text-muted-foreground">
+                      <div className="h-80 flex items-center justify-center text-gray-500">
                         No traffic data available
                       </div>
                     )}
@@ -435,7 +435,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                         </ResponsiveContainer>
                       </div>
                     ) : (
-                      <div className="h-64 flex items-center justify-center text-muted-foreground">
+                      <div className="h-64 flex items-center justify-center text-gray-500">
                         No device data available
                       </div>
                     )}
@@ -483,7 +483,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                         </ResponsiveContainer>
                       </div>
                     ) : (
-                      <div className="h-64 flex items-center justify-center text-muted-foreground">
+                      <div className="h-64 flex items-center justify-center text-gray-500">
                         No session data available
                       </div>
                     )}
@@ -543,7 +543,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                         </ResponsiveContainer>
                       </div>
                     ) : (
-                      <div className="h-80 flex items-center justify-center text-muted-foreground">
+                      <div className="h-80 flex items-center justify-center text-gray-500">
                         No performance data available
                       </div>
                     )}
@@ -601,7 +601,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                         </ResponsiveContainer>
                       </div>
                     ) : (
-                      <div className="h-80 flex items-center justify-center text-muted-foreground">
+                      <div className="h-80 flex items-center justify-center text-gray-500">
                         No Core Web Vitals data available
                       </div>
                     )}
@@ -630,19 +630,19 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                       title="Form Submissions"
                       value={engagementMetrics.total_form_submissions}
                       subtitle={`${timeRange} days`}
-                      icon={<MousePointer className="h-4 w-4 text-muted-foreground" />}
+                      icon={<MousePointer className="h-4 w-4 text-gray-500" />}
                     />
                     <MetricCard
                       title="Contact Inquiries"
                       value={engagementMetrics.total_contact_inquiries}
                       subtitle={`${timeRange} days`}
-                      icon={<Globe className="h-4 w-4 text-muted-foreground" />}
+                      icon={<Globe className="h-4 w-4 text-gray-500" />}
                     />
                     <MetricCard
                       title="Product Views"
                       value={engagementMetrics.total_product_views}
                       subtitle={`${timeRange} days`}
-                      icon={<Eye className="h-4 w-4 text-muted-foreground" />}
+                      icon={<Eye className="h-4 w-4 text-gray-500" />}
                     />
                   </div>
 
@@ -696,7 +696,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                           </ResponsiveContainer>
                         </div>
                       ) : (
-                        <div className="h-80 flex items-center justify-center text-muted-foreground">
+                        <div className="h-80 flex items-center justify-center text-gray-500">
                           No engagement data available
                         </div>
                       )}
@@ -736,7 +736,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                       ))}
                     </div>
                   ) : (
-                    <div className="py-8 text-center text-muted-foreground">
+                    <div className="py-8 text-center text-gray-500">
                       No geographic data available
                     </div>
                   )}
@@ -772,7 +772,7 @@ export function SiteAnalytics({ siteId, siteName }: SiteAnalyticsProps) {
                       ))}
                     </div>
                   ) : (
-                    <div className="py-8 text-center text-muted-foreground">
+                    <div className="py-8 text-center text-gray-500">
                       No page data available
                     </div>
                   )}

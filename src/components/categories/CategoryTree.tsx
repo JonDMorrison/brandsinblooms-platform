@@ -342,7 +342,7 @@ export function CategoryTree({
         
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
           <Input
             placeholder="Search categories..."
             value={currentSearch}
@@ -373,13 +373,13 @@ export function CategoryTree({
           {loading ? (
             <div className="flex items-center justify-center h-32">
               <Loader2 className="h-6 w-6 animate-spin" />
-              <span className="ml-2 text-sm text-muted-foreground">Loading categories...</span>
+              <span className="ml-2 text-sm text-gray-500">Loading categories...</span>
             </div>
           ) : filteredCategories.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-32 text-center">
-              <FolderTree className="h-8 w-8 text-muted-foreground mb-2" />
+              <FolderTree className="h-8 w-8 text-gray-500 mb-2" />
               <p className="text-sm font-medium">No categories found</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500">
                 {currentSearch ? 'Try adjusting your search terms' : 'Get started by creating your first category'}
               </p>
               {!currentSearch && onCreateCategory && (

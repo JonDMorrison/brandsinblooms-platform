@@ -188,8 +188,8 @@ const InlineTextEditorComponent = ({
       ref={elementRef}
       className={cn(
         'inline-editor-wrapper relative',
-        isEnabled && !isEditing && 'cursor-text hover:bg-muted/50 transition-colors',
-        isEditing && 'ring-2 ring-primary/50 ring-offset-1 bg-background rounded',
+        isEnabled && !isEditing && 'cursor-text hover:bg-gradient-primary-50/50 transition-colors',
+        isEditing && 'ring-2 ring-primary/50 ring-offset-1 bg-white rounded',
         className
       )}
       onClick={handleContainerClick}
@@ -207,7 +207,7 @@ const InlineTextEditorComponent = ({
           '[&_.ProseMirror]:outline-none',
           '[&_.ProseMirror]:min-h-[1.5em]',
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]',
-          '[&_.ProseMirror_p.is-editor-empty:first-child::before]:text-muted-foreground',
+          '[&_.ProseMirror_p.is-editor-empty:first-child::before]:text-gray-500',
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none',
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:absolute',
           '[&_.ProseMirror_p]:m-0', // Remove default margins for inline editing

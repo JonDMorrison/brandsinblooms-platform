@@ -62,7 +62,7 @@ export function ShoppingCart({ open, onOpenChange, className }: ShoppingCartProp
             <CartIcon className="h-5 w-5" />
             Shopping Cart
             {itemCount > 0 && (
-              <span className="text-sm font-normal text-muted-foreground">
+              <span className="text-sm font-normal text-gray-500">
                 ({itemCount} {itemCount === 1 ? 'item' : 'items'})
               </span>
             )}
@@ -132,7 +132,7 @@ export function ShoppingCart({ open, onOpenChange, className }: ShoppingCartProp
               
               {/* Shipping Notice */}
               {subtotal < 100 && (
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="text-xs text-gray-500 text-center">
                   Add {formatPrice(100 - subtotal)} more for free shipping!
                 </p>
               )}
@@ -172,7 +172,7 @@ function CartItem({ item, onQuantityChange, onRemove, disabled }: CartItemProps)
           />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <ShoppingBag className="h-8 w-8 text-muted-foreground" />
+            <ShoppingBag className="h-8 w-8 text-gray-500" />
           </div>
         )}
       </div>
@@ -183,7 +183,7 @@ function CartItem({ item, onQuantityChange, onRemove, disabled }: CartItemProps)
           {item.product.name}
         </h4>
         {item.product.variant && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-500">
             {item.product.variant}
           </p>
         )}
@@ -231,7 +231,7 @@ function CartItem({ item, onQuantityChange, onRemove, disabled }: CartItemProps)
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+            className="h-6 px-2 text-xs text-gray-500 hover:text-destructive"
             onClick={() => onRemove(item.id)}
             disabled={disabled}
           >
@@ -251,11 +251,11 @@ function EmptyCart({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center flex-1 space-y-4">
       <div className="rounded-full bg-muted p-6">
-        <CartIcon className="h-12 w-12 text-muted-foreground" />
+        <CartIcon className="h-12 w-12 text-gray-500" />
       </div>
       <div className="text-center space-y-2">
         <h3 className="font-semibold">Your cart is empty</h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-gray-500">
           Add some products to get started
         </p>
       </div>

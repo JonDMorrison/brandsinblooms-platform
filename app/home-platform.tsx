@@ -29,7 +29,7 @@ function SiteBranding({ site }: { site: any }) {
           {site.name}
         </h2>
         {site.business_name && site.business_name !== site.name && (
-          <p className="text-sm text-muted-foreground">{site.business_name}</p>
+          <p className="text-sm text-gray-500">{site.business_name}</p>
         )}
       </div>
     </div>
@@ -84,7 +84,7 @@ export default function HomePlatform() {
     return (
       <div className='min-h-screen bg-gradient-hero'>
         {/* Header */}
-        <header className='relative z-10 border-b bg-background/95 backdrop-blur'>
+        <header className='relative z-10 border-b bg-white/95 backdrop-blur'>
           <nav className='brand-container py-6'>
             <div className='flex items-center justify-between'>
               <div className='flex items-center space-x-2 sm:space-x-3'>
@@ -128,7 +128,7 @@ export default function HomePlatform() {
               {currentSite && (
                 <div className='mb-8'>
                   <SiteBranding site={currentSite} />
-                  <p className='text-sm text-muted-foreground mt-2'>
+                  <p className='text-sm text-gray-500 mt-2'>
                     Currently selected site
                   </p>
                 </div>
@@ -138,7 +138,7 @@ export default function HomePlatform() {
                 <h1 className='text-3xl sm:text-4xl md:text-5xl font-brand-heading text-gradient-primary'>
                   Welcome back{currentSite ? ` to ${currentSite.name}` : ''}!
                 </h1>
-                <p className='text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto'>
+                <p className='text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto'>
                   Hello {user.email?.split('@')[0]}, ready to continue?
                 </p>
               </div>
@@ -151,7 +151,7 @@ export default function HomePlatform() {
                       <Settings className='h-8 w-8 text-white' />
                     </div>
                     <h3 className='text-lg font-semibold'>Go to Dashboard</h3>
-                    <p className='text-sm text-muted-foreground'>
+                    <p className='text-sm text-gray-500'>
                       {currentSite ? `Manage ${currentSite.name}` : 'View analytics and manage your site'}
                     </p>
                   </CardContent>
@@ -163,7 +163,7 @@ export default function HomePlatform() {
                       <Globe className='h-8 w-8 text-white' />
                     </div>
                     <h3 className='text-lg font-semibold'>My Sites</h3>
-                    <p className='text-sm text-muted-foreground'>
+                    <p className='text-sm text-gray-500'>
                       {sites.length > 0 ? `Manage your ${sites.length} site${sites.length > 1 ? 's' : ''}` : 'Create your first site'}
                     </p>
                   </CardContent>
@@ -175,7 +175,7 @@ export default function HomePlatform() {
                       {currentSite ? <Sparkles className='h-8 w-8 text-white' /> : <Plus className='h-8 w-8 text-white' />}
                     </div>
                     <h3 className='text-lg font-semibold'>{currentSite ? 'Customize Design' : 'Create New Site'}</h3>
-                    <p className='text-sm text-muted-foreground'>
+                    <p className='text-sm text-gray-500'>
                       {currentSite ? "Update your site's appearance" : 'Start building your website'}
                     </p>
                   </CardContent>
@@ -187,7 +187,7 @@ export default function HomePlatform() {
               {!siteLoading && !currentSite && sites.length > 0 && (
                 <Card className='bg-muted/50 max-w-md mx-auto'>
                   <CardContent className='p-6 text-center'>
-                    <p className='text-sm text-muted-foreground mb-4'>
+                    <p className='text-sm text-gray-500 mb-4'>
                       No site selected. Choose a site to get started.
                     </p>
                     <Button onClick={() => router.push('/dashboard/sites')}>
@@ -201,9 +201,9 @@ export default function HomePlatform() {
               {!siteLoading && !sitesLoading && sites.length === 0 && (
                 <Card className='bg-muted/50 max-w-md mx-auto'>
                   <CardContent className='p-6 text-center'>
-                    <Globe className='h-12 w-12 text-muted-foreground mx-auto mb-4' />
+                    <Globe className='h-12 w-12 text-gray-500 mx-auto mb-4' />
                     <h3 className='text-lg font-semibold mb-2'>No sites yet</h3>
-                    <p className='text-sm text-muted-foreground mb-4'>
+                    <p className='text-sm text-gray-500 mb-4'>
                       Create your first site to get started with Brands in Blooms.
                     </p>
                     <Button className='btn-gradient-primary' onClick={() => router.push('/dashboard/sites')}>
@@ -274,7 +274,7 @@ export default function HomePlatform() {
                 Build Beautiful Sites for Your Brands
               </h1>
               
-              <p className='text-base sm:text-lg md:text-xl text-muted-foreground'>
+              <p className='text-base sm:text-lg md:text-xl text-gray-500'>
                 Create and manage multiple branded websites with our powerful platform. 
                 Perfect for agencies, franchises, and multi-brand businesses.
               </p>
@@ -303,11 +303,11 @@ export default function HomePlatform() {
               <div className='flex items-center space-x-6 pt-4'>
                 <div className='flex items-center space-x-2'>
                   <Check className='h-5 w-5 text-green-500' />
-                  <span className='text-sm text-muted-foreground'>Free tier available</span>
+                  <span className='text-sm text-gray-500'>Free tier available</span>
                 </div>
                 <div className='flex items-center space-x-2'>
                   <Check className='h-5 w-5 text-green-500' />
-                  <span className='text-sm text-muted-foreground'>No credit card required</span>
+                  <span className='text-sm text-gray-500'>No credit card required</span>
                 </div>
               </div>
             </div>
@@ -322,7 +322,7 @@ export default function HomePlatform() {
                     </div>
                   </div>
                   <h3 className='text-2xl font-brand-heading mb-4'>Ready to grow your brands?</h3>
-                  <p className='text-muted-foreground mb-6'>Join thousands of businesses already using our platform.</p>
+                  <p className='text-gray-500 mb-6'>Join thousands of businesses already using our platform.</p>
                   <div className='flex flex-col gap-3'>
                     <Button 
                       size="lg" 
@@ -354,7 +354,7 @@ export default function HomePlatform() {
             <h2 className='text-2xl sm:text-3xl md:text-4xl font-brand-heading text-gradient-primary mb-4'>
               Everything You Need to Succeed
             </h2>
-            <p className='text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto'>
+            <p className='text-base sm:text-lg text-gray-500 max-w-2xl mx-auto'>
               Our platform provides all the tools you need to create, manage, and grow your branded websites.
             </p>
           </div>
@@ -367,7 +367,7 @@ export default function HomePlatform() {
                   <Globe className='h-6 w-6 text-white' />
                 </div>
                 <h3 className='text-lg font-semibold mb-2'>Custom Domains</h3>
-                <p className='text-muted-foreground'>
+                <p className='text-gray-500'>
                   Connect your own domains and create unique branded experiences for each site.
                 </p>
               </CardContent>
@@ -379,7 +379,7 @@ export default function HomePlatform() {
                   <Users className='h-6 w-6 text-white' />
                 </div>
                 <h3 className='text-lg font-semibold mb-2'>Team Management</h3>
-                <p className='text-muted-foreground'>
+                <p className='text-gray-500'>
                   Invite team members and control access with granular permissions.
                 </p>
               </CardContent>
@@ -391,7 +391,7 @@ export default function HomePlatform() {
                   <Zap className='h-6 w-6 text-white' />
                 </div>
                 <h3 className='text-lg font-semibold mb-2'>S3/CDN Storage</h3>
-                <p className='text-muted-foreground'>
+                <p className='text-gray-500'>
                   Lightning-fast image delivery with integrated CDN and S3 storage.
                 </p>
               </CardContent>
@@ -403,7 +403,7 @@ export default function HomePlatform() {
                   <Shield className='h-6 w-6 text-white' />
                 </div>
                 <h3 className='text-lg font-semibold mb-2'>Secure & Reliable</h3>
-                <p className='text-muted-foreground'>
+                <p className='text-gray-500'>
                   Enterprise-grade security with SSL certificates and regular backups.
                 </p>
               </CardContent>
@@ -415,7 +415,7 @@ export default function HomePlatform() {
                   <Sparkles className='h-6 w-6 text-white' />
                 </div>
                 <h3 className='text-lg font-semibold mb-2'>Product Catalog</h3>
-                <p className='text-muted-foreground'>
+                <p className='text-gray-500'>
                   Manage products with categories, inventory tracking, and beautiful galleries.
                 </p>
               </CardContent>
@@ -427,7 +427,7 @@ export default function HomePlatform() {
                   <Flower className='h-6 w-6 text-white' />
                 </div>
                 <h3 className='text-lg font-semibold mb-2'>Beautiful Themes</h3>
-                <p className='text-muted-foreground'>
+                <p className='text-gray-500'>
                   Choose from professionally designed themes or create your own.
                 </p>
               </CardContent>
@@ -465,19 +465,19 @@ export default function HomePlatform() {
               <div className='flex items-center justify-center w-8 h-8 bg-gradient-primary rounded-lg'>
                 <Flower className='h-4 w-4 text-white' />
               </div>
-              <span className='text-sm text-muted-foreground'>
+              <span className='text-sm text-gray-500'>
                 © 2025 Brands in Blooms. All rights reserved.
               </span>
             </div>
             
             <div className='flex items-center space-x-6'>
-              <Link href="/platform/privacy" className='text-sm text-muted-foreground hover:text-primary'>
+              <Link href="/platform/privacy" className='text-sm text-gray-500 hover:text-primary'>
                 Privacy Policy
               </Link>
-              <Link href="/platform/terms" className='text-sm text-muted-foreground hover:text-primary'>
+              <Link href="/platform/terms" className='text-sm text-gray-500 hover:text-primary'>
                 Terms of Service
               </Link>
-              <Link href="/platform/contact" className='text-sm text-muted-foreground hover:text-primary'>
+              <Link href="/platform/contact" className='text-sm text-gray-500 hover:text-primary'>
                 Contact
               </Link>
             </div>

@@ -76,7 +76,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   return (
     <header 
       className={cn(
-        'w-full bg-background border-b transition-all duration-200',
+        'w-full bg-white border-b transition-all duration-200',
         stickyHeader && 'sticky top-0 z-50',
         heightClass,
         className
@@ -108,7 +108,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                       <div className="border-t pt-4 mt-2" />
                       <Link
                         href="/dashboard"
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent"
+                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-gradient-primary-50"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Dashboard
@@ -266,7 +266,7 @@ function DesktopNavItem({ item }: { item: NavigationItem }) {
   return (
     <Link
       href={item.href}
-      className="flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent transition-colors"
+      className="flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md hover:bg-gradient-primary-20 transition-colors"
     >
       {item.icon}
       {item.label}
@@ -288,7 +288,7 @@ function MobileNavItem({
       <div>
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-md hover:bg-accent"
+          className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-md hover:bg-gradient-primary-50"
         >
           <span className="flex items-center gap-2">
             {item.icon}
@@ -307,7 +307,7 @@ function MobileNavItem({
               <Link
                 key={child.href}
                 href={child.href}
-                className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-accent"
+                className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gradient-primary-50"
                 onClick={onClick}
               >
                 {child.icon}
@@ -323,7 +323,7 @@ function MobileNavItem({
   return (
     <Link
       href={item.href}
-      className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent"
+      className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-gradient-primary-50"
       onClick={onClick}
     >
       {item.icon}

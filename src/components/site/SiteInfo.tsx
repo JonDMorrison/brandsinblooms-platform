@@ -97,7 +97,7 @@ export function SiteInfo() {
         </CardHeader>
         <CardContent className="space-y-4">
           {site.description && (
-            <p className="text-muted-foreground">{site.description}</p>
+            <p className="text-gray-500">{site.description}</p>
           )}
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -105,7 +105,7 @@ export function SiteInfo() {
               <h4 className="font-medium mb-2">Site URLs</h4>
               <div className="space-y-1 text-sm">
                 <div className="flex items-center space-x-2">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <Globe className="h-4 w-4 text-gray-500" />
                   <span className="font-mono bg-muted px-2 py-1 rounded">
                     {site.subdomain}.yourdomain.com
                   </span>
@@ -131,12 +131,12 @@ export function SiteInfo() {
                       <span>You have {role} access</span>
                     </div>
                     {canEdit && (
-                      <div className="text-muted-foreground">
+                      <div className="text-gray-500">
                         • Can edit content and products
                       </div>
                     )}
                     {canManage && (
-                      <div className="text-muted-foreground">
+                      <div className="text-gray-500">
                         • Can manage site settings
                       </div>
                     )}
@@ -163,14 +163,14 @@ export function SiteInfo() {
             {site.business_name && (
               <div>
                 <h4 className="font-medium">Business Name</h4>
-                <p className="text-muted-foreground">{site.business_name}</p>
+                <p className="text-gray-500">{site.business_name}</p>
               </div>
             )}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {site.business_email && (
                 <div className="flex items-center space-x-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <Mail className="h-4 w-4 text-gray-500" />
                   <a 
                     href={`mailto:${site.business_email}`}
                     className="text-primary hover:underline"
@@ -182,7 +182,7 @@ export function SiteInfo() {
               
               {site.business_phone && (
                 <div className="flex items-center space-x-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <Phone className="h-4 w-4 text-gray-500" />
                   <a 
                     href={`tel:${site.business_phone}`}
                     className="text-primary hover:underline"
@@ -195,10 +195,10 @@ export function SiteInfo() {
             
             {site.business_address && (
               <div className="flex items-start space-x-2">
-                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
                 <div>
                   <h5 className="font-medium">Address</h5>
-                  <p className="text-muted-foreground whitespace-pre-line">
+                  <p className="text-gray-500 whitespace-pre-line">
                     {site.business_address}
                   </p>
                 </div>
@@ -207,10 +207,10 @@ export function SiteInfo() {
             
             {site.business_hours && (
               <div className="flex items-start space-x-2">
-                <Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
+                <Clock className="h-4 w-4 text-gray-500 mt-0.5" />
                 <div>
                   <h5 className="font-medium">Business Hours</h5>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-gray-500">
                     {Object.entries(site.business_hours as BusinessHours).map(([day, hours]) => (
                       <div key={day} className="flex justify-between">
                         <span className="capitalize">{day}:</span>
@@ -239,28 +239,28 @@ export function SiteInfo() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <h5 className="font-medium">Status</h5>
-              <p className="text-muted-foreground">
+              <p className="text-gray-500">
                 {site.is_active ? 'Active' : 'Inactive'}
               </p>
             </div>
             
             <div>
               <h5 className="font-medium">Visibility</h5>
-              <p className="text-muted-foreground">
+              <p className="text-gray-500">
                 {site.is_published ? 'Published' : 'Draft'}
               </p>
             </div>
             
             <div>
               <h5 className="font-medium">Timezone</h5>
-              <p className="text-muted-foreground">
+              <p className="text-gray-500">
                 {site.timezone || 'America/New_York'}
               </p>
             </div>
             
             <div>
               <h5 className="font-medium">Created</h5>
-              <p className="text-muted-foreground">
+              <p className="text-gray-500">
                 {new Date(site.created_at).toLocaleDateString()}
               </p>
             </div>
@@ -290,7 +290,7 @@ export function CompactSiteInfo() {
     <div className="flex items-center space-x-2">
       <div className="flex-1 min-w-0">
         <div className="font-medium truncate">{site.name}</div>
-        <div className="text-xs text-muted-foreground truncate">
+        <div className="text-xs text-gray-500 truncate">
           {site.subdomain}
           {site.custom_domain && ` • ${site.custom_domain}`}
         </div>

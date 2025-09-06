@@ -125,16 +125,16 @@ export function SiteFooter({ className }: SiteFooterProps) {
   // Render different footer styles
   if (footerStyle === 'minimal') {
     return (
-      <footer className={cn('w-full border-t bg-background', className)}>
+      <footer className={cn('w-full border-t bg-white', className)}>
         <div className="brand-container mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-muted-foreground">{copyright}</p>
+            <p className="text-sm text-gray-500">{copyright}</p>
             <div className="flex items-center gap-4">
               {socialLinks.map((link) => (
                 <Link
                   key={link.platform}
                   href={link.url}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-gray-500 hover:text-gray-900 transition-colors"
                   aria-label={link.platform}
                 >
                   {socialIcons[link.platform] || <Mail className="w-5 h-5" />}
@@ -149,12 +149,12 @@ export function SiteFooter({ className }: SiteFooterProps) {
   
   if (footerStyle === 'centered') {
     return (
-      <footer className={cn('w-full border-t bg-background', className)}>
+      <footer className={cn('w-full border-t bg-white', className)}>
         <div className="brand-container mx-auto px-4 py-12">
           <div className="text-center space-y-6">
             <h3 className="text-2xl font-bold">{site?.name || 'Store'}</h3>
             {site?.description && (
-              <p className="text-muted-foreground max-w-md mx-auto">
+              <p className="text-gray-500 max-w-md mx-auto">
                 {site.description}
               </p>
             )}
@@ -163,7 +163,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
                 <Link
                   key={link.platform}
                   href={link.url}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-gray-500 hover:text-gray-900 transition-colors"
                   aria-label={link.platform}
                 >
                   {socialIcons[link.platform] || <Mail className="w-5 h-5" />}
@@ -171,7 +171,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
               ))}
             </div>
             <Separator className="my-6" />
-            <p className="text-sm text-muted-foreground">{copyright}</p>
+            <p className="text-sm text-gray-500">{copyright}</p>
           </div>
         </div>
       </footer>
@@ -180,22 +180,22 @@ export function SiteFooter({ className }: SiteFooterProps) {
   
   // Default: comprehensive footer
   return (
-    <footer className={cn('w-full border-t bg-background', className)}>
+    <footer className={cn('w-full border-t bg-white', className)}>
       <div className="brand-container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">{site?.name || 'Store'}</h3>
             {site?.description && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 {site.description}
               </p>
             )}
-            <div className="space-y-2 text-sm text-muted-foreground">
+            <div className="space-y-2 text-sm text-gray-500">
               {site?.business_email && (
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
-                  <a href={`mailto:${site.business_email}`} className="hover:text-foreground">
+                  <a href={`mailto:${site.business_email}`} className="hover:text-gray-900">
                     {site.business_email}
                   </a>
                 </div>
@@ -203,7 +203,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
               {site?.business_phone && (
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
-                  <a href={`tel:${site.business_phone}`} className="hover:text-foreground">
+                  <a href={`tel:${site.business_phone}`} className="hover:text-gray-900">
                     {site.business_phone}
                   </a>
                 </div>
@@ -226,7 +226,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -244,7 +244,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
                 <h4 className="text-lg font-semibold mb-2">Subscribe to our Newsletter</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   Get the latest updates on new products and upcoming sales
                 </p>
               </div>
@@ -269,7 +269,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
         <Separator className="my-8" />
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           {/* Trust Badges */}
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+          <div className="flex items-center gap-6 text-sm text-gray-500">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
               <span>Secure Checkout</span>
@@ -292,7 +292,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
                 className="flex items-center justify-center w-12 h-8 border rounded bg-muted/50"
                 title={badge}
               >
-                <CreditCard className="w-5 h-5 text-muted-foreground" />
+                <CreditCard className="w-5 h-5 text-gray-500" />
               </div>
             ))}
           </div>
@@ -301,13 +301,13 @@ export function SiteFooter({ className }: SiteFooterProps) {
         {/* Bottom Bar */}
         <Separator className="my-8" />
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">{copyright}</p>
+          <p className="text-sm text-gray-500">{copyright}</p>
           <div className="flex items-center gap-4">
             {socialLinks.map((link) => (
               <Link
                 key={link.platform}
                 href={link.url}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-gray-500 hover:text-gray-900 transition-colors"
                 aria-label={link.platform}
               >
                 {socialIcons[link.platform] || <Mail className="w-5 h-5" />}

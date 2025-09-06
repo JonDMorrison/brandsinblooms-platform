@@ -117,8 +117,8 @@ function SortableImageItem({
           {imageError ? (
             <div className="flex flex-col items-center justify-center h-full p-4 text-center">
               <AlertCircle className="h-8 w-8 text-destructive mb-2" />
-              <p className="text-sm text-muted-foreground">Failed to load image</p>
-              <p className="text-xs text-muted-foreground mt-1 break-all">{image.url}</p>
+              <p className="text-sm text-gray-500">Failed to load image</p>
+              <p className="text-xs text-gray-500 mt-1 break-all">{image.url}</p>
             </div>
           ) : (
             <img
@@ -146,7 +146,7 @@ function SortableImageItem({
           <div
             {...attributes}
             {...listeners}
-            className="absolute top-2 right-2 p-1.5 bg-background/80 rounded-md cursor-move hover:bg-background transition-colors"
+            className="absolute top-2 right-2 p-1.5 bg-white/80 rounded-md cursor-move hover:bg-white transition-colors"
           >
             <GripVertical className="h-4 w-4" />
           </div>
@@ -196,7 +196,7 @@ function SortableImageItem({
             </div>
           ) : (
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground truncate flex-1">
+              <p className="text-xs text-gray-500 truncate flex-1">
                 {image.alt_text || 'No alt text'}
               </p>
               <Button
@@ -212,26 +212,26 @@ function SortableImageItem({
           )}
 
           {image.filename && (
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs text-gray-500 truncate">
               {image.filename}
             </p>
           )}
 
           {image.size && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500">
               {formatFileSize(image.size)}
             </p>
           )}
 
           {image.width && image.height && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500">
               {image.width} × {image.height}px
             </p>
           )}
 
           {/* Storage info */}
           {image.storage_type === 's3' && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 text-xs text-gray-500">
               <Cloud className="h-3 w-3" />
               <span>S3</span>
             </div>
@@ -508,14 +508,14 @@ export function ImageUploadS3({
             disabled={disabled || images.length >= maxImages}
             className="hidden"
           />
-          <Cloud className={`h-10 w-10 mb-4 ${isDragOver ? 'text-primary animate-pulse' : 'text-muted-foreground'}`} />
+          <Cloud className={`h-10 w-10 mb-4 ${isDragOver ? 'text-primary animate-pulse' : 'text-gray-500'}`} />
           <h3 className="text-lg font-semibold mb-2">
             {isDragOver ? 'Drop images here' : 'Upload Images'}
           </h3>
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-gray-500 mb-4">
             Drag and drop images here, or click to select files
           </p>
-          <div className="flex gap-4 text-xs text-muted-foreground">
+          <div className="flex gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <Cloud className="h-3 w-3" />
               S3 Storage
@@ -534,7 +534,7 @@ export function ImageUploadS3({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Uploading to S3...</span>
-                <span className="text-sm text-muted-foreground">{Math.round(uploadProgress)}%</span>
+                <span className="text-sm text-gray-500">{Math.round(uploadProgress)}%</span>
               </div>
               <Progress value={uploadProgress} />
             </div>
@@ -545,11 +545,11 @@ export function ImageUploadS3({
       {/* Image count and info */}
       {images.length > 0 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             {images.length} of {maxImages} images uploaded
           </p>
           {images.length > 1 && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500">
               Drag images to reorder
             </p>
           )}

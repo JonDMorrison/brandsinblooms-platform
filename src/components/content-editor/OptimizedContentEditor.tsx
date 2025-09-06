@@ -169,10 +169,10 @@ const OptimizedSectionEditor = React.memo(({
       case 'pricing':
         return (
           <div className="p-4 border rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-sm text-gray-500 text-center">
               {section.type.charAt(0).toUpperCase() + section.type.slice(1)} editor coming soon
             </p>
-            <p className="text-xs text-muted-foreground text-center mt-1">
+            <p className="text-xs text-gray-500 text-center mt-1">
               Will support adding/editing items dynamically
             </p>
           </div>
@@ -181,10 +181,10 @@ const OptimizedSectionEditor = React.memo(({
       case 'form':
         return (
           <div className="p-4 border rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-sm text-gray-500 text-center">
               Form builder coming soon
             </p>
-            <p className="text-xs text-muted-foreground text-center mt-1">
+            <p className="text-xs text-gray-500 text-center mt-1">
               Will support drag-and-drop form fields
             </p>
           </div>
@@ -203,7 +203,7 @@ const OptimizedSectionEditor = React.memo(({
       default:
         return (
           <div className="p-4 border rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-sm text-gray-500 text-center">
               Unknown section type: {section.type}
             </p>
           </div>
@@ -235,7 +235,7 @@ const OptimizedSectionEditor = React.memo(({
                 </Badge>
               )}
               {isEmpty && (
-                <Badge variant="outline" className="text-xs h-4 px-1.5 text-muted-foreground">
+                <Badge variant="outline" className="text-xs h-4 px-1.5 text-gray-500">
                   Empty
                 </Badge>
               )}
@@ -363,7 +363,7 @@ export function OptimizedContentEditor({
       <div className="flex items-center justify-between p-4 border-b">
         <div>
           <h3 className="text-sm font-medium">Content Editor</h3>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-500">
             {layout.charAt(0).toUpperCase() + layout.slice(1)} Layout
           </p>
         </div>
@@ -446,8 +446,8 @@ export function OptimizedContentEditor({
           {/* Add Optional Sections */}
           <div className="border-2 border-dashed border-muted rounded-lg p-4">
             <div className="text-center">
-              <Plus className="h-5 w-5 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground mb-3">
+              <Plus className="h-5 w-5 text-gray-500 mx-auto mb-2" />
+              <p className="text-sm text-gray-500 mb-3">
                 Add optional sections
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -481,7 +481,7 @@ export function OptimizedContentEditor({
       <EditorErrorBoundary>
         <MobileEditorLayout
           sidebar={sidebarContent}
-          preview={<div className="p-4 text-center text-muted-foreground">Preview coming soon</div>}
+          preview={<div className="p-4 text-center text-gray-500">Preview coming soon</div>}
         >
           {editorContent}
         </MobileEditorLayout>

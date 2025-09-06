@@ -124,7 +124,7 @@ const RichTextEditorComponent = React.forwardRef<RichTextEditorRef, RichTextEdit
             '[&_.ProseMirror]:min-h-[var(--min-height)]',
             '[&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]',
             '[&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left',
-            '[&_.ProseMirror_p.is-editor-empty:first-child::before]:text-muted-foreground',
+            '[&_.ProseMirror_p.is-editor-empty:first-child::before]:text-gray-500',
             '[&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none',
             '[&_.ProseMirror_p.is-editor-empty:first-child::before]:h-0',
             // Link styles
@@ -166,7 +166,7 @@ const RichTextEditorComponent = React.forwardRef<RichTextEditorRef, RichTextEdit
               variant="outline"
               onClick={save}
               disabled={!isDirty || editorOptions.readOnly}
-              className="bg-background/80 backdrop-blur-sm"
+              className="bg-white/80 backdrop-blur-sm"
             >
               <Save className="h-3 w-3 mr-1" />
               {isDirty ? 'Save' : 'Saved'}

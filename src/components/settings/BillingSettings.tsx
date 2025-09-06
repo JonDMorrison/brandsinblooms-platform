@@ -200,7 +200,7 @@ export function BillingSettings() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold">{currentPlan.name}</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 ${currentPlan.price}/{currentPlan.interval}
               </p>
             </div>
@@ -213,14 +213,14 @@ export function BillingSettings() {
             <div>
               <h4 className="font-medium mb-2">Next Billing Date</h4>
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <Calendar className="h-4 w-4 text-gray-500" />
                 <span className="text-sm">{currentPlan.nextBilling}</span>
               </div>
             </div>
             <div>
               <h4 className="font-medium mb-2">Payment Method</h4>
               <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                <CreditCard className="h-4 w-4 text-gray-500" />
                 <span className="text-sm">
                   {paymentMethod.brand} ending in {paymentMethod.last4}
                 </span>
@@ -272,7 +272,7 @@ export function BillingSettings() {
                     <h3 className="text-xl font-semibold">{plan.name}</h3>
                     <div className="text-3xl font-bold mt-2">
                       ${plan.price}
-                      <span className="text-sm font-normal text-muted-foreground">
+                      <span className="text-sm font-normal text-gray-500">
                         /{plan.interval}
                       </span>
                     </div>
@@ -360,7 +360,7 @@ export function BillingSettings() {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Sites Created</span>
-              <span className="text-sm text-muted-foreground">12 / 25</span>
+              <span className="text-sm text-gray-500">12 / 25</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div className="bg-primary h-2 rounded-full" style={{ width: '48%' }}></div>
@@ -372,7 +372,7 @@ export function BillingSettings() {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Storage Used</span>
-              <span className="text-sm text-muted-foreground">34GB / 100GB</span>
+              <span className="text-sm text-gray-500">34GB / 100GB</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div className="bg-primary h-2 rounded-full" style={{ width: '34%' }}></div>
@@ -384,10 +384,10 @@ export function BillingSettings() {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Monthly Page Views</span>
-              <span className="text-sm text-muted-foreground">45,234 / Unlimited</span>
+              <span className="text-sm text-gray-500">45,234 / Unlimited</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+              <div className="bg-gray-1000 h-2 rounded-full" style={{ width: '100%' }}></div>
             </div>
           </div>
         </CardContent>

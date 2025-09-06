@@ -279,7 +279,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Edit Product</h1>
-            <p className="text-muted-foreground">Loading product details...</p>
+            <p className="text-gray-500">Loading product details...</p>
           </div>
           <Button variant="outline" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -306,7 +306,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Edit Product</h1>
-            <p className="text-muted-foreground">Product not found</p>
+            <p className="text-gray-500">Product not found</p>
           </div>
           <Button variant="outline" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -337,7 +337,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Edit Product</h1>
-          <p className="text-muted-foreground">Update product details</p>
+          <p className="text-gray-500">Update product details</p>
         </div>
         <Button variant="outline" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -353,7 +353,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
               className={`flex items-center justify-center h-10 w-10 rounded-full border-2 ${
                 index <= currentStep
                   ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-muted bg-background text-muted-foreground'
+                  : 'border-muted bg-white text-gray-500'
               }`}
             >
               {index < currentStep ? <Check className="h-4 w-4" /> : step.icon}
@@ -459,7 +459,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                           </FormControl>
                           {isGenerating && (
                             <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
                             </div>
                           )}
                           {manuallyEdited && !isGenerating && (
@@ -583,7 +583,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                           <FormLabel>Regular Price *</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
                                 $
                               </span>
                               <Input
@@ -608,7 +608,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                           <FormLabel>Sale Price</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
                                 $
                               </span>
                               <Input
@@ -636,7 +636,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                         <FormLabel>Compare at Price</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
                               $
                             </span>
                             <Input
@@ -782,27 +782,27 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                     <h3 className="font-semibold">Product Details</h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-muted-foreground">Name:</span>
+                        <span className="text-gray-500">Name:</span>
                         <p className="font-medium">{form.watch('name') || 'Not set'}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">SKU:</span>
+                        <span className="text-gray-500">SKU:</span>
                         <p className="font-medium">{form.watch('sku') || 'Not set'}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Category:</span>
+                        <span className="text-gray-500">Category:</span>
                         <p className="font-medium">{form.watch('category') || 'Not set'}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Price:</span>
+                        <span className="text-gray-500">Price:</span>
                         <p className="font-medium">${form.watch('price') || '0.00'}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Stock:</span>
+                        <span className="text-gray-500">Stock:</span>
                         <p className="font-medium">{form.watch('inventory_count')} units</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Status:</span>
+                        <span className="text-gray-500">Status:</span>
                         <div className="flex gap-2 mt-1">
                           {form.watch('is_active') && (
                             <Badge variant="default">Active</Badge>
@@ -816,7 +816,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                   </div>
 
                   <div className="rounded-lg bg-muted p-4">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-500">
                       Review your product details above. You can go back to make changes or click
                       &quot;Update Product&quot; to save your changes.
                     </p>

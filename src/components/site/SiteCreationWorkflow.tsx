@@ -261,7 +261,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold mb-2">Basic Information</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Let&apos;s start with the basics about your new site.
               </p>
             </div>
@@ -314,7 +314,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
                   <FormControl>
                     <div className="flex items-center">
                       <Input placeholder="my-site" {...field} />
-                      <span className="ml-2 text-sm text-muted-foreground">
+                      <span className="ml-2 text-sm text-gray-500">
                         .{appDomain}
                       </span>
                     </div>
@@ -326,7 +326,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
                   
                   {/* Subdomain availability check */}
                   {subdomainCheck.checking && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
                       <RefreshCw className="h-4 w-4 animate-spin" />
                       Checking availability...
                     </div>
@@ -347,7 +347,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
                       </div>
                       {subdomainCheck.suggestions.length > 0 && (
                         <div className="text-sm">
-                          <p className="text-muted-foreground mb-1">Suggestions:</p>
+                          <p className="text-gray-500 mb-1">Suggestions:</p>
                           <div className="flex flex-wrap gap-1">
                             {subdomainCheck.suggestions.slice(0, 3).map((suggestion, index) => (
                               <Badge
@@ -403,7 +403,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold mb-2">Choose a Template</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Select a starting template for your site. You can customize it later.
               </p>
             </div>
@@ -432,7 +432,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
                   </CardHeader>
                   <CardContent>
                     <div className="h-20 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-md flex items-center justify-center">
-                      <Sparkles className="h-8 w-8 text-muted-foreground" />
+                      <Sparkles className="h-8 w-8 text-gray-500" />
                     </div>
                   </CardContent>
                 </Card>
@@ -455,7 +455,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold mb-2">Review & Create</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Review your site configuration before creating.
               </p>
             </div>
@@ -465,23 +465,23 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium">Site Name</p>
-                    <p className="text-sm text-muted-foreground">{form.getValues('name')}</p>
+                    <p className="text-sm text-gray-500">{form.getValues('name')}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium">Category</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-500">
                       {siteCategories.find(c => c.value === form.getValues('category'))?.label}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm font-medium">URL</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-500">
                       https://{form.getValues('subdomain')}.{appDomain}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm font-medium">Template</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-500">
                       {form.getValues('template') 
                         ? siteTemplates.find(t => t.id === form.getValues('template'))?.name
                         : 'None selected'
@@ -493,7 +493,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
                 {form.getValues('description') && (
                   <div>
                     <p className="text-sm font-medium">Description</p>
-                    <p className="text-sm text-muted-foreground">{form.getValues('description')}</p>
+                    <p className="text-sm text-gray-500">{form.getValues('description')}</p>
                   </div>
                 )}
               </CardContent>
@@ -535,7 +535,7 @@ export function SiteCreationWorkflow({ triggerButton, onSiteCreated }: SiteCreat
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   step <= currentStep
                     ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground'
+                    : 'bg-muted text-gray-500'
                 }`}
               >
                 {step}

@@ -69,16 +69,16 @@ export function OrderTrendsChart() {
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                    <div className="rounded-lg border bg-white p-2 shadow-sm">
                       <div className="grid gap-2">
                         <div className="flex flex-col">
-                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                          <span className="text-[0.70rem] uppercase text-gray-500">
                             {label}
                           </span>
                         </div>
                         {payload.map((entry, index) => (
                           <div key={index} className="flex flex-col">
-                            <span className="text-[0.70rem] uppercase text-muted-foreground">
+                            <span className="text-[0.70rem] uppercase text-gray-500">
                               {entry.dataKey === 'orders' ? 'Orders' : 'Revenue'}
                             </span>
                             <span className="font-bold" style={{ color: entry.color }}>

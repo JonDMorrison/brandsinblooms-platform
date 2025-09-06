@@ -55,7 +55,7 @@ interface HealthStatusProps {
 
 function HealthStatusCard({ status, count, label, icon }: HealthStatusProps) {
   const colors = {
-    healthy: 'text-green-600 bg-green-50 border-green-200',
+    healthy: 'text-green-600 bg-gray-100 border-green-200',
     warning: 'text-yellow-600 bg-yellow-50 border-yellow-200',
     critical: 'text-red-600 bg-red-50 border-red-200'
   }
@@ -216,13 +216,13 @@ export function SiteHealthDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Platform Health Dashboard</h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             Real-time monitoring and health status of all sites
           </p>
         </div>
         <div className="flex items-center gap-3">
           {lastHealthCheckRun && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-500">
               Last check: {lastHealthCheckRun}
             </p>
           )}
@@ -280,7 +280,7 @@ export function SiteHealthDashboard() {
                 </div>
                 <div className="ml-4">
                   <p className="text-2xl font-bold">{healthOverview.total_sites}</p>
-                  <p className="text-sm font-medium text-muted-foreground">Total Sites</p>
+                  <p className="text-sm font-medium text-gray-500">Total Sites</p>
                 </div>
               </CardContent>
             </Card>
@@ -291,13 +291,13 @@ export function SiteHealthDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Platform Uptime</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <TrendingUp className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {healthOverview.avg_platform_uptime.toFixed(1)}%
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   Last 24 hours
                 </p>
               </CardContent>
@@ -306,13 +306,13 @@ export function SiteHealthDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
-                <Zap className="h-4 w-4 text-muted-foreground" />
+                <Zap className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {healthOverview.avg_response_time}ms
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   Platform average
                 </p>
               </CardContent>
@@ -321,13 +321,13 @@ export function SiteHealthDashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Errors (24h)</CardTitle>
-                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                <AlertCircle className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {healthOverview.total_errors_24h}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   Critical issues
                 </p>
               </CardContent>
@@ -416,7 +416,7 @@ export function SiteHealthDashboard() {
                     </ResponsiveContainer>
                   </div>
                 ) : (
-                  <div className="h-64 flex items-center justify-center text-muted-foreground">
+                  <div className="h-64 flex items-center justify-center text-gray-500">
                     No uptime data available
                   </div>
                 )}
@@ -454,7 +454,7 @@ export function SiteHealthDashboard() {
                           <Badge variant={getStatusBadgeVariant(site.status)}>
                             {site.status}
                           </Badge>
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-sm text-gray-500">
                             Score: {site.health_score}/100
                           </span>
                         </div>
@@ -466,13 +466,13 @@ export function SiteHealthDashboard() {
                               </p>
                             ))}
                             {site.issues.length > 2 && (
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-sm text-gray-500">
                                 +{site.issues.length - 2} more issues
                               </p>
                             )}
                           </div>
                         )}
-                        <p className="text-xs text-muted-foreground mt-2">
+                        <p className="text-xs text-gray-500 mt-2">
                           Last checked: {new Date(site.last_checked).toLocaleString()}
                         </p>
                       </div>
@@ -488,7 +488,7 @@ export function SiteHealthDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 text-gray-500">
                   <Shield className="h-12 w-12 mx-auto mb-4 text-green-600" />
                   <p className="text-lg font-medium">All Sites Healthy</p>
                   <p className="text-sm">No sites currently need attention</p>

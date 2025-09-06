@@ -120,7 +120,7 @@ export function CategoryBreadcrumb({
               variant="ghost"
               size="sm"
               className={cn(
-                'h-auto px-2 py-1 text-sm font-normal hover:bg-muted',
+                'h-auto px-2 py-1 text-sm font-normal hover:bg-gradient-primary-50',
                 itemClassName
               )}
             >
@@ -147,15 +147,15 @@ export function CategoryBreadcrumb({
                         style={{ color: hiddenItem.color || undefined }} 
                       />
                     ) : (
-                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <Package className="h-4 w-4 text-gray-500" />
                     )}
                     <span className={cn(
-                      !hiddenItem.is_active && 'text-muted-foreground line-through'
+                      !hiddenItem.is_active && 'text-gray-500 line-through'
                     )}>
                       {hiddenItem.name}
                     </span>
                     {showInactiveIndicator && !hiddenItem.is_active && (
-                      <EyeOff className="h-3 w-3 text-muted-foreground" />
+                      <EyeOff className="h-3 w-3 text-gray-500" />
                     )}
                   </div>
                 </DropdownMenuItem>
@@ -185,7 +185,7 @@ export function CategoryBreadcrumb({
               size="sm"
               onClick={onRootClick}
               className={cn(
-                'h-auto px-2 py-1 text-sm font-normal hover:bg-muted',
+                'h-auto px-2 py-1 text-sm font-normal hover:bg-gradient-primary-50',
                 isLast && 'font-medium',
                 itemClassName
               )}
@@ -195,8 +195,8 @@ export function CategoryBreadcrumb({
           ) : (
             <div className={cn(
               'px-2 py-1 text-sm',
-              isLast && 'font-medium text-foreground',
-              !isLast && 'text-muted-foreground',
+              isLast && 'font-medium text-gray-900',
+              !isLast && 'text-gray-500',
               itemClassName
             )}>
               {content}
@@ -218,7 +218,7 @@ export function CategoryBreadcrumb({
             style={{ color: item.color || undefined }} 
           />
         ) : (
-          <Package className="h-3 w-3 text-muted-foreground" />
+          <Package className="h-3 w-3 text-gray-500" />
         )}
         
         <span className={cn(
@@ -234,7 +234,7 @@ export function CategoryBreadcrumb({
         )}
         
         {showInactiveIndicator && !item.is_active && (
-          <EyeOff className="h-3 w-3 text-muted-foreground" />
+          <EyeOff className="h-3 w-3 text-gray-500" />
         )}
       </div>
     );
@@ -249,7 +249,7 @@ export function CategoryBreadcrumb({
               onClick={() => onCategoryClick?.(item)}
               disabled={!item.is_active}
               className={cn(
-                'h-auto px-2 py-1 text-sm font-normal hover:bg-muted max-w-48',
+                'h-auto px-2 py-1 text-sm font-normal hover:bg-gradient-primary-50 max-w-48',
                 isLast && 'font-medium',
                 !item.is_active && 'opacity-60',
                 itemClassName
@@ -264,7 +264,7 @@ export function CategoryBreadcrumb({
             <div className="space-y-1">
               <div className="font-medium">{item.name}</div>
               {item.description && (
-                <div className="text-xs text-muted-foreground max-w-64">
+                <div className="text-xs text-gray-500 max-w-64">
                   {item.description}
                 </div>
               )}
@@ -277,8 +277,8 @@ export function CategoryBreadcrumb({
         key={item.id}
         className={cn(
           'px-2 py-1 text-sm max-w-48',
-          isLast && 'font-medium text-foreground',
-          !isLast && 'text-muted-foreground',
+          isLast && 'font-medium text-gray-900',
+          !isLast && 'text-gray-500',
           !item.is_active && 'opacity-60',
           itemClassName
         )}

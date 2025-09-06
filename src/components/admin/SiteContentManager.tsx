@@ -351,7 +351,7 @@ export function SiteContentManager({ siteId, siteName }: SiteContentManagerProps
       return <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600">Featured</Badge>
     }
     if (contentItem.is_published) {
-      return <Badge variant="default" className="bg-green-500 hover:bg-green-600">Published</Badge>
+      return <Badge variant="default" className="bg-gray-1000 hover:bg-green-600">Published</Badge>
     }
     return <Badge variant="secondary">Draft</Badge>
   }
@@ -361,8 +361,8 @@ export function SiteContentManager({ siteId, siteName }: SiteContentManagerProps
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Content Management</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl font-bold text-gray-900">Content Management</h2>
+          <p className="text-gray-500">
             Manage content for {siteName}
           </p>
         </div>
@@ -505,7 +505,7 @@ export function SiteContentManager({ siteId, siteName }: SiteContentManagerProps
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-gray-500">
                 {selectedContent.length} content item{selectedContent.length === 1 ? '' : 's'} selected
               </span>
               <div className="flex gap-2">
@@ -553,7 +553,7 @@ export function SiteContentManager({ siteId, siteName }: SiteContentManagerProps
             </div>
           ) : content.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No content found</p>
+              <p className="text-gray-500">No content found</p>
             </div>
           ) : (
             <>
@@ -587,7 +587,7 @@ export function SiteContentManager({ siteId, siteName }: SiteContentManagerProps
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">{item.title}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-gray-500">
                           {item.slug}
                         </div>
                       </TableCell>

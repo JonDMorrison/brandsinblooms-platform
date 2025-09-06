@@ -281,7 +281,7 @@ export function FormBuilder({ section, onUpdate }: SectionEditorProps) {
       ) : (
         <Card className="border-2 border-dashed">
           <CardContent className="p-8">
-            <p className="text-sm text-muted-foreground text-center mb-4">
+            <p className="text-sm text-gray-500 text-center mb-4">
               No form fields added yet. Click a button above to add a field.
             </p>
           </CardContent>

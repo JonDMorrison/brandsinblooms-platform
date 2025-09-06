@@ -75,12 +75,12 @@ export function SiteLayout({
 
 function SiteLayoutLoading() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="flex items-center space-x-3">
         <div className="flex items-center justify-center w-8 h-8 bg-gradient-primary rounded">
           <Flower className="h-4 w-4 text-white animate-spin" />
         </div>
-        <span className="text-sm text-muted-foreground">Loading site...</span>
+        <span className="text-sm text-gray-500">Loading site...</span>
       </div>
     </div>
   )
@@ -88,7 +88,7 @@ function SiteLayoutLoading() {
 
 function SiteLayoutError({ error }: { error: string }) {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="max-w-md text-center space-y-4">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -110,17 +110,17 @@ function SiteLayoutError({ error }: { error: string }) {
 
 function AuthenticationRequired() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="max-w-md text-center space-y-6">
         <div className="flex items-center justify-center w-16 h-16 bg-muted rounded-full mx-auto">
-          <AlertCircle className="h-8 w-8 text-muted-foreground" />
+          <AlertCircle className="h-8 w-8 text-gray-500" />
         </div>
         
         <div className="space-y-2">
-          <h1 className="text-2xl font-brand-heading text-foreground">
+          <h1 className="text-2xl font-brand-heading text-gray-900">
             Authentication Required
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             You need to sign in to access this page.
           </p>
         </div>
@@ -145,17 +145,17 @@ function AuthenticationRequired() {
 
 function SiteAccessRequired() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="max-w-md text-center space-y-6">
         <div className="flex items-center justify-center w-16 h-16 bg-muted rounded-full mx-auto">
-          <AlertCircle className="h-8 w-8 text-muted-foreground" />
+          <AlertCircle className="h-8 w-8 text-gray-500" />
         </div>
         
         <div className="space-y-2">
-          <h1 className="text-2xl font-brand-heading text-foreground">
+          <h1 className="text-2xl font-brand-heading text-gray-900">
             Access Denied
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             You don&apos;t have permission to access this site.
           </p>
         </div>

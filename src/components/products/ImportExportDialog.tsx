@@ -386,7 +386,7 @@ export function ImportExportDialog({
                             </div>
                           ))}
                           {importResult.errors.length > 10 && (
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-sm text-gray-500">
                               ... and {importResult.errors.length - 10} more errors
                             </div>
                           )}

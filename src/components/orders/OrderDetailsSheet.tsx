@@ -133,7 +133,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-red-600">Error Loading Order</h3>
-              <p className="text-muted-foreground mt-2">
+              <p className="text-gray-500 mt-2">
                 {error instanceof Error ? error.message : 'Failed to load order details'}
               </p>
             </div>
@@ -159,7 +159,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                   <ShoppingCart className="h-5 w-5" />
                   Order #{order.order_number}
                 </SheetTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   Created {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
                 </p>
               </div>
@@ -208,7 +208,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                     <div className="font-medium">
                       {order.customer.full_name || 'Unknown Customer'}
                     </div>
-                    <div className="text-sm text-muted-foreground flex items-center gap-1">
+                    <div className="text-sm text-gray-500 flex items-center gap-1">
                       <Mail className="h-3 w-3" />
                       {order.customer.email}
                     </div>
@@ -230,13 +230,13 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                   {order.order_items.map((item: any) => (
                     <div key={item.id} className="flex items-center gap-4 p-3 border rounded-lg">
                       <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-                        <Package className="h-6 w-6 text-muted-foreground" />
+                        <Package className="h-6 w-6 text-gray-500" />
                       </div>
                       <div className="flex-1">
                         <div className="font-medium">
                           {item.product?.name || 'Product'}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-gray-500">
                           Quantity: {item.quantity}
                         </div>
                       </div>
@@ -244,7 +244,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                         <div className="font-medium">
                           {formatCurrency(item.unit_price, order.currency || 'USD')}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-gray-500">
                           Total: {formatCurrency(item.unit_price * item.quantity, order.currency || 'USD')}
                         </div>
                       </div>
@@ -357,7 +357,7 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                             <Badge>{shipment.status || 'pending'}</Badge>
                           </div>
                           {shipment.tracking_number && (
-                            <div className="text-sm text-muted-foreground mt-1">
+                            <div className="text-sm text-gray-500 mt-1">
                               Tracking: {shipment.tracking_number}
                             </div>
                           )}
@@ -442,12 +442,12 @@ export function OrderDetailsSheet({ orderId, open, onOpenChange }: OrderDetailsS
                               {entry.from_status ? `${entry.from_status} → ` : ''}
                               {entry.to_status}
                             </span>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-gray-500">
                               {formatDistanceToNow(new Date(entry.created_at), { addSuffix: true })}
                             </span>
                           </div>
                           {entry.notes && (
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-gray-500 mt-1">
                               {entry.notes}
                             </p>
                           )}

@@ -176,13 +176,13 @@ export default function OrdersPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Orders</h1>
-            <p className="text-muted-foreground">Manage your orders and track performance</p>
+            <p className="text-gray-500">Manage your orders and track performance</p>
           </div>
         </div>
         <Card className="border-red-200 ">
           <CardContent className="p-8 text-center">
             <h3 className="font-medium text-red-600  mb-2">Failed to Load Orders</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-gray-500 mb-4">
               {error instanceof Error ? error.message : 'An error occurred while loading orders'}
             </p>
             <Button onClick={handleRefresh} variant="outline">
@@ -201,7 +201,7 @@ export default function OrdersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 fade-in-up" style={{ animationDelay: '0s' }}>
         <div>
           <h1 className="text-2xl font-bold">Orders</h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             {totalCount > 0 ? `Manage your ${totalCount} orders and track performance` : 'Manage your orders and track performance'}
           </p>
         </div>
@@ -311,7 +311,7 @@ export default function OrdersPage() {
               {/* Selection Info */}
               {selectedOrders.length > 0 && (
                 <div className="flex items-center justify-between py-4">
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-gray-500">
                     {selectedOrders.length} of {orders.length} row(s) selected.
                   </div>
                 </div>

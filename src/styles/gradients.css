@@ -2,39 +2,41 @@
 
 /* Primary brand gradients - Nature-inspired */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, 
-    hsl(152 45% 40%) 0%, 
-    hsl(145 35% 60%) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(152 45% 40%) 0%,
+    hsl(145 35% 60%) 100%
+  );
   color: hsl(0 0% 100%);
 }
 
 .bg-gradient-primary-soft {
-  background: linear-gradient(135deg, 
-    hsl(152 45% 40% / 0.1) 0%, 
-    hsl(145 35% 60% / 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(152 45% 40% / 0.1) 0%,
+    hsl(145 35% 60% / 0.05) 100%
+  );
 }
 
 /* Card gradients - Subtle earth tones */
 .gradient-card {
-  background: linear-gradient(145deg, 
-    hsl(0 0% 100%) 0%, 
-    hsl(140 12% 97%) 100%);
+  background: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(140 12% 97%) 100%);
   backdrop-filter: blur(10px);
   border: 1px solid hsl(140 12% 88% / 0.2);
 }
 
 /* Hero section gradients */
 .bg-gradient-hero {
-  background: linear-gradient(180deg, 
-    hsl(0 0% 99%) 0%, 
-    hsl(140 15% 96%) 100%);
+  background: linear-gradient(180deg, hsl(0 0% 99%) 0%, hsl(140 15% 96%) 100%);
 }
 
 /* Text gradients - Earth tones */
 .text-gradient-primary {
-  background: linear-gradient(135deg, 
-    hsl(155 50% 25%) 0%, 
-    hsl(152 45% 40%) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(155 50% 25%) 0%,
+    hsl(152 45% 40%) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -44,44 +46,40 @@
 
 /* Secondary gradients - Terracotta accent */
 .bg-gradient-secondary {
-  background: linear-gradient(135deg, 
-    hsl(18 70% 55%) 0%, 
-    hsl(22 65% 65%) 100%);
+  background: linear-gradient(135deg, hsl(18 70% 55%) 0%, hsl(22 65% 65%) 100%);
   color: hsl(0 0% 100%);
 }
 
 /* Subtle gradients */
 .bg-gradient-subtle {
-  background: linear-gradient(180deg, 
-    hsl(0 0% 99%) 0%, 
-    hsl(140 15% 96%) 100%);
+  background: linear-gradient(180deg, hsl(0 0% 99%) 0%, hsl(140 15% 96%) 100%);
 }
 
 .bg-gradient-subtle-light {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.8) 0%, 
-    hsl(140 15% 96% / 0.9) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    hsl(140 15% 96% / 0.9) 100%
+  );
 }
 
 /* Success/Error/Warning gradients with nature palette */
 .bg-gradient-success {
-  background: linear-gradient(135deg, 
-    hsl(142 65% 35%) 0%, 
-    hsl(142 65% 45%) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(142 65% 35%) 0%,
+    hsl(142 65% 45%) 100%
+  );
   color: hsl(0 0% 100%);
 }
 
 .bg-gradient-error {
-  background: linear-gradient(135deg, 
-    hsl(0 75% 55%) 0%, 
-    hsl(0 75% 65%) 100%);
+  background: linear-gradient(135deg, hsl(0 75% 55%) 0%, hsl(0 75% 65%) 100%);
   color: hsl(0 0% 100%);
 }
 
 .bg-gradient-warning {
-  background: linear-gradient(135deg, 
-    hsl(32 85% 50%) 0%, 
-    hsl(32 85% 60%) 100%);
+  background: linear-gradient(135deg, hsl(32 85% 50%) 0%, hsl(32 85% 60%) 100%);
   color: hsl(0 0% 100%);
 }
 
@@ -95,9 +93,11 @@
   position: absolute;
   inset: 0;
   padding: 1px;
-  background: linear-gradient(135deg, 
-    hsl(152 45% 40% / 0.5) 0%, 
-    hsl(145 35% 60% / 0.2) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(152 45% 40% / 0.5) 0%,
+    hsl(145 35% 60% / 0.2) 100%
+  );
   border-radius: inherit;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: xor;
@@ -106,17 +106,21 @@
 
 /* Button gradients - Nature-inspired */
 .btn-gradient-primary {
-  background: linear-gradient(135deg, 
-    hsl(152 45% 40%) 0%, 
-    hsl(145 35% 60%) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(152 45% 40%) 0%,
+    hsl(145 35% 60%) 100%
+  );
   color: hsl(0 0% 100%);
   transition: all 0.3s ease;
 }
 
 .btn-gradient-primary:hover {
-  background: linear-gradient(135deg, 
-    hsl(155 50% 25%) 0%, 
-    hsl(152 45% 40%) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(155 50% 25%) 0%,
+    hsl(152 45% 40%) 100%
+  );
   color: hsl(0 0% 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px hsl(152 45% 40% / 0.3);
@@ -124,17 +128,13 @@
 
 /* Button secondary gradient - Terracotta */
 .btn-gradient-secondary {
-  background: linear-gradient(135deg, 
-    hsl(18 70% 55%) 0%, 
-    hsl(22 65% 65%) 100%);
+  background: linear-gradient(135deg, hsl(18 70% 55%) 0%, hsl(22 65% 65%) 100%);
   color: hsl(0 0% 100%);
   transition: all 0.3s ease;
 }
 
 .btn-gradient-secondary:hover {
-  background: linear-gradient(135deg, 
-    hsl(18 70% 50%) 0%, 
-    hsl(18 70% 55%) 100%);
+  background: linear-gradient(135deg, hsl(18 70% 50%) 0%, hsl(18 70% 55%) 100%);
   color: hsl(0 0% 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px hsl(18 70% 55% / 0.3);
@@ -142,32 +142,62 @@
 
 /* Animated gradients with nature colors */
 .bg-gradient-animated {
-  background: linear-gradient(-45deg, 
-    hsl(152 45% 40% / 0.1), 
-    hsl(145 35% 60% / 0.2), 
-    hsl(140 15% 92% / 0.3), 
-    hsl(18 70% 55% / 0.1));
+  background: linear-gradient(
+    -45deg,
+    hsl(152 45% 40% / 0.1),
+    hsl(145 35% 60% / 0.2),
+    hsl(140 15% 92% / 0.3),
+    hsl(18 70% 55% / 0.1)
+  );
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
 }
 
 @keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Special accent gradients */
 .bg-gradient-accent {
-  background: linear-gradient(135deg, 
-    hsl(18 70% 55%) 0%, 
-    hsl(152 45% 40%) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(18 70% 55%) 0%,
+    hsl(152 45% 40%) 100%
+  );
   color: hsl(0 0% 100%);
 }
 
 /* Glow effect gradient */
 .bg-gradient-glow {
-  background: radial-gradient(circle at center, 
-    hsl(145 35% 60% / 0.2) 0%, 
-    transparent 70%);
+  background: radial-gradient(
+    circle at center,
+    hsl(145 35% 60% / 0.2) 0%,
+    transparent 70%
+  );
+}
+
+/* Hover gradient utilities - 20% transparent primary gradient */
+.hover\:bg-gradient-primary-50:hover {
+  background: linear-gradient(
+    135deg,
+    hsl(152 45% 40% / 0.2) 0%,
+    hsl(145 35% 60% / 0.2) 100%
+  );
+}
+
+/* Hover gradient utilities - 10% transparent for subtle hovers */
+.hover\:bg-gradient-primary-20:hover {
+  background: linear-gradient(
+    135deg,
+    hsl(152 45% 40% / 0.1) 0%,
+    hsl(145 35% 60% / 0.1) 100%
+  );
 }

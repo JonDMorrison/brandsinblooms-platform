@@ -174,7 +174,7 @@ export function SiteImpersonationControls({
             {/* Session Details */}
             <div className="grid gap-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Session ID:</span>
+                <span className="text-gray-500">Session ID:</span>
                 <code className="text-xs bg-muted px-2 py-1 rounded">
                   {session?.session_id.slice(0, 8)}...
                 </code>
@@ -182,7 +182,7 @@ export function SiteImpersonationControls({
               
               {session?.impersonated_user_email && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Viewing as:</span>
+                  <span className="text-gray-500">Viewing as:</span>
                   <span className="font-medium">
                     {session.impersonated_user_name || session.impersonated_user_email}
                   </span>
@@ -190,7 +190,7 @@ export function SiteImpersonationControls({
               )}
               
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Time remaining:</span>
+                <span className="text-gray-500">Time remaining:</span>
                 <Badge variant="outline" className="gap-1">
                   <Clock className="h-3 w-3" />
                   {getTimeRemainingText()}
@@ -199,7 +199,7 @@ export function SiteImpersonationControls({
 
               {session?.purpose && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Purpose:</span>
+                  <span className="text-gray-500">Purpose:</span>
                   <span className="font-medium max-w-48 truncate" title={session.purpose}>
                     {session.purpose}
                   </span>
@@ -266,7 +266,7 @@ export function SiteImpersonationControls({
           {/* Site Information */}
           <div className="grid gap-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Site URL:</span>
+              <span className="text-gray-500">Site URL:</span>
               <span className="font-mono text-xs">
                 {siteCustomDomain 
                   ? `${siteCustomDomain}` 
@@ -277,7 +277,7 @@ export function SiteImpersonationControls({
             
             {siteOwnerEmail && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Owner:</span>
+                <span className="text-gray-500">Owner:</span>
                 <span className="font-medium">
                   {siteOwnerName || siteOwnerEmail}
                 </span>
@@ -348,7 +348,7 @@ export function SiteImpersonationControls({
                       </Label>
                     </div>
                     {impersonateOwner && (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-gray-500">
                         You will see the site as {siteOwnerName || siteOwnerEmail} would see it
                       </p>
                     )}

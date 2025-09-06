@@ -49,11 +49,11 @@ export default async function SiteContentPage({ params }: PageProps<{ id: string
   if (error) {
     return (
       <AdminGuard>
-        <div className="min-h-screen bg-background p-6">
+        <div className="min-h-screen bg-white p-6">
           <div className="mx-auto max-w-7xl">
             <div className="text-center py-12">
               <h1 className="text-2xl font-bold text-destructive mb-2">Error</h1>
-              <p className="text-muted-foreground">{error}</p>
+              <p className="text-gray-500">{error}</p>
             </div>
           </div>
         </div>
@@ -63,23 +63,23 @@ export default async function SiteContentPage({ params }: PageProps<{ id: string
 
   return (
     <AdminGuard>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-white">
         {/* Header */}
         <header className="border-b bg-card/50">
           <div className="mx-auto max-w-7xl px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-foreground">
+                <h1 className="text-2xl font-bold text-gray-900">
                   Content Management
                 </h1>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-gray-500 mt-1">
                   {site.name} • {site.subdomain}.brandsinblooms.com
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <a 
                   href={`/admin/sites/${id}/edit`}
-                  className="text-sm text-muted-foreground hover:text-foreground"
+                  className="text-sm text-gray-500 hover:text-gray-900"
                 >
                   ← Back to Site
                 </a>

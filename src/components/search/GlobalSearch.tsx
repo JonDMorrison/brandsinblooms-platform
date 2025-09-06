@@ -160,11 +160,11 @@ export function GlobalSearch({ placeholder = "Search content...", className, onN
   const renderEmptyState = () => (
     <CommandEmpty>
       <div className="flex flex-col items-center py-6 text-center">
-        <Search className="h-8 w-8 text-muted-foreground mb-2" />
-        <p className="text-sm text-muted-foreground">
+        <Search className="h-8 w-8 text-gray-500 mb-2" />
+        <p className="text-sm text-gray-500">
           No content found for "{query}"
         </p>
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="text-xs text-gray-500 mt-1">
           Try adjusting your search terms
         </p>
       </div>
@@ -194,16 +194,16 @@ export function GlobalSearch({ placeholder = "Search content...", className, onN
               onSelect={() => handleNavigate(result)}
               className={cn(
                 "flex items-start gap-3 px-3 py-2 cursor-pointer",
-                isSelected && "bg-accent text-accent-foreground"
+                isSelected && "bg-gray-100 text-white"
               )}
             >
-              <Icon className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+              <Icon className="h-4 w-4 mt-0.5 shrink-0 text-gray-500" />
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm truncate">
                   {result.title}
                 </div>
                 {result.excerpt && (
-                  <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  <div className="text-xs text-gray-500 mt-1 line-clamp-2">
                     {result.excerpt}
                   </div>
                 )}
@@ -218,7 +218,7 @@ export function GlobalSearch({ placeholder = "Search content...", className, onN
   return (
     <div ref={containerRef} className={cn("relative", className)}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
         <input
           ref={inputRef}
           type="text"
@@ -227,8 +227,8 @@ export function GlobalSearch({ placeholder = "Search content...", className, onN
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={handleFocus}
           className={cn(
-            "w-full pl-10 pr-10 py-2 border border-input bg-background rounded-md",
-            "text-sm placeholder:text-muted-foreground",
+            "w-full pl-10 pr-10 py-2 border border-input bg-white rounded-md",
+            "text-sm placeholder:text-gray-500",
             "focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
             "transition-colors"
           )}
@@ -236,7 +236,7 @@ export function GlobalSearch({ placeholder = "Search content...", className, onN
         {query && (
           <button
             onClick={handleClose}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 hover:text-gray-900 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -249,7 +249,7 @@ export function GlobalSearch({ placeholder = "Search content...", className, onN
             <Command>
             <CommandList className="max-h-96">
               {!hasMinLength ? (
-                <div className="py-6 text-center text-sm text-muted-foreground">
+                <div className="py-6 text-center text-sm text-gray-500">
                   Type at least 3 characters to search
                 </div>
               ) : isLoading ? (

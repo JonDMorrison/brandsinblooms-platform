@@ -114,7 +114,7 @@ export function ProductQuickView({ product, isOpen, onClose, onAddToSite }: Prod
         <div>
           <h2 className="text-2xl font-bold">{product.name}</h2>
           {product.sku && (
-            <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
+            <p className="text-sm text-gray-500">SKU: {product.sku}</p>
           )}
         </div>
 
@@ -122,7 +122,7 @@ export function ProductQuickView({ product, isOpen, onClose, onAddToSite }: Prod
           <span className="text-3xl font-bold">${product.price}</span>
           {((product as any).originalPrice || (product as any).compare_at_price) && 
            ((product as any).originalPrice || (product as any).compare_at_price) > product.price && (
-            <span className="text-lg text-muted-foreground line-through">
+            <span className="text-lg text-gray-500 line-through">
               ${(product as any).originalPrice || (product as any).compare_at_price}
             </span>
           )}
@@ -141,25 +141,25 @@ export function ProductQuickView({ product, isOpen, onClose, onAddToSite }: Prod
         <div className="space-y-2 border-t pt-4">
           {product.category && (
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Category</span>
+              <span className="text-sm text-gray-500">Category</span>
               <span className="text-sm font-medium">{product.category}</span>
             </div>
           )}
           {product.subcategory && (
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Subcategory</span>
+              <span className="text-sm text-gray-500">Subcategory</span>
               <span className="text-sm font-medium">{product.subcategory}</span>
             </div>
           )}
           {product.stock_quantity !== null && product.stock_quantity !== undefined && (
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Stock</span>
+              <span className="text-sm text-gray-500">Stock</span>
               <span className="text-sm font-medium">{product.stock_quantity} units</span>
             </div>
           )}
           {product.tags && Array.isArray(product.tags) && product.tags.length > 0 && (
             <div className="flex justify-between items-start">
-              <span className="text-sm text-muted-foreground">Tags</span>
+              <span className="text-sm text-gray-500">Tags</span>
               <div className="flex flex-wrap gap-1 justify-end">
                 {(product.tags as string[]).map((tag, idx) => (
                   <Badge key={idx} variant="secondary" className="text-xs">
@@ -175,7 +175,7 @@ export function ProductQuickView({ product, isOpen, onClose, onAddToSite }: Prod
         {product.care_instructions && (
           <div className="border-t pt-4">
             <h3 className="text-sm font-semibold mb-2">Care Instructions</h3>
-            <p className="text-sm text-muted-foreground">{product.care_instructions}</p>
+            <p className="text-sm text-gray-500">{product.care_instructions}</p>
           </div>
         )}
 

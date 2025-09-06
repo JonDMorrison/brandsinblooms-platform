@@ -64,7 +64,7 @@ interface HealthComponentProps {
 function HealthComponent({ title, status, description, lastChecked, metrics }: HealthComponentProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return 'text-green-600 bg-green-50 border-green-200'
+      case 'healthy': return 'text-green-600 bg-gray-100 border-green-200'
       case 'warning': return 'text-yellow-600 bg-yellow-50 border-yellow-200'
       case 'critical': return 'text-red-600 bg-red-50 border-red-200'
       default: return 'text-gray-600 bg-gray-50 border-gray-200'
@@ -101,7 +101,7 @@ function HealthComponent({ title, status, description, lastChecked, metrics }: H
       {(lastChecked || metrics) && (
         <CardContent className="pt-0">
           {lastChecked && (
-            <p className="text-xs text-muted-foreground mb-2">
+            <p className="text-xs text-gray-500 mb-2">
               Last checked: {new Date(lastChecked).toLocaleString()}
             </p>
           )}
@@ -109,7 +109,7 @@ function HealthComponent({ title, status, description, lastChecked, metrics }: H
             <div className="grid grid-cols-2 gap-4 text-sm">
               {Object.entries(metrics).map(([key, value]) => (
                 <div key={key}>
-                  <p className="text-muted-foreground">{key.replace(/_/g, ' ')}</p>
+                  <p className="text-gray-500">{key.replace(/_/g, ' ')}</p>
                   <p className="font-medium">{String(value)}</p>
                 </div>
               ))}
@@ -238,7 +238,7 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Site Health Details</h1>
-          <p className="text-muted-foreground">{siteName}</p>
+          <p className="text-gray-500">{siteName}</p>
         </div>
         <Button
           onClick={handleRunHealthCheck}
@@ -295,7 +295,7 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                   >
                     {currentHealth.overall_status.toUpperCase()}
                   </Badge>
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className="text-sm text-gray-500 mt-2">
                     Last checked: {new Date(currentHealth.checked_at).toLocaleString()}
                   </p>
                 </div>
@@ -308,13 +308,13 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Uptime (24h)</CardTitle>
-                <Wifi className="h-4 w-4 text-muted-foreground" />
+                <Wifi className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {currentHealth.uptime_24h.toFixed(1)}%
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   Last 24 hours
                 </p>
               </CardContent>
@@ -323,13 +323,13 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Response Time</CardTitle>
-                <Timer className="h-4 w-4 text-muted-foreground" />
+                <Timer className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {currentHealth.avg_response_time_ms || 0}ms
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   Average response
                 </p>
               </CardContent>
@@ -338,13 +338,13 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Content Items</CardTitle>
-                <Globe className="h-4 w-4 text-muted-foreground" />
+                <Globe className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {currentHealth.metrics.content_count}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   Published content
                 </p>
               </CardContent>
@@ -482,7 +482,7 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                       </ResponsiveContainer>
                     </div>
                   ) : (
-                    <div className="h-64 flex items-center justify-center text-muted-foreground">
+                    <div className="h-64 flex items-center justify-center text-gray-500">
                       No uptime data available
                     </div>
                   )}
@@ -523,7 +523,7 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                       </ResponsiveContainer>
                     </div>
                   ) : (
-                    <div className="h-64 flex items-center justify-center text-muted-foreground">
+                    <div className="h-64 flex items-center justify-center text-gray-500">
                       No response time data available
                     </div>
                   )}
@@ -582,13 +582,13 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                     <div className="text-2xl font-bold text-green-600">
                       {uptimeStats.uptime_percentage.toFixed(1)}%
                     </div>
-                    <p className="text-sm text-muted-foreground">Uptime</p>
+                    <p className="text-sm text-gray-500">Uptime</p>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold">
                       {uptimeStats.successful_checks}
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-500">
                       Successful checks
                     </p>
                   </div>
@@ -596,7 +596,7 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                     <div className="text-2xl font-bold">
                       {uptimeStats.avg_response_time}ms
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-500">
                       Avg response time
                     </p>
                   </div>
@@ -604,7 +604,7 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                     <div className="text-2xl font-bold">
                       {uptimeStats.max_downtime_minutes}m
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-500">
                       Max downtime
                     </p>
                   </div>
@@ -636,13 +636,13 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                     <div key={check.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className={`w-3 h-3 rounded-full ${
-                          check.status === 'healthy' ? 'bg-green-500' :
+                          check.status === 'healthy' ? 'bg-gray-1000' :
                           check.status === 'warning' ? 'bg-yellow-500' : 
                           check.status === 'critical' ? 'bg-red-500' : 'bg-gray-500'
                         }`} />
                         <div>
                           <p className="font-medium">{check.check_type.replace('_', ' ')}</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-gray-500">
                             {new Date(check.checked_at).toLocaleString()}
                           </p>
                         </div>
@@ -657,7 +657,7 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                           {check.status}
                         </Badge>
                         {check.response_time_ms && (
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="text-sm text-gray-500 mt-1">
                             {check.response_time_ms}ms
                           </p>
                         )}
@@ -666,7 +666,7 @@ export function SiteHealthDetails({ siteId, siteName }: SiteHealthDetailsProps) 
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 text-gray-500">
                   No health check history available
                 </div>
               )}

@@ -241,12 +241,12 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
                     )}
                   </div>
                   
-                  <p id={`product-desc-${product.id}`} className="text-xs text-muted-foreground mb-2 line-clamp-2">{product.description}</p>
+                  <p id={`product-desc-${product.id}`} className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description}</p>
                   
                   <div className="flex items-center gap-4 mb-2">
                     <div className="flex items-center gap-1">
                       {renderStars(product.rating)}
-                      <span className="text-xs text-muted-foreground ml-1">
+                      <span className="text-xs text-gray-500 ml-1">
                         ({product.reviews})
                       </span>
                     </div>
@@ -263,7 +263,7 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
                     <div className="flex items-center gap-2">
                       <span className="font-bold">${product.price}</span>
                       {product.originalPrice && (
-                        <span className="text-sm text-muted-foreground line-through">
+                        <span className="text-sm text-gray-500 line-through">
                           ${product.originalPrice}
                         </span>
                       )}
@@ -274,7 +274,7 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="hover:bg-gray-100 hover:border-gray-300 transition-colors cursor-pointer"
+                      className="hover:bg-gradient-primary-50 hover:border-gray-300 transition-colors cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -478,27 +478,27 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
         <div className="space-y-2">
           <div>
             <h3 className="font-semibold text-sm mb-1 line-clamp-1">{product.name}</h3>
-            <p id={`product-desc-grid-${product.id}`} className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
+            <p id={`product-desc-grid-${product.id}`} className="text-xs text-gray-500 line-clamp-2">{product.description}</p>
           </div>
 
           {/* Rating */}
           <div className="flex items-center gap-1">
             {renderStars(product.rating)}
-            <span className="text-xs text-muted-foreground ml-1">({product.reviews})</span>
+            <span className="text-xs text-gray-500 ml-1">({product.reviews})</span>
           </div>
 
           {/* Price */}
           <div className="flex items-center gap-2">
             <span className="font-bold">${product.price}</span>
             {product.originalPrice && (
-              <span className="text-sm text-muted-foreground line-through">
+              <span className="text-sm text-gray-500 line-through">
                 ${product.originalPrice}
               </span>
             )}
           </div>
 
           {/* Category */}
-          <div className="text-xs text-muted-foreground">{product.category}</div>
+          <div className="text-xs text-gray-500">{product.category}</div>
 
           {/* Action Button */}
           <div className="pt-2">

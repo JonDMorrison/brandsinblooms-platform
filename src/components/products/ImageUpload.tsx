@@ -148,7 +148,7 @@ function SortableImageItem({
           <div
             {...attributes}
             {...listeners}
-            className="flex-shrink-0 cursor-grab active:cursor-grabbing self-start mt-1 text-muted-foreground hover:text-foreground"
+            className="flex-shrink-0 cursor-grab active:cursor-grabbing self-start mt-1 text-gray-500 hover:text-gray-900"
           >
             <GripVertical className="h-4 w-4" />
           </div>
@@ -184,9 +184,9 @@ function SortableImageItem({
                       {image.alt_text || 'No alt text'}
                     </p>
                     {image.caption && (
-                      <p className="text-xs text-muted-foreground">{image.caption}</p>
+                      <p className="text-xs text-gray-500">{image.caption}</p>
                     )}
-                    <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                    <div className="flex gap-2 mt-1 text-xs text-gray-500">
                       {image.width && image.height && (
                         <span>{image.width} × {image.height}</span>
                       )}
@@ -516,20 +516,20 @@ export function ImageUpload({
         onClick={() => !disabled && fileInputRef.current?.click()}
       >
         <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-          <Upload className={`h-10 w-10 mb-4 ${isDragOver ? 'text-primary' : 'text-muted-foreground'}`} />
+          <Upload className={`h-10 w-10 mb-4 ${isDragOver ? 'text-primary' : 'text-gray-500'}`} />
           <h3 className="text-lg font-semibold mb-2">
             {isDragOver ? 'Drop images here' : 'Upload Product Images'}
           </h3>
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-gray-500 mb-4">
             Drag and drop images here, or click to select files
           </p>
-          <div className="flex gap-4 text-xs text-muted-foreground">
+          <div className="flex gap-4 text-xs text-gray-500">
             <span>• Maximum {maxImages} images</span>
             <span>• JPG, PNG, WebP, AVIF</span>
             <span>• Max 5MB per file</span>
           </div>
           {images.length > 0 && (
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-gray-500 mt-2">
               {images.length} / {maxImages} images uploaded
             </p>
           )}
@@ -628,7 +628,7 @@ export function ImageUpload({
                   <Card className="opacity-90">
                     <CardContent className="p-3">
                       <div className="flex gap-3">
-                        <GripVertical className="h-4 w-4 text-muted-foreground self-start mt-1" />
+                        <GripVertical className="h-4 w-4 text-gray-500 self-start mt-1" />
                         <ProductImageComponent
                           src={activeImage.url}
                           alt={activeImage.alt_text || 'Dragging image'}
@@ -657,9 +657,9 @@ export function ImageUpload({
       {images.length === 0 && uploadProgress.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-            <ImageIcon className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No images uploaded yet</p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <ImageIcon className="h-12 w-12 text-gray-500 mb-4" />
+            <p className="text-gray-500">No images uploaded yet</p>
+            <p className="text-xs text-gray-500 mt-1">
               Add some product images to get started
             </p>
           </CardContent>

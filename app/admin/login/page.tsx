@@ -13,7 +13,7 @@ export default function AdminLoginPage() {
       
       {/* Decorative Elements */}
       <div className="absolute top-10 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-10 right-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute bottom-10 right-10 w-40 h-40 bg-gray-100/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       <div className="absolute top-1/2 left-5 w-20 h-20 bg-secondary/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       
       {/* Main Content */}

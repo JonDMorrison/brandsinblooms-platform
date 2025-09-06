@@ -293,8 +293,8 @@ export function PerformanceMetrics() {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <p className="text-muted-foreground">No metrics available yet</p>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-gray-500">No metrics available yet</p>
+            <p className="text-sm text-gray-500 mt-2">
               Metrics will be collected automatically as your site receives traffic
             </p>
           </div>
@@ -319,7 +319,7 @@ export function PerformanceMetrics() {
                     {metric.status}
                   </Badge>
                 </div>
-                <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                <div className="flex items-center space-x-1 text-xs text-gray-500">
                   {getTrendIcon(metric.change.type)}
                   <span>
                     {metric.change.type === 'increase' && '+'}
@@ -327,7 +327,7 @@ export function PerformanceMetrics() {
                     {metric.change.value > 0 && `${metric.change.value}%`}
                     {metric.change.value === 0 && 'No change'}
                   </span>
-                  <span className="text-muted-foreground">{metric.change.period}</span>
+                  <span className="text-gray-500">{metric.change.period}</span>
                 </div>
               </div>
               <div className="flex items-center space-x-3">

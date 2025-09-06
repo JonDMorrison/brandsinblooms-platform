@@ -204,7 +204,7 @@ export default function SitesPage() {
   return (
     <div className="min-h-screen bg-gradient-hero">
       {/* Header */}
-      <header className="relative z-10 border-b bg-background/95 backdrop-blur">
+      <header className="relative z-10 border-b bg-white/95 backdrop-blur">
         <nav className="brand-container py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
@@ -245,7 +245,7 @@ export default function SitesPage() {
           {/* Page Header */}
           <div>
             <h1 className="text-3xl font-bold">Your Sites</h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-gray-500 mt-2">
               Manage all your websites in one place
             </p>
           </div>
@@ -254,9 +254,9 @@ export default function SitesPage() {
           {sites.length === 0 ? (
             <Card className="text-center py-12">
               <CardContent>
-                <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <Globe className="h-12 w-12 text-gray-500 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No sites yet</h3>
-                <p className="text-muted-foreground mb-6">
+                <p className="text-gray-500 mb-6">
                   Create your first site to get started
                 </p>
                 <Button
@@ -289,7 +289,7 @@ export default function SitesPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2 text-sm">
-                      <div className="flex items-center text-muted-foreground">
+                      <div className="flex items-center text-gray-500">
                         <Globe className="h-4 w-4 mr-2" />
                         <a 
                           href={getSiteUrl(site)} 
@@ -301,11 +301,11 @@ export default function SitesPage() {
                           <ExternalLink className="h-3 w-3 ml-1" />
                         </a>
                       </div>
-                      <div className="flex items-center text-muted-foreground">
+                      <div className="flex items-center text-gray-500">
                         <Calendar className="h-4 w-4 mr-2" />
                         Created {new Date(site.created_at).toLocaleDateString()}
                       </div>
-                      <div className="flex items-center text-muted-foreground">
+                      <div className="flex items-center text-gray-500">
                         <Settings className="h-4 w-4 mr-2" />
                         Role: {site.role}
                       </div>
@@ -381,11 +381,11 @@ export default function SitesPage() {
                   value={newSite.subdomain}
                   onChange={(e) => setNewSite({ ...newSite, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
                 />
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-gray-500">
                   .{typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500">
                 Letters, numbers, and hyphens only
               </p>
             </div>

@@ -44,7 +44,7 @@ export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
             <h1 className="text-xl font-brand-heading text-gradient-primary">
               Brands & Blooms
             </h1>
-            <p className="text-xs text-muted-foreground">Platform</p>
+            <p className="text-xs text-gray-500">Platform</p>
           </div>
         </div>
         {onClose && (
@@ -75,7 +75,7 @@ export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
               className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
                 isActive
                   ? 'bg-gradient-primary text-white shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted interactive'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gradient-primary-50 interactive'
               }`}
             >
               <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'group-hover:text-primary'}`} />
@@ -91,10 +91,10 @@ export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
       <div className="p-4">
         <div className="bg-gradient-primary-soft border border-primary/20 rounded-lg p-4">
           <div className="flex items-center space-x-2 mb-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <div className="w-2 h-2 bg-gray-1000 rounded-full animate-pulse" />
             <span className="text-sm font-medium text-primary">Pro Plan</span>
           </div>
-          <p className="text-xs text-muted-foreground mb-3">
+          <p className="text-xs text-gray-500 mb-3">
             Unlock advanced features and unlimited projects
           </p>
           <Button size="sm" className="w-full btn-gradient-primary text-xs">

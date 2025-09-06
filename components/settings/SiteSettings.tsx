@@ -240,7 +240,7 @@ export function SiteSettings() {
                     <FormControl>
                       <div className="flex items-center">
                         <Input placeholder="my-site" {...field} />
-                        <span className="ml-2 text-sm text-muted-foreground">
+                        <span className="ml-2 text-sm text-gray-500">
                           .blooms.cc
                         </span>
                       </div>
@@ -254,7 +254,7 @@ export function SiteSettings() {
               />
 
               <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   <strong>Current URLs:</strong>
                 </p>
                 <div className="mt-2 space-y-1">

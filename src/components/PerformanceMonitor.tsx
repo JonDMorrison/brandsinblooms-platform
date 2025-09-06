@@ -114,7 +114,7 @@ export function PerformanceMonitor() {
   const getRatingColor = (rating: string | null) => {
     switch (rating) {
       case 'good':
-        return 'text-green-600 bg-green-50'
+        return 'text-green-600 bg-gray-100'
       case 'needs-improvement':
         return 'text-yellow-600 bg-yellow-50'
       case 'poor':

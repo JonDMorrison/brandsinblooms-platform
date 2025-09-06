@@ -85,7 +85,7 @@ function SectionItem({
                       (section.data.items && Array.isArray(section.data.items) && section.data.items.length > 0)
     
     if (!section.visible) {
-      return { icon: EyeOff, label: 'Hidden', className: 'text-muted-foreground' }
+      return { icon: EyeOff, label: 'Hidden', className: 'text-gray-500' }
     }
     
     if (hasContent) {
@@ -96,7 +96,7 @@ function SectionItem({
       return { icon: AlertCircle, label: 'Required', className: 'text-amber-600' }
     }
     
-    return { icon: Circle, label: 'Empty', className: 'text-muted-foreground' }
+    return { icon: Circle, label: 'Empty', className: 'text-gray-500' }
   }
 
   const status = getSectionStatus()
@@ -115,13 +115,13 @@ function SectionItem({
         flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors
         ${isActive 
           ? 'border-primary bg-primary/5' 
-          : 'border-border hover:border-primary/50 hover:bg-muted/50'
+          : 'border-border hover:border-primary/50 hover:bg-gradient-primary-50/50'
         }
       `}
       onClick={() => onClick(sectionKey)}
     >
       {/* Drag Handle */}
-      <div className="flex items-center text-muted-foreground">
+      <div className="flex items-center text-gray-500">
         <GripVertical className="h-4 w-4" />
       </div>
 
@@ -237,7 +237,7 @@ export function SectionManager({
         <div className="flex items-center justify-between mb-3">
           <div>
             <h3 className="text-sm font-medium">Section Manager</h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500">
               {layout.charAt(0).toUpperCase() + layout.slice(1)} Layout
             </p>
           </div>
@@ -247,7 +247,7 @@ export function SectionManager({
         <div className="grid grid-cols-3 gap-2">
           <div className="text-center p-2 bg-muted/50 rounded">
             <div className="text-lg font-medium">{sectionStats.total}</div>
-            <div className="text-xs text-muted-foreground">Total</div>
+            <div className="text-xs text-gray-500">Total</div>
           </div>
           <div className="text-center p-2 bg-blue-50 rounded">
             <div className="text-lg font-medium text-blue-600">
@@ -255,7 +255,7 @@ export function SectionManager({
             </div>
             <div className="text-xs text-blue-600">Visible</div>
           </div>
-          <div className="text-center p-2 bg-green-50 rounded">
+          <div className="text-center p-2 bg-gray-100 rounded">
             <div className="text-lg font-medium text-green-600">
               {sectionStats.completed}
             </div>
@@ -292,7 +292,7 @@ export function SectionManager({
 
       {/* Footer */}
       <div className="p-4 border-t bg-muted/30">
-        <p className="text-xs text-muted-foreground text-center">
+        <p className="text-xs text-gray-500 text-center">
           Drag sections to reorder • Toggle visibility with switches
         </p>
       </div>

@@ -55,11 +55,11 @@ function SortableItem({ id, children }: SortableItemProps) {
 
   const dragHandle = (
     <div
-      className="cursor-move p-1 hover:bg-accent rounded"
+      className="cursor-move p-1 hover:bg-gradient-primary-50 rounded"
       {...attributes}
       {...listeners}
     >
-      <GripVertical className="h-4 w-4 text-muted-foreground" />
+      <GripVertical className="h-4 w-4 text-gray-500" />
     </div>
   )
 
@@ -109,7 +109,7 @@ export function ItemListEditor<T extends { id: string }>({
     return (
       <div className="border-2 border-dashed border-muted rounded-lg p-8">
         <div className="text-center">
-          <p className="text-sm text-muted-foreground mb-4">{emptyMessage}</p>
+          <p className="text-sm text-gray-500 mb-4">{emptyMessage}</p>
           <Button
             variant="outline"
             size="sm"
@@ -197,7 +197,7 @@ export function ItemListEditor<T extends { id: string }>({
       )}
 
       {maxItems && items.length >= maxItems && (
-        <p className="text-xs text-muted-foreground text-center">
+        <p className="text-xs text-gray-500 text-center">
           Maximum of {maxItems} items reached
         </p>
       )}

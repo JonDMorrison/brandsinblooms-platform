@@ -8,7 +8,7 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-gradient-hero">
       {/* Header */}
-      <header className="relative z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="relative z-10 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <nav className="brand-container py-6">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
@@ -38,7 +38,7 @@ export default function Contact() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-brand-heading text-gradient-primary mb-4">
               Get in Touch
             </h1>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-gray-500">
               Have a question or need assistance? We're here to help!
             </p>
           </div>
@@ -51,9 +51,9 @@ export default function Contact() {
                     <Mail className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground mb-1">Email Us</h3>
-                    <p className="text-muted-foreground">support@brandsinblooms.com</p>
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <h3 className="font-semibold text-gray-900 mb-1">Email Us</h3>
+                    <p className="text-gray-500">support@brandsinblooms.com</p>
+                    <p className="text-sm text-gray-500 mt-2">
                       We'll respond within 24 hours
                     </p>
                   </div>
@@ -62,8 +62,8 @@ export default function Contact() {
             </Card>
 
             <div className="p-6 bg-muted/30 rounded-lg mt-6">
-              <h3 className="font-semibold text-foreground mb-3">Common Topics</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h3 className="font-semibold text-gray-900 mb-3">Common Topics</h3>
+              <ul className="space-y-2 text-sm text-gray-500">
                 <li>• Account and billing questions</li>
                 <li>• Technical support and troubleshooting</li>
                 <li>• Feature requests and feedback</li>
@@ -83,16 +83,16 @@ export default function Contact() {
               <div className="flex items-center justify-center w-8 h-8 bg-gradient-primary rounded-lg">
                 <Flower className="h-4 w-4 text-white" />
               </div>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-gray-500">
                 © 2025 Brands in Blooms. All rights reserved.
               </span>
             </div>
             
             <div className="flex items-center space-x-6">
-              <Link href="/platform/privacy" className="text-sm text-muted-foreground hover:text-primary">
+              <Link href="/platform/privacy" className="text-sm text-gray-500 hover:text-primary">
                 Privacy Policy
               </Link>
-              <Link href="/platform/terms" className="text-sm text-muted-foreground hover:text-primary">
+              <Link href="/platform/terms" className="text-sm text-gray-500 hover:text-primary">
                 Terms of Service
               </Link>
               <Link href="/platform/contact" className="text-sm text-primary font-medium">

@@ -116,7 +116,7 @@ export default function ContentPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between fade-in-up" style={{ animationDelay: '0s' }}>
         <div>
           <h1 className="text-3xl font-bold">Content Management</h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-gray-500 mt-2">
             Create, edit, and manage your website pages and blog posts
           </p>
         </div>

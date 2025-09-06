@@ -6,7 +6,7 @@ export default function TermsOfService() {
   return (
     <div className="min-h-screen bg-gradient-hero">
       {/* Header */}
-      <header className="relative z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="relative z-10 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <nav className="brand-container py-6">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
@@ -36,28 +36,28 @@ export default function TermsOfService() {
             Terms of Service
           </h1>
           
-          <div className="prose prose-lg max-w-none space-y-6 text-muted-foreground">
-            <p className="text-foreground">
+          <div className="prose prose-lg max-w-none space-y-6 text-gray-500">
+            <p className="text-gray-900">
               Last updated: January 2, 2025
             </p>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">1. Acceptance of Terms</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">1. Acceptance of Terms</h2>
               <p>
                 By accessing and using Brands in Blooms ("Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to these terms, please do not use our Service.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">2. Description of Service</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">2. Description of Service</h2>
               <p>
                 Brands in Blooms provides a multi-tenant website builder platform that allows users to create, manage, and host multiple branded websites. Our Service includes website creation tools, hosting, domain management, and related features.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">3. User Accounts</h2>
-              <h3 className="text-xl font-semibold text-foreground">Account Creation</h3>
+              <h2 className="text-2xl font-semibold text-gray-900">3. User Accounts</h2>
+              <h3 className="text-xl font-semibold text-gray-900">Account Creation</h3>
               <p>To use certain features of our Service, you must create an account. You agree to:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Provide accurate, current, and complete information</li>
@@ -69,7 +69,7 @@ export default function TermsOfService() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">4. Acceptable Use</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">4. Acceptable Use</h2>
               <p>You agree not to use our Service to:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Violate any applicable laws or regulations</li>
@@ -84,20 +84,20 @@ export default function TermsOfService() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">5. Content and Intellectual Property</h2>
-              <h3 className="text-xl font-semibold text-foreground">Your Content</h3>
+              <h2 className="text-2xl font-semibold text-gray-900">5. Content and Intellectual Property</h2>
+              <h3 className="text-xl font-semibold text-gray-900">Your Content</h3>
               <p>
                 You retain ownership of content you create using our Service. By using our Service, you grant us a license to host, store, and display your content as necessary to provide the Service.
               </p>
               
-              <h3 className="text-xl font-semibold text-foreground mt-4">Our Property</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mt-4">Our Property</h3>
               <p>
                 The Service, including its original content, features, and functionality, is owned by Brands in Blooms and is protected by international copyright, trademark, and other intellectual property laws.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">6. Payment Terms</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">6. Payment Terms</h2>
               <p>Certain features of our Service require payment. You agree to:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Provide accurate payment information</li>
@@ -111,7 +111,7 @@ export default function TermsOfService() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">7. Termination</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">7. Termination</h2>
               <p>
                 We may terminate or suspend your account immediately, without prior notice or liability, for any reason, including breach of these Terms. Upon termination, your right to use the Service will cease immediately.
               </p>
@@ -121,7 +121,7 @@ export default function TermsOfService() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">8. Disclaimers</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">8. Disclaimers</h2>
               <p>
                 THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS. WE EXPRESSLY DISCLAIM ALL WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
               </p>
@@ -131,35 +131,35 @@ export default function TermsOfService() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">9. Limitation of Liability</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">9. Limitation of Liability</h2>
               <p>
                 IN NO EVENT SHALL BRANDS IN BLOOMS, ITS DIRECTORS, EMPLOYEES, PARTNERS, AGENTS, SUPPLIERS, OR AFFILIATES BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">10. Indemnification</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">10. Indemnification</h2>
               <p>
                 You agree to defend, indemnify, and hold harmless Brands in Blooms and its affiliates from any claims, damages, obligations, losses, liabilities, costs, or debt arising from your use of the Service or violation of these Terms.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">11. Governing Law</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">11. Governing Law</h2>
               <p>
                 These Terms shall be governed by and construed in accordance with the laws of [Your Jurisdiction], without regard to its conflict of law provisions.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">12. Changes to Terms</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">12. Changes to Terms</h2>
               <p>
                 We reserve the right to modify or replace these Terms at any time. If a revision is material, we will provide notice prior to any new terms taking effect.
               </p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground">13. Contact Information</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">13. Contact Information</h2>
               <p>
                 If you have any questions about these Terms, please contact us:
               </p>
@@ -180,19 +180,19 @@ export default function TermsOfService() {
               <div className="flex items-center justify-center w-8 h-8 bg-gradient-primary rounded-lg">
                 <Flower className="h-4 w-4 text-white" />
               </div>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-gray-500">
                 © 2025 Brands in Blooms. All rights reserved.
               </span>
             </div>
             
             <div className="flex items-center space-x-6">
-              <Link href="/platform/privacy" className="text-sm text-muted-foreground hover:text-primary">
+              <Link href="/platform/privacy" className="text-sm text-gray-500 hover:text-primary">
                 Privacy Policy
               </Link>
               <Link href="/platform/terms" className="text-sm text-primary font-medium">
                 Terms of Service
               </Link>
-              <Link href="/platform/contact" className="text-sm text-muted-foreground hover:text-primary">
+              <Link href="/platform/contact" className="text-sm text-gray-500 hover:text-primary">
                 Contact
               </Link>
             </div>

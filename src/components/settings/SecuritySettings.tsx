@@ -356,7 +356,7 @@ export function SecuritySettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-base">Enable Two-Factor Authentication</Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Use an authenticator app to generate verification codes
               </p>
             </div>
@@ -370,7 +370,7 @@ export function SecuritySettings() {
           {twoFactorEnabled && (
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm font-medium mb-2">Two-Factor Authentication is Enabled</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Your account is protected with two-factor authentication.
               </p>
               <div className="mt-4">
@@ -403,7 +403,7 @@ export function SecuritySettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-base">Email Notifications</Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Receive email alerts for security events
               </p>
             </div>
@@ -417,7 +417,7 @@ export function SecuritySettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-base">Login Alerts</Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Get notified when your account is accessed from a new device
               </p>
             </div>
@@ -447,14 +447,14 @@ export function SecuritySettings() {
               <div className="flex items-center justify-between">
                 <div className="flex items-start space-x-3">
                   <div className="mt-1">
-                    <Monitor className="h-5 w-5 text-muted-foreground" />
+                    <Monitor className="h-5 w-5 text-gray-500" />
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{session.device}</span>
                       {session.current && <Badge variant="secondary">Current</Badge>}
                     </div>
-                    <div className="text-sm text-muted-foreground space-y-1">
+                    <div className="text-sm text-gray-500 space-y-1">
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
@@ -493,7 +493,7 @@ export function SecuritySettings() {
             >
               {revokeAllSessions.loading ? 'Revoking...' : 'Revoke All Other Sessions'}
             </Button>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-sm text-gray-500 mt-2">
               This will sign you out of all other devices and browsers.
             </p>
           </div>

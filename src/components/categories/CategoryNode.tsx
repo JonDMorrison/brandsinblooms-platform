@@ -110,7 +110,7 @@ export function CategoryNode({
       style={style}
       className={cn(
         'group relative',
-        isDragOverlay && 'shadow-lg border border-primary rounded-lg bg-background',
+        isDragOverlay && 'shadow-lg border border-primary rounded-lg bg-white',
         isDragging && 'opacity-50',
         className
       )}
@@ -120,7 +120,7 @@ export function CategoryNode({
           'flex items-center gap-2 p-2 rounded-lg transition-all cursor-pointer',
           'border border-transparent',
           // Hover states
-          'hover:bg-muted/50 hover:border-muted-foreground/20',
+          'hover:bg-gradient-primary-50/50 hover:border-muted-foreground/20',
           // Selected states
           isSelected && category.is_active && 'bg-primary/10 border-primary ring-1 ring-primary/20',
           isSelected && !category.is_active && 'bg-muted/30 border-muted-foreground/30',
@@ -134,7 +134,7 @@ export function CategoryNode({
         <div
           className={cn(
             'opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing',
-            'flex items-center justify-center w-4 h-4 text-muted-foreground hover:text-foreground',
+            'flex items-center justify-center w-4 h-4 text-gray-500 hover:text-gray-900',
             isDragOverlay && 'opacity-100'
           )}
           {...attributes}
@@ -148,7 +148,7 @@ export function CategoryNode({
           variant="ghost"
           size="sm"
           className={cn(
-            'h-6 w-6 p-0 hover:bg-muted cursor-pointer',
+            'h-6 w-6 p-0 hover:bg-gradient-primary-50 cursor-pointer',
             !hasChildren && 'invisible'
           )}
           onClick={handleToggleExpand}
@@ -168,7 +168,7 @@ export function CategoryNode({
           {IconComponent ? (
             <IconComponent className="h-4 w-4" style={{ color: category.color || undefined }} />
           ) : (
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <Package className="h-4 w-4 text-gray-500" />
           )}
         </div>
 
@@ -176,7 +176,7 @@ export function CategoryNode({
         <span 
           className={cn(
             'flex-1 text-sm font-medium truncate',
-            !category.is_active && 'line-through text-muted-foreground'
+            !category.is_active && 'line-through text-gray-500'
           )}
           title={category.name}
         >
@@ -193,7 +193,7 @@ export function CategoryNode({
         {/* Active Status Indicator */}
         <div className="flex items-center" title={category.is_active ? 'Active' : 'Inactive'}>
           {category.is_active ? (
-            <Badge variant="default" className="bg-green-500/10 text-green-700 border-green-500/20 px-1.5 py-0 text-xs">
+            <Badge variant="default" className="bg-gray-1000/10 text-green-700 border-green-500/20 px-1.5 py-0 text-xs">
               <Eye className="h-3 w-3 mr-1" />
               Active
             </Badge>
@@ -214,7 +214,7 @@ export function CategoryNode({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 hover:bg-muted cursor-pointer"
+              className="h-6 w-6 p-0 hover:bg-gradient-primary-50 cursor-pointer"
               onClick={handleEdit}
               title="Edit category"
             >

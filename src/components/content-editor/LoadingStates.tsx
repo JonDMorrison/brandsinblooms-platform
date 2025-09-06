@@ -348,12 +348,12 @@ export function LoadingOverlay({
 
   return (
     <div className={cn(
-      'fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center',
+      'fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center',
       className
     )}>
       <div className="bg-card p-6 rounded-lg shadow-lg border text-center">
         <LoadingSpinner size="lg" className="mx-auto mb-4" />
-        <p className="text-sm text-muted-foreground">{message}</p>
+        <p className="text-sm text-gray-500">{message}</p>
       </div>
     </div>
   )

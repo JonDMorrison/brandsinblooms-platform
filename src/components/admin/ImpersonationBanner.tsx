@@ -83,7 +83,7 @@ export function ImpersonationBanner({
   if (isCollapsed) {
     return (
       <div className={`fixed top-0 left-1/2 transform -translate-x-1/2 z-50 ${className}`}>
-        <div className="bg-orange-500 text-white px-4 py-2 rounded-b-lg shadow-lg">
+        <div className="bg-gray-100 text-white px-4 py-2 rounded-b-lg shadow-lg">
           <Button
             variant="ghost"
             size="sm"
@@ -240,7 +240,7 @@ export function ImpersonationIndicator({ className = '' }: { className?: string 
         <span className="font-medium">Impersonating</span>
       </div>
       
-      <span className="text-muted-foreground">
+      <span className="text-gray-500">
         {formatTimeRemaining(timeRemaining)} left
       </span>
       

@@ -118,12 +118,12 @@ export function GlobalSearchDialog({
   const renderEmptyState = () => (
     <CommandEmpty>
       <div className="flex flex-col items-center py-6 text-center">
-        <Search className="h-8 w-8 text-muted-foreground mb-2" />
-        <p className="text-sm text-muted-foreground">
+        <Search className="h-8 w-8 text-gray-500 mb-2" />
+        <p className="text-sm text-gray-500">
           {query ? `No content found for "${query}"` : 'Start typing to search content'}
         </p>
         {query && (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             Try adjusting your search terms
           </p>
         )}
@@ -139,7 +139,7 @@ export function GlobalSearchDialog({
 
     return (
       <div key={type} className="p-2 mb-2">
-        <div className="font-medium text-sm mb-2 px-2 text-muted-foreground">{config.label}</div>
+        <div className="font-medium text-sm mb-2 px-2 text-gray-500">{config.label}</div>
         {items.map((result, index) => {
           // Calculate global index for keyboard navigation
           const globalIndex = Object.entries(groupedResults)
@@ -155,17 +155,17 @@ export function GlobalSearchDialog({
               className={cn(
                 "flex items-start gap-3 px-3 py-2 cursor-pointer rounded-md my-1",
                 result.excerpt ? "min-h-[60px]" : "min-h-[40px]",
-                "bg-white border border-gray-200 hover:bg-gray-50",
-                isSelected && "bg-accent text-accent-foreground"
+                "bg-white border border-gray-200 hover:bg-gradient-primary-20",
+                isSelected && "bg-gray-100 text-white"
               )}
             >
-              <Icon className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+              <Icon className="h-4 w-4 mt-0.5 shrink-0 text-gray-500" />
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm truncate">
                   {result.title}
                 </div>
                 {result.excerpt && (
-                  <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  <div className="text-xs text-gray-500 mt-1 line-clamp-2">
                     {result.excerpt}
                   </div>
                 )}
@@ -193,7 +193,7 @@ export function GlobalSearchDialog({
       />
       <CommandList className="max-h-[50vh] sm:max-h-96 bg-white overflow-y-auto">
         {!hasMinLength ? (
-          <div className="py-6 text-center text-sm text-muted-foreground">
+          <div className="py-6 text-center text-sm text-gray-500">
             Type at least 3 characters to search
           </div>
         ) : isLoading ? (

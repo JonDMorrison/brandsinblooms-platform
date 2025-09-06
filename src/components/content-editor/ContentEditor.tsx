@@ -146,7 +146,7 @@ const SectionEditor = function SectionEditor({
               <div className="space-y-3">
                 {/* Primary Button */}
                 <div className="p-3 border rounded-lg bg-muted/30 space-y-2">
-                  <Label className="text-xs text-muted-foreground">Primary Button</Label>
+                  <Label className="text-xs text-gray-500">Primary Button</Label>
                   <div className="grid grid-cols-2 gap-2">
                     <Input
                       type="text"
@@ -183,7 +183,7 @@ const SectionEditor = function SectionEditor({
                 
                 {/* Secondary Button */}
                 <div className="p-3 border rounded-lg bg-muted/30 space-y-2">
-                  <Label className="text-xs text-muted-foreground">Secondary Button</Label>
+                  <Label className="text-xs text-gray-500">Secondary Button</Label>
                   <div className="grid grid-cols-2 gap-2">
                     <Input
                       type="text"
@@ -363,7 +363,7 @@ const SectionEditor = function SectionEditor({
       default:
         return (
           <div className="p-4 border rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-sm text-gray-500 text-center">
               Unknown section type: {section.type}
             </p>
           </div>
@@ -395,7 +395,7 @@ const SectionEditor = function SectionEditor({
                 </Badge>
               )}
               {isEmpty && (
-                <Badge variant="outline" className="text-xs h-4 px-1.5 text-muted-foreground">
+                <Badge variant="outline" className="text-xs h-4 px-1.5 text-gray-500">
                   Empty
                 </Badge>
               )}
@@ -452,7 +452,7 @@ const SectionEditor = function SectionEditor({
       
       {/* Show message if section is explicitly hidden */}
       {section.visible === false && (
-        <div className="p-3 text-xs text-muted-foreground">
+        <div className="p-3 text-xs text-gray-500">
           Section is hidden. Click the eye icon to show it.
         </div>
       )}
@@ -555,7 +555,7 @@ export const ContentEditor = forwardRef<
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-muted-foreground">Loading content editor...</p>
+          <p className="text-gray-500">Loading content editor...</p>
         </div>
       </div>
     )
@@ -567,7 +567,7 @@ export const ContentEditor = forwardRef<
       <div className="flex items-center justify-between p-4 border-b">
         <div>
           <h3 className="text-sm font-medium">Content Editor</h3>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-500">
             {layout.charAt(0).toUpperCase() + layout.slice(1)} Layout
           </p>
         </div>
@@ -636,8 +636,8 @@ export const ContentEditor = forwardRef<
           {/* Add Optional Sections */}
           <div className="border-2 border-dashed border-muted rounded-lg p-4">
             <div className="text-center">
-              <Plus className="h-5 w-5 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground mb-3">
+              <Plus className="h-5 w-5 text-gray-500 mx-auto mb-2" />
+              <p className="text-sm text-gray-500 mb-3">
                 Add optional sections
               </p>
               <div className="flex flex-wrap gap-2 justify-center">

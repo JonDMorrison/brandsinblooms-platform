@@ -140,7 +140,7 @@ export default function OrderDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">Order Details</h1>
-            <p className="text-muted-foreground">View and manage order information</p>
+            <p className="text-gray-500">View and manage order information</p>
           </div>
         </div>
         
@@ -148,7 +148,7 @@ export default function OrderDetailPage() {
           <CardContent className="p-8 text-center">
             <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h3 className="font-medium text-red-600 mb-2">Failed to Load Order</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-gray-500 mb-4">
               {error instanceof Error ? error.message : 'The order could not be found or loaded'}
             </p>
             <div className="flex gap-2 justify-center">
@@ -177,7 +177,7 @@ export default function OrderDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">Order Details</h1>
-            <p className="text-muted-foreground">View and manage order information</p>
+            <p className="text-gray-500">View and manage order information</p>
           </div>
         </div>
         
@@ -185,7 +185,7 @@ export default function OrderDetailPage() {
           <CardContent className="p-8 text-center">
             <Package className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <h3 className="font-medium text-gray-600 mb-2">Order Not Found</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-gray-500 mb-4">
               The order could not be found or you don&apos;t have permission to view it.
             </p>
             <Button onClick={() => router.push('/dashboard/orders')} variant="default">
@@ -228,7 +228,7 @@ export default function OrderDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">Order #{order.order_number}</h1>
-            <p className="text-muted-foreground">
+            <p className="text-gray-500">
               Created {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
             </p>
           </div>
@@ -261,13 +261,13 @@ export default function OrderDetailPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <OrderStatusBadge status={order.status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'} showIcon />
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-500">
                     Last updated {formatDistanceToNow(new Date(order.updated_at), { addSuffix: true })}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold">{formatCurrency(order.total_amount, order.currency || 'USD')}</p>
-                  <p className="text-sm text-muted-foreground">Total Amount</p>
+                  <p className="text-sm text-gray-500">Total Amount</p>
                 </div>
               </div>
 
@@ -280,7 +280,7 @@ export default function OrderDetailPage() {
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                         item.active 
                           ? 'bg-primary text-primary-foreground' 
-                          : 'bg-muted text-muted-foreground'
+                          : 'bg-muted text-gray-500'
                       }`}>
                         {item.status === 'processing' && <Package className="h-4 w-4" />}
                         {item.status === 'shipped' && <Truck className="h-4 w-4" />}
@@ -288,11 +288,11 @@ export default function OrderDetailPage() {
                         {item.status === 'cancelled' && <XCircle className="h-4 w-4" />}
                       </div>
                       <div className="flex-1">
-                        <p className={`font-medium ${item.active ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        <p className={`font-medium ${item.active ? 'text-gray-900' : 'text-gray-500'}`}>
                           {item.label}
                         </p>
                         {item.timestamp && (
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-500">
                             {new Date(item.timestamp).toLocaleString()}
                           </p>
                         )}
@@ -315,11 +315,11 @@ export default function OrderDetailPage() {
                   {order.order_items.map((item: { product_name: string; product_sku?: string | null; quantity: number; unit_price: number; total_price: number }, index: number) => (
                     <div key={index} className="flex items-center gap-4 py-4 border-b last:border-b-0">
                       <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
-                        <Package className="h-6 w-6 text-muted-foreground" />
+                        <Package className="h-6 w-6 text-gray-500" />
                       </div>
                       <div className="flex-1">
                         <h4 className="font-medium">{item.product_name || 'Product'}</h4>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-gray-500">
                           Quantity: {item.quantity} × {formatCurrency(item.unit_price || 0, order.currency || 'USD')}
                         </p>
                       </div>
@@ -358,7 +358,7 @@ export default function OrderDetailPage() {
                   </div>
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-8">
+                <p className="text-gray-500 text-center py-8">
                   No items found for this order
                 </p>
               )}
@@ -386,7 +386,7 @@ export default function OrderDetailPage() {
                   <h4 className="font-medium">
                     {order.customer.full_name || 'Unknown Customer'}
                   </h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-500">
                     {order.customer.email}
                   </p>
                 </div>
@@ -413,7 +413,7 @@ export default function OrderDetailPage() {
               {order.payment_method && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Method</span>
-                  <span className="text-sm text-muted-foreground capitalize">
+                  <span className="text-sm text-gray-500 capitalize">
                     {order.payment_method}
                   </span>
                 </div>
@@ -438,7 +438,7 @@ export default function OrderDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-gray-500">
                   Address information is stored but detailed display is not implemented yet.
                 </div>
               </CardContent>
@@ -456,7 +456,7 @@ export default function OrderDetailPage() {
             <CardContent className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="font-medium">Created</span>
-                <span className="text-muted-foreground">
+                <span className="text-gray-500">
                   {new Date(order.created_at).toLocaleDateString()}
                 </span>
               </div>
@@ -464,7 +464,7 @@ export default function OrderDetailPage() {
               {order.shipped_at && (
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">Shipped</span>
-                  <span className="text-muted-foreground">
+                  <span className="text-gray-500">
                     {new Date(order.shipped_at).toLocaleDateString()}
                   </span>
                 </div>
@@ -473,7 +473,7 @@ export default function OrderDetailPage() {
               {order.delivered_at && (
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">Delivered</span>
-                  <span className="text-muted-foreground">
+                  <span className="text-gray-500">
                     {new Date(order.delivered_at).toLocaleDateString()}
                   </span>
                 </div>
@@ -481,7 +481,7 @@ export default function OrderDetailPage() {
               
               <div className="flex justify-between text-sm">
                 <span className="font-medium">Last Updated</span>
-                <span className="text-muted-foreground">
+                <span className="text-gray-500">
                   {new Date(order.updated_at).toLocaleDateString()}
                 </span>
               </div>

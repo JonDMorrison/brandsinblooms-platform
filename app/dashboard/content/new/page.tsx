@@ -266,7 +266,7 @@ export default function CreateContentPage() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Create New Content</h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-gray-500 mt-1">
             Step {step} of 3: {step === 1 ? 'Page Details' : step === 2 ? 'Choose Layout' : 'Review & Create'}
           </p>
         </div>
@@ -353,7 +353,7 @@ export default function CreateContentPage() {
                         <Label htmlFor="mock-data" className="font-medium">
                           Include Sample Content
                         </Label>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-gray-500">
                           Automatically populate with professional content examples
                         </p>
                       </div>
@@ -424,14 +424,14 @@ export default function CreateContentPage() {
                           <p className={`text-sm mb-2 ${
                             selectedLayout === layout.id 
                               ? 'text-blue-800 ' 
-                              : 'text-muted-foreground'
+                              : 'text-gray-500'
                           }`}>
                             {layout.description}
                           </p>
                           <p className={`text-xs mb-3 ${
                             selectedLayout === layout.id 
                               ? 'text-blue-700 ' 
-                              : 'text-muted-foreground'
+                              : 'text-gray-500'
                           }`}>
                             {layout.preview}
                           </p>
@@ -495,19 +495,19 @@ export default function CreateContentPage() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Title</Label>
+                    <Label className="text-sm font-medium text-gray-500">Title</Label>
                     <p className="text-lg font-semibold">{form.getValues('title')}</p>
                   </div>
                   
                   {form.getValues('subtitle') && (
                     <div>
-                      <Label className="text-sm font-medium text-muted-foreground">Subtitle</Label>
+                      <Label className="text-sm font-medium text-gray-500">Subtitle</Label>
                       <p className="text-sm">{form.getValues('subtitle')}</p>
                     </div>
                   )}
                   
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Layout</Label>
+                    <Label className="text-sm font-medium text-gray-500">Layout</Label>
                     {getSelectedLayoutInfo() && (
                       <div className="flex items-center gap-3 mt-2 p-3 border rounded-lg">
                         <div className="p-2 bg-blue-600 text-white rounded-md">
@@ -515,7 +515,7 @@ export default function CreateContentPage() {
                         </div>
                         <div>
                           <p className="font-medium">{getSelectedLayoutInfo()!.name}</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-gray-500">
                             {getSelectedLayoutInfo()!.description}
                           </p>
                         </div>
@@ -524,14 +524,14 @@ export default function CreateContentPage() {
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Sample Content</Label>
+                    <Label className="text-sm font-medium text-gray-500">Sample Content</Label>
                     <div className="flex items-center gap-2 mt-1">
                       {useMockData ? (
                         <><Badge variant="default" className="bg-green-600">Enabled</Badge>
-                        <span className="text-sm text-muted-foreground">Page will include professional sample content</span></>
+                        <span className="text-sm text-gray-500">Page will include professional sample content</span></>
                       ) : (
                         <><Badge variant="outline">Disabled</Badge>
-                        <span className="text-sm text-muted-foreground">Page will start with minimal content</span></>
+                        <span className="text-sm text-gray-500">Page will start with minimal content</span></>
                       )}
                     </div>
                   </div>

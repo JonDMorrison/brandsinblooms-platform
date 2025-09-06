@@ -40,8 +40,8 @@ export function RatingSummary({
             <div className="flex justify-center">
               <StarRating value={0} size="md" />
             </div>
-            <p className="text-sm text-muted-foreground">No reviews yet</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-gray-500">No reviews yet</p>
+            <p className="text-xs text-gray-500">
               Be the first to review this product!
             </p>
           </div>
@@ -72,7 +72,7 @@ export function RatingSummary({
             </div>
             
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Based on {ratingData.totalReviews} {ratingData.totalReviews === 1 ? 'review' : 'reviews'}
               </p>
             </div>
@@ -98,11 +98,11 @@ export function RatingSummary({
                       <Progress value={percentage} className="h-2" />
                     </div>
                     
-                    <div className="w-8 text-right text-muted-foreground">
+                    <div className="w-8 text-right text-gray-500">
                       {count}
                     </div>
                     
-                    <div className="w-10 text-right text-muted-foreground">
+                    <div className="w-10 text-right text-gray-500">
                       {percentage.toFixed(0)}%
                     </div>
                   </div>
@@ -141,7 +141,7 @@ export function CompactRatingSummary({
 
   if (!ratingData || ratingData.totalReviews === 0) {
     return (
-      <div className={cn('flex items-center gap-2 text-sm text-muted-foreground', className)}>
+      <div className={cn('flex items-center gap-2 text-sm text-gray-500', className)}>
         <StarRating value={0} size="sm" />
         <span>No reviews</span>
       </div>
@@ -238,7 +238,7 @@ export function RatingStats({
     return (
       <div className={cn('text-center space-y-2', className)}>
         <StarRating value={0} size="md" />
-        <p className="text-sm text-muted-foreground">No reviews yet</p>
+        <p className="text-sm text-gray-500">No reviews yet</p>
       </div>
     );
   }
@@ -252,7 +252,7 @@ export function RatingStats({
           <StarRating value={rating} size="sm" allowHalf />
         </div>
         <div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             {reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}
           </p>
         </div>
@@ -272,8 +272,8 @@ export function RatingStats({
                   <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                 </div>
                 <Progress value={percentage} className="h-2 flex-1" />
-                <span className="w-8 text-right text-muted-foreground">{count}</span>
-                <span className="w-10 text-right text-muted-foreground">
+                <span className="w-8 text-right text-gray-500">{count}</span>
+                <span className="w-10 text-right text-gray-500">
                   {percentage.toFixed(0)}%
                 </span>
               </div>

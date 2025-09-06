@@ -177,7 +177,7 @@ export default function ResetPasswordClient() {
         <CardContent>
           {isResetMode ? (
             <div className="space-y-4 text-center">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Check your email for a link to reset your password. 
                 If it doesn&apos;t appear within a few minutes, check your spam folder.
               </p>
@@ -190,7 +190,7 @@ export default function ResetPasswordClient() {
               </Button>
               <Link 
                 href="/login" 
-                className="block text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="block text-sm text-gray-500 hover:text-primary transition-colors"
               >
                 Back to login
               </Link>
@@ -236,7 +236,7 @@ export default function ResetPasswordClient() {
                 <div className="text-center">
                   <Link 
                     href="/login" 
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    className="text-sm text-gray-500 hover:text-primary transition-colors"
                   >
                     Back to login
                   </Link>

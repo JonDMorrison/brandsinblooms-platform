@@ -143,7 +143,7 @@ export function StarRating({
           >
             {halfFilled ? (
               <div className="relative">
-                <Star className={cn(SIZE_CLASSES[size], 'text-muted-foreground')} />
+                <Star className={cn(SIZE_CLASSES[size], 'text-gray-500')} />
                 <StarHalf 
                   className={cn(
                     SIZE_CLASSES[size], 
@@ -157,7 +157,7 @@ export function StarRating({
                   SIZE_CLASSES[size],
                   filled 
                     ? 'text-yellow-400 fill-yellow-400' 
-                    : 'text-muted-foreground',
+                    : 'text-gray-500',
                   interactive && hoverRating !== null && index <= hoverRating && 'text-yellow-500 fill-yellow-500'
                 )}
               />
@@ -168,21 +168,21 @@ export function StarRating({
 
       {/* Numeric value */}
       {showValue && (
-        <span className={cn('font-medium text-foreground', TEXT_SIZE_CLASSES[size])}>
+        <span className={cn('font-medium text-gray-900', TEXT_SIZE_CLASSES[size])}>
           {value.toFixed(1)}
         </span>
       )}
 
       {/* Review count */}
       {showCount && count !== undefined && (
-        <span className={cn('text-muted-foreground', TEXT_SIZE_CLASSES[size])}>
+        <span className={cn('text-gray-500', TEXT_SIZE_CLASSES[size])}>
           {formatCount(count)}
         </span>
       )}
 
       {/* Interactive label */}
       {interactive && showLabels && currentLabel && (
-        <span className={cn('text-muted-foreground ml-2', TEXT_SIZE_CLASSES[size])}>
+        <span className={cn('text-gray-500 ml-2', TEXT_SIZE_CLASSES[size])}>
           {currentLabel}
         </span>
       )}

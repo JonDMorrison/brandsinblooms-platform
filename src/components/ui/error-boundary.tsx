@@ -50,7 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-4">
-              <div className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded text-left">
+              <div className="text-sm text-gray-500 font-mono bg-muted p-2 rounded text-left">
                 {this.state.error?.message || 'Unknown error'}
               </div>
               <div className="flex gap-2 justify-center">

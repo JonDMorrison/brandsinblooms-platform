@@ -172,7 +172,7 @@ export const ProductSkeleton: React.FC<ProductSkeletonProps> = ({
     <div
       key={index}
       className={cn(
-        'p-4 space-y-3 bg-background border rounded-lg',
+        'p-4 space-y-3 bg-white border rounded-lg',
         variant === 'list' ? 'flex gap-4' : '',
         className
       )}
@@ -390,7 +390,7 @@ export const ImageSkeleton: React.FC<ImageSkeletonProps> = ({
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="p-3 rounded-full bg-muted/40">
             <svg
-              className="w-6 h-6 text-muted-foreground"
+              className="w-6 h-6 text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -502,7 +502,7 @@ export const CardSkeleton: React.FC<CardSkeletonProps> = ({
   }
 
   return (
-    <div className={cn('p-4 space-y-4 bg-background border rounded-lg', className)}>
+    <div className={cn('p-4 space-y-4 bg-white border rounded-lg', className)}>
       {showHeader && (
         <div className="flex items-center gap-3">
           <Skeleton

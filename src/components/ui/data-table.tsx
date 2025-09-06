@@ -137,6 +137,7 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="hover:bg-gradient-primary-20"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -163,7 +164,7 @@ export function DataTable<TData, TValue>({
       </div>
       
       <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-sm text-muted-foreground order-2 sm:order-1">
+        <div className="text-sm text-gray-500 order-2 sm:order-1">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>

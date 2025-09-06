@@ -166,7 +166,7 @@ export function ProductCatalog({
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           <Input
             type="search"
             placeholder="Search products..."
@@ -228,14 +228,14 @@ export function ProductCatalog({
       </div>
       
       {/* Results Count */}
-      <div className="text-sm text-muted-foreground">
+      <div className="text-sm text-gray-500">
         Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
       </div>
       
       {/* Products Grid/List */}
       {filteredProducts.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No products found</p>
+          <p className="text-gray-500">No products found</p>
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
@@ -286,7 +286,7 @@ function ProductGridCard({ product, onAddToCart }: ProductCardProps) {
           />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <ShoppingCart className="h-12 w-12 text-muted-foreground" />
+            <ShoppingCart className="h-12 w-12 text-gray-500" />
           </div>
         )}
         
@@ -331,7 +331,7 @@ function ProductGridCard({ product, onAddToCart }: ProductCardProps) {
       
       <CardContent className="p-4 space-y-2">
         <h3 className="font-medium line-clamp-1">{product.name}</h3>
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className="text-sm text-gray-500 line-clamp-2">
           {product.description}
         </p>
         
@@ -341,7 +341,7 @@ function ProductGridCard({ product, onAddToCart }: ProductCardProps) {
               {formatPrice(product.price || 0)}
             </p>
             {product.compare_at_price && product.compare_at_price > (product.price || 0) && (
-              <p className="text-sm text-muted-foreground line-through">
+              <p className="text-sm text-gray-500 line-through">
                 {formatPrice(product.compare_at_price)}
               </p>
             )}
@@ -378,7 +378,7 @@ function ProductListCard({ product, onAddToCart }: ProductCardProps) {
             />
           ) : (
             <div className="flex items-center justify-center h-full">
-              <ShoppingCart className="h-8 w-8 text-muted-foreground" />
+              <ShoppingCart className="h-8 w-8 text-gray-500" />
             </div>
           )}
         </div>
@@ -387,7 +387,7 @@ function ProductListCard({ product, onAddToCart }: ProductCardProps) {
         <div className="flex-1 space-y-2">
           <div>
             <h3 className="font-medium">{product.name}</h3>
-            <p className="text-sm text-muted-foreground line-clamp-2">
+            <p className="text-sm text-gray-500 line-clamp-2">
               {product.description}
             </p>
           </div>
@@ -407,7 +407,7 @@ function ProductListCard({ product, onAddToCart }: ProductCardProps) {
                 {formatPrice(product.price || 0)}
               </p>
               {product.compare_at_price && product.compare_at_price > (product.price || 0) && (
-                <p className="text-sm text-muted-foreground line-through">
+                <p className="text-sm text-gray-500 line-through">
                   {formatPrice(product.compare_at_price)}
                 </p>
               )}

@@ -299,7 +299,7 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
                               {...field} 
                               disabled={!canManage}
                             />
-                            <span className="ml-2 text-sm text-muted-foreground">
+                            <span className="ml-2 text-sm text-gray-500">
                               .blooms.cc
                             </span>
                           </div>
@@ -311,7 +311,7 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
                         
                         {/* Subdomain availability check */}
                         {subdomainCheck.checking && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
                             <RefreshCw className="h-4 w-4 animate-spin" />
                             Checking availability...
                           </div>
@@ -332,7 +332,7 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
                             </div>
                             {subdomainCheck.suggestions.length > 0 && (
                               <div className="text-sm">
-                                <p className="text-muted-foreground mb-1">Suggestions:</p>
+                                <p className="text-gray-500 mb-1">Suggestions:</p>
                                 <div className="flex flex-wrap gap-1">
                                   {subdomainCheck.suggestions.map((suggestion, index) => (
                                     <Badge
@@ -359,7 +359,7 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Current Subdomain</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-gray-500">
                             https://{site.subdomain}.blooms.cc
                           </p>
                         </div>
@@ -512,7 +512,7 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
                         {verificationResult.nextSteps.length > 0 && (
                           <div>
                             <h4 className="font-medium mb-2">Next Steps</h4>
-                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                            <ul className="list-disc list-inside space-y-1 text-sm text-gray-500">
                               {verificationResult.nextSteps.map((step, index) => (
                                 <li key={index}>{step}</li>
                               ))}
@@ -550,7 +550,7 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
                               {domainHealth.issues.length > 0 && (
                                 <div>
                                   <p className="text-sm font-medium mb-1">Issues:</p>
-                                  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-500">
                                     {domainHealth.issues.map((issue: string, index: number) => (
                                       <li key={index}>{issue}</li>
                                     ))}

@@ -131,7 +131,7 @@ export default function CategoriesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Product Categories</h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             Organize your products with hierarchical categories
           </p>
         </div>
@@ -145,23 +145,23 @@ export default function CategoriesPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <div className="rounded-lg border p-4">
           <div className="text-2xl font-bold">{totalCategories}</div>
-          <p className="text-xs text-muted-foreground">Total Categories</p>
+          <p className="text-xs text-gray-500">Total Categories</p>
         </div>
         <div className="rounded-lg border p-4">
           <div className="text-2xl font-bold">{totalProducts}</div>
-          <p className="text-xs text-muted-foreground">Total Products</p>
+          <p className="text-xs text-gray-500">Total Products</p>
         </div>
         <div className="rounded-lg border p-4">
           <div className="text-2xl font-bold">
             {categories.filter(c => c.children && c.children.length > 0).length}
           </div>
-          <p className="text-xs text-muted-foreground">Parent Categories</p>
+          <p className="text-xs text-gray-500">Parent Categories</p>
         </div>
         <div className="rounded-lg border p-4">
           <div className="text-2xl font-bold">
             {categories.length > 0 ? Math.max(...categories.map(c => c.level + 1)) : 0}
           </div>
-          <p className="text-xs text-muted-foreground">Max Depth</p>
+          <p className="text-xs text-gray-500">Max Depth</p>
         </div>
       </div>
 
@@ -172,7 +172,7 @@ export default function CategoriesPage() {
           <div className="rounded-lg border">
             <div className="border-b p-4">
               <h2 className="font-semibold">Category Hierarchy</h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 Drag and drop to reorganize categories
               </p>
             </div>
@@ -217,7 +217,7 @@ export default function CategoriesPage() {
                 {/* Breadcrumb */}
                 {categoryDetails.ancestors && categoryDetails.ancestors.length > 0 && (
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Path</p>
+                    <p className="text-xs font-medium text-gray-500 mb-2">Path</p>
                     <CategoryBreadcrumb
                       ancestors={categoryDetails.ancestors}
                       category={categoryDetails}
@@ -227,13 +227,13 @@ export default function CategoriesPage() {
 
                 {/* Basic Info */}
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Name</p>
+                  <p className="text-xs font-medium text-gray-500 mb-2">Name</p>
                   <p className="font-medium">{categoryDetails.name}</p>
                 </div>
 
                 {categoryDetails.description && (
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Description</p>
+                    <p className="text-xs font-medium text-gray-500 mb-2">Description</p>
                     <p className="text-sm">{categoryDetails.description}</p>
                   </div>
                 )}
@@ -254,13 +254,13 @@ export default function CategoriesPage() {
                     <div className="flex items-center gap-4">
                       {categoryDetails.icon && (
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-2">Icon</p>
+                          <p className="text-xs font-medium text-gray-500 mb-2">Icon</p>
                           <span className="text-2xl">{categoryDetails.icon}</span>
                         </div>
                       )}
                       {categoryDetails.color && (
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-2">Color</p>
+                          <p className="text-xs font-medium text-gray-500 mb-2">Color</p>
                           <div 
                             className="h-8 w-8 rounded border"
                             style={{ backgroundColor: categoryDetails.color }}
@@ -278,13 +278,13 @@ export default function CategoriesPage() {
                     <div className="space-y-2">
                       {categoryDetails.meta_title && (
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-1">SEO Title</p>
+                          <p className="text-xs font-medium text-gray-500 mb-1">SEO Title</p>
                           <p className="text-sm">{categoryDetails.meta_title}</p>
                         </div>
                       )}
                       {categoryDetails.meta_description && (
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-1">SEO Description</p>
+                          <p className="text-xs font-medium text-gray-500 mb-1">SEO Description</p>
                           <p className="text-sm">{categoryDetails.meta_description}</p>
                         </div>
                       )}
@@ -295,7 +295,7 @@ export default function CategoriesPage() {
             </div>
           ) : (
             <div className="rounded-lg border p-8 text-center">
-              <p className="text-muted-foreground">
+              <p className="text-gray-500">
                 Select a category to view details
               </p>
             </div>

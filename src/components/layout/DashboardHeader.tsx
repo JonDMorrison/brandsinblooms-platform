@@ -155,11 +155,11 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                   <span className="text-sm font-medium">
                     {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
                   </span>
-                  <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                  <span className="text-xs text-gray-500 truncate max-w-[200px]">
                     {user?.email || 'Loading...'}
                   </span>
                 </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                <ChevronDown className="h-4 w-4 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -168,7 +168,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                   <p className="text-sm font-medium leading-none">
                     {user?.user_metadata?.full_name || 'User'}
                   </p>
-                  <p className="text-xs leading-none text-muted-foreground">
+                  <p className="text-xs leading-none text-gray-500">
                     {user?.email}
                   </p>
                 </div>

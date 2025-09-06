@@ -170,11 +170,11 @@ export function CategoryEditor({
       options.push(
         <SelectItem key={cat.id} value={cat.id} disabled={!cat.is_active}>
           <div className="flex items-center gap-2">
-            <span className={cn(!cat.is_active && 'text-muted-foreground')}>
+            <span className={cn(!cat.is_active && 'text-gray-500')}>
               {displayName}
             </span>
             {!cat.is_active && (
-              <EyeOff className="h-3 w-3 text-muted-foreground" />
+              <EyeOff className="h-3 w-3 text-gray-500" />
             )}
           </div>
         </SelectItem>
@@ -197,7 +197,7 @@ export function CategoryEditor({
               <Package className="h-5 w-5" />
               {title}
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-500">
               {isEditing 
                 ? 'Update category information and settings'
                 : 'Create a new product category'
@@ -331,7 +331,7 @@ export function CategoryEditor({
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="none">
-                              <span className="text-muted-foreground">No parent (root level)</span>
+                              <span className="text-gray-500">No parent (root level)</span>
                             </SelectItem>
                             {buildParentOptions(availableParents)}
                           </SelectContent>
@@ -454,7 +454,7 @@ export function CategoryEditor({
                         </div>
                         
                         {selectedColor && (
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-gray-500">
                             Selected: {selectedColor}
                           </div>
                         )}
@@ -555,7 +555,7 @@ export function CategoryEditor({
                 onClick={onCancel} 
                 disabled={isSaving}
                 type="button"
-                className="hover:bg-accent cursor-pointer"
+                className="hover:bg-gradient-primary-50 cursor-pointer"
               >
                 <X className="h-4 w-4 mr-2" />
                 Cancel

@@ -61,7 +61,7 @@ export function DashboardStats({
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.count.toLocaleString()}</div>
-              <div className="flex items-center text-xs text-muted-foreground">
+              <div className="flex items-center text-xs text-gray-500">
                 {stat.showTrendIcon !== false && (
                   <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
                 )}

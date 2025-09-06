@@ -222,7 +222,7 @@ export const contentColumns: ColumnDef<ContentItem>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex items-center gap-2">
-          <User className="h-4 w-4 text-muted-foreground" />
+          <User className="h-4 w-4 text-gray-500" />
           {row.getValue("author")}
         </div>
       )
@@ -245,7 +245,7 @@ export const contentColumns: ColumnDef<ContentItem>[] = [
       const views = row.getValue("views") as number
       return (
         <div className="flex items-center gap-2">
-          <Eye className="h-4 w-4 text-muted-foreground" />
+          <Eye className="h-4 w-4 text-gray-500" />
           {views.toLocaleString()}
         </div>
       )
@@ -267,7 +267,7 @@ export const contentColumns: ColumnDef<ContentItem>[] = [
     cell: ({ row }) => {
       const date = row.getValue("lastModified") as Date
       return (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-gray-500">
           <Calendar className="h-4 w-4" />
           {formatDistanceToNow(date, { addSuffix: true })}
         </div>

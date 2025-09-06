@@ -101,7 +101,7 @@ export function SiteNavigation({
             )}
             <div>
               <CardTitle className="text-lg">{siteName}</CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 {siteSubdomain}.brandsinblooms.com
               </p>
             </div>
@@ -122,17 +122,17 @@ export function SiteNavigation({
                     p-4 rounded-lg border transition-all cursor-pointer
                     ${active 
                       ? 'bg-primary/10 border-primary text-primary' 
-                      : 'hover:bg-muted/50 hover:border-border'
+                      : 'hover:bg-gradient-primary-50/50 hover:border-border'
                     }
                   `}
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <Icon className={`h-5 w-5 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className={`font-medium ${active ? 'text-primary' : 'text-foreground'}`}>
+                    <Icon className={`h-5 w-5 ${active ? 'text-primary' : 'text-gray-500'}`} />
+                    <span className={`font-medium ${active ? 'text-primary' : 'text-gray-900'}`}>
                       {item.name}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-gray-500">
                     {item.description}
                   </p>
                 </div>

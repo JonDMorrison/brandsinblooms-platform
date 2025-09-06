@@ -127,7 +127,7 @@ export function SiteSettings() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">{site.name}</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             Configure your site settings and business information
           </p>
         </div>
@@ -231,7 +231,7 @@ export function SiteSettings() {
                               disabled={!canManage}
                               className="rounded-r-none"
                             />
-                            <div className="flex items-center px-3 border border-l-0 rounded-r-md bg-muted text-muted-foreground text-sm">
+                            <div className="flex items-center px-3 border border-l-0 rounded-r-md bg-muted text-gray-500 text-sm">
                               .blooms.cc
                             </div>
                           </div>

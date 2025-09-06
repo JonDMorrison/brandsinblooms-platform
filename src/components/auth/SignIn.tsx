@@ -86,7 +86,7 @@ export default function SignIn() {
           <h2 className="text-2xl font-brand-heading text-primary">
             Welcome Back
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             Sign in to your Brands in Blooms account
           </p>
         </div>
@@ -142,9 +142,9 @@ export default function SignIn() {
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            <EyeOff className="h-4 w-4 text-gray-500" />
                           ) : (
-                            <Eye className="h-4 w-4 text-muted-foreground" />
+                            <Eye className="h-4 w-4 text-gray-500" />
                           )}
                         </Button>
                       </div>
@@ -157,7 +157,7 @@ export default function SignIn() {
               <div className="flex items-center justify-between">
                 <Link
                   href="/auth/reset-password"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-gray-500 hover:text-primary transition-colors"
                 >
                   Forgot password?
                 </Link>
@@ -200,7 +200,7 @@ export default function SignIn() {
           </Form>
         </div>
         <div className="flex flex-col space-y-4">
-          <div className="text-sm text-center text-muted-foreground">
+          <div className="text-sm text-center text-gray-500">
             Don&apos;t have an account?{' '}
             <button
               type="button"

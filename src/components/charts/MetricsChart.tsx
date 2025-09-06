@@ -98,8 +98,8 @@ export function MetricsChart({ title, description, type }: MetricsChartProps) {
         <CardContent>
           <div className="h-[300px] md:h-[350px] flex items-center justify-center bg-muted/10 rounded-lg">
             <div className="text-center">
-              <p className="text-muted-foreground">No data available yet</p>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-gray-500">No data available yet</p>
+              <p className="text-sm text-gray-500 mt-2">
                 {type === 'views' 
                   ? 'Site views will be tracked as visitors browse your site'
                   : 'Order data will appear once you receive your first orders'
@@ -131,7 +131,7 @@ export function MetricsChart({ title, description, type }: MetricsChartProps) {
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold">{data.total.toLocaleString()}</p>
-            <p className="text-sm text-muted-foreground flex items-center justify-end gap-1">
+            <p className="text-sm text-gray-500 flex items-center justify-end gap-1">
               {data.trend > 0 ? (
                 <>
                   <TrendingUp className="h-3 w-3 text-green-500" />
@@ -145,7 +145,7 @@ export function MetricsChart({ title, description, type }: MetricsChartProps) {
               ) : (
                 <span>0%</span>
               )}
-              <span className="text-muted-foreground">vs last period</span>
+              <span className="text-gray-500">vs last period</span>
             </p>
           </div>
         </div>
@@ -160,7 +160,7 @@ export function MetricsChart({ title, description, type }: MetricsChartProps) {
           </div>
           
           {/* Y-axis labels */}
-          <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-muted-foreground pr-2">
+          <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-500 pr-2">
             {[100, 75, 50, 25, 0].map((percent) => (
               <span key={percent} className="text-right w-8">{Math.round(maxValue * percent / 100)}</span>
             ))}
@@ -181,7 +181,7 @@ export function MetricsChart({ title, description, type }: MetricsChartProps) {
                 >
                   <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                     {value.toLocaleString()}
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-[10px] text-gray-500">
                       {new Date(item.metric_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </div>
                   </div>
@@ -189,7 +189,7 @@ export function MetricsChart({ title, description, type }: MetricsChartProps) {
               )
             })}
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-8 flex items-center justify-between text-xs text-muted-foreground px-2">
+          <div className="absolute bottom-0 left-0 right-0 h-8 flex items-center justify-between text-xs text-gray-500 px-2">
             <span>{data.data.length > 0 ? new Date(data.data[0].metric_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
             <span>{data.data.length > 0 ? new Date(data.data[data.data.length - 1].metric_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
           </div>

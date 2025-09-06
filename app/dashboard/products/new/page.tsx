@@ -516,7 +516,7 @@ export default function NewProductPage() {
     // This handles the case where the site context is still initializing
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
       </div>
     )
   }
@@ -525,10 +525,10 @@ export default function NewProductPage() {
   if (!siteId && sites.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
-        <Package className="h-12 w-12 text-muted-foreground" />
+        <Package className="h-12 w-12 text-gray-500" />
         <div className="text-center">
           <h2 className="text-lg font-semibold">No Sites Available</h2>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-sm text-gray-500 mt-2">
             You need to create or be assigned to a site before adding products.
           </p>
         </div>
@@ -545,7 +545,7 @@ export default function NewProductPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">New Product</h1>
-          <p className="text-muted-foreground">Add a new product to your catalog</p>
+          <p className="text-gray-500">Add a new product to your catalog</p>
         </div>
         <Button variant="outline" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -561,7 +561,7 @@ export default function NewProductPage() {
               className={`flex items-center justify-center h-10 w-10 rounded-full border-2 ${
                 index <= currentStep
                   ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-muted bg-background text-muted-foreground'
+                  : 'border-muted bg-white text-gray-500'
               }`}
             >
               {index < currentStep ? <Check className="h-4 w-4" /> : step.icon}
@@ -667,7 +667,7 @@ export default function NewProductPage() {
                           </FormControl>
                           {isGenerating && (
                             <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
                             </div>
                           )}
                           {manuallyEdited && !isGenerating && (
@@ -799,7 +799,7 @@ export default function NewProductPage() {
                           <FormLabel>Regular Price *</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
                                 $
                               </span>
                               <Input
@@ -824,7 +824,7 @@ export default function NewProductPage() {
                           <FormLabel>Sale Price</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
                                 $
                               </span>
                               <Input
@@ -852,7 +852,7 @@ export default function NewProductPage() {
                         <FormLabel>Compare at Price</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
                               $
                             </span>
                             <Input
@@ -999,19 +999,19 @@ export default function NewProductPage() {
                     <h3 className="font-semibold">Product Details</h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-muted-foreground">Name:</span>
+                        <span className="text-gray-500">Name:</span>
                         <p className="font-medium">{form.watch('name') || 'Not set'}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">SKU:</span>
+                        <span className="text-gray-500">SKU:</span>
                         <p className="font-medium">{form.watch('sku') || 'Not set'}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Slug:</span>
+                        <span className="text-gray-500">Slug:</span>
                         <p className="font-medium">{form.watch('slug') || 'Auto-generated'}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Category:</span>
+                        <span className="text-gray-500">Category:</span>
                         <p className="font-medium">
                           {form.watch('primary_category_id') 
                             ? categories.find(c => c.id === form.watch('primary_category_id'))?.name || 'Not set'
@@ -1019,19 +1019,19 @@ export default function NewProductPage() {
                         </p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Price:</span>
+                        <span className="text-gray-500">Price:</span>
                         <p className="font-medium">${form.watch('price') || '0.00'}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Stock:</span>
+                        <span className="text-gray-500">Stock:</span>
                         <p className="font-medium">{form.watch('inventory_count')} units</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Images:</span>
+                        <span className="text-gray-500">Images:</span>
                         <p className="font-medium">{productImages.length} image(s)</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Status:</span>
+                        <span className="text-gray-500">Status:</span>
                         <div className="flex gap-2 mt-1">
                           {form.watch('is_active') && (
                             <Badge variant="default">Active</Badge>
@@ -1045,7 +1045,7 @@ export default function NewProductPage() {
                   </div>
 
                   <div className="rounded-lg bg-muted p-4">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-500">
                       Review your product details above. You can go back to make changes or click
                       &quot;Create Product&quot; to save.
                     </p>

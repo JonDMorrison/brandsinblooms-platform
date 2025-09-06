@@ -28,10 +28,10 @@ export function NotificationEmpty({
       <Card className="border-dashed">
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <div className="rounded-full bg-muted p-6 mb-4">
-            <Search className="h-10 w-10 text-muted-foreground" />
+            <Search className="h-10 w-10 text-gray-500" />
           </div>
           <h3 className="text-lg font-semibold mb-2">No notifications match your filters</h3>
-          <p className="text-muted-foreground mb-6 max-w-md">
+          <p className="text-gray-500 mb-6 max-w-md">
             We couldn't find any notifications matching your current search criteria. 
             Try adjusting your filters or search terms.
           </p>
@@ -75,7 +75,7 @@ export function NotificationEmpty({
         </div>
 
         <h3 className="text-2xl font-semibold mb-3">All caught up!</h3>
-        <p className="text-muted-foreground mb-8 max-w-lg">
+        <p className="text-gray-500 mb-8 max-w-lg">
           You're all up to date! When new notifications arrive, 
           they'll appear here to keep you informed about important updates, 
           orders, and system events.
@@ -89,7 +89,7 @@ export function NotificationEmpty({
             </Button>
           )}
           
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-gray-500">
             <span>or</span>
           </div>
           
@@ -102,7 +102,7 @@ export function NotificationEmpty({
 
         {/* Feature highlights */}
         <div className="mt-12 pt-8 border-t border-dashed w-full">
-          <h4 className="text-sm font-medium text-muted-foreground mb-4">
+          <h4 className="text-sm font-medium text-gray-500 mb-4">
             What you'll get notified about:
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
@@ -111,8 +111,8 @@ export function NotificationEmpty({
                 <Bell className="h-4 w-4 text-blue-600" />
               </div>
               <div>
-                <p className="font-medium text-foreground">Order Updates</p>
-                <p className="text-muted-foreground">
+                <p className="font-medium text-gray-900">Order Updates</p>
+                <p className="text-gray-500">
                   New orders, status changes, and payment updates
                 </p>
               </div>
@@ -123,8 +123,8 @@ export function NotificationEmpty({
                 <BellRing className="h-4 w-4 text-green-600" />
               </div>
               <div>
-                <p className="font-medium text-foreground">System Alerts</p>
-                <p className="text-muted-foreground">
+                <p className="font-medium text-gray-900">System Alerts</p>
+                <p className="text-gray-500">
                   Important system updates and security notices
                 </p>
               </div>
@@ -135,8 +135,8 @@ export function NotificationEmpty({
                 <Sparkles className="h-4 w-4 text-purple-600" />
               </div>
               <div>
-                <p className="font-medium text-foreground">Feature Updates</p>
-                <p className="text-muted-foreground">
+                <p className="font-medium text-gray-900">Feature Updates</p>
+                <p className="text-gray-500">
                   New features and platform improvements
                 </p>
               </div>

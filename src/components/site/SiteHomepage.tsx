@@ -74,7 +74,7 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
                   </h1>
                   
                   {site?.description && (
-                    <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                    <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto">
                       {site.description}
                     </p>
                   )}
@@ -112,16 +112,16 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
               <h2 className="text-3xl font-bold text-center mb-12">Shop by Category</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {/* Category cards would go here */}
-                <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow">
+                <div className="text-center p-6 rounded-lg border bg-white hover:shadow-lg transition-shadow">
                   <h3 className="font-semibold">Flowers</h3>
                 </div>
-                <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow">
+                <div className="text-center p-6 rounded-lg border bg-white hover:shadow-lg transition-shadow">
                   <h3 className="font-semibold">Plants</h3>
                 </div>
-                <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow">
+                <div className="text-center p-6 rounded-lg border bg-white hover:shadow-lg transition-shadow">
                   <h3 className="font-semibold">Gifts</h3>
                 </div>
-                <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow">
+                <div className="text-center p-6 rounded-lg border bg-white hover:shadow-lg transition-shadow">
                   <h3 className="font-semibold">Occasions</h3>
                 </div>
               </div>
@@ -168,7 +168,7 @@ function AuthenticatedSiteView({ site, user }: { site: any; user: any }) {
                 Welcome back to {site.name}!
               </h1>
               
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg text-gray-500">
                 Hello {user.email}, ready to continue?
               </p>
             </div>
@@ -241,14 +241,14 @@ function SiteNotFound() {
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
       <div className="brand-container max-w-md text-center space-y-6">
         <div className="flex items-center justify-center w-16 h-16 bg-muted rounded-full mx-auto">
-          <AlertCircle className="h-8 w-8 text-muted-foreground" />
+          <AlertCircle className="h-8 w-8 text-gray-500" />
         </div>
         
         <div className="space-y-2">
-          <h1 className="text-2xl font-brand-heading text-foreground">
+          <h1 className="text-2xl font-brand-heading text-gray-900">
             Site Not Found
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             The site you&apos;re looking for doesn&apos;t exist or isn&apos;t available.
           </p>
         </div>

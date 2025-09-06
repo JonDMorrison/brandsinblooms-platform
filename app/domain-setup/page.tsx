@@ -88,7 +88,7 @@ export default async function DomainSetupPage({ searchParams }: PageProps) {
             {/* Step 2 */}
             <div className="border-l-4 border-green-500 pl-6">
               <div className="flex items-center mb-3">
-                <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                <div className="w-8 h-8 bg-gray-1000 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
                   2
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900">

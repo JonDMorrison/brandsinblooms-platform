@@ -188,7 +188,7 @@ export function FooterCustomization({ value, onChange }: FooterCustomizationProp
       {/* Footer Style */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Layout className="h-4 w-4 text-muted-foreground" />
+          <Layout className="h-4 w-4 text-gray-500" />
           <Label className="text-base font-semibold">Footer Style</Label>
         </div>
         <RadioGroup
@@ -200,13 +200,13 @@ export function FooterCustomization({ value, onChange }: FooterCustomizationProp
               <label
                 key={style.value}
                 className={cn(
-                  "relative flex flex-col gap-2 rounded-lg border-2 p-4 cursor-pointer hover:bg-accent/50 transition-colors",
-                  value.footer?.style === style.value ? "border-primary bg-accent/20" : "border-border"
+                  "relative flex flex-col gap-2 rounded-lg border-2 p-4 cursor-pointer hover:bg-gradient-primary-50/50 transition-colors",
+                  value.footer?.style === style.value ? "border-primary bg-gray-100/20" : "border-border"
                 )}
               >
                 <RadioGroupItem value={style.value} className="sr-only" />
                 <span className="font-medium">{style.label}</span>
-                <span className="text-xs text-muted-foreground">{style.description}</span>
+                <span className="text-xs text-gray-500">{style.description}</span>
               </label>
             ))}
           </div>
@@ -398,8 +398,8 @@ export function FooterCustomization({ value, onChange }: FooterCustomizationProp
             <label
               key={badge.value}
               className={cn(
-                "flex items-center justify-center p-3 rounded-md border-2 cursor-pointer hover:bg-accent transition-colors",
-                paymentBadges.includes(badge.value) ? "border-primary bg-accent" : "border-border"
+                "flex items-center justify-center p-3 rounded-md border-2 cursor-pointer hover:bg-gradient-primary-20 transition-colors",
+                paymentBadges.includes(badge.value) ? "border-primary bg-gray-100" : "border-border"
               )}
             >
               <input
@@ -423,7 +423,7 @@ export function FooterCustomization({ value, onChange }: FooterCustomizationProp
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-muted-foreground" />
+              <Shield className="h-4 w-4 text-gray-500" />
               <span className="text-sm">Secure Checkout</span>
             </div>
             <Switch
@@ -436,7 +436,7 @@ export function FooterCustomization({ value, onChange }: FooterCustomizationProp
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Truck className="h-4 w-4 text-muted-foreground" />
+              <Truck className="h-4 w-4 text-gray-500" />
               <span className="text-sm">Free Shipping</span>
             </div>
             <Switch

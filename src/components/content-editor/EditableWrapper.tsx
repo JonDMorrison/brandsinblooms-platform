@@ -96,7 +96,7 @@ const EditableWrapperComponent = ({
                 'absolute -top-2 -right-2 z-10',
                 'flex items-center justify-center',
                 'w-6 h-6 rounded-full',
-                'bg-muted text-muted-foreground',
+                'bg-muted text-gray-500',
                 'opacity-0 group-hover:opacity-50',
                 'transition-opacity duration-200',
                 'pointer-events-none'

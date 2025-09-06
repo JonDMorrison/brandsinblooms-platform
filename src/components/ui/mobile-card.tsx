@@ -25,7 +25,7 @@ export function MobileCard({
   const trendColors = {
     positive: 'text-green-600 ',
     negative: 'text-red-600 ',
-    neutral: 'text-muted-foreground'
+    neutral: 'text-gray-500'
   }
 
   if (compact) {
@@ -33,7 +33,7 @@ export function MobileCard({
       <Card className={cn('p-3 sm:p-4', className)}>
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-muted-foreground truncate">
+            <p className="text-xs font-medium text-gray-500 truncate">
               {title}
             </p>
             <p className="text-lg font-bold sm:text-xl">

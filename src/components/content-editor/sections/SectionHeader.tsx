@@ -88,13 +88,13 @@ export function SectionHeader({
       {showDragHandle && (
         <div 
           className={cn(
-            "flex items-center justify-center p-1 rounded hover:bg-muted",
+            "flex items-center justify-center p-1 rounded hover:bg-gradient-primary-50",
             isDragHandle && "cursor-grab active:cursor-grabbing",
             !isDragHandle && "cursor-default opacity-50"
           )}
           title={isDragHandle ? "Drag to reorder" : "Drag handle (coming soon)"}
         >
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
+          <GripVertical className="h-4 w-4 text-gray-500" />
         </div>
       )}
 
@@ -167,7 +167,7 @@ export function SectionHeader({
         <div className="flex items-center gap-2 text-sm">
           <span className={cn(
             "text-xs font-medium",
-            isVisible ? "text-emerald-600" : "text-muted-foreground"
+            isVisible ? "text-emerald-600" : "text-gray-500"
           )}>
             {isVisible ? 'Visible' : 'Hidden'}
           </span>
@@ -182,7 +182,7 @@ export function SectionHeader({
             {isVisible ? (
               <Eye className="h-4 w-4 text-emerald-600" />
             ) : (
-              <EyeOff className="h-4 w-4 text-muted-foreground" />
+              <EyeOff className="h-4 w-4 text-gray-500" />
             )}
           </div>
         </div>

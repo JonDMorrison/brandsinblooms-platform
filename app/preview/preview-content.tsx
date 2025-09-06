@@ -93,7 +93,7 @@ export default function PreviewContent({ siteId }: PreviewContentProps) {
                 </h1>
                 
                 {site.description && (
-                  <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                  <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto">
                     {site.description}
                   </p>
                 )}
@@ -125,7 +125,7 @@ export default function PreviewContent({ siteId }: PreviewContentProps) {
                     <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 group-hover:scale-105 transition-transform" />
                   </div>
                   <h3 className="font-medium text-sm">Product {i}</h3>
-                  <p className="text-sm text-muted-foreground">$29.99</p>
+                  <p className="text-sm text-gray-500">$29.99</p>
                 </div>
               ))}
             </div>
@@ -137,33 +137,33 @@ export default function PreviewContent({ siteId }: PreviewContentProps) {
           <div className="brand-container">
             <h2 className="text-3xl font-bold text-center mb-12">Shop by Category</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="text-center p-6 rounded-lg border bg-white hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 rounded-full flex items-center justify-center">
                   <Flower className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold">Flowers</h3>
-                <p className="text-sm text-muted-foreground mt-1">Fresh blooms daily</p>
+                <p className="text-sm text-gray-500 mt-1">Fresh blooms daily</p>
               </div>
-              <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="text-center p-6 rounded-lg border bg-white hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 rounded-full flex items-center justify-center">
                   <Flower className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold">Plants</h3>
-                <p className="text-sm text-muted-foreground mt-1">Indoor & outdoor</p>
+                <p className="text-sm text-gray-500 mt-1">Indoor & outdoor</p>
               </div>
-              <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="text-center p-6 rounded-lg border bg-white hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 rounded-full flex items-center justify-center">
                   <Flower className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold">Gifts</h3>
-                <p className="text-sm text-muted-foreground mt-1">Perfect presents</p>
+                <p className="text-sm text-gray-500 mt-1">Perfect presents</p>
               </div>
-              <div className="text-center p-6 rounded-lg border bg-background hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="text-center p-6 rounded-lg border bg-white hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 rounded-full flex items-center justify-center">
                   <Flower className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold">Occasions</h3>
-                <p className="text-sm text-muted-foreground mt-1">Special moments</p>
+                <p className="text-sm text-gray-500 mt-1">Special moments</p>
               </div>
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function PreviewContent({ siteId }: PreviewContentProps) {
           <div className="brand-container max-w-2xl">
             <div className="text-center space-y-4">
               <h2 className="text-3xl font-bold">Stay in Bloom</h2>
-              <p className="text-muted-foreground">
+              <p className="text-gray-500">
                 Get exclusive offers and be the first to know about new arrivals
               </p>
               <div className="flex gap-2 max-w-md mx-auto mt-6">

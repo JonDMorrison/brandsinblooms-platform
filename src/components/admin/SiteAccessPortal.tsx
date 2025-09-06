@@ -199,7 +199,7 @@ export function SiteAccessPortal({
             {/* Site URLs */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                <LinkIcon className="h-4 w-4 text-gray-500" />
                 <Label className="text-sm font-medium">Site URLs</Label>
               </div>
               
@@ -207,7 +207,7 @@ export function SiteAccessPortal({
               <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium">Primary URL</div>
-                  <div className="text-xs text-muted-foreground font-mono truncate">
+                  <div className="text-xs text-gray-500 font-mono truncate">
                     {siteUrl}
                   </div>
                 </div>
@@ -292,16 +292,16 @@ export function SiteAccessPortal({
             {/* Site Information */}
             <div className="grid gap-2 text-sm bg-muted/50 p-3 rounded-lg">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Subdomain:</span>
-                <code className="text-xs bg-background px-2 py-1 rounded">
+                <span className="text-gray-500">Subdomain:</span>
+                <code className="text-xs bg-white px-2 py-1 rounded">
                   {siteSubdomain}
                 </code>
               </div>
               
               {siteCustomDomain && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Custom Domain:</span>
-                  <code className="text-xs bg-background px-2 py-1 rounded">
+                  <span className="text-gray-500">Custom Domain:</span>
+                  <code className="text-xs bg-white px-2 py-1 rounded">
                     {siteCustomDomain}
                   </code>
                 </div>
@@ -309,7 +309,7 @@ export function SiteAccessPortal({
               
               {siteOwnerEmail && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Owner:</span>
+                  <span className="text-gray-500">Owner:</span>
                   <span className="font-medium">
                     {siteOwnerName || siteOwnerEmail}
                   </span>
@@ -317,7 +317,7 @@ export function SiteAccessPortal({
               )}
               
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Status:</span>
+                <span className="text-gray-500">Status:</span>
                 <span className={`font-medium ${siteIsPublished ? 'text-green-600' : 'text-amber-600'}`}>
                   {siteIsPublished ? 'Published' : 'Draft'}
                 </span>
@@ -330,7 +330,7 @@ export function SiteAccessPortal({
             {/* Device Selection */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Monitor className="h-4 w-4 text-muted-foreground" />
+                <Monitor className="h-4 w-4 text-gray-500" />
                 <Label className="text-sm font-medium">Device Preview</Label>
               </div>
               
@@ -396,7 +396,7 @@ export function SiteAccessPortal({
               <div className="space-y-3">
                 <div className="flex items-center justify-center">
                   <div 
-                    className="border border-border rounded-lg overflow-hidden shadow-lg bg-background"
+                    className="border border-border rounded-lg overflow-hidden shadow-lg bg-white"
                     style={{
                       width: Math.min(selectedDevice.width, 800),
                       height: Math.min(selectedDevice.height, 600),
@@ -405,7 +405,7 @@ export function SiteAccessPortal({
                   >
                     {iframeLoading && (
                       <div className="flex items-center justify-center h-full">
-                        <div className="flex items-center gap-2 text-muted-foreground">
+                        <div className="flex items-center gap-2 text-gray-500">
                           <RefreshCw className="h-4 w-4 animate-spin" />
                           Loading preview...
                         </div>
@@ -423,7 +423,7 @@ export function SiteAccessPortal({
                   </div>
                 </div>
                 
-                <div className="text-center text-xs text-muted-foreground">
+                <div className="text-center text-xs text-gray-500">
                   Preview: {selectedDevice.width} × {selectedDevice.height}px
                 </div>
               </div>

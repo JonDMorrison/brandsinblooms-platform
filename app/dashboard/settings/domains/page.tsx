@@ -47,7 +47,7 @@ export default function DomainsPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Domain Settings</h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             Configure your site domains and preview functionality.
           </p>
         </div>
@@ -89,7 +89,7 @@ export default function DomainsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Domain Settings</h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500">
             Configure your site domains and preview functionality.
           </p>
         </div>
@@ -141,7 +141,7 @@ export default function DomainsPage() {
                   <Badge variant="default">Primary</Badge>
                   <span className="font-medium">{domainStatus.url.replace('https://', '')}</span>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   {domainStatus.type === 'custom' ? 'Custom domain' : 'Platform subdomain'}
                 </p>
               </div>
@@ -168,7 +168,7 @@ export default function DomainsPage() {
                     <Badge variant="outline">Fallback</Badge>
                     <span className="font-medium">{site.subdomain}.blooms.cc</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-500">
                     Platform subdomain (always available)
                   </p>
                 </div>
@@ -243,7 +243,7 @@ export default function DomainsPage() {
             <TabsContent value="configuration" className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-2">Domain Configuration</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-gray-500 mb-4">
                   Configure your custom domain and subdomain settings. Changes take effect immediately.
                 </p>
                 <Separator className="mb-6" />
@@ -260,7 +260,7 @@ export default function DomainsPage() {
             <TabsContent value="preview" className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-2">Site Preview & Testing</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-gray-500 mb-4">
                   Preview your site across different devices and test domain configuration.
                 </p>
                 <Separator className="mb-6" />
@@ -272,7 +272,7 @@ export default function DomainsPage() {
             <TabsContent value="management" className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold mb-2">Domain Management</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-gray-500 mb-4">
                   Advanced domain management and monitoring tools.
                 </p>
                 <Separator className="mb-6" />
@@ -290,13 +290,13 @@ export default function DomainsPage() {
                   <CardContent>
                     <div className="space-y-3">
                       <div className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
+                        <div className="w-2 h-2 bg-gray-1000 rounded-full mt-2 flex-shrink-0" />
                         <div className="space-y-1">
                           <p className="text-sm font-medium">Domain configured</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-500">
                             {domainStatus.type === 'custom' ? site.custom_domain : `${site.subdomain}.blooms.cc`}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-500">
                             {new Date().toLocaleDateString()}
                           </p>
                         </div>
@@ -306,10 +306,10 @@ export default function DomainsPage() {
                         <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
                         <div className="space-y-1">
                           <p className="text-sm font-medium">SSL certificate issued</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-500">
                             Automatic HTTPS enabled
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-500">
                             {new Date(Date.now() - 86400000).toLocaleDateString()}
                           </p>
                         </div>
@@ -382,7 +382,7 @@ export default function DomainsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-gray-500">
                     <Clock className="h-8 w-8 mx-auto mb-2" />
                     <p>Domain analytics will be available here</p>
                     <p className="text-sm">Connect your analytics service to view detailed metrics</p>

@@ -182,7 +182,7 @@ export function BulkActionsToolbar({
               </div>
 
               {/* Status Breakdown */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span>Status:</span>
                 <div className="flex gap-1">
                   {Object.entries(statusBreakdown).map(([status, count]) => (
@@ -194,7 +194,7 @@ export function BulkActionsToolbar({
               </div>
 
               {/* Total Value */}
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-gray-500">
                 Total: {new Intl.NumberFormat('en-US', {
                   style: 'currency',
                   currency: 'USD',
@@ -292,7 +292,7 @@ export function BulkActionsToolbar({
 
           {/* Quick Status Actions */}
           <div className="flex items-center gap-2 mt-3 pt-3 border-t">
-            <span className="text-sm text-muted-foreground">Quick actions:</span>
+            <span className="text-sm text-gray-500">Quick actions:</span>
             {ORDER_STATUS_OPTIONS.map((option) => {
               const Icon = option.icon
               const hasOrdersWithThisStatus = statusBreakdown[option.value] > 0
@@ -333,7 +333,7 @@ export function BulkActionsToolbar({
                 <div className="mt-3 space-y-1">
                   <p className="font-medium text-sm">Orders to be deleted:</p>
                   {selectedOrders.map(order => (
-                    <p key={order.id} className="text-xs text-muted-foreground">
+                    <p key={order.id} className="text-xs text-gray-500">
                       #{order.order_number} - {order.customer.full_name || order.customer.email}
                     </p>
                   ))}

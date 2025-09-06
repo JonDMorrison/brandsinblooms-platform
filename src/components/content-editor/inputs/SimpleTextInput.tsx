@@ -108,7 +108,7 @@ export function SimpleTextInput<
                     {!fieldError && helperText && (
                       <p 
                         id={`${field.name}-description`}
-                        className="text-sm text-muted-foreground"
+                        className="text-sm text-gray-500"
                       >
                         {helperText}
                       </p>
@@ -117,7 +117,7 @@ export function SimpleTextInput<
                   
                   {showCharCount && maxLength && (
                     <span className={cn(
-                      "text-xs text-muted-foreground tabular-nums",
+                      "text-xs text-gray-500 tabular-nums",
                       currentLength > maxLength * 0.9 && "text-warning",
                       currentLength >= maxLength && "text-destructive"
                     )}>
@@ -179,7 +179,7 @@ export function SimpleTextInput<
             {!error && helperText && (
               <p 
                 id={`${name}-description`}
-                className="text-sm text-muted-foreground"
+                className="text-sm text-gray-500"
               >
                 {helperText}
               </p>
@@ -188,7 +188,7 @@ export function SimpleTextInput<
           
           {showCharCount && maxLength && (
             <span className={cn(
-              "text-xs text-muted-foreground tabular-nums",
+              "text-xs text-gray-500 tabular-nums",
               currentLength > maxLength * 0.9 && "text-warning",
               currentLength >= maxLength && "text-destructive"
             )}>

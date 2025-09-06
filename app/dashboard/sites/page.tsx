@@ -169,7 +169,7 @@ export default function DashboardSitesPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold">All Sites</h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-gray-500 mt-2">
             Manage all your websites from one place
           </p>
         </div>
@@ -204,9 +204,9 @@ export default function DashboardSitesPage() {
       ) : sites.length === 0 ? (
         <Card className="text-center py-12">
           <CardContent>
-            <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <Globe className="h-12 w-12 text-gray-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">No sites yet</h3>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-gray-500 mb-6">
               Create your first site to get started
             </p>
             <Button
@@ -239,7 +239,7 @@ export default function DashboardSitesPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2 text-sm">
-                  <div className="flex items-center text-muted-foreground">
+                  <div className="flex items-center text-gray-500">
                     <Globe className="h-4 w-4 mr-2" />
                     <a 
                       href={getSiteUrl(site)} 
@@ -251,11 +251,11 @@ export default function DashboardSitesPage() {
                       <ExternalLink className="h-3 w-3 ml-1" />
                     </a>
                   </div>
-                  <div className="flex items-center text-muted-foreground">
+                  <div className="flex items-center text-gray-500">
                     <Calendar className="h-4 w-4 mr-2" />
                     Created {new Date(site.created_at).toLocaleDateString()}
                   </div>
-                  <div className="flex items-center text-muted-foreground">
+                  <div className="flex items-center text-gray-500">
                     <Settings className="h-4 w-4 mr-2" />
                     Role: {site.role}
                   </div>
@@ -325,11 +325,11 @@ export default function DashboardSitesPage() {
                   value={newSite.subdomain}
                   onChange={(e) => setNewSite({ ...newSite, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
                 />
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-gray-500">
                   .{typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500">
                 Letters, numbers, and hyphens only
               </p>
             </div>

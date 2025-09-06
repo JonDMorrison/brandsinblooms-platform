@@ -38,8 +38,8 @@ export function MobileNav() {
           <span className="sr-only">Toggle navigation menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-64 bg-background p-0 border-r shadow-lg">
-        <div className="flex flex-col h-full bg-background">
+      <SheetContent side="left" className="w-64 bg-white p-0 border-r shadow-lg">
+        <div className="flex flex-col h-full bg-white">
           <div className="p-6 border-b">
             <div className="flex items-center space-x-3">
               <div className="flex items-center justify-center w-10 h-10 bg-gradient-primary rounded-lg">
@@ -49,7 +49,7 @@ export function MobileNav() {
                 <h1 className="text-xl font-brand-heading text-gradient-primary">
                   Brands & Blooms
                 </h1>
-                <p className="text-xs text-muted-foreground">Platform</p>
+                <p className="text-xs text-gray-500">Platform</p>
               </div>
             </div>
           </div>
@@ -69,7 +69,7 @@ export function MobileNav() {
                   className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
                     isActive
                       ? 'bg-gradient-primary text-white shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted interactive'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gradient-primary-50 interactive'
                   }`}
                 >
                   <item.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'group-hover:text-primary'}`} />

@@ -142,8 +142,8 @@ export function NotificationList({
         return (
           <div key={dateKey} className="space-y-3">
             {/* Date group header */}
-            <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/40 pb-2">
-              <h3 className="text-sm font-medium text-muted-foreground">
+            <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-border/40 pb-2">
+              <h3 className="text-sm font-medium text-gray-500">
                 {dateLabel}
               </h3>
             </div>
@@ -178,7 +178,7 @@ export function NotificationList({
       {/* Loading indicator */}
       {isLoading && (
         <div className="flex items-center justify-center py-6">
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2 text-gray-500">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span className="text-sm">Loading notifications...</span>
           </div>
@@ -193,7 +193,7 @@ export function NotificationList({
       {/* End of list indicator */}
       {!hasMore && notifications.length > 0 && (
         <div className="text-center py-6">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             You've reached the end of your notifications
           </p>
         </div>

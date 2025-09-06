@@ -384,8 +384,8 @@ export function ProductEditModal({
           <TabsContent value="details" className="mt-4">
             <div className="space-y-6 transition-opacity">
             {isLoading && (
-              <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
-                <div className="flex items-center space-x-3 bg-background border rounded-lg p-4 shadow-lg">
+              <div className="absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
+                <div className="flex items-center space-x-3 bg-white border rounded-lg p-4 shadow-lg">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   <span className="text-sm font-medium">Saving changes...</span>
                 </div>
@@ -546,7 +546,7 @@ export function ProductEditModal({
                   placeholder="Enter product description..."
                 />
               </FormControl>
-              <div id="description-help" className="text-xs text-muted-foreground">
+              <div id="description-help" className="text-xs text-gray-500">
                 Detailed description of the product for customers.
               </div>
               <FormMessage />
@@ -569,7 +569,7 @@ export function ProductEditModal({
                   placeholder="Enter care instructions..."
                 />
               </FormControl>
-              <div id="care-help" className="text-xs text-muted-foreground">
+              <div id="care-help" className="text-xs text-gray-500">
                 Instructions for caring for this product (especially important for plants and flowers).
               </div>
               <FormMessage />
@@ -593,7 +593,7 @@ export function ProductEditModal({
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>Active</FormLabel>
-                  <div id="active-help" className="text-xs text-muted-foreground">
+                  <div id="active-help" className="text-xs text-gray-500">
                     Controls if this product is visible on your site.
                   </div>
                 </div>
@@ -616,7 +616,7 @@ export function ProductEditModal({
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>Featured</FormLabel>
-                  <div id="featured-help" className="text-xs text-muted-foreground">
+                  <div id="featured-help" className="text-xs text-gray-500">
                     Featured products appear prominently on your site.
                   </div>
                 </div>
@@ -639,7 +639,7 @@ export function ProductEditModal({
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>In Stock</FormLabel>
-                  <div id="stock-help" className="text-xs text-muted-foreground">
+                  <div id="stock-help" className="text-xs text-gray-500">
                     Whether this product is currently available for purchase.
                   </div>
                 </div>
@@ -663,7 +663,7 @@ export function ProductEditModal({
                   aria-describedby="notes-help"
                 />
               </FormControl>
-              <div id="notes-help" className="text-xs text-muted-foreground">
+              <div id="notes-help" className="text-xs text-gray-500">
                 Internal notes about this product update (not visible to customers).
               </div>
               <FormMessage />
@@ -692,7 +692,7 @@ export function ProductEditModal({
           )}
           {loadingImages ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
             </div>
           ) : (
             <ImageUploadS3
@@ -758,7 +758,7 @@ export function ProductEditModal({
             }
           }}
         >
-          <SheetHeader className="sticky top-0 bg-background/95 backdrop-blur-sm border-b pb-3 mb-3 z-10">
+          <SheetHeader className="sticky top-0 bg-white/95 backdrop-blur-sm border-b pb-3 mb-3 z-10">
             <SheetTitle className="text-left text-lg font-semibold">
               Edit Product: {product?.name}
             </SheetTitle>
@@ -785,7 +785,7 @@ export function ProductEditModal({
           }
         }}
       >
-        <DialogHeader className="sticky top-0 bg-background/95 backdrop-blur-sm border-b pb-3 mb-3 z-10">
+        <DialogHeader className="sticky top-0 bg-white/95 backdrop-blur-sm border-b pb-3 mb-3 z-10">
           <DialogTitle className="text-xl font-semibold">
             Edit Product: {product?.name}
           </DialogTitle>

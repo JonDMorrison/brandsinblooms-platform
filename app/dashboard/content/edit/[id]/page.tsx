@@ -123,7 +123,7 @@ export default function EditContentPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-muted-foreground">Loading page...</p>
+          <p className="text-gray-500">Loading page...</p>
         </div>
       </div>
     )
@@ -191,7 +191,7 @@ export default function EditContentPage() {
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 {layoutInfo[pageData.layout].name} • Last modified {pageData.lastModified.toLocaleDateString()}
               </p>
             </div>
@@ -305,7 +305,7 @@ export default function EditContentPage() {
                               </div>
                               <div>
                                 <p className="font-medium text-sm">{info.name}</p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-gray-500">
                                   Switch to {info.name.toLowerCase()}
                                 </p>
                               </div>
@@ -325,26 +325,26 @@ export default function EditContentPage() {
                     <CardContent className="space-y-4">
                       <div>
                         <label className="text-sm font-medium">Page Title</label>
-                        <p className="text-sm text-muted-foreground mt-1">{pageData.title}</p>
+                        <p className="text-sm text-gray-500 mt-1">{pageData.title}</p>
                       </div>
                       {pageData.subtitle && (
                         <div>
                           <label className="text-sm font-medium">Subtitle</label>
-                          <p className="text-sm text-muted-foreground mt-1">{pageData.subtitle}</p>
+                          <p className="text-sm text-gray-500 mt-1">{pageData.subtitle}</p>
                         </div>
                       )}
                       <div>
                         <label className="text-sm font-medium">Status</label>
-                        <p className="text-sm text-muted-foreground mt-1 capitalize">{pageData.status}</p>
+                        <p className="text-sm text-gray-500 mt-1 capitalize">{pageData.status}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium">Last Modified</label>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-sm text-gray-500 mt-1">
                           {pageData.lastModified.toLocaleString()}
                         </p>
                       </div>
                       <div className="pt-4 border-t">
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-gray-500">
                           Content editing features will be available in the full editor implementation.
                         </p>
                       </div>
@@ -378,7 +378,7 @@ export default function EditContentPage() {
 
       {/* Status Bar */}
       <div className="border-t bg-gray-50  px-6 py-2">
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center gap-4">
             <span>Layout: {layoutInfo[pageData.layout].name}</span>
             <span>•</span>

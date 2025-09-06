@@ -55,8 +55,8 @@ export function SimpleChart({
         <CardContent>
           <div className="h-[300px] md:h-[350px] flex items-center justify-center bg-muted/10 rounded-lg">
             <div className="text-center">
-              <p className="text-muted-foreground">No data available yet</p>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-gray-500">No data available yet</p>
+              <p className="text-sm text-gray-500 mt-2">
                 {dataKey === 'views' 
                   ? 'Site views will be tracked as visitors browse your site'
                   : 'Order data will appear once you receive your first orders'
@@ -78,7 +78,7 @@ export function SimpleChart({
       </CardHeader>
       <CardContent>
         <div className="h-[300px] md:h-[350px] flex items-center justify-center bg-muted/10 rounded-lg">
-          <p className="text-muted-foreground">Chart visualization coming soon</p>
+          <p className="text-gray-500">Chart visualization coming soon</p>
         </div>
       </CardContent>
     </Card>

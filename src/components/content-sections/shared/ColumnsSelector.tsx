@@ -42,7 +42,7 @@ export function ColumnsSelector({
                 cursor-pointer px-3 py-1.5 text-xs rounded-md border transition-colors
                 ${value === col 
                   ? 'bg-primary text-primary-foreground border-primary' 
-                  : 'bg-background border-input hover:bg-accent'
+                  : 'bg-white border-input hover:bg-gradient-primary-50'
                 }
               `}
             >

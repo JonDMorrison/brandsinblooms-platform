@@ -96,8 +96,8 @@ function PreviewFrame({ url, device, loading, error }: PreviewFrameProps) {
         style={getFrameStyles()}
       >
         <div className="text-center space-y-2">
-          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Loading preview...</p>
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-500" />
+          <p className="text-sm text-gray-500">Loading preview...</p>
         </div>
       </div>
     )
@@ -112,7 +112,7 @@ function PreviewFrame({ url, device, loading, error }: PreviewFrameProps) {
         <div className="text-center space-y-2 p-4">
           <AlertTriangle className="h-8 w-8 mx-auto text-destructive" />
           <p className="text-sm font-medium">Preview Error</p>
-          <p className="text-xs text-muted-foreground">{error}</p>
+          <p className="text-xs text-gray-500">{error}</p>
         </div>
       </div>
     )
@@ -234,7 +234,7 @@ function SitePreviewContent({ siteId }: { siteId?: string }) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">{currentSite.name}</h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             Preview your site across different devices and test functionality
           </p>
         </div>
@@ -387,14 +387,14 @@ function SitePreviewContent({ siteId }: { siteId?: string }) {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Last Checked</span>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-gray-500">
                         {healthCheck.lastChecked.toLocaleTimeString()}
                       </span>
                     </div>
                     {healthCheck.issues.length > 0 && (
                       <div className="pt-2 border-t">
                         <p className="text-sm font-medium mb-1">Issues:</p>
-                        <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                        <ul className="list-disc list-inside space-y-1 text-sm text-gray-500">
                           {healthCheck.issues.map((issue: string, index: number) => (
                             <li key={index}>{issue}</li>
                           ))}
@@ -405,7 +405,7 @@ function SitePreviewContent({ siteId }: { siteId?: string }) {
                 ) : (
                   <div className="flex items-center justify-center py-4">
                     <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                    <span className="text-sm text-muted-foreground">Checking health...</span>
+                    <span className="text-sm text-gray-500">Checking health...</span>
                   </div>
                 )}
               </CardContent>
@@ -453,7 +453,7 @@ function SitePreviewContent({ siteId }: { siteId?: string }) {
                     {connectivityTest.redirects && connectivityTest.redirects.length > 0 && (
                       <div className="pt-2 border-t">
                         <p className="text-sm font-medium mb-1">Redirects:</p>
-                        <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                        <ul className="list-disc list-inside space-y-1 text-sm text-gray-500">
                           {connectivityTest.redirects.map((redirect: string, index: number) => (
                             <li key={index}>{redirect}</li>
                           ))}
@@ -475,7 +475,7 @@ function SitePreviewContent({ siteId }: { siteId?: string }) {
                 ) : (
                   <div className="flex items-center justify-center py-4">
                     <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                    <span className="text-sm text-muted-foreground">Testing connectivity...</span>
+                    <span className="text-sm text-gray-500">Testing connectivity...</span>
                   </div>
                 )}
               </CardContent>
@@ -499,7 +499,7 @@ function SitePreviewContent({ siteId }: { siteId?: string }) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-8 text-gray-500">
                 <Clock className="h-8 w-8 mx-auto mb-2" />
                 <p>Analytics data will be available here</p>
                 <p className="text-sm">Connect your analytics service to view detailed metrics</p>

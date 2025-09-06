@@ -55,7 +55,7 @@ function CustomerCell({ row }: { row: Row<OrderWithCustomer> }) {
         <div className="font-medium truncate">
           {customer.full_name || 'Unknown Customer'}
         </div>
-        <div className="text-sm text-muted-foreground truncate">
+        <div className="text-sm text-gray-500 truncate">
           {customer.email}
         </div>
       </div>
@@ -172,7 +172,7 @@ export const orderColumns: ColumnDef<OrderWithCustomer>[] = [
       const paymentStatus = row.getValue("payment_status") as string | null
       return (
         <div className="flex items-center gap-2">
-          <CreditCard className="h-4 w-4 text-muted-foreground" />
+          <CreditCard className="h-4 w-4 text-gray-500" />
           <PaymentStatusBadge status={paymentStatus} />
         </div>
       )
@@ -196,7 +196,7 @@ export const orderColumns: ColumnDef<OrderWithCustomer>[] = [
       const currency = row.original.currency || 'USD'
       return (
         <div className="flex items-center gap-2 font-medium">
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <DollarSign className="h-4 w-4 text-gray-500" />
           {new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: currency,
@@ -221,7 +221,7 @@ export const orderColumns: ColumnDef<OrderWithCustomer>[] = [
     cell: ({ row }) => {
       const date = new Date(row.getValue("created_at"))
       return (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-gray-500">
           <Calendar className="h-4 w-4" />
           <div className="flex flex-col">
             <span>{formatDistanceToNow(date, { addSuffix: true })}</span>

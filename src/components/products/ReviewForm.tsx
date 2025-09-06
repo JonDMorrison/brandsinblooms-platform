@@ -94,7 +94,7 @@ export function ReviewForm({
       <Card className={className}>
         <CardContent className="pt-6">
           <div className="text-center space-y-4">
-            <p className="text-muted-foreground">You have already reviewed this product.</p>
+            <p className="text-gray-500">You have already reviewed this product.</p>
             <Button
               variant="outline"
               onClick={() => {
@@ -163,7 +163,7 @@ export function ReviewForm({
                       maxLength={100}
                     />
                   </FormControl>
-                  <div className="flex justify-between text-sm text-muted-foreground">
+                  <div className="flex justify-between text-sm text-gray-500">
                     <FormMessage />
                     <span>{field.value?.length || 0}/100</span>
                   </div>
@@ -186,7 +186,7 @@ export function ReviewForm({
                       maxLength={1000}
                     />
                   </FormControl>
-                  <div className="flex justify-between text-sm text-muted-foreground">
+                  <div className="flex justify-between text-sm text-gray-500">
                     <FormMessage />
                     <span>{field.value?.length || 0}/1000</span>
                   </div>
@@ -277,7 +277,7 @@ export function QuickReviewForm({
           onChange={handleQuickRating}
           size="md"
         />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-gray-500">
           Click a star to rate, or write a detailed review below
         </p>
       </div>

@@ -214,7 +214,7 @@ export function DesignHistory({
                       ${isCurrent ? 'bg-primary/5 border-primary' : ''}
                       ${isPast ? 'opacity-60 hover:opacity-80' : ''}
                       ${isFuture ? 'opacity-40 hover:opacity-60' : ''}
-                      ${!isCurrent ? 'hover:bg-gray-50' : ''}
+                      ${!isCurrent ? 'hover:bg-gradient-primary-20' : ''}
                     `}
                     onClick={() => !isCurrent && onJumpTo(index)}
                   >

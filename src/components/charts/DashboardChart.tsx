@@ -115,13 +115,13 @@ export function DashboardChart({
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                    <div className="rounded-lg border bg-white p-2 shadow-sm">
                       <div className="grid grid-cols-2 gap-2">
                         <div className="flex flex-col">
-                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                          <span className="text-[0.70rem] uppercase text-gray-500">
                             {label}
                           </span>
-                          <span className="font-bold text-muted-foreground">
+                          <span className="font-bold text-gray-500">
                             {payload[0].value}
                           </span>
                         </div>
@@ -160,13 +160,13 @@ export function DashboardChart({
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                    <div className="rounded-lg border bg-white p-2 shadow-sm">
                       <div className="grid grid-cols-2 gap-2">
                         <div className="flex flex-col">
-                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                          <span className="text-[0.70rem] uppercase text-gray-500">
                             {label}
                           </span>
-                          <span className="font-bold text-muted-foreground">
+                          <span className="font-bold text-gray-500">
                             {payload[0].value}
                           </span>
                         </div>
@@ -207,13 +207,13 @@ export function DashboardChart({
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                    <div className="rounded-lg border bg-white p-2 shadow-sm">
                       <div className="grid grid-cols-2 gap-2">
                         <div className="flex flex-col">
-                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                          <span className="text-[0.70rem] uppercase text-gray-500">
                             {label}
                           </span>
-                          <span className="font-bold text-muted-foreground">
+                          <span className="font-bold text-gray-500">
                             {payload[0].value}
                           </span>
                         </div>

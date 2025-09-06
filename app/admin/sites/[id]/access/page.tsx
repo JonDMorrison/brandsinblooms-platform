@@ -102,7 +102,7 @@ export default function SiteAccessPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-white">
         <ImpersonationBanner />
         <ImpersonationSpacer>
           <div className="mx-auto max-w-7xl px-6 py-8">
@@ -121,7 +121,7 @@ export default function SiteAccessPage() {
 
   if (error || !site) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-white">
         <ImpersonationBanner />
         <ImpersonationSpacer>
           <div className="mx-auto max-w-7xl px-6 py-8">
@@ -138,7 +138,7 @@ export default function SiteAccessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <ImpersonationBanner />
       <ImpersonationSpacer>
         <div className="mx-auto max-w-7xl px-6 py-8">
@@ -178,8 +178,8 @@ export default function SiteAccessPage() {
 
             {/* Additional Information */}
             <div className="mt-8 p-4 bg-muted/50 rounded-lg">
-              <h3 className="font-medium text-foreground mb-2">Important Notes</h3>
-              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+              <h3 className="font-medium text-gray-900 mb-2">Important Notes</h3>
+              <ul className="text-sm text-gray-500 space-y-1 list-disc list-inside">
                 <li>All impersonation sessions are logged for security audit purposes</li>
                 <li>Sessions have a maximum duration of 24 hours and will auto-expire</li>
                 <li>You can end impersonation sessions at any time from this page or the admin dashboard</li>

@@ -114,7 +114,7 @@ export function OrderStats({ className }: OrderStatsProps) {
           <CardContent className="p-4 text-center">
             <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
             <h3 className="font-medium text-red-600 ">Failed to Load Order Stats</h3>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               {error instanceof Error ? error.message : 'An error occurred while loading order statistics'}
             </p>
           </CardContent>
@@ -175,7 +175,7 @@ export function OrderStats({ className }: OrderStatsProps) {
                     <Icon className="h-6 w-6" />
                   </div>
                   <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className="text-sm text-muted-foreground">{stat.title}</p>
+                  <p className="text-sm text-gray-500">{stat.title}</p>
                 </div>
               )
             })}
