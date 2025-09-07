@@ -492,174 +492,206 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                 <RadioGroup
                   value={brandingType}
                   onValueChange={(val: 'text' | 'logo' | 'both') => setBrandingType(val)}
-                  className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                  className="grid grid-cols-1 md:grid-cols-3 gap-3"
                 >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="text" id="text" />
-                    <Label htmlFor="text" className="text-sm">Text Only</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="logo" id="logo" />
-                    <Label htmlFor="logo" className="text-sm">Logo Only</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="both" id="both" />
-                    <Label htmlFor="both" className="text-sm">Logo + Text</Label>
-                  </div>
+                  <Card 
+                    className={cn(
+                      "cursor-pointer transition-all hover:shadow-md hover:scale-105 active:scale-95",
+                      brandingType === 'text' ? "ring-2 ring-primary ring-offset-2" : ""
+                    )}
+                    onClick={() => setBrandingType('text')}
+                  >
+                    <CardContent className="p-3">
+                      <RadioGroupItem value="text" className="sr-only" />
+                      <div className="text-center">
+                        <div className="font-medium text-sm">Text Only</div>
+                        <div className="text-xs text-muted-foreground mt-1">Brand name only</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card 
+                    className={cn(
+                      "cursor-pointer transition-all hover:shadow-md hover:scale-105 active:scale-95",
+                      brandingType === 'logo' ? "ring-2 ring-primary ring-offset-2" : ""
+                    )}
+                    onClick={() => setBrandingType('logo')}
+                  >
+                    <CardContent className="p-3">
+                      <RadioGroupItem value="logo" className="sr-only" />
+                      <div className="text-center">
+                        <div className="font-medium text-sm">Logo Only</div>
+                        <div className="text-xs text-muted-foreground mt-1">Image logo only</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card 
+                    className={cn(
+                      "cursor-pointer transition-all hover:shadow-md hover:scale-105 active:scale-95",
+                      brandingType === 'both' ? "ring-2 ring-primary ring-offset-2" : ""
+                    )}
+                    onClick={() => setBrandingType('both')}
+                  >
+                    <CardContent className="p-3">
+                      <RadioGroupItem value="both" className="sr-only" />
+                      <div className="text-center">
+                        <div className="font-medium text-sm">Logo + Text</div>
+                        <div className="text-xs text-muted-foreground mt-1">Both together</div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </RadioGroup>
               </div>
               
-              {(brandingType === 'logo' || brandingType === 'both') && (
-                <>
-                  <div className="space-y-3">
-                    {value.logo?.url ? (
-                      <div className="flex flex-col items-center gap-3 p-4 border rounded-lg bg-gray-50">
-                        <div 
-                          className="bg-white rounded p-3 border shadow-sm flex items-center justify-center"
-                          style={{ width: `${logoSize[0]}px`, height: `${Math.round(logoSize[0] * 0.6)}px` }}
-                        >
-                          <img 
-                            src={value.logo.url} 
-                            alt="Logo" 
-                            className="max-w-full max-h-full object-contain"
+              {/* Brand Text - Always visible, placed above logo */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Brand Text</Label>
+                <Input
+                  placeholder="Enter your brand name"
+                  value={value.logo?.text || ''}
+                  onChange={(e) => handleLogoChange('text', e.target.value)}
+                />
+              </div>
+
+              {/* Logo Section - Always visible */}
+              <div className="space-y-3">
+                {value.logo?.url ? (
+                  <div className="flex flex-col items-center gap-3 p-4 border rounded-lg bg-gray-50">
+                    <div 
+                      className="bg-white rounded p-3 border shadow-sm flex items-center justify-center"
+                      style={{ width: `${logoSize[0]}px`, height: `${Math.round(logoSize[0] * 0.6)}px` }}
+                    >
+                      <img 
+                        src={value.logo.url} 
+                        alt="Logo" 
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                    <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="text-xs">
+                          <Upload className="h-3 w-3 mr-1" />
+                          Change Logo
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Upload Logo</DialogTitle>
+                          <DialogDescription>
+                            Choose a new logo for your header
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          {isUploading ? (
+                            <div className="space-y-3 p-8 text-center">
+                              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                              <p className="text-sm font-medium">Uploading... {uploadProgress}%</p>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${uploadProgress}%` }}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div
+                              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 hover:bg-gray-50 transition-colors cursor-pointer"
+                              onClick={() => fileInputRef.current?.click()}
+                            >
+                              <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                              <p className="text-sm font-medium">Click to upload logo</p>
+                              <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                            </div>
+                          )}
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            className="hidden"
                           />
                         </div>
-                        <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="text-xs">
-                              <Upload className="h-3 w-3 mr-1" />
-                              Change Logo
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-md">
-                            <DialogHeader>
-                              <DialogTitle>Upload Logo</DialogTitle>
-                              <DialogDescription>
-                                Choose a new logo for your header
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              {isUploading ? (
-                                <div className="space-y-3 p-8 text-center">
-                                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                                  <p className="text-sm font-medium">Uploading... {uploadProgress}%</p>
-                                  <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div 
-                                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                                      style={{ width: `${uploadProgress}%` }}
-                                    />
-                                  </div>
-                                </div>
-                              ) : (
-                                <div
-                                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 hover:bg-gray-50 transition-colors cursor-pointer"
-                                  onClick={() => fileInputRef.current?.click()}
-                                >
-                                  <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                                  <p className="text-sm font-medium">Click to upload logo</p>
-                                  <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
-                                </div>
-                              )}
-                              <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileSelect}
-                                className="hidden"
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                ) : (
+                  <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
+                    <DialogTrigger asChild>
+                      <div className="flex items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:border-gray-400 hover:bg-gray-100 transition-colors cursor-pointer">
+                        <div className="flex flex-col items-center gap-2 text-center">
+                          <Upload className="h-6 w-6 text-gray-400" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Upload Logo</p>
+                            <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                          </div>
+                        </div>
+                      </div>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Upload Logo</DialogTitle>
+                        <DialogDescription>
+                          Choose a logo for your header
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        {isUploading ? (
+                          <div className="space-y-3 p-8 text-center">
+                            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                            <p className="text-sm font-medium">Uploading... {uploadProgress}%</p>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-primary h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${uploadProgress}%` }}
                               />
                             </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    ) : (
-                      <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
-                        <DialogTrigger asChild>
-                          <div className="flex items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:border-gray-400 hover:bg-gray-100 transition-colors cursor-pointer">
-                            <div className="flex flex-col items-center gap-2 text-center">
-                              <Upload className="h-6 w-6 text-gray-400" />
-                              <div>
-                                <p className="text-sm font-medium text-gray-700">Upload Logo</p>
-                                <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
-                              </div>
-                            </div>
                           </div>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-md">
-                          <DialogHeader>
-                            <DialogTitle>Upload Logo</DialogTitle>
-                            <DialogDescription>
-                              Choose a logo for your header
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            {isUploading ? (
-                              <div className="space-y-3 p-8 text-center">
-                                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                                <p className="text-sm font-medium">Uploading... {uploadProgress}%</p>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                  <div 
-                                    className="bg-primary h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${uploadProgress}%` }}
-                                  />
-                                </div>
-                              </div>
-                            ) : (
-                              <div
-                                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 hover:bg-gray-50 transition-colors cursor-pointer"
-                                onClick={() => fileInputRef.current?.click()}
-                              >
-                                <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                                <p className="text-sm font-medium">Click to upload logo</p>
-                                <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
-                              </div>
-                            )}
-                            <input
-                              ref={fileInputRef}
-                              type="file"
-                              accept="image/*"
-                              onChange={handleFileSelect}
-                              className="hidden"
-                            />
+                        ) : (
+                          <div
+                            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 hover:bg-gray-50 transition-colors cursor-pointer"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                            <p className="text-sm font-medium">Click to upload logo</p>
+                            <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
                           </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Logo Size</Label>
-                    <div className="px-2">
-                      <Slider
-                        value={logoSize}
-                        onValueChange={(val) => {
-                          setLogoSize(val)
-                          handleLogoChange('size', val[0])
-                        }}
-                        max={200}
-                        min={50}
-                        step={10}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>50px</span>
-                        <span>{logoSize[0]}px</span>
-                        <span>200px</span>
+                        )}
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
                       </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
+              
+              {/* Logo Size Slider - Centered and not full width */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-center block">Logo Size</Label>
+                <div className="flex justify-center">
+                  <div className="w-64">
+                    <Slider
+                      value={logoSize}
+                      onValueChange={(val) => {
+                        setLogoSize(val)
+                        handleLogoChange('size', val[0])
+                      }}
+                      max={200}
+                      min={50}
+                      step={10}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>50px</span>
+                      <span>{logoSize[0]}px</span>
+                      <span>200px</span>
                     </div>
                   </div>
-                </>
-              )}
-              
-              {(brandingType === 'text' || brandingType === 'both') && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Brand Text</Label>
-                  <Input
-                    placeholder="Enter your brand name"
-                    value={value.logo?.text || ''}
-                    onChange={(e) => handleLogoChange('text', e.target.value)}
-                  />
                 </div>
-              )}
+              </div>
             </div>
           </CollapsibleContent>
         </Collapsible>

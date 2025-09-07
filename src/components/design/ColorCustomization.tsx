@@ -164,7 +164,7 @@ export function ColorCustomization({ colors, typography, onColorsChange }: Color
                 <div className="text-xs" style={{ color: textColor + '80' }}>Button Elements</div>
                 <div className="flex flex-wrap items-center gap-3">
                   <button 
-                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-all hover:opacity-90 hover:shadow-sm"
+                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-all hover:opacity-90 hover:shadow-sm cursor-pointer"
                     style={{ 
                       backgroundColor: colors.primary, 
                       color: '#fff',
@@ -174,7 +174,7 @@ export function ColorCustomization({ colors, typography, onColorsChange }: Color
                     Primary Button
                   </button>
                   <button 
-                    className="px-3 py-1.5 text-sm font-medium rounded-md border transition-all hover:opacity-80"
+                    className="px-3 py-1.5 text-sm font-medium rounded-md border transition-all hover:opacity-80 cursor-pointer"
                     style={{ 
                       borderColor: colors.secondary, 
                       color: colors.secondary,
@@ -184,7 +184,7 @@ export function ColorCustomization({ colors, typography, onColorsChange }: Color
                     Secondary Button
                   </button>
                   <button 
-                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-all hover:opacity-80"
+                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-all hover:opacity-80 cursor-pointer"
                     style={{ 
                       color: colors.accent,
                       backgroundColor: 'transparent',
