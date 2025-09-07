@@ -7,6 +7,8 @@ import { Input } from '@/src/components/ui/input'
 import { Button } from '@/src/components/ui/button'
 import { Textarea } from '@/src/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
+import { Card, CardContent } from '@/src/components/ui/card'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/src/components/ui/collapsible'
 import { ThemeSettings, FooterColumn, SocialLink } from '@/src/lib/queries/domains/theme'
 import { 
   Layout,
@@ -18,10 +20,18 @@ import {
   Linkedin,
   Youtube,
   Globe,
-  Mail
+  Mail,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+  Share2,
+  MessageSquare,
+  Copyright,
+  Navigation
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/src/lib/utils'
+import { toast } from 'sonner'
 
 interface FooterCustomizationProps {
   value: ThemeSettings
@@ -67,6 +77,14 @@ const SOCIAL_PLATFORMS = [
   { value: 'website', label: 'Website', icon: Globe },
 ]
 
+const FOOTER_NAVIGATION_OPTIONS = [
+  { value: 'products', label: 'Products', required: false },
+  { value: 'home', label: 'Home', required: false },
+  { value: 'about', label: 'About', required: false },
+  { value: 'contact', label: 'Contact', required: false },
+  { value: 'blog', label: 'Blog', required: false },
+]
+
 
 const DEFAULT_FOOTER_COLUMNS: FooterColumn[] = [
   {
@@ -96,25 +114,64 @@ const DEFAULT_FOOTER_COLUMNS: FooterColumn[] = [
 ]
 
 export function FooterCustomization({ value, colors, typography, onChange }: FooterCustomizationProps) {
+  const [previewOpen, setPreviewOpen] = useState(true)
+  const [styleOpen, setStyleOpen] = useState(true)
+  const [columnsOpen, setColumnsOpen] = useState(true)
+  const [navigationOpen, setNavigationOpen] = useState(true)
+  const [socialOpen, setSocialOpen] = useState(true)
+  const [copyrightOpen, setCopyrightOpen] = useState(true)
+  
   const [editingColumn, setEditingColumn] = useState<number | null>(null)
   const [newLink, setNewLink] = useState({ label: '', href: '' })
   const [newSocialLink, setNewSocialLink] = useState({ platform: 'facebook', url: '' })
+  const [selectedFooterNavItems, setSelectedFooterNavItems] = useState<string[]>(['home', 'about', 'contact'])
 
   const footerColumns = value.footer?.columns || DEFAULT_FOOTER_COLUMNS
   const socialLinks = value.footer?.socialLinks || []
+  
+  // Initialize footer navigation items from saved settings
+  useEffect(() => {
+    if (value.footer?.navigationItems) {
+      const savedItems = value.footer.navigationItems
+        .map(item => item.label.toLowerCase())
+        .filter(label => ['products', 'home', 'about', 'contact', 'blog'].includes(label))
+      setSelectedFooterNavItems(savedItems.length > 0 ? savedItems : ['home', 'about', 'contact'])
+    } else {
+      setSelectedFooterNavItems(['home', 'about', 'contact'])
+    }
+  }, [value.footer?.navigationItems])
 
   const handleFooterChange = (key: string, val: any) => {
-    onChange({
+    const newSettings = {
       ...value,
       footer: {
         ...value.footer,
         style: value.footer?.style || 'comprehensive',
         columns: footerColumns,
         socialLinks: socialLinks,
+        navigationItems: value.footer?.navigationItems || selectedFooterNavItems.map(item => ({ label: item, href: `/${item === 'products' ? 'products' : item}` })),
         copyright: value.footer?.copyright || '',
         [key]: val
       }
-    })
+    }
+    onChange(newSettings)
+    toast.success('Footer settings updated')
+  }
+  
+  const toggleFooterNavItem = (item: string) => {
+    const newItems = selectedFooterNavItems.includes(item) 
+      ? selectedFooterNavItems.filter(i => i !== item)
+      : [...selectedFooterNavItems, item]
+    
+    setSelectedFooterNavItems(newItems)
+    
+    // Save navigation changes immediately
+    const navigationItems = newItems.map(navItem => ({ 
+      label: navItem, 
+      href: `/${navItem === 'products' ? 'products' : navItem}` 
+    }))
+    
+    handleFooterChange('navigationItems', navigationItems)
   }
 
   const updateColumn = (index: number, column: FooterColumn) => {
@@ -170,201 +227,448 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
 
 
   return (
-    <div className="space-y-8">
-      {/* Footer Style */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Layout className="h-4 w-4 text-gray-500" />
-          <Label className="text-base font-semibold">Footer Style</Label>
-        </div>
-        <RadioGroup
-          value={value.footer?.style || 'comprehensive'}
-          onValueChange={(val) => handleFooterChange('style', val)}
-        >
-          <div className="grid grid-cols-2 gap-4">
-            {FOOTER_STYLES.map((style) => (
-              <label
-                key={style.value}
-                className={cn(
-                  "relative flex flex-col gap-2 rounded-lg border-2 p-4 cursor-pointer hover:bg-gradient-primary-50/50 transition-colors",
-                  value.footer?.style === style.value ? "border-primary bg-gray-100/20" : "border-border"
-                )}
-              >
-                <RadioGroupItem value={style.value} className="sr-only" />
-                <span className="font-medium">{style.label}</span>
-                <span className="text-xs text-gray-500">{style.description}</span>
-              </label>
-            ))}
-          </div>
-        </RadioGroup>
-      </div>
-
-      {/* Footer Columns (for comprehensive style) */}
-      {value.footer?.style !== 'minimal' && value.footer?.style !== 'centered' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Footer Columns</Label>
-            <Button size="sm" onClick={addColumn}>
-              <Plus className="h-4 w-4 mr-1" />
-              Add Column
+    <Card className="border-0 shadow-none">
+      <CardContent className="px-0 space-y-6">
+        {/* Footer Preview Section */}
+        <Collapsible open={previewOpen} onOpenChange={setPreviewOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            >
+              <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Footer Preview
+              </Label>
+              {previewOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
             </Button>
-          </div>
-          
-          <div className="space-y-4">
-            {footerColumns.map((column, columnIndex) => (
-              <div key={columnIndex} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  {editingColumn === columnIndex ? (
-                    <Input
-                      value={column.title}
-                      onChange={(e) => updateColumn(columnIndex, { ...column, title: e.target.value })}
-                      className="flex-1 mr-2"
-                    />
-                  ) : (
-                    <h4 className="font-medium">{column.title}</h4>
-                  )}
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setEditingColumn(editingColumn === columnIndex ? null : columnIndex)}
-                    >
-                      {editingColumn === columnIndex ? 'Done' : 'Edit'}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => removeColumn(columnIndex)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3">
+            <div 
+              className="rounded-lg border p-4 space-y-4" 
+              style={{ 
+                backgroundColor: colors?.background || '#ffffff', 
+                color: colors?.text || '#1f2937',
+                fontFamily: typography?.bodyFont || 'Inter',
+                fontSize: typography?.fontSize === 'small' ? '0.875rem' : typography?.fontSize === 'large' ? '1.125rem' : '1rem'
+              }}
+            >
+              <div className="text-xs opacity-60 mb-2 flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                Live Preview
+              </div>
+              
+              {/* Footer preview based on selected style */}
+              <div className="border-t pt-4 space-y-4" style={{ borderColor: colors?.primary + '20' || '#2563eb20' }}>
+                {value.footer?.style === 'comprehensive' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {footerColumns.slice(0, 3).map((column, index) => (
+                      <div key={index} className="space-y-2">
+                        <h4 className="font-semibold text-sm" style={{ color: colors?.primary || '#2563eb' }}>
+                          {column.title}
+                        </h4>
+                        <ul className="space-y-1">
+                          {column.links.slice(0, 3).map((link, linkIndex) => (
+                            <li key={linkIndex}>
+                              <span className="text-xs hover:opacity-70 cursor-pointer transition-opacity" 
+                                    style={{ color: colors?.text || '#1f2937' }}>
+                                {link.label}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
                 
-                {/* Column Links */}
-                <div className="space-y-2">
-                  {column.links.map((link, linkIndex) => (
-                    <div key={linkIndex} className="flex items-center justify-between text-sm">
-                      <span>{link.label} - {link.href}</span>
+                {value.footer?.style === 'minimal' && (
+                  <div className="text-center space-y-2">
+                    <div className="flex justify-center gap-4">
+                      {socialLinks.slice(0, 4).map((social, index) => {
+                        const platform = SOCIAL_PLATFORMS.find(p => p.value === social.platform)
+                        const IconComponent = platform?.icon || Globe
+                        return (
+                          <IconComponent key={index} className="h-5 w-5 hover:opacity-70 cursor-pointer transition-opacity" 
+                                       style={{ color: colors?.primary || '#2563eb' }} />
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                {value.footer?.style === 'centered' && (
+                  <div className="text-center space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-center gap-6 text-sm">
+                        {selectedFooterNavItems.includes('home') && (
+                          <span className="hover:opacity-70 cursor-pointer transition-opacity" 
+                                style={{ color: colors?.text || '#1f2937' }}>Home</span>
+                        )}
+                        {selectedFooterNavItems.includes('products') && (
+                          <span className="hover:opacity-70 cursor-pointer transition-opacity" 
+                                style={{ color: colors?.text || '#1f2937' }}>Products</span>
+                        )}
+                        {selectedFooterNavItems.includes('about') && (
+                          <span className="hover:opacity-70 cursor-pointer transition-opacity" 
+                                style={{ color: colors?.text || '#1f2937' }}>About</span>
+                        )}
+                        {selectedFooterNavItems.includes('contact') && (
+                          <span className="hover:opacity-70 cursor-pointer transition-opacity" 
+                                style={{ color: colors?.text || '#1f2937' }}>Contact</span>
+                        )}
+                        {selectedFooterNavItems.includes('blog') && (
+                          <span className="hover:opacity-70 cursor-pointer transition-opacity" 
+                                style={{ color: colors?.text || '#1f2937' }}>Blog</span>
+                        )}
+                      </div>
+                      <div className="flex justify-center gap-4">
+                        {socialLinks.slice(0, 4).map((social, index) => {
+                          const platform = SOCIAL_PLATFORMS.find(p => p.value === social.platform)
+                          const IconComponent = platform?.icon || Globe
+                          return (
+                            <IconComponent key={index} className="h-4 w-4 hover:opacity-70 cursor-pointer transition-opacity" 
+                                         style={{ color: colors?.primary || '#2563eb' }} />
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Copyright */}
+                <div className="border-t pt-3 text-center text-xs" style={{ borderColor: colors?.primary + '20' || '#2563eb20', color: colors?.text + '80' || '#1f293780' }}>
+                  {value.footer?.copyright || `© ${new Date().getFullYear()} Your Company. All rights reserved.`}
+                </div>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Footer Style Section */}
+        <Collapsible open={styleOpen} onOpenChange={setStyleOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            >
+              <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                <Layout className="h-4 w-4" />
+                Footer Style
+              </Label>
+              {styleOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3">
+            <RadioGroup
+              value={value.footer?.style || 'comprehensive'}
+              onValueChange={(val) => handleFooterChange('style', val)}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {FOOTER_STYLES.map((style) => (
+                  <Card 
+                    key={style.value}
+                    className={cn(
+                      "cursor-pointer transition-all hover:shadow-md hover:scale-105 active:scale-95",
+                      value.footer?.style === style.value ? "ring-2 ring-primary ring-offset-2" : ""
+                    )}
+                    onClick={() => handleFooterChange('style', style.value)}
+                  >
+                    <CardContent className="p-4">
+                      <RadioGroupItem value={style.value} className="sr-only" />
+                      <div className="space-y-2">
+                        <span className="font-medium">{style.label}</span>
+                        <p className="text-sm text-muted-foreground">{style.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </RadioGroup>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Footer Navigation Section (for centered style) */}
+        {value.footer?.style === 'centered' && (
+          <Collapsible open={navigationOpen} onOpenChange={setNavigationOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-between p-0 h-auto hover:bg-transparent"
+              >
+                <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                  <Navigation className="h-4 w-4" />
+                  Footer Navigation
+                </Label>
+                {navigationOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-3 space-y-4">
+              <div className="text-sm text-muted-foreground">
+                Select the pages to display in your footer:
+              </div>
+              
+              <div className="space-y-2">
+                {FOOTER_NAVIGATION_OPTIONS.map((option) => (
+                  <div key={option.value} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id={`footer-${option.value}`}
+                      checked={selectedFooterNavItems.includes(option.value)}
+                      onChange={() => toggleFooterNavItem(option.value)}
+                      disabled={option.required}
+                      className="rounded border-gray-300"
+                    />
+                    <Label 
+                      htmlFor={`footer-${option.value}`} 
+                      className="text-sm"
+                    >
+                      {option.label}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Footer Columns Section */}
+        {value.footer?.style === 'comprehensive' && (
+          <Collapsible open={columnsOpen} onOpenChange={setColumnsOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-between p-0 h-auto hover:bg-transparent"
+              >
+                <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Footer Columns
+                </Label>
+                {columnsOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-3 space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm text-muted-foreground">Organize links into columns</Label>
+                <Button size="sm" onClick={addColumn}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Column
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                {footerColumns.map((column, columnIndex) => (
+                  <Card key={columnIndex} className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      {editingColumn === columnIndex ? (
+                        <Input
+                          value={column.title}
+                          onChange={(e) => updateColumn(columnIndex, { ...column, title: e.target.value })}
+                          className="flex-1 mr-2"
+                        />
+                      ) : (
+                        <h4 className="font-medium">{column.title}</h4>
+                      )}
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEditingColumn(editingColumn === columnIndex ? null : columnIndex)}
+                        >
+                          {editingColumn === columnIndex ? 'Done' : 'Edit'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeColumn(columnIndex)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Column Links */}
+                    <div className="space-y-2">
+                      {column.links.map((link, linkIndex) => (
+                        <div key={linkIndex} className="flex items-center justify-between text-sm bg-muted/50 rounded p-2">
+                          <span className="font-medium">{link.label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">{link.href}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeLinkFromColumn(columnIndex, linkIndex)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {/* Add new link */}
+                      {editingColumn === columnIndex && (
+                        <div className="flex gap-2 pt-2 border-t">
+                          <Input
+                            placeholder="Link label"
+                            value={newLink.label}
+                            onChange={(e) => setNewLink({ ...newLink, label: e.target.value })}
+                            className="flex-1"
+                          />
+                          <Input
+                            placeholder="URL"
+                            value={newLink.href}
+                            onChange={(e) => setNewLink({ ...newLink, href: e.target.value })}
+                            className="flex-1"
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => addLinkToColumn(columnIndex)}
+                            disabled={!newLink.label || !newLink.href}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Social Media Links Section */}
+        <Collapsible open={socialOpen} onOpenChange={setSocialOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            >
+              <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                <Share2 className="h-4 w-4" />
+                Social Media Links
+              </Label>
+              {socialOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3 space-y-4">
+            <Label className="text-sm text-muted-foreground">Add social media links to your footer</Label>
+            
+            <div className="space-y-3">
+              {socialLinks.map((link, index) => {
+                const platform = SOCIAL_PLATFORMS.find(p => p.value === link.platform)
+                const IconComponent = platform?.icon || Globe
+                return (
+                  <Card key={index} className="p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 w-32">
+                        <IconComponent className="h-4 w-4" />
+                        <span className="text-sm font-medium">{platform?.label}</span>
+                      </div>
+                      <Input value={link.url} disabled className="flex-1" />
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => removeLinkFromColumn(columnIndex, linkIndex)}
+                        onClick={() => removeSocialLink(index)}
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  ))}
-                  
-                  {/* Add new link */}
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Link label"
-                      value={editingColumn === columnIndex ? newLink.label : ''}
-                      onChange={(e) => setNewLink({ ...newLink, label: e.target.value })}
-                      className="flex-1"
-                    />
-                    <Input
-                      placeholder="URL"
-                      value={editingColumn === columnIndex ? newLink.href : ''}
-                      onChange={(e) => setNewLink({ ...newLink, href: e.target.value })}
-                      className="flex-1"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => addLinkToColumn(columnIndex)}
-                      disabled={!newLink.label || !newLink.href}
-                    >
-                      Add
-                    </Button>
-                  </div>
+                  </Card>
+                )
+              })}
+              
+              {/* Add new social link */}
+              <Card className="p-3 border-dashed">
+                <div className="flex gap-2">
+                  <Select
+                    value={newSocialLink.platform}
+                    onValueChange={(val) => setNewSocialLink({ ...newSocialLink, platform: val })}
+                  >
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SOCIAL_PLATFORMS.map((platform) => (
+                        <SelectItem key={platform.value} value={platform.value}>
+                          <div className="flex items-center gap-2">
+                            <platform.icon className="h-4 w-4" />
+                            {platform.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="URL (e.g., https://facebook.com/yourpage)"
+                    value={newSocialLink.url}
+                    onChange={(e) => setNewSocialLink({ ...newSocialLink, url: e.target.value })}
+                    className="flex-1"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={addSocialLink}
+                    disabled={!newSocialLink.url}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Social Media Links */}
-      <div className="space-y-4">
-        <Label className="text-sm font-medium">Social Media Links</Label>
-        <div className="space-y-3">
-          {socialLinks.map((link, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <Select value={link.platform} disabled>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SOCIAL_PLATFORMS.map((platform) => (
-                    <SelectItem key={platform.value} value={platform.value}>
-                      <div className="flex items-center gap-2">
-                        <platform.icon className="h-4 w-4" />
-                        {platform.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input value={link.url} disabled className="flex-1" />
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => removeSocialLink(index)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              </Card>
             </div>
-          ))}
-          
-          {/* Add new social link */}
-          <div className="flex gap-2">
-            <Select
-              value={newSocialLink.platform}
-              onValueChange={(val) => setNewSocialLink({ ...newSocialLink, platform: val })}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SOCIAL_PLATFORMS.map((platform) => (
-                  <SelectItem key={platform.value} value={platform.value}>
-                    <div className="flex items-center gap-2">
-                      <platform.icon className="h-4 w-4" />
-                      {platform.label}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              placeholder="URL (e.g., https://facebook.com/yourpage)"
-              value={newSocialLink.url}
-              onChange={(e) => setNewSocialLink({ ...newSocialLink, url: e.target.value })}
-              className="flex-1"
-            />
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Copyright Section */}
+        <Collapsible open={copyrightOpen} onOpenChange={setCopyrightOpen}>
+          <CollapsibleTrigger asChild>
             <Button
-              size="sm"
-              onClick={addSocialLink}
-              disabled={!newSocialLink.url}
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
             >
-              <Plus className="h-4 w-4" />
+              <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                <Copyright className="h-4 w-4" />
+                Copyright Text
+              </Label>
+              {copyrightOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
             </Button>
-          </div>
-        </div>
-      </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3 space-y-2">
+            <Label className="text-sm text-muted-foreground">Add your copyright notice</Label>
+            <Textarea
+              placeholder={`© ${new Date().getFullYear()} Your Company. All rights reserved.`}
+              value={value.footer?.copyright || `© ${new Date().getFullYear()} Your Company. All rights reserved.`}
+              onChange={(e) => handleFooterChange('copyright', e.target.value)}
+              rows={2}
+              className="resize-none"
+            />
+          </CollapsibleContent>
+        </Collapsible>
 
-      {/* Copyright Text */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Copyright Text</Label>
-        <Textarea
-          placeholder="© 2024 Your Company. All rights reserved."
-          value={value.footer?.copyright || `© ${new Date().getFullYear()} Your Company. All rights reserved.`}
-          onChange={(e) => handleFooterChange('copyright', e.target.value)}
-          rows={2}
-        />
-      </div>
-
-    </div>
+      </CardContent>
+    </Card>
   )
 }
