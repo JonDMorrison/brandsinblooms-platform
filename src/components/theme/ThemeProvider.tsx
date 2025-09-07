@@ -3,6 +3,7 @@
 import React, { createContext, useContext, ReactNode, useEffect } from 'react'
 import { useSiteTheme } from '@/hooks/useSiteTheme'
 import { useApplyTheme, useThemeCSS } from '@/hooks/useThemeCSS'
+import { usePreviewModeOptional } from '@/src/components/preview/PreviewModeProvider'
 import { ThemeSettings } from '@/lib/queries/domains/theme'
 
 interface SiteThemeContextType {
@@ -23,10 +24,12 @@ interface SiteThemeProviderProps {
 
 export function SiteThemeProvider({ children, applyToDocument = false }: SiteThemeProviderProps) {
   const { theme, isLoading, error } = useSiteTheme()
-  const { cssVariables, themeStyles, fullCSS } = useThemeCSS(theme)
+  const previewMode = usePreviewModeOptional()
+  const mode = previewMode?.mode || 'live'
+  const { cssVariables, themeStyles, fullCSS } = useThemeCSS(theme, mode)
   
   // Apply theme to document if requested
-  useApplyTheme(theme, applyToDocument)
+  useApplyTheme(theme, applyToDocument, mode)
   
   const value: SiteThemeContextType = {
     theme,
@@ -63,9 +66,22 @@ interface ThemeWrapperProps {
  */
 export function ThemeWrapper({ children, className = '', style }: ThemeWrapperProps) {
   const { theme, fullCSS } = useSiteThemeContext()
+  const previewMode = usePreviewModeOptional()
+  const mode = previewMode?.mode || 'live'
   
   if (!theme) {
     return <div className={className} style={style}>{children}</div>
+  }
+  
+  // Determine data attributes based on mode
+  const dataAttributes = {
+    ...(mode === 'iframe' ? { 'data-preview-mode': 'iframe' } :
+        { 'data-theme-applied': 'true' }),
+    'data-header-style': theme.layout.headerStyle,
+    'data-footer-style': theme.layout.footerStyle,
+    'data-menu-style': theme.layout.menuStyle,
+    'data-logo-position': theme.logo?.position || 'left',
+    'data-logo-size': theme.logo?.size || 'medium'
   }
   
   return (
@@ -74,12 +90,7 @@ export function ThemeWrapper({ children, className = '', style }: ThemeWrapperPr
       <div
         className={className}
         style={style}
-        data-theme-applied="true"
-        data-header-style={theme.layout.headerStyle}
-        data-footer-style={theme.layout.footerStyle}
-        data-menu-style={theme.layout.menuStyle}
-        data-logo-position={theme.logo?.position || 'left'}
-        data-logo-size={theme.logo?.size || 'medium'}
+        {...dataAttributes}
       >
         {children}
       </div>

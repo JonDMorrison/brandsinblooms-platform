@@ -6,7 +6,7 @@ import { ThemeSettings } from '@/lib/queries/domains/theme'
 /**
  * Hook for generating consistent theme CSS across all components
  */
-export function useThemeCSS(theme: ThemeSettings | null) {
+export function useThemeCSS(theme: ThemeSettings | null, mode: 'iframe' | 'live' = 'live') {
   const cssVariables = useMemo(() => {
     if (!theme) return ''
 
@@ -19,8 +19,18 @@ export function useThemeCSS(theme: ThemeSettings | null) {
       large: '18px'
     }
     
+    // Base selector based on mode for CSS isolation
+    const baseSelector = mode === 'iframe' 
+      ? '[data-preview-mode="iframe"]' 
+      : '[data-theme-applied="true"]'
+
     return `
-      :root {
+      /* Font imports for iframe mode to prevent CORS issues */
+      ${mode === 'iframe' ? `
+        @import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(typography.headingFont)}&family=${encodeURIComponent(typography.bodyFont)}&display=swap');
+      ` : ''}
+      
+      ${baseSelector} {
         /* Theme Colors */
         --theme-primary: ${colors.primary};
         --theme-secondary: ${colors.secondary};
@@ -52,16 +62,21 @@ export function useThemeCSS(theme: ThemeSettings | null) {
         --theme-background-rgb: ${hexToRgb(colors.background)};
       }
     `
-  }, [theme])
+  }, [theme, mode])
   
   const themeStyles = useMemo(() => {
     if (!theme) return ''
     
     const { layout } = theme
     
+    // Base selector based on mode for CSS isolation
+    const selector = mode === 'iframe' 
+      ? '[data-preview-mode="iframe"]' 
+      : '[data-theme-applied="true"]'
+    
     return `
       /* Base theme styles */
-      body[data-theme-applied="true"] {
+      ${mode === 'iframe' ? selector : `body${selector}`} {
         background-color: var(--theme-background);
         color: var(--theme-text);
         font-family: var(--theme-font-body);
@@ -69,28 +84,28 @@ export function useThemeCSS(theme: ThemeSettings | null) {
         font-weight: var(--theme-font-weight-body);
       }
       
-      [data-theme-applied="true"] h1, 
-      [data-theme-applied="true"] h2, 
-      [data-theme-applied="true"] h3, 
-      [data-theme-applied="true"] h4, 
-      [data-theme-applied="true"] h5, 
-      [data-theme-applied="true"] h6 {
+      ${selector} h1, 
+      ${selector} h2, 
+      ${selector} h3, 
+      ${selector} h4, 
+      ${selector} h5, 
+      ${selector} h6 {
         font-family: var(--theme-font-heading);
         font-weight: var(--theme-font-weight-heading);
         color: var(--theme-primary);
       }
       
-      [data-theme-applied="true"] a {
+      ${selector} a {
         color: var(--theme-primary);
         text-decoration: none;
       }
       
-      [data-theme-applied="true"] a:hover {
+      ${selector} a:hover {
         color: var(--theme-secondary);
       }
       
       /* Theme-aware buttons */
-      [data-theme-applied="true"] .btn-theme-primary {
+      ${selector} .btn-theme-primary {
         background-color: var(--theme-primary);
         color: white;
         border: none;
@@ -101,11 +116,11 @@ export function useThemeCSS(theme: ThemeSettings | null) {
         transition: opacity 0.2s;
       }
       
-      [data-theme-applied="true"] .btn-theme-primary:hover {
+      ${selector} .btn-theme-primary:hover {
         opacity: 0.9;
       }
       
-      [data-theme-applied="true"] .btn-theme-secondary {
+      ${selector} .btn-theme-secondary {
         background-color: var(--theme-secondary);
         color: white;
         border: none;
@@ -116,64 +131,64 @@ export function useThemeCSS(theme: ThemeSettings | null) {
         transition: opacity 0.2s;
       }
       
-      [data-theme-applied="true"] .btn-theme-secondary:hover {
+      ${selector} .btn-theme-secondary:hover {
         opacity: 0.9;
       }
       
-      [data-theme-applied="true"] .theme-accent {
+      ${selector} .theme-accent {
         color: var(--theme-accent);
       }
       
       /* Header Layout Styles */
-      [data-theme-applied="true"][data-header-style="modern"] header {
+      ${selector}[data-header-style="modern"] header {
         padding: 1.5rem 0;
         background: rgba(255,255,255,0.95);
         backdrop-filter: blur(10px);
       }
       
-      [data-theme-applied="true"][data-header-style="classic"] header {
+      ${selector}[data-header-style="classic"] header {
         padding: 1rem 0;
         background: white;
         border-bottom: 2px solid var(--theme-primary);
       }
       
-      [data-theme-applied="true"][data-header-style="minimal"] header {
+      ${selector}[data-header-style="minimal"] header {
         padding: 1rem 0;
         background: transparent;
         border-bottom: 1px solid rgba(0,0,0,0.1);
       }
       
       /* Footer Layout Styles */
-      [data-theme-applied="true"][data-footer-style="minimal"] footer {
+      ${selector}[data-footer-style="minimal"] footer {
         padding: 2rem 0;
         background: transparent;
         border-top: 1px solid rgba(0,0,0,0.1);
       }
       
-      [data-theme-applied="true"][data-footer-style="detailed"] footer {
+      ${selector}[data-footer-style="detailed"] footer {
         padding: 3rem 0;
         background: var(--theme-primary);
         color: white;
       }
       
-      [data-theme-applied="true"][data-footer-style="hidden"] footer {
+      ${selector}[data-footer-style="hidden"] footer {
         display: none;
       }
       
       /* Menu Layout Styles */
-      [data-theme-applied="true"][data-menu-style="horizontal"] nav {
+      ${selector}[data-menu-style="horizontal"] nav {
         display: flex;
         gap: 2rem;
         align-items: center;
       }
       
-      [data-theme-applied="true"][data-menu-style="vertical"] nav {
+      ${selector}[data-menu-style="vertical"] nav {
         display: flex;
         flex-direction: column;
         gap: 1rem;
       }
       
-      [data-theme-applied="true"][data-menu-style="sidebar"] nav {
+      ${selector}[data-menu-style="sidebar"] nav {
         position: fixed;
         left: 0;
         top: 0;
@@ -184,47 +199,67 @@ export function useThemeCSS(theme: ThemeSettings | null) {
       }
       
       /* Logo Styles */
-      [data-theme-applied="true"][data-logo-position="left"] .theme-logo {
+      ${selector}[data-logo-position="left"] .theme-logo {
         justify-self: start;
       }
       
-      [data-theme-applied="true"][data-logo-position="center"] .theme-logo {
+      ${selector}[data-logo-position="center"] .theme-logo {
         justify-self: center;
       }
       
-      [data-theme-applied="true"][data-logo-position="right"] .theme-logo {
+      ${selector}[data-logo-position="right"] .theme-logo {
         justify-self: end;
       }
       
-      [data-theme-applied="true"][data-logo-size="small"] .theme-logo {
+      ${selector}[data-logo-size="small"] .theme-logo {
         width: 2rem;
         height: 2rem;
       }
       
-      [data-theme-applied="true"][data-logo-size="medium"] .theme-logo {
+      ${selector}[data-logo-size="medium"] .theme-logo {
         width: 2.5rem;
         height: 2.5rem;
       }
       
-      [data-theme-applied="true"][data-logo-size="large"] .theme-logo {
+      ${selector}[data-logo-size="large"] .theme-logo {
         width: 3rem;
         height: 3rem;
       }
+      
+      /* Mode-specific isolation for iframe */
+      ${mode === 'iframe' ? `
+        [data-preview-mode="iframe"] {
+          isolation: isolate;
+          contain: layout style;
+        }
+        
+        [data-preview-mode="iframe"] * {
+          box-sizing: border-box;
+        }
+        
+        /* Reset potential inherited styles from parent dashboard */
+        [data-preview-mode="iframe"] {
+          font-family: var(--theme-font-body) !important;
+          color: var(--theme-text) !important;
+          background: var(--theme-background) !important;
+        }
+      ` : ''}
     `
-  }, [theme])
+  }, [theme, mode])
   
   return {
     cssVariables,
     themeStyles,
-    fullCSS: cssVariables + themeStyles
+    fullCSS: cssVariables + themeStyles,
+    mode
   }
 }
 
 /**
  * Hook for applying theme to current document
  */
-export function useApplyTheme(theme: ThemeSettings | null, enabled = true) {
-  const { fullCSS } = useThemeCSS(theme)
+export function useApplyTheme(theme: ThemeSettings | null, enabled = true, mode: 'iframe' | 'live' = 'live') {
+  const { fullCSS } = useThemeCSS(theme, mode)
   
   // Apply theme to document
   useMemo(() => {
@@ -242,8 +277,13 @@ export function useApplyTheme(theme: ThemeSettings | null, enabled = true) {
     styleElement.textContent = fullCSS
     document.head.appendChild(styleElement)
     
-    // Apply theme data attributes
-    document.body.setAttribute('data-theme-applied', 'true')
+    // Apply theme data attributes based on mode
+    if (mode === 'iframe') {
+      document.body.setAttribute('data-preview-mode', 'iframe')
+    } else {
+      document.body.setAttribute('data-theme-applied', 'true')
+    }
+    
     document.body.setAttribute('data-header-style', theme.layout.headerStyle)
     document.body.setAttribute('data-footer-style', theme.layout.footerStyle)
     document.body.setAttribute('data-menu-style', theme.layout.menuStyle)
@@ -259,14 +299,16 @@ export function useApplyTheme(theme: ThemeSettings | null, enabled = true) {
       if (style) {
         style.remove()
       }
+      // Remove mode-specific attributes
       document.body.removeAttribute('data-theme-applied')
+      document.body.removeAttribute('data-preview-mode')
       document.body.removeAttribute('data-header-style')
       document.body.removeAttribute('data-footer-style')
       document.body.removeAttribute('data-menu-style')
       document.body.removeAttribute('data-logo-position')
       document.body.removeAttribute('data-logo-size')
     }
-  }, [fullCSS, theme, enabled])
+  }, [fullCSS, theme, enabled, mode])
   
   return { fullCSS }
 }

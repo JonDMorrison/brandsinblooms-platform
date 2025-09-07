@@ -427,6 +427,82 @@ export function applySecurityHeaders(
 
   // Content Security Policy
   if (config.headers.csp) {
+    // Determine allowed frame ancestors for preview functionality
+    function getAllowedFrameAncestors(): string {
+      const isDevelopment = process.env.NODE_ENV === 'development'
+      
+      if (!isDevelopment) {
+        return "'self'"
+      }
+      
+      // Derive dashboard URL from app domain
+      const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'http://localhost:3001'
+      const appUrl = new URL(appDomain)
+      const dashboardUrls: string[] = []
+      
+      if (appUrl.hostname === 'localhost') {
+        // Local development - handle both same-port and different-port scenarios
+        const appPort = appUrl.port || '3001'
+        const dashboardPort = appPort === '3001' ? '3000' : '3001' // Switch ports
+        
+        dashboardUrls.push(
+          // Same port (if dashboard and site share same server)
+          `http://localhost:${appPort}`,
+          `https://localhost:${appPort}`,
+          `http://127.0.0.1:${appPort}`,
+          `https://127.0.0.1:${appPort}`,
+          // Different port (if dashboard runs separately)
+          `http://localhost:${dashboardPort}`,
+          `https://localhost:${dashboardPort}`,
+          `http://127.0.0.1:${dashboardPort}`,
+          `https://127.0.0.1:${dashboardPort}`
+        )
+        
+        // Handle subdomain development (dev.localhost)
+        if (site.subdomain && site.subdomain !== 'localhost') {
+          dashboardUrls.push(
+            // Same port scenarios
+            `http://${site.subdomain}.localhost:${appPort}`,
+            `https://${site.subdomain}.localhost:${appPort}`,
+            // Different port scenarios
+            `http://${site.subdomain}.localhost:${dashboardPort}`,
+            `https://${site.subdomain}.localhost:${dashboardPort}`
+          )
+        }
+      } else {
+        // Production/staging - derive dashboard from app domain
+        const protocol = appUrl.protocol
+        const baseDomain = appUrl.hostname.replace(/^(sites?|app|www)\./, '') // Remove common prefixes
+        
+        // Common production patterns based on app domain
+        if (appUrl.hostname.startsWith('sites.') || appUrl.hostname.startsWith('app.')) {
+          // If app is on sites.domain.com, dashboard likely on admin.domain.com or dashboard.domain.com
+          dashboardUrls.push(
+            `${protocol}//admin.${baseDomain}`,
+            `${protocol}//dashboard.${baseDomain}`,
+            `${protocol}//app.${baseDomain}`
+          )
+        } else if (appUrl.hostname.startsWith('www.')) {
+          // If app is on www.domain.com, dashboard likely on admin.domain.com
+          dashboardUrls.push(
+            `${protocol}//admin.${baseDomain}`,
+            `${protocol}//dashboard.${baseDomain}`
+          )
+        } else {
+          // If app is on domain.com, dashboard could be admin.domain.com or same domain different port
+          dashboardUrls.push(
+            `${protocol}//admin.${appUrl.hostname}`,
+            `${protocol}//dashboard.${appUrl.hostname}`,
+            `${protocol}//${appUrl.hostname}:3000` // Different port on same domain
+          )
+        }
+      }
+      
+      return ["'self'", ...dashboardUrls].join(' ')
+    }
+
+    const allowedFrameAncestors = getAllowedFrameAncestors()
+    
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Adjust based on your needs
@@ -437,7 +513,7 @@ export function applySecurityHeaders(
       process.env.NODE_ENV === 'development' 
         ? "connect-src 'self' wss: https: http://localhost:* http://127.0.0.1:*"
         : "connect-src 'self' wss: https:",
-      "frame-ancestors 'none'",
+      `frame-ancestors ${allowedFrameAncestors}`,
       "base-uri 'self'",
       "form-action 'self'",
     ]
@@ -450,8 +526,9 @@ export function applySecurityHeaders(
     response.headers.set('Content-Security-Policy', cspDirectives.join('; '))
   }
 
-  // X-Frame-Options
-  response.headers.set('X-Frame-Options', config.headers.frameOptions)
+  // X-Frame-Options - allow SAMEORIGIN in development for previews
+  const frameOptions = process.env.NODE_ENV === 'development' ? 'SAMEORIGIN' : config.headers.frameOptions
+  response.headers.set('X-Frame-Options', frameOptions)
 
   // X-Content-Type-Options
   if (config.headers.contentTypeOptions) {

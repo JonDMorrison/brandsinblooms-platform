@@ -28,8 +28,8 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const siteId = useSiteId()
   
-  // Use centralized theme CSS generation
-  const { fullCSS } = useThemeCSS(settings)
+  // Use centralized theme CSS generation with iframe mode
+  const { fullCSS } = useThemeCSS(settings, 'iframe')
   
   // Inject styles into iframe
   useEffect(() => {
@@ -51,8 +51,8 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
       styleElement.textContent = fullCSS
       iframe.contentDocument.head.appendChild(styleElement)
       
-      // Add body attributes for layout styles
-      iframe.contentDocument.body.setAttribute('data-theme-applied', 'true')
+      // Add body attributes for iframe mode and layout styles
+      iframe.contentDocument.body.setAttribute('data-preview-mode', 'iframe')
       iframe.contentDocument.body.setAttribute('data-header-style', settings.layout.headerStyle)
       iframe.contentDocument.body.setAttribute('data-footer-style', settings.layout.footerStyle)
       iframe.contentDocument.body.setAttribute('data-menu-style', settings.layout.menuStyle)
@@ -82,14 +82,32 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
     }
   }, [settings, fullCSS])
   
-  // Re-inject styles when settings change
+  // Re-inject styles when settings change (debounced for performance)
   useEffect(() => {
     if (!iframeRef.current?.contentDocument) return
     
-    const styleElement = iframeRef.current.contentDocument.getElementById('design-preview-styles')
-    if (styleElement) {
-      styleElement.textContent = fullCSS
-    }
+    const debounceTimer = setTimeout(() => {
+      const iframe = iframeRef.current
+      if (!iframe?.contentDocument) return
+      
+      const styleElement = iframe.contentDocument.getElementById('design-preview-styles')
+      if (styleElement) {
+        styleElement.textContent = fullCSS
+        
+        // Update body attributes for new settings
+        iframe.contentDocument.body.setAttribute('data-preview-mode', 'iframe')
+        iframe.contentDocument.body.setAttribute('data-header-style', settings.layout.headerStyle)
+        iframe.contentDocument.body.setAttribute('data-footer-style', settings.layout.footerStyle)
+        iframe.contentDocument.body.setAttribute('data-menu-style', settings.layout.menuStyle)
+        
+        if (settings.logo) {
+          iframe.contentDocument.body.setAttribute('data-logo-position', settings.logo.position)
+          iframe.contentDocument.body.setAttribute('data-logo-size', settings.logo.size)
+        }
+      }
+    }, 150) // 150ms debounce for better performance
+    
+    return () => clearTimeout(debounceTimer)
   }, [settings, fullCSS])
   
   const handleRefresh = () => {
@@ -100,7 +118,7 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
   }
   
   const handleOpenInNewTab = () => {
-    window.open(`/preview?siteId=${siteId}`, '_blank')
+    window.open(`http://dev.localhost:3001`, '_blank')
   }
   
   return (
@@ -162,7 +180,7 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
             )}
             <iframe
               ref={iframeRef}
-              src={`/preview?siteId=${siteId}`}
+              src={`http://dev.localhost:3001`}
               className="w-full h-full border-0"
               title="Design Preview"
               sandbox="allow-same-origin allow-scripts allow-forms"

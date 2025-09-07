@@ -44,7 +44,7 @@ export default async function RootLayout({
 
   return (
     <html lang='en' suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={isAdminRoute ? inter.className : ''}>
         <WebVitals />
         <Providers
           initialHostname={hostname}

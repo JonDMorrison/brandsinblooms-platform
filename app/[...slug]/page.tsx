@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { ProductCatalog } from '@/src/components/site/ProductCatalog'
 import { ShoppingCart } from '@/src/components/site/ShoppingCart'
 import { SiteLayout } from '@/src/components/layout/SiteLayout'
+import { SiteRenderer } from '@/src/components/site/SiteRenderer'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -44,49 +45,56 @@ export default async function SitePage({ params }: SitePageProps) {
   switch (path) {
     case '':
     case 'home':
-      return <HomePage />
+      return await HomePage()
       
     case 'products':
-      return <ProductsPage />
+      return await ProductsPage()
       
     case 'cart':
-      return <CartPage />
+      return await CartPage()
       
     case 'checkout':
-      return <CheckoutPage />
+      return await CheckoutPage()
       
     case 'account':
-      return <AccountPage />
+      return await AccountPage()
       
     case 'account/orders':
-      return <OrdersPage />
+      return await OrdersPage()
       
     case 'about':
-      return <AboutPage />
+      return await AboutPage()
       
     case 'contact':
-      return <ContactPage />
+      return await ContactPage()
       
     default:
       // Check if it's a product page (products/[slug])
       if (path.startsWith('products/')) {
         const productSlug = path.replace('products/', '')
-        return <ProductDetailPage slug={productSlug} />
+        return await ProductDetailPage({ slug: productSlug })
       }
       
       // Check if it's a category page (category/[slug])
       if (path.startsWith('category/')) {
         const categorySlug = path.replace('category/', '')
-        return <CategoryPage slug={categorySlug} />
+        return await CategoryPage({ slug: categorySlug })
       }
       
       return notFound()
   }
 }
 
-function HomePage() {
+async function HomePage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
   return (
-    <SiteLayout>
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
       <div className="brand-container py-12">
         <h1 className="text-4xl font-bold mb-8">Welcome to Our Store</h1>
         
@@ -104,24 +112,38 @@ function HomePage() {
           </div>
         </section>
       </div>
-    </SiteLayout>
+    </SiteRenderer>
   )
 }
 
-function ProductsPage() {
+async function ProductsPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
   return (
-    <SiteLayout>
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
       <div className="brand-container py-12">
         <h1 className="text-4xl font-bold mb-8">All Products</h1>
         <ProductCatalog />
       </div>
-    </SiteLayout>
+    </SiteRenderer>
   )
 }
 
-function CartPage() {
+async function CartPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
   return (
-    <SiteLayout>
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
       <div className="brand-container py-12">
         <h1 className="text-4xl font-bold mb-8">Shopping Cart</h1>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -138,13 +160,20 @@ function CartPage() {
           </div>
         </div>
       </div>
-    </SiteLayout>
+    </SiteRenderer>
   )
 }
 
-function CheckoutPage() {
+async function CheckoutPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
   return (
-    <SiteLayout>
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
       <div className="brand-container py-12">
         <h1 className="text-4xl font-bold mb-8">Checkout</h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -158,13 +187,20 @@ function CheckoutPage() {
           </div>
         </div>
       </div>
-    </SiteLayout>
+    </SiteRenderer>
   )
 }
 
-function AccountPage() {
+async function AccountPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
   return (
-    <SiteLayout requireAuth={true}>
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
       <div className="brand-container py-12">
         <h1 className="text-4xl font-bold mb-8">My Account</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -184,25 +220,39 @@ function AccountPage() {
           </div>
         </div>
       </div>
-    </SiteLayout>
+    </SiteRenderer>
   )
 }
 
-function OrdersPage() {
+async function OrdersPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
   return (
-    <SiteLayout requireAuth={true}>
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
       <div className="brand-container py-12">
         <h1 className="text-4xl font-bold mb-8">My Orders</h1>
         {/* Orders list */}
         <p className="text-gray-500">Your order history will appear here</p>
       </div>
-    </SiteLayout>
+    </SiteRenderer>
   )
 }
 
-function ProductDetailPage({ slug }: { slug: string }) {
+async function ProductDetailPage({ slug }: { slug: string }) {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
   return (
-    <SiteLayout>
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
       <div className="brand-container py-12">
         {/* Product details would be fetched based on slug */}
         <h1 className="text-4xl font-bold mb-8">Product: {slug}</h1>
@@ -215,37 +265,58 @@ function ProductDetailPage({ slug }: { slug: string }) {
           </div>
         </div>
       </div>
-    </SiteLayout>
+    </SiteRenderer>
   )
 }
 
-function CategoryPage({ slug }: { slug: string }) {
+async function CategoryPage({ slug }: { slug: string }) {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
   return (
-    <SiteLayout>
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
       <div className="brand-container py-12">
         <h1 className="text-4xl font-bold mb-8">Category: {slug}</h1>
         <ProductCatalog categoryId={slug} />
       </div>
-    </SiteLayout>
+    </SiteRenderer>
   )
 }
 
-function AboutPage() {
+async function AboutPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
   return (
-    <SiteLayout>
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
       <div className="brand-container py-12">
         <h1 className="text-4xl font-bold mb-8">About Us</h1>
         <div className="prose max-w-none">
           <p>Learn more about our company and mission.</p>
         </div>
       </div>
-    </SiteLayout>
+    </SiteRenderer>
   )
 }
 
-function ContactPage() {
+async function ContactPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
   return (
-    <SiteLayout>
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
       <div className="brand-container py-12">
         <h1 className="text-4xl font-bold mb-8">Contact Us</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -259,6 +330,6 @@ function ContactPage() {
           </div>
         </div>
       </div>
-    </SiteLayout>
+    </SiteRenderer>
   )
 }
