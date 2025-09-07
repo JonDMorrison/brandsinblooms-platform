@@ -198,7 +198,10 @@ export default function DesignPage() {
                     value={localSettings}
                     colors={localSettings.colors}
                     typography={localSettings.typography}
-                    onChange={setLocalSettings}
+                    onChange={(newSettings) => {
+                      setLocalSettings(newSettings)
+                      debouncedSave(newSettings)
+                    }}
                   />
                 </Suspense>
               </TabsContent>
@@ -210,7 +213,10 @@ export default function DesignPage() {
                     value={localSettings}
                     colors={localSettings.colors}
                     typography={localSettings.typography}
-                    onChange={setLocalSettings}
+                    onChange={(newSettings) => {
+                      setLocalSettings(newSettings)
+                      debouncedSave(newSettings)
+                    }}
                   />
                 </Suspense>
               </TabsContent>

@@ -89,7 +89,7 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
   const [navigationOpen, setNavigationOpen] = useState(true)
   const [ctaOpen, setCtaOpen] = useState(true)
   
-  const [selectedNavItems, setSelectedNavItems] = useState<string[]>(['home', 'about', 'contact'])
+  const [selectedNavItems, setSelectedNavItems] = useState<string[]>([])
   const [customLink, setCustomLink] = useState({ label: '', href: '' })
   const [logoSize, setLogoSize] = useState([100])
   const [brandingType, setBrandingType] = useState<'text' | 'logo' | 'both'>('text')
@@ -101,23 +101,42 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
   const supabase = useSupabase()
   const siteId = useSiteId()
 
-  // Auto-save when branding type changes
+  // Initialize local state from saved theme settings
   useEffect(() => {
-    // brandingType is local state, not saved to theme settings
-    // The actual logo/text display is controlled by the logo.url and logo.text values
-  }, [brandingType])
-
-  // Auto-save when navigation items change
-  useEffect(() => {
-    onChange({
-      ...value,
-      navigation: {
-        ...value.navigation,
-        items: selectedNavItems.map(item => ({ label: item, href: `/${item}` })),
-        style: value.navigation?.style || 'horizontal'
+    if (value) {
+      // Initialize branding type from saved preference or infer from data
+      if (value.logo?.displayType) {
+        setBrandingType(value.logo.displayType)
+      } else {
+        // Infer from existing data for backward compatibility
+        const hasLogo = !!value.logo?.url
+        const hasText = !!value.logo?.text
+        if (hasLogo && hasText) {
+          setBrandingType('both')
+        } else if (hasLogo) {
+          setBrandingType('logo')
+        } else {
+          setBrandingType('text')
+        }
       }
-    })
-  }, [selectedNavItems])
+      
+      // Initialize logo size from saved preference
+      if (value.logo?.pixelSize) {
+        setLogoSize([value.logo.pixelSize])
+      }
+      
+      // Initialize navigation items from saved navigation
+      if (value.navigation?.items) {
+        const savedItems = value.navigation.items
+          .map(item => item.label.toLowerCase())
+          .filter(label => ['home', 'about', 'contact', 'blog'].includes(label))
+        setSelectedNavItems(savedItems.length > 0 ? savedItems : ['home', 'about', 'contact'])
+      } else {
+        setSelectedNavItems(['home', 'about', 'contact'])
+      }
+    }
+  }, [value])
+
 
   const handleLayoutChange = (key: string, val: any) => {
     onChange({
@@ -140,11 +159,21 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
   }
 
   const toggleNavItem = (item: string) => {
-    setSelectedNavItems(prev => 
-      prev.includes(item) 
-        ? prev.filter(i => i !== item)
-        : [...prev, item]
-    )
+    const newItems = selectedNavItems.includes(item) 
+      ? selectedNavItems.filter(i => i !== item)
+      : [...selectedNavItems, item]
+    
+    setSelectedNavItems(newItems)
+    
+    // Save navigation changes immediately
+    onChange({
+      ...value,
+      navigation: {
+        ...value.navigation,
+        items: newItems.map(item => ({ label: item, href: `/${item}` })),
+        style: value.navigation?.style || 'horizontal'
+      }
+    })
   }
 
   const addCustomLink = () => {
@@ -280,11 +309,16 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
               style={{ 
                 backgroundColor: colors?.background || '#ffffff', 
                 color: colors?.text || '#1f2937',
-                fontFamily: typography?.bodyFont || 'Inter'
+                fontFamily: typography?.bodyFont || 'Inter',
+                fontSize: typography?.fontSize === 'small' ? '0.875rem' : typography?.fontSize === 'large' ? '1.125rem' : '1rem'
               }}
             >
               {/* Header preview based on selected style */}
-              <div className="border rounded p-3">
+              <div className="border rounded p-3 space-y-2 transition-all duration-200" style={{ borderColor: colors?.primary + '20' || '#2563eb20' }}>
+                <div className="text-xs opacity-60 mb-2 flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                  Live Preview
+                </div>
                 {value.layout?.headerStyle === 'modern' && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -310,12 +344,12 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                         )}
                       </div>
                       {/* Desktop Navigation */}
-                      <nav className="hidden md:flex gap-4 text-sm items-center">
-                        {selectedNavItems.includes('home') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Home</span>}
-                        <span className="hover:opacity-70 cursor-pointer transition-opacity">Products</span>
-                        {selectedNavItems.includes('about') && <span className="hover:opacity-70 cursor-pointer transition-opacity">About</span>}
-                        {selectedNavItems.includes('contact') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Contact</span>}
-                        {selectedNavItems.includes('blog') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Blog</span>}
+                      <nav className="hidden md:flex gap-4 text-sm items-center" style={{ fontFamily: typography?.bodyFont || 'Inter' }}>
+                        {selectedNavItems.includes('home') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Home</span>}
+                        <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Products</span>
+                        {selectedNavItems.includes('about') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>About</span>}
+                        {selectedNavItems.includes('contact') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Contact</span>}
+                        {selectedNavItems.includes('blog') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Blog</span>}
                       </nav>
                     </div>
                     <div className="flex items-center gap-3">
@@ -371,12 +405,12 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                           </div>
                         )}
                       </div>
-                      <nav className="flex justify-center gap-4 text-sm items-center">
-                        {selectedNavItems.includes('home') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Home</span>}
-                        <span className="hover:opacity-70 cursor-pointer transition-opacity">Products</span>
-                        {selectedNavItems.includes('about') && <span className="hover:opacity-70 cursor-pointer transition-opacity">About</span>}
-                        {selectedNavItems.includes('contact') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Contact</span>}
-                        {selectedNavItems.includes('blog') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Blog</span>}
+                      <nav className="flex justify-center gap-4 text-sm items-center" style={{ fontFamily: typography?.bodyFont || 'Inter' }}>
+                        {selectedNavItems.includes('home') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Home</span>}
+                        <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Products</span>
+                        {selectedNavItems.includes('about') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>About</span>}
+                        {selectedNavItems.includes('contact') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Contact</span>}
+                        {selectedNavItems.includes('blog') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Blog</span>}
                         <Search className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
                         <ShoppingCart className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
                       </nav>
@@ -491,7 +525,10 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                 <Label className="text-sm font-medium">Branding Display</Label>
                 <RadioGroup
                   value={brandingType}
-                  onValueChange={(val: 'text' | 'logo' | 'both') => setBrandingType(val)}
+                  onValueChange={(val: 'text' | 'logo' | 'both') => {
+                    setBrandingType(val)
+                    handleLogoChange('displayType', val)
+                  }}
                   className="grid grid-cols-1 md:grid-cols-3 gap-3"
                 >
                   <Card 
@@ -499,7 +536,10 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                       "cursor-pointer transition-all hover:shadow-md hover:scale-105 active:scale-95",
                       brandingType === 'text' ? "ring-2 ring-primary ring-offset-2" : ""
                     )}
-                    onClick={() => setBrandingType('text')}
+                    onClick={() => {
+                      setBrandingType('text')
+                      handleLogoChange('displayType', 'text')
+                    }}
                   >
                     <CardContent className="p-3">
                       <RadioGroupItem value="text" className="sr-only" />
@@ -514,7 +554,10 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                       "cursor-pointer transition-all hover:shadow-md hover:scale-105 active:scale-95",
                       brandingType === 'logo' ? "ring-2 ring-primary ring-offset-2" : ""
                     )}
-                    onClick={() => setBrandingType('logo')}
+                    onClick={() => {
+                      setBrandingType('logo')
+                      handleLogoChange('displayType', 'logo')
+                    }}
                   >
                     <CardContent className="p-3">
                       <RadioGroupItem value="logo" className="sr-only" />
@@ -529,7 +572,10 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                       "cursor-pointer transition-all hover:shadow-md hover:scale-105 active:scale-95",
                       brandingType === 'both' ? "ring-2 ring-primary ring-offset-2" : ""
                     )}
-                    onClick={() => setBrandingType('both')}
+                    onClick={() => {
+                      setBrandingType('both')
+                      handleLogoChange('displayType', 'both')
+                    }}
                   >
                     <CardContent className="p-3">
                       <RadioGroupItem value="both" className="sr-only" />
@@ -677,7 +723,7 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                       value={logoSize}
                       onValueChange={(val) => {
                         setLogoSize(val)
-                        handleLogoChange('size', val[0])
+                        handleLogoChange('pixelSize', val[0])
                       }}
                       max={200}
                       min={50}

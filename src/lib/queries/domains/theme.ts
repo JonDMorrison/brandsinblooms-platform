@@ -3,25 +3,29 @@ import { Database } from '@/lib/database/types';
 import { Site } from '@/lib/database/aliases';
 // No longer need executeQuery imports - using direct Supabase queries
 
-// Navigation item interface
+// Navigation item interface - compatible with Json type
 export interface NavigationItem {
+  [key: string]: string | NavigationItem[] | undefined;
   label: string;
   href: string;
   icon?: string;
   children?: NavigationItem[];
 }
 
-// Footer column interface
+// Footer column interface - compatible with Json type
 export interface FooterColumn {
+  [key: string]: string | Array<{ [key: string]: string }> | undefined;
   title: string;
   links: Array<{
+    [key: string]: string;
     label: string;
     href: string;
   }>;
 }
 
-// Social link interface
+// Social link interface - compatible with Json type
 export interface SocialLink {
+  [key: string]: string | undefined;
   platform: string;
   url: string;
   icon?: string;
@@ -61,6 +65,8 @@ export interface ThemeSettings {
     text?: string;
     position: 'left' | 'center' | 'right';
     size: 'small' | 'medium' | 'large';
+    displayType?: 'text' | 'logo' | 'both';
+    pixelSize?: number;
   };
   navigation?: {
     items: NavigationItem[];
@@ -401,7 +407,7 @@ export const themePresets: Record<string, ThemeSettings> = {
     },
     layout: {
       headerStyle: 'classic',
-      footerStyle: 'detailed',
+      footerStyle: 'comprehensive',
       menuStyle: 'horizontal',
     },
     logo: {
