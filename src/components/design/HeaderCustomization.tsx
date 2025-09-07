@@ -17,9 +17,12 @@ import {
   Upload,
   ChevronDown,
   ChevronUp,
-  Eye
+  Eye,
+  Search,
+  ShoppingCart,
+  User
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/src/lib/utils'
 
 interface HeaderCustomizationProps {
@@ -43,19 +46,19 @@ const HEADER_STYLES = [
   { 
     value: 'modern', 
     label: 'Modern', 
-    description: 'Logo left, horizontal menu, CTA right',
+    description: 'Clean and minimal design',
     preview: 'modern'
   },
   { 
     value: 'classic', 
     label: 'Classic', 
-    description: 'Centered logo, menu below',
+    description: 'Traditional navigation layout',
     preview: 'classic'
   },
   { 
     value: 'minimal', 
     label: 'Minimal', 
-    description: 'Simple logo left, hamburger right',
+    description: 'Ultra-simple header',
     preview: 'minimal'
   },
 ]
@@ -76,7 +79,30 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
   
   const [selectedNavItems, setSelectedNavItems] = useState<string[]>(['home', 'about', 'contact'])
   const [customLink, setCustomLink] = useState({ label: '', href: '' })
-  const [logoSize, setLogoSize] = useState([100]) // Default logo size
+  const [logoSize, setLogoSize] = useState([100])
+  const [brandingType, setBrandingType] = useState<'text' | 'logo' | 'both'>('text')
+
+  // Auto-save when branding type changes
+  useEffect(() => {
+    onChange({
+      ...value,
+      logo: {
+        ...value.logo,
+        brandingType
+      }
+    })
+  }, [brandingType])
+
+  // Auto-save when navigation items change
+  useEffect(() => {
+    onChange({
+      ...value,
+      navigation: {
+        ...value.navigation,
+        items: selectedNavItems.map(item => ({ label: item, href: `/${item}` }))
+      }
+    })
+  }, [selectedNavItems])
 
   const handleLayoutChange = (key: string, val: any) => {
     onChange({
@@ -147,73 +173,123 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                 {value.layout?.headerStyle === 'modern' && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div 
-                        className="font-bold"
-                        style={{ 
-                          color: colors?.primary || '#2563eb',
-                          fontFamily: typography?.headingFont || 'Inter'
-                        }}
-                      >
-                        Your Brand
+                      <div className="flex items-center gap-2">
+                        {(brandingType === 'logo' || brandingType === 'both') && value.logo?.url && (
+                          <img 
+                            src={value.logo.url} 
+                            alt="Logo" 
+                            className="object-contain"
+                            style={{ height: `${Math.round(logoSize[0] * 0.3)}px` }}
+                          />
+                        )}
+                        {(brandingType === 'text' || brandingType === 'both') && (
+                          <div 
+                            className="font-bold"
+                            style={{ 
+                              color: colors?.primary || '#2563eb',
+                              fontFamily: typography?.headingFont || 'Inter'
+                            }}
+                          >
+                            {value.logo?.text || 'Your Brand'}
+                          </div>
+                        )}
                       </div>
-                      <nav className="flex gap-4 text-sm">
+                      <nav className="flex gap-4 text-sm items-center">
                         <span>Products</span>
-                        <span>Search</span>
                         {selectedNavItems.includes('home') && <span>Home</span>}
                         {selectedNavItems.includes('about') && <span>About</span>}
                         {selectedNavItems.includes('contact') && <span>Contact</span>}
                         {selectedNavItems.includes('blog') && <span>Blog</span>}
                       </nav>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">Cart</span>
-                      <button 
-                        className="px-3 py-1 text-sm rounded"
-                        style={{ backgroundColor: colors?.primary || '#2563eb', color: '#fff' }}
-                      >
-                        CTA Button
-                      </button>
+                    <div className="flex items-center gap-3">
+                      <Search className="h-4 w-4 cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                      <User className="h-4 w-4 cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                      <ShoppingCart className="h-4 w-4 cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                      {value.layout?.ctaButton?.text && (
+                        <button 
+                          className="px-3 py-1 text-sm rounded"
+                          style={{ backgroundColor: colors?.primary || '#2563eb', color: '#fff' }}
+                        >
+                          {value.layout.ctaButton.text}
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
                 
                 {value.layout?.headerStyle === 'classic' && (
-                  <div className="text-center space-y-2">
-                    <div 
-                      className="font-bold text-lg"
-                      style={{ 
-                        color: colors?.primary || '#2563eb',
-                        fontFamily: typography?.headingFont || 'Inter'
-                      }}
-                    >
-                      Your Brand
+                  <div className="text-center space-y-3">
+                    <div className="flex items-center justify-center gap-2">
+                      {(brandingType === 'logo' || brandingType === 'both') && value.logo?.url && (
+                        <img 
+                          src={value.logo.url} 
+                          alt="Logo" 
+                          className="object-contain"
+                          style={{ height: `${Math.round(logoSize[0] * 0.4)}px` }}
+                        />
+                      )}
+                      {(brandingType === 'text' || brandingType === 'both') && (
+                        <div 
+                          className="font-bold text-lg"
+                          style={{ 
+                            color: colors?.primary || '#2563eb',
+                            fontFamily: typography?.headingFont || 'Inter'
+                          }}
+                        >
+                          {value.logo?.text || 'Your Brand'}
+                        </div>
+                      )}
                     </div>
-                    <nav className="flex justify-center gap-4 text-sm">
+                    <nav className="flex justify-center gap-4 text-sm items-center">
                       <span>Products</span>
-                      <span>Search</span>
                       {selectedNavItems.includes('home') && <span>Home</span>}
                       {selectedNavItems.includes('about') && <span>About</span>}
                       {selectedNavItems.includes('contact') && <span>Contact</span>}
                       {selectedNavItems.includes('blog') && <span>Blog</span>}
-                      <span>Cart</span>
+                      <Search className="h-4 w-4" style={{ color: colors?.text || '#1f2937' }} />
+                      <User className="h-4 w-4" style={{ color: colors?.text || '#1f2937' }} />
+                      <ShoppingCart className="h-4 w-4" style={{ color: colors?.text || '#1f2937' }} />
                     </nav>
+                    {value.layout?.ctaButton?.text && (
+                      <button 
+                        className="px-3 py-1 text-sm rounded"
+                        style={{ backgroundColor: colors?.primary || '#2563eb', color: '#fff' }}
+                      >
+                        {value.layout.ctaButton.text}
+                      </button>
+                    )}
                   </div>
                 )}
                 
                 {value.layout?.headerStyle === 'minimal' && (
                   <div className="flex items-center justify-between">
-                    <div 
-                      className="font-bold"
-                      style={{ 
-                        color: colors?.primary || '#2563eb',
-                        fontFamily: typography?.headingFont || 'Inter'
-                      }}
-                    >
-                      Your Brand
-                    </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">Cart</span>
-                      <div className="w-6 h-4 border rounded flex flex-col gap-0.5 items-center justify-center">
+                      {(brandingType === 'logo' || brandingType === 'both') && value.logo?.url && (
+                        <img 
+                          src={value.logo.url} 
+                          alt="Logo" 
+                          className="object-contain"
+                          style={{ height: `${Math.round(logoSize[0] * 0.3)}px` }}
+                        />
+                      )}
+                      {(brandingType === 'text' || brandingType === 'both') && (
+                        <div 
+                          className="font-bold"
+                          style={{ 
+                            color: colors?.primary || '#2563eb',
+                            fontFamily: typography?.headingFont || 'Inter'
+                          }}
+                        >
+                          {value.logo?.text || 'Your Brand'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Search className="h-4 w-4 cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                      <User className="h-4 w-4 cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                      <ShoppingCart className="h-4 w-4 cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                      <div className="w-6 h-4 border rounded flex flex-col gap-0.5 items-center justify-center cursor-pointer">
                         <div className="w-3 h-0.5 bg-gray-400"></div>
                         <div className="w-3 h-0.5 bg-gray-400"></div>
                         <div className="w-3 h-0.5 bg-gray-400"></div>
@@ -245,39 +321,93 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-3 space-y-4">
-            <div className="border rounded-lg p-6 bg-gray-50">
-              <div className="flex items-center justify-center h-20 border-2 border-dashed border-gray-300 rounded-lg">
-                {value.logo?.url ? (
-                  <div className="flex items-center gap-2">
-                    <Upload className="h-8 w-8 text-gray-400" />
-                    <span className="text-sm text-gray-500">Logo uploaded</span>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Branding Display</Label>
+                <RadioGroup
+                  value={brandingType}
+                  onValueChange={(val: 'text' | 'logo' | 'both') => setBrandingType(val)}
+                  className="flex gap-6"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="text" id="text" />
+                    <Label htmlFor="text" className="text-sm">Text Only</Label>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Upload className="h-8 w-8 text-gray-400" />
-                    <span className="text-sm text-gray-500">Click to upload logo</span>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="logo" id="logo" />
+                    <Label htmlFor="logo" className="text-sm">Logo Only</Label>
                   </div>
-                )}
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="both" id="both" />
+                    <Label htmlFor="both" className="text-sm">Logo + Text</Label>
+                  </div>
+                </RadioGroup>
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Logo Size</Label>
-              <div className="px-2">
-                <Slider
-                  value={logoSize}
-                  onValueChange={setLogoSize}
-                  max={200}
-                  min={50}
-                  step={10}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>50px</span>
-                  <span>{logoSize[0]}px</span>
-                  <span>200px</span>
+              
+              {(brandingType === 'logo' || brandingType === 'both') && (
+                <>
+                  <div className="border rounded-lg p-6 bg-gray-50">
+                    <div className="flex items-center justify-center h-20 border-2 border-dashed border-gray-300 rounded-lg relative">
+                      {value.logo?.url ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <div 
+                            className="bg-white rounded p-2 border shadow-sm flex items-center justify-center"
+                            style={{ width: `${logoSize[0]}px`, height: `${Math.round(logoSize[0] * 0.6)}px` }}
+                          >
+                            <img 
+                              src={value.logo.url} 
+                              alt="Logo" 
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          </div>
+                          <Button variant="outline" size="sm" className="text-xs">
+                            <Upload className="h-3 w-3 mr-1" />
+                            Change Logo
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 cursor-pointer hover:text-gray-700">
+                          <Upload className="h-8 w-8 text-gray-400" />
+                          <span className="text-sm text-gray-500">Click to upload logo</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Logo Size</Label>
+                    <div className="px-2">
+                      <Slider
+                        value={logoSize}
+                        onValueChange={(val) => {
+                          setLogoSize(val)
+                          handleLogoChange('size', val[0])
+                        }}
+                        max={200}
+                        min={50}
+                        step={10}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>50px</span>
+                        <span>{logoSize[0]}px</span>
+                        <span>200px</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              {(brandingType === 'text' || brandingType === 'both') && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Brand Text</Label>
+                  <Input
+                    placeholder="Enter your brand name"
+                    value={value.logo?.text || 'Your Brand'}
+                    onChange={(e) => handleLogoChange('text', e.target.value)}
+                  />
                 </div>
-              </div>
+              )}
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -305,7 +435,7 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
               value={value.layout?.headerStyle || 'modern'}
               onValueChange={(val) => handleLayoutChange('headerStyle', val)}
             >
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {HEADER_STYLES.map((style) => (
                   <Card 
                     key={style.value}
@@ -324,29 +454,29 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                         </div>
                         
                         {/* Visual Preview */}
-                        <div className="h-16 rounded border bg-gray-50 p-2 flex items-center justify-between">
+                        <div className="h-12 rounded border bg-gray-50 p-2 flex items-center justify-between">
                           {style.value === 'modern' && (
                             <>
                               <div className="flex items-center gap-2">
-                                <div className="w-6 h-3 bg-primary rounded-sm"></div>
-                                <div className="flex gap-1">
-                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
-                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
-                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
+                                <div className="w-4 h-2 bg-primary rounded-sm"></div>
+                                <div className="flex gap-0.5">
+                                  <div className="w-1.5 h-0.5 bg-gray-300 rounded"></div>
+                                  <div className="w-1.5 h-0.5 bg-gray-300 rounded"></div>
+                                  <div className="w-1.5 h-0.5 bg-gray-300 rounded"></div>
                                 </div>
                               </div>
-                              <div className="w-4 h-2 bg-primary rounded-sm"></div>
+                              <div className="w-3 h-1.5 bg-primary rounded-sm"></div>
                             </>
                           )}
                           {style.value === 'classic' && (
                             <>
                               <div className="flex flex-col items-center gap-1 flex-1">
-                                <div className="w-8 h-2 bg-primary rounded-sm"></div>
-                                <div className="flex gap-1">
-                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
-                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
-                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
-                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
+                                <div className="w-6 h-1.5 bg-primary rounded-sm"></div>
+                                <div className="flex gap-0.5">
+                                  <div className="w-1.5 h-0.5 bg-gray-300 rounded"></div>
+                                  <div className="w-1.5 h-0.5 bg-gray-300 rounded"></div>
+                                  <div className="w-1.5 h-0.5 bg-gray-300 rounded"></div>
+                                  <div className="w-1.5 h-0.5 bg-gray-300 rounded"></div>
                                 </div>
                               </div>
                             </>
@@ -354,10 +484,10 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                           {style.value === 'minimal' && (
                             <>
                               <div className="flex items-center gap-2">
-                                <div className="w-6 h-3 bg-primary rounded-sm"></div>
+                                <div className="w-4 h-2 bg-primary rounded-sm"></div>
                               </div>
-                              <div className="w-4 h-4 border border-gray-300 rounded flex items-center justify-center">
-                                <div className="w-2 h-0.5 bg-gray-400"></div>
+                              <div className="w-3 h-3 border border-gray-300 rounded flex items-center justify-center">
+                                <div className="w-1.5 h-0.5 bg-gray-400"></div>
                               </div>
                             </>
                           )}

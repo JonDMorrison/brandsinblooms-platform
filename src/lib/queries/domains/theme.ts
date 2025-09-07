@@ -58,6 +58,7 @@ export interface ThemeSettings {
   };
   logo: {
     url: string | null;
+    text?: string;
     position: 'left' | 'center' | 'right';
     size: 'small' | 'medium' | 'large';
   };
