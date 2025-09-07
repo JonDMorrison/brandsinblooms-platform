@@ -309,7 +309,8 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                           </div>
                         )}
                       </div>
-                      <nav className="flex gap-4 text-sm items-center">
+                      {/* Desktop Navigation */}
+                      <nav className="hidden md:flex gap-4 text-sm items-center">
                         {selectedNavItems.includes('home') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Home</span>}
                         <span className="hover:opacity-70 cursor-pointer transition-opacity">Products</span>
                         {selectedNavItems.includes('about') && <span className="hover:opacity-70 cursor-pointer transition-opacity">About</span>}
@@ -318,8 +319,67 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                       </nav>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Search className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
-                      <ShoppingCart className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                      {/* Desktop Icons */}
+                      <div className="hidden md:flex items-center gap-3">
+                        <Search className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                        <ShoppingCart className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                        {value.layout?.ctaButton?.text && (
+                          <button 
+                            className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-pointer"
+                            style={{ backgroundColor: colors?.primary || '#2563eb', color: '#fff' }}
+                          >
+                            {value.layout.ctaButton.text}
+                          </button>
+                        )}
+                      </div>
+                      {/* Mobile Menu Drawer */}
+                      <div className="md:hidden flex items-center gap-2">
+                        <Search className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                        <ShoppingCart className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                        <div className="w-5 h-4 border rounded flex flex-col gap-0.5 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity">
+                          <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
+                          <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
+                          <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {value.layout?.headerStyle === 'classic' && (
+                  <div className="space-y-3">
+                    {/* Desktop Layout */}
+                    <div className="hidden md:block text-center space-y-3">
+                      <div className="flex items-center justify-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+                        {(brandingType === 'logo' || brandingType === 'both') && value.logo?.url && (
+                          <img 
+                            src={value.logo.url} 
+                            alt="Logo" 
+                            className="object-contain"
+                            style={{ height: `${Math.round(logoSize[0] * 0.4)}px` }}
+                          />
+                        )}
+                        {(brandingType === 'text' || brandingType === 'both') && (
+                          <div 
+                            className="font-bold text-lg"
+                            style={{ 
+                              color: colors?.primary || '#2563eb',
+                              fontFamily: typography?.headingFont || 'Inter'
+                            }}
+                          >
+                            {value.logo?.text || 'Your Brand'}
+                          </div>
+                        )}
+                      </div>
+                      <nav className="flex justify-center gap-4 text-sm items-center">
+                        {selectedNavItems.includes('home') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Home</span>}
+                        <span className="hover:opacity-70 cursor-pointer transition-opacity">Products</span>
+                        {selectedNavItems.includes('about') && <span className="hover:opacity-70 cursor-pointer transition-opacity">About</span>}
+                        {selectedNavItems.includes('contact') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Contact</span>}
+                        {selectedNavItems.includes('blog') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Blog</span>}
+                        <Search className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                        <ShoppingCart className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                      </nav>
                       {value.layout?.ctaButton?.text && (
                         <button 
                           className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-pointer"
@@ -329,49 +389,42 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                         </button>
                       )}
                     </div>
-                  </div>
-                )}
-                
-                {value.layout?.headerStyle === 'classic' && (
-                  <div className="text-center space-y-3">
-                    <div className="flex items-center justify-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
-                      {(brandingType === 'logo' || brandingType === 'both') && value.logo?.url && (
-                        <img 
-                          src={value.logo.url} 
-                          alt="Logo" 
-                          className="object-contain"
-                          style={{ height: `${Math.round(logoSize[0] * 0.4)}px` }}
-                        />
-                      )}
-                      {(brandingType === 'text' || brandingType === 'both') && (
-                        <div 
-                          className="font-bold text-lg"
-                          style={{ 
-                            color: colors?.primary || '#2563eb',
-                            fontFamily: typography?.headingFont || 'Inter'
-                          }}
-                        >
-                          {value.logo?.text || 'Your Brand'}
+                    
+                    {/* Mobile Layout */}
+                    <div className="md:hidden">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+                          {(brandingType === 'logo' || brandingType === 'both') && value.logo?.url && (
+                            <img 
+                              src={value.logo.url} 
+                              alt="Logo" 
+                              className="object-contain"
+                              style={{ height: `${Math.round(logoSize[0] * 0.3)}px` }}
+                            />
+                          )}
+                          {(brandingType === 'text' || brandingType === 'both') && (
+                            <div 
+                              className="font-bold"
+                              style={{ 
+                                color: colors?.primary || '#2563eb',
+                                fontFamily: typography?.headingFont || 'Inter'
+                              }}
+                            >
+                              {value.logo?.text || 'Your Brand'}
+                            </div>
+                          )}
                         </div>
-                      )}
+                        <div className="flex items-center gap-2">
+                          <Search className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                          <ShoppingCart className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
+                          <div className="w-5 h-4 border rounded flex flex-col gap-0.5 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity">
+                            <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
+                            <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
+                            <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <nav className="flex justify-center gap-4 text-sm items-center">
-                      {selectedNavItems.includes('home') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Home</span>}
-                      <span className="hover:opacity-70 cursor-pointer transition-opacity">Products</span>
-                      {selectedNavItems.includes('about') && <span className="hover:opacity-70 cursor-pointer transition-opacity">About</span>}
-                      {selectedNavItems.includes('contact') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Contact</span>}
-                      {selectedNavItems.includes('blog') && <span className="hover:opacity-70 cursor-pointer transition-opacity">Blog</span>}
-                      <Search className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
-                      <ShoppingCart className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
-                    </nav>
-                    {value.layout?.ctaButton?.text && (
-                      <button 
-                        className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-pointer"
-                        style={{ backgroundColor: colors?.primary || '#2563eb', color: '#fff' }}
-                      >
-                        {value.layout.ctaButton.text}
-                      </button>
-                    )}
                   </div>
                 )}
                 
@@ -401,10 +454,10 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                     <div className="flex items-center gap-3">
                       <Search className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
                       <ShoppingCart className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" style={{ color: colors?.text || '#1f2937' }} />
-                      <div className="w-6 h-4 border rounded flex flex-col gap-0.5 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity">
-                        <div className="w-3 h-0.5 bg-gray-400"></div>
-                        <div className="w-3 h-0.5 bg-gray-400"></div>
-                        <div className="w-3 h-0.5 bg-gray-400"></div>
+                      <div className="w-5 h-4 border rounded flex flex-col gap-0.5 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity">
+                        <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
+                        <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
+                        <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
                       </div>
                     </div>
                   </div>
