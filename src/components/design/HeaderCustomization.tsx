@@ -6,57 +6,77 @@ import { Switch } from '@/src/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
+import { Slider } from '@/src/components/ui/slider'
+import { Card, CardContent } from '@/src/components/ui/card'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/src/components/ui/collapsible'
 import { ThemeSettings, NavigationItem } from '@/src/lib/queries/domains/theme'
 import { 
   Layout, 
-  AlignLeft, 
-  AlignCenter, 
-  AlignRight, 
-  AlignJustify,
-  Menu,
-  ChevronDown,
   Plus,
   Trash2,
-  GripVertical
+  Upload,
+  ChevronDown,
+  ChevronUp,
+  Eye
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/src/lib/utils'
 
 interface HeaderCustomizationProps {
   value: ThemeSettings
+  colors?: {
+    primary: string
+    secondary: string
+    accent: string
+    background: string
+    text?: string
+  }
+  typography?: {
+    headingFont: string
+    bodyFont: string
+    fontSize: string
+  }
   onChange: (settings: ThemeSettings) => void
 }
 
 const HEADER_STYLES = [
-  { value: 'modern', label: 'Modern', description: 'Clean and minimal design' },
-  { value: 'classic', label: 'Classic', description: 'Traditional navigation layout' },
-  { value: 'minimal', label: 'Minimal', description: 'Ultra-simple header' },
+  { 
+    value: 'modern', 
+    label: 'Modern', 
+    description: 'Logo left, horizontal menu, CTA right',
+    preview: 'modern'
+  },
+  { 
+    value: 'classic', 
+    label: 'Classic', 
+    description: 'Centered logo, menu below',
+    preview: 'classic'
+  },
+  { 
+    value: 'minimal', 
+    label: 'Minimal', 
+    description: 'Simple logo left, hamburger right',
+    preview: 'minimal'
+  },
 ]
 
-const MENU_STYLES = [
-  { value: 'horizontal', label: 'Horizontal', icon: AlignJustify },
-  { value: 'sidebar', label: 'Sidebar', icon: Menu },
-  { value: 'hamburger', label: 'Hamburger', icon: Menu },
-  { value: 'mega', label: 'Mega Menu', icon: ChevronDown },
+const NAVIGATION_OPTIONS = [
+  { value: 'home', label: 'Home', required: false },
+  { value: 'about', label: 'About', required: false },
+  { value: 'contact', label: 'Contact', required: false },
+  { value: 'blog', label: 'Blog', required: false },
 ]
 
-const LOGO_POSITIONS = [
-  { value: 'left', label: 'Left', icon: AlignLeft },
-  { value: 'center', label: 'Center', icon: AlignCenter },
-  { value: 'right', label: 'Right', icon: AlignRight },
-]
-
-const HEADER_HEIGHTS = [
-  { value: 'compact', label: 'Compact (56px)' },
-  { value: 'normal', label: 'Normal (64px)' },
-  { value: 'tall', label: 'Tall (80px)' },
-]
-
-export function HeaderCustomization({ value, onChange }: HeaderCustomizationProps) {
-  const [editingNavItem, setEditingNavItem] = useState<number | null>(null)
-  const [newNavItem, setNewNavItem] = useState({ label: '', href: '' })
-
-  const navigationItems = value.navigation?.items || []
+export function HeaderCustomization({ value, colors, typography, onChange }: HeaderCustomizationProps) {
+  const [previewOpen, setPreviewOpen] = useState(true)
+  const [logoOpen, setLogoOpen] = useState(true)
+  const [headerStyleOpen, setHeaderStyleOpen] = useState(true)
+  const [navigationOpen, setNavigationOpen] = useState(true)
+  const [ctaOpen, setCtaOpen] = useState(true)
+  
+  const [selectedNavItems, setSelectedNavItems] = useState<string[]>(['home', 'about', 'contact'])
+  const [customLink, setCustomLink] = useState({ label: '', href: '' })
+  const [logoSize, setLogoSize] = useState([100]) // Default logo size
 
   const handleLayoutChange = (key: string, val: any) => {
     onChange({
@@ -68,293 +88,389 @@ export function HeaderCustomization({ value, onChange }: HeaderCustomizationProp
     })
   }
 
-  const handleNavigationChange = (items: NavigationItem[]) => {
+  const handleLogoChange = (key: string, val: any) => {
     onChange({
       ...value,
-      navigation: {
-        ...value.navigation,
-        items,
-        style: value.navigation?.style || 'horizontal'
+      logo: {
+        ...value.logo,
+        [key]: val
       }
     })
   }
 
-  const addNavigationItem = () => {
-    if (!newNavItem.label || !newNavItem.href) return
-    
-    const newItems = [...navigationItems, newNavItem]
-    handleNavigationChange(newItems)
-    setNewNavItem({ label: '', href: '' })
+  const toggleNavItem = (item: string) => {
+    setSelectedNavItems(prev => 
+      prev.includes(item) 
+        ? prev.filter(i => i !== item)
+        : [...prev, item]
+    )
   }
 
-  const removeNavigationItem = (index: number) => {
-    const newItems = navigationItems.filter((_, i) => i !== index)
-    handleNavigationChange(newItems)
-  }
-
-  const updateNavigationItem = (index: number, item: NavigationItem) => {
-    const newItems = [...navigationItems]
-    newItems[index] = item
-    handleNavigationChange(newItems)
-  }
-
-  const moveNavigationItem = (fromIndex: number, toIndex: number) => {
-    const newItems = [...navigationItems]
-    const [removed] = newItems.splice(fromIndex, 1)
-    newItems.splice(toIndex, 0, removed)
-    handleNavigationChange(newItems)
+  const addCustomLink = () => {
+    if (!customLink.label || !customLink.href) return
+    // Handle custom link addition
+    setCustomLink({ label: '', href: '' })
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header Style */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Layout className="h-4 w-4 text-gray-500" />
-          <Label className="text-base font-semibold">Header Style</Label>
-        </div>
-        <RadioGroup
-          value={value.layout?.headerStyle || 'modern'}
-          onValueChange={(val) => handleLayoutChange('headerStyle', val)}
-        >
-          <div className="grid grid-cols-3 gap-4">
-            {HEADER_STYLES.map((style) => (
-              <label
-                key={style.value}
-                className={cn(
-                  "relative flex flex-col gap-2 rounded-lg border-2 p-4 cursor-pointer hover:bg-gradient-primary-50/50 transition-colors",
-                  value.layout?.headerStyle === style.value ? "border-primary bg-gray-100/20" : "border-border"
-                )}
-              >
-                <RadioGroupItem value={style.value} className="sr-only" />
-                <span className="font-medium">{style.label}</span>
-                <span className="text-xs text-gray-500">{style.description}</span>
-              </label>
-            ))}
-          </div>
-        </RadioGroup>
-      </div>
-
-      {/* Logo Position */}
-      <div className="space-y-4">
-        <Label className="text-sm font-medium">Logo Position</Label>
-        <RadioGroup
-          value={value.logo?.position || 'left'}
-          onValueChange={(val) => onChange({
-            ...value,
-            logo: { ...value.logo, position: val as 'left' | 'center' | 'right' }
-          })}
-        >
-          <div className="flex gap-2">
-            {LOGO_POSITIONS.map((position) => (
-              <label
-                key={position.value}
-                className={cn(
-                  "flex items-center justify-center p-3 rounded-md border-2 cursor-pointer hover:bg-gradient-primary-20 transition-colors",
-                  value.logo?.position === position.value ? "border-primary bg-gray-100" : "border-border"
-                )}
-              >
-                <RadioGroupItem value={position.value} className="sr-only" />
-                <position.icon className="h-4 w-4" />
-              </label>
-            ))}
-          </div>
-        </RadioGroup>
-      </div>
-
-      {/* Menu Style */}
-      <div className="space-y-4">
-        <Label className="text-sm font-medium">Menu Style</Label>
-        <RadioGroup
-          value={value.layout?.menuStyle || 'horizontal'}
-          onValueChange={(val) => handleLayoutChange('menuStyle', val)}
-        >
-          <div className="grid grid-cols-2 gap-3">
-            {MENU_STYLES.map((style) => (
-              <label
-                key={style.value}
-                className={cn(
-                  "flex items-center gap-3 p-3 rounded-md border-2 cursor-pointer hover:bg-gradient-primary-20 transition-colors",
-                  value.layout?.menuStyle === style.value ? "border-primary bg-gray-100" : "border-border"
-                )}
-              >
-                <RadioGroupItem value={style.value} className="sr-only" />
-                <style.icon className="h-4 w-4" />
-                <span className="text-sm">{style.label}</span>
-              </label>
-            ))}
-          </div>
-        </RadioGroup>
-      </div>
-
-      {/* Header Height */}
-      <div className="space-y-4">
-        <Label className="text-sm font-medium">Header Height</Label>
-        <Select
-          value={value.layout?.headerHeight || 'normal'}
-          onValueChange={(val) => handleLayoutChange('headerHeight', val)}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {HEADER_HEIGHTS.map((height) => (
-              <SelectItem key={height.value} value={height.value}>
-                {height.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Header Options */}
-      <div className="space-y-4">
-        <Label className="text-sm font-medium">Header Options</Label>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="sticky-header" className="text-sm font-normal">
-              Sticky Header
-            </Label>
-            <Switch
-              id="sticky-header"
-              checked={value.layout?.stickyHeader !== false}
-              onCheckedChange={(checked) => handleLayoutChange('stickyHeader', checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="transparent-header" className="text-sm font-normal">
-              Transparent Header
-            </Label>
-            <Switch
-              id="transparent-header"
-              checked={value.layout?.transparentHeader === true}
-              onCheckedChange={(checked) => handleLayoutChange('transparentHeader', checked)}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Menu Items */}
-      <div className="space-y-4">
-        <Label className="text-sm font-medium">Navigation Menu Items</Label>
-        <div className="space-y-2">
-          {navigationItems.map((item, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-2 p-2 rounded-md border bg-white"
-            >
-              <GripVertical className="h-4 w-4 text-gray-500 cursor-move" />
-              {editingNavItem === index ? (
-                <>
-                  <Input
-                    value={item.label}
-                    onChange={(e) => updateNavigationItem(index, { ...item, label: e.target.value })}
-                    placeholder="Label"
-                    className="flex-1"
-                  />
-                  <Input
-                    value={item.href}
-                    onChange={(e) => updateNavigationItem(index, { ...item, href: e.target.value })}
-                    placeholder="URL"
-                    className="flex-1"
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setEditingNavItem(null)}
-                  >
-                    Done
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <span className="flex-1 text-sm">{item.label}</span>
-                  <span className="text-sm text-gray-500">{item.href}</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setEditingNavItem(index)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => removeNavigationItem(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
-          ))}
-          
-          {/* Add new item form */}
-          <div className="flex gap-2 p-2 rounded-md border border-dashed">
-            <Input
-              value={newNavItem.label}
-              onChange={(e) => setNewNavItem({ ...newNavItem, label: e.target.value })}
-              placeholder="Menu label"
-              className="flex-1"
-            />
-            <Input
-              value={newNavItem.href}
-              onChange={(e) => setNewNavItem({ ...newNavItem, href: e.target.value })}
-              placeholder="URL (e.g., /products)"
-              className="flex-1"
-            />
+    <Card className="border-0 shadow-none">
+      <CardContent className="px-0 space-y-6">
+        {/* Header Preview Section */}
+        <Collapsible open={previewOpen} onOpenChange={setPreviewOpen}>
+          <CollapsibleTrigger asChild>
             <Button
-              size="sm"
-              onClick={addNavigationItem}
-              disabled={!newNavItem.label || !newNavItem.href}
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
             >
-              <Plus className="h-4 w-4" />
-              Add
+              <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Header Preview
+              </Label>
+              {previewOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
             </Button>
-          </div>
-        </div>
-      </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3">
+            <div 
+              className="rounded-lg border p-4 space-y-4" 
+              style={{ 
+                backgroundColor: colors?.background || '#ffffff', 
+                color: colors?.text || '#1f2937',
+                fontFamily: typography?.bodyFont || 'Inter'
+              }}
+            >
+              {/* Header preview based on selected style */}
+              <div className="border rounded p-3">
+                {value.layout?.headerStyle === 'modern' && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div 
+                        className="font-bold"
+                        style={{ 
+                          color: colors?.primary || '#2563eb',
+                          fontFamily: typography?.headingFont || 'Inter'
+                        }}
+                      >
+                        Your Brand
+                      </div>
+                      <nav className="flex gap-4 text-sm">
+                        <span>Products</span>
+                        <span>Search</span>
+                        {selectedNavItems.includes('home') && <span>Home</span>}
+                        {selectedNavItems.includes('about') && <span>About</span>}
+                        {selectedNavItems.includes('contact') && <span>Contact</span>}
+                        {selectedNavItems.includes('blog') && <span>Blog</span>}
+                      </nav>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Cart</span>
+                      <button 
+                        className="px-3 py-1 text-sm rounded"
+                        style={{ backgroundColor: colors?.primary || '#2563eb', color: '#fff' }}
+                      >
+                        CTA Button
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {value.layout?.headerStyle === 'classic' && (
+                  <div className="text-center space-y-2">
+                    <div 
+                      className="font-bold text-lg"
+                      style={{ 
+                        color: colors?.primary || '#2563eb',
+                        fontFamily: typography?.headingFont || 'Inter'
+                      }}
+                    >
+                      Your Brand
+                    </div>
+                    <nav className="flex justify-center gap-4 text-sm">
+                      <span>Products</span>
+                      <span>Search</span>
+                      {selectedNavItems.includes('home') && <span>Home</span>}
+                      {selectedNavItems.includes('about') && <span>About</span>}
+                      {selectedNavItems.includes('contact') && <span>Contact</span>}
+                      {selectedNavItems.includes('blog') && <span>Blog</span>}
+                      <span>Cart</span>
+                    </nav>
+                  </div>
+                )}
+                
+                {value.layout?.headerStyle === 'minimal' && (
+                  <div className="flex items-center justify-between">
+                    <div 
+                      className="font-bold"
+                      style={{ 
+                        color: colors?.primary || '#2563eb',
+                        fontFamily: typography?.headingFont || 'Inter'
+                      }}
+                    >
+                      Your Brand
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Cart</span>
+                      <div className="w-6 h-4 border rounded flex flex-col gap-0.5 items-center justify-center">
+                        <div className="w-3 h-0.5 bg-gray-400"></div>
+                        <div className="w-3 h-0.5 bg-gray-400"></div>
+                        <div className="w-3 h-0.5 bg-gray-400"></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
-      {/* CTA Button Configuration */}
-      <div className="space-y-4">
-        <Label className="text-sm font-medium">Call-to-Action Button</Label>
-        <div className="space-y-3">
-          <Input
-            placeholder="Button text (e.g., Shop Now)"
-            value={value.layout?.ctaButton?.text || ''}
-            onChange={(e) => handleLayoutChange('ctaButton', { 
-              ...value.layout?.ctaButton, 
-              text: e.target.value 
-            })}
-          />
-          <Input
-            placeholder="Button URL (e.g., /products)"
-            value={value.layout?.ctaButton?.href || ''}
-            onChange={(e) => handleLayoutChange('ctaButton', { 
-              ...value.layout?.ctaButton, 
-              href: e.target.value 
-            })}
-          />
-          <Select
-            value={value.layout?.ctaButton?.variant || 'default'}
-            onValueChange={(val) => handleLayoutChange('ctaButton', { 
-              ...value.layout?.ctaButton, 
-              variant: val 
-            })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Button style" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="default">Default</SelectItem>
-              <SelectItem value="primary">Primary</SelectItem>
-              <SelectItem value="secondary">Secondary</SelectItem>
-              <SelectItem value="outline">Outline</SelectItem>
-              <SelectItem value="ghost">Ghost</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    </div>
+        {/* Logo Section */}
+        <Collapsible open={logoOpen} onOpenChange={setLogoOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            >
+              <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Logo & Branding
+              </Label>
+              {logoOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3 space-y-4">
+            <div className="border rounded-lg p-6 bg-gray-50">
+              <div className="flex items-center justify-center h-20 border-2 border-dashed border-gray-300 rounded-lg">
+                {value.logo?.url ? (
+                  <div className="flex items-center gap-2">
+                    <Upload className="h-8 w-8 text-gray-400" />
+                    <span className="text-sm text-gray-500">Logo uploaded</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Upload className="h-8 w-8 text-gray-400" />
+                    <span className="text-sm text-gray-500">Click to upload logo</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Logo Size</Label>
+              <div className="px-2">
+                <Slider
+                  value={logoSize}
+                  onValueChange={setLogoSize}
+                  max={200}
+                  min={50}
+                  step={10}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>50px</span>
+                  <span>{logoSize[0]}px</span>
+                  <span>200px</span>
+                </div>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Header Style Section */}
+        <Collapsible open={headerStyleOpen} onOpenChange={setHeaderStyleOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            >
+              <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                <Layout className="h-4 w-4" />
+                Header Style
+              </Label>
+              {headerStyleOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3">
+            <RadioGroup
+              value={value.layout?.headerStyle || 'modern'}
+              onValueChange={(val) => handleLayoutChange('headerStyle', val)}
+            >
+              <div className="grid grid-cols-1 gap-3">
+                {HEADER_STYLES.map((style) => (
+                  <Card 
+                    key={style.value}
+                    className={cn(
+                      "cursor-pointer transition-all hover:shadow-md hover:scale-105 active:scale-95",
+                      value.layout?.headerStyle === style.value ? "ring-2 ring-primary ring-offset-2" : ""
+                    )}
+                    onClick={() => handleLayoutChange('headerStyle', style.value)}
+                  >
+                    <CardContent className="p-4">
+                      <RadioGroupItem value={style.value} className="sr-only" />
+                      <div className="space-y-3">
+                        <div>
+                          <span className="font-medium">{style.label}</span>
+                          <p className="text-sm text-muted-foreground">{style.description}</p>
+                        </div>
+                        
+                        {/* Visual Preview */}
+                        <div className="h-16 rounded border bg-gray-50 p-2 flex items-center justify-between">
+                          {style.value === 'modern' && (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-3 bg-primary rounded-sm"></div>
+                                <div className="flex gap-1">
+                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
+                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
+                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
+                                </div>
+                              </div>
+                              <div className="w-4 h-2 bg-primary rounded-sm"></div>
+                            </>
+                          )}
+                          {style.value === 'classic' && (
+                            <>
+                              <div className="flex flex-col items-center gap-1 flex-1">
+                                <div className="w-8 h-2 bg-primary rounded-sm"></div>
+                                <div className="flex gap-1">
+                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
+                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
+                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
+                                  <div className="w-2 h-1 bg-gray-300 rounded"></div>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                          {style.value === 'minimal' && (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-3 bg-primary rounded-sm"></div>
+                              </div>
+                              <div className="w-4 h-4 border border-gray-300 rounded flex items-center justify-center">
+                                <div className="w-2 h-0.5 bg-gray-400"></div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </RadioGroup>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Navigation Menu Section */}
+        <Collapsible open={navigationOpen} onOpenChange={setNavigationOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            >
+              <Label className="text-base font-semibold cursor-pointer">Navigation Menu</Label>
+              {navigationOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3 space-y-4">
+            <div className="text-sm text-gray-600">
+              Products, Search, and Cart are always visible. Select optional pages:
+            </div>
+            
+            <div className="space-y-2">
+              {NAVIGATION_OPTIONS.map((option) => (
+                <div key={option.value} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id={option.value}
+                    checked={selectedNavItems.includes(option.value)}
+                    onChange={() => toggleNavItem(option.value)}
+                    className="rounded border-gray-300"
+                  />
+                  <Label htmlFor={option.value} className="text-sm">
+                    {option.label}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            
+            <div className="border-t pt-4 space-y-2">
+              <Label className="text-sm font-medium">Custom Link (Optional)</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Link label"
+                  value={customLink.label}
+                  onChange={(e) => setCustomLink({ ...customLink, label: e.target.value })}
+                  className="flex-1"
+                />
+                <Input
+                  placeholder="URL"
+                  value={customLink.href}
+                  onChange={(e) => setCustomLink({ ...customLink, href: e.target.value })}
+                  className="flex-1"
+                />
+                <Button
+                  size="sm"
+                  onClick={addCustomLink}
+                  disabled={!customLink.label || !customLink.href}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* CTA Button Section */}
+        <Collapsible open={ctaOpen} onOpenChange={setCtaOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            >
+              <Label className="text-base font-semibold cursor-pointer">CTA Button</Label>
+              {ctaOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3 space-y-4">
+            <Input
+              placeholder="Button text (e.g., Shop Now)"
+              value={value.layout?.ctaButton?.text || ''}
+              onChange={(e) => handleLayoutChange('ctaButton', { 
+                ...value.layout?.ctaButton, 
+                text: e.target.value 
+              })}
+            />
+            <Input
+              placeholder="Button URL (e.g., /products)"
+              value={value.layout?.ctaButton?.href || ''}
+              onChange={(e) => handleLayoutChange('ctaButton', { 
+                ...value.layout?.ctaButton, 
+                href: e.target.value 
+              })}
+            />
+          </CollapsibleContent>
+        </Collapsible>
+
+      </CardContent>
+    </Card>
   )
 }

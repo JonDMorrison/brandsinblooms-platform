@@ -51,7 +51,6 @@ export class ComponentPreloader {
     const components = [
       () => import('@/src/components/design/ColorCustomization'),
       () => import('@/src/components/design/TypographyCustomization'),
-      () => import('@/src/components/design/LayoutCustomization'),
       () => import('@/src/components/design/LogoCustomization'),
     ]
 

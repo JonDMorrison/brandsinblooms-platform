@@ -1,25 +1,15 @@
 'use client'
 
-import { useState, useEffect, Suspense, useCallback } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import dynamic from 'next/dynamic'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Card, CardContent } from '@/src/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { Button } from '@/src/components/ui/button'
-import { Palette, Type, Layout, Upload, Eye, Wand2, Loader2, X, History, Sparkles } from 'lucide-react'
+import { Palette, Type, Layout, Eye, X } from 'lucide-react'
 import { Skeleton } from '@/src/components/ui/skeleton'
-import { toast } from 'sonner'
-import { useDesignSettings, useUpdateDesignSettings, useResetDesignSettings } from '@/src/hooks/useDesignSettings'
+import { useDesignSettings, useUpdateDesignSettings } from '@/src/hooks/useDesignSettings'
 import { useDebounceCallback } from '@/src/hooks/useDebounce'
-import { useDesignHistory, useDesignHistoryKeyboardShortcuts } from '@/src/hooks/useDesignHistory'
 import { ThemeSettings } from '@/src/lib/queries/domains/theme'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/src/components/ui/dialog'
 
 // Dynamic imports for design components with loading states and lazy loading
 const ColorCustomization = dynamic(
@@ -31,20 +21,6 @@ const ColorCustomization = dynamic(
 )
 const TypographyCustomization = dynamic(
   () => import('@/src/components/design/TypographyCustomization'),
-  { 
-    loading: () => <Skeleton className="h-[400px] w-full" />,
-    ssr: false
-  }
-)
-const LayoutCustomization = dynamic(
-  () => import('@/src/components/design/LayoutCustomization'),
-  { 
-    loading: () => <Skeleton className="h-[400px] w-full" />,
-    ssr: false
-  }
-)
-const LogoCustomization = dynamic(
-  () => import('@/src/components/design/LogoCustomization'),
   { 
     loading: () => <Skeleton className="h-[400px] w-full" />,
     ssr: false
@@ -71,20 +47,6 @@ const DesignPreview = dynamic(
     ssr: false
   }
 )
-const AIDesignAssistant = dynamic(
-  () => import('@/src/components/design/AIDesignAssistant').then(mod => mod.AIDesignAssistant),
-  { 
-    loading: () => <Skeleton className="h-[400px] w-full" />,
-    ssr: false
-  }
-)
-const DesignHistory = dynamic(
-  () => import('@/src/components/design/DesignHistory').then(mod => mod.DesignHistory),
-  { 
-    loading: () => <Skeleton className="h-[400px] w-full" />,
-    ssr: false
-  }
-)
 
 function DesignPageSkeleton() {
   return (
@@ -101,55 +63,16 @@ function DesignPageSkeleton() {
 
 export default function DesignPage() {
   const { data: designSettings, loading: isLoading } = useDesignSettings()
-  const { mutate: updateSettings, loading: isSaving } = useUpdateDesignSettings()
-  const resetSettings = useResetDesignSettings()
+  const { mutate: updateSettings } = useUpdateDesignSettings()
   
   // Local state for immediate UI updates
   const [localSettings, setLocalSettings] = useState<ThemeSettings | null>(null)
   const [activeTab, setActiveTab] = useState<string>('colors')
   const [previewMode, setPreviewMode] = useState<boolean>(false)
-  const [showHistory, setShowHistory] = useState<boolean>(false)
-  const [showAIAssistant, setShowAIAssistant] = useState<boolean>(false)
-  
-  // Design history management
-  const {
-    currentSettings: historySettings,
-    addToHistory,
-    undo,
-    redo,
-    jumpToHistory,
-    clearHistory,
-    canUndo,
-    canRedo,
-    history,
-    currentIndex
-  } = useDesignHistory(localSettings || designSettings || {} as ThemeSettings)
-  
-  // Keyboard shortcuts for undo/redo
-  useDesignHistoryKeyboardShortcuts(
-    useCallback(() => {
-      const settings = undo()
-      if (settings) {
-        setLocalSettings(settings)
-        updateSettings(settings)
-        toast.success('Undone')
-      }
-    }, [undo, updateSettings]),
-    useCallback(() => {
-      const settings = redo()
-      if (settings) {
-        setLocalSettings(settings)
-        updateSettings(settings)
-        toast.success('Redone')
-      }
-    }, [redo, updateSettings]),
-    true
-  )
   
   // Debounced save to database (1 second delay)
   const debouncedSave = useDebounceCallback((settings: ThemeSettings) => {
     updateSettings(settings)
-    addToHistory(settings)
   }, 1000)
   
   // Initialize and update local settings from database when site changes
@@ -175,15 +98,6 @@ export default function DesignPage() {
     debouncedSave(newSettings)
   }
   
-  const handleSaveChanges = () => {
-    if (!localSettings) return
-    updateSettings(localSettings)
-  }
-  
-  const handleResetToDefaults = () => {
-    resetSettings()
-    toast.success('Design settings reset to defaults')
-  }
   
   // Loading state
   if (isLoading) {
@@ -193,7 +107,7 @@ export default function DesignPage() {
   // Error state
   if (!localSettings) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-3 sm:p-6">
         <Card>
           <CardContent className="p-6">
             <p className="text-center text-gray-600">
@@ -206,175 +120,53 @@ export default function DesignPage() {
   }
   
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between fade-in-up" style={{ animationDelay: '0s' }}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 fade-in-up" style={{ animationDelay: '0s' }}>
         <div>
-          <h1 className="text-3xl font-bold">Design System</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold">Design System</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">
             Customize your site&apos;s appearance and branding
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <Button
-            variant="outline"
-            onClick={() => setShowHistory(!showHistory)}
-            className="flex items-center gap-2"
-          >
-            <History className="h-4 w-4" />
-            {showHistory ? 'Hide' : 'Show'} History
-          </Button>
-          <Button
-            variant="outline"
             onClick={() => setPreviewMode(!previewMode)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-white w-full sm:w-auto"
+            style={{
+              background: 'linear-gradient(135deg, hsl(152 45% 40%) 0%, hsl(145 35% 60%) 100%)'
+            }}
           >
             <Eye className="h-4 w-4" />
-            {previewMode ? 'Exit Preview' : 'Live Preview'}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleResetToDefaults}
-          >
-            Reset to Defaults
-          </Button>
-          <Button
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-            className="bg-gradient-primary text-white"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save Changes'
-            )}
+            <span className="sm:inline">
+              {previewMode ? 'Exit Preview' : 'Live Preview'}
+            </span>
           </Button>
         </div>
       </div>
 
-      {/* AI Design Assistant Button Card */}
-      <Card className="fade-in-up border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50" style={{ animationDelay: '0.1s' }}>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Sparkles className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold">AI Design Assistant</h3>
-                <p className="text-sm text-gray-600">Let AI help you create the perfect design for your brand</p>
-              </div>
-            </div>
-            <Dialog open={showAIAssistant} onOpenChange={setShowAIAssistant}>
-              <DialogTrigger asChild>
-                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                  <Wand2 className="h-4 w-4 mr-2" />
-                  Open AI Assistant
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>AI Design Assistant</DialogTitle>
-                  <DialogDescription>
-                    Let AI help you create the perfect design for your brand
-                  </DialogDescription>
-                </DialogHeader>
-                <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-                  <AIDesignAssistant
-                    currentSettings={localSettings}
-                    onApplyColors={(colors) => {
-                      handleSettingChange('colors', colors)
-                      setShowAIAssistant(false)
-                    }}
-                    onApplyTypography={(typography) => {
-                      handleSettingChange('typography', typography)
-                      setShowAIAssistant(false)
-                    }}
-                    onApplyLayout={(layout) => {
-                      handleSettingChange('layout', layout)
-                      setShowAIAssistant(false)
-                    }}
-                  />
-                </Suspense>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Design History - Show when toggled */}
-      {showHistory && (
-        <Card className="fade-in-up" style={{ animationDelay: '0.15s' }}>
-          <CardContent className="p-6">
-            <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-              <DesignHistory
-                history={history}
-                currentIndex={currentIndex}
-                canUndo={canUndo}
-                canRedo={canRedo}
-                onUndo={() => {
-                  const settings = undo()
-                  if (settings) {
-                    setLocalSettings(settings)
-                    updateSettings(settings)
-                  }
-                }}
-                onRedo={() => {
-                  const settings = redo()
-                  if (settings) {
-                    setLocalSettings(settings)
-                    updateSettings(settings)
-                  }
-                }}
-                onJumpTo={(index) => {
-                  const settings = jumpToHistory(index)
-                  if (settings) {
-                    setLocalSettings(settings)
-                    updateSettings(settings)
-                  }
-                }}
-                onClear={clearHistory}
-                onApply={(settings) => {
-                  setLocalSettings(settings)
-                  updateSettings(settings)
-                }}
-              />
-            </Suspense>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Design Customization Tabs */}
       <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
-        <CardContent className="p-6">
+        <CardContent className="p-3 sm:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="colors" className="flex items-center gap-2">
-                <Palette className="h-4 w-4" />
-                Colors
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+              <TabsTrigger value="colors" className="flex items-center gap-1 sm:gap-2 p-2 sm:p-3">
+                <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Colors</span>
               </TabsTrigger>
-              <TabsTrigger value="fonts" className="flex items-center gap-2">
-                <Type className="h-4 w-4" />
-                Fonts
+              <TabsTrigger value="fonts" className="flex items-center gap-1 sm:gap-2 p-2 sm:p-3">
+                <Type className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Fonts</span>
               </TabsTrigger>
-              <TabsTrigger value="logo" className="flex items-center gap-2">
-                <Upload className="h-4 w-4" />
-                Logo
+              <TabsTrigger value="header" className="flex items-center gap-1 sm:gap-2 p-2 sm:p-3">
+                <Layout className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Header</span>
               </TabsTrigger>
-              <TabsTrigger value="header" className="flex items-center gap-2">
-                <Layout className="h-4 w-4" />
-                Header
-              </TabsTrigger>
-              <TabsTrigger value="layout" className="flex items-center gap-2">
-                <Layout className="h-4 w-4" />
-                Layout
-              </TabsTrigger>
-              <TabsTrigger value="footer" className="flex items-center gap-2">
-                <Layout className="h-4 w-4" />
-                Footer
+              <TabsTrigger value="footer" className="flex items-center gap-1 sm:gap-2 p-2 sm:p-3">
+                <Layout className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Footer</span>
               </TabsTrigger>
             </TabsList>
 
@@ -383,6 +175,7 @@ export default function DesignPage() {
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <ColorCustomization
                     colors={localSettings.colors}
+                    typography={localSettings.typography}
                     onColorsChange={(colors) => handleSettingChange('colors', colors)}
                   />
                 </Suspense>
@@ -392,43 +185,31 @@ export default function DesignPage() {
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <TypographyCustomization
                     typography={localSettings.typography}
+                    colors={localSettings.colors}
                     onTypographyChange={(typography) => handleSettingChange('typography', typography as Partial<ThemeSettings['typography']>)}
                   />
                 </Suspense>
               </TabsContent>
 
-              <TabsContent value="logo" className="space-y-6">
-                <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
-                  <LogoCustomization
-                    logo={localSettings.logo}
-                    onLogoChange={(logo) => handleSettingChange('logo', logo as Partial<ThemeSettings['logo']>)}
-                  />
-                </Suspense>
-              </TabsContent>
 
               <TabsContent value="header" className="space-y-6">
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <HeaderCustomization
                     value={localSettings}
+                    colors={localSettings.colors}
+                    typography={localSettings.typography}
                     onChange={setLocalSettings}
                   />
                 </Suspense>
               </TabsContent>
 
-              <TabsContent value="layout" className="space-y-6">
-                <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
-                  <LayoutCustomization
-                    layout={localSettings.layout}
-                    onLayoutChange={(layout) => handleSettingChange('layout', layout as Partial<ThemeSettings['layout']>)}
-                    section="all"
-                  />
-                </Suspense>
-              </TabsContent>
 
               <TabsContent value="footer" className="space-y-6">
                 <Suspense fallback={<div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-48 w-full" /></div>}>
                   <FooterCustomization
                     value={localSettings}
+                    colors={localSettings.colors}
+                    typography={localSettings.typography}
                     onChange={setLocalSettings}
                   />
                 </Suspense>
@@ -440,14 +221,15 @@ export default function DesignPage() {
 
       {/* Live Preview Modal/Panel */}
       {previewMode && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Design Preview</h2>
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-white rounded-lg w-full max-w-7xl h-[95vh] sm:h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b">
+              <h2 className="text-base sm:text-lg font-semibold">Design Preview</h2>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setPreviewMode(false)}
+                className="h-8 w-8 sm:h-10 sm:w-10"
               >
                 <X className="h-4 w-4" />
               </Button>

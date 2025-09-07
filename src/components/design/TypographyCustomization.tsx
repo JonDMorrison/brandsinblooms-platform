@@ -1,18 +1,28 @@
+'use client'
+
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
 import { Label } from '@/src/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { Separator } from '@/src/components/ui/separator'
-import { RadioGroup, RadioGroupItem } from '@/src/components/ui/radio-group'
-import { Type, Wand2 } from 'lucide-react'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/src/components/ui/collapsible'
+import { Type, ChevronDown, ChevronUp, Monitor, FileText } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface TypographyCustomizationProps {
   typography: {
     headingFont: string
     bodyFont: string
     fontSize: string
+  }
+  colors?: {
+    primary: string
+    secondary: string
+    accent: string
+    background: string
+    text?: string
   }
   onTypographyChange: (typography: {
     headingFont: string
@@ -38,12 +48,6 @@ const googleFonts = [
   { name: 'JetBrains Mono', category: 'Monospace', description: 'Modern monospace' }
 ]
 
-const fontSizes = [
-  { value: 'small', label: 'Small', description: '14px base size' },
-  { value: 'medium', label: 'Medium', description: '16px base size' },
-  { value: 'large', label: 'Large', description: '18px base size' },
-  { value: 'extra-large', label: 'Extra Large', description: '20px base size' }
-]
 
 const typographyPresets = [
   {
@@ -64,7 +68,7 @@ const typographyPresets = [
     name: 'Creative Bold',
     headingFont: 'Montserrat',
     bodyFont: 'Open Sans',
-    fontSize: 'large',
+    fontSize: 'medium',
     description: 'Bold and creative for portfolios'
   },
   {
@@ -73,55 +77,41 @@ const typographyPresets = [
     bodyFont: 'Source Sans Pro',
     fontSize: 'medium',
     description: 'Minimal and clean aesthetic'
-  },
-  {
-    name: 'Friendly Approachable',
-    headingFont: 'Poppins',
-    bodyFont: 'Nunito',
-    fontSize: 'medium',
-    description: 'Warm and approachable feel'
   }
 ]
 
-const aiSuggestions = [
-  {
-    name: 'Tech Startup',
-    headingFont: 'Inter',
-    bodyFont: 'Roboto',
-    fontSize: 'medium',
-    description: 'Perfect for technology companies'
-  },
-  {
-    name: 'Creative Agency',
-    headingFont: 'Montserrat',
-    bodyFont: 'Open Sans',
-    fontSize: 'large',
-    description: 'Ideal for creative professionals'
-  },
-  {
-    name: 'Professional Services',
-    headingFont: 'Lato',
-    bodyFont: 'Source Sans Pro',
-    fontSize: 'medium',
-    description: 'Great for consulting and services'
-  }
-]
 
-export default function TypographyCustomization({ typography, onTypographyChange }: TypographyCustomizationProps) {
+export default function TypographyCustomization({ typography, colors, onTypographyChange }: TypographyCustomizationProps) {
+  const [isAutoSaving, setIsAutoSaving] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(true)
+  const [presetsOpen, setPresetsOpen] = useState(true)
+  const [customFontsOpen, setCustomFontsOpen] = useState(true)
+  
+  // Fallback colors if not provided
+  const themeColors = colors || {
+    primary: '#2563eb',
+    secondary: '#3b82f6', 
+    accent: '#60a5fa',
+    background: '#ffffff',
+    text: '#1f2937'
+  }
+  const textColor = themeColors.text || '#1f2937'
 
   const handleFontChange = (type: 'headingFont' | 'bodyFont', font: string) => {
-    onTypographyChange({
+    const newTypography = {
       ...typography,
       [type]: font
-    })
+    }
+    onTypographyChange(newTypography)
+    
+    // Auto-save with toast notification
+    setIsAutoSaving(true)
+    setTimeout(() => {
+      toast.success('Typography saved automatically')
+      setIsAutoSaving(false)
+    }, 500)
   }
 
-  const handleFontSizeChange = (fontSize: string) => {
-    onTypographyChange({
-      ...typography,
-      fontSize
-    })
-  }
 
   const handlePresetSelect = (preset: typeof typographyPresets[0]) => {
     onTypographyChange({
@@ -129,205 +119,113 @@ export default function TypographyCustomization({ typography, onTypographyChange
       bodyFont: preset.bodyFont,
       fontSize: preset.fontSize
     })
+    toast.success(`Applied ${preset.name} font pairing`)
   }
 
-  const generateAITypography = () => {
-    // Mock AI typography generation
-    const randomSuggestion = aiSuggestions[Math.floor(Math.random() * aiSuggestions.length)]
-    onTypographyChange({
-      headingFont: randomSuggestion.headingFont,
-      bodyFont: randomSuggestion.bodyFont,
-      fontSize: randomSuggestion.fontSize
-    })
-  }
 
-  const FontPreview = ({ fontName, isHeading = false }: { fontName: string, isHeading?: boolean }) => (
-    <div 
-      className={`p-4 border rounded-lg ${isHeading ? 'text-xl font-bold' : 'text-base'}`}
-      style={{ fontFamily: fontName }}
-    >
-      {isHeading ? (
-        <>
-          <h3 className="mb-2">Heading Preview</h3>
-          <p className="text-sm font-normal text-gray-600">The quick brown fox jumps over the lazy dog</p>
-        </>
-      ) : (
-        <>
-          <p className="mb-2">Body Text Preview</p>
-          <p className="text-sm text-gray-600">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-            Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-          </p>
-        </>
-      )}
-    </div>
-  )
 
   return (
-    <div className="space-y-6">
-      {/* Typography Preview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Type className="h-5 w-5" />
-            Typography Preview
-          </CardTitle>
-          <CardDescription>
-            See how your font choices look together
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div 
-              className="text-3xl font-bold"
-              style={{ fontFamily: typography.headingFont }}
+    <Card className="border-0 shadow-none">
+      <CardHeader className="px-0 pt-0">
+        <div className="flex items-center gap-2">
+          <Type className="h-5 w-5 text-primary" />
+          <CardTitle>Typography Customization</CardTitle>
+          {isAutoSaving && (
+            <div className="text-xs text-muted-foreground animate-pulse">Saving...</div>
+          )}
+        </div>
+        <CardDescription>
+          Customize your fonts to match your brand identity
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="px-0 space-y-6">
+        {/* Typography Preview Collapsible Section */}
+        <Collapsible open={previewOpen} onOpenChange={setPreviewOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
             >
-              Your Brand Heading
-            </div>
-            <div 
-              className="text-lg leading-relaxed"
-              style={{ fontFamily: typography.bodyFont }}
-            >
-              This is how your body text will appear on your website. 
-              It should be easy to read and complement your heading font perfectly.
-            </div>
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <span>Heading: <strong>{typography.headingFont}</strong></span>
-              <span>Body: <strong>{typography.bodyFont}</strong></span>
-              <span>Size: <strong>{typography.fontSize}</strong></span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Tabs defaultValue="custom" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="custom">Custom Fonts</TabsTrigger>
-          <TabsTrigger value="presets">Font Pairs</TabsTrigger>
-          <TabsTrigger value="ai">AI Suggestions</TabsTrigger>
-        </TabsList>
-
-        {/* Custom Font Selection Tab */}
-        <TabsContent value="custom" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Heading Font Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Heading Font</CardTitle>
-                <CardDescription>
-                  Choose a font for headings and titles
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Select 
-                  value={typography.headingFont} 
-                  onValueChange={(value) => handleFontChange('headingFont', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select heading font" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {googleFonts.map((font) => (
-                      <SelectItem key={font.name} value={font.name}>
-                        <div className="flex items-center justify-between w-full">
-                          <span style={{ fontFamily: font.name }}>{font.name}</span>
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            {font.category}
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FontPreview fontName={typography.headingFont} isHeading={true} />
-              </CardContent>
-            </Card>
-
-            {/* Body Font Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Body Font</CardTitle>
-                <CardDescription>
-                  Choose a font for body text and paragraphs
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Select 
-                  value={typography.bodyFont} 
-                  onValueChange={(value) => handleFontChange('bodyFont', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select body font" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {googleFonts.map((font) => (
-                      <SelectItem key={font.name} value={font.name}>
-                        <div className="flex items-center justify-between w-full">
-                          <span style={{ fontFamily: font.name }}>{font.name}</span>
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            {font.category}
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FontPreview fontName={typography.bodyFont} />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Font Size Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Font Size Scale</CardTitle>
-              <CardDescription>
-                Choose the base font size for your website
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup 
-                value={typography.fontSize} 
-                onValueChange={handleFontSizeChange}
-                className="grid grid-cols-2 lg:grid-cols-4 gap-4"
-              >
-                {fontSizes.map((size) => (
-                  <div key={size.value} className="flex items-center space-x-2">
-                    <RadioGroupItem value={size.value} id={size.value} />
-                    <Label htmlFor={size.value} className="flex-1 cursor-pointer">
-                      <div>
-                        <div className="font-medium">{size.label}</div>
-                        <div className="text-sm text-gray-600">{size.description}</div>
-                      </div>
-                    </Label>
+              <Label className="text-base font-semibold cursor-pointer">Typography Preview</Label>
+              {previewOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3">
+            <div className="rounded-lg border p-6 space-y-6" style={{ backgroundColor: themeColors.background, color: textColor }}>
+              {/* Header Preview */}
+              <div className="space-y-2">
+                <div className="text-xs flex items-center gap-1" style={{ color: textColor + '80' }}>
+                  <Monitor className="h-3 w-3" />
+                  Header Elements
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded border" style={{ borderColor: themeColors.primary + '20' }}>
+                    <h1 className="text-xl font-bold" style={{ color: themeColors.primary, fontFamily: typography.headingFont }}>Your Brand</h1>
+                    <div className="flex gap-2">
+                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: themeColors.secondary, fontFamily: typography.bodyFont }}>Home</span>
+                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: themeColors.secondary, fontFamily: typography.bodyFont }}>About</span>
+                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: themeColors.secondary, fontFamily: typography.bodyFont }}>Contact</span>
+                    </div>
                   </div>
-                ))}
-              </RadioGroup>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </div>
+              </div>
 
-        {/* Font Pairs Tab */}
-        <TabsContent value="presets" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Curated Font Pairs</CardTitle>
-              <CardDescription>
-                Professional font combinations that work well together
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {typographyPresets.map((preset, index) => (
-                  <div
-                    key={index}
-                    className="p-4 border rounded-lg hover:border-primary cursor-pointer transition-colors"
-                    onClick={() => handlePresetSelect(preset)}
-                  >
+              {/* Typography Showcase */}
+              <div className="space-y-2">
+                <div className="text-xs flex items-center gap-1" style={{ color: textColor + '80' }}>
+                  <FileText className="h-3 w-3" />
+                  Typography Elements
+                </div>
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-bold" style={{ color: themeColors.primary, fontFamily: typography.headingFont }}>Your Brand Heading</h2>
+                  <p className="text-base leading-relaxed" style={{ color: textColor, fontFamily: typography.bodyFont }}>
+                    This is how your body text will appear on your website. It should be easy to read and complement your heading font perfectly.
+                  </p>
+                  <div className="flex items-center gap-4 text-sm" style={{ color: textColor + '80' }}>
+                    <span>Heading: <strong style={{ fontFamily: typography.headingFont }}>{typography.headingFont}</strong></span>
+                    <span>Body: <strong style={{ fontFamily: typography.bodyFont }}>{typography.bodyFont}</strong></span>
+                    <span>Size: <strong>medium</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        <Separator />
+
+        {/* Font Pairings Collapsible Section */}
+        <Collapsible open={presetsOpen} onOpenChange={setPresetsOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            >
+              <Label className="text-base font-semibold cursor-pointer">Font Pairings</Label>
+              {presetsOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-3 pt-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {typographyPresets.map((preset, index) => (
+                <Card 
+                  key={index}
+                  className="cursor-pointer transition-all hover:shadow-md hover:scale-105 active:scale-95"
+                  onClick={() => handlePresetSelect(preset)}
+                >
+                  <CardContent className="p-4">
                     <div className="space-y-3">
                       <div>
-                        <h3 className="font-semibold">{preset.name}</h3>
-                        <p className="text-sm text-gray-600">{preset.description}</p>
+                        <h4 className="font-medium text-sm">{preset.name}</h4>
+                        <p className="text-xs text-muted-foreground">{preset.description}</p>
                       </div>
                       <div 
                         className="text-lg font-bold"
@@ -341,78 +239,102 @@ export default function TypographyCustomization({ typography, onTypographyChange
                       >
                         This is how the body text will look with this font combination.
                       </div>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span>H: {preset.headingFont}</span>
                         <span>B: {preset.bodyFont}</span>
-                        <span>Size: {preset.fontSize}</span>
+                        <span>Size: medium</span>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
-        {/* AI Suggestions Tab */}
-        <TabsContent value="ai" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wand2 className="h-5 w-5 text-purple-600" />
-                AI Typography Suggestions
-              </CardTitle>
-              <CardDescription>
-                Get personalized font recommendations based on your brand
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center gap-3">
-                <Button 
-                  onClick={generateAITypography}
-                  className="flex items-center gap-2"
+        <Separator />
+
+        {/* Custom Fonts Collapsible Section */}
+        <Collapsible open={customFontsOpen} onOpenChange={setCustomFontsOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-0 h-auto hover:bg-transparent"
+            >
+              <Label className="text-base font-semibold cursor-pointer">Custom Fonts</Label>
+              {customFontsOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 pt-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Heading Font Selection */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Heading Font</Label>
+                <Select 
+                  value={typography.headingFont} 
+                  onValueChange={(value) => handleFontChange('headingFont', value)}
                 >
-                  <Wand2 className="h-4 w-4" />
-                  Generate Typography
-                </Button>
-                <Badge variant="secondary">AI Powered</Badge>
+                  <SelectTrigger className="cursor-pointer">
+                    <SelectValue placeholder="Select heading font" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {googleFonts.map((font) => (
+                      <SelectItem key={font.name} value={font.name} className="cursor-pointer hover:bg-muted">
+                        <div className="flex items-center justify-between w-full">
+                          <span style={{ fontFamily: font.name }} className="text-black hover:text-black">{font.name}</span>
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            {font.category}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="p-3 border rounded-lg" style={{ fontFamily: typography.headingFont }}>
+                  <h3 className="text-lg font-bold mb-1">Heading Preview</h3>
+                  <p className="text-sm text-muted-foreground">The quick brown fox jumps over the lazy dog</p>
+                </div>
               </div>
 
-              <Separator />
-
-              <div className="grid grid-cols-1 gap-4">
-                {aiSuggestions.map((suggestion, index) => (
-                  <div
-                    key={index}
-                    className="p-4 border rounded-lg hover:border-primary cursor-pointer transition-colors"
-                    onClick={() => handlePresetSelect(suggestion)}
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">{suggestion.name}</h3>
-                        <Badge variant="outline">AI Suggested</Badge>
-                      </div>
-                      <p className="text-sm text-gray-600">{suggestion.description}</p>
-                      <div 
-                        className="text-lg font-bold"
-                        style={{ fontFamily: suggestion.headingFont }}
-                      >
-                        Sample Heading
-                      </div>
-                      <div 
-                        className="text-sm"
-                        style={{ fontFamily: suggestion.bodyFont }}
-                      >
-                        Sample body text to demonstrate the font pairing.
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              {/* Body Font Selection */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Body Font</Label>
+                <Select 
+                  value={typography.bodyFont} 
+                  onValueChange={(value) => handleFontChange('bodyFont', value)}
+                >
+                  <SelectTrigger className="cursor-pointer">
+                    <SelectValue placeholder="Select body font" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {googleFonts.map((font) => (
+                      <SelectItem key={font.name} value={font.name} className="cursor-pointer hover:bg-muted">
+                        <div className="flex items-center justify-between w-full">
+                          <span style={{ fontFamily: font.name }} className="text-black hover:text-black">{font.name}</span>
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            {font.category}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="p-3 border rounded-lg" style={{ fontFamily: typography.bodyFont }}>
+                  <p className="text-base mb-1">Body Text Preview</p>
+                  <p className="text-sm text-muted-foreground">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+                    Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  </p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </CardContent>
+    </Card>
   )
 }

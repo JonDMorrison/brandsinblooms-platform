@@ -18,16 +18,25 @@ import {
   Linkedin,
   Youtube,
   Globe,
-  Mail,
-  CreditCard,
-  Shield,
-  Truck
+  Mail
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/src/lib/utils'
 
 interface FooterCustomizationProps {
   value: ThemeSettings
+  colors?: {
+    primary: string
+    secondary: string
+    accent: string
+    background: string
+    text?: string
+  }
+  typography?: {
+    headingFont: string
+    bodyFont: string
+    fontSize: string
+  }
   onChange: (settings: ThemeSettings) => void
 }
 
@@ -47,11 +56,6 @@ const FOOTER_STYLES = [
     label: 'Centered', 
     description: 'Centered layout with focus on brand'
   },
-  { 
-    value: 'newsletter', 
-    label: 'Newsletter Focus', 
-    description: 'Emphasize newsletter signup'
-  },
 ]
 
 const SOCIAL_PLATFORMS = [
@@ -63,15 +67,6 @@ const SOCIAL_PLATFORMS = [
   { value: 'website', label: 'Website', icon: Globe },
 ]
 
-const PAYMENT_BADGES = [
-  { value: 'visa', label: 'Visa' },
-  { value: 'mastercard', label: 'Mastercard' },
-  { value: 'amex', label: 'American Express' },
-  { value: 'paypal', label: 'PayPal' },
-  { value: 'stripe', label: 'Stripe' },
-  { value: 'apple-pay', label: 'Apple Pay' },
-  { value: 'google-pay', label: 'Google Pay' },
-]
 
 const DEFAULT_FOOTER_COLUMNS: FooterColumn[] = [
   {
@@ -100,14 +95,13 @@ const DEFAULT_FOOTER_COLUMNS: FooterColumn[] = [
   }
 ]
 
-export function FooterCustomization({ value, onChange }: FooterCustomizationProps) {
+export function FooterCustomization({ value, colors, typography, onChange }: FooterCustomizationProps) {
   const [editingColumn, setEditingColumn] = useState<number | null>(null)
   const [newLink, setNewLink] = useState({ label: '', href: '' })
   const [newSocialLink, setNewSocialLink] = useState({ platform: 'facebook', url: '' })
 
   const footerColumns = value.footer?.columns || DEFAULT_FOOTER_COLUMNS
   const socialLinks = value.footer?.socialLinks || []
-  const paymentBadges = value.footer?.paymentBadges || ['visa', 'mastercard', 'paypal']
 
   const handleFooterChange = (key: string, val: any) => {
     onChange({
@@ -116,10 +110,8 @@ export function FooterCustomization({ value, onChange }: FooterCustomizationProp
         ...value.footer,
         style: value.footer?.style || 'comprehensive',
         columns: footerColumns,
-        newsletter: value.footer?.newsletter !== false,
         socialLinks: socialLinks,
         copyright: value.footer?.copyright || '',
-        paymentBadges: paymentBadges,
         [key]: val
       }
     })
@@ -176,12 +168,6 @@ export function FooterCustomization({ value, onChange }: FooterCustomizationProp
     handleFooterChange('socialLinks', newLinks)
   }
 
-  const togglePaymentBadge = (badge: string) => {
-    const newBadges = paymentBadges.includes(badge)
-      ? paymentBadges.filter(b => b !== badge)
-      : [...paymentBadges, badge]
-    handleFooterChange('paymentBadges', newBadges)
-  }
 
   return (
     <div className="space-y-8">
@@ -211,17 +197,6 @@ export function FooterCustomization({ value, onChange }: FooterCustomizationProp
             ))}
           </div>
         </RadioGroup>
-      </div>
-
-      {/* Newsletter Signup */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm font-medium">Newsletter Signup</Label>
-          <Switch
-            checked={value.footer?.newsletter !== false}
-            onCheckedChange={(checked) => handleFooterChange('newsletter', checked)}
-          />
-        </div>
       </div>
 
       {/* Footer Columns (for comprehensive style) */}
@@ -390,65 +365,6 @@ export function FooterCustomization({ value, onChange }: FooterCustomizationProp
         />
       </div>
 
-      {/* Payment Badges */}
-      <div className="space-y-4">
-        <Label className="text-sm font-medium">Payment Methods</Label>
-        <div className="grid grid-cols-3 gap-3">
-          {PAYMENT_BADGES.map((badge) => (
-            <label
-              key={badge.value}
-              className={cn(
-                "flex items-center justify-center p-3 rounded-md border-2 cursor-pointer hover:bg-gradient-primary-20 transition-colors",
-                paymentBadges.includes(badge.value) ? "border-primary bg-gray-100" : "border-border"
-              )}
-            >
-              <input
-                type="checkbox"
-                className="sr-only"
-                checked={paymentBadges.includes(badge.value)}
-                onChange={() => togglePaymentBadge(badge.value)}
-              />
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                <span className="text-sm">{badge.label}</span>
-              </div>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Trust Badges */}
-      <div className="space-y-4">
-        <Label className="text-sm font-medium">Trust Badges</Label>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">Secure Checkout</span>
-            </div>
-            <Switch
-              checked={value.footer?.trustBadges?.secure !== false}
-              onCheckedChange={(checked) => handleFooterChange('trustBadges', {
-                ...value.footer?.trustBadges,
-                secure: checked
-              })}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Truck className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">Free Shipping</span>
-            </div>
-            <Switch
-              checked={value.footer?.trustBadges?.shipping !== false}
-              onCheckedChange={(checked) => handleFooterChange('trustBadges', {
-                ...value.footer?.trustBadges,
-                shipping: checked
-              })}
-            />
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
