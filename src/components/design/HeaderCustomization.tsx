@@ -22,7 +22,19 @@ import {
   ShoppingCart,
   User
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/src/components/ui/dialog'
+import { useSupabase } from '@/hooks/useSupabase'
+import { useSiteId } from '@/contexts/SiteContext'
+import { handleError } from '@/lib/types/error-handling'
+import { toast } from 'sonner'
 import { cn } from '@/src/lib/utils'
 
 interface HeaderCustomizationProps {
@@ -81,16 +93,18 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
   const [customLink, setCustomLink] = useState({ label: '', href: '' })
   const [logoSize, setLogoSize] = useState([100])
   const [brandingType, setBrandingType] = useState<'text' | 'logo' | 'both'>('text')
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const supabase = useSupabase()
+  const siteId = useSiteId()
 
   // Auto-save when branding type changes
   useEffect(() => {
-    onChange({
-      ...value,
-      logo: {
-        ...value.logo,
-        brandingType
-      }
-    })
+    // brandingType is local state, not saved to theme settings
+    // The actual logo/text display is controlled by the logo.url and logo.text values
   }, [brandingType])
 
   // Auto-save when navigation items change
@@ -99,7 +113,8 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
       ...value,
       navigation: {
         ...value.navigation,
-        items: selectedNavItems.map(item => ({ label: item, href: `/${item}` }))
+        items: selectedNavItems.map(item => ({ label: item, href: `/${item}` })),
+        style: value.navigation?.style || 'horizontal'
       }
     })
   }, [selectedNavItems])
@@ -136,6 +151,106 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
     if (!customLink.label || !customLink.href) return
     // Handle custom link addition
     setCustomLink({ label: '', href: '' })
+  }
+
+  const handleFileUpload = async (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file')
+      return
+    }
+
+    // Validate file size (max 5MB for logos)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB')
+      return
+    }
+
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    // Simulate progress for UX
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval)
+          return 90
+        }
+        return prev + 10
+      })
+    }, 100)
+
+    try {
+      if (!siteId) {
+        throw new Error('No site ID available')
+      }
+
+      // Request presigned URL from API
+      const response = await fetch('/api/upload/presigned', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          fileSize: file.size,
+          siteId,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.text()
+        console.error('Failed to get upload URL:', error)
+        throw new Error('Failed to get upload URL')
+      }
+
+      const result = await response.json()
+      
+      if (!result.success || !result.data) {
+        throw new Error('Invalid presigned URL response')
+      }
+      
+      const { uploadUrl, publicUrl } = result.data
+
+      // Upload file to S3
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+          'Content-Length': file.size.toString(),
+        },
+        body: file,
+      })
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text()
+        console.error('Upload failed:', uploadResponse.status, errorText)
+        throw new Error(`Failed to upload file: ${uploadResponse.status}`)
+      }
+
+      setUploadProgress(100)
+      
+      // Update logo URL in theme settings
+      handleLogoChange('url', publicUrl)
+      
+      toast.success('Logo uploaded successfully')
+      setIsUploadModalOpen(false)
+    } catch (error) {
+      handleError(error)
+      toast.error('Failed to upload logo')
+    } finally {
+      setIsUploading(false)
+      clearInterval(progressInterval)
+      setUploadProgress(0)
+    }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      handleFileUpload(files[0])
+    }
   }
 
   return (
@@ -324,7 +439,7 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                 <RadioGroup
                   value={brandingType}
                   onValueChange={(val: 'text' | 'logo' | 'both') => setBrandingType(val)}
-                  className="flex gap-6"
+                  className="grid grid-cols-1 md:grid-cols-3 gap-4"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="text" id="text" />
@@ -343,32 +458,119 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
               
               {(brandingType === 'logo' || brandingType === 'both') && (
                 <>
-                  <div className="border rounded-lg p-6 bg-gray-50">
-                    <div className="flex items-center justify-center h-20 border-2 border-dashed border-gray-300 rounded-lg relative">
-                      {value.logo?.url ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <div 
-                            className="bg-white rounded p-2 border shadow-sm flex items-center justify-center"
-                            style={{ width: `${logoSize[0]}px`, height: `${Math.round(logoSize[0] * 0.6)}px` }}
-                          >
-                            <img 
-                              src={value.logo.url} 
-                              alt="Logo" 
-                              className="max-w-full max-h-full object-contain"
+                  <div className="space-y-3">
+                    {value.logo?.url ? (
+                      <div className="flex flex-col items-center gap-3 p-4 border rounded-lg bg-gray-50">
+                        <div 
+                          className="bg-white rounded p-3 border shadow-sm flex items-center justify-center"
+                          style={{ width: `${logoSize[0]}px`, height: `${Math.round(logoSize[0] * 0.6)}px` }}
+                        >
+                          <img 
+                            src={value.logo.url} 
+                            alt="Logo" 
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        </div>
+                        <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="text-xs">
+                              <Upload className="h-3 w-3 mr-1" />
+                              Change Logo
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Upload Logo</DialogTitle>
+                              <DialogDescription>
+                                Choose a new logo for your header
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              {isUploading ? (
+                                <div className="space-y-3 p-8 text-center">
+                                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                                  <p className="text-sm font-medium">Uploading... {uploadProgress}%</p>
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                                      style={{ width: `${uploadProgress}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div
+                                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 hover:bg-gray-50 transition-colors cursor-pointer"
+                                  onClick={() => fileInputRef.current?.click()}
+                                >
+                                  <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                  <p className="text-sm font-medium">Click to upload logo</p>
+                                  <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                                </div>
+                              )}
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileSelect}
+                                className="hidden"
+                              />
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    ) : (
+                      <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
+                        <DialogTrigger asChild>
+                          <div className="flex items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:border-gray-400 hover:bg-gray-100 transition-colors cursor-pointer">
+                            <div className="flex flex-col items-center gap-2 text-center">
+                              <Upload className="h-6 w-6 text-gray-400" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-700">Upload Logo</p>
+                                <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                              </div>
+                            </div>
+                          </div>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Upload Logo</DialogTitle>
+                            <DialogDescription>
+                              Choose a logo for your header
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            {isUploading ? (
+                              <div className="space-y-3 p-8 text-center">
+                                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                                <p className="text-sm font-medium">Uploading... {uploadProgress}%</p>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${uploadProgress}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <div
+                                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 hover:bg-gray-50 transition-colors cursor-pointer"
+                                onClick={() => fileInputRef.current?.click()}
+                              >
+                                <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                <p className="text-sm font-medium">Click to upload logo</p>
+                                <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                              </div>
+                            )}
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFileSelect}
+                              className="hidden"
                             />
                           </div>
-                          <Button variant="outline" size="sm" className="text-xs">
-                            <Upload className="h-3 w-3 mr-1" />
-                            Change Logo
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 cursor-pointer hover:text-gray-700">
-                          <Upload className="h-8 w-8 text-gray-400" />
-                          <span className="text-sm text-gray-500">Click to upload logo</span>
-                        </div>
-                      )}
-                    </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
@@ -400,7 +602,7 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                   <Label className="text-sm font-medium">Brand Text</Label>
                   <Input
                     placeholder="Enter your brand name"
-                    value={value.logo?.text || 'Your Brand'}
+                    value={value.logo?.text || ''}
                     onChange={(e) => handleLogoChange('text', e.target.value)}
                   />
                 </div>
