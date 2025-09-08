@@ -90,24 +90,18 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
       className={cn(
         'w-full bg-white border-b transition-all duration-200',
         stickyHeader && 'sticky top-0 z-50',
-        headerStyle !== 'classic' && heightClass,
+        headerStyle === 'classic' ? '' : headerStyle === 'modern' ? 'py-3' : heightClass,
         className
       )}
     >
       <div className={cn(
         'brand-container mx-auto px-4',
-        headerStyle === 'classic' ? 'py-3' : 'h-full'
+        headerStyle === 'classic' ? 'py-3' : headerStyle === 'modern' ? '' : 'h-full'
       )}>
         {/* Modern Header Style */}
         {headerStyle === 'modern' && (
-          <div className="flex items-center justify-between h-full">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <MobileNav 
-                navItems={navItems}
-                canEdit={canEdit}
-                mobileMenuOpen={mobileMenuOpen}
-                setMobileMenuOpen={setMobileMenuOpen}
-              />
               <BrandLogo 
                 brandingType={brandingType}
                 logoUrl={logoUrl}
@@ -116,14 +110,71 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
               />
               {/* Desktop Navigation */}
               {menuStyle === 'horizontal' && (
-                <nav className="hidden md:flex items-center gap-6 ml-6">
+                <nav className="hidden md:flex gap-4 text-sm items-center" style={{ fontFamily: 'var(--theme-font-body)' }}>
                   {navItems.map((item) => (
-                    <DesktopNavItem key={item.href} item={item} />
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="hover:opacity-70 cursor-pointer transition-opacity"
+                      style={{ color: 'var(--theme-secondary)' }}
+                    >
+                      {item.label}
+                    </Link>
                   ))}
                 </nav>
               )}
             </div>
-            {rightSection}
+            <div className="flex items-center gap-3">
+              {/* Desktop Icons */}
+              <div className="hidden md:flex items-center gap-3">
+                <Search 
+                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
+                  style={{ color: 'var(--theme-text)' }}
+                  onClick={() => setSearchOpen(true)}
+                />
+                <ShoppingCart 
+                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
+                  style={{ color: 'var(--theme-text)' }}
+                />
+                {ctaButton?.text && (
+                  <Link href={ctaButton.href || '#'}>
+                    <button 
+                      className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-pointer"
+                      style={{ backgroundColor: 'var(--theme-primary)', color: '#fff' }}
+                    >
+                      {ctaButton.text}
+                    </button>
+                  </Link>
+                )}
+              </div>
+              {/* Mobile Icons */}
+              <div className="md:hidden flex items-center gap-2">
+                <Search 
+                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
+                  style={{ color: 'var(--theme-text)' }}
+                  onClick={() => setSearchOpen(true)}
+                />
+                <ShoppingCart 
+                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
+                  style={{ color: 'var(--theme-text)' }}
+                />
+                <div 
+                  className="w-5 h-4 border rounded flex flex-col gap-0.5 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity"
+                  onClick={() => setMobileMenuOpen(true)}
+                >
+                  <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: 'var(--theme-text)' }}></div>
+                  <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: 'var(--theme-text)' }}></div>
+                  <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: 'var(--theme-text)' }}></div>
+                </div>
+              </div>
+              {/* Hidden Mobile Nav for Sheet */}
+              <MobileNav 
+                navItems={navItems}
+                canEdit={canEdit}
+                mobileMenuOpen={mobileMenuOpen}
+                setMobileMenuOpen={setMobileMenuOpen}
+              />
+            </div>
           </div>
         )}
 

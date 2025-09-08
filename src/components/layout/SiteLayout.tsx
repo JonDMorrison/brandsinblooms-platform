@@ -5,7 +5,6 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { CartProvider } from '@/src/contexts/CartContext'
 import { SiteNavigation } from '@/src/components/site/SiteNavigation'
 import { SiteFooter } from '@/src/components/site/SiteFooter'
-import { MobileNavigation } from '@/src/components/site/MobileNavigation'
 import { SiteThemeProvider, ThemeWrapper } from '@/src/components/theme/ThemeProvider'
 import { useThemeCSS } from '@/src/hooks/useThemeCSS'
 import { Flower, AlertCircle } from 'lucide-react'
@@ -62,8 +61,6 @@ export function SiteLayout({
             {children}
           </main>
 
-          {/* Mobile Navigation - Bottom Bar */}
-          {showNavigation && <MobileNavigation />}
 
           {/* Site Footer */}
           {showNavigation && <SiteFooter />}
