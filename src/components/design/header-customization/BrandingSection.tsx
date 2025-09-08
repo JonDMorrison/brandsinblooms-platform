@@ -266,24 +266,51 @@ export function BrandingSection({
             </RadioGroup>
           </div>
           
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Brand Text</Label>
-            <Input
-              placeholder="Enter your brand name"
-              value={localBrandText}
-              onChange={(e) => {
-                setLocalBrandText(e.target.value)
-                debouncedBrandTextChange(e.target.value)
-              }}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div></div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Brand Text</Label>
+                <Input
+                  placeholder="Enter your brand name"
+                  value={localBrandText}
+                  onChange={(e) => {
+                    setLocalBrandText(e.target.value)
+                    debouncedBrandTextChange(e.target.value)
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Logo Size</Label>
+                <div>
+                  <Slider
+                    value={logoSize}
+                    onValueChange={(val) => {
+                      setLogoSize(val)
+                      debouncedLogoSizeChange(val[0])
+                    }}
+                    max={120}
+                    min={20}
+                    step={10}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>20px</span>
+                    <span>{logoSize[0]}px</span>
+                    <span>120px</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div></div>
           </div>
-
+          
           <div className="space-y-3">
             {value.logo?.url ? (
               <div className="flex flex-col items-center gap-3 p-4 border rounded-lg bg-gray-50">
                 <div 
                   className="bg-white rounded p-3 border shadow-sm flex items-center justify-center"
-                  style={{ width: `${logoSize[0]}px`, height: `${Math.round(logoSize[0] * 0.6)}px` }}
+                  style={{ width: `auto`, height: `150px` }}
                 >
                   <img 
                     src={value.logo.url} 
@@ -391,30 +418,6 @@ export function BrandingSection({
                 </DialogContent>
               </Dialog>
             )}
-          </div>
-          
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-center block">Logo Size</Label>
-            <div className="flex justify-center">
-              <div className="w-64">
-                <Slider
-                  value={logoSize}
-                  onValueChange={(val) => {
-                    setLogoSize(val)
-                    debouncedLogoSizeChange(val[0])
-                  }}
-                  max={200}
-                  min={50}
-                  step={10}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>50px</span>
-                  <span>{logoSize[0]}px</span>
-                  <span>200px</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </CollapsibleContent>

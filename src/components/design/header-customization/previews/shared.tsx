@@ -15,7 +15,7 @@ export function BrandingElement({ value, colors, typography, logoSize, brandingT
           src={value.logo.url} 
           alt="Logo" 
           className="object-contain"
-          style={{ height: `${Math.round(logoSize[0] * 0.3)}px` }}
+          style={{ height: `${logoSize[0]}px` }}
         />
       )}
       {(brandingType === 'text' || brandingType === 'both') && (
@@ -36,11 +36,11 @@ export function BrandingElement({ value, colors, typography, logoSize, brandingT
 export function NavigationItems({ selectedNavItems, colors, typography }: Pick<SharedPreviewProps, 'selectedNavItems' | 'colors' | 'typography'>) {
   return (
     <>
-      {selectedNavItems.includes('home') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Home</span>}
-      <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Products</span>
-      {selectedNavItems.includes('about') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>About</span>}
-      {selectedNavItems.includes('contact') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Contact</span>}
-      {selectedNavItems.includes('blog') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.text || '#1f2937' }}>Blog</span>}
+      {selectedNavItems.includes('home') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Home</span>}
+      <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Products</span>
+      {selectedNavItems.includes('about') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>About</span>}
+      {selectedNavItems.includes('contact') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Contact</span>}
+      {selectedNavItems.includes('blog') && <span className="hover:opacity-70 cursor-pointer transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Blog</span>}
     </>
   )
 }

@@ -20,7 +20,7 @@ export function ClassicPreview(props: ClassicPreviewProps) {
               src={value.logo.url} 
               alt="Logo" 
               className="object-contain"
-              style={{ height: `${Math.round(logoSize[0] * 0.4)}px` }}
+              style={{ height: `${logoSize[0]}px` }}
             />
           )}
           {(brandingType === 'text' || brandingType === 'both') && (
