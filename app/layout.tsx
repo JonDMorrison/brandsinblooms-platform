@@ -42,9 +42,20 @@ export default async function RootLayout({
       }
     : null;
 
+  // Determine if this is a customer site route vs main app route
+  // Customer sites will have x-site-id header set by middleware
+  const siteId = headersList.get('x-site-id');
+  const isCustomerSite = !!siteId && !isAdminRoute;
+  
+  // Main app includes: dashboard, admin, platform pages, auth pages, home page (localhost:3001)
+  const isMainApp = !isCustomerSite;
+
   return (
     <html lang='en' suppressHydrationWarning>
-      <body className={isAdminRoute ? inter.className : ''}>
+      <body 
+        className={isAdminRoute ? inter.className : ''}
+        data-app={isMainApp ? 'platform' : 'site'}
+      >
         <WebVitals />
         <Providers
           initialHostname={hostname}

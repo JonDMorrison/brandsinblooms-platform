@@ -1,7 +1,9 @@
 /* Custom gradient classes for Brands in Blooms platform - Nature-inspired */
+/* Scoped to main app only - prevents bleed into customer sites */
 
 /* Primary brand gradients - Nature-inspired */
-.bg-gradient-primary {
+.main-app .bg-gradient-primary,
+[data-app="platform"] .bg-gradient-primary {
   background: linear-gradient(
     135deg,
     hsl(152 45% 40%) 0%,
@@ -10,7 +12,8 @@
   color: hsl(0 0% 100%);
 }
 
-.bg-gradient-primary-soft {
+.main-app .bg-gradient-primary-soft,
+[data-app="platform"] .bg-gradient-primary-soft {
   background: linear-gradient(
     135deg,
     hsl(152 45% 40% / 0.1) 0%,
@@ -19,19 +22,22 @@
 }
 
 /* Card gradients - Subtle earth tones */
-.gradient-card {
+.main-app .gradient-card,
+[data-app="platform"] .gradient-card {
   background: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(140 12% 97%) 100%);
   backdrop-filter: blur(10px);
   border: 1px solid hsl(140 12% 88% / 0.2);
 }
 
 /* Hero section gradients */
-.bg-gradient-hero {
+.main-app .bg-gradient-hero,
+[data-app="platform"] .bg-gradient-hero {
   background: linear-gradient(180deg, hsl(0 0% 99%) 0%, hsl(140 15% 96%) 100%);
 }
 
 /* Text gradients - Earth tones */
-.text-gradient-primary {
+.main-app .text-gradient-primary,
+[data-app="platform"] .text-gradient-primary {
   background: linear-gradient(
     135deg,
     hsl(155 50% 25%) 0%,
@@ -45,17 +51,20 @@
 }
 
 /* Secondary gradients - Terracotta accent */
-.bg-gradient-secondary {
+.main-app .bg-gradient-secondary,
+[data-app="platform"] .bg-gradient-secondary {
   background: linear-gradient(135deg, hsl(18 70% 55%) 0%, hsl(22 65% 65%) 100%);
   color: hsl(0 0% 100%);
 }
 
 /* Subtle gradients */
-.bg-gradient-subtle {
+.main-app .bg-gradient-subtle,
+[data-app="platform"] .bg-gradient-subtle {
   background: linear-gradient(180deg, hsl(0 0% 99%) 0%, hsl(140 15% 96%) 100%);
 }
 
-.bg-gradient-subtle-light {
+.main-app .bg-gradient-subtle-light,
+[data-app="platform"] .bg-gradient-subtle-light {
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.8) 0%,
@@ -64,7 +73,8 @@
 }
 
 /* Success/Error/Warning gradients with nature palette */
-.bg-gradient-success {
+.main-app .bg-gradient-success,
+[data-app="platform"] .bg-gradient-success {
   background: linear-gradient(
     135deg,
     hsl(142 65% 35%) 0%,
@@ -73,22 +83,26 @@
   color: hsl(0 0% 100%);
 }
 
-.bg-gradient-error {
+.main-app .bg-gradient-error,
+[data-app="platform"] .bg-gradient-error {
   background: linear-gradient(135deg, hsl(0 75% 55%) 0%, hsl(0 75% 65%) 100%);
   color: hsl(0 0% 100%);
 }
 
-.bg-gradient-warning {
+.main-app .bg-gradient-warning,
+[data-app="platform"] .bg-gradient-warning {
   background: linear-gradient(135deg, hsl(32 85% 50%) 0%, hsl(32 85% 60%) 100%);
   color: hsl(0 0% 100%);
 }
 
-/* Border gradients with nature colors */
-.border-gradient {
+/* Border gradients with nature colors - SCOPED TO MAIN APP ONLY */
+.main-app .border-gradient,
+[data-app="platform"] .border-gradient {
   position: relative;
 }
 
-.border-gradient::before {
+.main-app .border-gradient::before,
+[data-app="platform"] .border-gradient::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -104,8 +118,9 @@
   -webkit-mask-composite: xor;
 }
 
-/* Button gradients - Nature-inspired */
-.btn-gradient-primary {
+/* Button gradients - Nature-inspired - SCOPED TO MAIN APP ONLY */
+.main-app .btn-gradient-primary,
+[data-app="platform"] .btn-gradient-primary {
   background: linear-gradient(
     135deg,
     hsl(152 45% 40%) 0%,
@@ -115,7 +130,8 @@
   transition: all 0.3s ease;
 }
 
-.btn-gradient-primary:hover {
+.main-app .btn-gradient-primary:hover,
+[data-app="platform"] .btn-gradient-primary:hover {
   background: linear-gradient(
     135deg,
     hsl(155 50% 25%) 0%,
@@ -126,22 +142,25 @@
   box-shadow: 0 4px 12px hsl(152 45% 40% / 0.3);
 }
 
-/* Button secondary gradient - Terracotta */
-.btn-gradient-secondary {
+/* Button secondary gradient - Terracotta - SCOPED TO MAIN APP ONLY */
+.main-app .btn-gradient-secondary,
+[data-app="platform"] .btn-gradient-secondary {
   background: linear-gradient(135deg, hsl(18 70% 55%) 0%, hsl(22 65% 65%) 100%);
   color: hsl(0 0% 100%);
   transition: all 0.3s ease;
 }
 
-.btn-gradient-secondary:hover {
+.main-app .btn-gradient-secondary:hover,
+[data-app="platform"] .btn-gradient-secondary:hover {
   background: linear-gradient(135deg, hsl(18 70% 50%) 0%, hsl(18 70% 55%) 100%);
   color: hsl(0 0% 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px hsl(18 70% 55% / 0.3);
 }
 
-/* Animated gradients with nature colors */
-.bg-gradient-animated {
+/* Animated gradients with nature colors - SCOPED TO MAIN APP ONLY */
+.main-app .bg-gradient-animated,
+[data-app="platform"] .bg-gradient-animated {
   background: linear-gradient(
     -45deg,
     hsl(152 45% 40% / 0.1),
@@ -165,8 +184,9 @@
   }
 }
 
-/* Special accent gradients */
-.bg-gradient-accent {
+/* Special accent gradients - SCOPED TO MAIN APP ONLY */
+.main-app .bg-gradient-accent,
+[data-app="platform"] .bg-gradient-accent {
   background: linear-gradient(
     135deg,
     hsl(18 70% 55%) 0%,
@@ -175,8 +195,9 @@
   color: hsl(0 0% 100%);
 }
 
-/* Glow effect gradient */
-.bg-gradient-glow {
+/* Glow effect gradient - SCOPED TO MAIN APP ONLY */
+.main-app .bg-gradient-glow,
+[data-app="platform"] .bg-gradient-glow {
   background: radial-gradient(
     circle at center,
     hsl(145 35% 60% / 0.2) 0%,
@@ -184,8 +205,9 @@
   );
 }
 
-/* Hover gradient utilities - 20% transparent primary gradient */
-.hover\:bg-gradient-primary-50:hover {
+/* Hover gradient utilities - 20% transparent primary gradient - SCOPED TO MAIN APP ONLY */
+.main-app .hover\:bg-gradient-primary-50:hover,
+[data-app="platform"] .hover\:bg-gradient-primary-50:hover {
   background: linear-gradient(
     135deg,
     hsl(152 45% 40% / 0.2) 0%,
@@ -193,8 +215,9 @@
   );
 }
 
-/* Hover gradient utilities - 10% transparent for subtle hovers */
-.hover\:bg-gradient-primary-20:hover {
+/* Hover gradient utilities - 10% transparent for subtle hovers - SCOPED TO MAIN APP ONLY */
+.main-app .hover\:bg-gradient-primary-20:hover,
+[data-app="platform"] .hover\:bg-gradient-primary-20:hover {
   background: linear-gradient(
     135deg,
     hsl(152 45% 40% / 0.1) 0%,
