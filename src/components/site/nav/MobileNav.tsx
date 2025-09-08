@@ -10,18 +10,36 @@ interface MobileNavProps {
   canEdit: boolean
   mobileMenuOpen: boolean
   setMobileMenuOpen: (open: boolean) => void
+  ctaButton?: {
+    text?: string
+    href?: string
+  }
 }
 
 export function MobileNav({ 
   navItems, 
   canEdit, 
   mobileMenuOpen, 
-  setMobileMenuOpen 
+  setMobileMenuOpen,
+  ctaButton
 }: MobileNavProps) {
   return (
     <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-      <SheetContent side="left" className="w-[280px] sm:w-[350px]">
+      <SheetContent side="right" className="w-[280px] sm:w-[350px]">
         <nav className="flex flex-col gap-4 mt-8">
+          {/* CTA Button - Prominent placement at top */}
+          {ctaButton?.text && (
+            <Link href={ctaButton.href || '#'} onClick={() => setMobileMenuOpen(false)}>
+              <button 
+                className="w-full px-4 py-3 text-sm font-medium rounded-md transition-opacity hover:opacity-90"
+                style={{ backgroundColor: 'var(--theme-primary)', color: '#fff' }}
+              >
+                {ctaButton.text}
+              </button>
+            </Link>
+          )}
+          
+          {/* Navigation Items */}
           {navItems.map((item) => (
             <MobileNavItem 
               key={item.href} 

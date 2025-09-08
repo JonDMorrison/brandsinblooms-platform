@@ -147,15 +147,13 @@ export function useThemeCSS(theme: ThemeSettings | null, mode: 'iframe' | 'live'
       }
       
       ${selector}[data-header-style="classic"] header {
-        padding: 1rem 0;
+        padding: 0.5rem 0;
         background: white;
-        border-bottom: 2px solid var(--theme-primary);
       }
       
       ${selector}[data-header-style="minimal"] header {
-        padding: 1rem 0;
-        background: transparent;
-        border-bottom: 1px solid rgba(0,0,0,0.1);
+        padding: 0.5rem 0;
+        background: white;
       }
       
       /* Footer Layout Styles */

@@ -69,10 +69,10 @@ export function CtaButton({ value, colors }: Pick<SharedPreviewProps, 'value' | 
 
 export function HamburgerMenu({ colors }: Pick<SharedPreviewProps, 'colors'>) {
   return (
-    <div className="w-5 h-4 border rounded flex flex-col gap-0.5 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity">
-      <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
-      <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
-      <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
+    <div className="w-6 h-5 flex flex-col gap-1 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity">
+      <div className="w-4 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
+      <div className="w-4 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
+      <div className="w-4 h-0.5 rounded-full" style={{ backgroundColor: colors?.text || '#1f2937' }}></div>
     </div>
   )
 }
