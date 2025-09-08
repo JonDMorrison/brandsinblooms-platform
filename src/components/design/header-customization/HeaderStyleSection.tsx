@@ -6,6 +6,7 @@ import { Button } from '@/src/components/ui/button'
 import { Label } from '@/src/components/ui/label'
 import { Card, CardContent } from '@/src/components/ui/card'
 import { RadioGroup, RadioGroupItem } from '@/src/components/ui/radio-group'
+import { Switch } from '@/src/components/ui/switch'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/src/components/ui/collapsible'
 import { cn } from '@/src/lib/utils'
 import { toast } from 'sonner'
@@ -29,6 +30,8 @@ export function HeaderStyleSection({ value, onChange }: HeaderStyleSectionProps)
     if (key === 'headerStyle') {
       const styleName = HEADER_STYLES.find(s => s.value === val)?.label || val
       toast.success(`Header style changed to ${styleName}`)
+    } else if (key === 'stickyHeader') {
+      toast.success(`Header ${val ? 'fixed to top' : 'no longer fixed'}`)
     }
   }
 
@@ -118,6 +121,25 @@ export function HeaderStyleSection({ value, onChange }: HeaderStyleSectionProps)
             ))}
           </div>
         </RadioGroup>
+
+        {/* Sticky Header Toggle */}
+        <div className="mt-6 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="sticky-header" className="text-sm font-medium">
+                Fixed to Top
+              </Label>
+              <div className="text-xs text-muted-foreground">
+                Header stays fixed at the top when scrolling
+              </div>
+            </div>
+            <Switch
+              id="sticky-header"
+              checked={value.layout?.stickyHeader !== false}
+              onCheckedChange={(checked) => handleLayoutChange('stickyHeader', checked)}
+            />
+          </div>
+        </div>
       </CollapsibleContent>
     </Collapsible>
   )
