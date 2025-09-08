@@ -129,8 +129,8 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
       // Initialize navigation items from saved navigation
       if (value.navigation?.items) {
         const savedItems = value.navigation.items
+          .filter(item => ['Home', 'About', 'Contact', 'Blog'].includes(item.label))
           .map(item => item.label.toLowerCase())
-          .filter(label => ['home', 'about', 'contact', 'blog'].includes(label))
         setSelectedNavItems(savedItems.length > 0 ? savedItems : ['home', 'about', 'contact'])
       } else {
         setSelectedNavItems(['home', 'about', 'contact'])
@@ -203,7 +203,10 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
       ...value,
       navigation: {
         ...value.navigation,
-        items: newItems.map(item => ({ label: item, href: `/${item}` })),
+        items: newItems.map(item => ({ 
+          label: item.charAt(0).toUpperCase() + item.slice(1), 
+          href: `/${item}` 
+        })),
         style: value.navigation?.style || 'horizontal'
       }
     })
@@ -362,7 +365,7 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
               style={{ 
                 backgroundColor: colors?.background || '#ffffff', 
                 color: colors?.text || '#1f2937',
-                fontFamily: typography?.bodyFont || 'Inter',
+                fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif`,
                 fontSize: typography?.fontSize === 'small' ? '0.875rem' : typography?.fontSize === 'large' ? '1.125rem' : '1rem'
               }}
             >
@@ -531,7 +534,7 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                           className="font-bold"
                           style={{ 
                             color: colors?.primary || '#2563eb',
-                            fontFamily: typography?.headingFont || 'Inter'
+                            fontFamily: `${typography?.headingFont || 'Inter'}, system-ui, sans-serif`
                           }}
                         >
                           {value.logo?.text || 'Your Brand'}
