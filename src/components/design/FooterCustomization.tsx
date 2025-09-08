@@ -29,7 +29,8 @@ import {
   Copyright,
   Navigation
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useDebounceCallback } from '@/src/hooks/useDebounce'
 import { cn } from '@/src/lib/utils'
 import { toast } from 'sonner'
 
@@ -125,6 +126,7 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
   const [newLink, setNewLink] = useState({ label: '', href: '' })
   const [newSocialLink, setNewSocialLink] = useState({ platform: 'facebook', url: '' })
   const [selectedFooterNavItems, setSelectedFooterNavItems] = useState<string[]>(['home', 'about', 'contact'])
+  const [localCopyright, setLocalCopyright] = useState('')
 
   const footerColumns = value.footer?.columns || DEFAULT_FOOTER_COLUMNS
   const socialLinks = value.footer?.socialLinks || []
@@ -141,6 +143,28 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
     }
   }, [value.footer?.navigationItems])
 
+  // Initialize local copyright state from saved settings
+  useEffect(() => {
+    setLocalCopyright(value.footer?.copyright || `© ${new Date().getFullYear()} Your Company. All rights reserved.`)
+  }, [value.footer?.copyright])
+
+  // Debounced handler for copyright changes to prevent spam
+  const debouncedCopyrightChange = useDebounceCallback((copyrightText: string) => {
+    const newSettings = {
+      ...value,
+      footer: {
+        ...value.footer,
+        style: value.footer?.style || 'comprehensive',
+        columns: footerColumns,
+        socialLinks: socialLinks,
+        navigationItems: value.footer?.navigationItems || selectedFooterNavItems.map(item => ({ label: item, href: `/${item === 'products' ? 'products' : item}` })),
+        copyright: copyrightText
+      }
+    }
+    onChange(newSettings)
+    toast.success('Footer copyright updated')
+  }, 1000)
+
   const handleFooterChange = (key: string, val: any) => {
     const newSettings = {
       ...value,
@@ -155,7 +179,14 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
       }
     }
     onChange(newSettings)
-    toast.success('Footer settings updated')
+    
+    // Specific notification based on what changed
+    if (key === 'style') {
+      const styleName = FOOTER_STYLES.find(s => s.value === val)?.label || val
+      toast.success(`Footer style changed to ${styleName}`)
+    } else {
+      toast.success('Footer settings updated')
+    }
   }
   
   const toggleFooterNavItem = (item: string) => {
@@ -171,24 +202,77 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
       href: `/${navItem === 'products' ? 'products' : navItem}` 
     }))
     
-    handleFooterChange('navigationItems', navigationItems)
+    // Update navigation items with specific notification
+    const newSettings = {
+      ...value,
+      footer: {
+        ...value.footer,
+        style: value.footer?.style || 'comprehensive',
+        columns: footerColumns,
+        socialLinks: socialLinks,
+        navigationItems: navigationItems,
+        copyright: value.footer?.copyright || ''
+      }
+    }
+    onChange(newSettings)
+    
+    const action = selectedFooterNavItems.includes(item) ? 'removed' : 'added'
+    const itemName = item.charAt(0).toUpperCase() + item.slice(1)
+    toast.success(`${itemName} ${action} from footer navigation`)
   }
 
   const updateColumn = (index: number, column: FooterColumn) => {
     const newColumns = [...footerColumns]
     newColumns[index] = column
-    handleFooterChange('columns', newColumns)
+    const newSettings = {
+      ...value,
+      footer: {
+        ...value.footer,
+        style: value.footer?.style || 'comprehensive',
+        columns: newColumns,
+        socialLinks: socialLinks,
+        navigationItems: value.footer?.navigationItems || selectedFooterNavItems.map(item => ({ label: item, href: `/${item === 'products' ? 'products' : item}` })),
+        copyright: value.footer?.copyright || ''
+      }
+    }
+    onChange(newSettings)
+    toast.success(`Footer column "${column.title}" updated`)
   }
 
   const addColumn = () => {
     const newColumns = [...footerColumns, { title: 'New Column', links: [] }]
-    handleFooterChange('columns', newColumns)
+    const newSettings = {
+      ...value,
+      footer: {
+        ...value.footer,
+        style: value.footer?.style || 'comprehensive',
+        columns: newColumns,
+        socialLinks: socialLinks,
+        navigationItems: value.footer?.navigationItems || selectedFooterNavItems.map(item => ({ label: item, href: `/${item === 'products' ? 'products' : item}` })),
+        copyright: value.footer?.copyright || ''
+      }
+    }
+    onChange(newSettings)
+    toast.success('New footer column added')
     setEditingColumn(newColumns.length - 1)
   }
 
   const removeColumn = (index: number) => {
+    const columnTitle = footerColumns[index]?.title || 'Column'
     const newColumns = footerColumns.filter((_, i) => i !== index)
-    handleFooterChange('columns', newColumns)
+    const newSettings = {
+      ...value,
+      footer: {
+        ...value.footer,
+        style: value.footer?.style || 'comprehensive',
+        columns: newColumns,
+        socialLinks: socialLinks,
+        navigationItems: value.footer?.navigationItems || selectedFooterNavItems.map(item => ({ label: item, href: `/${item === 'products' ? 'products' : item}` })),
+        copyright: value.footer?.copyright || ''
+      }
+    }
+    onChange(newSettings)
+    toast.success(`Footer column "${columnTitle}" removed`)
   }
 
   const addLinkToColumn = (columnIndex: number) => {
@@ -216,13 +300,41 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
     if (!newSocialLink.url) return
     
     const newLinks = [...socialLinks, newSocialLink]
-    handleFooterChange('socialLinks', newLinks)
+    const newSettings = {
+      ...value,
+      footer: {
+        ...value.footer,
+        style: value.footer?.style || 'comprehensive',
+        columns: footerColumns,
+        socialLinks: newLinks,
+        navigationItems: value.footer?.navigationItems || selectedFooterNavItems.map(item => ({ label: item, href: `/${item === 'products' ? 'products' : item}` })),
+        copyright: value.footer?.copyright || ''
+      }
+    }
+    onChange(newSettings)
+    
+    const platformName = SOCIAL_PLATFORMS.find(p => p.value === newSocialLink.platform)?.label || newSocialLink.platform
+    toast.success(`${platformName} social link added`)
     setNewSocialLink({ platform: 'facebook', url: '' })
   }
 
   const removeSocialLink = (index: number) => {
+    const socialLink = socialLinks[index]
+    const platformName = SOCIAL_PLATFORMS.find(p => p.value === socialLink?.platform)?.label || 'Social'
     const newLinks = socialLinks.filter((_, i) => i !== index)
-    handleFooterChange('socialLinks', newLinks)
+    const newSettings = {
+      ...value,
+      footer: {
+        ...value.footer,
+        style: value.footer?.style || 'comprehensive',
+        columns: footerColumns,
+        socialLinks: newLinks,
+        navigationItems: value.footer?.navigationItems || selectedFooterNavItems.map(item => ({ label: item, href: `/${item === 'products' ? 'products' : item}` })),
+        copyright: value.footer?.copyright || ''
+      }
+    }
+    onChange(newSettings)
+    toast.success(`${platformName} social link removed`)
   }
 
 
@@ -660,8 +772,11 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
             <Label className="text-sm text-muted-foreground">Add your copyright notice</Label>
             <Textarea
               placeholder={`© ${new Date().getFullYear()} Your Company. All rights reserved.`}
-              value={value.footer?.copyright || `© ${new Date().getFullYear()} Your Company. All rights reserved.`}
-              onChange={(e) => handleFooterChange('copyright', e.target.value)}
+              value={localCopyright}
+              onChange={(e) => {
+                setLocalCopyright(e.target.value)
+                debouncedCopyrightChange(e.target.value)
+              }}
               rows={2}
               className="resize-none"
             />

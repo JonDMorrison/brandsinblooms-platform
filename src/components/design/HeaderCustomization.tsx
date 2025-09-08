@@ -23,6 +23,7 @@ import {
   User
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
+import { useDebounceCallback } from '@/src/hooks/useDebounce'
 import {
   Dialog,
   DialogContent,
@@ -90,7 +91,7 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
   const [ctaOpen, setCtaOpen] = useState(true)
   
   const [selectedNavItems, setSelectedNavItems] = useState<string[]>([])
-  const [customLink, setCustomLink] = useState({ label: '', href: '' })
+  const [localCtaButton, setLocalCtaButton] = useState({ text: '', href: '' })
   const [logoSize, setLogoSize] = useState([100])
   const [brandingType, setBrandingType] = useState<'text' | 'logo' | 'both'>('text')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
@@ -134,6 +135,12 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
       } else {
         setSelectedNavItems(['home', 'about', 'contact'])
       }
+      
+      // Initialize local CTA button state
+      setLocalCtaButton({
+        text: value.layout?.ctaButton?.text || '',
+        href: value.layout?.ctaButton?.href || ''
+      })
     }
   }, [value])
 
@@ -146,6 +153,18 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
         [key]: val
       }
     })
+    
+    // Specific notifications based on what changed
+    if (key === 'headerStyle') {
+      const styleName = HEADER_STYLES.find(s => s.value === val)?.label || val
+      toast.success(`Header style changed to ${styleName}`)
+    } else if (key === 'ctaButton') {
+      if (val?.text) {
+        toast.success(`CTA button updated: "${val.text}"`)
+      } else {
+        toast.success('CTA button updated')
+      }
+    }
   }
 
   const handleLogoChange = (key: string, val: any) => {
@@ -156,6 +175,20 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
         [key]: val
       }
     })
+    
+    // Specific notifications based on what changed
+    if (key === 'text') {
+      toast.success(`Brand text updated to "${val}"`)
+    } else if (key === 'displayType') {
+      const typeNames = {
+        'text': 'text only',
+        'logo': 'logo only', 
+        'both': 'logo and text'
+      }
+      toast.success(`Branding display changed to ${typeNames[val] || val}`)
+    } else if (key === 'pixelSize') {
+      toast.success(`Logo size updated to ${val}px`)
+    }
   }
 
   const toggleNavItem = (item: string) => {
@@ -174,13 +207,33 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
         style: value.navigation?.style || 'horizontal'
       }
     })
+    
+    // Show specific notification
+    const action = selectedNavItems.includes(item) ? 'removed' : 'added'
+    const itemName = item.charAt(0).toUpperCase() + item.slice(1)
+    toast.success(`${itemName} ${action} from header navigation`)
   }
 
-  const addCustomLink = () => {
-    if (!customLink.label || !customLink.href) return
-    // Handle custom link addition
-    setCustomLink({ label: '', href: '' })
-  }
+  // Debounced handler for CTA button changes to prevent spam
+  const debouncedCtaChange = useDebounceCallback((field: 'text' | 'href', val: string) => {
+    const newCtaButton = {
+      ...value.layout?.ctaButton,
+      [field]: val
+    }
+    onChange({
+      ...value,
+      layout: {
+        ...value.layout,
+        ctaButton: newCtaButton
+      }
+    })
+    
+    if (field === 'text') {
+      toast.success(`CTA button text updated: "${val}"`)
+    } else {
+      toast.success('CTA button URL updated')
+    }
+  }, 1000)
 
   const handleFileUpload = async (file: File) => {
     // Validate file type
@@ -867,31 +920,6 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                 </div>
               ))}
             </div>
-            
-            <div className="border-t pt-4 space-y-2">
-              <Label className="text-sm font-medium">Custom Link (Optional)</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Link label"
-                  value={customLink.label}
-                  onChange={(e) => setCustomLink({ ...customLink, label: e.target.value })}
-                  className="flex-1"
-                />
-                <Input
-                  placeholder="URL"
-                  value={customLink.href}
-                  onChange={(e) => setCustomLink({ ...customLink, href: e.target.value })}
-                  className="flex-1"
-                />
-                <Button
-                  size="sm"
-                  onClick={addCustomLink}
-                  disabled={!customLink.label || !customLink.href}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
           </CollapsibleContent>
         </Collapsible>
 
@@ -913,19 +941,19 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
           <CollapsibleContent className="pt-3 space-y-4">
             <Input
               placeholder="Button text (e.g., Shop Now)"
-              value={value.layout?.ctaButton?.text || ''}
-              onChange={(e) => handleLayoutChange('ctaButton', { 
-                ...value.layout?.ctaButton, 
-                text: e.target.value 
-              })}
+              value={localCtaButton.text}
+              onChange={(e) => {
+                setLocalCtaButton({ ...localCtaButton, text: e.target.value })
+                debouncedCtaChange('text', e.target.value)
+              }}
             />
             <Input
               placeholder="Button URL (e.g., /products)"
-              value={value.layout?.ctaButton?.href || ''}
-              onChange={(e) => handleLayoutChange('ctaButton', { 
-                ...value.layout?.ctaButton, 
-                href: e.target.value 
-              })}
+              value={localCtaButton.href}
+              onChange={(e) => {
+                setLocalCtaButton({ ...localCtaButton, href: e.target.value })
+                debouncedCtaChange('href', e.target.value)
+              }}
             />
           </CollapsibleContent>
         </Collapsible>

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useDebounceCallback } from '@/src/hooks/useDebounce'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
@@ -81,6 +82,13 @@ export function ColorCustomization({ colors, typography, onColorsChange }: Color
   // Provide fallback for text color
   const textColor = colors.text || '#1f2937'
 
+  // Debounced notification to prevent spam during color picker dragging
+  const debouncedNotification = useDebounceCallback((colorKey: keyof typeof colors) => {
+    const colorName = colorKey.charAt(0).toUpperCase() + colorKey.slice(1)
+    toast.success(`${colorName} color saved`)
+    setIsAutoSaving(false)
+  }, 1000)
+
   const handleColorChange = (colorKey: keyof typeof colors, color: string) => {
     const newColors = {
       ...colors,
@@ -88,12 +96,9 @@ export function ColorCustomization({ colors, typography, onColorsChange }: Color
     }
     onColorsChange(newColors)
     
-    // Auto-save with toast notification
+    // Show saving state immediately, but debounce the notification
     setIsAutoSaving(true)
-    setTimeout(() => {
-      toast.success('Colors saved automatically')
-      setIsAutoSaving(false)
-    }, 500)
+    debouncedNotification(colorKey)
   }
 
   const copyToClipboard = (color: string) => {
@@ -105,7 +110,7 @@ export function ColorCustomization({ colors, typography, onColorsChange }: Color
 
   const applyPreset = (preset: typeof colorPresets[0]) => {
     onColorsChange(preset.colors)
-    toast.success(`Applied ${preset.name} color preset`)
+    toast.success(`${preset.name} colors applied`)
   }
 
 

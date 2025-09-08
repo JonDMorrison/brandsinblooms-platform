@@ -51,7 +51,6 @@ export function useUpdateDesignSettings() {
       return await updateSiteTheme(supabase, siteId, settings);
     },
     {
-      showSuccessToast: 'Design settings saved',
       onSuccess: () => {
         // Clear localStorage cache for design settings
         if (typeof window !== 'undefined' && siteId) {

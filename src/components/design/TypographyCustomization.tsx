@@ -104,10 +104,11 @@ export default function TypographyCustomization({ typography, colors, onTypograp
     }
     onTypographyChange(newTypography)
     
-    // Auto-save with toast notification
+    // Auto-save with specific font type toast notification
     setIsAutoSaving(true)
     setTimeout(() => {
-      toast.success('Typography saved automatically')
+      const fontType = type === 'headingFont' ? 'Header' : 'Body'
+      toast.success(`${fontType} font updated to ${font}`)
       setIsAutoSaving(false)
     }, 500)
   }
@@ -119,7 +120,7 @@ export default function TypographyCustomization({ typography, colors, onTypograp
       bodyFont: preset.bodyFont,
       fontSize: preset.fontSize
     })
-    toast.success(`Applied ${preset.name} font pairing`)
+    toast.success(`${preset.name} font pairing applied`)
   }
 
 
