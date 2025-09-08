@@ -154,11 +154,11 @@ export function ColorCustomization({ colors, typography, onColorsChange }: Color
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 rounded border" style={{ borderColor: colors.primary + '20' }}>
-                    <h1 className="text-xl font-bold" style={{ color: colors.primary, fontFamily: typography?.headingFont || 'Inter' }}>Your Brand</h1>
+                    <h1 className="text-xl font-bold" style={{ color: colors.primary, fontFamily: `${typography?.headingFont || 'Inter'}, system-ui, sans-serif` }}>Your Brand</h1>
                     <div className="flex gap-2">
-                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: typography?.bodyFont || 'Inter' }}>Home</span>
-                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: typography?.bodyFont || 'Inter' }}>About</span>
-                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: typography?.bodyFont || 'Inter' }}>Contact</span>
+                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif` }}>Home</span>
+                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif` }}>About</span>
+                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif` }}>Contact</span>
                     </div>
                   </div>
                 </div>
@@ -208,8 +208,8 @@ export function ColorCustomization({ colors, typography, onColorsChange }: Color
                   Text Content
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-lg font-semibold" style={{ color: colors.primary, fontFamily: typography?.headingFont || 'Inter' }}>Section Heading</h2>
-                  <p className="text-sm" style={{ color: textColor, fontFamily: typography?.bodyFont || 'Inter' }}>This is how your regular text content will appear with the selected color scheme.</p>
+                  <h2 className="text-lg font-semibold" style={{ color: colors.primary, fontFamily: `${typography?.headingFont || 'Inter'}, system-ui, sans-serif` }}>Section Heading</h2>
+                  <p className="text-sm" style={{ color: textColor, fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif` }}>This is how your regular text content will appear with the selected color scheme.</p>
                   <div className="flex items-center gap-2">
                     <span 
                       className="px-2 py-1 text-xs rounded-full"

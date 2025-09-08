@@ -25,10 +25,8 @@ export function useThemeCSS(theme: ThemeSettings | null, mode: 'iframe' | 'live'
       : '[data-theme-applied="true"]'
 
     return `
-      /* Font imports for iframe mode to prevent CORS issues */
-      ${mode === 'iframe' ? `
-        @import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(typography.headingFont)}&family=${encodeURIComponent(typography.bodyFont)}&display=swap');
-      ` : ''}
+      /* Font imports - for both iframe and live modes */
+      @import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(typography.headingFont)}:wght@400;500;600;700&family=${encodeURIComponent(typography.bodyFont)}:wght@300;400;500;600&display=swap');
       
       ${baseSelector} {
         /* Theme Colors */
@@ -75,22 +73,24 @@ export function useThemeCSS(theme: ThemeSettings | null, mode: 'iframe' | 'live'
       : '[data-theme-applied="true"]'
     
     return `
-      /* Base theme styles */
+      /* Base theme styles with high specificity to override root layout */
       ${mode === 'iframe' ? selector : `body${selector}`} {
-        background-color: var(--theme-background);
-        color: var(--theme-text);
-        font-family: var(--theme-font-body);
-        font-size: var(--theme-font-size-base);
-        font-weight: var(--theme-font-weight-body);
+        background-color: var(--theme-background) !important;
+        color: var(--theme-text) !important;
+        font-family: var(--theme-font-body) !important;
+        font-size: var(--theme-font-size-base) !important;
+        font-weight: var(--theme-font-weight-body) !important;
       }
+      
       
       ${selector} h1, 
       ${selector} h2, 
       ${selector} h3, 
       ${selector} h4, 
       ${selector} h5, 
-      ${selector} h6 {
-        font-family: var(--theme-font-heading);
+      ${selector} h6,
+      ${selector} .theme-brand-text {
+        font-family: var(--theme-font-heading) !important;
         font-weight: var(--theme-font-weight-heading);
         color: var(--theme-primary);
       }

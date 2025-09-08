@@ -506,9 +506,9 @@ export function applySecurityHeaders(
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Adjust based on your needs
-      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: https:",
-      "font-src 'self' data:",
+      "font-src 'self' data: https://fonts.gstatic.com",
       // Allow local development connections to Supabase
       process.env.NODE_ENV === 'development' 
         ? "connect-src 'self' wss: https: http://localhost:* http://127.0.0.1:*"

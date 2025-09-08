@@ -71,7 +71,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
               className="text-4xl font-bold"
               style={{ 
                 color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
-                fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+                fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
               }}
               placeholder="Enter page title..."
             />
@@ -86,7 +86,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
             className="text-xl"
             style={{ 
               color: theme?.colors?.text || 'var(--theme-text, #666666)',
-              fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+              fontFamily: `${theme?.typography?.bodyFont || 'Inter'}, system-ui, sans-serif`
             }}
             placeholder="Enter subtitle..."
           />
@@ -210,7 +210,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
             className="text-4xl font-bold"
             style={{ 
               color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
-              fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+              fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
             }}
             placeholder="Enter page title..."
           />
@@ -224,7 +224,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
             className="text-xl"
             style={{ 
               color: theme?.colors?.text || 'var(--theme-text, #666666)',
-              fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+              fontFamily: `${theme?.typography?.bodyFont || 'Inter'}, system-ui, sans-serif`
             }}
             placeholder="Enter subtitle..."
           />
@@ -258,7 +258,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
                 className="font-semibold mb-2"
                 style={{ 
                   color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
-                  fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+                  fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
                 }}
               >
                 {feature.title}
@@ -267,7 +267,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
                 className="text-sm"
                 style={{ 
                   color: theme?.colors?.text || 'var(--theme-text, #666666)',
-                  fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+                  fontFamily: `${theme?.typography?.bodyFont || 'Inter'}, system-ui, sans-serif`
                 }}
               >
                 {feature.desc}
@@ -282,7 +282,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
             className="text-2xl font-bold mb-2"
             style={{ 
               color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
-              fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+              fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
             }}
           >
             Ready to Get Started?
@@ -291,7 +291,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
             className="mb-4"
             style={{ 
               color: theme?.colors?.text || 'var(--theme-text, #666666)',
-              fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+              fontFamily: `${theme?.typography?.bodyFont || 'Inter'}, system-ui, sans-serif`
             }}
           >
             Join thousands of satisfied customers
@@ -326,7 +326,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
           className="text-xl font-semibold mb-2"
           style={{ 
             color: theme?.colors?.text || 'var(--theme-text, #666666)',
-            fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+            fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
           }}
         >
           Landing Page Preview
@@ -334,7 +334,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
         <p
           style={{ 
             color: theme?.colors?.text || 'var(--theme-text, #666666)',
-            fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+            fontFamily: `${theme?.typography?.bodyFont || 'Inter'}, system-ui, sans-serif`
           }}
         >
           Add content to see your landing page design

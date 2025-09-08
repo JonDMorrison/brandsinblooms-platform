@@ -365,7 +365,7 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
               style={{ 
                 backgroundColor: colors?.background || '#ffffff', 
                 color: colors?.text || '#1f2937',
-                fontFamily: typography?.bodyFont || 'Inter',
+                fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif`,
                 fontSize: typography?.fontSize === 'small' ? '0.875rem' : typography?.fontSize === 'large' ? '1.125rem' : '1rem'
               }}
             >

@@ -120,7 +120,7 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title }:
               className="text-4xl font-bold"
               style={{ 
                 color: theme?.colors?.primary || 'var(--theme-primary, #417505)',
-                fontFamily: theme?.typography?.headingFont || 'var(--theme-font-heading, Inter)'
+                fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
               }}
             >
               {title}
@@ -132,7 +132,7 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title }:
               className="text-xl"
               style={{ 
                 color: theme?.colors?.text || 'var(--theme-text, #666666)',
-                fontFamily: theme?.typography?.bodyFont || 'var(--theme-font-body, Inter)'
+                fontFamily: `${theme?.typography?.bodyFont || 'Inter'}, system-ui, sans-serif`
               }}
             >
               {data.subtitle}

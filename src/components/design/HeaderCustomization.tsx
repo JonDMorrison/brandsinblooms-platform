@@ -238,6 +238,11 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
     }
   }, 1000)
 
+  // Debounced handler for logo size changes to prevent spam
+  const debouncedLogoSizeChange = useDebounceCallback((size: number) => {
+    handleLogoChange('pixelSize', size)
+  }, 300)
+
   const handleFileUpload = async (file: File) => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -779,7 +784,7 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                       value={logoSize}
                       onValueChange={(val) => {
                         setLogoSize(val)
-                        handleLogoChange('pixelSize', val[0])
+                        debouncedLogoSizeChange(val[0])
                       }}
                       max={200}
                       min={50}

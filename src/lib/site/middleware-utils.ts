@@ -370,9 +370,9 @@ export function getSecurityHeaders(site: Site, hostname: string): Record<string,
   const cspDirectives = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Note: In production, avoid unsafe-inline/eval
-    "style-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     `img-src 'self' data: https: ${hostname}`,
-    "font-src 'self' data:",
+    "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self'",
     `frame-ancestors ${allowedFrameAncestors}`,
   ]
