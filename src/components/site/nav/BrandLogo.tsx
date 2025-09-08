@@ -17,7 +17,7 @@ export function BrandLogo({
           src={logoUrl} 
           alt="Logo" 
           className="object-contain"
-          style={{ height: `${Math.round(logoSize * 0.6)}px` }}
+          style={{ height: `${logoSize}px` }}
         />
       )}
       {(brandingType === 'text' || brandingType === 'both') && (

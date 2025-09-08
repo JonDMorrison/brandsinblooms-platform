@@ -39,7 +39,8 @@ export function DesktopNavItem({ item }: NavItemProps) {
   return (
     <Link
       href={item.href}
-      className="flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md hover:bg-gradient-primary-20 transition-colors"
+      className="flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md hover:opacity-70 transition-opacity"
+      style={{ color: 'var(--theme-secondary)' }}
     >
       {item.icon}
       {item.label}

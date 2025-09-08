@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, ShoppingCart, Package } from 'lucide-react'
+import { Search, ShoppingCart } from 'lucide-react'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { useCartContext } from '@/src/contexts/CartContext'
 import { useAuth } from '@/src/contexts/AuthContext'
@@ -35,7 +35,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   // Build navigation items - always include Products, plus configured optional items
   const configuredNavItems = theme?.navigation?.items || []
   const navItems = [
-    { label: 'Products', href: '/products', icon: <Package className="w-4 h-4" /> },
+    { label: 'Products', href: '/products' },
     ...configuredNavItems.filter(item => 
       ['About', 'Contact', 'Home', 'Blog'].includes(item.label)
     )
@@ -133,38 +133,45 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                 brandingType={brandingType}
                 logoUrl={logoUrl}
                 brandText={brandText}
-                logoSize={logoSize * 0.674}
+                logoSize={logoSize}
                 className="justify-center"
                 textClassName="font-bold text-lg"
               />
               <div className="flex justify-center items-center gap-6">
-                <nav className="flex items-center gap-6">
+                <nav className="flex items-center gap-4 text-sm" style={{ fontFamily: 'var(--theme-font-body)' }}>
                   {navItems.map((item) => (
-                    <DesktopNavItem key={item.href} item={item} />
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="hover:opacity-70 cursor-pointer transition-opacity"
+                      style={{ color: 'var(--theme-secondary)' }}
+                    >
+                      {item.label}
+                    </Link>
                   ))}
                   {/* Search and Cart Icons inline with navigation */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
+                  <Search 
+                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
+                    style={{ color: 'var(--theme-text)' }}
                     onClick={() => setSearchOpen(true)}
-                  >
-                    <Search className="h-5 w-5" />
-                    <span className="sr-only">Search</span>
-                  </Button>
-                  <CartButton itemCount={itemCount} />
+                  />
+                  <ShoppingCart 
+                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
+                    style={{ color: 'var(--theme-text)' }}
+                  />
                 </nav>
               </div>
               {/* CTA Button below navigation */}
               {ctaButton?.text && (
                 <div className="flex justify-center pt-2">
-                  <Button
-                    className="btn-theme-primary"
-                    asChild
-                  >
-                    <Link href={ctaButton.href || '#'}>
+                  <Link href={ctaButton.href || '#'}>
+                    <button 
+                      className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-pointer"
+                      style={{ backgroundColor: 'var(--theme-primary)', color: '#fff' }}
+                    >
                       {ctaButton.text}
-                    </Link>
-                  </Button>
+                    </button>
+                  </Link>
                 </div>
               )}
             </div>
