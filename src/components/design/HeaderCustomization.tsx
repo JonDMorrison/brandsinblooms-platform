@@ -92,6 +92,7 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
   
   const [selectedNavItems, setSelectedNavItems] = useState<string[]>([])
   const [localCtaButton, setLocalCtaButton] = useState({ text: '', href: '' })
+  const [localBrandText, setLocalBrandText] = useState('')
   const [logoSize, setLogoSize] = useState([100])
   const [brandingType, setBrandingType] = useState<'text' | 'logo' | 'both'>('text')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
@@ -141,6 +142,9 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
         text: value.layout?.ctaButton?.text || '',
         href: value.layout?.ctaButton?.href || ''
       })
+      
+      // Initialize local brand text state
+      setLocalBrandText(value.logo?.text || '')
     }
   }, [value])
 
@@ -242,6 +246,11 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
   const debouncedLogoSizeChange = useDebounceCallback((size: number) => {
     handleLogoChange('pixelSize', size)
   }, 300)
+
+  // Debounced handler for brand text changes to prevent spam
+  const debouncedBrandTextChange = useDebounceCallback((text: string) => {
+    handleLogoChange('text', text)
+  }, 500)
 
   const handleFileUpload = async (file: File) => {
     // Validate file type
@@ -654,8 +663,11 @@ export function HeaderCustomization({ value, colors, typography, onChange }: Hea
                 <Label className="text-sm font-medium">Brand Text</Label>
                 <Input
                   placeholder="Enter your brand name"
-                  value={value.logo?.text || ''}
-                  onChange={(e) => handleLogoChange('text', e.target.value)}
+                  value={localBrandText}
+                  onChange={(e) => {
+                    setLocalBrandText(e.target.value)
+                    debouncedBrandTextChange(e.target.value)
+                  }}
                 />
               </div>
 
