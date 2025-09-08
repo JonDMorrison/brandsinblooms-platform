@@ -90,11 +90,14 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
       className={cn(
         'w-full bg-white border-b transition-all duration-200',
         stickyHeader && 'sticky top-0 z-50',
-        heightClass,
+        headerStyle !== 'classic' && heightClass,
         className
       )}
     >
-      <div className="brand-container mx-auto px-4 h-full">
+      <div className={cn(
+        'brand-container mx-auto px-4',
+        headerStyle === 'classic' ? 'py-3' : 'h-full'
+      )}>
         {/* Modern Header Style */}
         {headerStyle === 'modern' && (
           <div className="flex items-center justify-between h-full">
@@ -126,9 +129,9 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
 
         {/* Classic Header Style */}
         {headerStyle === 'classic' && (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {/* Desktop Layout */}
-            <div className="hidden md:block text-center space-y-3">
+            <div className="hidden md:block text-center space-y-2">
               <BrandLogo 
                 brandingType={brandingType}
                 logoUrl={logoUrl}
@@ -163,7 +166,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
               </div>
               {/* CTA Button below navigation */}
               {ctaButton?.text && (
-                <div className="flex justify-center pt-2">
+                <div className="flex justify-center pt-1">
                   <Link href={ctaButton.href || '#'}>
                     <button 
                       className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-pointer"
