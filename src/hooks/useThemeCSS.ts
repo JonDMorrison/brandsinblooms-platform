@@ -158,7 +158,6 @@ export function useThemeCSS(theme: ThemeSettings | null, mode: 'iframe' | 'live'
       
       /* Footer Layout Styles */
       ${selector}[data-footer-style="minimal"] footer {
-        padding: 2rem 0;
         background: transparent;
         border-top: 1px solid rgba(0,0,0,0.1);
       }

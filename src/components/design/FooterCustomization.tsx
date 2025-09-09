@@ -377,36 +377,57 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
               {/* Footer preview based on selected style */}
               <div className="border-t pt-4 space-y-4" style={{ borderColor: colors?.primary + '20' || '#2563eb20' }}>
                 {value.footer?.style === 'comprehensive' && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {footerColumns.slice(0, 3).map((column, index) => (
-                      <div key={index} className="space-y-2">
-                        <h4 className="font-semibold text-sm" style={{ color: colors?.primary || '#2563eb' }}>
-                          {column.title}
-                        </h4>
-                        <ul className="space-y-1">
-                          {column.links.slice(0, 3).map((link, linkIndex) => (
-                            <li key={linkIndex}>
-                              <span className="text-xs hover:opacity-70 cursor-pointer transition-opacity" 
-                                    style={{ color: colors?.text || '#1f2937' }}>
-                                {link.label}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {footerColumns.slice(0, 3).map((column, index) => (
+                        <div key={index} className="space-y-2">
+                          <h4 className="font-semibold text-sm" style={{ color: colors?.primary || '#2563eb' }}>
+                            {column.title}
+                          </h4>
+                          <ul className="space-y-1">
+                            {column.links.slice(0, 3).map((link, linkIndex) => (
+                              <li key={linkIndex}>
+                                <span className="text-xs hover:opacity-70 cursor-pointer transition-opacity" 
+                                      style={{ color: colors?.secondary || '#6b7280' }}>
+                                  {link.label}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Bottom section with copyright and social icons */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t" style={{ borderColor: colors?.primary + '20' || '#2563eb20' }}>
+                      <p className="text-xs" style={{ color: '#6b7280' }}>
+                        {value.footer?.copyright || `© ${new Date().getFullYear()} Your Company. All rights reserved.`}
+                      </p>
+                      <div className="flex items-center gap-4">
+                        {socialLinks.slice(0, 4).map((social, index) => {
+                          const platform = SOCIAL_PLATFORMS.find(p => p.value === social.platform)
+                          const IconComponent = platform?.icon || Globe
+                          return (
+                            <IconComponent key={index} className="w-5 h-5 hover:opacity-70 cursor-pointer transition-opacity" 
+                                         style={{ color: colors?.secondary || '#d97706' }} />
+                          )
+                        })}
                       </div>
-                    ))}
+                    </div>
                   </div>
                 )}
                 
                 {value.footer?.style === 'minimal' && (
-                  <div className="text-center space-y-2">
-                    <div className="flex justify-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <p className="text-sm" style={{ color: '#6b7280' }}>
+                      {value.footer?.copyright || `© ${new Date().getFullYear()} Your Company. All rights reserved.`}
+                    </p>
+                    <div className="flex items-center gap-4">
                       {socialLinks.slice(0, 4).map((social, index) => {
                         const platform = SOCIAL_PLATFORMS.find(p => p.value === social.platform)
                         const IconComponent = platform?.icon || Globe
                         return (
-                          <IconComponent key={index} className="h-5 w-5 hover:opacity-70 cursor-pointer transition-opacity" 
-                                       style={{ color: colors?.primary || '#2563eb' }} />
+                          <IconComponent key={index} className="w-5 h-5 hover:opacity-70 cursor-pointer transition-opacity" 
+                                       style={{ color: colors?.secondary || '#d97706' }} />
                         )
                       })}
                     </div>
@@ -419,23 +440,23 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
                       <div className="flex justify-center gap-6 text-sm">
                         {selectedFooterNavItems.includes('home') && (
                           <span className="hover:opacity-70 cursor-pointer transition-opacity" 
-                                style={{ color: colors?.text || '#1f2937' }}>Home</span>
+                                style={{ color: colors?.secondary || '#6b7280' }}>Home</span>
                         )}
                         {selectedFooterNavItems.includes('products') && (
                           <span className="hover:opacity-70 cursor-pointer transition-opacity" 
-                                style={{ color: colors?.text || '#1f2937' }}>Products</span>
+                                style={{ color: colors?.secondary || '#6b7280' }}>Products</span>
                         )}
                         {selectedFooterNavItems.includes('about') && (
                           <span className="hover:opacity-70 cursor-pointer transition-opacity" 
-                                style={{ color: colors?.text || '#1f2937' }}>About</span>
+                                style={{ color: colors?.secondary || '#6b7280' }}>About</span>
                         )}
                         {selectedFooterNavItems.includes('contact') && (
                           <span className="hover:opacity-70 cursor-pointer transition-opacity" 
-                                style={{ color: colors?.text || '#1f2937' }}>Contact</span>
+                                style={{ color: colors?.secondary || '#6b7280' }}>Contact</span>
                         )}
                         {selectedFooterNavItems.includes('blog') && (
                           <span className="hover:opacity-70 cursor-pointer transition-opacity" 
-                                style={{ color: colors?.text || '#1f2937' }}>Blog</span>
+                                style={{ color: colors?.secondary || '#6b7280' }}>Blog</span>
                         )}
                       </div>
                       <div className="flex justify-center gap-4">
@@ -452,10 +473,12 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
                   </div>
                 )}
                 
-                {/* Copyright */}
-                <div className="border-t pt-3 text-center text-xs" style={{ borderColor: colors?.primary + '20' || '#2563eb20', color: colors?.text + '80' || '#1f293780' }}>
-                  {value.footer?.copyright || `© ${new Date().getFullYear()} Your Company. All rights reserved.`}
-                </div>
+                {/* Copyright - only show for centered style */}
+                {value.footer?.style === 'centered' && (
+                  <div className="border-t pt-3 text-center text-xs" style={{ borderColor: colors?.primary + '20' || '#2563eb20', color: colors?.text + '80' || '#1f293780' }}>
+                    {value.footer?.copyright || `© ${new Date().getFullYear()} Your Company. All rights reserved.`}
+                  </div>
+                )}
               </div>
             </div>
           </CollapsibleContent>

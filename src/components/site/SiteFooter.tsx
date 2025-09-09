@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { useDesignSettings } from '@/src/hooks/useDesignSettings'
 import { Button } from '@/src/components/ui/button'
@@ -19,7 +20,8 @@ import {
   CreditCard,
   Shield,
   Truck,
-  RefreshCw
+  RefreshCw,
+  Globe
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -134,10 +136,11 @@ export function SiteFooter({ className }: SiteFooterProps) {
                 <Link
                   key={link.platform}
                   href={link.url}
-                  className="text-gray-500 hover:text-gray-900 transition-colors"
+                  className="hover:opacity-70 transition-opacity cursor-pointer"
+                  style={{ color: 'var(--theme-secondary)' }}
                   aria-label={link.platform}
                 >
-                  {socialIcons[link.platform] || <Mail className="w-5 h-5" />}
+                  {socialIcons[link.platform] || <Globe className="w-5 h-5" />}
                 </Link>
               ))}
             </div>
@@ -148,30 +151,54 @@ export function SiteFooter({ className }: SiteFooterProps) {
   }
   
   if (footerStyle === 'centered') {
+    // Get navigation items from footer settings
+    const footerNavItems = theme?.footer?.navigationItems || []
+    
     return (
       <footer className={cn('w-full border-t bg-white', className)}>
-        <div className="brand-container mx-auto px-4 py-12">
-          <div className="text-center space-y-6">
-            <h3 className="text-2xl font-bold">{site?.name || 'Store'}</h3>
-            {site?.description && (
-              <p className="text-gray-500 max-w-md mx-auto">
-                {site.description}
-              </p>
-            )}
-            <div className="flex items-center justify-center gap-4">
-              {socialLinks.map((link) => (
-                <Link
-                  key={link.platform}
-                  href={link.url}
-                  className="text-gray-500 hover:text-gray-900 transition-colors"
-                  aria-label={link.platform}
-                >
-                  {socialIcons[link.platform] || <Mail className="w-5 h-5" />}
-                </Link>
-              ))}
+        <div className="brand-container mx-auto px-4 py-6">
+          <div className="space-y-4">
+            <div className="text-center space-y-4">
+              <div className="space-y-2">
+                {/* Navigation Links */}
+                {footerNavItems.length > 0 && (
+                  <div className="flex justify-center gap-6 text-sm">
+                    {footerNavItems.map((item) => (
+                      <span
+                        key={item.href}
+                        className="hover:opacity-70 cursor-pointer transition-opacity capitalize"
+                        style={{ color: 'var(--theme-secondary)' }}
+                      >
+                        {item.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {/* Social Links */}
+                <div className="flex justify-center gap-4">
+                  {socialLinks.map((link) => {
+                    const IconComponent = socialIcons[link.platform] ? 
+                      React.cloneElement(socialIcons[link.platform] as React.ReactElement, {
+                        className: 'h-4 w-4 hover:opacity-70 cursor-pointer transition-opacity',
+                        style: { color: 'var(--theme-primary)' }
+                      }) : <Mail className="h-4 w-4 hover:opacity-70 cursor-pointer transition-opacity" style={{ color: 'var(--theme-primary)' }} />
+                    return (
+                      <Link
+                        key={link.platform}
+                        href={link.url}
+                        aria-label={link.platform}
+                      >
+                        {IconComponent}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
-            <Separator className="my-6" />
-            <p className="text-sm text-gray-500">{copyright}</p>
+            {/* Copyright */}
+            <div className="border-t pt-3 text-center text-xs" style={{ borderColor: 'rgba(var(--theme-primary-rgb), 0.125)', color: 'rgba(31, 41, 55, 0.5)' }}>
+              {copyright}
+            </div>
           </div>
         </div>
       </footer>
@@ -181,138 +208,53 @@ export function SiteFooter({ className }: SiteFooterProps) {
   // Default: comprehensive footer
   return (
     <footer className={cn('w-full border-t bg-white', className)}>
-      <div className="brand-container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">{site?.name || 'Store'}</h3>
-            {site?.description && (
-              <p className="text-sm text-gray-500">
-                {site.description}
+      <div className="brand-container mx-auto px-4 py-6">
+        <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Footer Columns */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {columns.slice(0, 3).map((column, index) => (
+                <div key={index} className="space-y-2">
+                  <h4 className="font-semibold text-sm" style={{ color: 'var(--theme-primary)' }}>
+                    {column.title}
+                  </h4>
+                  <ul className="space-y-1">
+                    {column.links.map((link) => (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          className="text-xs hover:opacity-70 cursor-pointer transition-opacity"
+                          style={{ color: 'var(--theme-secondary)' }}
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            
+            {/* Bottom section with copyright and social icons */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t" style={{ borderColor: 'rgba(var(--theme-primary-rgb), 0.125)' }}>
+              <p className="text-xs" style={{ color: '#6b7280' }}>
+                {copyright}
               </p>
-            )}
-            <div className="space-y-2 text-sm text-gray-500">
-              {site?.business_email && (
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  <a href={`mailto:${site.business_email}`} className="hover:text-gray-900">
-                    {site.business_email}
-                  </a>
-                </div>
-              )}
-              {site?.business_phone && (
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  <a href={`tel:${site.business_phone}`} className="hover:text-gray-900">
-                    {site.business_phone}
-                  </a>
-                </div>
-              )}
-              {site?.business_address && (
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 mt-0.5" />
-                  <span>{site.business_address}</span>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Footer Columns */}
-          {columns.map((column, index) => (
-            <div key={index} className="space-y-4">
-              <h4 className="text-sm font-semibold">{column.title}</h4>
-              <ul className="space-y-2">
-                {column.links.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
+              <div className="flex items-center gap-4">
+                {socialLinks.map((link) => (
+                  <Link
+                    key={link.platform}
+                    href={link.url}
+                    aria-label={link.platform}
+                  >
+                    {React.cloneElement(socialIcons[link.platform] as React.ReactElement || <Globe className="w-5 h-5" />, {
+                      className: 'w-5 h-5 hover:opacity-70 cursor-pointer transition-opacity',
+                      style: { color: 'var(--theme-secondary)' }
+                    })}
+                  </Link>
                 ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        
-        {/* Newsletter Section */}
-        {showNewsletter && (
-          <>
-            <Separator className="my-8" />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              <div>
-                <h4 className="text-lg font-semibold mb-2">Subscribe to our Newsletter</h4>
-                <p className="text-sm text-gray-500">
-                  Get the latest updates on new products and upcoming sales
-                </p>
               </div>
-              <form onSubmit={handleSubscribe} className="flex gap-2">
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1"
-                  required
-                />
-                <Button type="submit" disabled={subscribing}>
-                  {subscribing ? 'Subscribing...' : 'Subscribe'}
-                </Button>
-              </form>
             </div>
-          </>
-        )}
-        
-        {/* Trust Badges & Payment Methods */}
-        <Separator className="my-8" />
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-          {/* Trust Badges */}
-          <div className="flex items-center gap-6 text-sm text-gray-500">
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              <span>Secure Checkout</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Truck className="w-4 h-4" />
-              <span>Free Shipping</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <RefreshCw className="w-4 h-4" />
-              <span>Easy Returns</span>
-            </div>
-          </div>
-          
-          {/* Payment Badges */}
-          <div className="flex items-center gap-3">
-            {paymentBadges.map((badge) => (
-              <div
-                key={badge}
-                className="flex items-center justify-center w-12 h-8 border rounded bg-muted/50"
-                title={badge}
-              >
-                <CreditCard className="w-5 h-5 text-gray-500" />
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Bottom Bar */}
-        <Separator className="my-8" />
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-500">{copyright}</p>
-          <div className="flex items-center gap-4">
-            {socialLinks.map((link) => (
-              <Link
-                key={link.platform}
-                href={link.url}
-                className="text-gray-500 hover:text-gray-900 transition-colors"
-                aria-label={link.platform}
-              >
-                {socialIcons[link.platform] || <Mail className="w-5 h-5" />}
-              </Link>
-            ))}
           </div>
         </div>
       </div>
