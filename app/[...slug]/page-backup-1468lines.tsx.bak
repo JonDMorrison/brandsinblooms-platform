@@ -1,0 +1,1469 @@
+import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
+import { ProductCatalog } from '@/src/components/site/ProductCatalog'
+import { ShoppingCart } from '@/src/components/site/ShoppingCart'
+import { SiteLayout } from '@/src/components/layout/SiteLayout'
+import { SiteRenderer } from '@/src/components/site/SiteRenderer'
+import { Metadata } from 'next'
+import { generateMetaTags, generateStructuredData, PAGE_SEO_DATA, BUSINESS_INFO } from '@/src/data/seo-data'
+import { plantShopContent, getFeaturedPlants, getPlantsByCareLevel, getPlantsByCategory } from '@/src/data/plant-shop-content'
+import { companyStory, teamMembers, sustainabilityPractices } from '@/src/data/plant-content-data'
+import { 
+  HeroSectionErrorBoundary,
+  FeaturedPlantsErrorBoundary,
+  CategoriesSectionErrorBoundary,
+  CareGuidesSectionErrorBoundary,
+  TeamSectionErrorBoundary,
+  SustainabilityErrorBoundary,
+  FAQSectionErrorBoundary,
+  SectionErrorBoundary
+} from '@/src/components/ui/plant-shop-error-boundaries'
+import {
+  FeaturedPlantsSkeleton,
+  PlantCategoriesSkeleton,
+  CareGuidesSkeleton,
+  SeasonalSectionSkeleton,
+  TeamSectionSkeleton,
+  SustainabilitySkeleton,
+  FAQSectionSkeleton,
+  MissionStatementSkeleton,
+  StoreInfoSkeleton
+} from '@/src/components/ui/plant-shop-loading-states'
+import { ViewportLazyLoad } from '@/src/components/ui/lazy-loading'
+import { memo, useMemo, useCallback } from 'react'
+
+// Dynamic metadata generation based on the current page
+export async function generateMetadata({ params }: { params: Promise<{ slug?: string[] }> }): Promise<Metadata> {
+  const { slug } = await params
+  const path = slug?.join('/') || ''
+  
+  // Determine page type for SEO metadata
+  let pageKey: keyof typeof PAGE_SEO_DATA = 'home'
+  
+  switch (path) {
+    case '':
+    case 'home':
+      pageKey = 'home'
+      break
+    case 'about':
+      pageKey = 'about'
+      break
+    case 'contact':
+      pageKey = 'contact'
+      break
+    case 'privacy':
+      pageKey = 'privacy'
+      break
+    case 'terms':
+      pageKey = 'terms'
+      break
+    default:
+      pageKey = 'home' // Default fallback
+      break
+  }
+  
+  return generateMetaTags(pageKey)
+}
+
+interface SitePageProps {
+  params: Promise<{ 
+    slug?: string[] 
+  }>
+}
+
+export default async function SitePage({ params }: SitePageProps) {
+  const { slug } = await params
+  const path = slug?.join('/') || ''
+  
+  // Check if we're on the platform domain
+  const headersList = await headers()
+  const hostname = headersList.get('host') || ''
+  const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+  
+  // Determine if this is the main platform domain
+  // In staging, APP_DOMAIN is already 'staging.blooms.cc'
+  const isMainPlatform = 
+    hostname === 'localhost:3001' || 
+    hostname === 'localhost' ||
+    hostname === APP_DOMAIN || // This handles both blooms.cc and staging.blooms.cc
+    hostname.endsWith('.vercel.app') ||
+    hostname.endsWith('.railway.app')
+  
+  // If on platform domain, return 404 for site-specific routes
+  // This prevents customer site content from appearing on the main platform
+  if (isMainPlatform) {
+    return notFound()
+  }
+  
+  // Route to appropriate component based on path
+  switch (path) {
+    case '':
+    case 'home':
+      return await HomePage()
+      
+    case 'products':
+      return await ProductsPage()
+      
+    case 'cart':
+      return await CartPage()
+      
+    case 'checkout':
+      return await CheckoutPage()
+      
+    case 'account':
+      return await AccountPage()
+      
+    case 'account/orders':
+      return await OrdersPage()
+      
+    case 'about':
+      return await AboutPage()
+      
+    case 'contact':
+      return await ContactPage()
+      
+    case 'privacy':
+      return await PrivacyPage()
+      
+    case 'terms':
+      return await TermsPage()
+      
+    default:
+      // Check if it's a product page (products/[slug])
+      if (path.startsWith('products/')) {
+        const productSlug = path.replace('products/', '')
+        return await ProductDetailPage({ slug: productSlug })
+      }
+      
+      // Check if it's a category page (category/[slug])
+      if (path.startsWith('category/')) {
+        const categorySlug = path.replace('category/', '')
+        return await CategoryPage({ slug: categorySlug })
+      }
+      
+      return notFound()
+  }
+}
+
+async function HomePage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  // Get the homepage content data
+  const homePageData = plantShopContent.home
+  const heroBlock = homePageData.blocks.find(block => block.type === 'hero')
+  const featuredPlantsBlock = homePageData.blocks.find(block => block.type === 'featured_plants')
+  const categoriesBlock = homePageData.blocks.find(block => block.type === 'categories')
+  const seasonalBlock = homePageData.blocks.find(block => block.type === 'seasonal')
+  const careGuidesBlock = homePageData.blocks.find(block => block.type === 'care_guides')
+  
+  // Get data for sections
+  const featuredPlants = getFeaturedPlants()
+  const beginnerPlants = getPlantsByCareLevel('beginner')
+  const houseplants = getPlantsByCategory('houseplants')
+  const outdoorPlants = getPlantsByCategory('outdoor')
+  const succulents = getPlantsByCategory('succulents')
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      {/* Hero Section - Always loaded immediately for better UX */}
+      {heroBlock?.isVisible && (
+        <HeroSectionErrorBoundary>
+          <section className="relative py-20 lg:py-32" style={{background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))'}}>
+            <div className="brand-container">
+              <div className="max-w-4xl mx-auto text-center">
+                <h1 className="text-4xl md:text-6xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                  {(heroBlock.content as any).headline}
+                </h1>
+                <p className="text-xl md:text-2xl mb-8 leading-relaxed" style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}>
+                  {(heroBlock.content as any).subheadline}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                  <a 
+                    href={(heroBlock.content as any).ctaLink}
+                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 text-white hover:opacity-90"
+                  style={{backgroundColor: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}
+                  >
+                    {(heroBlock.content as any).ctaText}
+                  </a>
+                  <a 
+                    href={(heroBlock.content as any).secondaryCtaLink}
+                    className="border-2 px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:text-white"
+                  style={{
+                    borderColor: 'var(--theme-primary)',
+                    color: 'var(--theme-primary)',
+                    fontFamily: 'var(--theme-font-body)',
+                  }}
+                  >
+                    {(heroBlock.content as any).secondaryCtaText}
+                  </a>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                  {((heroBlock.content as any).features as string[]).map((feature, index) => (
+                    <div key={index} className="flex flex-col items-center">
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{backgroundColor: 'var(--theme-primary)'}}>
+                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{feature}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        </HeroSectionErrorBoundary>
+      )}
+
+      {/* Featured Plants Section - Immediate loading for key content */}
+      {featuredPlantsBlock?.isVisible && (
+        <FeaturedPlantsErrorBoundary>
+          <section className="py-16" style={{backgroundColor: 'var(--theme-background)'}}>
+            <div className="brand-container">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                  {(featuredPlantsBlock.content as any).headline}
+                </h2>
+                <p className="text-lg max-w-2xl mx-auto" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
+                  {(featuredPlantsBlock.content as any).description}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                {featuredPlants.map((plant) => (
+                  <div key={plant.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <div className="relative">
+                      <img 
+                        src={plant.image} 
+                        alt={plant.name}
+                        className="w-full h-64 object-cover"
+                        loading="eager"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          plant.careLevel === 'beginner' ? 'bg-green-100 text-green-800' :
+                          plant.careLevel === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {plant.careLevel.charAt(0).toUpperCase() + plant.careLevel.slice(1)}
+                        </span>
+                      </div>
+                      {plant.originalPrice && (
+                        <div className="absolute top-4 left-4">
+                          <span className="bg-red-500 text-white px-2 py-1 rounded-full text-sm font-medium">
+                            Sale
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">{plant.name}</h3>
+                      <p className="text-sm text-gray-500 italic mb-3">{plant.scientificName}</p>
+                      <p className="text-gray-600 mb-4 line-clamp-3">{plant.description}</p>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-2">
+                          {plant.originalPrice && (
+                            <span className="text-lg text-gray-400 line-through">${plant.originalPrice}</span>
+                          )}
+                          <span className="text-2xl font-bold text-green-600">${plant.price}</span>
+                        </div>
+                        <span className={`px-2 py-1 rounded text-sm ${
+                          plant.inStock ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {plant.inStock ? 'In Stock' : 'Out of Stock'}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {plant.features.slice(0, 3).map((feature, index) => (
+                          <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
+                      <button 
+                        className={`w-full py-3 rounded-lg font-semibold transition-colors duration-200 ${
+                          plant.inStock 
+                            ? 'bg-green-600 hover:bg-green-700 text-white' 
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                        disabled={!plant.inStock}
+                      >
+                        {plant.inStock ? 'Add to Cart' : 'Out of Stock'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="text-center">
+                <a 
+                  href={(featuredPlantsBlock.content as any).viewAllLink}
+                  className="inline-flex items-center px-6 py-3 border rounded-lg font-semibold transition-all duration-200 hover:text-white"
+                  style={{
+                    borderColor: 'var(--theme-primary)',
+                    color: 'var(--theme-primary)',
+                    fontFamily: 'var(--theme-font-body)'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--theme-primary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  View All Plants
+                  <svg className="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </section>
+        </FeaturedPlantsErrorBoundary>
+      )}
+
+      {/* Plant Categories Section - Lazy Loaded */}
+      {categoriesBlock?.isVisible && (
+        <ViewportLazyLoad
+          fallback={<PlantCategoriesSkeleton />}
+          delay={100}
+        >
+          <CategoriesSectionErrorBoundary>
+            <section className="py-16" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.03)'}}>
+              <div className="brand-container">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                    {(categoriesBlock.content as any).headline}
+                  </h2>
+                  <p className="text-lg max-w-2xl mx-auto" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
+                    {(categoriesBlock.content as any).description}
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {((categoriesBlock.content as any).categories as any[]).map((category, index) => (
+                    <a 
+                      key={index} 
+                      href={category.link}
+                      className="group rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+                      style={{backgroundColor: 'var(--theme-background)', border: '1px solid rgba(var(--theme-primary-rgb), 0.1)'}}
+                    >
+                      <div className="relative h-48 overflow-hidden">
+                        <img 
+                          src={category.image} 
+                          alt={category.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-20 transition-all duration-300"></div>
+                        <div className="absolute top-4 right-4 rounded-full px-3 py-1" style={{backgroundColor: 'var(--theme-background)', border: '1px solid rgba(var(--theme-primary-rgb), 0.2)'}}>
+                          <span className="text-sm font-semibold" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{category.plantCount} plants</span>
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        <h3 className="text-xl font-semibold mb-3 transition-colors duration-200" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                          {category.name}
+                        </h3>
+                        <p className="text-sm leading-relaxed" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
+                          {category.description}
+                        </p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </section>
+          </CategoriesSectionErrorBoundary>
+        </ViewportLazyLoad>
+      )}
+
+      {/* Seasonal Plant Care Section - Lazy Loaded */}
+      {seasonalBlock?.isVisible && (
+        <ViewportLazyLoad
+          fallback={<SeasonalSectionSkeleton />}
+          delay={200}
+        >
+          <SectionErrorBoundary 
+            sectionName="Seasonal Care Tips"
+            fallbackDescription="Our seasonal plant care tips are temporarily unavailable. Check back soon for the latest guidance!"
+          >
+            <section className="py-16 bg-gradient-to-r from-orange-50 to-yellow-50">
+              <div className="brand-container">
+                <div className="max-w-4xl mx-auto text-center">
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    {(seasonalBlock.content as any).headline}
+                  </h2>
+                  <p className="text-lg text-gray-600 mb-8">
+                    {(seasonalBlock.content as any).description}
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    {((seasonalBlock.content as any).tips as string[]).map((tip, index) => (
+                      <div key={index} className="bg-white rounded-lg p-6 shadow-md">
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center mt-1">
+                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <p className="text-gray-700 text-sm leading-relaxed">{tip}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {(seasonalBlock.content as any).featuredGuide && (
+                    <div className="bg-white rounded-lg p-6 shadow-lg">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                        📋 {((seasonalBlock.content as any).featuredGuide as any).title}
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        {((seasonalBlock.content as any).featuredGuide as any).description}
+                      </p>
+                      <a 
+                        href={((seasonalBlock.content as any).featuredGuide as any).downloadUrl}
+                        className="inline-flex items-center px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-colors duration-200"
+                      >
+                        Download Guide
+                        <svg className="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+          </SectionErrorBoundary>
+        </ViewportLazyLoad>
+      )}
+
+      {/* Care Guides Section - Lazy Loaded */}
+      {careGuidesBlock?.isVisible && (
+        <ViewportLazyLoad
+          fallback={<CareGuidesSkeleton />}
+          delay={300}
+        >
+          <CareGuidesSectionErrorBoundary>
+            <section className="py-16" style={{backgroundColor: 'var(--theme-background)'}}>
+              <div className="brand-container">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    {(careGuidesBlock.content as any).headline}
+                  </h2>
+                  <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                    {(careGuidesBlock.content as any).description}
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                  {((careGuidesBlock.content as any).guides as any[]).map((guide) => (
+                    <div key={guide.id} className="bg-gray-50 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
+                      <div className="flex items-center mb-4">
+                        <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mr-4">
+                          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          guide.category === 'general' ? 'bg-blue-100 text-blue-800' :
+                          guide.category === 'seasonal' ? 'bg-orange-100 text-orange-800' :
+                          guide.category === 'propagation' ? 'bg-purple-100 text-purple-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {guide.category.charAt(0).toUpperCase() + guide.category.slice(1)}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-3">{guide.title}</h3>
+                      <p className="text-gray-600 mb-4 leading-relaxed">{guide.description}</p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {guide.plantTypes.map((type: string, index: number) => (
+                          <span key={index} className="px-2 py-1 bg-white text-gray-700 rounded text-xs border">
+                            {type}
+                          </span>
+                        ))}
+                      </div>
+                      <a 
+                        href={guide.downloadUrl}
+                        className="inline-flex items-center text-green-600 hover:text-green-700 font-semibold transition-colors duration-200"
+                      >
+                        Download PDF
+                        <svg className="ml-2 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-center">
+                  <a 
+                    href={(careGuidesBlock.content as any).viewAllLink}
+                    className="inline-flex items-center px-6 py-3 border border-green-600 text-green-600 hover:bg-green-600 hover:text-white rounded-lg font-semibold transition-colors duration-200"
+                  >
+                    View All Guides
+                    <svg className="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </section>
+          </CareGuidesSectionErrorBoundary>
+        </ViewportLazyLoad>
+      )}
+
+      {/* Mission Statement / Call-to-Action - Lazy Loaded */}
+      <ViewportLazyLoad
+        fallback={<MissionStatementSkeleton />}
+        delay={400}
+      >
+        <SectionErrorBoundary 
+          sectionName="Call to Action"
+          fallbackDescription="Our call-to-action section is temporarily unavailable. Please contact us directly!"
+        >
+          <section className="py-16 text-white" style={{backgroundColor: 'var(--theme-primary)'}}>
+            <div className="brand-container">
+              <div className="max-w-4xl mx-auto text-center">
+                <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{fontFamily: 'var(--theme-font-heading)'}}>
+                  Ready to Start Your Plant Journey?
+                </h2>
+                <p className="text-xl mb-8 leading-relaxed opacity-90" style={{fontFamily: 'var(--theme-font-body)'}}>
+                  Our certified horticulturists are here to help you find the perfect plants for your space and lifestyle. 
+                  From beginner-friendly houseplants to expert-level specimens, we'll guide you every step of the way.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <a 
+                    href="/contact"
+                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
+                    style={{
+                      backgroundColor: 'var(--theme-background)',
+                      color: 'var(--theme-primary)',
+                      fontFamily: 'var(--theme-font-body)'
+                    }}
+                  >
+                    Schedule a Consultation
+                  </a>
+                  <a 
+                    href="/plants"
+                    className="border-2 border-white text-white hover:text-current px-8 py-4 rounded-lg font-semibold transition-all duration-200"
+                    style={{
+                      fontFamily: 'var(--theme-font-body)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--theme-background)'
+                      e.currentTarget.style.color = 'var(--theme-primary)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                      e.currentTarget.style.color = 'white'
+                    }}
+                  >
+                    Browse Our Plants
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </SectionErrorBoundary>
+      </ViewportLazyLoad>
+    </SiteRenderer>
+  )
+}
+
+// ... [Rest of the functions will be similar but need to be updated - I'll continue in next edit]
+
+async function AboutPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <div className="brand-container py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            Growing Together Since {companyStory.founding.year}
+          </h1>
+          <p className="text-xl max-w-3xl mx-auto leading-relaxed">
+            {companyStory.founding.mission}
+          </p>
+        </div>
+
+        {/* Company Story */}
+        <section className="mb-20">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl font-bold mb-6">Our Story</h2>
+              <div className="prose prose-lg max-w-none">
+                <p className="leading-relaxed">
+                  {companyStory.founding.story}
+                </p>
+                <p className="leading-relaxed mt-4">
+                  {companyStory.philosophy}
+                </p>
+                <p className="leading-relaxed mt-4">
+                  {companyStory.commitment}
+                </p>
+              </div>
+            </div>
+            <div className="lg:pl-8">
+              <div className="bg-gray-50 rounded-xl p-8 border">
+                <h3 className="text-xl font-semibold mb-4">Our Expertise</h3>
+                <p className="mb-6">{companyStory.expertise.experience}</p>
+                <div className="space-y-3">
+                  {companyStory.expertise.specializations.map((spec, index) => (
+                    <div key={index} className="flex items-start space-x-3">
+                      <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0"></div>
+                      <span className="text-sm">{spec}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Team Section - Lazy Loaded */}
+        <ViewportLazyLoad
+          fallback={<TeamSectionSkeleton />}
+          delay={200}
+        >
+          <TeamSectionErrorBoundary>
+            <section className="mb-20">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold mb-4">Meet Our Plant Care Experts</h2>
+                <p className="text-xl max-w-2xl mx-auto">
+                  Our certified horticulturists bring decades of professional plant expertise to help your green friends thrive.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {teamMembers.map((member) => (
+                  <div key={member.id} className="bg-white rounded-xl p-6 md:p-8 border hover:shadow-lg transition-shadow">
+                    <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-4 md:gap-6">
+                      <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-2xl font-bold text-green-600">
+                          {member.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold mb-1">{member.name}</h3>
+                        <p className="text-green-600 font-semibold mb-2">{member.title}</p>
+                        <p className="text-sm text-gray-600 mb-3">{member.specialization}</p>
+                        <p className="text-sm text-gray-700 mb-4">{member.bio}</p>
+                        
+                        <div className="mb-4">
+                          <h4 className="text-sm font-semibold mb-2">Credentials:</h4>
+                          <div className="flex flex-wrap gap-1">
+                            {member.credentials.map((credential, index) => (
+                              <span key={index} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                {credential}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <p className="text-xs text-gray-500 italic">
+                          {member.experience}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </TeamSectionErrorBoundary>
+        </ViewportLazyLoad>
+
+        {/* Certifications Section */}
+        <section className="mb-20">
+          <div className="bg-gray-50 rounded-2xl p-8 md:p-12">
+            <h2 className="text-2xl font-bold mb-6 text-center">Professional Certifications</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {companyStory.expertise.certifications.map((certification, index) => (
+                <div key={index} className="text-center p-4 bg-white rounded-lg border">
+                  <div className="w-12 h-12 bg-green-100 rounded-full mx-auto mb-3 flex items-center justify-center">
+                    <span className="text-green-600 font-bold text-lg">✓</span>
+                  </div>
+                  <p className="text-sm font-medium">{certification}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Sustainability Section - Lazy Loaded */}
+        <ViewportLazyLoad
+          fallback={<SustainabilitySkeleton />}
+          delay={300}
+        >
+          <SustainabilityErrorBoundary>
+            <section>
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold mb-4">Our Commitment to Sustainability</h2>
+                <p className="text-xl max-w-3xl mx-auto">
+                  Environmental stewardship is at the heart of everything we do. We're not just growing plants—we're cultivating a healthier planet.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                {sustainabilityPractices.map((practice) => (
+                  <div key={practice.id} className="bg-white rounded-xl p-6 border hover:shadow-sm transition-colors">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg mb-4 flex items-center justify-center">
+                      <span className="text-green-600 font-bold text-xl">🌱</span>
+                    </div>
+                    <h3 className="text-lg font-bold mb-3">{practice.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                      {practice.description}
+                    </p>
+                    <div className="space-y-2">
+                      <div className="text-sm">
+                        <span className="font-semibold text-gray-700">Impact:</span>
+                        <span className="text-gray-600 ml-2">{practice.impact}</span>
+                      </div>
+                      {practice.metrics && (
+                        <div className="text-sm">
+                          <span className="font-semibold text-gray-700">Results:</span>
+                          <span className="text-gray-600 ml-2">{practice.metrics}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </SustainabilityErrorBoundary>
+        </ViewportLazyLoad>
+      </div>
+    </SiteRenderer>
+  )
+}
+
+async function ContactPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <div className="brand-container py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            Let's Help Your Plants Thrive
+          </h1>
+          <p className="text-xl max-w-3xl mx-auto leading-relaxed">
+            Connect with our plant care experts for personalized advice, consultation bookings, or any questions about your plant parenthood journey.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-12 mb-16">
+          {/* Contact Form */}
+          <div className="bg-white rounded-xl p-8 border">
+            <h2 className="text-2xl font-bold mb-6">Plant Care Consultation Request</h2>
+            <form className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">First Name *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    className="w-full px-4 py-4 border rounded-lg focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-colors text-base"
+                    placeholder="Your first name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Last Name *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    className="w-full px-4 py-4 border rounded-lg focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-colors text-base"
+                    placeholder="Your last name"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Email Address *</label>
+                <input 
+                  type="email" 
+                  required 
+                  className="w-full px-4 py-4 border rounded-lg focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-colors text-base"
+                  placeholder="your.email@example.com"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Phone Number</label>
+                <input 
+                  type="tel" 
+                  className="w-full px-4 py-4 border rounded-lg focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-colors text-base"
+                  placeholder="(555) 123-4567"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Plant Care Topic *</label>
+                <select 
+                  required 
+                  className="w-full px-4 py-4 border rounded-lg focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-colors text-base"
+                >
+                  <option value="">Select a consultation type</option>
+                  <option value="general">General Plant Care Advice</option>
+                  <option value="diagnosis">Plant Health Diagnosis</option>
+                  <option value="selection">Plant Selection & Recommendations</option>
+                  <option value="troubleshooting">Problem Troubleshooting</option>
+                  <option value="repotting">Repotting & Soil Questions</option>
+                  <option value="propagation">Plant Propagation Guidance</option>
+                  <option value="indoor-design">Indoor Plant Design & Placement</option>
+                  <option value="outdoor-landscaping">Outdoor Landscaping Consultation</option>
+                  <option value="sustainability">Sustainable Gardening Practices</option>
+                  <option value="other">Other Plant Questions</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Experience Level</label>
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+                  <label className="flex items-center min-h-[44px]">
+                    <input type="radio" name="experience" value="beginner" className="mr-3 text-green-600 w-4 h-4" />
+                    <span className="text-sm">Beginner Plant Parent</span>
+                  </label>
+                  <label className="flex items-center min-h-[44px]">
+                    <input type="radio" name="experience" value="intermediate" className="mr-3 text-green-600 w-4 h-4" />
+                    <span className="text-sm">Some Experience</span>
+                  </label>
+                  <label className="flex items-center min-h-[44px]">
+                    <input type="radio" name="experience" value="advanced" className="mr-3 text-green-600 w-4 h-4" />
+                    <span className="text-sm">Advanced Gardener</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Tell us about your plant question or concern *</label>
+                <textarea 
+                  required 
+                  rows={5} 
+                  className="w-full px-4 py-4 border rounded-lg focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-colors resize-none text-base"
+                  placeholder="Describe your plants, growing conditions, specific problems, or questions you'd like our experts to help with..."
+                ></textarea>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Preferred Contact Method</label>
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+                  <label className="flex items-center min-h-[44px]">
+                    <input type="checkbox" name="contact-method" value="email" className="mr-3 text-green-600 w-4 h-4" />
+                    <span className="text-sm">Email Response</span>
+                  </label>
+                  <label className="flex items-center min-h-[44px]">
+                    <input type="checkbox" name="contact-method" value="phone" className="mr-3 text-green-600 w-4 h-4" />
+                    <span className="text-sm">Phone Consultation</span>
+                  </label>
+                  <label className="flex items-center min-h-[44px]">
+                    <input type="checkbox" name="contact-method" value="video" className="mr-3 text-green-600 w-4 h-4" />
+                    <span className="text-sm">Video Consultation</span>
+                  </label>
+                </div>
+              </div>
+              
+              <button 
+                type="submit" 
+                className="w-full bg-green-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-green-700 transition-colors focus:ring-2 focus:ring-green-500/50 focus:outline-none min-h-[48px] text-base"
+              >
+                Request Plant Care Consultation
+              </button>
+              
+              <p className="text-xs text-gray-500 text-center">
+                * Required fields. We typically respond within 24 hours during business days.
+              </p>
+            </form>
+          </div>
+          
+          {/* Contact Information */}
+          <div className="space-y-8">
+            {/* Expert Availability */}
+            <div className="bg-white rounded-xl p-8 border">
+              <h2 className="text-2xl font-bold mb-6">Expert Availability</h2>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-lg mb-3">Plant Care Consultations</h3>
+                  <div className="space-y-2 text-gray-600">
+                    <p>• Email responses within 24 hours</p>
+                    <p>• Phone consultations: Mon-Fri 9AM-5PM</p>
+                    <p>• Video consultations: By appointment</p>
+                    <p>• Emergency plant care: Same-day response</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold text-lg mb-3">Specialist Expertise</h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {teamMembers.map((member) => (
+                      <div key={member.id} className="p-4 bg-green-50 rounded-lg">
+                        <h4 className="font-semibold text-sm">{member.name}</h4>
+                        <p className="text-xs text-gray-600">{member.specialization}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Store Information - Lazy Loaded */}
+            <ViewportLazyLoad
+              fallback={<StoreInfoSkeleton />}
+              delay={200}
+            >
+              <div className="bg-white rounded-xl p-8 border">
+                <h2 className="text-2xl font-bold mb-6">Visit Our Plant Shop</h2>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5">📍</div>
+                    <div>
+                      <h3 className="font-semibold">Location</h3>
+                      <p className="text-gray-600">
+                        {BUSINESS_INFO.address.streetAddress}<br/>
+                        {BUSINESS_INFO.address.addressLocality}, {BUSINESS_INFO.address.addressRegion} {BUSINESS_INFO.address.postalCode}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5">🕒</div>
+                    <div>
+                      <h3 className="font-semibold">Store Hours</h3>
+                      <div className="text-gray-600 space-y-1">
+                        <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
+                        <p>Saturday: 9:00 AM - 5:00 PM</p>
+                        <p>Sunday: 11:00 AM - 4:00 PM</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5">📞</div>
+                    <div>
+                      <h3 className="font-semibold">Phone</h3>
+                      <p className="text-gray-600">{BUSINESS_INFO.telephone}</p>
+                      <p className="text-xs text-gray-500 mt-1">Call for urgent plant care questions</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5">📧</div>
+                    <div>
+                      <h3 className="font-semibold">Email</h3>
+                      <p className="text-gray-600">{BUSINESS_INFO.email}</p>
+                      <p className="text-xs text-gray-500 mt-1">For general inquiries and consultations</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ViewportLazyLoad>
+            
+            {/* Services Overview */}
+            <div className="bg-green-50 rounded-xl p-8 border border-green-100">
+              <h2 className="text-2xl font-bold mb-6 text-green-800">Plant Care Services</h2>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                  <span className="text-sm">One-on-one plant care consultations</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                  <span className="text-sm">Plant health diagnosis and treatment plans</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                  <span className="text-sm">Custom plant selection for your space</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                  <span className="text-sm">Repotting and plant maintenance services</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                  <span className="text-sm">Sustainable gardening workshops</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                  <span className="text-sm">Indoor air quality plant recommendations</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* FAQ Section - Lazy Loaded */}
+        <ViewportLazyLoad
+          fallback={<FAQSectionSkeleton />}
+          delay={300}
+        >
+          <FAQSectionErrorBoundary>
+            <section>
+              <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                <div className="space-y-6">
+                  <div className="bg-white p-6 rounded-xl border">
+                    <h3 className="font-bold mb-3">How quickly do you respond to plant emergencies?</h3>
+                    <p className="text-gray-600 text-sm">We prioritize urgent plant care questions and typically respond within 2-4 hours during business hours. For critical plant health issues, call our emergency line.</p>
+                  </div>
+                  
+                  <div className="bg-white p-6 rounded-xl border">
+                    <h3 className="font-bold mb-3">Do you offer in-home plant consultations?</h3>
+                    <p className="text-gray-600 text-sm">Yes! Our certified horticulturists provide in-home consultations for plant care, selection, and indoor garden design. Contact us to schedule an appointment.</p>
+                  </div>
+                  
+                  <div className="bg-white p-6 rounded-xl border">
+                    <h3 className="font-bold mb-3">What should I include in my plant care question?</h3>
+                    <p className="text-gray-600 text-sm">Photos of your plant, details about lighting conditions, watering schedule, and any symptoms you've noticed. The more information, the better we can help!</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="bg-white p-6 rounded-xl border">
+                    <h3 className="font-bold mb-3">Are your consultations free?</h3>
+                    <p className="text-gray-600 text-sm">Basic email advice is complimentary for our customers. Phone and video consultations have nominal fees, with detailed pricing available upon request.</p>
+                  </div>
+                  
+                  <div className="bg-white p-6 rounded-xl border">
+                    <h3 className="font-bold mb-3">Can you help identify unknown plants?</h3>
+                    <p className="text-gray-600 text-sm">Absolutely! Our botanists excel at plant identification. Send clear photos of leaves, stems, and overall plant structure for accurate identification.</p>
+                  </div>
+                  
+                  <div className="bg-white p-6 rounded-xl border">
+                    <h3 className="font-bold mb-3">Do you provide plant care plans?</h3>
+                    <p className="text-gray-600 text-sm">Yes, we create customized care plans based on your specific plants, living conditions, and experience level. These include seasonal adjustments and troubleshooting guides.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </FAQSectionErrorBoundary>
+        </ViewportLazyLoad>
+      </div>
+    </SiteRenderer>
+  )
+}
+
+async function ProductsPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <div className="brand-container py-12">
+        <h1 className="text-4xl font-bold mb-8">All Products</h1>
+        <ProductCatalog />
+      </div>
+    </SiteRenderer>
+  )
+}
+
+async function CartPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <div className="brand-container py-12">
+        <h1 className="text-4xl font-bold mb-8">Shopping Cart</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            {/* Cart items would be displayed here */}
+            <p className="text-gray-500">Your cart items will appear here</p>
+          </div>
+          <div>
+            {/* Order summary */}
+            <div className="border rounded-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+              {/* Summary details */}
+            </div>
+          </div>
+        </div>
+      </div>
+    </SiteRenderer>
+  )
+}
+
+async function CheckoutPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <div className="brand-container py-12">
+        <h1 className="text-4xl font-bold mb-8">Checkout</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Billing Information</h2>
+            {/* Checkout form */}
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+            {/* Order details */}
+          </div>
+        </div>
+      </div>
+    </SiteRenderer>
+  )
+}
+
+async function AccountPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <div className="brand-container py-12">
+        <h1 className="text-4xl font-bold mb-8">My Account</h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-1">
+            {/* Account navigation */}
+            <nav className="space-y-2">
+              <a href="/account" className="block p-3 rounded-md bg-gray-100">Profile</a>
+              <a href="/account/orders" className="block p-3 rounded-md hover:bg-gray-50">Orders</a>
+              <a href="/account/addresses" className="block p-3 rounded-md hover:bg-gray-50">Addresses</a>
+              <a href="/account/settings" className="block p-3 rounded-md hover:bg-gray-50">Settings</a>
+            </nav>
+          </div>
+          <div className="md:col-span-2">
+            {/* Account content */}
+            <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
+            {/* Profile details */}
+          </div>
+        </div>
+      </div>
+    </SiteRenderer>
+  )
+}
+
+async function OrdersPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <div className="brand-container py-12">
+        <h1 className="text-4xl font-bold mb-8">My Orders</h1>
+        {/* Orders list */}
+        <p className="text-gray-500">Your order history will appear here</p>
+      </div>
+    </SiteRenderer>
+  )
+}
+
+async function ProductDetailPage({ slug }: { slug: string }) {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <div className="brand-container py-12">
+        {/* Product details would be fetched based on slug */}
+        <h1 className="text-4xl font-bold mb-8">Product: {slug}</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            {/* Product images */}
+          </div>
+          <div>
+            {/* Product info and add to cart */}
+          </div>
+        </div>
+      </div>
+    </SiteRenderer>
+  )
+}
+
+async function CategoryPage({ slug }: { slug: string }) {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <div className="brand-container py-12">
+        <h1 className="text-4xl font-bold mb-8">Category: {slug}</h1>
+        <ProductCatalog categoryId={slug} />
+      </div>
+    </SiteRenderer>
+  )
+}
+
+async function PrivacyPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  // Generate structured data for this page
+  const structuredDataScripts = generateStructuredData('privacy')
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      {/* Structured Data */}
+      {structuredDataScripts.map((script, index) => (
+        <script
+          key={index}
+          type={script.type}
+          dangerouslySetInnerHTML={{ __html: script.children }}
+        />
+      ))}
+      
+      <div className="brand-container py-12">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
+          
+          <div className="prose max-w-none space-y-8">
+            <div className="text-sm text-gray-600 mb-8">
+              <p><strong>Last Updated:</strong> {new Date().toLocaleDateString()}</p>
+            </div>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Introduction</h2>
+              <p className="mb-4">
+                At Brands in Blooms, we are committed to protecting your privacy and ensuring the security of your personal information. 
+                This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, 
+                purchase plants from our shop, or use our plant care consultation services.
+              </p>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Information We Collect</h2>
+              
+              <h3 className="text-xl font-medium mb-3">Personal Information</h3>
+              <p className="mb-4">We may collect the following personal information:</p>
+              <ul className="list-disc list-inside mb-4 space-y-2">
+                <li>Name, email address, and phone number for account creation and order processing</li>
+                <li>Billing and shipping addresses for plant deliveries</li>
+                <li>Payment information (processed securely through third-party payment processors)</li>
+                <li>Plant care preferences and consultation notes to provide personalized advice</li>
+                <li>Communication preferences for our plant care newsletter and updates</li>
+              </ul>
+              
+              <h3 className="text-xl font-medium mb-3">Plant Care Information</h3>
+              <ul className="list-disc list-inside mb-4 space-y-2">
+                <li>Information about your living space (lighting, humidity, temperature) for plant recommendations</li>
+                <li>Your plant care experience level and preferences</li>
+                <li>Photos of your plants (when shared for consultation purposes)</li>
+                <li>Plant care questions and consultation history</li>
+              </ul>
+              
+              <h3 className="text-xl font-medium mb-3">Automatic Information</h3>
+              <ul className="list-disc list-inside mb-4 space-y-2">
+                <li>IP address, browser type, and device information</li>
+                <li>Website usage data and page views</li>
+                <li>Cookies and similar tracking technologies</li>
+              </ul>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">How We Use Your Information</h2>
+              <p className="mb-4">We use your information to:</p>
+              <ul className="list-disc list-inside mb-4 space-y-2">
+                <li>Process and fulfill your plant orders and deliveries</li>
+                <li>Provide personalized plant care advice and consultations</li>
+                <li>Send you plant care tips, seasonal guidance, and care reminders</li>
+                <li>Communicate about your orders, appointments, and account</li>
+                <li>Improve our website, products, and plant care services</li>
+                <li>Prevent fraud and ensure the security of transactions</li>
+                <li>Comply with legal obligations and resolve disputes</li>
+              </ul>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Information Sharing</h2>
+              <p className="mb-4">We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:</p>
+              <ul className="list-disc list-inside mb-4 space-y-2">
+                <li><strong>Service Providers:</strong> With trusted partners who help us deliver plants, process payments, or provide technical services</li>
+                <li><strong>Plant Care Partners:</strong> With certified plant specialists who assist in providing consultation services</li>
+                <li><strong>Legal Requirements:</strong> When required by law or to protect our rights and safety</li>
+                <li><strong>Business Transfers:</strong> In connection with a merger, sale, or transfer of our business</li>
+              </ul>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Data Security</h2>
+              <p className="mb-4">
+                We implement appropriate security measures to protect your personal information against unauthorized access, 
+                alteration, disclosure, or destruction. This includes encrypted data transmission, secure servers, and regular 
+                security assessments. However, no method of transmission over the internet is 100% secure.
+              </p>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Your Rights and Choices</h2>
+              <p className="mb-4">You have the right to:</p>
+              <ul className="list-disc list-inside mb-4 space-y-2">
+                <li>Access, update, or delete your personal information</li>
+                <li>Opt-out of marketing communications while still receiving order updates</li>
+                <li>Request information about how your data is used</li>
+                <li>Withdraw consent for plant care consultations</li>
+                <li>Request data portability for your plant care records</li>
+              </ul>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Cookies and Tracking</h2>
+              <p className="mb-4">
+                We use cookies to enhance your browsing experience, remember your preferences, and analyze website traffic. 
+                You can control cookie settings through your browser, but disabling cookies may affect website functionality.
+              </p>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Third-Party Links</h2>
+              <p className="mb-4">
+                Our website may contain links to plant care resources, partner nurseries, or other third-party sites. 
+                We are not responsible for the privacy practices of these external sites.
+              </p>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Children's Privacy</h2>
+              <p className="mb-4">
+                Our services are not intended for children under 13. We do not knowingly collect personal information 
+                from children under 13 years of age.
+              </p>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Changes to This Policy</h2>
+              <p className="mb-4">
+                We may update this Privacy Policy periodically. We will notify you of any material changes by posting 
+                the new policy on our website and updating the "Last Updated" date.
+              </p>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Contact Us</h2>
+              <p className="mb-4">
+                If you have questions about this Privacy Policy or our data practices, please contact us:
+              </p>
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <p><strong>Brands in Blooms</strong></p>
+                <p>123 Garden Street</p>
+                <p>Plant City, FL 33563</p>
+                <p>Email: privacy@brandsinblooms.com</p>
+                <p>Phone: +1-555-PLANTS</p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </SiteRenderer>
+  )
+}
+
+async function TermsPage() {
+  const headersList = await headers()
+  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  
+  // Generate structured data for this page
+  const structuredDataScripts = generateStructuredData('terms')
+  
+  return (
+    <SiteRenderer 
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      {/* Structured Data */}
+      {structuredDataScripts.map((script, index) => (
+        <script
+          key={index}
+          type={script.type}
+          dangerouslySetInnerHTML={{ __html: script.children }}
+        />
+      ))}
+      
+      <div className="brand-container py-12">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
+          
+          <div className="prose max-w-none space-y-8">
+            <div className="text-sm text-gray-600 mb-8">
+              <p><strong>Last Updated:</strong> {new Date().toLocaleDateString()}</p>
+            </div>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Introduction</h2>
+              <p className="mb-4">
+                Welcome to Brands in Blooms. These Terms of Service ("Terms") govern your use of our website, 
+                plant products, and plant care services. By accessing our website or purchasing our products, 
+                you agree to be bound by these Terms.
+              </p>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Plant Products and Services</h2>
+              
+              <h3 className="text-xl font-medium mb-3">Product Descriptions</h3>
+              <p className="mb-4">
+                We strive to provide accurate descriptions of our plants, including care requirements, size, and growing conditions. 
+                However, plants are living organisms and may vary in appearance, size, and growth patterns.
+              </p>
+              
+              <h3 className="text-xl font-medium mb-3">Plant Care Services</h3>
+              <p className="mb-4">Our plant care services include:</p>
+              <ul className="list-disc list-inside mb-4 space-y-2">
+                <li>Personalized plant care consultations</li>
+                <li>Plant health assessments and recommendations</li>
+                <li>Ongoing care guidance and support</li>
+                <li>Seasonal plant care workshops</li>
+                <li>Emergency plant care assistance</li>
+              </ul>
+            </section>
+            
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Contact Information</h2>
+              <p className="mb-4">
+                If you have questions about these Terms of Service, please contact us:
+              </p>
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <p><strong>Brands in Blooms</strong></p>
+                <p>123 Garden Street</p>
+                <p>Plant City, FL 33563</p>
+                <p>Email: legal@brandsinblooms.com</p>
+                <p>Phone: +1-555-PLANTS</p>
+                <p>Customer Service Hours: Monday-Friday 9AM-6PM EST</p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </SiteRenderer>
+  )
+}
