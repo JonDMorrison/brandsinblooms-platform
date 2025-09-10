@@ -123,7 +123,7 @@ railway logs --tail
 1. **Environment**: Automatically switches to staging
 2. **Health Check**: Validates deployment success
 3. **Rollback**: Automatic rollback on failure
-4. **URL**: `*.staging.blooms.cc`
+4. **URL**: Configured via `NEXT_PUBLIC_APP_DOMAIN` environment variable
 
 ### Production Deployment
 1. **Pre-checks**: Validates environment and build

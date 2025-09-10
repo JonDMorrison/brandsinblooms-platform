@@ -102,8 +102,7 @@ export function SiteProvider({
       const isMainDomain = hostname === appDomain || 
                           hostname.endsWith('.vercel.app') || 
                           hostname.endsWith('.railway.app') ||
-                          hostname === 'localhost' ||
-                          hostname === 'staging.blooms.cc'
+                          hostname === 'localhost'
                           
       if (isMainDomain) {
         setSiteResolution(null)
