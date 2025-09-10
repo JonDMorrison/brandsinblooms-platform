@@ -87,6 +87,21 @@ export async function middleware(request: NextRequest) {
     const hostname = extractHostname(request)
     const pathname = request.nextUrl.pathname
     
+    // Debug logging for environment variables and request details
+    console.log('[MIDDLEWARE DEBUG]', {
+      hostname,
+      pathname,
+      requestUrl: request.url,
+      nextUrl: request.nextUrl.toString(),
+      APP_DOMAIN: process.env.NEXT_PUBLIC_APP_DOMAIN,
+      NODE_ENV: process.env.NODE_ENV,
+      headers: {
+        'x-forwarded-host': request.headers.get('x-forwarded-host'),
+        'x-original-host': request.headers.get('x-original-host'),
+        'host': request.headers.get('host')
+      }
+    })
+    
     // Admin routes bypass ALL checks (authentication and domain resolution)
     if (pathname.startsWith('/admin')) {
       return handleAdminRoute(request)
