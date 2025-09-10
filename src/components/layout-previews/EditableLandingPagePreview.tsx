@@ -2,7 +2,7 @@
 
 import { Card } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
-import { Star, ArrowRight } from 'lucide-react'
+import { Star, ArrowRight, Flower, Leaf, TreePine } from 'lucide-react'
 import { PageContent, LegacyContent, isPageContent, ContentSection } from '@/src/lib/content/schema'
 import { DynamicSection } from '@/src/components/preview/DynamicSection'
 import { getLayoutSections, convertLegacyContent, getSpacingClass } from '@/src/lib/preview/section-renderers'
@@ -11,6 +11,7 @@ import { useIsInlineEditEnabled } from '@/contexts/EditModeContext'
 import React, { memo, useCallback } from 'react'
 import { SiteThemeProvider, ThemeWrapper } from '@/components/theme/ThemeProvider'
 import { useSiteTheme } from '@/hooks/useSiteTheme'
+import { PlantProductImage, CareGuideImage } from '@/src/components/ui/plant-shop-image'
 
 interface EditableLandingPagePreviewProps {
   title?: string
@@ -93,11 +94,12 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
           
           {/* Render additional content if present (but avoid duplicating title/subtitle) */}
           {sectionData.content && 
-           String(sectionData.content) !== '' &&
-           String(sectionData.content) !== title &&
-           String(sectionData.content) !== 'Welcome to Dev Site' ? (
+           typeof sectionData.content === 'string' &&
+           sectionData.content !== '' &&
+           sectionData.content !== title &&
+           sectionData.content !== 'Welcome to Dev Site' ? (
             <InlineTextEditor
-              content={String(sectionData.content || '')}
+              content={sectionData.content}
               onUpdate={(value) => handleSectionUpdate(key, 'content', value)}
               isEnabled={isInlineEditEnabled && !!onContentChange}
               fieldPath={`sections.${key}.data.content`}
@@ -230,50 +232,214 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
           />
         </div>
         
-        {/* Default features for legacy content */}
-        <div 
-          className="grid gap-4"
-          style={{
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))'
-          }}
-        >
-          {[
-            { title: 'Feature One', desc: 'Amazing capability' },
-            { title: 'Feature Two', desc: 'Powerful tools' },
-            { title: 'Feature Three', desc: 'Easy to use' }
-          ].map((feature, i) => (
-            <Card key={i} className="p-4 text-center bg-white border-gray-200">
-              <div 
-                className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
-                style={{
-                  backgroundColor: theme?.colors?.accent ? `${theme.colors.accent}20` : 'var(--theme-accent, #F59E0B)20'
-                }}
-              >
-                <Star 
-                  className="h-6 w-6" 
-                  style={{ color: theme?.colors?.accent || 'var(--theme-accent, #F59E0B)' }}
-                />
-              </div>
-              <h3 
-                className="font-semibold mb-2"
-                style={{ 
-                  color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
-                  fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
-                }}
-              >
-                {feature.title}
-              </h3>
-              <p 
-                className="text-sm"
-                style={{ 
-                  color: theme?.colors?.text || 'var(--theme-text, #666666)',
-                  fontFamily: `${theme?.typography?.bodyFont || 'Inter'}, system-ui, sans-serif`
-                }}
-              >
-                {feature.desc}
-              </p>
-            </Card>
-          ))}
+        {/* Featured plants section for plant shop */}
+        <div className="space-y-6">
+          <h2 
+            className="text-2xl font-bold text-center"
+            style={{ 
+              color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+              fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
+            }}
+          >
+            Featured Plants
+          </h2>
+          
+          <div 
+            className="grid gap-6"
+            style={{
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))'
+            }}
+          >
+            {[
+              { 
+                title: 'Peace Lily', 
+                desc: 'Beautiful flowering plant perfect for beginners',
+                type: 'flower' as const,
+                plantInfo: {
+                  commonName: 'Peace Lily',
+                  scientificName: 'Spathiphyllum wallisii',
+                  careDifficulty: 'beginner' as const,
+                  lightRequirement: 'medium' as const,
+                  waterFrequency: 'medium' as const,
+                  petSafe: false,
+                  size: 'medium' as const
+                },
+                imageSrc: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=400&q=80'
+              },
+              { 
+                title: 'Rubber Tree', 
+                desc: 'Glossy leaves and easy care make this a favorite',
+                type: 'tree' as const,
+                plantInfo: {
+                  commonName: 'Rubber Tree',
+                  scientificName: 'Ficus elastica',
+                  careDifficulty: 'beginner' as const,
+                  lightRequirement: 'bright' as const,
+                  waterFrequency: 'low' as const,
+                  petSafe: false,
+                  size: 'large' as const
+                },
+                imageSrc: 'https://images.unsplash.com/photo-1545484331-0b8cfee2f5b8?auto=format&fit=crop&w=400&q=80'
+              },
+              { 
+                title: 'Snake Plant', 
+                desc: 'Low maintenance succulent for any space',
+                type: 'succulent' as const,
+                plantInfo: {
+                  commonName: 'Snake Plant',
+                  scientificName: 'Sansevieria trifasciata',
+                  careDifficulty: 'beginner' as const,
+                  lightRequirement: 'low' as const,
+                  waterFrequency: 'low' as const,
+                  petSafe: false,
+                  size: 'medium' as const
+                },
+                imageSrc: 'https://images.unsplash.com/photo-1593482892540-3b8a94b2e019?auto=format&fit=crop&w=400&q=80'
+              }
+            ].map((plant, i) => (
+              <Card key={i} className="overflow-hidden bg-white border-gray-200 hover:shadow-lg transition-shadow">
+                <div className="aspect-[4/3] relative">
+                  <PlantProductImage
+                    src={plant.imageSrc}
+                    alt={`${plant.title} - ${plant.desc}`}
+                    plantType={plant.type}
+                    plantInfo={plant.plantInfo}
+                    width={400}
+                    height={300}
+                    className="w-full h-full"
+                    priority={i === 0} // First image has priority
+                    isFeatured={true}
+                    showCareIndicators={true}
+                  />
+                </div>
+                
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    {plant.type === 'flower' && <Flower className="h-4 w-4 text-pink-500" />}
+                    {plant.type === 'tree' && <TreePine className="h-4 w-4 text-green-600" />}
+                    {plant.type === 'succulent' && <Leaf className="h-4 w-4 text-green-500" />}
+                    <h3 
+                      className="font-semibold"
+                      style={{ 
+                        color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+                        fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
+                      }}
+                    >
+                      {plant.title}
+                    </h3>
+                  </div>
+                  
+                  <p 
+                    className="text-sm"
+                    style={{ 
+                      color: theme?.colors?.text || 'var(--theme-text, #666666)',
+                      fontFamily: `${theme?.typography?.bodyFont || 'Inter'}, system-ui, sans-serif`
+                    }}
+                  >
+                    {plant.desc}
+                  </p>
+                  
+                  <div className="flex gap-2 text-xs">
+                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                      {plant.plantInfo.careDifficulty} friendly
+                    </span>
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                      {plant.plantInfo.lightRequirement} light
+                    </span>
+                  </div>
+                  
+                  <Button
+                    className="w-full mt-3"
+                    variant="outline"
+                    style={{
+                      borderColor: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+                      color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)'
+                    }}
+                  >
+                    Learn More
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+        
+        {/* Plant care guide section */}
+        <div className="space-y-6">
+          <h2 
+            className="text-2xl font-bold text-center"
+            style={{ 
+              color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+              fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
+            }}
+          >
+            Plant Care Made Easy
+          </h2>
+          
+          <div 
+            className="grid gap-4"
+            style={{
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))'
+            }}
+          >
+            {[
+              { 
+                title: 'Watering Guide', 
+                desc: 'Learn when and how to water your plants',
+                icon: '💧',
+                careType: 'watering'
+              },
+              { 
+                title: 'Light Requirements', 
+                desc: 'Find the perfect spot for your green friends',
+                icon: '☀️',
+                careType: 'lighting'
+              },
+              { 
+                title: 'Plant Food', 
+                desc: 'Nutrition tips for healthy growth',
+                icon: '🌱',
+                careType: 'feeding'
+              }
+            ].map((guide, i) => (
+              <Card key={i} className="p-4 text-center bg-white border-gray-200 hover:shadow-md transition-shadow">
+                <div className="aspect-square relative mb-3 overflow-hidden rounded-lg">
+                  <CareGuideImage
+                    src={`https://images.unsplash.com/photo-${['1416879595882-3373a0480b5b', '1545484331-0b8cfee2f5b8', '1593482892540-3b8a94b2e019'][i]}?auto=format&fit=crop&w=200&q=80`}
+                    alt={`${guide.title} care guide`}
+                    careGuideType={guide.careType}
+                    width={200}
+                    height={200}
+                    className="w-full h-full"
+                    loading="lazy"
+                  />
+                </div>
+                
+                <div className="text-2xl mb-2" aria-hidden="true">
+                  {guide.icon}
+                </div>
+                
+                <h3 
+                  className="font-semibold mb-2"
+                  style={{ 
+                    color: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
+                    fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
+                  }}
+                >
+                  {guide.title}
+                </h3>
+                <p 
+                  className="text-sm"
+                  style={{ 
+                    color: theme?.colors?.text || 'var(--theme-text, #666666)',
+                    fontFamily: `${theme?.typography?.bodyFont || 'Inter'}, system-ui, sans-serif`
+                  }}
+                >
+                  {guide.desc}
+                </p>
+              </Card>
+            ))}
+          </div>
         </div>
 
         {/* Default call to action for legacy content */}

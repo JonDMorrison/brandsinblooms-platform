@@ -18,6 +18,7 @@ import {
 import { PageContent, LegacyContent, isPageContent } from '@/src/lib/content/schema'
 import { DynamicSection } from '@/src/components/preview/DynamicSection'
 import { getLayoutSections, convertLegacyContent, getSpacingClass } from '@/src/lib/preview/section-renderers'
+import { LocationImage, PlantProductImage } from '@/src/components/ui/plant-shop-image'
 
 interface ContactServicesPreviewProps {
   title?: string
@@ -214,14 +215,76 @@ export function ContactServicesPreview({ title, subtitle, content }: ContactServ
               </Card>
             )}
 
-            {/* Map Placeholder */}
+            {/* Store Location */}
             <Card className="p-6 bg-white border-gray-200">
               <h2 className="text-xl font-bold mb-4 text-gray-900">Find Us</h2>
-              <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                  <span className="text-gray-600">Interactive Map</span>
+              <div className="aspect-video overflow-hidden rounded-lg mb-4">
+                <LocationImage
+                  src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80"
+                  alt="Plant shop storefront with outdoor plant displays and green awning"
+                  locationName="Plant Shop Storefront"
+                  width={600}
+                  height={338}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+              <div className="text-center">
+                <p className="text-gray-600 mb-2">
+                  Visit us at our beautiful storefront location
+                </p>
+                <div className="flex items-center justify-center gap-2 text-blue-600">
+                  <MapPin className="h-4 w-4" />
+                  <span className="text-sm">123 Garden Street, Plant City</span>
                 </div>
+              </div>
+            </Card>
+            
+            {/* Plant Services */}
+            <Card className="p-6 bg-white border-gray-200">
+              <h2 className="text-xl font-bold mb-4 text-gray-900">Our Services</h2>
+              <div className="space-y-4">
+                {[
+                  {
+                    service: 'Plant Care Consultation',
+                    desc: 'Expert advice for keeping your plants healthy',
+                    icon: <Flower className="h-5 w-5 text-pink-500" />,
+                    imageSrc: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=100&q=80'
+                  },
+                  {
+                    service: 'Plant Delivery',
+                    desc: 'We deliver plants straight to your door',
+                    icon: <Gift className="h-5 w-5 text-green-500" />,
+                    imageSrc: 'https://images.unsplash.com/photo-1545484331-0b8cfee2f5b8?auto=format&fit=crop&w=100&q=80'
+                  },
+                  {
+                    service: 'Garden Design',
+                    desc: 'Custom outdoor and indoor garden planning',
+                    icon: <Heart className="h-5 w-5 text-red-500" />,
+                    imageSrc: 'https://images.unsplash.com/photo-1593482892540-3b8a94b2e019?auto=format&fit=crop&w=100&q=80'
+                  }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                      <PlantProductImage
+                        src={item.imageSrc}
+                        alt={`${item.service} illustration`}
+                        plantType="plant"
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        {item.icon}
+                        <h3 className="font-semibold text-gray-900">{item.service}</h3>
+                      </div>
+                      <p className="text-sm text-gray-600">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </Card>
           </div>

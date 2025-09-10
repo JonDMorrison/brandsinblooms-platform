@@ -5,6 +5,7 @@ import { MapPin, Users, Award, Heart } from 'lucide-react'
 import { PageContent, LegacyContent, isPageContent } from '@/src/lib/content/schema'
 import { DynamicSection } from '@/src/components/preview/DynamicSection'
 import { getLayoutSections, convertLegacyContent, getSpacingClass } from '@/src/lib/preview/section-renderers'
+import { TeamMemberPhoto, LocationImage } from '@/src/components/ui/plant-shop-image'
 
 interface AboutCompanyPreviewProps {
   title?: string
@@ -71,8 +72,16 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
               </div>
             </div>
           </div>
-          <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center w-full">
-            <span className="text-gray-600">Company Image</span>
+          <div className="aspect-video w-full overflow-hidden rounded-lg">
+            <LocationImage
+              src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80"
+              alt="Plant shop interior with beautiful plants and natural lighting"
+              locationName="Plant Shop Interior"
+              width={800}
+              height={450}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
           </div>
         </div>
 
@@ -103,19 +112,45 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
         <div>
           <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">Meet Our Team</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {['Team Member', 'Team Member', 'Team Member'].map((name, i) => (
-              <Card key={i} className="p-4 text-center">
-                <Avatar className="w-16 h-16 mx-auto mb-3">
-                  <AvatarFallback className="text-lg">
-                    TM
-                  </AvatarFallback>
-                </Avatar>
-                <h3 className="font-semibold mb-1 text-gray-900">{name} {i + 1}</h3>
-                <Badge variant="outline" className="mb-2">
-                  Role
+            {[
+              {
+                name: 'Sarah Green',
+                role: 'Plant Care Specialist',
+                bio: 'With 8 years of experience, Sarah helps customers find the perfect plants for their homes.',
+                imageSrc: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?auto=format&fit=crop&w=200&q=80'
+              },
+              {
+                name: 'Mike Thompson',
+                role: 'Store Manager',
+                bio: 'Mike oversees daily operations and ensures every customer has a wonderful experience.',
+                imageSrc: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80'
+              },
+              {
+                name: 'Emma Rodriguez',
+                role: 'Landscape Designer',
+                bio: 'Emma creates beautiful outdoor spaces and provides expert gardening consultations.',
+                imageSrc: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80'
+              }
+            ].map((member, i) => (
+              <Card key={i} className="p-4 text-center hover:shadow-lg transition-shadow">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden">
+                  <TeamMemberPhoto
+                    src={member.imageSrc}
+                    alt={`${member.name}, ${member.role} at the plant shop`}
+                    personName={member.name}
+                    width={80}
+                    height={80}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+                
+                <h3 className="font-semibold mb-1 text-gray-900">{member.name}</h3>
+                <Badge variant="outline" className="mb-3 text-green-700 border-green-200">
+                  {member.role}
                 </Badge>
-                <p className="text-sm text-gray-600">
-                  Add team member information using the content editor to showcase your talented team.
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {member.bio}
                 </p>
               </Card>
             ))}
