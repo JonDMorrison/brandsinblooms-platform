@@ -7,7 +7,7 @@ import { SiteNavigation } from '@/src/components/site/SiteNavigation'
 import { SiteFooter } from '@/src/components/site/SiteFooter'
 import { SiteThemeProvider, ThemeWrapper } from '@/src/components/theme/ThemeProvider'
 import { useThemeCSS } from '@/src/hooks/useThemeCSS'
-import { Flower, AlertCircle } from 'lucide-react'
+import { Flower, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import Link from 'next/link'
@@ -74,10 +74,9 @@ function SiteLayoutLoading() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="flex items-center space-x-3">
-        <div className="flex items-center justify-center w-8 h-8 bg-gradient-primary rounded">
-          <Flower className="h-4 w-4 text-white animate-spin" />
+        <div className="flex items-center justify-center w-10 h-10 bg-transparent rounded">
+          <Flower className="h-6 w-6 animate-spin" style={{color: 'var(--theme-primary, #10b981)'}} />
         </div>
-        <span className="text-sm text-gray-500">Loading site...</span>
       </div>
     </div>
   )

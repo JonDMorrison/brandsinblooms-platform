@@ -54,17 +54,18 @@ export async function HomePage() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
                   <a 
                     href={(heroBlock.content as any).ctaLink}
-                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 text-white hover:opacity-90"
-                    style={{backgroundColor: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}
+                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
+                    style={{backgroundColor: 'var(--theme-primary)', color: '#fff', fontFamily: 'var(--theme-font-body)'}}
                   >
                     {(heroBlock.content as any).ctaText}
                   </a>
                   <a 
                     href={(heroBlock.content as any).secondaryCtaLink}
-                    className="border-2 px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:text-white"
+                    className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
                     style={{
-                      borderColor: 'var(--theme-primary)',
-                      color: 'var(--theme-primary)',
+                      borderColor: 'var(--theme-secondary)',
+                      color: 'var(--theme-secondary)',
+                      backgroundColor: 'transparent',
                       fontFamily: 'var(--theme-font-body)',
                     }}
                   >
@@ -156,7 +157,7 @@ export async function HomePage() {
                       <button 
                         className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
                           plant.inStock 
-                            ? 'text-white hover:opacity-90' 
+                            ? 'text-white hover:opacity-90 cursor-pointer' 
                             : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                         }`}
                         style={plant.inStock ? {backgroundColor: 'var(--theme-primary)'} : {}}
@@ -192,30 +193,32 @@ export async function HomePage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                   {[
-                    { name: 'Beginner-Friendly', plants: beginnerPlants, image: '/api/placeholder/300/200/icon', description: 'Easy-care plants perfect for new plant parents' },
-                    { name: 'Houseplants', plants: houseplants, image: '/api/placeholder/300/200/icon', description: 'Beautiful indoor plants for every room' },
-                    { name: 'Outdoor Plants', plants: outdoorPlants, image: '/api/placeholder/300/200/icon', description: 'Hardy plants for gardens and patios' },
-                    { name: 'Succulents', plants: succulents, image: '/api/placeholder/300/200/icon', description: 'Low-maintenance desert beauties' }
+                    { name: 'Beginner-Friendly', plants: beginnerPlants, description: 'Easy-care plants perfect for new plant parents' },
+                    { name: 'Houseplants', plants: houseplants, description: 'Beautiful indoor plants for every room' },
+                    { name: 'Outdoor Plants', plants: outdoorPlants, description: 'Hardy plants for gardens and patios' },
+                    { name: 'Succulents', plants: succulents, description: 'Low-maintenance desert beauties' }
                   ].map((category, index) => (
-                    <div key={`category-${category.name}-${index}`} className="group cursor-pointer">
-                      <div className="relative overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-all duration-300">
-                        <div className="aspect-w-4 aspect-h-3 bg-gray-200">
-                          <img 
-                            src={category.image} 
-                            alt={category.name}
-                            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-opacity"></div>
+                    <div key={`category-${category.name}-${index}`} className="group cursor-pointer h-full">
+                      <div className="relative overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+                        <div className="aspect-w-4 aspect-h-3 h-48 flex items-center justify-center" style={{backgroundColor: 'var(--theme-primary)', opacity: '0.1'}}>
+                          <div className="text-center p-4">
+                            <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{backgroundColor: 'var(--theme-primary)'}}>
+                              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm1 0v12h12V4H4z" clipRule="evenodd" />
+                                <path d="M9 9a2 2 0 114 0 2 2 0 01-4 0zM7 13l2-2 2 2 4-4v2l-4 4-2-2-2 2v-2z" />
+                              </svg>
+                            </div>
+                            <p className="text-sm font-medium" style={{color: 'var(--theme-primary)'}}>{category.name}</p>
+                          </div>
                         </div>
-                        <div className="p-6">
+                        <div className="p-6 flex flex-col flex-1">
                           <h3 className="text-xl font-semibold mb-2" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
                             {category.name}
                           </h3>
-                          <p className="text-sm mb-3" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
+                          <p className="text-sm mb-3 flex-1" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
                             {category.description}
                           </p>
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between mt-auto">
                             <span className="text-sm font-medium" style={{color: 'var(--theme-primary)'}}>
                               {category.plants.length} plants
                             </span>
@@ -252,13 +255,13 @@ export async function HomePage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 {((seasonalBlock.content as any).tips as string[]).map((tip, index) => (
-                  <div key={`seasonal-tip-${index}`} className="bg-gradient-to-br from-orange-50 to-yellow-50 p-6 rounded-lg border border-orange-100">
-                    <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mb-4">
+                  <div key={`seasonal-tip-${index}`} className="p-6 rounded-lg border" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.05)', borderColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{backgroundColor: 'var(--theme-primary)'}}>
                       <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <p className="text-sm font-medium text-orange-900">{tip}</p>
+                    <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{tip}</p>
                   </div>
                 ))}
               </div>
@@ -272,8 +275,8 @@ export async function HomePage() {
                   </p>
                   <a 
                     href={(seasonalBlock.content as any).guideLink}
-                    className="inline-flex items-center px-6 py-3 rounded-lg font-medium text-white transition-opacity hover:opacity-90"
-                    style={{backgroundColor: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}
+                    className="inline-flex items-center px-6 py-3 rounded-lg font-medium border transition-all duration-200 hover:opacity-80 cursor-pointer"
+                    style={{borderColor: 'var(--theme-secondary)', color: 'var(--theme-secondary)', backgroundColor: 'transparent', fontFamily: 'var(--theme-font-body)'}}
                   >
                     <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 0a1 1 0 100 2h.01a1 1 0 100-2H9zm2 0a1 1 0 100 2h.01a1 1 0 100-2H11z" clipRule="evenodd" />
@@ -308,18 +311,8 @@ export async function HomePage() {
                   {((careGuidesBlock.content as any).guides as any[]).map((guide, index) => (
                     <div key={`guide-${index}`} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                       <div className="p-6">
-                        <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-4 ${
-                          guide.category === 'general' ? 'bg-green-100' :
-                          guide.category === 'seasonal' ? 'bg-orange-100' :
-                          guide.category === 'propagation' ? 'bg-blue-100' : 
-                          'bg-red-100'
-                        }`}>
-                          <svg className={`w-8 h-8 ${
-                            guide.category === 'general' ? 'text-green-600' :
-                            guide.category === 'seasonal' ? 'text-orange-600' :
-                            guide.category === 'propagation' ? 'text-blue-600' : 
-                            'text-red-600'
-                          }`} fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-16 h-16 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
+                          <svg className="w-8 h-8" style={{color: 'var(--theme-primary)'}} fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 0a1 1 0 100 2h.01a1 1 0 100-2H9zm2 0a1 1 0 100 2h.01a1 1 0 100-2H11z" clipRule="evenodd" />
                           </svg>
                         </div>
@@ -338,8 +331,8 @@ export async function HomePage() {
                         </div>
                         <a 
                           href={guide.downloadLink}
-                          className="inline-flex items-center px-4 py-2 rounded-lg font-medium text-white transition-opacity hover:opacity-90"
-                          style={{backgroundColor: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}
+                          className="inline-flex items-center px-4 py-2 rounded-lg font-medium border transition-all duration-200 hover:opacity-80 cursor-pointer"
+                          style={{borderColor: 'var(--theme-secondary)', color: 'var(--theme-secondary)', backgroundColor: 'transparent', fontFamily: 'var(--theme-font-body)'}}
                         >
                           <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 0a1 1 0 100 2h.01a1 1 0 100-2H9zm2 0a1 1 0 100 2h.01a1 1 0 100-2H11z" clipRule="evenodd" />
@@ -364,7 +357,7 @@ export async function HomePage() {
         <section className="py-16" style={{backgroundColor: 'var(--theme-primary)'}}>
           <div className="brand-container">
             <div className="max-w-4xl mx-auto text-center text-white">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{fontFamily: 'var(--theme-font-heading)'}}>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white" style={{fontFamily: 'var(--theme-font-heading)', color: 'white'}}>
                 Growing Together, Sustainably
               </h2>
               <p className="text-lg mb-8 leading-relaxed opacity-90" style={{fontFamily: 'var(--theme-font-body)'}}>
@@ -382,9 +375,10 @@ export async function HomePage() {
                 </a>
                 <a 
                   href="/products"
-                  className="border-2 border-white px-8 py-4 rounded-lg font-semibold text-white transition-all duration-200 hover:bg-white hover:text-[var(--theme-primary)]"
+                  className="border-2 border-white px-8 py-4 rounded-lg font-semibold text-white transition-all duration-200 hover:bg-white/20"
                   style={{
                     fontFamily: 'var(--theme-font-body)',
+                    color: 'white',
                   }}
                 >
                   Browse Plants
