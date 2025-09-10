@@ -209,22 +209,22 @@ export async function ContactPage() {
             <h3 className="text-xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
               Expert Availability
             </h3>
-            <div className="bg-green-50 p-6 rounded-lg border border-green-100">
+            <div className="p-6 rounded-lg border" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.05)', borderColor: 'rgba(var(--theme-primary-rgb), 0.2)'}}>
               <div className="space-y-3">
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                  <div className="w-3 h-3 rounded-full mr-3" style={{backgroundColor: 'var(--theme-primary)'}}></div>
                   <span className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>
                     Response within 24 hours
                   </span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                  <div className="w-3 h-3 rounded-full mr-3" style={{backgroundColor: 'var(--theme-primary)'}}></div>
                   <span className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>
                     Video consultations available
                   </span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                  <div className="w-3 h-3 rounded-full mr-3" style={{backgroundColor: 'var(--theme-primary)'}}></div>
                   <span className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>
                     Emergency plant care support
                   </span>
@@ -242,8 +242,8 @@ export async function ContactPage() {
               {teamMembers.map((member) => (
                 <div key={`contact-${member.id}`} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-center mb-2">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                      <span className="text-lg font-bold text-green-600">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center mr-4" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
+                      <span className="text-lg font-bold" style={{color: 'var(--theme-primary)'}}>
                         {member.name.split(' ').map(n => n[0]).join('')}
                       </span>
                     </div>

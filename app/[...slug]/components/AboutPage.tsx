@@ -120,28 +120,28 @@ export async function AboutPage() {
                 {teamMembers.map((member) => (
                   <div key={member.id} className="bg-white rounded-xl p-6 md:p-8 border hover:shadow-lg transition-shadow">
                     <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-4 md:gap-6">
-                      <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-2xl font-bold text-green-600">
+                      <div className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
+                        <span className="text-2xl font-bold" style={{color: 'var(--theme-primary)'}}>
                           {member.name.split(' ').map(n => n[0]).join('')}
                         </span>
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold mb-1">{member.name}</h3>
-                        <p className="text-green-600 font-semibold mb-2">{member.title}</p>
-                        <p className="text-sm text-gray-600 mb-3">{member.specialization}</p>
+                        <h3 className="text-xl font-bold mb-1" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>{member.name}</h3>
+                        <p className="font-semibold mb-2" style={{color: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}>{member.title}</p>
+                        <p className="text-sm mb-3" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>{member.specialization}</p>
                         
                         <div className="mb-3">
-                          <p className="text-xs font-medium text-gray-500 mb-1">Professional Credentials:</p>
+                          <p className="text-xs font-medium mb-1" style={{color: 'var(--theme-text)', opacity: '0.6', fontFamily: 'var(--theme-font-body)'}}>Professional Credentials:</p>
                           <div className="flex flex-wrap gap-1">
                             {member.credentials.map((credential, index) => (
-                              <span key={index} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                              <span key={index} className="text-xs px-2 py-1 rounded-full" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)', color: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}>
                                 {credential}
                               </span>
                             ))}
                           </div>
                         </div>
                         
-                        <p className="text-xs text-gray-500 italic">
+                        <p className="text-xs italic" style={{color: 'var(--theme-text)', opacity: '0.6', fontFamily: 'var(--theme-font-body)'}}>
                           {member.experience}
                         </p>
                       </div>
@@ -185,13 +185,13 @@ export async function AboutPage() {
                     <p className="text-sm mb-3" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
                       {practice.description}
                     </p>
-                    <div className="bg-green-50 p-3 rounded-lg border border-green-100">
-                      <p className="text-xs font-medium text-green-800 mb-1">Impact:</p>
-                      <p className="text-xs text-green-700">{practice.impact}</p>
+                    <div className="p-3 rounded-lg border" style={{backgroundColor: 'rgba(var(--theme-secondary-rgb), 0.05)', borderColor: 'rgba(var(--theme-secondary-rgb), 0.2)'}}>
+                      <p className="text-xs font-medium mb-1" style={{color: 'var(--theme-secondary)', fontFamily: 'var(--theme-font-body)'}}>Impact:</p>
+                      <p className="text-xs" style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}>{practice.impact}</p>
                       {practice.metrics && (
                         <>
-                          <p className="text-xs font-medium text-green-800 mt-2 mb-1">Results:</p>
-                          <p className="text-xs text-green-700">{practice.metrics}</p>
+                          <p className="text-xs font-medium mt-2 mb-1" style={{color: 'var(--theme-secondary)', fontFamily: 'var(--theme-font-body)'}}>Results:</p>
+                          <p className="text-xs" style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}>{practice.metrics}</p>
                         </>
                       )}
                     </div>
