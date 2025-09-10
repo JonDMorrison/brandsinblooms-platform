@@ -262,13 +262,13 @@ function handleMainAppAuthentication(
 
   // Redirect authenticated users away from auth pages
   if (user && isAuthRoute) {
-    const url = createRedirectUrl(request, request.nextUrl.hostname, '/dashboard')
+    const url = createRedirectUrl(request, APP_DOMAIN, '/dashboard')
     return NextResponse.redirect(url)
   }
 
   // Redirect unauthenticated users to login
   if (!user && !isPublicRoute) {
-    const url = createRedirectUrl(request, request.nextUrl.hostname, '/login')
+    const url = createRedirectUrl(request, APP_DOMAIN, '/login')
     url.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(url)
   }
