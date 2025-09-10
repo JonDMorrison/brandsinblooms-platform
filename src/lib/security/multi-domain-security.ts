@@ -435,9 +435,8 @@ export function applySecurityHeaders(
         return "'self'"
       }
       
-      // Derive dashboard URL from app domain
-      const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'http://localhost:3001'
-      const appUrl = new URL(appDomain)
+      // Derive dashboard URL from app URL
+      const appUrl = new URL(process.env.NEXT_PUBLIC_APP_URL!)
       const dashboardUrls: string[] = []
       
       if (appUrl.hostname === 'localhost') {
