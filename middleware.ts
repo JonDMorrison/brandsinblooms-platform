@@ -63,14 +63,15 @@ function extractHostname(request: NextRequest): string {
  * Creates a clean URL for redirects in production (removes ports)
  */
 function createRedirectUrl(request: NextRequest, targetHostname: string, pathname: string): URL {
-  const url = request.nextUrl.clone()
-  url.hostname = targetHostname
-  url.pathname = pathname
+  // Create a new URL from scratch to avoid cloning issues that can cause 0.0.0.0 redirects
+  const protocol = request.nextUrl.protocol
+  const url = new URL(`${protocol}//${targetHostname}${pathname}`)
   
-  // In production, always clear the port to avoid :8080 redirects
-  if (process.env.NODE_ENV === 'production') {
-    url.port = ''
-  }
+  // Preserve query params from original request if needed
+  const originalParams = request.nextUrl.searchParams
+  originalParams.forEach((value, key) => {
+    url.searchParams.set(key, value)
+  })
   
   return url
 }
