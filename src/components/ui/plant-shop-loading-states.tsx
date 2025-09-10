@@ -246,7 +246,7 @@ export function StoreInfoSkeleton() {
 // Mission Statement Loading Skeleton
 export function MissionStatementSkeleton() {
   return (
-    <section className="py-16 bg-green-600 text-white">
+    <section className="py-16 text-white" style={{backgroundColor: 'var(--theme-primary)'}}>
       <div className="brand-container">
         <div className="max-w-4xl mx-auto text-center">
           <Skeleton className="h-10 w-80 mx-auto mb-6 bg-white/20" />

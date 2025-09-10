@@ -192,10 +192,10 @@ export async function HomePage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                   {[
-                    { name: 'Beginner-Friendly', plants: beginnerPlants, image: '/api/placeholder/300/200', description: 'Easy-care plants perfect for new plant parents' },
-                    { name: 'Houseplants', plants: houseplants, image: '/api/placeholder/300/200', description: 'Beautiful indoor plants for every room' },
-                    { name: 'Outdoor Plants', plants: outdoorPlants, image: '/api/placeholder/300/200', description: 'Hardy plants for gardens and patios' },
-                    { name: 'Succulents', plants: succulents, image: '/api/placeholder/300/200', description: 'Low-maintenance desert beauties' }
+                    { name: 'Beginner-Friendly', plants: beginnerPlants, image: '/api/placeholder/300/200/icon', description: 'Easy-care plants perfect for new plant parents' },
+                    { name: 'Houseplants', plants: houseplants, image: '/api/placeholder/300/200/icon', description: 'Beautiful indoor plants for every room' },
+                    { name: 'Outdoor Plants', plants: outdoorPlants, image: '/api/placeholder/300/200/icon', description: 'Hardy plants for gardens and patios' },
+                    { name: 'Succulents', plants: succulents, image: '/api/placeholder/300/200/icon', description: 'Low-maintenance desert beauties' }
                   ].map((category, index) => (
                     <div key={`category-${category.name}-${index}`} className="group cursor-pointer">
                       <div className="relative overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-all duration-300">
@@ -382,15 +382,9 @@ export async function HomePage() {
                 </a>
                 <a 
                   href="/products"
-                  className="border-2 border-white px-8 py-4 rounded-lg font-semibold text-white transition-all duration-200 hover:bg-white"
+                  className="border-2 border-white px-8 py-4 rounded-lg font-semibold text-white transition-all duration-200 hover:bg-white hover:text-[var(--theme-primary)]"
                   style={{
                     fontFamily: 'var(--theme-font-body)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--theme-primary)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'white'
                   }}
                 >
                   Browse Plants

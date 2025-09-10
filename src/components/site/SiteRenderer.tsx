@@ -34,7 +34,7 @@ export function SiteRenderer({
   
   return (
     <PreviewModeProvider mode={mode}>
-      <SiteProvider initialSiteId={siteId}>
+      <SiteProvider>
         <SiteThemeProvider applyToDocument={applyToDocument}>
           <ThemeWrapper 
             className={`min-h-screen flex flex-col ${className || ''}`}

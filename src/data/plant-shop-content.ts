@@ -85,7 +85,7 @@ export const plantsData: PlantData[] = [
     category: 'houseplants',
     careLevel: 'beginner',
     price: 24.99,
-    image: '/images/plants/golden-pothos.jpg',
+    image: '/images/golden-pothos.jpg',
     description: 'A classic trailing houseplant perfect for beginners. Known for its heart-shaped leaves with golden variegation and exceptional tolerance to various light conditions.',
     careRequirements: {
       light: 'partial shade',
@@ -107,7 +107,7 @@ export const plantsData: PlantData[] = [
     category: 'houseplants',
     careLevel: 'beginner',
     price: 32.99,
-    image: '/images/plants/snake-plant.jpg',
+    image: '/images/snake-plant.jpg',
     description: 'Architectural upright plant with striking sword-like leaves. Extremely drought tolerant and perfect for low-light conditions.',
     careRequirements: {
       light: 'partial shade',
@@ -129,7 +129,7 @@ export const plantsData: PlantData[] = [
     category: 'houseplants',
     careLevel: 'beginner',
     price: 28.99,
-    image: '/images/plants/zz-plant.jpg',
+    image: '/images/zz-plant.jpg',
     description: 'Modern houseplant with glossy, dark green leaves. Thrives on neglect and tolerates low light conditions exceptionally well.',
     careRequirements: {
       light: 'partial shade',
@@ -154,7 +154,7 @@ export const plantsData: PlantData[] = [
     careLevel: 'intermediate',
     price: 89.99,
     originalPrice: 109.99,
-    image: '/images/plants/fiddle-leaf-fig.jpg',
+    image: '/images/fiddle-leaf-fig.jpg',
     description: 'Statement plant with large, violin-shaped leaves. Requires consistent care and bright, indirect light to maintain its dramatic appearance.',
     careRequirements: {
       light: 'partial sun',
@@ -177,7 +177,7 @@ export const plantsData: PlantData[] = [
     category: 'houseplants',
     careLevel: 'intermediate',
     price: 45.99,
-    image: '/images/plants/monstera-deliciosa.jpg',
+    image: '/images/monstera-deliciosa.jpg',
     description: 'Tropical climbing plant famous for its fenestrated leaves. Develops characteristic splits and holes as it matures with proper support.',
     careRequirements: {
       light: 'partial sun',
@@ -202,7 +202,7 @@ export const plantsData: PlantData[] = [
     category: 'houseplants',
     careLevel: 'expert',
     price: 67.99,
-    image: '/images/plants/calathea-orbifolia.jpg',
+    image: '/images/calathea-orbifolia.jpg',
     description: 'Prayer plant with stunning large, round leaves featuring silver-green stripes. Requires high humidity and consistent moisture.',
     careRequirements: {
       light: 'partial shade',
@@ -227,7 +227,7 @@ export const plantsData: PlantData[] = [
     category: 'outdoor',
     careLevel: 'intermediate',
     price: 124.99,
-    image: '/images/plants/japanese-maple.jpg',
+    image: '/images/japanese-maple.jpg',
     description: 'Elegant deciduous tree with delicate, palmate leaves that provide stunning fall color. Perfect specimen plant for gardens.',
     careRequirements: {
       light: 'partial sun',
@@ -252,7 +252,7 @@ export const plantsData: PlantData[] = [
     category: 'succulents',
     careLevel: 'beginner',
     price: 16.99,
-    image: '/images/plants/echeveria-elegans.jpg',
+    image: '/images/echeveria-elegans.jpg',
     description: 'Compact rosette succulent with blue-green leaves and pink flower spikes. Perfect for containers and rock gardens.',
     careRequirements: {
       light: 'full sun',

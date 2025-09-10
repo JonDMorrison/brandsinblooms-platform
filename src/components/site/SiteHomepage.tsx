@@ -37,7 +37,7 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
   // Check if we're on the main app domain
   const isMainDomain = typeof window !== 'undefined' && (
     window.location.hostname === 'localhost' ||
-    window.location.hostname.includes('staging') ||
+    (window.location.hostname.includes('staging') && !window.location.hostname.includes('.')) ||
     window.location.hostname.includes('.vercel.app') ||
     window.location.hostname.includes('.railway.app') ||
     window.location.hostname === process.env.NEXT_PUBLIC_APP_DOMAIN
