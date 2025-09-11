@@ -8,7 +8,7 @@ import { Json } from '@/lib/database/types'
 /**
  * Layout types supported by the content system
  */
-export type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact' | 'other'
+export type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact' | 'other' | 'plant_shop' | 'plant_care' | 'plant_catalog'
 
 /**
  * Content section types for different layout components
@@ -29,6 +29,17 @@ export type ContentSectionType =
   | 'mission'
   | 'values'
   | 'specifications'
+  // Plant shop specific section types
+  | 'plant_showcase'
+  | 'plant_grid'
+  | 'plant_care_guide'
+  | 'seasonal_tips'
+  | 'plant_categories'
+  | 'growing_conditions'
+  | 'plant_comparison'
+  | 'care_calendar'
+  | 'plant_benefits'
+  | 'soil_guide'
 
 /**
  * Base content section interface
@@ -72,6 +83,14 @@ export interface ContentSectionData {
   spacing?: 'tight' | 'normal' | 'loose'
   alignment?: 'left' | 'center' | 'right'
   
+  // Plant-specific data
+  careLevel?: 'easy' | 'medium' | 'challenging'
+  lightRequirement?: 'low' | 'medium' | 'bright' | 'direct'
+  wateringFrequency?: 'weekly' | 'bi-weekly' | 'monthly' | 'seasonal'
+  seasonalTips?: Json // SeasonalTip[] typed as Json
+  growingConditions?: Json // GrowingCondition[] typed as Json
+  plantCategories?: Json // PlantCategory[] typed as Json
+  
   // Additional custom data
   [key: string]: Json | undefined
 }
@@ -110,6 +129,46 @@ export interface FormField {
     message?: string
   }
   order?: number
+}
+
+/**
+ * Plant-specific data structures
+ */
+export interface PlantItem extends ContentItem {
+  scientificName?: string
+  commonName?: string
+  careLevel?: 'easy' | 'medium' | 'challenging'
+  lightRequirement?: 'low' | 'medium' | 'bright' | 'direct'
+  wateringFrequency?: 'weekly' | 'bi-weekly' | 'monthly' | 'seasonal'
+  soilType?: string
+  maxHeight?: string
+  bloomTime?: string
+  plantType?: 'houseplant' | 'outdoor' | 'succulent' | 'herb' | 'tree' | 'shrub'
+  toxicity?: 'pet-safe' | 'toxic-pets' | 'toxic-humans' | 'non-toxic'
+}
+
+export interface SeasonalTip {
+  id: string
+  season: 'spring' | 'summer' | 'fall' | 'winter'
+  title: string
+  description: string
+  priority: 'low' | 'medium' | 'high'
+}
+
+export interface GrowingCondition {
+  id: string
+  condition: string
+  value: string
+  description?: string
+  icon?: string
+}
+
+export interface PlantCategory {
+  id: string
+  name: string
+  description?: string
+  icon?: string
+  plantCount?: number
 }
 
 /**
@@ -574,6 +633,170 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         },
         visible: false,
         order: 15
+      }
+    }
+  },
+  plant_shop: {
+    required: ['hero', 'featured_plants'],
+    optional: ['plant_categories', 'seasonal_tips', 'care_guide', 'testimonials'],
+    defaultSections: {
+      hero: {
+        type: 'hero',
+        data: {
+          content: '',
+          alignment: 'center'
+        },
+        visible: true,
+        order: 1
+      },
+      featured_plants: {
+        type: 'plant_showcase',
+        data: {
+          items: [],
+          columns: 3,
+          careLevel: 'easy'
+        },
+        visible: true,
+        order: 2
+      },
+      plant_categories: {
+        type: 'plant_categories',
+        data: {
+          plantCategories: [],
+          columns: 4
+        },
+        visible: false,
+        order: 3
+      },
+      seasonal_tips: {
+        type: 'seasonal_tips',
+        data: {
+          seasonalTips: [],
+          columns: 2
+        },
+        visible: false,
+        order: 4
+      },
+      care_guide: {
+        type: 'plant_care_guide',
+        data: {
+          content: '',
+          careLevel: 'easy'
+        },
+        visible: false,
+        order: 5
+      },
+      testimonials: {
+        type: 'testimonials',
+        data: {
+          items: [],
+          columns: 2
+        },
+        visible: false,
+        order: 6
+      }
+    }
+  },
+  plant_care: {
+    required: ['header', 'care_instructions'],
+    optional: ['growing_conditions', 'seasonal_calendar', 'troubleshooting'],
+    defaultSections: {
+      header: {
+        type: 'hero',
+        data: {
+          content: '',
+          alignment: 'left'
+        },
+        visible: true,
+        order: 1
+      },
+      care_instructions: {
+        type: 'plant_care_guide',
+        data: {
+          content: '',
+          careLevel: 'medium',
+          lightRequirement: 'medium',
+          wateringFrequency: 'weekly'
+        },
+        visible: true,
+        order: 2
+      },
+      growing_conditions: {
+        type: 'growing_conditions',
+        data: {
+          growingConditions: [],
+          columns: 2
+        },
+        visible: false,
+        order: 3
+      },
+      seasonal_calendar: {
+        type: 'care_calendar',
+        data: {
+          seasonalTips: []
+        },
+        visible: false,
+        order: 4
+      },
+      troubleshooting: {
+        type: 'features',
+        data: {
+          items: [],
+          columns: 2
+        },
+        visible: false,
+        order: 5
+      }
+    }
+  },
+  plant_catalog: {
+    required: ['header', 'plant_grid'],
+    optional: ['filters', 'plant_comparison', 'care_benefits'],
+    defaultSections: {
+      header: {
+        type: 'hero',
+        data: {
+          content: '',
+          alignment: 'center'
+        },
+        visible: true,
+        order: 1
+      },
+      plant_grid: {
+        type: 'plant_grid',
+        data: {
+          items: [],
+          columns: 3
+        },
+        visible: true,
+        order: 2
+      },
+      filters: {
+        type: 'plant_categories',
+        data: {
+          plantCategories: [],
+          columns: 4
+        },
+        visible: false,
+        order: 3
+      },
+      plant_comparison: {
+        type: 'plant_comparison',
+        data: {
+          items: [],
+          columns: 3
+        },
+        visible: false,
+        order: 4
+      },
+      care_benefits: {
+        type: 'plant_benefits',
+        data: {
+          items: [],
+          columns: 2
+        },
+        visible: false,
+        order: 5
       }
     }
   }

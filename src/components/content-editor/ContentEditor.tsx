@@ -31,6 +31,18 @@ import { MissionEditor } from '@/src/components/content-sections/editors/Mission
 import { SpecificationsEditor } from '@/src/components/content-sections/editors/SpecificationsEditor'
 import { FormBuilder } from '@/src/components/content-sections/editors/FormBuilder'
 
+// Import plant-specific section editors
+import { PlantShowcaseEditor } from '@/src/components/content-sections/editors/PlantShowcaseEditor'
+import { PlantGridEditor } from '@/src/components/content-sections/editors/PlantGridEditor'
+import { PlantCareGuideEditor } from '@/src/components/content-sections/editors/PlantCareGuideEditor'
+import { SeasonalTipsEditor } from '@/src/components/content-sections/editors/SeasonalTipsEditor'
+import { PlantCategoriesEditor } from '@/src/components/content-sections/editors/PlantCategoriesEditor'
+import { GrowingConditionsEditor } from '@/src/components/content-sections/editors/GrowingConditionsEditor'
+import { PlantComparisonEditor } from '@/src/components/content-sections/editors/PlantComparisonEditor'
+import { CareCalendarEditor } from '@/src/components/content-sections/editors/CareCalendarEditor'
+import { PlantBenefitsEditor } from '@/src/components/content-sections/editors/PlantBenefitsEditor'
+import { SoilGuideEditor } from '@/src/components/content-sections/editors/SoilGuideEditor'
+
 // Import schemas and types
 import { 
   PageContent, 
@@ -100,7 +112,18 @@ const SectionEditor = function SectionEditor({
       team: '👥',
       mission: '🎯',
       values: '💎',
-      specifications: '📋'
+      specifications: '📋',
+      // Plant shop specific icons
+      plant_showcase: '🌟',
+      plant_grid: '🌿',
+      plant_care_guide: '📚',
+      seasonal_tips: '🗓️',
+      plant_categories: '📂',
+      growing_conditions: '🌱',
+      plant_comparison: '⚖️',
+      care_calendar: '📅',
+      plant_benefits: '💚',
+      soil_guide: '🪴'
     }
     return iconMap[type] || '📄'
   }
@@ -355,6 +378,87 @@ const SectionEditor = function SectionEditor({
       case 'specifications':
         return (
           <SpecificationsEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+
+      // Plant shop specific section editors
+      case 'plant_showcase':
+        return (
+          <PlantShowcaseEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
+      case 'plant_grid':
+        return (
+          <PlantGridEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
+      case 'plant_care_guide':
+        return (
+          <PlantCareGuideEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
+      case 'seasonal_tips':
+        return (
+          <SeasonalTipsEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
+      case 'plant_categories':
+        return (
+          <PlantCategoriesEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
+      case 'growing_conditions':
+        return (
+          <GrowingConditionsEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
+      case 'plant_comparison':
+        return (
+          <PlantComparisonEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
+      case 'care_calendar':
+        return (
+          <CareCalendarEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
+      case 'plant_benefits':
+        return (
+          <PlantBenefitsEditor
+            section={section}
+            onUpdate={handleDataChange}
+          />
+        )
+        
+      case 'soil_guide':
+        return (
+          <SoilGuideEditor
             section={section}
             onUpdate={handleDataChange}
           />

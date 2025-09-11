@@ -451,6 +451,220 @@ export class BatchMigration {
 }
 
 /**
+ * Plant-specific batch migration utilities
+ */
+export class PlantShopBatchMigration extends BatchMigration {
+  private plantContentResults: Array<{ 
+    pageId: string; 
+    contentType: string;
+    siteId?: string;
+    result: MigrationResult 
+  }> = []
+
+  /**
+   * Add plant shop page to migration batch
+   */
+  async addPlantPage(
+    pageId: string, 
+    pageData: unknown, 
+    siteId?: string,
+    contentType?: string
+  ): Promise<void> {
+    // Import transformer dynamically to avoid circular dependencies
+    const { transformPlantShopPage, getContentTypeForPage, LAYOUT_TYPE_MAPPING } = 
+      await import('./plant-shop-transformer')
+    
+    try {
+      const layout = LAYOUT_TYPE_MAPPING[pageId as keyof typeof LAYOUT_TYPE_MAPPING] || 'other'
+      const result = await transformPlantShopPage(pageId, pageData as any)
+      
+      this.plantContentResults.push({
+        pageId,
+        contentType: contentType || getContentTypeForPage(pageId),
+        siteId,
+        result
+      })
+    } catch (error: unknown) {
+      const errorDetails = handleError(error)
+      this.plantContentResults.push({
+        pageId,
+        contentType: contentType || 'page',
+        siteId,
+        result: {
+          success: false,
+          errors: [errorDetails.message],
+          warnings: [],
+          migrated: false,
+          originalSize: 0,
+          transformedSize: 0
+        }
+      })
+    }
+  }
+
+  /**
+   * Add all plant shop content to migration batch
+   */
+  async addAllPlantContent(siteId?: string): Promise<void> {
+    const { plantShopContent } = await import('@/data/plant-shop-content')
+    
+    for (const [pageId, pageData] of Object.entries(plantShopContent)) {
+      await this.addPlantPage(pageId, pageData, siteId)
+    }
+  }
+
+  /**
+   * Get plant-specific migration results
+   */
+  getPlantResults() {
+    const successful = this.plantContentResults.filter(r => r.result.success)
+    const failed = this.plantContentResults.filter(r => !r.result.success)
+    const withWarnings = this.plantContentResults.filter(r => 
+      r.result.warnings && r.result.warnings.length > 0
+    )
+
+    const totalOriginalSize = this.plantContentResults.reduce(
+      (sum, r) => sum + (r.result.originalSize || 0), 0
+    )
+    const totalTransformedSize = this.plantContentResults.reduce(
+      (sum, r) => sum + (r.result.transformedSize || 0), 0
+    )
+
+    return {
+      total: this.plantContentResults.length,
+      successful: successful.length,
+      failed: failed.length,
+      warnings: withWarnings.length,
+      totalOriginalSize,
+      totalTransformedSize,
+      compressionRatio: totalOriginalSize > 0 ? 
+        (totalTransformedSize / totalOriginalSize) : 0,
+      results: this.plantContentResults,
+      readyForDatabase: successful
+        .filter(r => r.result.data)
+        .map(r => ({
+          pageId: r.pageId,
+          contentType: r.contentType,
+          siteId: r.siteId,
+          content: r.result.data!,
+          originalSize: r.result.originalSize,
+          transformedSize: r.result.transformedSize
+        }))
+    }
+  }
+
+  /**
+   * Generate database insertion records
+   */
+  async generateDatabaseRecords(siteId: string, authorId?: string) {
+    const { generateContentRecord } = await import('./plant-shop-transformer')
+    
+    return this.plantContentResults
+      .filter(r => r.result.success && r.result.data)
+      .map(r => generateContentRecord(
+        r.pageId,
+        r.result.data!,
+        siteId,
+        authorId
+      ))
+  }
+
+  /**
+   * Validate all transformed content against schema
+   */
+  async validateTransformedContent(): Promise<{
+    allValid: boolean;
+    validationResults: Array<{
+      pageId: string;
+      isValid: boolean;
+      errors: string[];
+    }>;
+  }> {
+    const { validatePageContent } = await import('./migration')
+    
+    const validationResults = this.plantContentResults
+      .filter(r => r.result.success && r.result.data)
+      .map(r => {
+        const validation = validatePageContent(r.result.data!, r.result.data!.layout)
+        return {
+          pageId: r.pageId,
+          isValid: validation.isValid,
+          errors: validation.errors
+        }
+      })
+
+    return {
+      allValid: validationResults.every(v => v.isValid),
+      validationResults
+    }
+  }
+
+  /**
+   * Get content size statistics
+   */
+  getContentSizeStats() {
+    const sizes = this.plantContentResults
+      .filter(r => r.result.success)
+      .map(r => ({
+        pageId: r.pageId,
+        originalSize: r.result.originalSize || 0,
+        transformedSize: r.result.transformedSize || 0,
+        reduction: (r.result.originalSize || 0) - (r.result.transformedSize || 0),
+        reductionPercent: (r.result.originalSize || 0) > 0 ? 
+          (((r.result.originalSize || 0) - (r.result.transformedSize || 0)) / (r.result.originalSize || 0)) * 100 : 0
+      }))
+
+    const totalOriginal = sizes.reduce((sum, s) => sum + s.originalSize, 0)
+    const totalTransformed = sizes.reduce((sum, s) => sum + s.transformedSize, 0)
+
+    return {
+      byPage: sizes,
+      totals: {
+        originalSize: totalOriginal,
+        transformedSize: totalTransformed,
+        totalReduction: totalOriginal - totalTransformed,
+        averageReductionPercent: totalOriginal > 0 ? 
+          ((totalOriginal - totalTransformed) / totalOriginal) * 100 : 0
+      }
+    }
+  }
+
+  /**
+   * Export migration report
+   */
+  async exportMigrationReport() {
+    const results = this.getPlantResults()
+    const validation = await this.validateTransformedContent()
+    const sizeStats = this.getContentSizeStats()
+
+    return {
+      timestamp: new Date().toISOString(),
+      summary: {
+        totalPages: results.total,
+        successful: results.successful,
+        failed: results.failed,
+        warnings: results.warnings
+      },
+      contentSizes: sizeStats,
+      validation,
+      failures: results.results
+        .filter(r => !r.result.success)
+        .map(r => ({
+          pageId: r.pageId,
+          errors: r.result.errors || [],
+          warnings: r.result.warnings || []
+        })),
+      warnings: results.results
+        .filter(r => r.result.warnings && r.result.warnings.length > 0)
+        .map(r => ({
+          pageId: r.pageId,
+          warnings: r.result.warnings || []
+        }))
+    }
+  }
+}
+
+/**
  * Utility to check if content needs migration
  */
 export function needsMigration(content: unknown): boolean {

@@ -9,7 +9,10 @@ import { LayoutType, ContentSectionType } from './schema'
 /**
  * Layout type validation
  */
-export const LayoutTypeSchema = z.enum(['landing', 'blog', 'portfolio', 'about', 'product', 'contact'])
+export const LayoutTypeSchema = z.enum([
+  'landing', 'blog', 'portfolio', 'about', 'product', 'contact', 'other',
+  'plant_shop', 'plant_care', 'plant_catalog'
+])
 
 /**
  * Content section type validation
@@ -29,7 +32,18 @@ export const ContentSectionTypeSchema = z.enum([
   'team',
   'mission',
   'values',
-  'specifications'
+  'specifications',
+  // Plant shop specific section types
+  'plant_showcase',
+  'plant_grid',
+  'plant_care_guide',
+  'seasonal_tips',
+  'plant_categories',
+  'growing_conditions',
+  'plant_comparison',
+  'care_calendar',
+  'plant_benefits',
+  'soil_guide'
 ])
 
 /**
@@ -59,11 +73,51 @@ export const ContentItemSchema = z.object({
   title: z.string().optional(),
   subtitle: z.string().optional(),
   content: z.string().optional(),
-  image: z.string().url().optional(),
+  image: z.string().optional(),
   icon: z.string().optional(),
-  url: z.string().url().optional(),
+  url: z.string().optional(),
   order: z.number().optional(),
   metadata: z.record(z.string(), z.unknown()).optional()
+})
+
+/**
+ * Plant-specific validation schemas
+ */
+export const PlantItemSchema = ContentItemSchema.extend({
+  scientificName: z.string().optional(),
+  commonName: z.string().optional(),
+  careLevel: z.enum(['easy', 'medium', 'challenging']).optional(),
+  lightRequirement: z.enum(['low', 'medium', 'bright', 'direct']).optional(),
+  wateringFrequency: z.enum(['weekly', 'bi-weekly', 'monthly', 'seasonal']).optional(),
+  soilType: z.string().optional(),
+  maxHeight: z.string().optional(),
+  bloomTime: z.string().optional(),
+  plantType: z.enum(['houseplant', 'outdoor', 'succulent', 'herb', 'tree', 'shrub']).optional(),
+  toxicity: z.enum(['pet-safe', 'toxic-pets', 'toxic-humans', 'non-toxic']).optional()
+})
+
+export const SeasonalTipSchema = z.object({
+  id: z.string().min(1),
+  season: z.enum(['spring', 'summer', 'fall', 'winter']),
+  title: z.string().min(1),
+  description: z.string().min(1),
+  priority: z.enum(['low', 'medium', 'high'])
+})
+
+export const GrowingConditionSchema = z.object({
+  id: z.string().min(1),
+  condition: z.string().min(1),
+  value: z.string().min(1),
+  description: z.string().optional(),
+  icon: z.string().optional()
+})
+
+export const PlantCategorySchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string().optional(),
+  icon: z.string().optional(),
+  plantCount: z.number().min(0).optional()
 })
 
 /**
@@ -75,7 +129,7 @@ export const ContentSectionDataSchema = z.object({
   json: z.unknown().optional(), // Tiptap JSON format
   
   // Media content
-  url: z.string().url().optional(),
+  url: z.string().optional(),
   alt: z.string().optional(),
   caption: z.string().optional(),
   
@@ -85,7 +139,7 @@ export const ContentSectionDataSchema = z.object({
   iconColor: z.string().optional(),
   
   // Repeatable content
-  items: z.array(ContentItemSchema).optional(),
+  items: z.array(z.union([ContentItemSchema, PlantItemSchema])).optional(),
   
   // Form-specific data
   fields: z.array(FormFieldSchema).optional(),
@@ -93,7 +147,15 @@ export const ContentSectionDataSchema = z.object({
   // Layout settings
   columns: z.number().min(1).max(6).optional(),
   spacing: z.enum(['tight', 'normal', 'loose']).optional(),
-  alignment: z.enum(['left', 'center', 'right']).optional()
+  alignment: z.enum(['left', 'center', 'right']).optional(),
+  
+  // Plant-specific data
+  careLevel: z.enum(['easy', 'medium', 'challenging']).optional(),
+  lightRequirement: z.enum(['low', 'medium', 'bright', 'direct']).optional(),
+  wateringFrequency: z.enum(['weekly', 'bi-weekly', 'monthly', 'seasonal']).optional(),
+  seasonalTips: z.array(SeasonalTipSchema).optional(),
+  growingConditions: z.array(GrowingConditionSchema).optional(),
+  plantCategories: z.array(PlantCategorySchema).optional()
 }).catchall(z.unknown()) // Allow additional properties
 
 /**
@@ -289,11 +351,42 @@ function getRequiredSectionsForLayout(layout: LayoutType): string[] {
     portfolio: ['header', 'gallery'],
     about: ['hero'],
     product: ['header', 'features'],
-    contact: ['header', 'form']
+    contact: ['header', 'form'],
+    other: [],
+    plant_shop: ['hero', 'featured_plants'],
+    plant_care: ['header', 'care_instructions'],
+    plant_catalog: ['header', 'plant_grid']
   }
   
   return layoutSections[layout] || []
 }
+
+/**
+ * Plant content type validation schemas
+ */
+export const PlantContentTypeSchema = z.enum([
+  'home_page', 'about_page', 'contact_page', 'privacy_policy', 'terms_of_service',
+  'plant_catalog_page', 'plant_care_page', 'plant_guide_page'
+])
+
+/**
+ * Plant shop content validation
+ */
+export const PlantShopContentSchema = PageContentSchema.extend({
+  layout: z.enum(['plant_shop', 'plant_care', 'plant_catalog', 'about', 'contact', 'other'])
+})
+
+/**
+ * Plant migration input validation
+ */
+export const PlantMigrationInputSchema = z.object({
+  pageId: z.string().min(1),
+  siteId: z.string().uuid().optional(),
+  authorId: z.string().uuid().optional(),
+  contentType: PlantContentTypeSchema.optional(),
+  dryRun: z.boolean().default(false),
+  validateOnly: z.boolean().default(false)
+})
 
 /**
  * Type inference exports
@@ -307,3 +400,9 @@ export type ValidatedPageContent = z.infer<typeof PageContentSchema>
 export type ValidatedContentSection = z.infer<typeof ContentSectionSchema>
 export type ValidatedContentItem = z.infer<typeof ContentItemSchema>
 export type ValidatedFormField = z.infer<typeof FormFieldSchema>
+export type ValidatedPlantItem = z.infer<typeof PlantItemSchema>
+export type ValidatedSeasonalTip = z.infer<typeof SeasonalTipSchema>
+export type ValidatedGrowingCondition = z.infer<typeof GrowingConditionSchema>
+export type ValidatedPlantCategory = z.infer<typeof PlantCategorySchema>
+export type ValidatedPlantShopContent = z.infer<typeof PlantShopContentSchema>
+export type PlantMigrationInput = z.infer<typeof PlantMigrationInputSchema>
