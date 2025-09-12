@@ -4,6 +4,58 @@ import { useMemo } from 'react'
 import { ThemeSettings } from '@/lib/queries/domains/theme'
 import { generatePlantThemeCSS } from '@/src/lib/theme/plant-shop-variables'
 
+// Font loading cache to prevent duplicate requests
+const loadedFonts = new Set<string>()
+const fontLoadPromises = new Map<string, Promise<void>>()
+
+/**
+ * Load Google Fonts programmatically to avoid duplicate CSS imports
+ */
+function loadGoogleFont(fontFamily: string): Promise<void> {
+  if (typeof window === 'undefined') return Promise.resolve()
+  
+  const fontKey = fontFamily.replace(/\s+/g, '+')
+  
+  // Return existing promise if font is already being loaded
+  if (fontLoadPromises.has(fontKey)) {
+    return fontLoadPromises.get(fontKey)!
+  }
+  
+  // Return resolved promise if font is already loaded
+  if (loadedFonts.has(fontKey)) {
+    return Promise.resolve()
+  }
+  
+  const promise = new Promise<void>((resolve, reject) => {
+    // Check if font is already loaded via existing link tag
+    const existingLink = document.querySelector(`link[href*="${fontKey}"]`)
+    if (existingLink) {
+      loadedFonts.add(fontKey)
+      resolve()
+      return
+    }
+    
+    // Create link element for font
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = `https://fonts.googleapis.com/css2?family=${fontKey}:wght@300;400;500;600;700&display=swap`
+    
+    link.onload = () => {
+      loadedFonts.add(fontKey)
+      resolve()
+    }
+    
+    link.onerror = () => {
+      reject(new Error(`Failed to load font: ${fontFamily}`))
+    }
+    
+    document.head.appendChild(link)
+  })
+  
+  fontLoadPromises.set(fontKey, promise)
+  return promise
+}
+
 /**
  * Hook for generating consistent theme CSS across all components
  */
@@ -26,10 +78,7 @@ export function useThemeCSS(theme: ThemeSettings | null, mode: 'iframe' | 'live'
       : '[data-theme-applied="true"]'
 
     return `
-      /* Font imports - for both iframe and live modes */
-      /* Font loading optimized to prevent duplicate requests */
-      ${typography.headingFont !== 'Inter' ? `@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(typography.headingFont)}:wght@400;500;600;700&display=swap');` : '/* Inter font already loaded in layout */'}
-      ${typography.bodyFont !== 'Inter' && typography.bodyFont !== typography.headingFont ? `@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(typography.bodyFont)}:wght@300;400;500;600&display=swap');` : '/* Font already loaded */'}
+      /* Fonts loaded programmatically to prevent duplicate requests */
       
       ${baseSelector} {
         /* Theme Colors */
@@ -624,8 +673,25 @@ export function useApplyTheme(theme: ThemeSettings | null, enabled = true, mode:
   useMemo(() => {
     if (!enabled || typeof window === 'undefined' || !theme) return
     
-    // Remove existing theme styles
+    // Load required fonts programmatically
+    const fontsToLoad = []
+    if (theme.typography.headingFont !== 'Inter') {
+      fontsToLoad.push(loadGoogleFont(theme.typography.headingFont))
+    }
+    if (theme.typography.bodyFont !== 'Inter' && theme.typography.bodyFont !== theme.typography.headingFont) {
+      fontsToLoad.push(loadGoogleFont(theme.typography.bodyFont))
+    }
+    
+    // Load fonts and then apply styles
+    Promise.all(fontsToLoad).catch(console.error)
+    
+    // Check if styles have changed before updating
     const existingStyle = document.getElementById('site-theme-styles')
+    if (existingStyle && existingStyle.textContent === fullCSS) {
+      return // No change needed
+    }
+    
+    // Remove existing theme styles
     if (existingStyle) {
       existingStyle.remove()
     }

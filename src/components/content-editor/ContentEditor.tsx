@@ -666,9 +666,9 @@ export const ContentEditor = forwardRef<
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col min-h-0">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
         <div>
           <h3 className="text-sm font-medium">Content Editor</h3>
           <p className="text-xs text-gray-500">
@@ -704,7 +704,7 @@ export const ContentEditor = forwardRef<
 
       {/* Errors */}
       {errors && errors.length > 0 && (
-        <div className="p-4 border-b bg-destructive/5">
+        <div className="p-4 border-b bg-destructive/5 flex-shrink-0">
           <div className="space-y-1">
             {errors.map((error, index) => (
               <p key={index} className="text-xs text-destructive">
@@ -716,7 +716,7 @@ export const ContentEditor = forwardRef<
       )}
 
       {/* Sections */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto min-h-0">
         <div className="p-4 space-y-4">
           {sortedSections.map(([sectionKey, section], index) => {
             const isRequired = layoutConfig.required.includes(sectionKey)
