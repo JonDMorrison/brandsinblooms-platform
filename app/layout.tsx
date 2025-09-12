@@ -6,7 +6,11 @@ import { WebVitals } from '@/src/components/WebVitals';
 import { generateSiteMetadata } from '@/src/lib/site/metadata';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap', // Prevent FOIT (Flash of Invisible Text)
+  preload: true
+});
 
 // Generate dynamic metadata based on the current site
 export async function generateMetadata(): Promise<Metadata> {
@@ -52,8 +56,18 @@ export default async function RootLayout({
 
   return (
     <html lang='en' suppressHydrationWarning>
+      <head>
+        {/* Preload critical font resources to prevent duplicate requests */}
+        <link
+          rel="preload"
+          href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body 
-        className={isAdminRoute ? inter.className : ''}
+        className={`${inter.className} antialiased`}
         data-app={isMainApp ? 'platform' : 'site'}
       >
         <WebVitals />

@@ -43,9 +43,13 @@ import { OtherLayoutPreview } from '@/src/components/layout-previews/OtherLayout
 // Import enhanced content editor components
 import { ContentEditor, SectionManager } from '@/src/components/content-editor'
 import { SaveIndicator } from '@/src/components/content-editor/SaveIndicator'
-import { PageContent, LayoutType as ContentLayoutType, serializePageContent, deserializePageContent, isPageContent } from '@/src/lib/content'
+import { VisualEditor } from '@/src/components/content-editor/visual/VisualEditor'
+import { VisualAutoSave } from '@/src/components/content-editor/visual/VisualAutoSave'
+import { PageContent, LayoutType as ContentLayoutType, ContentSection, serializePageContent, deserializePageContent, isPageContent } from '@/src/lib/content'
+import { useContentEditor } from '@/src/hooks/useContentEditor'
 import { handleError } from '@/src/lib/types/error-handling'
 import { EditModeProvider, useEditMode, EditMode } from '@/src/contexts/EditModeContext'
+import { VisualEditorProvider } from '@/src/contexts/VisualEditorContext'
 import { useSiteTheme } from '@/src/hooks/useSiteTheme'
 
 type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact' | 'other'
@@ -273,6 +277,17 @@ function PageEditorContent() {
     setHasUnsavedChanges(false)
   }, [contentId, currentSite?.id, unifiedContent, pageData?.title])
 
+  // Content editor hook for section management - defined after handlers
+  const contentEditorHook = useContentEditor({
+    contentId: contentId || '',
+    siteId: currentSite?.id || '',
+    layout: (pageData?.layout as ContentLayoutType) || 'landing',
+    initialContent: pageContent || undefined,
+    onSave: handleContentSave,
+    onContentChange: handleContentChange,
+    autoSaveDelay: 2000
+  })
+
   if (isLoading || !pageData) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -417,7 +432,7 @@ function PageEditorContent() {
                 onClick={() => setEditMode('inline')}
               >
                 <Edit2 className="h-3.5 w-3.5 mr-1.5" />
-                Inline
+                Visual
               </Button>
               <Button
                 variant={editMode === 'form' ? 'secondary' : 'ghost'}
@@ -537,15 +552,17 @@ function PageEditorContent() {
                 </TabsContent>
 
                 <TabsContent value="sections" className="mt-0 flex-1 flex flex-col">
-                  {pageContent && (
+                  {(pageContent || contentEditorHook.content) && (
                     <SectionManager
-                      content={pageContent}
+                      content={pageContent || contentEditorHook.content}
                       layout={validLayout as ContentLayoutType}
-                      onToggleVisibility={() => {}} // Handled by ContentEditor
-                      onMoveUp={() => {}} // Handled by ContentEditor
-                      onMoveDown={() => {}} // Handled by ContentEditor
+                      onToggleVisibility={contentEditorHook.toggleSectionVisibility}
+                      onMoveUp={contentEditorHook.moveSectionUp}
+                      onMoveDown={contentEditorHook.moveSectionDown}
+                      onReorderSections={contentEditorHook.reorderSections}
                       onSectionClick={setActiveSectionKey}
                       activeSectionKey={activeSectionKey}
+                      isDraggingEnabled={true}
                     />
                   )}
                 </TabsContent>
@@ -556,40 +573,43 @@ function PageEditorContent() {
 
         {/* Preview Area */}
         <div className="flex-1 bg-muted/20 overflow-auto">
-          <div className="min-h-full p-6 flex items-start justify-center">
-            <div 
-              className="border rounded-lg shadow-sm overflow-hidden transition-all duration-300"
-              style={{ 
-                width: viewportSizes[activeViewport].width,
-                minHeight: '600px',
-                maxWidth: '100%',
-                containerType: 'inline-size',
-                backgroundColor: theme?.colors?.background || '#FFFFFF'
+          {editMode === 'inline' ? (
+            /* Visual Editor Mode */
+            <VisualEditor
+              content={pageContent || { version: '1.0', layout: validLayout as ContentLayoutType, sections: {} }}
+              layout={validLayout as ContentLayoutType}
+              title={pageData.title}
+              subtitle={
+                typeof pageContent?.sections?.hero?.data?.subtitle === 'string' 
+                  ? pageContent.sections.hero.data.subtitle
+                  : typeof pageContent?.sections?.header?.data?.subtitle === 'string'
+                  ? pageContent.sections.header.data.subtitle  
+                  : pageData.subtitle
+              }
+              onContentChange={(content) => {
+                handleContentChange(content, true)
               }}
-            >
-              {validLayout === 'landing' && editMode === 'inline' ? (
-                <EditableLandingPagePreview
-                  title={pageData.title}
-                  subtitle={
-                    typeof pageContent?.sections?.hero?.data?.subtitle === 'string' 
-                      ? pageContent.sections.hero.data.subtitle
-                      : typeof pageContent?.sections?.header?.data?.subtitle === 'string'
-                      ? pageContent.sections.header.data.subtitle  
-                      : pageData.subtitle
-                  }
-                  content={pageContent || undefined}
-                  onContentChange={editMode === 'inline' ? (content) => {
-                    if (isPageContent(content)) {
-                      handleContentChange(content, true)
-                    }
-                  } : undefined}
-                  onTitleChange={editMode === 'inline' ? handleTitleChange : undefined}
-                  onSubtitleChange={editMode === 'inline' ? (subtitle) => {
-                    setPageData(prev => prev ? { ...prev, subtitle } : null)
-                    setHasUnsavedChanges(true)
-                  } : undefined}
-                />
-              ) : (
+              onTitleChange={handleTitleChange}
+              onSubtitleChange={(subtitle) => {
+                setPageData(prev => prev ? { ...prev, subtitle } : null)
+                setHasUnsavedChanges(true)
+              }}
+              viewport={activeViewport}
+              className="h-full"
+            />
+          ) : (
+            /* Traditional Preview Mode */
+            <div className="min-h-full p-6 flex items-start justify-center">
+              <div 
+                className="border rounded-lg shadow-sm overflow-hidden transition-all duration-300"
+                style={{ 
+                  width: viewportSizes[activeViewport].width,
+                  minHeight: '600px',
+                  maxWidth: '100%',
+                  containerType: 'inline-size',
+                  backgroundColor: theme?.colors?.background || '#FFFFFF'
+                }}
+              >
                 <CurrentLayoutComponent 
                   title={pageData.title}
                   subtitle={
@@ -601,9 +621,9 @@ function PageEditorContent() {
                   }
                   content={pageContent || undefined}
                 />
-              )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -629,6 +649,22 @@ function PageEditorContent() {
       
       {/* Save Indicator for inline editing mode */}
       <SaveIndicator />
+      
+      {/* Visual Auto-Save for visual editing mode */}
+      {editMode === 'inline' && pageContent && (
+        <VisualAutoSave
+          content={pageContent}
+          originalContent={pageContent}
+          onSave={async (content) => {
+            await handleContentSave(content)
+          }}
+          onContentChange={(content) => {
+            handleContentChange(content, true)
+          }}
+          debounceDelay={2000}
+          className="fixed bottom-4 right-4 z-50"
+        />
+      )}
     </div>
   )
 }
@@ -636,7 +672,11 @@ function PageEditorContent() {
 export default function PageEditorPage() {
   return (
     <EditModeProvider defaultMode="inline">
-      <PageEditorContent />
+      <VisualEditorProvider
+        debounceDelay={2000}
+      >
+        <PageEditorContent />
+      </VisualEditorProvider>
     </EditModeProvider>
   )
 }

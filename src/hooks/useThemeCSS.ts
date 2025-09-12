@@ -27,7 +27,9 @@ export function useThemeCSS(theme: ThemeSettings | null, mode: 'iframe' | 'live'
 
     return `
       /* Font imports - for both iframe and live modes */
-      @import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(typography.headingFont)}:wght@400;500;600;700&family=${encodeURIComponent(typography.bodyFont)}:wght@300;400;500;600&display=swap');
+      /* Font loading optimized to prevent duplicate requests */
+      ${typography.headingFont !== 'Inter' ? `@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(typography.headingFont)}:wght@400;500;600;700&display=swap');` : '/* Inter font already loaded in layout */'}
+      ${typography.bodyFont !== 'Inter' && typography.bodyFont !== typography.headingFont ? `@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(typography.bodyFont)}:wght@300;400;500;600&display=swap');` : '/* Font already loaded */'}
       
       ${baseSelector} {
         /* Theme Colors */

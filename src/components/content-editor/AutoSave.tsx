@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Check, AlertCircle, Clock, RotateCcw } from 'lucide-react'
-import { Badge } from '@/src/components/ui/badge'
-import { Button } from '@/src/components/ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/src/components/ui/tooltip'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
-import { handleError } from '@/src/lib/types/error-handling'
+import { handleError } from '@/lib/types/error-handling'
 
 export type AutoSaveStatus = 'idle' | 'saving' | 'saved' | 'failed'
 
@@ -66,24 +66,28 @@ export function AutoSave({
       const errorMessage = error instanceof Error ? error.message : 'Save failed'
       handleError(error, 'Auto-save failed')
 
-      setState(prev => ({
-        ...prev,
-        status: 'failed',
-        retryCount: prev.retryCount + 1,
-        error: errorMessage
-      }))
+      setState(prev => {
+        const newRetryCount = prev.retryCount + 1
+        
+        // Schedule retry if we haven't exceeded max retries
+        if (newRetryCount < maxRetries) {
+          const retryDelay = Math.min(delay * Math.pow(2, newRetryCount), 10000) // Exponential backoff, max 10s
+          setTimeout(() => {
+            performSave()
+          }, retryDelay)
+        } else {
+          toast.error(`Auto-save failed after ${maxRetries} attempts. Please save manually.`)
+        }
 
-      // Schedule retry if we haven't exceeded max retries
-      if (state.retryCount < maxRetries) {
-        const retryDelay = Math.min(delay * Math.pow(2, state.retryCount), 10000) // Exponential backoff, max 10s
-        setTimeout(() => {
-          performSave()
-        }, retryDelay)
-      } else {
-        toast.error(`Auto-save failed after ${maxRetries} attempts. Please save manually.`)
-      }
+        return {
+          ...prev,
+          status: 'failed',
+          retryCount: newRetryCount,
+          error: errorMessage
+        }
+      })
     }
-  }, [onSave, isValid, isDirty, delay, maxRetries, state.retryCount])
+  }, [onSave, isValid, isDirty, delay, maxRetries])
 
   const scheduleAutoSave = useCallback(() => {
     if (timeoutId) {
@@ -96,7 +100,7 @@ export function AutoSave({
       }, delay)
       setTimeoutId(newTimeoutId)
     }
-  }, [isDirty, isValid, state.status, delay, performSave, timeoutId])
+  }, [isDirty, isValid, state.status, delay, performSave])
 
   const handleManualRetry = useCallback(() => {
     setState(prev => ({ ...prev, retryCount: 0 }))

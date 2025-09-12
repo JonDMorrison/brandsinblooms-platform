@@ -43,6 +43,7 @@ interface UseContentEditorReturn {
   toggleSectionVisibility: (sectionKey: string) => void
   moveSectionUp: (sectionKey: string) => void
   moveSectionDown: (sectionKey: string) => void
+  reorderSections: (sections: Array<{ key: string; section: ContentSection }>) => void
   saveContent: () => Promise<void>
   resetContent: () => void
   loadContent: () => Promise<void>
@@ -325,6 +326,23 @@ export function useContentEditor({
     })
   }, [])
 
+  // Reorder sections in bulk with optimistic updates
+  const reorderSections = useCallback((sections: Array<{ key: string; section: ContentSection }>) => {
+    setContent(prev => {
+      const newSections: { [key: string]: ContentSection } = {}
+      
+      // Rebuild sections object with new order
+      sections.forEach(({ key, section }) => {
+        newSections[key] = section
+      })
+      
+      return {
+        ...prev,
+        sections: newSections
+      }
+    })
+  }, [])
+
   // Reset content to original state
   const resetContent = useCallback(() => {
     setContent(originalContent)
@@ -363,6 +381,7 @@ export function useContentEditor({
     toggleSectionVisibility,
     moveSectionUp,
     moveSectionDown,
+    reorderSections,
     saveContent,
     resetContent,
     loadContent
