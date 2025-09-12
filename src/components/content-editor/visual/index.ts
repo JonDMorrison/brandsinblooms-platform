@@ -3,7 +3,6 @@ export { VisualEditor } from './VisualEditor'
 export { EditOverlay } from './EditOverlay'
 export { EditableSection, EditableField, EditableText, EditableRichText, EditableImage } from './EditableSection'
 export { VisualEditorToolbar } from './VisualEditorToolbar'
-export { VisualAutoSave, useVisualAutoSave } from './VisualAutoSave'
 
 // Milestone 2: Inline Rich Text Editing Components
 export { InlineRichTextEditor } from './InlineRichTextEditor'

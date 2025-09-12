@@ -30,7 +30,7 @@ export function AutoSave({
   onSave,
   isDirty,
   isValid,
-  delay = 2000,
+  delay = 5000,
   maxRetries = 3,
   className
 }: AutoSaveProps) {
@@ -61,7 +61,7 @@ export function AutoSave({
       // Reset to idle after showing "saved" status briefly
       setTimeout(() => {
         setState(prev => ({ ...prev, status: 'idle' }))
-      }, 2000)
+      }, 1000)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Save failed'
       handleError(error, 'Auto-save failed')
@@ -76,7 +76,8 @@ export function AutoSave({
             performSave()
           }, retryDelay)
         } else {
-          toast.error(`Auto-save failed after ${maxRetries} attempts. Please save manually.`)
+          // Remove persistent error toast - user will see indicator in UI
+          console.error(`Auto-save failed after ${maxRetries} attempts`)
         }
 
         return {

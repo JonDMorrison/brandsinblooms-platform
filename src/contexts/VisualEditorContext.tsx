@@ -61,15 +61,13 @@ interface VisualEditorProviderProps {
   onContentUpdate?: (fieldPath: string, content: string) => void;
   onSectionAdd?: (sectionKey: string, section: ContentSection) => void;
   onSectionDelete?: (sectionKey: string) => void;
-  debounceDelay?: number;
 }
 
 export function VisualEditorProvider({ 
   children, 
   onContentUpdate,
   onSectionAdd,
-  onSectionDelete,
-  debounceDelay = 2000 
+  onSectionDelete
 }: VisualEditorProviderProps) {
   const { editMode, isInlineEditEnabled } = useEditMode();
   
@@ -80,9 +78,6 @@ export function VisualEditorProvider({
     editableElements: new Map(),
     showOverlay: isInlineEditEnabled && editMode === 'inline'
   });
-  
-  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const pendingUpdates = useRef<Map<string, string>>(new Map());
   
   // Register/unregister editable elements
   const registerElement = useCallback((element: EditableElement) => {
@@ -127,28 +122,14 @@ export function VisualEditorProvider({
     setState(prev => ({ ...prev, showOverlay: !prev.showOverlay }));
   }, []);
   
-  // Content updates with debounced auto-save
+  // Content updates (no auto-save - manual save only)
   const updateElementContent = useCallback((elementId: string, content: string) => {
     const element = state.editableElements.get(elementId);
     if (!element || !onContentUpdate) return;
     
-    // Store pending update
-    pendingUpdates.current.set(element.fieldPath, content);
-    
-    // Clear existing timeout
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-    
-    // Set new debounced timeout
-    updateTimeoutRef.current = setTimeout(() => {
-      // Process all pending updates
-      for (const [fieldPath, pendingContent] of pendingUpdates.current.entries()) {
-        onContentUpdate(fieldPath, pendingContent);
-      }
-      pendingUpdates.current.clear();
-    }, debounceDelay);
-  }, [state.editableElements, onContentUpdate, debounceDelay]);
+    // Call update callback immediately (no debounce/auto-save)
+    onContentUpdate(element.fieldPath, content);
+  }, [state.editableElements, onContentUpdate]);
   
   // Section management methods
   const addSection = useCallback((templateId: string, insertAfter?: string) => {

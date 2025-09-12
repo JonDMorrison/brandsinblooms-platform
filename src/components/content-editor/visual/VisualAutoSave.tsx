@@ -28,7 +28,7 @@ export function VisualAutoSave({
   originalContent,
   onSave,
   onContentChange,
-  debounceDelay = 2000,
+  debounceDelay = 5000,
   maxRetries = 3,
   className
 }: VisualAutoSaveProps) {
@@ -155,7 +155,8 @@ export function VisualAutoSave({
       // Clear all pending changes
       pendingChanges.current.clear()
       
-      toast.success('Changes saved successfully')
+      // Removed success toast to reduce notifications
+      // Success is indicated by the visual badge instead
     } catch (error) {
       handleError(error, 'Auto-save failed')
       throw error

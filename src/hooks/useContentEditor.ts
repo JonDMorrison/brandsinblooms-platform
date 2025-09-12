@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '@/src/lib/supabase/client'
 import { getContentById, updateContent } from '@/src/lib/queries/domains/content'
-import { useDebounce } from '@/src/hooks/useDebounce'
 
 import { 
   PageContent, 
@@ -29,7 +28,6 @@ interface UseContentEditorProps {
   initialContent?: PageContent
   onSave?: (content: PageContent) => Promise<void>
   onContentChange?: (content: PageContent, hasChanges: boolean) => void
-  autoSaveDelay?: number
 }
 
 interface UseContentEditorReturn {
@@ -55,8 +53,7 @@ export function useContentEditor({
   layout,
   initialContent,
   onSave,
-  onContentChange,
-  autoSaveDelay = 2000
+  onContentChange
 }: UseContentEditorProps): UseContentEditorReturn {
   const [content, setContent] = useState<PageContent>(() => 
     initialContent || initializeDefaultContent(layout)
@@ -67,8 +64,6 @@ export function useContentEditor({
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  // Debounced content for auto-save
-  const debouncedContent = useDebounce(content, autoSaveDelay)
 
   // Calculate if content has changes
   const isDirty = useMemo(() => {
@@ -362,13 +357,6 @@ export function useContentEditor({
     }
   }, [content, isDirty, onContentChange])
 
-  // Auto-save (if enabled and not using custom save handler)
-  useEffect(() => {
-    if (!onSave && isDirty && isValid && debouncedContent && !isSaving) {
-      // Auto-save is disabled by default to avoid conflicts
-      // Users can implement auto-save in the parent component
-    }
-  }, [debouncedContent, isDirty, isValid, isSaving, onSave])
 
   return {
     content,

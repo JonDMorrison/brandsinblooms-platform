@@ -11,7 +11,6 @@ export type { RichTextEditorProps, RichTextEditorRef } from './RichTextEditor';
 export { InlineTextEditor } from './InlineTextEditor';
 export { FloatingToolbar } from './FloatingToolbar';
 export { EditableWrapper } from './EditableWrapper';
-export { SaveIndicator } from './SaveIndicator';
 export type { InlineTextEditorProps } from './InlineTextEditor';
 
 // Input Components
@@ -29,8 +28,6 @@ export { SectionManager } from './SectionManager';
 
 // Optimized Components (Milestone 6: Polish & Optimization)
 export { OptimizedContentEditor } from './OptimizedContentEditor';
-export { AutoSave } from './AutoSave';
-export type { AutoSaveStatus } from './AutoSave';
 
 // Error Boundaries
 export { 

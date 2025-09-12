@@ -42,9 +42,7 @@ import { OtherLayoutPreview } from '@/src/components/layout-previews/OtherLayout
 
 // Import enhanced content editor components
 import { ContentEditor, SectionManager } from '@/src/components/content-editor'
-import { SaveIndicator } from '@/src/components/content-editor/SaveIndicator'
 import { VisualEditor } from '@/src/components/content-editor/visual/VisualEditor'
-import { VisualAutoSave } from '@/src/components/content-editor/visual/VisualAutoSave'
 import { PageContent, LayoutType as ContentLayoutType, ContentSection, serializePageContent, deserializePageContent, isPageContent } from '@/src/lib/content'
 import { useContentEditor } from '@/src/hooks/useContentEditor'
 import { handleError } from '@/src/lib/types/error-handling'
@@ -284,8 +282,7 @@ function PageEditorContent() {
     layout: (pageData?.layout as ContentLayoutType) || 'landing',
     initialContent: pageContent || undefined,
     onSave: handleContentSave,
-    onContentChange: handleContentChange,
-    autoSaveDelay: 2000
+    onContentChange: handleContentChange
   })
 
   if (isLoading || !pageData) {
@@ -647,24 +644,6 @@ function PageEditorContent() {
         </div>
       </div>
       
-      {/* Save Indicator for inline editing mode */}
-      <SaveIndicator />
-      
-      {/* Visual Auto-Save for visual editing mode */}
-      {editMode === 'inline' && pageContent && (
-        <VisualAutoSave
-          content={pageContent}
-          originalContent={pageContent}
-          onSave={async (content) => {
-            await handleContentSave(content)
-          }}
-          onContentChange={(content) => {
-            handleContentChange(content, true)
-          }}
-          debounceDelay={2000}
-          className="fixed bottom-4 right-4 z-50"
-        />
-      )}
     </div>
   )
 }
@@ -672,9 +651,7 @@ function PageEditorContent() {
 export default function PageEditorPage() {
   return (
     <EditModeProvider defaultMode="inline">
-      <VisualEditorProvider
-        debounceDelay={2000}
-      >
+      <VisualEditorProvider>
         <PageEditorContent />
       </VisualEditorProvider>
     </EditModeProvider>
