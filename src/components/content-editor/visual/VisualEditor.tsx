@@ -66,6 +66,13 @@ const VisualEditorContent = memo(function VisualEditorContent({
     updateContent(fieldPath, newContent)
   }, [updateContent])
   
+  // Handle content updates from section-based inline editors
+  const handleSectionContentUpdate = useCallback((sectionKey: string, fieldPath: string, newContent: string) => {
+    // Create full field path for updateContent
+    const fullFieldPath = `sections.${sectionKey}.${fieldPath}`
+    updateContent(fullFieldPath, newContent)
+  }, [updateContent])
+  
   // Handle title/subtitle updates
   const handleTitleUpdate = useCallback((newTitle: string) => {
     if (onTitleChange) {
@@ -234,6 +241,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
           title={layout === 'landing' ? undefined : title}
           subtitle={layout === 'landing' ? undefined : subtitle}
           content={content}
+          onContentUpdate={handleSectionContentUpdate}
         />
       </div>
       

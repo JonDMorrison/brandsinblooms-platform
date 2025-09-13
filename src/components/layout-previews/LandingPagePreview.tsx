@@ -10,9 +10,10 @@ import { SiteThemeProvider, ThemeWrapper, useSiteThemeContext } from '@/src/comp
 
 interface LandingPagePreviewProps {
   content?: PageContent | LegacyContent
+  onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
 }
 
-function LandingPagePreviewContent({ content }: LandingPagePreviewProps) {
+function LandingPagePreviewContent({ content, onContentUpdate }: LandingPagePreviewProps) {
   const { theme } = useSiteThemeContext()
   
   // Determine if we have enhanced content or need to use legacy format
@@ -35,6 +36,7 @@ function LandingPagePreviewContent({ content }: LandingPagePreviewProps) {
               section={section}
               sectionKey={key}
               className=""
+              onContentUpdate={onContentUpdate}
             />
           ))}
       </div>

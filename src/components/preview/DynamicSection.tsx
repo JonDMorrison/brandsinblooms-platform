@@ -10,15 +10,17 @@ import { Avatar, AvatarFallback } from '@/src/components/ui/avatar'
 import * as LucideIcons from 'lucide-react'
 import { LucideIcon } from 'lucide-react'
 import { useSiteTheme } from '@/hooks/useSiteTheme'
+import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 
 interface DynamicSectionProps {
   section: ContentSection
   sectionKey: string
   className?: string
   title?: string // Page title for hero sections
+  onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
 }
 
-function DynamicSectionComponent({ section, sectionKey, className = '', title }: DynamicSectionProps) {
+function DynamicSectionComponent({ section, sectionKey, className = '', title, onContentUpdate }: DynamicSectionProps) {
   const { theme } = useSiteTheme()
   
   // Don't render if section is not visible or has no data
@@ -123,15 +125,25 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title }:
             <div className="max-w-4xl mx-auto text-center">
               {/* Main headline - use from data.headline or title */}
               {(data.headline || title) && (
-                <h1 
-                  className="text-4xl md:text-6xl font-bold mb-6"
+                <InlineTextEditor
+                  content={data.headline || title || ''}
+                  onUpdate={(content) => {
+                    if (onContentUpdate) {
+                      onContentUpdate(sectionKey, 'data.headline', content)
+                    }
+                  }}
+                  isEnabled={Boolean(onContentUpdate)}
+                  fieldPath="data.headline"
+                  format="plain"
+                  className="text-4xl md:text-6xl font-bold mb-6 block"
                   style={{ 
                     color: 'var(--theme-text)',
                     fontFamily: 'var(--theme-font-heading)'
                   }}
-                >
-                  {data.headline || title}
-                </h1>
+                  placeholder="Enter your headline..."
+                  showToolbar={false}
+                  debounceDelay={0}
+                />
               )}
 
               {/* Subheadline */}
