@@ -147,9 +147,10 @@ const VisualEditorContent = memo(function VisualEditorContent({
     const handleContainerClick = (event: MouseEvent) => {
       // Prevent navigation for all links and buttons in preview mode
       const target = event.target as HTMLElement
+      const inlineEditor = target.closest('.inline-editor-wrapper')
       const clickableElement = target.closest('a, button')
       
-      if (clickableElement) {
+      if (clickableElement && !inlineEditor) {
         event.preventDefault()
         event.stopPropagation()
         // Add visual feedback for preview mode
