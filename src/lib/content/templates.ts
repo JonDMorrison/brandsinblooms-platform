@@ -11,7 +11,7 @@ import {
   generateTeamMembers,
   generateGalleryItems,
   MOCK_DATA_PRESETS,
-  type MockDataConfig
+  type MockDataOptions
 } from './mock-data'
 
 /**
@@ -29,12 +29,12 @@ export function getEnhancedLayoutTemplate(
   layout: LayoutType,
   title: string,
   subtitle?: string,
-  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
   const baseTemplate = getBasicLayoutTemplate(layout, title, subtitle)
   
-  // If basic quality is requested, return the simple template
-  if (config.quality === 'basic') {
+  // If simple complexity is requested, return the simple template
+  if (config.complexity === 'simple') {
     return baseTemplate
   }
   
@@ -471,10 +471,320 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
           spacing: 'normal'
         }
       }
+    },
+    plant_shop: {
+      version: '1.0',
+      layout: 'plant_shop',
+      sections: {
+        hero: {
+          type: 'hero',
+          visible: true,
+          order: 0,
+          data: {
+            content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p>Discover beautiful plants for your home and garden.</p>`,
+            subtitle: subtitle || '',
+            alignment: 'center'
+          }
+        }
+      }
+    },
+    plant_care: {
+      version: '1.0',
+      layout: 'plant_care',
+      sections: {
+        hero: {
+          type: 'hero',
+          visible: true,
+          order: 0,
+          data: {
+            content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p>Learn how to care for your plants.</p>`,
+            subtitle: subtitle || '',
+            alignment: 'center'
+          }
+        }
+      }
+    },
+    plant_catalog: {
+      version: '1.0',
+      layout: 'plant_catalog',
+      sections: {
+        hero: {
+          type: 'hero',
+          visible: true,
+          order: 0,
+          data: {
+            content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p>Browse our complete plant catalog.</p>`,
+            subtitle: subtitle || '',
+            alignment: 'center'
+          }
+        }
+      }
     }
   }
 
   return templates[layout]
+}
+
+/**
+ * Get template based on template type
+ */
+export function getTemplateContent(
+  templateId: string,
+  title: string,
+  subtitle?: string,
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
+): PageContent {
+  // If simple complexity is requested, return basic landing template regardless of template choice
+  if (config.complexity === 'simple') {
+    return getBasicLayoutTemplate('landing', title, subtitle)
+  }
+  
+  switch (templateId) {
+    case 'home-page':
+      return getHomePageTemplate(title, subtitle, config)
+    case 'minimal':
+      return getMinimalLandingTemplate(title, subtitle, config)
+    default:
+      return enhanceLandingTemplate(title, subtitle, config)
+  }
+}
+
+/**
+ * Home Page template matching the hardcoded HomePage.tsx structure
+ */
+function getHomePageTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
+): PageContent {
+  return {
+    version: '1.0',
+    layout: 'landing',
+    sections: {
+      hero: {
+        type: 'hero',
+        visible: true,
+        order: 0,
+        data: {
+          content: `<h1>${title || 'Welcome to Our Plant Paradise'}</h1>
+<p class="text-xl text-gray-600">${subtitle || 'Discover the perfect plants for your home and garden'}</p>
+<p>Transform your space with our carefully curated collection of healthy, beautiful plants. From beginners to experts, we have something for every plant lover.</p>`,
+          items: [
+            {
+              id: 'cta-primary',
+              title: 'Shop Plants',
+              url: '/products',
+              metadata: { variant: 'primary' }
+            },
+            {
+              id: 'cta-secondary',
+              title: 'Plant Care Guide',
+              url: '/guides',
+              metadata: { variant: 'secondary' }
+            }
+          ],
+          features: [
+            'Expert Care Guides',
+            'Healthy Plants Guaranteed',
+            'Fast & Safe Delivery',
+            'Plant Parent Support'
+          ]
+        }
+      },
+      featured: {
+        type: 'features',
+        visible: true,
+        order: 1,
+        data: {
+          headline: 'Featured Plants',
+          description: 'Hand-picked favorites that bring life to any space',
+          items: [
+            {
+              id: 'featured-1',
+              title: 'Monstera Deliciosa',
+              subtitle: 'Indoor Tropical',
+              content: 'Perfect statement plant with stunning split leaves',
+              image: '/api/placeholder/300/300',
+              price: '$45',
+              originalPrice: '$55',
+              features: ['Low Light', 'Air Purifying', 'Pet Safe'],
+              order: 0
+            },
+            {
+              id: 'featured-2',
+              title: 'Snake Plant',
+              subtitle: 'Beginner Friendly',
+              content: 'Nearly indestructible and perfect for beginners',
+              image: '/api/placeholder/300/300',
+              price: '$25',
+              features: ['Very Low Light', 'Drought Tolerant', 'Air Purifying'],
+              order: 1
+            },
+            {
+              id: 'featured-3',
+              title: 'Fiddle Leaf Fig',
+              subtitle: 'Statement Plant',
+              content: 'Iconic large leaves make a bold statement',
+              image: '/api/placeholder/300/300',
+              price: '$65',
+              features: ['Bright Light', 'Fast Growing', 'Instagram Famous'],
+              order: 2
+            }
+          ]
+        }
+      },
+      categories: {
+        type: 'features',
+        visible: true,
+        order: 2,
+        data: {
+          headline: 'Shop by Category',
+          description: 'Find the perfect plants for your experience level and space',
+          items: [
+            {
+              id: 'category-1',
+              title: 'Beginner-Friendly',
+              content: 'Easy-care plants perfect for new plant parents',
+              count: '24 plants',
+              order: 0
+            },
+            {
+              id: 'category-2',
+              title: 'Houseplants',
+              content: 'Beautiful indoor plants for every room',
+              count: '48 plants',
+              order: 1
+            },
+            {
+              id: 'category-3',
+              title: 'Outdoor Plants',
+              content: 'Hardy plants for gardens and patios',
+              count: '36 plants',
+              order: 2
+            },
+            {
+              id: 'category-4',
+              title: 'Succulents',
+              content: 'Low-maintenance desert beauties',
+              count: '32 plants',
+              order: 3
+            }
+          ]
+        }
+      },
+      features: {
+        type: 'features',
+        visible: true,
+        order: 3,
+        data: {
+          headline: 'Why Choose Our Plants?',
+          description: 'We provide everything you need for plant parent success',
+          items: [
+            {
+              id: 'feature-1',
+              title: 'Health Guarantee',
+              content: 'All plants are quarantined and health-checked before shipping',
+              icon: 'Shield',
+              order: 0
+            },
+            {
+              id: 'feature-2',
+              title: 'Expert Care Guides',
+              content: 'Detailed care instructions and ongoing support included',
+              icon: 'BookOpen',
+              order: 1
+            },
+            {
+              id: 'feature-3',
+              title: 'Safe Packaging',
+              content: 'Specially designed boxes ensure plants arrive perfect',
+              icon: 'Package',
+              order: 2
+            },
+            {
+              id: 'feature-4',
+              title: 'Plant Parent Support',
+              content: '24/7 help from our team of plant care specialists',
+              icon: 'Users',
+              order: 3
+            }
+          ]
+        }
+      },
+      cta: {
+        type: 'cta',
+        visible: true,
+        order: 4,
+        data: {
+          content: `<h2>Growing Together, Sustainably</h2>
+<p>Our mission is to help you create thriving plant sanctuaries while protecting our planet. Every plant comes with expert care guidance, sustainable growing practices, and our commitment to your plant parenthood success.</p>`,
+          items: [
+            {
+              id: 'cta-consultation',
+              title: 'Schedule Consultation',
+              url: '/contact',
+              metadata: { variant: 'primary' }
+            },
+            {
+              id: 'cta-browse',
+              title: 'Browse Plants',
+              url: '/products',
+              metadata: { variant: 'secondary' }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Minimal landing page template
+ */
+function getMinimalLandingTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
+): PageContent {
+  return {
+    version: '1.0',
+    layout: 'landing',
+    sections: {
+      hero: {
+        type: 'hero',
+        visible: true,
+        order: 0,
+        data: {
+          content: `<h1>${title || 'Welcome'}</h1>
+<p class="text-xl text-gray-600">${subtitle || 'Your journey starts here'}</p>`,
+          items: [
+            {
+              id: 'cta-primary',
+              title: 'Get Started',
+              url: '/contact',
+              metadata: { variant: 'primary' }
+            }
+          ]
+        }
+      },
+      cta: {
+        type: 'cta',
+        visible: true,
+        order: 1,
+        data: {
+          content: `<h2>Ready to Begin?</h2>
+<p>Take the first step towards your goals.</p>`,
+          items: [
+            {
+              id: 'cta-bottom',
+              title: 'Contact Us',
+              url: '/contact'
+            }
+          ]
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -483,7 +793,7 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
 function enhanceLandingTemplate(
   title: string,
   subtitle?: string,
-  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
   const features = generateFeatures(6, config)
   const testimonials = generateTestimonials(3, config)
@@ -572,7 +882,7 @@ function enhanceLandingTemplate(
 function enhanceAboutTemplate(
   title: string,
   subtitle?: string,
-  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
   const teamMembers = generateTeamMembers(4, config)
   const testimonials = generateTestimonials(2, config)
@@ -682,7 +992,7 @@ function enhanceAboutTemplate(
 function enhanceProductTemplate(
   title: string,
   subtitle?: string,
-  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
   const features = generateFeatures(6, config)
   const gallery = generateGalleryItems(4, 'product')
@@ -787,7 +1097,7 @@ function enhanceProductTemplate(
 function enhanceContactTemplate(
   title: string,
   subtitle?: string,
-  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
   return {
     version: '1.0',
@@ -921,9 +1231,9 @@ function enhanceContactTemplate(
 function enhanceBlogTemplate(
   title: string,
   subtitle?: string,
-  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
-  const richContent = config.quality === 'premium'
+  const richContent = config.complexity === 'detailed'
     ? `<h2>Introduction</h2>
 <p>In today's rapidly evolving digital landscape, businesses face unprecedented challenges and opportunities. This comprehensive guide explores the strategies and technologies that are reshaping industries and driving innovation forward.</p>
 
@@ -981,7 +1291,7 @@ function enhanceBlogTemplate(
 
 <h3>Next Steps</h3>
 <p>Ready to begin your transformation journey? Contact our team of experts to discuss how we can help you achieve your digital objectives and drive meaningful business outcomes.</p>`
-    : config.quality === 'detailed'
+    : config.complexity === 'moderate'
     ? `<h2>Introduction</h2>
 <p>Welcome to our exploration of modern business transformation and the technologies driving change across industries. This article provides insights and strategies for navigating today's digital landscape.</p>
 
@@ -1056,7 +1366,7 @@ function enhanceBlogTemplate(
 function enhancePortfolioTemplate(
   title: string,
   subtitle?: string,
-  config: MockDataConfig = MOCK_DATA_PRESETS.technology
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
   const gallery = generateGalleryItems(9, 'portfolio')
 

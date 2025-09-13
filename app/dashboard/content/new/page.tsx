@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { createContent } from '@/src/lib/queries/domains/content'
 import { supabase } from '@/src/lib/supabase/client'
 import { useSiteContext } from '@/src/contexts/SiteContext'
-import { getLayoutTemplate, getEnhancedLayoutTemplate } from '@/src/lib/content/templates'
+import { getLayoutTemplate, getEnhancedLayoutTemplate, getTemplateContent } from '@/src/lib/content/templates'
 import { MOCK_DATA_PRESETS } from '@/src/lib/content/mock-data'
 import { serializePageContent } from '@/src/lib/content'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
@@ -45,7 +45,8 @@ import { Switch } from '@/src/components/ui/switch'
 const createContentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   subtitle: z.string().optional(),
-  layout: z.enum(['landing', 'blog', 'portfolio', 'about', 'product', 'contact', 'other'])
+  layout: z.enum(['landing']),
+  template: z.string().optional()
 })
 
 type CreateContentForm = z.infer<typeof createContentSchema>
@@ -60,68 +61,39 @@ interface LayoutOption {
   recommended: boolean
 }
 
+interface TemplateOption {
+  id: string
+  name: string
+  description: string
+  preview: string
+  recommended: boolean
+}
+
 const layoutOptions: LayoutOption[] = [
   {
     id: 'landing',
     name: 'Landing Page',
     description: 'Perfect for homepage or promotional pages',
     icon: <Layout className="h-6 w-6" />,
-    preview: 'Hero section, features grid, call-to-action',
-    features: ['Hero Section', 'Feature Cards', 'CTA Buttons', 'Social Proof'],
+    preview: 'Hero, Featured, Categories, Features, Call-to-Action',
+    features: ['Hero', 'Featured', 'Categories', 'Features', 'CTA'],
+    recommended: true
+  }
+]
+
+const templateOptions: TemplateOption[] = [
+  {
+    id: 'home-page',
+    name: 'Home Page',
+    description: 'A complete homepage template with all sections',
+    preview: 'Hero section, featured content, categories, features, and CTA',
     recommended: true
   },
   {
-    id: 'blog',
-    name: 'Blog Article',
-    description: 'Great for articles, news, and content marketing',
-    icon: <FileText className="h-6 w-6" />,
-    preview: 'Article header, content sections, sidebar',
-    features: ['Article Header', 'Rich Content', 'Author Bio', 'Related Posts'],
-    recommended: false
-  },
-  {
-    id: 'portfolio',
-    name: 'Portfolio Grid',
-    description: 'Showcase your work and projects beautifully',
-    icon: <Grid3X3 className="h-6 w-6" />,
-    preview: 'Image gallery, project details, categories',
-    features: ['Image Gallery', 'Project Details', 'Filter Categories', 'Lightbox'],
-    recommended: false
-  },
-  {
-    id: 'about',
-    name: 'About/Company',
-    description: 'Tell your story and introduce your team',
-    icon: <User className="h-6 w-6" />,
-    preview: 'Company story, team members, timeline',
-    features: ['Company Story', 'Team Profiles', 'Timeline', 'Values Section'],
-    recommended: false
-  },
-  {
-    id: 'product',
-    name: 'Product Page',
-    description: 'Detailed product or service showcase',
-    icon: <Package className="h-6 w-6" />,
-    preview: 'Product gallery, specifications, pricing',
-    features: ['Product Gallery', 'Specifications', 'Pricing Table', 'Reviews'],
-    recommended: false
-  },
-  {
-    id: 'contact',
-    name: 'Contact/Services',
-    description: 'Contact information and service offerings',
-    icon: <Phone className="h-6 w-6" />,
-    preview: 'Contact form, location map, service list',
-    features: ['Contact Form', 'Location Map', 'Service List', 'Business Hours'],
-    recommended: false
-  },
-  {
-    id: 'other',
-    name: 'Custom/Other',
-    description: 'Complete flexibility with access to all content blocks',
-    icon: <Layers className="h-6 w-6" />,
-    preview: 'Build your own layout with any combination of sections',
-    features: ['All Content Blocks', 'No Requirements', 'Full Flexibility', 'Mix & Match Sections'],
+    id: 'minimal',
+    name: 'Minimal Start',
+    description: 'Simple landing page with basic blocks',
+    preview: 'Hero and CTA sections only',
     recommended: false
   }
 ]
@@ -131,6 +103,7 @@ export default function CreateContentPage() {
   const { currentSite } = useSiteContext()
   const [step, setStep] = useState(1)
   const [selectedLayout, setSelectedLayout] = useState<CreateContentForm['layout'] | null>('landing')
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('home-page')
   const [isCreating, setIsCreating] = useState(false)
   const [useMockData, setUseMockData] = useState(true)
 
@@ -139,7 +112,8 @@ export default function CreateContentPage() {
     defaultValues: {
       title: '',
       subtitle: '',
-      layout: 'landing'
+      layout: 'landing',
+      template: 'home-page'
     }
   })
 
@@ -179,23 +153,25 @@ export default function CreateContentPage() {
       
       console.log('Generated slug:', slug)
       
-      // Get template content for the selected layout (with or without mock data)
+      // Get template content based on selected template and settings
+      const selectedTemplateName = form.getValues('template') || selectedTemplate
       const templateContent = useMockData 
-        ? getEnhancedLayoutTemplate(data.layout, data.title, data.subtitle, MOCK_DATA_PRESETS.technology)
-        : getLayoutTemplate(data.layout, data.title, data.subtitle)
+        ? getTemplateContent(selectedTemplateName, data.title, data.subtitle, MOCK_DATA_PRESETS.technology)
+        : getTemplateContent(selectedTemplateName, data.title, data.subtitle, { ...MOCK_DATA_PRESETS.technology, complexity: 'simple' })
       const serializedContent = serializePageContent(templateContent)
       
       const contentData = {
         site_id: currentSite.id,
         title: data.title,
         slug,
-        content_type: data.layout === 'blog' ? 'blog_post' : 'page',
+        content_type: 'page',
         content: serializedContent,
         is_published: false,
         is_featured: false,
         meta_data: {
           subtitle: data.subtitle,
-          layout: data.layout
+          layout: data.layout,
+          template: selectedTemplateName
         }
       }
       
@@ -233,6 +209,11 @@ export default function CreateContentPage() {
     form.setValue('layout', layoutId, { shouldValidate: true })
   }
 
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplate(templateId)
+    form.setValue('template', templateId, { shouldValidate: true })
+  }
+
   const nextStep = () => {
     if (step === 1) {
       form.trigger(['title']).then((isValid) => {
@@ -240,8 +221,6 @@ export default function CreateContentPage() {
           setStep(2)
         }
       })
-    } else if (step === 2 && selectedLayout) {
-      setStep(3)
     }
   }
 
@@ -267,28 +246,28 @@ export default function CreateContentPage() {
         <div>
           <h1 className="text-3xl font-bold">Create New Content</h1>
           <p className="text-gray-500 mt-1">
-            Step {step} of 3: {step === 1 ? 'Page Details' : step === 2 ? 'Choose Layout' : 'Review & Create'}
+            Step {step} of 2: {step === 1 ? 'Page Details' : 'Choose Template'}
           </p>
         </div>
       </div>
 
       {/* Progress Indicator */}
       <div className="flex items-center justify-center space-x-4">
-        {[1, 2, 3].map((stepNumber) => (
+        {[1, 2].map((stepNumber) => (
           <div key={stepNumber} className="flex items-center">
             <div className={`
               w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
               ${step >= stepNumber 
                 ? 'bg-blue-600 text-white' 
-                : 'bg-gray-200 text-gray-600  '
+                : 'bg-gray-200 text-gray-600'
               }
             `}>
               {step > stepNumber ? <Check className="h-4 w-4" /> : stepNumber}
             </div>
-            {stepNumber < 3 && (
+            {stepNumber < 2 && (
               <div className={`
                 w-12 h-1 mx-2
-                ${step > stepNumber ? 'bg-blue-600' : 'bg-gray-200 '}
+                ${step > stepNumber ? 'bg-blue-600' : 'bg-gray-200'}
               `} />
             )}
           </div>
@@ -376,87 +355,87 @@ export default function CreateContentPage() {
             </Card>
           )}
 
-          {/* Step 2: Layout Selection */}
+          {/* Step 2: Template Selection */}
           {step === 2 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Layout className="h-5 w-5" />
-                  Choose Layout
+                  <Sparkles className="h-5 w-5" />
+                  Choose Template
                 </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Select a template for your Landing Page. You can customize all content later.
+                </p>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {layoutOptions.map((layout) => (
+                {/* Page Type Display */}
+                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-600 text-white rounded-md">
+                      <Layout className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-blue-900">Landing Page</h3>
+                      <p className="text-sm text-blue-700">Includes: Hero, Featured, Categories, Features, and CTA blocks</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {templateOptions.map((template) => (
                     <div
-                      key={layout.id}
+                      key={template.id}
                       className={`
-                        relative p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md
-                        ${selectedLayout === layout.id 
-                          ? 'border-blue-600 bg-blue-50 ' 
-                          : 'border-gray-200 '
+                        relative p-6 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md
+                        ${selectedTemplate === template.id 
+                          ? 'border-blue-600 bg-blue-50' 
+                          : 'border-gray-200'
                         }
                       `}
-                      onClick={() => handleLayoutSelect(layout.id)}
+                      onClick={() => handleTemplateSelect(template.id)}
                     >
-                      {layout.recommended && (
-                        <Badge className="absolute top-2 right-2 bg-yellow-500 text-yellow-900">
+                      {template.recommended && (
+                        <Badge className="absolute top-3 right-3 bg-yellow-500 text-yellow-900">
                           <Sparkles className="h-3 w-3 mr-1" />
                           Recommended
                         </Badge>
                       )}
                       
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-4">
                         <div className={`
-                          p-2 rounded-md 
-                          ${selectedLayout === layout.id 
+                          p-3 rounded-md
+                          ${selectedTemplate === template.id 
                             ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-100 text-gray-600  '
+                            : 'bg-gray-100 text-gray-600'
                           }
                         `}>
-                          {layout.icon}
+                          <Wand2 className="h-6 w-6" />
                         </div>
                         
                         <div className="flex-1">
-                          <h3 className={`font-semibold text-lg ${
-                            selectedLayout === layout.id ? 'text-blue-900 ' : ''
-                          }`}>{layout.name}</h3>
-                          <p className={`text-sm mb-2 ${
-                            selectedLayout === layout.id 
-                              ? 'text-blue-800 ' 
+                          <h3 className={`font-semibold text-xl mb-2 ${
+                            selectedTemplate === template.id ? 'text-blue-900' : ''
+                          }`}>{template.name}</h3>
+                          <p className={`text-sm mb-3 ${
+                            selectedTemplate === template.id 
+                              ? 'text-blue-800' 
+                              : 'text-gray-600'
+                          }`}>
+                            {template.description}
+                          </p>
+                          <p className={`text-xs ${
+                            selectedTemplate === template.id 
+                              ? 'text-blue-700' 
                               : 'text-gray-500'
                           }`}>
-                            {layout.description}
+                            {template.preview}
                           </p>
-                          <p className={`text-xs mb-3 ${
-                            selectedLayout === layout.id 
-                              ? 'text-blue-700 ' 
-                              : 'text-gray-500'
-                          }`}>
-                            {layout.preview}
-                          </p>
-                          
-                          <div className="flex flex-wrap gap-1">
-                            {layout.features.map((feature) => (
-                              <Badge 
-                                key={feature} 
-                                variant="outline" 
-                                className={`text-xs ${
-                                  selectedLayout === layout.id 
-                                    ? 'border-blue-600 text-blue-800  ' 
-                                    : ''
-                                }`}
-                              >
-                                {feature}
-                              </Badge>
-                            ))}
-                          </div>
                         </div>
                         
-                        {selectedLayout === layout.id && (
-                          <div className="absolute top-2 left-2">
-                            <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
-                              <Check className="h-3 w-3 text-white" />
+                        {selectedTemplate === template.id && (
+                          <div className="absolute top-3 left-3">
+                            <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                              <Check className="h-4 w-4 text-white" />
                             </div>
                           </div>
                         )}
@@ -465,84 +444,15 @@ export default function CreateContentPage() {
                   ))}
                 </div>
 
-                <div className="flex justify-between mt-6">
+                <div className="flex justify-between mt-8">
                   <Button type="button" variant="outline" onClick={prevStep}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
                   <Button 
-                    type="button" 
-                    onClick={nextStep}
-                    disabled={!selectedLayout}
+                    type="submit" 
+                    disabled={isCreating || !selectedTemplate}
                   >
-                    Continue
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 3: Review & Create */}
-          {step === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Check className="h-5 w-5" />
-                  Review & Create
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-500">Title</Label>
-                    <p className="text-lg font-semibold">{form.getValues('title')}</p>
-                  </div>
-                  
-                  {form.getValues('subtitle') && (
-                    <div>
-                      <Label className="text-sm font-medium text-gray-500">Subtitle</Label>
-                      <p className="text-sm">{form.getValues('subtitle')}</p>
-                    </div>
-                  )}
-                  
-                  <div>
-                    <Label className="text-sm font-medium text-gray-500">Layout</Label>
-                    {getSelectedLayoutInfo() && (
-                      <div className="flex items-center gap-3 mt-2 p-3 border rounded-lg">
-                        <div className="p-2 bg-blue-600 text-white rounded-md">
-                          {getSelectedLayoutInfo()!.icon}
-                        </div>
-                        <div>
-                          <p className="font-medium">{getSelectedLayoutInfo()!.name}</p>
-                          <p className="text-sm text-gray-500">
-                            {getSelectedLayoutInfo()!.description}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label className="text-sm font-medium text-gray-500">Sample Content</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      {useMockData ? (
-                        <><Badge variant="default" className="bg-green-600">Enabled</Badge>
-                        <span className="text-sm text-gray-500">Page will include professional sample content</span></>
-                      ) : (
-                        <><Badge variant="outline">Disabled</Badge>
-                        <span className="text-sm text-gray-500">Page will start with minimal content</span></>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-between">
-                  <Button type="button" variant="outline" onClick={prevStep}>
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back
-                  </Button>
-                  <Button type="submit" disabled={isCreating}>
                     {isCreating ? 'Creating...' : 'Create Page'}
                     {!isCreating && <ArrowRight className="h-4 w-4 ml-2" />}
                   </Button>
@@ -550,6 +460,7 @@ export default function CreateContentPage() {
               </CardContent>
             </Card>
           )}
+
         </form>
       </Form>
     </div>

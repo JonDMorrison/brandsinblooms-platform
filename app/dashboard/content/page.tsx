@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
@@ -9,7 +8,6 @@ import { createContentColumns, type ContentItem } from '@/src/components/content
 import { 
   FileText, 
   Plus, 
-  Eye, 
   Activity,
   Files,
 } from 'lucide-react'
@@ -18,12 +16,13 @@ import { Skeleton } from '@/src/components/ui/skeleton'
 import { DataTable } from '@/src/components/ui/data-table'
 import { useSiteId, useSiteContext } from '@/src/contexts/SiteContext'
 import { DashboardStats, type DashboardStat } from '@/src/components/DashboardStats'
+import { CreateContentModal } from '@/src/components/content/CreateContentModal'
 
 
 
 export default function ContentPage() {
-  const router = useRouter()
   const [activeTab, setActiveTab] = useState('all')
+  const [createModalOpen, setCreateModalOpen] = useState(false)
   const siteId = useSiteId()
   const { loading: siteLoading } = useSiteContext()
   
@@ -122,7 +121,7 @@ export default function ContentPage() {
         </div>
         <Button
           className="btn-gradient-primary"
-          onClick={() => router.push('/dashboard/content/new')}
+          onClick={() => setCreateModalOpen(true)}
         >
           <Plus className="h-4 w-4 mr-2" />
           Create New
@@ -177,6 +176,16 @@ export default function ContentPage() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Create Content Modal */}
+      <CreateContentModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        onContentCreated={() => {
+          refetch()
+          refetchStats()
+        }}
+      />
     </div>
   )
 }
