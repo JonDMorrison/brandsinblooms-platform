@@ -211,11 +211,90 @@ const SectionEditor = function SectionEditor({
               </div>
             </div>
             
-            <RichTextEditor
-              initialContent={section.data.content || ''}
-              onChange={(content) => handleDataChange({ content })}
-              placeholder="Enter additional hero content..."
-            />
+            {/* Features Management */}
+            <div className="space-y-3 mb-4">
+              <Label className="text-xs font-medium">Features (Optional)</Label>
+              <p className="text-xs text-gray-500 mb-3">
+                Highlight key features or benefits in your hero section
+              </p>
+              
+              {/* Current Features */}
+              {section.data.features && Array.isArray(section.data.features) && section.data.features.length > 0 && (
+                <div className="space-y-2">
+                  {section.data.features.map((feature: string, index: number) => (
+                    <div key={index} className="flex items-center gap-2 p-2 border rounded-lg bg-muted/30">
+                      <Input
+                        type="text"
+                        value={feature}
+                        onChange={(e) => {
+                          const newFeatures = [...(section.data.features || [])]
+                          newFeatures[index] = e.target.value
+                          handleDataChange({ features: newFeatures })
+                        }}
+                        className="h-8 flex-1"
+                        placeholder="Feature text"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newFeatures = (section.data.features || []).filter((_: string, i: number) => i !== index)
+                          handleDataChange({ features: newFeatures })
+                        }}
+                        className="h-8 w-8 p-0 text-gray-500 hover:text-red-500"
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Add Feature Button */}
+              {(!section.data.features || section.data.features.length < 4) && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const currentFeatures = section.data.features || []
+                    const newFeatures = [...currentFeatures, 'New feature']
+                    handleDataChange({ features: newFeatures })
+                  }}
+                  className="w-full h-8 text-xs"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add Feature {section.data.features?.length ? `(${4 - section.data.features.length} remaining)` : ''}
+                </Button>
+              )}
+              
+              {section.data.features && section.data.features.length >= 4 && (
+                <div className="text-center p-2 text-xs text-gray-500 bg-muted/30 rounded-lg">
+                  Maximum of 4 features reached
+                </div>
+              )}
+              
+              {(!section.data.features || section.data.features.length === 0) && (
+                <div className="text-center p-4 border-2 border-dashed border-gray-200 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-2">No features added yet</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      handleDataChange({ 
+                        features: ['Premium Quality', 'Fast Shipping', 'Expert Support', 'Easy Returns'] 
+                      })
+                    }}
+                    className="h-8 text-xs"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Default Features
+                  </Button>
+                </div>
+              )}
+            </div>
           </>
         )
       

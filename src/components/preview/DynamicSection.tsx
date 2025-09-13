@@ -181,8 +181,18 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title }:
 
               {/* Features Grid */}
               {data.features && Array.isArray(data.features) && data.features.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                  {data.features.map((feature: string, index: number) => (
+                <div 
+                  className={`grid gap-6 text-center ${
+                    data.features.length === 1 
+                      ? 'grid-cols-1' 
+                      : data.features.length === 2 
+                      ? 'grid-cols-2' 
+                      : data.features.length === 3 
+                      ? 'grid-cols-2 md:grid-cols-3' 
+                      : 'grid-cols-2 md:grid-cols-4'
+                  }`}
+                >
+                  {data.features.slice(0, 4).map((feature: string, index: number) => (
                     <div key={index} className="flex flex-col items-center">
                       <div 
                         className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
