@@ -231,8 +231,8 @@ const VisualEditorContent = memo(function VisualEditorContent({
         data-preview-mode="true"
       >
         <PreviewComponent
-          title={title}
-          subtitle={subtitle}
+          title={layout === 'landing' ? undefined : title}
+          subtitle={layout === 'landing' ? undefined : subtitle}
           content={content}
         />
       </div>

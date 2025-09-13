@@ -1,6 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { Badge } from '@/src/components/ui/badge'
+import { Input } from '@/src/components/ui/input'
+import { Label } from '@/src/components/ui/label'
 import { 
+  Settings,
   Layout,
   FileText,
   Grid3X3,
@@ -42,6 +45,7 @@ interface EditorSidebarProps {
   onContentSave: (content: PageContent) => Promise<void>
   onContentChange: (content: PageContent, hasChanges: boolean) => void
   onTitleChange: (title: string) => void
+  onPageTitleChange: (title: string) => void
   onSectionClick: (sectionKey: string | undefined) => void
 }
 
@@ -56,6 +60,7 @@ export function EditorSidebar({
   onContentSave,
   onContentChange,
   onTitleChange,
+  onPageTitleChange,
   onSectionClick
 }: EditorSidebarProps) {
   const validLayout = pageData.layout in layoutInfo ? pageData.layout : 'landing'
@@ -74,55 +79,49 @@ export function EditorSidebar({
       <Tabs defaultValue="content" className="w-full h-full flex flex-col">
         <div className="p-4 border-b flex-shrink-0">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="layout">Layout</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="sections">Sections</TabsTrigger>
           </TabsList>
         </div>
         
-        <TabsContent value="layout" className="mt-0 flex-1 overflow-y-auto">
+        <TabsContent value="settings" className="mt-0 flex-1 overflow-y-auto">
           <div className="p-4 space-y-4">
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Page Layout</h3>
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium">Page Settings</h3>
+              
+              {/* Page Title */}
               <div className="space-y-2">
-                {Object.entries(layoutInfo).map(([layoutKey, info]) => {
-                  const Icon = info.icon
-                  const isActive = validLayout === layoutKey
-                  return (
-                    <div
-                      key={layoutKey}
-                      className={`
-                        p-3 border rounded-lg cursor-pointer transition-all hover:border-primary/50
-                        ${isActive 
-                          ? 'border-primary bg-primary/10' 
-                          : 'border-border bg-card'
-                        }
-                      `}
-                      onClick={() => onLayoutChange(layoutKey as LayoutType)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`
-                          p-1.5 rounded-md 
-                          ${isActive 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-muted'
-                          }
-                        `}>
-                          <Icon className="h-3.5 w-3.5" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{info.name}</p>
-                          <p className="text-xs text-gray-500">
-                            {isActive ? 'Current layout' : 'Click to switch'}
-                          </p>
-                        </div>
-                        {isActive && (
-                          <div className="h-2 w-2 rounded-full bg-primary" />
-                        )}
-                      </div>
+                <Label htmlFor="page-title" className="text-xs font-medium">
+                  Page Title
+                </Label>
+                <Input
+                  id="page-title"
+                  type="text"
+                  value={pageData.title || ''}
+                  onChange={(e) => onPageTitleChange(e.target.value)}
+                  className="h-8"
+                  placeholder="Enter page title"
+                />
+                <p className="text-xs text-gray-500">
+                  This is the internal page name and title used for navigation
+                </p>
+              </div>
+
+              {/* Layout Display (Read-only) */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">Current Layout</Label>
+                <div className="p-3 border rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-3">
+                    <div className="p-1.5 rounded-md bg-primary text-primary-foreground">
+                      <Settings className="h-3.5 w-3.5" />
                     </div>
-                  )
-                })}
+                    <div>
+                      <p className="text-sm font-medium">{layoutInfo[validLayout].name}</p>
+                      <p className="text-xs text-gray-500">Optimized for {validLayout} pages</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

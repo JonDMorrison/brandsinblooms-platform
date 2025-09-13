@@ -133,32 +133,32 @@ const SectionEditor = function SectionEditor({
       case 'hero':
         return (
           <>
-            {/* Title and Subtitle fields for Hero section */}
+            {/* Hero Title and Subtitle fields */}
             <div className="space-y-3 mb-4">
               <div className="space-y-2">
-                <Label htmlFor="hero-title" className="text-xs font-medium">
-                  Page Title
+                <Label htmlFor="hero-headline" className="text-xs font-medium">
+                  Title
                 </Label>
                 <Input
-                  id="hero-title"
+                  id="hero-headline"
                   type="text"
-                  value={title || ''}
-                  onChange={(e) => onTitleChange?.(e.target.value)}
+                  value={section.data.headline || ''}
+                  onChange={(e) => handleDataChange({ headline: e.target.value })}
                   className="h-8"
-                  placeholder="Enter page title"
+                  placeholder="Main hero headline"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="hero-subtitle" className="text-xs font-medium">
-                  Page Subtitle
+                <Label htmlFor="hero-subheadline" className="text-xs font-medium">
+                  Subtitle
                 </Label>
-                <Input
-                  id="hero-subtitle"
-                  type="text"
-                  value={section.data.subtitle || ''}
-                  onChange={(e) => handleDataChange({ subtitle: e.target.value })}
-                  placeholder="Optional subtitle"
-                  className="h-8"
+                <textarea
+                  id="hero-subheadline"
+                  value={section.data.subheadline || ''}
+                  onChange={(e) => handleDataChange({ subheadline: e.target.value })}
+                  placeholder="Supporting subtitle or description"
+                  className="w-full px-3 py-2 text-sm border border-input bg-background rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-h-[60px]"
+                  rows={3}
                 />
               </div>
             </div>
@@ -173,33 +173,17 @@ const SectionEditor = function SectionEditor({
                   <div className="grid grid-cols-2 gap-2">
                     <Input
                       type="text"
-                      value={(section.data.items as any[])?.[0]?.title || ''}
-                      onChange={(e) => {
-                        const currentItems = section.data.items as any[] || []
-                        const newItems = [...currentItems]
-                        if (!newItems[0]) {
-                          newItems[0] = { id: 'button-1', title: '', url: '' }
-                        }
-                        newItems[0] = { ...newItems[0], title: e.target.value }
-                        handleDataChange({ items: newItems })
-                      }}
+                      value={section.data.ctaText || ''}
+                      onChange={(e) => handleDataChange({ ctaText: e.target.value })}
                       className="h-8"
                       placeholder="Button text (optional)"
                     />
                     <Input
                       type="text"
-                      value={(section.data.items as any[])?.[0]?.url || ''}
-                      onChange={(e) => {
-                        const currentItems = section.data.items as any[] || []
-                        const newItems = [...currentItems]
-                        if (!newItems[0]) {
-                          newItems[0] = { id: 'button-1', title: '', url: '' }
-                        }
-                        newItems[0] = { ...newItems[0], url: e.target.value }
-                        handleDataChange({ items: newItems })
-                      }}
+                      value={section.data.ctaLink || ''}
+                      onChange={(e) => handleDataChange({ ctaLink: e.target.value })}
                       className="h-8"
-                      placeholder="Link/Route (e.g., /contact)"
+                      placeholder="Link/Route (e.g., /plants)"
                     />
                   </div>
                 </div>
@@ -210,41 +194,17 @@ const SectionEditor = function SectionEditor({
                   <div className="grid grid-cols-2 gap-2">
                     <Input
                       type="text"
-                      value={(section.data.items as any[])?.[1]?.title || ''}
-                      onChange={(e) => {
-                        const currentItems = section.data.items as any[] || []
-                        const newItems = [...currentItems]
-                        // Ensure first button exists if we're creating second
-                        if (!newItems[0]) {
-                          newItems[0] = { id: 'button-1', title: '', url: '' }
-                        }
-                        if (!newItems[1]) {
-                          newItems[1] = { id: 'button-2', title: '', url: '' }
-                        }
-                        newItems[1] = { ...newItems[1], title: e.target.value }
-                        handleDataChange({ items: newItems })
-                      }}
+                      value={section.data.secondaryCtaText || ''}
+                      onChange={(e) => handleDataChange({ secondaryCtaText: e.target.value })}
                       className="h-8"
                       placeholder="Button text (optional)"
                     />
                     <Input
                       type="text"
-                      value={(section.data.items as any[])?.[1]?.url || ''}
-                      onChange={(e) => {
-                        const currentItems = section.data.items as any[] || []
-                        const newItems = [...currentItems]
-                        // Ensure first button exists if we're creating second
-                        if (!newItems[0]) {
-                          newItems[0] = { id: 'button-1', title: '', url: '' }
-                        }
-                        if (!newItems[1]) {
-                          newItems[1] = { id: 'button-2', title: '', url: '' }
-                        }
-                        newItems[1] = { ...newItems[1], url: e.target.value }
-                        handleDataChange({ items: newItems })
-                      }}
+                      value={section.data.secondaryCtaLink || ''}
+                      onChange={(e) => handleDataChange({ secondaryCtaLink: e.target.value })}
                       className="h-8"
-                      placeholder="Link/Route (e.g., /about)"
+                      placeholder="Link/Route (e.g., /care-guides)"
                     />
                   </div>
                 </div>

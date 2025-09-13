@@ -130,6 +130,18 @@ function PageEditorContent() {
     setHasUnsavedChanges(true);
   };
 
+  const handlePageTitleChange = (title: string) => {
+    if (!pageData) return;
+    setPageData({ ...pageData, title });
+    if (unifiedContent) {
+      setUnifiedContent({
+        ...unifiedContent,
+        title
+      });
+    }
+    setHasUnsavedChanges(true);
+  };
+
   const handleSave = async () => {
     if (!contentId || !currentSite?.id || !unifiedContent) {
       toast.error('Missing required information to save');
@@ -218,6 +230,7 @@ function PageEditorContent() {
             onContentSave={handleContentSave}
             onContentChange={handleContentChange}
             onTitleChange={handleTitleChange}
+            onPageTitleChange={handlePageTitleChange}
             onSectionClick={setActiveSectionKey}
           />
         )}
