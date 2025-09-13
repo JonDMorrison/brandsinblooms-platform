@@ -114,7 +114,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
         return { 
           ...baseStyles, 
           width: '100%',
-          minHeight: '100%' 
+          height: '100%' 
         }
     }
   }
@@ -202,7 +202,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
         className="visual-editor-preview"
         style={{
           ...getViewportStyles(),
-          height: 'calc(100vh - 4rem - 2.5rem - 2rem)' // Subtract main nav, second nav, and status bar
+          // height: 'calc(100% - 2.5rem - 2rem)' // Subtract visual editor controls and status bar only
         }}
         data-visual-editor="true"
       >
@@ -233,7 +233,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
         .visual-editor-preview {
           position: relative;
           overflow-y: auto;
-          height: calc(100vh - 4rem - 2.5rem - 2rem);
+          height: 100%;
           width: 100%;
         }
         

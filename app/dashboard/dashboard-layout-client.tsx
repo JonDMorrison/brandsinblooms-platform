@@ -46,7 +46,7 @@ export function DashboardLayoutClient({
         {/* Page content */}
         <main className='flex-1 overflow-x-hidden overflow-y-auto bg-gradient-subtle'>
           {isContentEditor ? (
-            <div className='w-full' style={{ height: 'calc(100vh - 4rem)' }}>{children}</div>
+            <div className='w-full h-[calc(100vh-4.75rem)]' >{children}</div>
           ) : (
             <div className='brand-container py-6 '>{children}</div>
           )}

@@ -400,7 +400,7 @@ function PageEditorContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
       <div className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-10">
         {/* Main Navigation */}
