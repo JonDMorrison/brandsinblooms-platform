@@ -109,21 +109,6 @@ export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
 
       <Separator />
 
-      {/* Bottom section */}
-      <div className="p-4">
-        <div className="bg-gradient-primary-soft border border-primary/20 rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="w-2 h-2 bg-gray-1000 rounded-full animate-pulse" />
-            <span className="text-sm font-medium text-primary">Pro Plan</span>
-          </div>
-          <p className="text-xs text-gray-500 mb-3">
-            Unlock advanced features and unlimited projects
-          </p>
-          <Button size="sm" className="w-full btn-gradient-primary text-xs">
-            Upgrade Now
-          </Button>
-        </div>
-      </div>
     </div>
   )
 }
