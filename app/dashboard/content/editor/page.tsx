@@ -458,17 +458,8 @@ function PageEditorContent() {
 
             {/* Actions */}
             <Button 
-              variant="outline" 
               size="sm"
-              className="cursor-pointer transition-all hover:bg-gradient-primary-50"
-              onClick={handlePreview}
-            >
-              <Eye className="h-3.5 w-3.5 mr-1.5" />
-              Preview
-            </Button>
-            <Button 
-              size="sm"
-              className="cursor-pointer transition-all disabled:cursor-not-allowed"
+              className="cursor-pointer transition-all disabled:cursor-not-allowed hover:bg-gradient-primary-50"
               onClick={handleSave}
               disabled={isSaving || !hasUnsavedChanges}
             >
@@ -553,11 +544,6 @@ function PageEditorContent() {
               
               <Separator orientation="vertical" className="h-4" />
               
-              {/* Settings */}
-              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-                <Settings className="w-3.5 h-3.5 mr-1" />
-                Settings
-              </Button>
             </div>
           </div>
         )}
