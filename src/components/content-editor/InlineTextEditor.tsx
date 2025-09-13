@@ -10,6 +10,9 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
+import Document from '@tiptap/extension-document';
+import Paragraph from '@tiptap/extension-paragraph';
+import Text from '@tiptap/extension-text';
 import { useDebounceCallback } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
 import { FloatingToolbar } from './FloatingToolbar';
@@ -26,6 +29,7 @@ export interface InlineTextEditorProps {
   placeholder?: string;
   debounceDelay?: number;
   showToolbar?: boolean;
+  singleLine?: boolean; // If true, prevents line breaks and Enter key
 }
 
 const InlineTextEditorComponent = ({ 
@@ -38,7 +42,8 @@ const InlineTextEditorComponent = ({
   style,
   placeholder = 'Click to edit...',
   debounceDelay = 500,
-  showToolbar = true
+  showToolbar = true,
+  singleLine = false
 }: InlineTextEditorProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showFloatingToolbar, setShowFloatingToolbar] = useState(false);
@@ -48,7 +53,23 @@ const InlineTextEditorComponent = ({
   
   // Lightweight Tiptap instance with minimal extensions
   const editor = useEditor({
-    extensions: format === 'plain' 
+    extensions: singleLine 
+      ? [
+          // Single-line mode: document, paragraph (single only), and text
+          Document,
+          Paragraph.configure({
+            HTMLAttributes: {
+              class: 'single-line-paragraph'
+            }
+          }),
+          Text,
+          Placeholder.configure({
+            placeholder,
+            showOnlyWhenEditable: true,
+            showOnlyCurrent: false,
+          })
+        ]
+      : format === 'plain' 
       ? [
           StarterKit.configure({ 
             heading: false, 
@@ -86,9 +107,19 @@ const InlineTextEditorComponent = ({
     content,
     editable: isEditing && isEnabled,
     immediatelyRender: false,
+    editorProps: {
+      handleKeyDown: (view, event) => {
+        // Prevent Enter key in single-line mode
+        if (singleLine && event.key === 'Enter') {
+          event.preventDefault()
+          return true
+        }
+        return false
+      }
+    },
     onUpdate: ({ editor }) => {
-      // For plain format, extract text without HTML tags
-      const newContent = format === 'plain' 
+      // For single-line or plain format, extract text without HTML tags
+      const newContent = (singleLine || format === 'plain')
         ? editor.getText() 
         : editor.getHTML();
       debouncedUpdate(newContent);
@@ -129,7 +160,7 @@ const InlineTextEditorComponent = ({
   // Update editor content when prop changes
   useEffect(() => {
     if (editor && !editor.isFocused) {
-      const currentContent = format === 'plain' 
+      const currentContent = (singleLine || format === 'plain')
         ? editor.getText() 
         : editor.getHTML();
       
@@ -137,7 +168,7 @@ const InlineTextEditorComponent = ({
         editor.commands.setContent(content);
       }
     }
-  }, [content, editor, format]);
+  }, [content, editor, format, singleLine]);
   
   // Update editable state
   useEffect(() => {
@@ -211,6 +242,10 @@ const InlineTextEditorComponent = ({
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none',
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:absolute',
           '[&_.ProseMirror_p]:m-0', // Remove default margins for inline editing
+          // Single-line specific styles
+          singleLine && '[&_.ProseMirror_.single-line-paragraph]:inline',
+          singleLine && '[&_.ProseMirror]:whitespace-nowrap',
+          singleLine && '[&_.ProseMirror]:overflow-hidden',
           // Format-specific styles
           format === 'rich' && [
             '[&_.ProseMirror_h2]:text-2xl',
@@ -247,7 +282,8 @@ export const InlineTextEditor = memo(InlineTextEditorComponent, (prevProps, next
     prevProps.style === nextProps.style &&
     prevProps.placeholder === nextProps.placeholder &&
     prevProps.debounceDelay === nextProps.debounceDelay &&
-    prevProps.showToolbar === nextProps.showToolbar
+    prevProps.showToolbar === nextProps.showToolbar &&
+    prevProps.singleLine === nextProps.singleLine
   );
 });
 

@@ -12,6 +12,28 @@ import { LucideIcon } from 'lucide-react'
 import { useSiteTheme } from '@/hooks/useSiteTheme'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 
+// Helper functions for newline/HTML conversion
+const textToHtml = (text: string): string => {
+  if (!text) return ''
+  // Split on double newlines for paragraphs, single newlines become <br>
+  return text
+    .split('\n\n')
+    .map(paragraph => paragraph.trim())
+    .filter(paragraph => paragraph)
+    .map(paragraph => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
+    .join('')
+}
+
+const htmlToText = (html: string): string => {
+  if (!html) return ''
+  // Convert HTML back to plain text with newlines
+  return html
+    .replace(/<\/p><p>/g, '\n\n')
+    .replace(/<br\s*\/?>/g, '\n')
+    .replace(/<\/?p>/g, '')
+    .trim()
+}
+
 interface DynamicSectionProps {
   section: ContentSection
   sectionKey: string
@@ -135,6 +157,7 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
                   isEnabled={Boolean(onContentUpdate)}
                   fieldPath="data.headline"
                   format="plain"
+                  singleLine={true}
                   className="text-4xl md:text-6xl font-bold mb-6 block"
                   style={{ 
                     color: 'var(--theme-text)',
@@ -147,17 +170,28 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
               )}
 
               {/* Subheadline */}
-              {data.subheadline && (
-                <p 
-                  className="text-xl md:text-2xl mb-8 leading-relaxed"
+              {(data.subheadline || onContentUpdate) && (
+                <InlineTextEditor
+                  content={textToHtml(data.subheadline || '')}
+                  onUpdate={(htmlContent) => {
+                    if (onContentUpdate) {
+                      const textContent = htmlToText(htmlContent)
+                      onContentUpdate(sectionKey, 'data.subheadline', textContent)
+                    }
+                  }}
+                  isEnabled={Boolean(onContentUpdate)}
+                  fieldPath="data.subheadline"
+                  format="rich"
+                  className="text-xl md:text-2xl mb-8 leading-relaxed block [&_.ProseMirror_p:not(:first-child)]:mt-2"
                   style={{ 
                     color: 'var(--theme-text)',
                     opacity: 0.8,
                     fontFamily: 'var(--theme-font-body)'
                   }}
-                >
-                  {data.subheadline}
-                </p>
+                  placeholder="Click to add subtitle..."
+                  showToolbar={false}
+                  debounceDelay={0}
+                />
               )}
 
               {/* CTA Buttons */}
