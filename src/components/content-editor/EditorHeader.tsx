@@ -3,6 +3,12 @@ import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Separator } from '@/src/components/ui/separator'
 import { 
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider
+} from '@/src/components/ui/tooltip'
+import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -50,9 +56,9 @@ const layoutInfo = {
 }
 
 const viewportSizes = {
-  mobile: { icon: Smartphone, label: 'Mobile' },
-  tablet: { icon: Tablet, label: 'Tablet' },
-  desktop: { icon: Monitor, label: 'Desktop' }
+  mobile: { icon: Smartphone, label: 'Mobile', width: '390px' },
+  tablet: { icon: Tablet, label: 'Tablet', width: '768px' },
+  desktop: { icon: Monitor, label: 'Desktop', width: '100%' }
 }
 
 interface EditorHeaderProps {
@@ -122,22 +128,30 @@ export function EditorHeader({
 
         <div className="flex items-center gap-2">
           {/* Viewport Toggle */}
-          <div className="hidden md:flex items-center bg-muted rounded-md p-1">
-            {Object.entries(viewportSizes).map(([size, config]) => {
-              const Icon = config.icon
-              return (
-                <Button
-                  key={size}
-                  variant={activeViewport === size ? 'secondary' : 'ghost'}
-                  size="sm"
-                  className="h-8 px-3 cursor-pointer transition-all hover:bg-gradient-primary-50"
-                  onClick={() => onViewportChange(size as ViewportSize)}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                </Button>
-              )
-            })}
-          </div>
+          <TooltipProvider>
+            <div className="hidden md:flex items-center bg-muted rounded-md p-1">
+              {Object.entries(viewportSizes).map(([size, config]) => {
+                const Icon = config.icon
+                return (
+                  <Tooltip key={size}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={activeViewport === size ? 'secondary' : 'ghost'}
+                        size="sm"
+                        className="h-8 px-3 cursor-pointer transition-all hover:bg-gradient-primary-50"
+                        onClick={() => onViewportChange(size as ViewportSize)}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{config.label} ({config.width})</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              })}
+            </div>
+          </TooltipProvider>
 
           {/* Actions */}
           <Button 

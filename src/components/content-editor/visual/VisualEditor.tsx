@@ -115,6 +115,18 @@ const VisualEditorContent = memo(function VisualEditorContent({
         }
     }
   }
+
+  // Get viewport-specific CSS class for responsive overrides
+  const getViewportClassName = () => {
+    switch (viewport) {
+      case 'mobile':
+        return 'preview-mobile-viewport'
+      case 'tablet':
+        return 'preview-tablet-viewport'
+      default:
+        return 'preview-desktop-viewport'
+    }
+  }
   
   // Register click and hover handlers for the container with AbortController
   useEffect(() => {
@@ -126,8 +138,22 @@ const VisualEditorContent = memo(function VisualEditorContent({
     const { signal } = abortController
     
     const handleContainerClick = (event: MouseEvent) => {
-      // Handle clicks on editable elements
+      // Prevent navigation for all links and buttons in preview mode
       const target = event.target as HTMLElement
+      const clickableElement = target.closest('a, button')
+      
+      if (clickableElement) {
+        event.preventDefault()
+        event.stopPropagation()
+        // Add visual feedback for preview mode
+        clickableElement.classList.add('preview-clicked')
+        setTimeout(() => {
+          clickableElement.classList.remove('preview-clicked')
+        }, 200)
+        return
+      }
+
+      // Handle clicks on editable elements
       const editableElement = target.closest('[data-editable="true"]')
       
       if (editableElement) {
@@ -196,12 +222,13 @@ const VisualEditorContent = memo(function VisualEditorContent({
       {/* Preview Container with Click Detection */}
       <div
         ref={containerRef}
-        className="visual-editor-preview"
+        className={`visual-editor-preview ${getViewportClassName()}`}
         style={{
           ...getViewportStyles(),
           // height: 'calc(100% - 2.5rem - 2rem)' // Subtract visual editor controls and status bar only
         }}
         data-visual-editor="true"
+        data-preview-mode="true"
       >
         <PreviewComponent
           title={title}
@@ -232,6 +259,109 @@ const VisualEditorContent = memo(function VisualEditorContent({
           overflow-y: auto;
           height: 100%;
           width: 100%;
+        }
+        
+        /* Viewport-specific responsive overrides */
+        .visual-editor-preview.preview-mobile-viewport :global(.text-4xl) {
+          font-size: 2.25rem !important;
+        }
+        
+        .visual-editor-preview.preview-mobile-viewport :global(.md\\:text-6xl) {
+          font-size: 2.25rem !important;
+        }
+        
+        .visual-editor-preview.preview-mobile-viewport :global(.text-xl) {
+          font-size: 1rem !important;
+        }
+        
+        .visual-editor-preview.preview-mobile-viewport :global(.md\\:text-2xl) {
+          font-size: 1rem !important;
+        }
+        
+        .visual-editor-preview.preview-mobile-viewport :global(.grid-cols-2) {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+        
+        .visual-editor-preview.preview-mobile-viewport :global(.md\\:grid-cols-4) {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+        
+        .visual-editor-preview.preview-mobile-viewport :global(.flex-col) {
+          flex-direction: column !important;
+        }
+        
+        .visual-editor-preview.preview-mobile-viewport :global(.sm\\:flex-row) {
+          flex-direction: column !important;
+        }
+        
+        .visual-editor-preview.preview-mobile-viewport :global(.py-20) {
+          padding-top: 3rem !important;
+          padding-bottom: 3rem !important;
+        }
+        
+        .visual-editor-preview.preview-mobile-viewport :global(.lg\\:py-32) {
+          padding-top: 3rem !important;
+          padding-bottom: 3rem !important;
+        }
+        
+        .visual-editor-preview.preview-tablet-viewport :global(.text-4xl) {
+          font-size: 2.25rem !important;
+        }
+        
+        .visual-editor-preview.preview-tablet-viewport :global(.md\\:text-6xl) {
+          font-size: 3rem !important;
+        }
+        
+        .visual-editor-preview.preview-tablet-viewport :global(.text-xl) {
+          font-size: 1.125rem !important;
+        }
+        
+        .visual-editor-preview.preview-tablet-viewport :global(.md\\:text-2xl) {
+          font-size: 1.5rem !important;
+        }
+        
+        .visual-editor-preview.preview-tablet-viewport :global(.grid-cols-2) {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+        
+        .visual-editor-preview.preview-tablet-viewport :global(.md\\:grid-cols-4) {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+        
+        .visual-editor-preview.preview-tablet-viewport :global(.flex-col) {
+          flex-direction: column !important;
+        }
+        
+        .visual-editor-preview.preview-tablet-viewport :global(.sm\\:flex-row) {
+          flex-direction: row !important;
+        }
+        
+        .visual-editor-preview.preview-tablet-viewport :global(.py-20) {
+          padding-top: 5rem !important;
+          padding-bottom: 5rem !important;
+        }
+        
+        .visual-editor-preview.preview-tablet-viewport :global(.lg\\:py-32) {
+          padding-top: 5rem !important;
+          padding-bottom: 5rem !important;
+        }
+        
+        /* Preview mode interactive elements */
+        .visual-editor-preview :global(a),
+        .visual-editor-preview :global(button) {
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .visual-editor-preview :global(a:hover),
+        .visual-editor-preview :global(button:hover) {
+          transform: translateY(-1px);
+          opacity: 0.9;
+        }
+        
+        .visual-editor-preview :global(.preview-clicked) {
+          transform: scale(0.98);
+          opacity: 0.8;
         }
         
         /* Visual indicators for editable content */
