@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { supabase } from '@/src/lib/supabase/client'
 import { getContentById, updateContent } from '@/src/lib/queries/domains/content'
 
@@ -56,13 +56,28 @@ export function useContentEditor({
   onContentChange
 }: UseContentEditorProps): UseContentEditorReturn {
   const [content, setContent] = useState<PageContent>(() => 
-    initialContent || initializeDefaultContent(layout)
+    initialContent || { version: '1.0', layout, sections: {} }  // Don't initialize with defaults
   )
   const [originalContent, setOriginalContent] = useState<PageContent>(() => 
-    initialContent || initializeDefaultContent(layout)
+    initialContent || { version: '1.0', layout, sections: {} }  // Don't initialize with defaults
   )
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const lastInitialContentRef = useRef<string>('')
+
+  // Update content when initialContent changes (e.g., when it loads from database)
+  // This should NOT trigger onContentChange to avoid loops
+  useEffect(() => {
+    if (initialContent) {
+      const serialized = JSON.stringify(initialContent)
+      if (serialized !== lastInitialContentRef.current) {
+        setContent(initialContent)
+        setOriginalContent(initialContent)
+        lastInitialContentRef.current = serialized
+        // NOTE: We don't call onContentChange here to avoid infinite loops
+      }
+    }
+  }, [initialContent])
 
 
   // Calculate if content has changes

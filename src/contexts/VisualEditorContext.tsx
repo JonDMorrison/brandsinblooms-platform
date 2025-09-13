@@ -215,21 +215,37 @@ export function VisualEditorProvider({
   const refreshElementBounds = useCallback(() => {
     setState(prev => {
       const updatedElements = new Map(prev.editableElements);
+      let hasChanges = false;
       
       for (const [id, element] of updatedElements.entries()) {
         if (element.element.isConnected) {
           const bounds = element.element.getBoundingClientRect();
-          updatedElements.set(id, { ...element, bounds });
+          // Only update if bounds actually changed
+          const oldBounds = element.bounds;
+          if (!oldBounds || 
+              oldBounds.top !== bounds.top ||
+              oldBounds.left !== bounds.left ||
+              oldBounds.width !== bounds.width ||
+              oldBounds.height !== bounds.height) {
+            updatedElements.set(id, { ...element, bounds });
+            hasChanges = true;
+          }
         } else {
           // Element no longer in DOM, remove it
           updatedElements.delete(id);
+          hasChanges = true;
         }
       }
       
-      return {
-        ...prev,
-        editableElements: updatedElements
-      };
+      // Only update state if there were actual changes
+      if (hasChanges) {
+        return {
+          ...prev,
+          editableElements: updatedElements
+        };
+      }
+      
+      return prev; // No changes, return same state
     });
   }, []);
   

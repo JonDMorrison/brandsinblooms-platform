@@ -55,6 +55,7 @@ import { OtherLayoutPreview } from '@/src/components/layout-previews/OtherLayout
 // Import enhanced content editor components
 import { ContentEditor, SectionManager } from '@/src/components/content-editor'
 import { VisualEditor } from '@/src/components/content-editor/visual/VisualEditor'
+import { InlineLoader } from '@/src/components/content-editor/visual/LoadingStates'
 import { PageContent, LayoutType as ContentLayoutType, ContentSection, serializePageContent, deserializePageContent, isPageContent } from '@/src/lib/content'
 import { useContentEditor } from '@/src/hooks/useContentEditor'
 import { handleError } from '@/src/lib/types/error-handling'
@@ -96,7 +97,7 @@ function PageEditorContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const contentId = searchParams?.get('id') || null
-  const { currentSite } = useSiteContext()
+  const { currentSite, loading: siteLoading } = useSiteContext()
   const { editMode, setEditMode, isDirty, setIsDirty } = useEditMode()
   const { theme } = useSiteTheme()
   
@@ -147,6 +148,7 @@ function PageEditorContent() {
           // Deserialize the page content if available
           if (content.content) {
             const deserialized = deserializePageContent(content.content)
+            
             if (deserialized) {
               // Migrate subtitle from meta_data to hero section if needed
               const heroSection = deserialized.sections.hero || deserialized.sections.header
@@ -180,38 +182,23 @@ function PageEditorContent() {
             })
           }
         } catch (error) {
-          console.error('Editor: Error loading content:', error)
+          console.error('Error loading content:', error)
           toast.error('Failed to load content')
           router.push('/dashboard/content')
         } finally {
           setIsLoading(false)
         }
-      } else if (contentId && !currentSite?.id) {
-        // We have a content ID but site context isn't ready yet
+      } else if (contentId && (siteLoading || !currentSite?.id)) {
+        // Wait for site context to finish loading before proceeding
         return
-      } else {
-        // Fallback: Check sessionStorage for legacy support
-        if (typeof window !== 'undefined') {
-          const storedData = sessionStorage.getItem('newPageData')
-          
-          if (storedData) {
-            try {
-              const { pageData: data } = JSON.parse(storedData)
-              setPageData(data)
-              setIsLoading(false)
-            } catch (error) {
-              console.error('Editor: Error parsing stored data:', error)
-              router.push('/dashboard/content/new')
-            }
-          } else {
-            router.push('/dashboard/content/new')
-          }
-        }
+      } else if (!contentId) {
+        // No content ID - redirect to content creation
+        router.push('/dashboard/content/new')
       }
     }
     
     loadContent()
-  }, [contentId, currentSite?.id, router, searchParams])
+  }, [contentId, currentSite?.id, siteLoading, router, searchParams])
 
   // Handler for title changes (database column)
   const handleTitleChange = useCallback((value: string) => {
@@ -231,7 +218,19 @@ function PageEditorContent() {
   }, [])
 
   const handleContentChange = useCallback((content: PageContent, hasChanges: boolean) => {
-    setPageContent(content)
+    // Don't process empty content with no changes
+    if (Object.keys(content.sections).length === 0 && !hasChanges) {
+      return
+    }
+    
+    // Only update if the content has actually changed
+    setPageContent(prev => {
+      if (!prev || JSON.stringify(prev.sections) !== JSON.stringify(content.sections)) {
+        return content
+      }
+      return prev
+    })
+    
     // Update unified content with new sections
     setUnifiedContent(prev => {
       if (!prev && pageData) {
@@ -249,6 +248,7 @@ function PageEditorContent() {
         subtitle: '' // Subtitle is now in hero section data
       }
     })
+    
     // Set hasUnsavedChanges based on ContentEditor's isDirty state
     if (hasChanges) {
       setHasUnsavedChanges(true)
@@ -309,7 +309,7 @@ function PageEditorContent() {
     handleContentChange(updatedContent, true)
   }, [pageContent, handleContentChange])
 
-  // Content editor hook for section management - defined after handlers
+  // Content editor hook for section management - fixed to prevent infinite loops
   const contentEditorHook = useContentEditor({
     contentId: contentId || '',
     siteId: currentSite?.id || '',
@@ -318,14 +318,16 @@ function PageEditorContent() {
     onSave: handleContentSave,
     onContentChange: handleContentChange
   })
+  
 
   if (isLoading || !pageData) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-gray-500">
-            {isLoading ? 'Loading content...' : 'Preparing editor...'}
-          </p>
+          <InlineLoader 
+            size="md" 
+            message={isLoading ? 'Loading content...' : 'Preparing editor...'} 
+          />
         </div>
       </div>
     )
@@ -655,7 +657,10 @@ function PageEditorContent() {
         {/* Preview Area - Always shows Visual Editor */}
         <div className="flex-1 bg-muted/20 overflow-hidden">
           <VisualEditor
-            content={pageContent || { version: '1.0', layout: validLayout as ContentLayoutType, sections: {} }}
+            content={(() => {
+              const content = pageContent || { version: '1.0', layout: validLayout as ContentLayoutType, sections: {} }
+              return content
+            })()}
             layout={validLayout as ContentLayoutType}
             title={pageData.title}
             subtitle={

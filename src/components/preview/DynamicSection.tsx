@@ -113,63 +113,109 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title }:
   switch (type) {
     case 'hero':
       return (
-        <div className={`text-center space-y-4 ${className}`}>
-          {/* Render title from props */}
-          {title && (
-            <h1 
-              className="text-4xl font-bold"
-              style={{ 
-                color: theme?.colors?.primary || 'var(--theme-primary, #417505)',
-                fontFamily: `${theme?.typography?.headingFont || 'Inter'}, system-ui, sans-serif`
-              }}
-            >
-              {title}
-            </h1>
-          )}
-          {/* Render subtitle from section data */}
-          {data.subtitle && (
-            <p 
-              className="text-xl"
-              style={{ 
-                color: theme?.colors?.text || 'var(--theme-text, #666666)',
-                fontFamily: `${theme?.typography?.bodyFont || 'Inter'}, system-ui, sans-serif`
-              }}
-            >
-              {data.subtitle}
-            </p>
-          )}
-          {/* Render additional content (but avoid duplicating title) */}
-          {data.content && 
-           data.content !== title && 
-           data.content !== 'Welcome to Dev Site' && (
-            <div className="space-y-4">
-              <ContentRenderer 
-                content={data.content} 
-                className="text-lg text-gray-700"
-              />
-            </div>
-          )}
-          {data.items && Array.isArray(data.items) && data.items.length > 0 && (
-            <div className="flex justify-center gap-4 flex-wrap mt-6">
-              {data.items.slice(0, 2).map((item: any, index: number) => {
-                if (!item || !item.title) return null;
-                const isFirst = index === 0;
-                return (
-                  <Button 
-                    key={item.id || index} 
-                    variant={isFirst ? 'default' : 'outline'}
-                    style={isFirst ? {
-                      backgroundColor: theme?.colors?.primary || 'var(--theme-primary, #8B5CF6)',
-                      color: 'white'
-                    } : {}}
+        <section 
+          className={`relative py-20 lg:py-32 ${className}`}
+          style={{
+            background: `linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))`
+          }}
+        >
+          <div className="brand-container">
+            <div className="max-w-4xl mx-auto text-center">
+              {/* Main headline - use from data.headline or title */}
+              {(data.headline || title) && (
+                <h1 
+                  className="text-4xl md:text-6xl font-bold mb-6"
+                  style={{ 
+                    color: 'var(--theme-text)',
+                    fontFamily: 'var(--theme-font-heading)'
+                  }}
+                >
+                  {data.headline || title}
+                </h1>
+              )}
+
+              {/* Subheadline */}
+              {data.subheadline && (
+                <p 
+                  className="text-xl md:text-2xl mb-8 leading-relaxed"
+                  style={{ 
+                    color: 'var(--theme-text)',
+                    opacity: 0.8,
+                    fontFamily: 'var(--theme-font-body)'
+                  }}
+                >
+                  {data.subheadline}
+                </p>
+              )}
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                {data.ctaText && (
+                  <a 
+                    href={data.ctaLink || '#'}
+                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
+                    style={{
+                      backgroundColor: 'var(--theme-primary)',
+                      color: 'rgb(255, 255, 255)',
+                      fontFamily: 'var(--theme-font-body)'
+                    }}
                   >
-                    {item.title}
-                  </Button>
-                );
-              })}
+                    {data.ctaText}
+                  </a>
+                )}
+                {data.secondaryCtaText && (
+                  <a 
+                    href={data.secondaryCtaLink || '#'}
+                    className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
+                    style={{
+                      borderColor: 'var(--theme-secondary)',
+                      color: 'var(--theme-secondary)',
+                      backgroundColor: 'transparent',
+                      fontFamily: 'var(--theme-font-body)'
+                    }}
+                  >
+                    {data.secondaryCtaText}
+                  </a>
+                )}
+              </div>
+
+              {/* Features Grid */}
+              {data.features && Array.isArray(data.features) && data.features.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                  {data.features.map((feature: string, index: number) => (
+                    <div key={index} className="flex flex-col items-center">
+                      <div 
+                        className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
+                        style={{ backgroundColor: 'var(--theme-primary)' }}
+                      >
+                        <svg 
+                          className="w-6 h-6 text-white" 
+                          fill="currentColor" 
+                          viewBox="0 0 20 20"
+                        >
+                          <path 
+                            fillRule="evenodd" 
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <p 
+                        className="text-sm font-medium"
+                        style={{
+                          color: 'var(--theme-text)',
+                          fontFamily: 'var(--theme-font-body)'
+                        }}
+                      >
+                        {feature}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        </section>
       )
 
     case 'features':
