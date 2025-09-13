@@ -63,11 +63,18 @@ interface ThemeWrapperProps {
 
 /**
  * Wrapper component that applies site theme styling to its children
+ * Uses React.useMemo to prevent style recreation on every render
  */
 export function ThemeWrapper({ children, className = '', style }: ThemeWrapperProps) {
   const { theme, fullCSS } = useSiteThemeContext()
   const previewMode = usePreviewModeOptional()
   const mode = previewMode?.mode || 'live'
+  
+  // Memoize the style element to prevent recreation
+  const memoizedStyle = React.useMemo(() => {
+    if (!theme || !fullCSS) return null
+    return <style dangerouslySetInnerHTML={{ __html: fullCSS }} />
+  }, [theme, fullCSS])
   
   if (!theme) {
     return <div className={className} style={style}>{children}</div>
@@ -86,7 +93,7 @@ export function ThemeWrapper({ children, className = '', style }: ThemeWrapperPr
   
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: fullCSS }} />
+      {memoizedStyle}
       <div
         className={className}
         style={style}
@@ -103,10 +110,17 @@ export function ThemeWrapper({ children, className = '', style }: ThemeWrapperPr
  */
 interface IsolatedThemeWrapperProps extends ThemeWrapperProps {
   theme: ThemeSettings | null
+  styleId?: string
 }
 
 export function IsolatedThemeWrapper({ theme, children, className = '', style }: IsolatedThemeWrapperProps) {
   const { fullCSS } = useThemeCSS(theme)
+  
+  // Memoize the style element to prevent recreation
+  const memoizedStyle = React.useMemo(() => {
+    if (!theme || !fullCSS) return null
+    return <style dangerouslySetInnerHTML={{ __html: fullCSS }} />
+  }, [theme, fullCSS])
   
   if (!theme) {
     return <div className={className} style={style}>{children}</div>
@@ -114,7 +128,7 @@ export function IsolatedThemeWrapper({ theme, children, className = '', style }:
   
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: fullCSS }} />
+      {memoizedStyle}
       <div
         className={className}
         style={style}
