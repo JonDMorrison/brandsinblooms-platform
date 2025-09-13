@@ -14,13 +14,41 @@ import {
 } from '@/src/components/ui/plant-shop-loading-states'
 import { ViewportLazyLoad } from '@/src/components/ui/lazy-loading'
 import { getSiteHeaders } from '../utils/routing'
+import { createClient } from '@/src/lib/supabase/server'
+import { getContentBySlug } from '@/src/lib/queries/domains/content'
+import { deserializePageContent } from '@/src/lib/content/serialization'
 
 export async function HomePage() {
   const { siteId } = await getSiteHeaders()
   
-  // Get the homepage content data
+  // Fetch database content for hero section
+  let databaseHeroData = null
+  let heroStatus = 'not_found' // 'not_found', 'unpublished', 'missing_hero', 'available'
+  
+  try {
+    const supabase = await createClient()
+    const contentResult = await getContentBySlug(supabase, siteId, 'home')
+    
+    if (contentResult && contentResult.content) {
+      if (!contentResult.is_published) {
+        heroStatus = 'unpublished'
+      } else {
+        const pageContent = deserializePageContent(contentResult.content)
+        if (pageContent?.sections?.hero?.data && pageContent.sections.hero.visible) {
+          databaseHeroData = pageContent.sections.hero.data
+          heroStatus = 'available'
+        } else {
+          heroStatus = 'missing_hero'
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching database content:', error)
+    // heroStatus remains 'not_found'
+  }
+  
+  // Get hardcoded content for other sections (keep existing functionality)
   const homePageData = plantShopContent.home
-  const heroBlock = homePageData.blocks.find(block => block.type === 'hero')
   const featuredPlantsBlock = homePageData.blocks.find(block => block.type === 'featured_plants')
   const categoriesBlock = homePageData.blocks.find(block => block.type === 'categories')
   const seasonalBlock = homePageData.blocks.find(block => block.type === 'seasonal')
@@ -40,55 +68,102 @@ export async function HomePage() {
       showNavigation={true}
     >
       {/* Hero Section - Always loaded immediately for better UX */}
-      {heroBlock?.isVisible && (
-        <HeroSectionErrorBoundary>
-          <section className="relative py-20 lg:py-32" style={{background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))'}}>
-            <div className="brand-container">
-              <div className="max-w-4xl mx-auto text-center">
-                <h1 className="text-4xl md:text-6xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                  {(heroBlock.content as any).headline}
-                </h1>
-                <p className="text-xl md:text-2xl mb-8 leading-relaxed" style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}>
-                  {(heroBlock.content as any).subheadline}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                  <a 
-                    href={(heroBlock.content as any).ctaLink}
-                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
-                    style={{backgroundColor: 'var(--theme-primary)', color: '#fff', fontFamily: 'var(--theme-font-body)'}}
-                  >
-                    {(heroBlock.content as any).ctaText}
-                  </a>
-                  <a 
-                    href={(heroBlock.content as any).secondaryCtaLink}
-                    className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
-                    style={{
-                      borderColor: 'var(--theme-secondary)',
-                      color: 'var(--theme-secondary)',
-                      backgroundColor: 'transparent',
-                      fontFamily: 'var(--theme-font-body)',
-                    }}
-                  >
-                    {(heroBlock.content as any).secondaryCtaText}
-                  </a>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                  {((heroBlock.content as any).features as string[]).map((feature, index) => (
-                    <div key={`hero-feature-${index}`} className="flex flex-col items-center">
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{backgroundColor: 'var(--theme-primary)'}}>
-                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{feature}</p>
+      <HeroSectionErrorBoundary>
+        <section className="relative py-20 lg:py-32" style={{background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))'}}>
+          <div className="brand-container">
+            <div className="max-w-4xl mx-auto text-center">
+              {heroStatus === 'available' && databaseHeroData ? (
+                // Database content is available and published
+                <>
+                  <h1 className="text-4xl md:text-6xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                    {databaseHeroData.headline || 'Welcome to our site'}
+                  </h1>
+                  <p className="text-xl md:text-2xl mb-8 leading-relaxed" style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}>
+                    {databaseHeroData.subheadline || 'Your trusted source for premium plants and expert care guidance'}
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                    <a 
+                      href={databaseHeroData.ctaLink || '/plants'}
+                      className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
+                      style={{backgroundColor: 'var(--theme-primary)', color: '#fff', fontFamily: 'var(--theme-font-body)'}}
+                    >
+                      {databaseHeroData.ctaText || 'Shop Plants'}
+                    </a>
+                    {databaseHeroData.secondaryCtaText && (
+                      <a 
+                        href={databaseHeroData.secondaryCtaLink || '/care-guides'}
+                        className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
+                        style={{
+                          borderColor: 'var(--theme-secondary)',
+                          color: 'var(--theme-secondary)',
+                          backgroundColor: 'transparent',
+                          fontFamily: 'var(--theme-font-body)',
+                        }}
+                      >
+                        {databaseHeroData.secondaryCtaText}
+                      </a>
+                    )}
+                  </div>
+                  {databaseHeroData.features && Array.isArray(databaseHeroData.features) && databaseHeroData.features.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                      {databaseHeroData.features.map((feature, index) => (
+                        <div key={`hero-feature-${index}`} className="flex flex-col items-center">
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{backgroundColor: 'var(--theme-primary)'}}>
+                            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{feature}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                </>
+              ) : (
+                // Fallback messages for different error states
+                <div className="text-center py-16">
+                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-6 mx-auto">
+                    <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                    {heroStatus === 'not_found' && 'Page Content Not Found'}
+                    {heroStatus === 'unpublished' && 'Page Content Not Published'}
+                    {heroStatus === 'missing_hero' && 'Hero Section Missing'}
+                  </h1>
+                  <p className="text-lg mb-8" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
+                    {heroStatus === 'not_found' && 'The homepage content has not been configured in the database yet.'}
+                    {heroStatus === 'unpublished' && 'The homepage content exists but has not been published yet.'}
+                    {heroStatus === 'missing_hero' && 'The homepage content exists but the hero section is not configured.'}
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a 
+                      href="/plants"
+                      className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
+                      style={{backgroundColor: 'var(--theme-primary)', color: '#fff', fontFamily: 'var(--theme-font-body)'}}
+                    >
+                      Browse Plants
+                    </a>
+                    <a 
+                      href="/contact"
+                      className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
+                      style={{
+                        borderColor: 'var(--theme-secondary)',
+                        color: 'var(--theme-secondary)',
+                        backgroundColor: 'transparent',
+                        fontFamily: 'var(--theme-font-body)',
+                      }}
+                    >
+                      Contact Us
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-          </section>
-        </HeroSectionErrorBoundary>
-      )}
+          </div>
+        </section>
+      </HeroSectionErrorBoundary>
 
       {/* Featured Plants Section - Immediate loading for key content */}
       {featuredPlantsBlock?.isVisible && (
