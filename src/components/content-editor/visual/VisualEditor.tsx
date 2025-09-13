@@ -89,10 +89,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
   // Setup viewport-specific styles
   const getViewportStyles = () => {
     const baseStyles = {
-      backgroundColor: theme?.colors?.background || '#FFFFFF',
-      backgroundImage: theme?.colors?.primary && theme?.colors?.secondary 
-        ? `linear-gradient(to bottom right, ${theme.colors.primary}33, ${theme.colors.secondary}33)`
-        : undefined
+      backgroundColor: 'var(--theme-background, #FFFFFF)'
     }
     
     switch (viewport) {

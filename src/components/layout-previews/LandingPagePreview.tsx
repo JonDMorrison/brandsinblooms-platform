@@ -17,6 +17,11 @@ interface LandingPagePreviewProps {
 function LandingPagePreviewContent({ title, subtitle, content }: LandingPagePreviewProps) {
   const { theme } = useSiteThemeContext()
   
+  console.log('theme', theme)
+  console.log('content', content)
+  console.log('title', title)
+  console.log('subtitle', subtitle)
+  
   // Determine if we have enhanced content or need to use legacy format
   const isEnhanced = content && isPageContent(content)
   
@@ -27,12 +32,9 @@ function LandingPagePreviewContent({ title, subtitle, content }: LandingPagePrev
     
     return (
       <div 
-        className={`w-full h-full p-6 ${spacingClass}`}
+        className={`w-full h-full ${spacingClass}`}
         style={{
-          backgroundColor: theme?.colors?.background || '#FFFFFF',
-          backgroundImage: theme?.colors?.primary && theme?.colors?.secondary 
-            ? `linear-gradient(to bottom right, ${theme.colors.primary}33, ${theme.colors.secondary}33)`
-            : undefined
+          backgroundColor: 'var(--theme-background, #FFFFFF)'
         }}>
           {sections.map(({ key, section }) => (
             <DynamicSection
@@ -58,12 +60,9 @@ function LandingPagePreviewContent({ title, subtitle, content }: LandingPagePrev
     
     return (
       <div 
-        className="w-full min-h-full p-6 space-y-8"
+        className="w-full min-h-full space-y-8"
         style={{
-          backgroundColor: theme?.colors?.background || '#FFFFFF',
-          backgroundImage: theme?.colors?.primary && theme?.colors?.secondary 
-            ? `linear-gradient(to bottom right, ${theme.colors.primary}33, ${theme.colors.secondary}33)`
-            : undefined
+          backgroundColor: 'var(--theme-background, #FFFFFF)'
         }}>
           {sections.map(({ key, section }) => (
             <DynamicSection
@@ -112,12 +111,9 @@ function LandingPagePreviewContent({ title, subtitle, content }: LandingPagePrev
   // Empty state
   return (
     <div 
-      className="w-full min-h-full p-6 flex items-center justify-center"
+      className="w-full min-h-full flex items-center justify-center"
       style={{
-        backgroundColor: theme?.colors?.background || 'var(--theme-background, #FFFFFF)',
-        background: theme?.colors?.primary && theme?.colors?.secondary 
-          ? `linear-gradient(to bottom right, ${theme.colors.primary}33, ${theme.colors.secondary}33)`
-          : undefined
+        backgroundColor: 'var(--theme-background, #FFFFFF)'
       }}>
         <div className="text-center text-gray-500">
           <h3 className="text-xl font-semibold mb-2">Landing Page Preview</h3>
