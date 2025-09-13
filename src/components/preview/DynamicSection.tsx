@@ -40,9 +40,10 @@ interface DynamicSectionProps {
   className?: string
   title?: string // Page title for hero sections
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
+  onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
 }
 
-function DynamicSectionComponent({ section, sectionKey, className = '', title, onContentUpdate }: DynamicSectionProps) {
+function DynamicSectionComponent({ section, sectionKey, className = '', title, onContentUpdate, onFeatureUpdate }: DynamicSectionProps) {
   const { theme } = useSiteTheme()
   
   // Don't render if section is not visible or has no data
@@ -294,15 +295,26 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
                           />
                         </svg>
                       </div>
-                      <p 
-                        className="text-sm font-medium"
+                      <InlineTextEditor
+                        content={feature}
+                        onUpdate={(content) => {
+                          if (onFeatureUpdate) {
+                            onFeatureUpdate(sectionKey, index, content)
+                          }
+                        }}
+                        isEnabled={Boolean(onFeatureUpdate)}
+                        fieldPath={`data.features.${index}`}
+                        format="plain"
+                        singleLine={true}
+                        className="text-sm font-medium [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.ProseMirror]:leading-none [&_.inline-editor-wrapper]:min-h-0"
                         style={{
                           color: 'var(--theme-text)',
                           fontFamily: 'var(--theme-font-body)'
                         }}
-                      >
-                        {feature}
-                      </p>
+                        placeholder="Add feature text..."
+                        showToolbar={false}
+                        debounceDelay={0}
+                      />
                     </div>
                   ))}
                 </div>

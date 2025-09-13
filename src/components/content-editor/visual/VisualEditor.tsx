@@ -73,6 +73,35 @@ const VisualEditorContent = memo(function VisualEditorContent({
     updateContent(fullFieldPath, newContent)
   }, [updateContent])
   
+  // Handle feature array updates (custom handler for arrays)
+  const handleFeatureUpdate = useCallback((sectionKey: string, featureIndex: number, newContent: string) => {
+    if (!content || !onContentChange) return
+    
+    const section = content.sections[sectionKey]
+    if (!section || !section.data.features || !Array.isArray(section.data.features)) return
+    
+    // Create updated features array
+    const updatedFeatures = [...section.data.features]
+    updatedFeatures[featureIndex] = newContent
+    
+    // Create updated content with new features array
+    const updatedContent = {
+      ...content,
+      sections: {
+        ...content.sections,
+        [sectionKey]: {
+          ...section,
+          data: {
+            ...section.data,
+            features: updatedFeatures
+          }
+        }
+      }
+    }
+    
+    onContentChange(updatedContent)
+  }, [content, onContentChange])
+  
   // Handle title/subtitle updates
   const handleTitleUpdate = useCallback((newTitle: string) => {
     if (onTitleChange) {
@@ -243,6 +272,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
           subtitle={layout === 'landing' ? undefined : subtitle}
           content={content}
           onContentUpdate={handleSectionContentUpdate}
+          onFeatureUpdate={handleFeatureUpdate}
         />
       </div>
       
