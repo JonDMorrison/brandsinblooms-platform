@@ -564,10 +564,10 @@ function PageEditorContent() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex overflow-hidden">
         {/* Sidebar - Controlled by toggle */}
         {isSidebarOpen && (
-          <div className="w-96 border-r bg-muted/30 flex flex-col h-full overflow-hidden">
+          <div className="w-96 border-r bg-muted/30 flex flex-col overflow-hidden">
             <Tabs defaultValue="content" className="w-full h-full flex flex-col">
               <div className="p-4 border-b flex-shrink-0">
                 <TabsList className="grid w-full grid-cols-3">
