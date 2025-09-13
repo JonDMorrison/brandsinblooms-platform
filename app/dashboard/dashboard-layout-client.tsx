@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import DashboardSidebar from '@/src/components/layout/DashboardSidebar';
 import DashboardHeader from '@/src/components/layout/DashboardHeader';
 
@@ -10,6 +11,10 @@ export function DashboardLayoutClient({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  
+  // Check if we're on the content editor page
+  const isContentEditor = pathname?.includes('/dashboard/content/editor');
 
   return (
     <div className='flex h-screen bg-gradient-subtle'>
@@ -40,7 +45,11 @@ export function DashboardLayoutClient({
 
         {/* Page content */}
         <main className='flex-1 overflow-x-hidden overflow-y-auto bg-gradient-subtle'>
-          <div className='brand-container py-6'>{children}</div>
+          {isContentEditor ? (
+            <div className='w-full' style={{ height: 'calc(100vh - 4rem)' }}>{children}</div>
+          ) : (
+            <div className='brand-container py-6 '>{children}</div>
+          )}
         </main>
       </div>
     </div>

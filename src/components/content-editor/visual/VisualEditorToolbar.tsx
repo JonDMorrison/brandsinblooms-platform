@@ -104,7 +104,7 @@ export function VisualEditorToolbar({
   if (editMode !== 'inline') return null
   
   return (
-    <div className={`visual-editor-toolbar bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between sticky top-0 z-20 shadow-sm ${className || ''}`}>
+    <div className={`visual-editor-toolbar border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 px-4 py-2 flex items-center justify-between sticky top-0 z-20 ${className || ''}`}>
       {/* Left side - Mode & Status */}
       <div className="flex items-center gap-3">
         <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
@@ -251,12 +251,6 @@ export function VisualEditorToolbar({
         </div>
       )}
       
-      <style jsx>{`
-        .visual-editor-toolbar {
-          backdrop-filter: blur(8px);
-          background: rgba(255, 255, 255, 0.95);
-        }
-      `}</style>
     </div>
   )
 }

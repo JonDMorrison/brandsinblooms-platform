@@ -114,7 +114,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
         return { 
           ...baseStyles, 
           width: '100%',
-          minHeight: '600px' 
+          minHeight: '100%' 
         }
     }
   }
@@ -195,19 +195,15 @@ const VisualEditorContent = memo(function VisualEditorContent({
   }, [handleElementClick, handleElementHover])
   
   return (
-    <div className={`visual-editor-container relative ${className || ''}`}>
-      {/* Visual Editor Toolbar */}
-      <VisualEditorToolbar
-        content={content}
-        layout={layout}
-        onContentChange={onContentChange}
-      />
-      
+    <div className={`visual-editor-container relative ${className || ''}`}>      
       {/* Preview Container with Click Detection */}
       <div
         ref={containerRef}
         className="visual-editor-preview"
-        style={getViewportStyles()}
+        style={{
+          ...getViewportStyles(),
+          height: 'calc(100vh - 4rem - 2.5rem - 2rem)' // Subtract main nav, second nav, and status bar
+        }}
         data-visual-editor="true"
       >
         <PreviewComponent
@@ -230,11 +226,15 @@ const VisualEditorContent = memo(function VisualEditorContent({
         .visual-editor-container {
           position: relative;
           overflow: hidden;
+          height: 100%;
+          width: 100%;
         }
         
         .visual-editor-preview {
           position: relative;
           overflow-y: auto;
+          height: calc(100vh - 4rem - 2.5rem - 2rem);
+          width: 100%;
         }
         
         /* Visual indicators for editable content */

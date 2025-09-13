@@ -121,7 +121,7 @@ export function ContactServicesPreview({ title, subtitle, content }: ContactServ
   
   if (legacyTitle || legacySubtitle) {
     return (
-      <div className="w-full h-full bg-gray-50 p-6 space-y-8">
+      <div className="w-full min-h-full bg-gray-50 p-6 space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold text-gray-900">{legacyTitle}</h1>
@@ -225,7 +225,7 @@ export function ContactServicesPreview({ title, subtitle, content }: ContactServ
                   locationName="Plant Shop Storefront"
                   width={600}
                   height={338}
-                  className="w-full h-full object-cover"
+                  className="w-full min-h-full object-cover"
                   loading="lazy"
                 />
               </div>
@@ -272,7 +272,7 @@ export function ContactServicesPreview({ title, subtitle, content }: ContactServ
                         plantType="plant"
                         width={48}
                         height={48}
-                        className="w-full h-full object-cover"
+                        className="w-full min-h-full object-cover"
                         loading="lazy"
                       />
                     </div>
@@ -295,7 +295,7 @@ export function ContactServicesPreview({ title, subtitle, content }: ContactServ
   
   // Empty state
   return (
-    <div className="w-full h-full bg-gray-50 p-6 flex items-center justify-center">
+    <div className="w-full min-h-full bg-gray-50 p-6 flex items-center justify-center">
       <div className="text-center text-gray-500">
         <h3 className="text-xl font-semibold mb-2">Contact Page Preview</h3>
         <p>Add content to see your contact page design</p>

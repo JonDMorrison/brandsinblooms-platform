@@ -58,7 +58,7 @@ function LandingPagePreviewContent({ title, subtitle, content }: LandingPagePrev
     
     return (
       <div 
-        className="w-full h-full p-6 space-y-8"
+        className="w-full min-h-full p-6 space-y-8"
         style={{
           backgroundColor: theme?.colors?.background || '#FFFFFF',
           backgroundImage: theme?.colors?.primary && theme?.colors?.secondary 
@@ -112,7 +112,7 @@ function LandingPagePreviewContent({ title, subtitle, content }: LandingPagePrev
   // Empty state
   return (
     <div 
-      className="w-full h-full p-6 flex items-center justify-center"
+      className="w-full min-h-full p-6 flex items-center justify-center"
       style={{
         backgroundColor: theme?.colors?.background || 'var(--theme-background, #FFFFFF)',
         background: theme?.colors?.primary && theme?.colors?.secondary 
@@ -130,7 +130,7 @@ function LandingPagePreviewContent({ title, subtitle, content }: LandingPagePrev
 export function LandingPagePreview(props: LandingPagePreviewProps) {
   return (
     <SiteThemeProvider>
-      <ThemeWrapper className="w-full h-full">
+      <ThemeWrapper className="w-full min-h-full">
         <LandingPagePreviewContent {...props} />
       </ThemeWrapper>
     </SiteThemeProvider>

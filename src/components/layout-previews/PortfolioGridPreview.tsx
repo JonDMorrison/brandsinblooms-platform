@@ -87,7 +87,7 @@ export function PortfolioGridPreview({ title, subtitle, content }: PortfolioGrid
   
   if (legacyTitle || legacySubtitle) {
     return (
-      <div className="w-full h-full bg-gray-50 p-6 space-y-6">
+      <div className="w-full min-h-full bg-gray-50 p-6 space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold text-gray-900">{legacyTitle}</h1>
@@ -159,7 +159,7 @@ export function PortfolioGridPreview({ title, subtitle, content }: PortfolioGrid
   
   // Empty state
   return (
-    <div className="w-full h-full bg-gray-50 p-6 flex items-center justify-center">
+    <div className="w-full min-h-full bg-gray-50 p-6 flex items-center justify-center">
       <div className="text-center text-gray-500">
         <h3 className="text-xl font-semibold mb-2">Portfolio Preview</h3>
         <p>Add content to see your portfolio gallery design</p>

@@ -42,7 +42,7 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
   
   if (legacyTitle || legacySubtitle) {
     return (
-      <div className="w-full h-full bg-white p-6 space-y-8">
+      <div className="w-full min-h-full bg-white p-6 space-y-8">
         {/* Hero Section */}
         <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold text-gray-900">{legacyTitle}</h1>
@@ -79,7 +79,7 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
               locationName="Plant Shop Interior"
               width={800}
               height={450}
-              className="w-full h-full object-cover"
+              className="w-full min-h-full object-cover"
               loading="lazy"
             />
           </div>
@@ -140,7 +140,7 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
                     personName={member.name}
                     width={80}
                     height={80}
-                    className="w-full h-full object-cover"
+                    className="w-full min-h-full object-cover"
                     loading="lazy"
                   />
                 </div>
@@ -172,7 +172,7 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
   
   // Empty state
   return (
-    <div className="w-full h-full bg-white p-6 flex items-center justify-center">
+    <div className="w-full min-h-full bg-white p-6 flex items-center justify-center">
       <div className="text-center text-gray-500">
         <h3 className="text-xl font-semibold mb-2">About Company Preview</h3>
         <p>Add content to see your about page design</p>

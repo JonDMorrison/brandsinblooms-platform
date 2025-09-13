@@ -52,6 +52,7 @@ export function EditOverlay({
   
   const overlayRef = useRef<HTMLDivElement>(null)
   const resizeObserverRef = useRef<ResizeObserver>()
+  const refreshTimeoutRef = useRef<NodeJS.Timeout>()
   
   // Update indicators when elements change
   useEffect(() => {
@@ -93,8 +94,16 @@ export function EditOverlay({
       // Set up resize observer to update bounds when layout changes
       if (containerRef.current && !resizeObserverRef.current) {
         resizeObserverRef.current = new ResizeObserver(() => {
-          refreshElementBounds()
-          updateIndicators()
+          // Clear any existing timeout
+          if (refreshTimeoutRef.current) {
+            clearTimeout(refreshTimeoutRef.current)
+          }
+          
+          // Debounce the refresh to prevent infinite loops
+          refreshTimeoutRef.current = setTimeout(() => {
+            refreshElementBounds()
+            updateIndicators()
+          }, 16) // ~60fps
         })
         resizeObserverRef.current.observe(containerRef.current)
       }
@@ -105,8 +114,12 @@ export function EditOverlay({
         resizeObserverRef.current.disconnect()
         resizeObserverRef.current = undefined
       }
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current)
+        refreshTimeoutRef.current = undefined
+      }
     }
-  }, [editableElements, hoveredElement, activeElement, showOverlay, containerRef, refreshElementBounds])
+  }, [editableElements, hoveredElement, activeElement, showOverlay, containerRef])
   
   // Handle element click for inline editing
   const handleIndicatorClick = useCallback((indicator: EditIndicator, event: React.MouseEvent) => {

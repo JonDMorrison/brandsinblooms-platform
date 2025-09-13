@@ -129,7 +129,7 @@ export function ProductPagePreview({ title, subtitle, content }: ProductPagePrev
   if (legacyTitle || legacySubtitle) {
     return (
       <SiteThemeProvider>
-        <ThemeWrapper className="w-full h-full bg-white p-6 space-y-6">
+        <ThemeWrapper className="w-full min-h-full bg-white p-6 space-y-6">
         {/* Product Header */}
         <div className="flex flex-col gap-8">
           {/* Product Images */}
@@ -230,7 +230,7 @@ export function ProductPagePreview({ title, subtitle, content }: ProductPagePrev
   // Empty state
   return (
     <SiteThemeProvider>
-      <ThemeWrapper className="w-full h-full bg-white p-6 flex items-center justify-center">
+      <ThemeWrapper className="w-full min-h-full bg-white p-6 flex items-center justify-center">
         <div className="text-center text-gray-500">
           <h3 className="text-xl font-semibold mb-2">Product Page Preview</h3>
           <p>Add content to see your product page design</p>

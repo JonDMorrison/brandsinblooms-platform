@@ -255,15 +255,6 @@ export function VisualEditorProvider({
   // Cleanup on unmount - clear all references to prevent memory leaks
   React.useEffect(() => {
     return () => {
-      // Clear timeout
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-        updateTimeoutRef.current = null;
-      }
-      
-      // Clear all pending updates
-      pendingUpdates.current.clear();
-      
       // Clear all element references
       setState(prev => ({
         ...prev,

@@ -12,9 +12,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/ta
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
 import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel
+} from '@/src/components/ui/dropdown-menu'
+import { 
   ArrowLeft, 
   Save, 
   Eye, 
+  EyeOff,
   Settings, 
   Layout,
   Smartphone,
@@ -26,7 +35,10 @@ import {
   Package,
   Phone,
   Edit2,
-  Layers
+  Layers,
+  MousePointer,
+  PanelLeftOpen,
+  PanelLeftClose
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -96,6 +108,7 @@ function PageEditorContent() {
   const [pageContent, setPageContent] = useState<PageContent | null>(null)
   const [unifiedContent, setUnifiedContent] = useState<UnifiedPageContent | null>(null)
   const [activeSectionKey, setActiveSectionKey] = useState<string | undefined>()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const contentEditorRef = useRef<{ resetDirtyState: () => void } | null>(null)
 
   useEffect(() => {
@@ -275,6 +288,27 @@ function PageEditorContent() {
     setHasUnsavedChanges(false)
   }, [contentId, currentSite?.id, unifiedContent, pageData?.title])
 
+  // Handle section visibility toggle
+  const toggleSectionVisibility = useCallback((sectionKey: string) => {
+    if (!pageContent) return
+    
+    const currentSection = pageContent.sections[sectionKey]
+    if (!currentSection) return
+    
+    const updatedContent: PageContent = {
+      ...pageContent,
+      sections: {
+        ...pageContent.sections,
+        [sectionKey]: {
+          ...currentSection,
+          visible: !currentSection.visible
+        }
+      }
+    }
+    
+    handleContentChange(updatedContent, true)
+  }, [pageContent, handleContentChange])
+
   // Content editor hook for section management - defined after handlers
   const contentEditorHook = useContentEditor({
     contentId: contentId || '',
@@ -369,6 +403,7 @@ function PageEditorContent() {
     <div className="min-h-screen flex flex-col bg-white">
       {/* Header */}
       <div className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-10">
+        {/* Main Navigation */}
         <div className="container flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
             <Button 
@@ -420,27 +455,6 @@ function PageEditorContent() {
               })}
             </div>
 
-            {/* Mode Toggle */}
-            <div className="flex items-center bg-muted rounded-md p-1">
-              <Button
-                variant={editMode === 'inline' ? 'secondary' : 'ghost'}
-                size="sm"
-                className="h-8 px-3 cursor-pointer transition-all hover:bg-gradient-primary-50"
-                onClick={() => setEditMode('inline')}
-              >
-                <Edit2 className="h-3.5 w-3.5 mr-1.5" />
-                Visual
-              </Button>
-              <Button
-                variant={editMode === 'form' ? 'secondary' : 'ghost'}
-                size="sm"
-                className="h-8 px-3 cursor-pointer transition-all hover:bg-gradient-primary-50"
-                onClick={() => setEditMode('form')}
-              >
-                <Settings className="h-3.5 w-3.5 mr-1.5" />
-                Form
-              </Button>
-            </div>
 
             {/* Actions */}
             <Button 
@@ -463,93 +477,177 @@ function PageEditorContent() {
             </Button>
           </div>
         </div>
+
+        {/* Visual Editor Controls - Always shown */}
+        {pageContent && (
+          <div className="border-t bg-gray-50/50 px-6 flex items-center justify-between text-sm h-[2.5rem]" >
+            <div className="flex items-center gap-3">
+              {/* Sidebar Toggle */}
+              <Button 
+                variant={isSidebarOpen ? "secondary" : "ghost"} 
+                size="sm" 
+                className="h-6 px-2 text-xs"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              >
+                {isSidebarOpen ? (
+                  <PanelLeftClose className="w-3.5 h-3.5 mr-1" />
+                ) : (
+                  <PanelLeftOpen className="w-3.5 h-3.5 mr-1" />
+                )}
+                {isSidebarOpen ? 'Close Panel' : 'Open Panel'}
+              </Button>
+              
+              <Separator orientation="vertical" className="h-4" />
+              
+              {/* Element count */}
+              <div className="flex items-center gap-2 text-gray-600">
+                <MousePointer className="w-3.5 h-3.5" />
+                <span>0 elements</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {/* Sections dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                    <Layers className="w-3.5 h-3.5 mr-1" />
+                    Sections ({Object.keys(pageContent.sections).filter(key => pageContent.sections[key].visible !== false).length})
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-64">
+                  <DropdownMenuLabel className="flex items-center justify-between">
+                    Page Sections
+                    <Badge variant="secondary" className="text-xs">
+                      {Object.keys(pageContent.sections).length} total
+                    </Badge>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  {Object.entries(pageContent.sections).map(([key, section]) => (
+                    <DropdownMenuItem
+                      key={key}
+                      className="flex items-center justify-between cursor-pointer"
+                      onClick={() => toggleSectionVisibility(key)}
+                    >
+                      <div className="flex items-center gap-2">
+                        {section.visible !== false ? (
+                          <Eye className="w-3 h-3 text-green-600" />
+                        ) : (
+                          <EyeOff className="w-3 h-3 text-gray-400" />
+                        )}
+                        <span className="capitalize">
+                          {key.replace(/([A-Z])/g, ' $1').trim()}
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                  
+                  {Object.keys(pageContent.sections).length === 0 && (
+                    <DropdownMenuItem disabled>
+                      No sections available
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <Separator orientation="vertical" className="h-4" />
+              
+              {/* Settings */}
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                <Settings className="w-3.5 h-3.5 mr-1" />
+                Settings
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex">
-        {/* Sidebar (Form Edit Mode) */}
-        {editMode === 'form' && (
-          <div className="w-96 border-r bg-muted/30 flex flex-col">
-            <div className="flex-1 min-h-0">
-              <Tabs defaultValue="content" className="w-full h-full flex flex-col">
-                <div className="p-4 border-b">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="layout">Layout</TabsTrigger>
-                    <TabsTrigger value="content">Content</TabsTrigger>
-                    <TabsTrigger value="sections">Sections</TabsTrigger>
-                  </TabsList>
-                </div>
-                
-                <TabsContent value="layout" className="mt-0 flex-1 overflow-y-auto">
-                  <div className="p-4 space-y-4">
+        {/* Sidebar - Controlled by toggle */}
+        {isSidebarOpen && (
+          <div className="w-96 border-r bg-muted/30 flex flex-col h-full overflow-hidden">
+            <Tabs defaultValue="content" className="w-full h-full flex flex-col">
+              <div className="p-4 border-b flex-shrink-0">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="layout">Layout</TabsTrigger>
+                  <TabsTrigger value="content">Content</TabsTrigger>
+                  <TabsTrigger value="sections">Sections</TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <TabsContent value="layout" className="mt-0 flex-1 overflow-y-auto">
+                <div className="p-4 space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium">Page Layout</h3>
                     <div className="space-y-2">
-                      <h3 className="text-sm font-medium">Page Layout</h3>
-                      <div className="space-y-2">
-                        {Object.entries(layoutInfo).map(([layoutKey, info]) => {
-                          const Icon = info.icon
-                          const isActive = validLayout === layoutKey
-                          return (
-                            <div
-                              key={layoutKey}
-                              className={`
-                                p-3 border rounded-lg cursor-pointer transition-all hover:border-primary/50
+                      {Object.entries(layoutInfo).map(([layoutKey, info]) => {
+                        const Icon = info.icon
+                        const isActive = validLayout === layoutKey
+                        return (
+                          <div
+                            key={layoutKey}
+                            className={`
+                              p-3 border rounded-lg cursor-pointer transition-all hover:border-primary/50
+                              ${isActive 
+                                ? 'border-primary bg-primary/10' 
+                                : 'border-border bg-card'
+                              }
+                            `}
+                            onClick={() => handleLayoutChange(layoutKey as LayoutType)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`
+                                p-1.5 rounded-md 
                                 ${isActive 
-                                  ? 'border-primary bg-primary/10' 
-                                  : 'border-border bg-card'
+                                  ? 'bg-primary text-primary-foreground' 
+                                  : 'bg-muted'
                                 }
-                              `}
-                              onClick={() => handleLayoutChange(layoutKey as LayoutType)}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className={`
-                                  p-1.5 rounded-md 
-                                  ${isActive 
-                                    ? 'bg-primary text-primary-foreground' 
-                                    : 'bg-muted'
-                                  }
-                                `}>
-                                  <Icon className="h-3.5 w-3.5" />
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium">{info.name}</p>
-                                  <p className="text-xs text-gray-500">
-                                    {isActive ? 'Current layout' : 'Click to switch'}
-                                  </p>
-                                </div>
-                                {isActive && (
-                                  <div className="h-2 w-2 rounded-full bg-primary" />
-                                )}
+                              `}>
+                                <Icon className="h-3.5 w-3.5" />
                               </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">{info.name}</p>
+                                <p className="text-xs text-gray-500">
+                                  {isActive ? 'Current layout' : 'Click to switch'}
+                                </p>
+                              </div>
+                              {isActive && (
+                                <div className="h-2 w-2 rounded-full bg-primary" />
+                              )}
                             </div>
-                          )
-                        })}
-                      </div>
+                          </div>
+                        )
+                      })}
                     </div>
-
                   </div>
-                </TabsContent>
-                
-                <TabsContent value="content" className="mt-0 flex-1 min-h-0">
-                  {contentId && currentSite?.id && (
-                    <div className="flex flex-col h-full min-h-0">
-                      {/* Content Editor with integrated title/subtitle */}
-                      <ContentEditor
-                        ref={contentEditorRef}
-                        contentId={contentId}
-                        siteId={currentSite.id}
-                        layout={validLayout as ContentLayoutType}
-                        initialContent={pageContent || undefined}
-                        onSave={handleContentSave}
-                        onContentChange={handleContentChange}
-                        title={pageData.title}
-                        onTitleChange={handleTitleChange}
-                      />
-                    </div>
-                  )}
-                </TabsContent>
 
-                <TabsContent value="sections" className="mt-0 flex-1 flex flex-col">
-                  {(pageContent || contentEditorHook.content) && (
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="content" className="mt-0 flex-1 overflow-hidden flex flex-col">
+                {contentId && currentSite?.id && (
+                  <div className="flex-1 overflow-y-auto">
+                    {/* Content Editor with integrated title/subtitle */}
+                    <ContentEditor
+                      ref={contentEditorRef}
+                      contentId={contentId}
+                      siteId={currentSite.id}
+                      layout={validLayout as ContentLayoutType}
+                      initialContent={pageContent || undefined}
+                      onSave={handleContentSave}
+                      onContentChange={handleContentChange}
+                      title={pageData.title}
+                      onTitleChange={handleTitleChange}
+                    />
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="sections" className="mt-0 flex-1 overflow-hidden flex flex-col">
+                {(pageContent || contentEditorHook.content) && (
+                  <div className="flex-1 overflow-y-auto">
                     <SectionManager
                       content={pageContent || contentEditorHook.content}
                       layout={validLayout as ContentLayoutType}
@@ -561,66 +659,37 @@ function PageEditorContent() {
                       activeSectionKey={activeSectionKey}
                       isDraggingEnabled={true}
                     />
-                  )}
-                </TabsContent>
-              </Tabs>
-            </div>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         )}
 
-        {/* Preview Area */}
-        <div className="flex-1 bg-muted/20 overflow-auto">
-          {editMode === 'inline' ? (
-            /* Visual Editor Mode */
-            <VisualEditor
-              content={pageContent || { version: '1.0', layout: validLayout as ContentLayoutType, sections: {} }}
-              layout={validLayout as ContentLayoutType}
-              title={pageData.title}
-              subtitle={
-                typeof pageContent?.sections?.hero?.data?.subtitle === 'string' 
-                  ? pageContent.sections.hero.data.subtitle
-                  : typeof pageContent?.sections?.header?.data?.subtitle === 'string'
-                  ? pageContent.sections.header.data.subtitle  
-                  : pageData.subtitle
-              }
-              onContentChange={(content) => {
-                handleContentChange(content, true)
-              }}
-              onTitleChange={handleTitleChange}
-              onSubtitleChange={(subtitle) => {
-                setPageData(prev => prev ? { ...prev, subtitle } : null)
-                setHasUnsavedChanges(true)
-              }}
-              viewport={activeViewport}
-              className="h-full"
-            />
-          ) : (
-            /* Traditional Preview Mode */
-            <div className="min-h-full p-6 flex items-start justify-center">
-              <div 
-                className="border rounded-lg shadow-sm overflow-hidden transition-all duration-300"
-                style={{ 
-                  width: viewportSizes[activeViewport].width,
-                  minHeight: '600px',
-                  maxWidth: '100%',
-                  containerType: 'inline-size',
-                  backgroundColor: theme?.colors?.background || '#FFFFFF'
-                }}
-              >
-                <CurrentLayoutComponent 
-                  title={pageData.title}
-                  subtitle={
-                    typeof pageContent?.sections?.hero?.data?.subtitle === 'string' 
-                      ? pageContent.sections.hero.data.subtitle
-                      : typeof pageContent?.sections?.header?.data?.subtitle === 'string'
-                      ? pageContent.sections.header.data.subtitle  
-                      : pageData.subtitle
-                  }
-                  content={pageContent || undefined}
-                />
-              </div>
-            </div>
-          )}
+        {/* Preview Area - Always shows Visual Editor */}
+        <div className="flex-1 bg-muted/20 overflow-hidden">
+          <VisualEditor
+            content={pageContent || { version: '1.0', layout: validLayout as ContentLayoutType, sections: {} }}
+            layout={validLayout as ContentLayoutType}
+            title={pageData.title}
+            subtitle={
+              typeof pageContent?.sections?.hero?.data?.subtitle === 'string' 
+                ? pageContent.sections.hero.data.subtitle
+                : typeof pageContent?.sections?.header?.data?.subtitle === 'string'
+                ? pageContent.sections.header.data.subtitle  
+                : pageData.subtitle
+            }
+            onContentChange={(content) => {
+              handleContentChange(content, true)
+            }}
+            onTitleChange={handleTitleChange}
+            onSubtitleChange={(subtitle) => {
+              setPageData(prev => prev ? { ...prev, subtitle } : null)
+              setHasUnsavedChanges(true)
+            }}
+            viewport={activeViewport}
+            className="h-full w-full"
+          />
         </div>
       </div>
 

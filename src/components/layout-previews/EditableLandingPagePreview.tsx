@@ -193,7 +193,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
   if (legacyTitle || legacySubtitle) {
     return (
       <div 
-        className="w-full h-full p-6 space-y-8"
+        className="w-full min-h-full p-6 space-y-8"
         style={{
           backgroundColor: theme?.colors?.background || '#FFFFFF',
           backgroundImage: theme?.colors?.primary && theme?.colors?.secondary 
@@ -306,7 +306,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
                     plantInfo={plant.plantInfo}
                     width={400}
                     height={300}
-                    className="w-full h-full"
+                    className="w-full min-h-full"
                     priority={i === 0} // First image has priority
                     isFeatured={true}
                     showCareIndicators={true}
@@ -410,7 +410,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
                     careGuideType={guide.careType}
                     width={200}
                     height={200}
-                    className="w-full h-full"
+                    className="w-full min-h-full"
                     loading="lazy"
                   />
                 </div>
@@ -479,7 +479,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
   // Empty state
   return (
     <div 
-      className="w-full h-full p-6 flex items-center justify-center"
+      className="w-full min-h-full p-6 flex items-center justify-center"
       style={{
         backgroundColor: theme?.colors?.background || 'var(--theme-background, #FFFFFF)',
         background: theme?.colors?.primary && theme?.colors?.secondary 
@@ -514,7 +514,7 @@ const EditableLandingPagePreviewContent = memo(function EditableLandingPagePrevi
 export const EditableLandingPagePreview = memo(function EditableLandingPagePreview(props: EditableLandingPagePreviewProps) {
   return (
     <SiteThemeProvider>
-      <ThemeWrapper className="w-full h-full">
+      <ThemeWrapper className="w-full min-h-full">
         <EditableLandingPagePreviewContent {...props} />
       </ThemeWrapper>
     </SiteThemeProvider>
