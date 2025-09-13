@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 
 // Context & State
 import { useSiteContext } from '@/src/contexts/SiteContext';
-import { EditModeProvider, useEditMode } from '@/src/contexts/EditModeContext';
+import { EditModeProvider } from '@/src/contexts/EditModeContext';
 import { VisualEditorProvider } from '@/src/contexts/VisualEditorContext';
 
 // Content Management
@@ -18,7 +18,6 @@ import {
   serializePageContent,
 } from '@/src/lib/content';
 import { handleError } from '@/src/lib/types/error-handling';
-import { useSiteTheme } from '@/src/hooks/useSiteTheme';
 
 // Extracted Components
 import { EditorHeader } from '@/src/components/content-editor/EditorHeader';
@@ -63,12 +62,9 @@ const layoutInfo = {
 };
 
 function PageEditorContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const contentId = searchParams?.get('id') || null;
   const { currentSite, loading: siteLoading } = useSiteContext();
-  const { editMode, setEditMode, isDirty, setIsDirty } = useEditMode();
-  const { theme } = useSiteTheme();
 
   // UI state
   const [activeViewport, setActiveViewport] = useState<ViewportSize>('desktop');
@@ -85,7 +81,6 @@ function PageEditorContent() {
     setPageData,
     isLoading,
     pageContent,
-    setPageContent,
     unifiedContent,
     setUnifiedContent,
     hasUnsavedChanges,
