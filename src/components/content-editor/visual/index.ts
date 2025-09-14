@@ -4,6 +4,11 @@ export { EditOverlay } from './EditOverlay'
 export { EditableSection, EditableField, EditableText, EditableRichText, EditableImage } from './EditableSection'
 export { VisualEditorToolbar } from './VisualEditorToolbar'
 
+// Visual Editor Utilities (Refactored Architecture)
+export * from './styles'
+export * from './hooks'
+export * from './utils'
+
 // Milestone 2: Inline Rich Text Editing Components
 export { InlineRichTextEditor } from './InlineRichTextEditor'
 export { FloatingToolbar } from './FloatingToolbar'
