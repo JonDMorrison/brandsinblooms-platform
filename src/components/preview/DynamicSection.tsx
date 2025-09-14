@@ -11,7 +11,6 @@ import * as LucideIcons from 'lucide-react'
 import { LucideIcon } from 'lucide-react'
 import { useSiteTheme } from '@/hooks/useSiteTheme'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
-
 // Helper functions for newline/HTML conversion
 const textToHtml = (text: string): string => {
   if (!text) return ''
@@ -32,6 +31,19 @@ const htmlToText = (html: string): string => {
     .replace(/<br\s*\/?>/g, '\n')
     .replace(/<\/?p>/g, '')
     .trim()
+}
+
+// Helper function to get responsive grid classes for features
+const getFeatureGridClasses = (featureCount: number): string => {
+  if (featureCount === 1) {
+    return 'grid-cols-1'
+  } else if (featureCount === 2) {
+    return 'grid-cols-2'
+  } else if (featureCount === 3) {
+    return 'grid-cols-2 md:grid-cols-3'
+  } else {
+    return 'grid-cols-2 md:grid-cols-4'
+  }
 }
 
 interface DynamicSectionProps {
@@ -267,15 +279,7 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
               {/* Features Grid */}
               {data.features && Array.isArray(data.features) && data.features.length > 0 && (
                 <div 
-                  className={`grid gap-6 text-center ${
-                    data.features.length === 1 
-                      ? 'grid-cols-1' 
-                      : data.features.length === 2 
-                      ? 'grid-cols-2' 
-                      : data.features.length === 3 
-                      ? 'grid-cols-2 md:grid-cols-3' 
-                      : 'grid-cols-2 md:grid-cols-4'
-                  }`}
+                  className={`grid gap-6 text-center ${getFeatureGridClasses(data.features.length)}`}
                 >
                   {data.features.slice(0, 4).map((feature: string, index: number) => (
                     <div key={index} className="flex flex-col items-center">

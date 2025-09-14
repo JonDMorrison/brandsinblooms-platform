@@ -17,6 +17,28 @@ import { getSiteHeaders } from '../utils/routing'
 import { createClient } from '@/src/lib/supabase/server'
 import { getContentBySlug } from '@/src/lib/queries/domains/content'
 import { deserializePageContent } from '@/src/lib/content/serialization'
+// Helper functions for multiline support and feature centering
+const textToHtml = (text: string): string => {
+  if (!text) return ''
+  return text
+    .split('\n\n')
+    .map(paragraph => paragraph.trim())
+    .filter(paragraph => paragraph)
+    .map(paragraph => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
+    .join('')
+}
+
+const getFeatureGridClasses = (featureCount: number): string => {
+  if (featureCount === 1) {
+    return 'grid-cols-1'
+  } else if (featureCount === 2) {
+    return 'grid-cols-2'
+  } else if (featureCount === 3) {
+    return 'grid-cols-2 md:grid-cols-3'
+  } else {
+    return 'grid-cols-2 md:grid-cols-4'
+  }
+}
 
 export async function HomePage() {
   const { siteId } = await getSiteHeaders()
@@ -76,22 +98,26 @@ export async function HomePage() {
                 // Database content is available and published
                 <>
                   <h1 className="text-4xl md:text-6xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                    {databaseHeroData.headline || 'Welcome to our site'}
+                    {String(databaseHeroData.headline || 'Welcome to our site')}
                   </h1>
-                  <p className="text-xl md:text-2xl mb-8 leading-relaxed" style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}>
-                    {databaseHeroData.subheadline || 'Your trusted source for premium plants and expert care guidance'}
-                  </p>
+                  <div 
+                    className="text-xl md:text-2xl mb-8 leading-relaxed [&_p:not(:first-child)]:mt-2"
+                    style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}
+                    dangerouslySetInnerHTML={{
+                      __html: textToHtml(String(databaseHeroData.subheadline || 'Your trusted source for premium plants and expert care guidance'))
+                    }}
+                  />
                   <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
                     <a 
-                      href={databaseHeroData.ctaLink || '/plants'}
+                      href={String(databaseHeroData.ctaLink || '/plants')}
                       className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
                       style={{backgroundColor: 'var(--theme-primary)', color: '#fff', fontFamily: 'var(--theme-font-body)'}}
                     >
-                      {databaseHeroData.ctaText || 'Shop Plants'}
+                      {String(databaseHeroData.ctaText || 'Shop Plants')}
                     </a>
                     {databaseHeroData.secondaryCtaText && (
                       <a 
-                        href={databaseHeroData.secondaryCtaLink || '/care-guides'}
+                        href={String(databaseHeroData.secondaryCtaLink || '/care-guides')}
                         className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
                         style={{
                           borderColor: 'var(--theme-secondary)',
@@ -100,20 +126,20 @@ export async function HomePage() {
                           fontFamily: 'var(--theme-font-body)',
                         }}
                       >
-                        {databaseHeroData.secondaryCtaText}
+                        {String(databaseHeroData.secondaryCtaText)}
                       </a>
                     )}
                   </div>
                   {databaseHeroData.features && Array.isArray(databaseHeroData.features) && databaseHeroData.features.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                      {databaseHeroData.features.map((feature, index) => (
+                    <div className={`grid gap-6 text-center ${getFeatureGridClasses(databaseHeroData.features.length)}`}>
+                      {databaseHeroData.features.slice(0, 4).map((feature, index) => (
                         <div key={`hero-feature-${index}`} className="flex flex-col items-center">
                           <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{backgroundColor: 'var(--theme-primary)'}}>
                             <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
                           </div>
-                          <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{feature}</p>
+                          <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{String(feature)}</p>
                         </div>
                       ))}
                     </div>
