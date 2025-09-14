@@ -265,6 +265,19 @@ export async function HomePage() {
                   </div>
                 ))}
               </div>
+              <div className="text-center">
+                <a 
+                  href={(featuredBlock.content as any).viewAllLink || '/plants'}
+                  className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
+                  style={{
+                    borderColor: 'var(--theme-primary)',
+                    color: 'var(--theme-primary)',
+                    fontFamily: 'var(--theme-font-body)'
+                  }}
+                >
+                  {(featuredBlock.content as any).viewAllText || 'View All Plants'}
+                </a>
+              </div>
             </div>
           </section>
         </FeaturedPlantsErrorBoundary>
