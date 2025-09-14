@@ -540,6 +540,41 @@ const SectionEditor = function SectionEditor({
               </div>
             </div>
 
+            {/* Background Color Toggle */}
+            <div className="p-3 border rounded-lg bg-muted/30 space-y-2 mb-4">
+              <Label className="text-xs text-gray-500">Background Color</Label>
+              <div className="flex gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name={`${sectionKey}-background`}
+                    value="default"
+                    checked={(section.settings?.backgroundColor || 'default') === 'default'}
+                    onChange={() => {
+                      const newSettings = { ...section.settings, backgroundColor: 'default' }
+                      onUpdate(sectionKey, { ...section, settings: newSettings })
+                    }}
+                    className="w-3 h-3"
+                  />
+                  <span className="text-xs">Default</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name={`${sectionKey}-background`}
+                    value="alternate"
+                    checked={(section.settings?.backgroundColor || 'default') === 'alternate'}
+                    onChange={() => {
+                      const newSettings = { ...section.settings, backgroundColor: 'alternate' }
+                      onUpdate(sectionKey, { ...section, settings: newSettings })
+                    }}
+                    className="w-3 h-3"
+                  />
+                  <span className="text-xs">Alternate</span>
+                </label>
+              </div>
+            </div>
+
             {/* View All Button Configuration */}
             <div className="p-3 border rounded-lg bg-muted/30 space-y-2">
               <Label className="text-xs text-gray-500">View All Button</Label>

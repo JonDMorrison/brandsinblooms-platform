@@ -40,6 +40,18 @@ const getProductGridClasses = (productCount: number): string => {
   }
 }
 
+// Helper function to get section background style
+const getSectionBackgroundStyle = (settings?: ContentSection['settings']) => {
+  const backgroundType = settings?.backgroundColor || 'default'
+  
+  if (backgroundType === 'alternate') {
+    return { backgroundColor: 'rgba(var(--theme-primary-rgb), 0.03)' }
+  }
+  
+  // Default background
+  return { backgroundColor: 'var(--theme-background)' }
+}
+
 interface DynamicSectionProps {
   section: ContentSection
   sectionKey: string
@@ -361,7 +373,7 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
       const displayedPlants = featuredPlants.slice(0, 4)
       
       return (
-        <section className={`py-16 ${className}`} style={{backgroundColor: 'var(--theme-background)'}}>
+        <section className={`py-16 ${className}`} style={getSectionBackgroundStyle(settings)}>
           <div className="brand-container">
             <div className="text-center mb-12">
               <div className="mb-4">

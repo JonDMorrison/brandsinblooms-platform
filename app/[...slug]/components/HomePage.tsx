@@ -48,6 +48,7 @@ export async function HomePage() {
   let heroStatus = 'not_found' // 'not_found', 'unpublished', 'missing_hero', 'available'
   let databaseFeaturedData = null
   let featuredStatus = 'not_found' // 'not_found', 'available'
+  let featuredBackgroundSetting = 'default' // Store the background setting
   
   try {
     const supabase = await createClient()
@@ -69,6 +70,8 @@ export async function HomePage() {
         if (pageContent?.sections?.featured?.data && pageContent.sections.featured.visible) {
           databaseFeaturedData = pageContent.sections.featured.data
           featuredStatus = 'available'
+          // Store the background setting
+          featuredBackgroundSetting = pageContent.sections.featured.settings?.backgroundColor || 'default'
         }
       }
     }
@@ -201,7 +204,11 @@ export async function HomePage() {
       {/* Featured Products Section - Database driven */}
       {featuredStatus === 'available' && databaseFeaturedData && (
         <FeaturedPlantsErrorBoundary>
-          <section className="py-16" style={{backgroundColor: 'var(--theme-background)'}}>
+          <section className="py-16" style={{
+            backgroundColor: featuredBackgroundSetting === 'alternate' 
+              ? 'rgba(var(--theme-primary-rgb), 0.03)' 
+              : 'var(--theme-background)'
+          }}>
             <div className="brand-container">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
