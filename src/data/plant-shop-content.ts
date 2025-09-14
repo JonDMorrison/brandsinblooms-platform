@@ -55,7 +55,7 @@ export interface TeamMember {
 }
 
 export interface ContentBlock {
-  type: 'hero' | 'featured_plants' | 'categories' | 'mission' | 'team' | 'contact' | 'care_guides' | 'testimonials' | 'seasonal' | 'legal';
+  type: 'hero' | 'featured' | 'categories' | 'mission' | 'team' | 'contact' | 'care_guides' | 'testimonials' | 'seasonal' | 'legal';
   id: string;
   title?: string;
   content: unknown;
@@ -377,13 +377,13 @@ export const plantShopContent: Record<string, PageData> = {
         order: 1
       },
       {
-        type: 'featured_plants',
-        id: 'featured-plants',
+        type: 'featured',
+        id: 'featured-products',
         title: 'Featured Plants',
         content: {
           headline: 'Featured Plants This Season',
-          description: 'Handpicked selections from our master horticulturists, perfect for current growing conditions',
-          plants: plantsData.filter(plant => plant.featured),
+          subheadline: 'Handpicked selections from our master horticulturists, perfect for current growing conditions',
+          products: plantsData.filter(plant => plant.featured),
           viewAllLink: '/plants'
         },
         isVisible: true,

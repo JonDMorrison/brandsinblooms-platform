@@ -71,7 +71,7 @@ export async function HomePage() {
   
   // Get hardcoded content for other sections (keep existing functionality)
   const homePageData = plantShopContent.home
-  const featuredPlantsBlock = homePageData.blocks.find(block => block.type === 'featured_plants')
+  const featuredBlock = homePageData.blocks.find(block => block.type === 'featured')
   const categoriesBlock = homePageData.blocks.find(block => block.type === 'categories')
   const seasonalBlock = homePageData.blocks.find(block => block.type === 'seasonal')
   const careGuidesBlock = homePageData.blocks.find(block => block.type === 'care_guides')
@@ -191,72 +191,67 @@ export async function HomePage() {
         </section>
       </HeroSectionErrorBoundary>
 
-      {/* Featured Plants Section - Immediate loading for key content */}
-      {featuredPlantsBlock?.isVisible && (
+      {/* Featured Products Section - Immediate loading for key content */}
+      {featuredBlock?.isVisible && (
         <FeaturedPlantsErrorBoundary>
           <section className="py-16" style={{backgroundColor: 'var(--theme-background)'}}>
             <div className="brand-container">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                  {(featuredPlantsBlock.content as any).headline}
+                  {(featuredBlock.content as any).headline || 'Featured Plants'}
                 </h2>
-                <p className="text-lg max-w-2xl mx-auto" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                  {(featuredPlantsBlock.content as any).description}
-                </p>
+                <div 
+                  className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
+                  style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
+                  dangerouslySetInnerHTML={{
+                    __html: textToHtml((featuredBlock.content as any).subheadline || 'Handpicked selections perfect for current growing conditions')
+                  }}
+                />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                {featuredPlants.map((plant) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                {featuredPlants.slice(0, 4).map((plant) => (
                   <div key={plant.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                     <div className="relative">
                       <img 
                         src={plant.image} 
                         alt={plant.name}
-                        className="w-full h-64 object-cover"
+                        className="w-full h-48 object-cover"
                         loading="eager"
                       />
-                      <div className="absolute top-4 right-4">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          plant.careLevel === 'beginner' ? 'bg-green-100 text-green-800' :
-                          plant.careLevel === 'intermediate' ? 'bg-yellow-100 text-yellow-800' : 
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {plant.careLevel}
+                      <div className="absolute top-3 right-3">
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {plant.category || 'Houseplants'}
                         </span>
                       </div>
-                      {plant.onSale && (
-                        <div className="absolute top-4 left-4">
+                      {plant.originalPrice && plant.price < plant.originalPrice && (
+                        <div className="absolute top-3 left-3">
                           <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
                             SALE
                           </span>
                         </div>
                       )}
                     </div>
-                    <div className="p-6">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-xl font-semibold" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>{plant.name}</h3>
+                    <div className="p-4">
+                      <h3 className="text-lg font-semibold mb-2" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                        {plant.name}
+                      </h3>
+                      <div className="flex items-center justify-between mb-3">
                         <div className="text-right">
                           <span className="text-lg font-bold" style={{color: 'var(--theme-primary)'}}>${plant.price}</span>
-                          {plant.originalPrice && (
+                          {plant.originalPrice && plant.price < plant.originalPrice && (
                             <span className="text-sm text-gray-500 line-through ml-2">${plant.originalPrice}</span>
                           )}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3 italic">{plant.scientificName}</p>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {plant.features.map((feature, index) => (
-                          <span key={`feature-${index}`} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                            {feature}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                        <span>💡 {plant.lightRequirement}</span>
-                        <span className={`font-medium ${plant.inStock ? 'text-green-600' : 'text-red-600'}`}>
-                          {plant.inStock ? 'In Stock' : 'Out of Stock'}
+                      <div className="mb-3">
+                        <span className={`text-sm font-medium ${
+                          plant.inStock ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {plant.inStock ? '✓ In Stock' : '✗ Out of Stock'}
                         </span>
                       </div>
                       <button 
-                        className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
+                        className={`w-full py-2 px-4 rounded-lg font-medium text-sm transition-colors ${
                           plant.inStock 
                             ? 'text-white hover:opacity-90 cursor-pointer' 
                             : 'bg-gray-200 text-gray-500 cursor-not-allowed'
