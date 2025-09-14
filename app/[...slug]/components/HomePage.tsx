@@ -43,9 +43,11 @@ const getFeatureGridClasses = (featureCount: number): string => {
 export async function HomePage() {
   const { siteId } = await getSiteHeaders()
   
-  // Fetch database content for hero section
+  // Fetch database content for hero and featured sections
   let databaseHeroData = null
   let heroStatus = 'not_found' // 'not_found', 'unpublished', 'missing_hero', 'available'
+  let databaseFeaturedData = null
+  let featuredStatus = 'not_found' // 'not_found', 'available'
   
   try {
     const supabase = await createClient()
@@ -62,6 +64,12 @@ export async function HomePage() {
         } else {
           heroStatus = 'missing_hero'
         }
+        
+        // Check for featured section data
+        if (pageContent?.sections?.featured?.data && pageContent.sections.featured.visible) {
+          databaseFeaturedData = pageContent.sections.featured.data
+          featuredStatus = 'available'
+        }
       }
     }
   } catch (error) {
@@ -71,7 +79,6 @@ export async function HomePage() {
   
   // Get hardcoded content for other sections (keep existing functionality)
   const homePageData = plantShopContent.home
-  const featuredBlock = homePageData.blocks.find(block => block.type === 'featured')
   const categoriesBlock = homePageData.blocks.find(block => block.type === 'categories')
   const seasonalBlock = homePageData.blocks.find(block => block.type === 'seasonal')
   const careGuidesBlock = homePageData.blocks.find(block => block.type === 'care_guides')
@@ -191,20 +198,20 @@ export async function HomePage() {
         </section>
       </HeroSectionErrorBoundary>
 
-      {/* Featured Products Section - Immediate loading for key content */}
-      {featuredBlock?.isVisible && (
+      {/* Featured Products Section - Database driven */}
+      {featuredStatus === 'available' && databaseFeaturedData && (
         <FeaturedPlantsErrorBoundary>
           <section className="py-16" style={{backgroundColor: 'var(--theme-background)'}}>
             <div className="brand-container">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                  {(featuredBlock.content as any).headline || 'Featured Plants'}
+                  {String(databaseFeaturedData.headline || 'Featured Plants This Season!')}
                 </h2>
                 <div 
                   className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
                   style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
                   dangerouslySetInnerHTML={{
-                    __html: textToHtml((featuredBlock.content as any).subheadline || 'Handpicked selections perfect for current growing conditions')
+                    __html: textToHtml(String(databaseFeaturedData.subheadline || 'Handpicked selections from our master horticulturists, perfect for current growing conditions'))
                   }}
                 />
               </div>
@@ -267,7 +274,7 @@ export async function HomePage() {
               </div>
               <div className="text-center">
                 <a 
-                  href={(featuredBlock.content as any).viewAllLink || '/plants'}
+                  href={String(databaseFeaturedData.viewAllLink || '/plants')}
                   className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
                   style={{
                     borderColor: 'var(--theme-primary)',
@@ -275,7 +282,7 @@ export async function HomePage() {
                     fontFamily: 'var(--theme-font-body)'
                   }}
                 >
-                  {(featuredBlock.content as any).viewAllText || 'View All Plants'}
+                  {String(databaseFeaturedData.viewAllText || 'View All Plants')}
                 </a>
               </div>
             </div>
