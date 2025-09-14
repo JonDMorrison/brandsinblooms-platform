@@ -232,6 +232,17 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
                       color: 'rgb(255, 255, 255)',
                       fontFamily: 'var(--theme-font-body)'
                     }}
+                    onClick={(e) => {
+                      // Check if inline editor is currently active/editing
+                      const isEditing = e.target.closest('[data-editing="true"]') || 
+                                       e.target.closest('.ProseMirror') ||
+                                       e.target.closest('.inline-editor-wrapper')
+                      if (isEditing) {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        // Let the editor handle the click
+                      }
+                    }}
                   >
                     <InlineTextEditor
                       content={data.ctaText || ''}
@@ -264,6 +275,17 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
                       color: 'var(--theme-secondary)',
                       backgroundColor: 'transparent',
                       fontFamily: 'var(--theme-font-body)'
+                    }}
+                    onClick={(e) => {
+                      // Check if inline editor is currently active/editing
+                      const isEditing = e.target.closest('[data-editing="true"]') || 
+                                       e.target.closest('.ProseMirror') ||
+                                       e.target.closest('.inline-editor-wrapper')
+                      if (isEditing) {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        // Let the editor handle the click
+                      }
                     }}
                   >
                     <InlineTextEditor
@@ -462,27 +484,47 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
               ))}
             </div>
             <div className="text-center">
-              <InlineTextEditor
-                content={String(data.viewAllText || 'View All Plants')}
-                onUpdate={(content) => {
-                  if (onContentUpdate) {
-                    onContentUpdate(sectionKey, 'data.viewAllText', content)
-                  }
-                }}
-                isEnabled={Boolean(onContentUpdate)}
-                fieldPath="data.viewAllText"
-                format="plain"
-                singleLine={true}
-                className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80 [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 cursor-pointer"
+              <a 
+                href={data.viewAllLink || '/plants'}
+                className="inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
                 style={{
                   borderColor: 'var(--theme-primary)',
                   color: 'var(--theme-primary)',
                   fontFamily: 'var(--theme-font-body)'
                 }}
-                placeholder="View All Text..."
-                showToolbar={false}
-                debounceDelay={0}
-              />
+                onClick={(e) => {
+                  // Check if inline editor is currently active/editing
+                  const isEditing = e.target.closest('[data-editing="true"]') || 
+                                   e.target.closest('.ProseMirror') ||
+                                   e.target.closest('.inline-editor-wrapper')
+                  if (isEditing) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    // Let the editor handle the click
+                  }
+                }}
+              >
+                <InlineTextEditor
+                  content={String(data.viewAllText || 'View All Plants')}
+                  onUpdate={(content) => {
+                    if (onContentUpdate) {
+                      onContentUpdate(sectionKey, 'data.viewAllText', content)
+                    }
+                  }}
+                  isEnabled={Boolean(onContentUpdate)}
+                  fieldPath="data.viewAllText"
+                  format="plain"
+                  singleLine={true}
+                  className="[&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.ProseMirror]:leading-none"
+                  style={{
+                    color: 'inherit',
+                    fontFamily: 'inherit'
+                  }}
+                  placeholder="View All Text..."
+                  showToolbar={false}
+                  debounceDelay={0}
+                />
+              </a>
             </div>
           </div>
         </section>
