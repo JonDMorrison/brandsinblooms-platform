@@ -1,9 +1,25 @@
 /**
- * Plant Shop Preview Components
+ * Content Section Preview Components
  * WYSIWYG preview system with theme integration and responsive modes
  */
 
 export { PlantShopPreview, useResponsivePlantGrid, usePreviewThemeInjection } from './PlantShopPreview'
+
+// Core section preview components
+export { HeroPreview } from './HeroPreview'
+export { FeaturedPreview } from './FeaturedPreview'
+export { FeaturesPreview } from './FeaturesPreview'
+export { CtaPreview } from './CtaPreview'
+export { TextPreview } from './TextPreview'
+export { DefaultPreview } from './DefaultPreview'
+
+// Additional preview components can be added here following the same pattern:
+// export { TestimonialsPreview } from './TestimonialsPreview'
+// export { GalleryPreview } from './GalleryPreview'
+// export { TeamPreview } from './TeamPreview'
+// export { PricingPreview } from './PricingPreview'
+// export { ImagePreview } from './ImagePreview'
+// export { FormPreview } from './FormPreview'
 
 /**
  * Preview Component Registry
