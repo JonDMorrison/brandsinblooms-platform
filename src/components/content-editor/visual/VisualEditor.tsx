@@ -325,6 +325,20 @@ const VisualEditorContent = memo(function VisualEditorContent({
           grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         }
         
+        /* Featured section grid overrides for mobile */
+        .visual-editor-preview.preview-mobile-viewport :global(.md\\:grid-cols-2) {
+          grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+        }
+        
+        .visual-editor-preview.preview-mobile-viewport :global(.lg\\:grid-cols-4) {
+          grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+        }
+        
+        /* Override all grid layouts in mobile viewport */
+        .visual-editor-preview.preview-mobile-viewport :global(.grid[class*="grid-cols"]) {
+          grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+        }
+        
         .visual-editor-preview.preview-mobile-viewport :global(.flex-col) {
           flex-direction: column !important;
         }
@@ -364,6 +378,20 @@ const VisualEditorContent = memo(function VisualEditorContent({
         }
         
         .visual-editor-preview.preview-tablet-viewport :global(.md\\:grid-cols-4) {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+        
+        /* Featured section grid overrides for tablet */
+        .visual-editor-preview.preview-tablet-viewport :global(.md\\:grid-cols-2) {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+        
+        .visual-editor-preview.preview-tablet-viewport :global(.lg\\:grid-cols-4) {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+        
+        /* Override all responsive grid layouts in tablet viewport */
+        .visual-editor-preview.preview-tablet-viewport :global(.grid[class*="lg:grid-cols"]) {
           grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         }
         

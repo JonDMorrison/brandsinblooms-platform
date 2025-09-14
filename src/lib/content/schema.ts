@@ -20,6 +20,7 @@ export type ContentSectionType =
   | 'icon' 
   | 'gallery' 
   | 'features'
+  | 'featured'
   | 'hero'
   | 'cta'
   | 'testimonials'
@@ -207,7 +208,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
 }> = {
   landing: {
     required: ['hero'],
-    optional: ['features', 'cta', 'testimonials'],
+    optional: ['featured', 'features', 'cta', 'testimonials'],
     defaultSections: {
       hero: {
         type: 'hero',
@@ -218,6 +219,17 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         visible: true,
         order: 1
       },
+      featured: {
+        type: 'featured',
+        data: {
+          headline: 'Featured Plants This Season',
+          subheadline: 'Handpicked selections from our master horticulturists',
+          viewAllText: 'View All Plants',
+          viewAllLink: '/plants'
+        },
+        visible: false,
+        order: 2
+      },
       features: {
         type: 'features',
         data: {
@@ -225,7 +237,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           columns: 3
         },
         visible: true,
-        order: 2
+        order: 3
       },
       cta: {
         type: 'cta',
@@ -234,7 +246,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           alignment: 'center'
         },
         visible: true,
-        order: 3
+        order: 4
       },
       testimonials: {
         type: 'testimonials',
@@ -243,7 +255,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           columns: 2
         },
         visible: false,
-        order: 4
+        order: 5
       }
     }
   },

@@ -5,6 +5,7 @@ import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Separator } from '@/src/components/ui/separator'
 import { Input } from '@/src/components/ui/input'
+import { Textarea } from '@/src/components/ui/textarea'
 import { Label } from '@/src/components/ui/label'
 import { 
   Plus, 
@@ -105,6 +106,7 @@ const SectionEditor = function SectionEditor({
       icon: '⭐',
       gallery: '🖼️',
       features: '⚡',
+      featured: '⭐',
       cta: '📢',
       testimonials: '💬',
       form: '📝',
@@ -501,6 +503,62 @@ const SectionEditor = function SectionEditor({
             section={section}
             onUpdate={handleDataChange}
           />
+        )
+
+      case 'featured':
+        return (
+          <>
+            {/* Featured Section Title and Subtitle fields */}
+            <div className="space-y-3 mb-4">
+              <div className="space-y-2">
+                <Label htmlFor="featured-headline" className="text-xs font-medium">
+                  Headline
+                </Label>
+                <Input
+                  id="featured-headline"
+                  type="text"
+                  value={section.data.headline || ''}
+                  onChange={(e) => handleDataChange({ headline: e.target.value })}
+                  className="h-8"
+                  placeholder="Featured Plants This Season"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="featured-subheadline" className="text-xs font-medium">
+                  Subheadline
+                </Label>
+                <Textarea
+                  id="featured-subheadline"
+                  value={section.data.subheadline || ''}
+                  onChange={(e) => handleDataChange({ subheadline: e.target.value })}
+                  className="min-h-[60px] resize-none"
+                  placeholder="Handpicked selections from our master horticulturists..."
+                />
+              </div>
+            </div>
+
+            {/* View All Button Configuration */}
+            <div className="p-3 border rounded-lg bg-muted/30 space-y-2">
+              <Label className="text-xs text-gray-500">View All Button</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="text"
+                  value={section.data.viewAllText || ''}
+                  onChange={(e) => handleDataChange({ viewAllText: e.target.value })}
+                  className="h-8"
+                  placeholder="View All Plants"
+                />
+                <Input
+                  type="text"
+                  value={section.data.viewAllLink || ''}
+                  onChange={(e) => handleDataChange({ viewAllLink: e.target.value })}
+                  className="h-8"
+                  placeholder="/plants"
+                />
+              </div>
+            </div>
+          </>
         )
 
       default:
