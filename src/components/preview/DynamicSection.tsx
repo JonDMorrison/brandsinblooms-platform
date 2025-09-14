@@ -12,27 +12,7 @@ import { LucideIcon } from 'lucide-react'
 import { useSiteTheme } from '@/hooks/useSiteTheme'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { getFeaturedPlants } from '@/src/data/plant-shop-content'
-// Helper functions for newline/HTML conversion
-const textToHtml = (text: string): string => {
-  if (!text) return ''
-  // Split on double newlines for paragraphs, single newlines become <br>
-  return text
-    .split('\n\n')
-    .map(paragraph => paragraph.trim())
-    .filter(paragraph => paragraph)
-    .map(paragraph => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
-    .join('')
-}
-
-const htmlToText = (html: string): string => {
-  if (!html) return ''
-  // Convert HTML back to plain text with newlines
-  return html
-    .replace(/<\/p><p>/g, '\n\n')
-    .replace(/<br\s*\/?>/g, '\n')
-    .replace(/<\/?p>/g, '')
-    .trim()
-}
+import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 
 // Helper function to get responsive grid classes for features
 const getFeatureGridClasses = (featureCount: number): string => {
@@ -406,10 +386,11 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
                 />
               </div>
               <InlineTextEditor
-                content={String(data.subheadline || 'Handpicked selections from our master horticulturists, perfect for current growing conditions')}
-                onUpdate={(content) => {
+                content={textToHtml(String(data.subheadline || 'Handpicked selections from our master horticulturists, perfect for current growing conditions'))}
+                onUpdate={(htmlContent) => {
                   if (onContentUpdate) {
-                    onContentUpdate(sectionKey, 'data.subheadline', content)
+                    const textContent = htmlToText(htmlContent)
+                    onContentUpdate(sectionKey, 'data.subheadline', textContent)
                   }
                 }}
                 isEnabled={Boolean(onContentUpdate)}
