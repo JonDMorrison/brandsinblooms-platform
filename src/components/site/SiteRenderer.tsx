@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { SiteProvider } from '@/src/contexts/SiteContext'
 import { SiteThemeProvider, ThemeWrapper } from '@/src/components/theme/ThemeProvider'
 import { SiteLayout } from '@/src/components/layout/SiteLayout'
 import { PreviewModeProvider, PreviewMode } from '@/src/components/preview/PreviewModeProvider'
@@ -34,22 +33,20 @@ export function SiteRenderer({
   
   return (
     <PreviewModeProvider mode={mode}>
-      <SiteProvider>
-        <SiteThemeProvider applyToDocument={applyToDocument}>
-          <ThemeWrapper 
-            className={`min-h-screen flex flex-col ${className || ''}`}
-            data-preview-mode={mode}
+      <SiteThemeProvider applyToDocument={applyToDocument}>
+        <ThemeWrapper
+          className={`min-h-screen flex flex-col ${className || ''}`}
+          data-preview-mode={mode}
+        >
+          <SiteLayout
+            showNavigation={shouldShowNavigation}
+            requireAuth={false}
+            requireSiteAccess={false}
           >
-            <SiteLayout 
-              showNavigation={shouldShowNavigation}
-              requireAuth={false}
-              requireSiteAccess={false}
-            >
-              {children}
-            </SiteLayout>
-          </ThemeWrapper>
-        </SiteThemeProvider>
-      </SiteProvider>
+            {children}
+          </SiteLayout>
+        </ThemeWrapper>
+      </SiteThemeProvider>
     </PreviewModeProvider>
   )
 }

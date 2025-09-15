@@ -410,7 +410,7 @@ export function SiteProvider({
       const hostname = window.location.hostname
       const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
       const isMainDomain = hostname === 'localhost' ||
-                          hostname.includes(appDomain) ||
+                          hostname === appDomain ||
                           hostname.includes('staging') ||
                           hostname.endsWith('.vercel.app') ||
                           hostname.endsWith('.railway.app')

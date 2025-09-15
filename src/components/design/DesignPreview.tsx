@@ -29,17 +29,34 @@ function getPreviewUrl(site: any): string {
   // Get environment configuration
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
 
+  console.log('[IFRAME_DEBUG] getPreviewUrl - Starting URL construction:', {
+    site,
+    appUrl,
+    envAppUrl: process.env.NEXT_PUBLIC_APP_URL,
+    hasCustomDomain: !!site?.custom_domain,
+    hasSubdomain: !!site?.subdomain,
+    subdomain: site?.subdomain
+  });
+
   if (!site) {
+    console.log('[IFRAME_DEBUG] getPreviewUrl - No site provided, using app URL:', appUrl);
     // Fallback to app URL if no site context
     return appUrl
   }
 
   try {
     const url = new URL(appUrl)
+    console.log('[IFRAME_DEBUG] getPreviewUrl - Parsed app URL:', {
+      protocol: url.protocol,
+      hostname: url.hostname,
+      port: url.port
+    });
 
     // If site has a custom domain, use it
     if (site.custom_domain) {
-      return `${url.protocol}//${site.custom_domain}`
+      const customUrl = `${url.protocol}//${site.custom_domain}`;
+      console.log('[IFRAME_DEBUG] getPreviewUrl - Using custom domain:', customUrl);
+      return customUrl;
     }
 
     // Otherwise, construct subdomain URL based on environment
@@ -47,23 +64,37 @@ function getPreviewUrl(site: any): string {
       // Extract base domain from app URL
       const hostname = url.hostname
 
+      console.log('[IFRAME_DEBUG] getPreviewUrl - Constructing subdomain URL for:', {
+        subdomain: site.subdomain,
+        hostname,
+        isLocalhost: hostname === 'localhost' || hostname.includes('localhost'),
+        isStaging: hostname.includes('blooms-staging.cc')
+      });
+
       // Handle different environment patterns
       if (hostname === 'localhost' || hostname.includes('localhost')) {
         // Development: subdomain.localhost:port
-        return `${url.protocol}//${site.subdomain}.localhost${url.port ? ':' + url.port : ''}`
+        const devUrl = `${url.protocol}//${site.subdomain}.localhost${url.port ? ':' + url.port : ''}`;
+        console.log('[IFRAME_DEBUG] getPreviewUrl - Development URL constructed:', devUrl);
+        return devUrl;
       } else if (hostname.includes('blooms-staging.cc')) {
         // Staging: subdomain.blooms-staging.cc
-        return `${url.protocol}//${site.subdomain}.blooms-staging.cc`
+        const stagingUrl = `${url.protocol}//${site.subdomain}.blooms-staging.cc`;
+        console.log('[IFRAME_DEBUG] getPreviewUrl - Staging URL constructed:', stagingUrl);
+        return stagingUrl;
       } else {
         // Production: subdomain.domain.com
-        return `${url.protocol}//${site.subdomain}.${hostname}`
+        const prodUrl = `${url.protocol}//${site.subdomain}.${hostname}`;
+        console.log('[IFRAME_DEBUG] getPreviewUrl - Production URL constructed:', prodUrl);
+        return prodUrl;
       }
     }
 
     // Fallback to app URL
+    console.log('[IFRAME_DEBUG] getPreviewUrl - No subdomain, falling back to app URL:', appUrl);
     return appUrl
   } catch (error) {
-    console.error('Error constructing preview URL:', error)
+    console.error('[IFRAME_DEBUG] getPreviewUrl - Error constructing preview URL:', error)
     return appUrl
   }
 }
