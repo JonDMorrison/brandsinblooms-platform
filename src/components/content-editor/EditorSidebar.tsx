@@ -13,6 +13,7 @@ import {
   Layers
 } from 'lucide-react'
 import { ContentEditor, SectionManager } from '@/src/components/content-editor'
+import { CombinedSectionManager } from './CombinedSectionManager'
 import { PageContent, LayoutType as ContentLayoutType } from '@/src/lib/content'
 import { useContentEditor } from '@/src/hooks/useContentEditor'
 
@@ -76,12 +77,11 @@ export function EditorSidebar({
 
   return (
     <div className="w-96 border-r bg-muted/30 flex flex-col overflow-hidden">
-      <Tabs defaultValue="content" className="w-full h-full flex flex-col">
+      <Tabs defaultValue="combined" className="w-full h-full flex flex-col">
         <div className="p-4 border-b flex-shrink-0">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="settings">Page</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="sections">Sections</TabsTrigger>
+            <TabsTrigger value="combined">Combined</TabsTrigger>
           </TabsList>
         </div>
         
@@ -127,26 +127,10 @@ export function EditorSidebar({
           </div>
         </TabsContent>
         
-        <TabsContent value="content" className="mt-0 flex-1 overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-y-auto">
-            <ContentEditor
-              ref={contentEditorRef}
-              contentId={contentId}
-              siteId={siteId}
-              layout={validLayout as ContentLayoutType}
-              initialContent={pageContent || undefined}
-              onSave={onContentSave}
-              onContentChange={onContentChange}
-              title={pageData.title}
-              onTitleChange={onTitleChange}
-            />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="sections" className="mt-0 flex-1 overflow-hidden flex flex-col">
+        <TabsContent value="combined" className="mt-0 flex-1 overflow-hidden flex flex-col">
           {(pageContent || contentEditorHook.content) && (
             <div className="flex-1 overflow-y-auto">
-              <SectionManager
+              <CombinedSectionManager
                 content={pageContent || contentEditorHook.content}
                 layout={validLayout as ContentLayoutType}
                 onToggleVisibility={contentEditorHook.toggleSectionVisibility}
@@ -156,6 +140,7 @@ export function EditorSidebar({
                 onSectionClick={onSectionClick}
                 activeSectionKey={activeSectionKey}
                 isDraggingEnabled={true}
+                onSectionUpdate={contentEditorHook.updateSection}
               />
             </div>
           )}
