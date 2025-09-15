@@ -16,6 +16,7 @@ import Text from '@tiptap/extension-text';
 import { useDebounceCallback } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
 import { FloatingToolbar } from './FloatingToolbar';
+import { SimpleFloatingToolbar } from './SimpleFloatingToolbar';
 import type { Editor } from '@tiptap/react';
 
 export interface InlineTextEditorProps {
@@ -23,7 +24,7 @@ export interface InlineTextEditorProps {
   onUpdate: (content: string) => void;
   isEnabled: boolean;
   fieldPath: string; // e.g., "sections.hero.data.title"
-  format?: 'plain' | 'rich';
+  format?: 'plain' | 'rich' | 'simple-toolbar';
   className?: string;
   style?: React.CSSProperties;
   placeholder?: string;
@@ -78,6 +79,29 @@ const InlineTextEditorComponent = ({
             horizontalRule: false,
             dropcursor: false,
             gapcursor: false
+          }),
+          Placeholder.configure({
+            placeholder,
+            showOnlyWhenEditable: true,
+            showOnlyCurrent: false,
+          })
+        ]
+      : format === 'simple-toolbar'
+      ? [
+          StarterKit.configure({ 
+            heading: false, 
+            codeBlock: false,
+            blockquote: false,
+            horizontalRule: false,
+            dropcursor: false,
+            gapcursor: false
+          }),
+          Link.configure({
+            openOnClick: false,
+            HTMLAttributes: {
+              class: 'text-primary underline',
+              rel: 'noopener noreferrer',
+            }
           }),
           Placeholder.configure({
             placeholder,
@@ -260,12 +284,20 @@ const InlineTextEditorComponent = ({
       />
       
       {showFloatingToolbar && editor && (
-        <FloatingToolbar 
-          editor={editor} 
-          anchorEl={elementRef.current}
-          format={format}
-          onClose={() => setShowFloatingToolbar(false)}
-        />
+        format === 'simple-toolbar' ? (
+          <SimpleFloatingToolbar 
+            editor={editor} 
+            anchorEl={elementRef.current}
+            onClose={() => setShowFloatingToolbar(false)}
+          />
+        ) : (
+          <FloatingToolbar 
+            editor={editor} 
+            anchorEl={elementRef.current}
+            format={format}
+            onClose={() => setShowFloatingToolbar(false)}
+          />
+        )
       )}
     </div>
   );

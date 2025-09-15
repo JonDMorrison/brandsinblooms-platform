@@ -106,7 +106,7 @@ export function CategoriesPreview({
             }}
             isEnabled={Boolean(onContentUpdate)}
             fieldPath="data.description"
-            format="rich"
+            format="simple-toolbar"
             singleLine={false}
             className={`${responsive.typography.bodyText} max-w-2xl mx-auto [&_.ProseMirror]:text-center [&_p:not(:first-child)]:mt-2`}
             style={{
@@ -115,7 +115,6 @@ export function CategoriesPreview({
               fontFamily: 'var(--theme-font-body)'
             }}
             placeholder="Enter description..."
-            showToolbar={false}
           />
         </div>
         

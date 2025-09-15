@@ -75,7 +75,7 @@ export function HeroPreview({
               }}
               isEnabled={Boolean(onContentUpdate)}
               fieldPath="data.subheadline"
-              format="rich"
+              format="simple-toolbar"
               className={`${responsive.typography.heroSubheadline} mb-8 leading-relaxed block [&_.ProseMirror_p:not(:first-child)]:mt-2`}
               style={{ 
                 color: 'var(--theme-text)',
@@ -83,7 +83,6 @@ export function HeroPreview({
                 fontFamily: 'var(--theme-font-body)'
               }}
               placeholder="Click to add subtitle..."
-              showToolbar={false}
               debounceDelay={0}
             />
           )}

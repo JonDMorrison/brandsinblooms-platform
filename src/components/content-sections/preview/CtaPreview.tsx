@@ -64,6 +64,7 @@ export function CtaPreview({
               fontFamily: 'var(--theme-font-heading)'
             }}
             placeholder="Enter CTA headline..."
+            showToolbar={false}
           />
           
           {/* Rich text description with HTML conversion */}
@@ -77,7 +78,7 @@ export function CtaPreview({
             }}
             isEnabled={Boolean(onContentUpdate)}
             fieldPath="data.description"
-            format="rich"
+            format="simple-toolbar"
             className={`${responsive.typography.heroSubheadline} mb-8 max-w-2xl mx-auto leading-relaxed`}
             style={{
               color: descriptionColor,
@@ -143,6 +144,7 @@ export function CtaPreview({
                     fontFamily: 'var(--theme-font-body)'
                   }}
                   placeholder="Button text..."
+                  showToolbar={false}
                 />
               </a>
             )}
@@ -190,6 +192,7 @@ export function CtaPreview({
                     fontFamily: 'var(--theme-font-body)'
                   }}
                   placeholder="Button text..."
+                  showToolbar={false}
                 />
               </a>
             )}

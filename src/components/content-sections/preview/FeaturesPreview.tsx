@@ -57,6 +57,7 @@ export function FeaturesPreview({
               fontFamily: 'var(--theme-font-heading)'
             }}
             placeholder="Enter headline..."
+            showToolbar={false}
           />
           
           {/* Rich text description with HTML conversion */}
@@ -70,7 +71,7 @@ export function FeaturesPreview({
             }}
             isEnabled={Boolean(onContentUpdate)}
             fieldPath="data.description"
-            format="rich"
+            format="simple-toolbar"
             className="text-lg max-w-2xl mx-auto"
             style={{
               color: 'var(--theme-text)',
@@ -134,6 +135,7 @@ export function FeaturesPreview({
                   fontFamily: 'var(--theme-font-body)'
                 }}
                 placeholder="Enter feature description..."
+                showToolbar={false}
               />
             </div>
           ))}

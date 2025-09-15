@@ -69,7 +69,7 @@ export function FeaturedPreview({
             }}
             isEnabled={Boolean(onContentUpdate)}
             fieldPath="data.subheadline"
-            format="rich"
+            format="simple-toolbar"
             singleLine={false}
             className="text-lg max-w-2xl mx-auto [&_.ProseMirror]:text-center [&_p:not(:first-child)]:mt-2"
             style={{
@@ -78,7 +78,6 @@ export function FeaturedPreview({
               fontFamily: 'var(--theme-font-body)'
             }}
             placeholder="Enter subheadline..."
-            showToolbar={false}
           />
         </div>
         <div className={`${responsive.grid.cardsGrid} gap-6 mb-12`}>
