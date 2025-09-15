@@ -18,11 +18,28 @@ import { toast } from 'sonner';
 export function useSiteTheme() {
   const client = useSupabase();
   const siteId = useSiteId();
-  
+
+  // Debug logging for theme loading
+  console.log('[THEME_DEBUG] useSiteTheme - siteId:', siteId);
+  console.log('[THEME_DEBUG] useSiteTheme - client available:', !!client);
+
   const query = useSupabaseQuery<ThemeSettings>(
     async (signal) => {
-      if (!siteId) throw new Error('Site ID is required');
-      return getSiteTheme(client, siteId);
+      console.log('[THEME_DEBUG] useSiteTheme - Starting theme query for siteId:', siteId);
+      if (!siteId) {
+        console.error('[THEME_DEBUG] useSiteTheme - No siteId provided');
+        throw new Error('Site ID is required');
+      }
+
+      try {
+        const theme = await getSiteTheme(client, siteId);
+        console.log('[THEME_DEBUG] useSiteTheme - Theme loaded successfully:', theme);
+        console.log('[THEME_DEBUG] useSiteTheme - Theme colors:', theme?.colors);
+        return theme;
+      } catch (error) {
+        console.error('[THEME_DEBUG] useSiteTheme - Theme loading error:', error);
+        throw error;
+      }
     },
     {
       enabled: !!siteId,
@@ -30,6 +47,14 @@ export function useSiteTheme() {
       persistKey: siteId ? `site-theme-${siteId}` : undefined,
     }
   );
+
+  // Log query state changes
+  console.log('[THEME_DEBUG] useSiteTheme - Query state:', {
+    loading: query.loading,
+    error: query.error,
+    hasData: !!query.data,
+    data: query.data
+  });
   
   // Theme is now applied via SiteThemeProvider's useApplyTheme hook
   // Removed duplicate DOM application to prevent flickering

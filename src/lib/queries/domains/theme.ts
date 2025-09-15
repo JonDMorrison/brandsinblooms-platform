@@ -91,19 +91,40 @@ export async function getSiteTheme(
   client: SupabaseClient<Database>,
   siteId: string
 ): Promise<ThemeSettings> {
+  console.log('[THEME_DEBUG] getSiteTheme - Query started for siteId:', siteId);
+
   const { data, error } = await client
     .from('sites')
     .select('theme_settings, logo_url, primary_color')
     .eq('id', siteId)
     .single();
-  
+
+  console.log('[THEME_DEBUG] getSiteTheme - Query result:', { data: !!data, error: error?.message });
+
   if (error) {
+    console.error('[THEME_DEBUG] getSiteTheme - Database error:', error);
     throw new Error(`Failed to get site theme: ${error.message}`);
+  }
+
+  if (data) {
+    console.log('[THEME_DEBUG] getSiteTheme - Raw data:', {
+      hasThemeSettings: !!data.theme_settings,
+      logoUrl: data.logo_url,
+      primaryColor: data.primary_color
+    });
   }
   
   // Return theme_settings if it exists, otherwise default
   if (data?.theme_settings) {
+    console.log('[THEME_DEBUG] getSiteTheme - Found theme_settings, parsing...');
     const theme = data.theme_settings as unknown as ThemeSettings;
+
+    console.log('[THEME_DEBUG] getSiteTheme - Parsed theme:', {
+      colors: theme.colors,
+      typography: theme.typography,
+      layout: theme.layout,
+      logo: theme.logo
+    });
     
     // Merge logo_url from site if not in theme_settings
     if (data.logo_url && !theme.logo?.url) {
@@ -121,11 +142,15 @@ export async function getSiteTheme(
         primary: data.primary_color,
       };
     }
-    
+
+    console.log('[THEME_DEBUG] getSiteTheme - Returning theme with colors:', theme.colors);
     return theme;
   }
-  
-  return getDefaultTheme();
+
+  console.log('[THEME_DEBUG] getSiteTheme - No theme_settings found, returning default theme');
+  const defaultTheme = getDefaultTheme();
+  console.log('[THEME_DEBUG] getSiteTheme - Default theme colors:', defaultTheme.colors);
+  return defaultTheme;
 }
 
 // Update site theme settings

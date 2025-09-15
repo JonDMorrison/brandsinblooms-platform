@@ -91,20 +91,31 @@ export function SiteProvider({
    * Resolves and loads a site from hostname
    */
   const resolveSiteFromUrl = useCallback(async (url: string) => {
+    console.log('[SITE_DEBUG] resolveSiteFromUrl - Starting resolution for URL:', url);
+
     try {
       setLoading(true)
       setError(null)
 
       const hostname = extractHostname(url)
+      console.log('[SITE_DEBUG] resolveSiteFromUrl - Extracted hostname:', hostname);
       
       // Check if this is the main app domain - if so, don't try to resolve it as a site
       const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
-      const isMainDomain = hostname === appDomain || 
-                          hostname.endsWith('.vercel.app') || 
+      const isMainDomain = hostname === appDomain ||
+                          hostname.endsWith('.vercel.app') ||
                           hostname.endsWith('.railway.app') ||
                           hostname === 'localhost'
-                          
+
+      console.log('[SITE_DEBUG] resolveSiteFromUrl - Domain check:', {
+        hostname,
+        appDomain,
+        isMainDomain,
+        envDomain: process.env.NEXT_PUBLIC_APP_DOMAIN
+      });
+
       if (isMainDomain) {
+        console.log('[SITE_DEBUG] resolveSiteFromUrl - Main domain detected, skipping site resolution');
         setSiteResolution(null)
         // Don't set currentSite to null - let the URL/localStorage logic handle it
         setLoading(false)
@@ -114,7 +125,14 @@ export function SiteProvider({
       const resolution = resolveSiteFromHost(hostname)
       setSiteResolution(resolution)
 
+      console.log('[SITE_DEBUG] resolveSiteFromUrl - Site resolution result:', {
+        isValid: resolution.isValid,
+        type: resolution.type,
+        value: resolution.value
+      });
+
       if (!resolution.isValid) {
+        console.log('[SITE_DEBUG] resolveSiteFromUrl - Invalid hostname format');
         setError({
           code: 'INVALID_HOSTNAME',
           message: 'Invalid hostname format'
@@ -125,9 +143,22 @@ export function SiteProvider({
       }
 
       // Try to get the site
+      console.log('[SITE_DEBUG] resolveSiteFromUrl - Querying site with:', {
+        value: resolution.value,
+        type: resolution.type
+      });
       const siteResult = await getSite(resolution.value, resolution.type)
-      
+
+      console.log('[SITE_DEBUG] resolveSiteFromUrl - Site query result:', {
+        hasData: !!siteResult.data,
+        hasError: !!siteResult.error,
+        error: siteResult.error,
+        siteId: siteResult.data?.id,
+        siteName: siteResult.data?.name
+      });
+
       if (siteResult.error) {
+        console.log('[SITE_DEBUG] resolveSiteFromUrl - Site query error:', siteResult.error);
         setError(siteResult.error)
         setCurrentSite(null)
         setUserAccess(null)
@@ -135,6 +166,7 @@ export function SiteProvider({
       }
 
       if (!siteResult.data) {
+        console.log('[SITE_DEBUG] resolveSiteFromUrl - Site not found');
         setError({
           code: 'SITE_NOT_FOUND',
           message: `Site not found for ${resolution.type}: ${resolution.value}`
@@ -144,6 +176,11 @@ export function SiteProvider({
         return
       }
 
+      console.log('[SITE_DEBUG] resolveSiteFromUrl - Setting current site:', {
+        id: siteResult.data.id,
+        name: siteResult.data.name,
+        subdomain: siteResult.data.subdomain
+      });
       setCurrentSite(siteResult.data)
 
       // If user is authenticated, check their access to this site
@@ -333,22 +370,38 @@ export function SiteProvider({
 
   // Initialize site resolution on mount
   useEffect(() => {
+    console.log('[SITE_DEBUG] SiteProvider - Initial effect triggered:', {
+      authLoading,
+      hasInitialSiteData: !!initialSiteData,
+      initialSiteId,
+      initialHostname,
+      windowAvailable: typeof window !== 'undefined'
+    });
+
     if (authLoading) {
+      console.log('[SITE_DEBUG] SiteProvider - Auth still loading, waiting');
       return
     }
 
     // If we already have initial site data, don't reload
     if (initialSiteData) {
+      console.log('[SITE_DEBUG] SiteProvider - Using initial site data:', {
+        id: initialSiteData.id,
+        name: initialSiteData.name,
+        subdomain: initialSiteData.subdomain
+      });
       setLoading(false)
       return
     }
 
     // Priority: initialSiteId > initialHostname > current URL
     if (initialSiteId) {
+      console.log('[SITE_DEBUG] SiteProvider - Loading by initial siteId:', initialSiteId);
       setTimeout(() => {
         loadSiteById(initialSiteId)
       }, 0)
     } else if (initialHostname) {
+      console.log('[SITE_DEBUG] SiteProvider - Resolving by initial hostname:', initialHostname);
       setTimeout(() => {
         resolveSiteFromUrl(`https://${initialHostname}`)
       }, 0)
@@ -356,22 +409,32 @@ export function SiteProvider({
       // Check if we're on the main app domain
       const hostname = window.location.hostname
       const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
-      const isMainDomain = hostname === 'localhost' || 
-                          hostname.includes(appDomain) || 
+      const isMainDomain = hostname === 'localhost' ||
+                          hostname.includes(appDomain) ||
                           hostname.includes('staging') ||
-                          hostname.endsWith('.vercel.app') || 
+                          hostname.endsWith('.vercel.app') ||
                           hostname.endsWith('.railway.app')
-      
+
+      console.log('[SITE_DEBUG] SiteProvider - Browser environment detected:', {
+        hostname,
+        appDomain,
+        isMainDomain,
+        currentUrl: window.location.href
+      });
+
       if (!isMainDomain) {
         // Only try to resolve from URL if we're on a site-specific domain
+        console.log('[SITE_DEBUG] SiteProvider - Site-specific domain detected, resolving from URL');
         setTimeout(() => {
           resolveSiteFromUrl(window.location.href)
         }, 0)
       } else {
         // On main domain, let the URL/localStorage effect handle site selection
+        console.log('[SITE_DEBUG] SiteProvider - Main domain detected, skipping URL resolution');
         setLoading(false)
       }
     } else {
+      console.log('[SITE_DEBUG] SiteProvider - Server-side, setting loading false');
       setLoading(false)
     }
   }, [authLoading, initialSiteId, initialHostname, initialSiteData]) // Remove function dependencies to prevent infinite loops
@@ -586,5 +649,13 @@ export const useSiteSwitcher = () => {
  */
 export const useSiteId = () => {
   const { currentSite } = useSiteContext()
-  return currentSite?.id || null
+  const siteId = currentSite?.id || null
+
+  console.log('[SITE_DEBUG] useSiteId - Returning siteId:', {
+    siteId,
+    siteName: currentSite?.name,
+    hasCurrentSite: !!currentSite
+  });
+
+  return siteId
 }

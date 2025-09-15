@@ -27,7 +27,21 @@ export function SiteThemeProvider({ children, applyToDocument = false }: SiteThe
   const previewMode = usePreviewModeOptional()
   const mode = previewMode?.mode || 'live'
   const { cssVariables, themeStyles, fullCSS } = useThemeCSS(theme, mode)
-  
+
+  // Debug logging for SiteThemeProvider
+  console.log('[THEME_DEBUG] SiteThemeProvider - Provider state:', {
+    hasTheme: !!theme,
+    isLoading,
+    error: error?.message,
+    mode,
+    applyToDocument,
+    fullCSSLength: fullCSS.length
+  });
+
+  if (theme) {
+    console.log('[THEME_DEBUG] SiteThemeProvider - Theme colors:', theme.colors);
+  }
+
   // Apply theme to document if requested
   useApplyTheme(theme, applyToDocument, mode)
   
