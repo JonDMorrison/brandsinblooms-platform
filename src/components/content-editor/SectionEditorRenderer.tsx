@@ -157,18 +157,7 @@ export function SectionEditorRenderer({
     }
   }, [section, handleDataChange, sectionKey, onUpdate])
 
-  return (
-    <div className="space-y-4">
-      {/* Section Editor Content */}
-      <div className="bg-background/95 rounded-lg border border-border/30 shadow-sm backdrop-blur-sm">
-        <div className="p-6">
-          <div className="space-y-4">
-            {renderSectionContent()}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  return renderSectionContent()
 }
 
 export default SectionEditorRenderer

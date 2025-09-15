@@ -81,7 +81,7 @@ export function EditorSidebar({
         <div className="p-4 border-b flex-shrink-0">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="settings">Page</TabsTrigger>
-            <TabsTrigger value="combined">Combined</TabsTrigger>
+            <TabsTrigger value="combined">Sections</TabsTrigger>
           </TabsList>
         </div>
         

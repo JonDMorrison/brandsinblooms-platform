@@ -295,22 +295,20 @@ function ExpandableSectionCard({
         ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}
       `}>
         <div className={`
-          border border-t-0 rounded-b-lg bg-card/80 backdrop-blur-sm shadow-sm
+          border border-t-0 rounded-b-lg bg-card/80 backdrop-blur-sm
           transform transition-all duration-300 ease-in-out
           ${isExpanded ? 'translate-y-0 scale-100' : 'translate-y-[-10px] scale-95'}
         `}>
-          <div className="p-4 border-t border-border/30">
-            {/* Section Editor Content */}
-            {isExpanded && (
-              <div className="animate-in fade-in-50 duration-200 delay-150">
-                <SectionEditorRenderer
-                  sectionKey={sectionKey}
-                  section={section}
-                  onUpdate={onSectionUpdate || (() => {})}
-                />
-              </div>
-            )}
-          </div>
+          {/* Section Editor Content */}
+          {isExpanded && (
+            <div className="p-3 animate-in fade-in-50 duration-200 delay-150">
+              <SectionEditorRenderer
+                sectionKey={sectionKey}
+                section={section}
+                onUpdate={onSectionUpdate || (() => {})}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
