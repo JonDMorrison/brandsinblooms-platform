@@ -209,7 +209,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
 }> = {
   landing: {
     required: ['hero'],
-    optional: ['featured', 'categories', 'features', 'cta', 'testimonials'],
+    optional: ['featured', 'categories', 'features', 'cta', 'richText', 'testimonials'],
     defaultSections: {
       hero: {
         type: 'hero',

@@ -550,188 +550,175 @@ export function getTemplateContent(
 }
 
 /**
- * Home Page template matching the hardcoded HomePage.tsx structure
+ * Home Page template with exact structure for plant shop landing pages
  */
 function getHomePageTemplate(
   title: string,
   subtitle?: string,
   config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
+  // Return populated template when sample content is requested
+  if (config.complexity !== 'simple') {
+    return {
+      version: '1.0',
+      layout: 'landing',
+      sections: {
+        hero: {
+          type: 'hero',
+          order: 1,
+          visible: true,
+          data: {
+            headline: title || 'Transform Your Space with Living Beauty',
+            subheadline: subtitle || 'Discover premium plants and expert horticultural guidance for thriving indoor and outdoor gardens',
+            features: [
+              'Expert horticultural guidance',
+              'Premium plant selection', 
+              'Comprehensive care resources',
+              'Local hardiness zone expertise'
+            ],
+            ctaText: 'Shop Plants',
+            ctaLink: '/plants',
+            secondaryCtaText: 'Care Guides!',
+            secondaryCtaLink: '/care-guides',
+            backgroundImage: '/images/hero-greenhouse.jpg'
+          }
+        },
+        featured: {
+          type: 'featured',
+          order: 2,
+          visible: true,
+          data: {
+            headline: 'Featured Plants This Season',
+            subheadline: 'Handpicked selections from our master horticulturists, perfect for current growing conditions',
+            viewAllText: 'View All Plants',
+            viewAllLink: '/plants'
+          },
+          settings: {
+            backgroundColor: 'default'
+          }
+        },
+        features: {
+          type: 'features',
+          order: 3,
+          visible: true,
+          data: {
+            headline: 'Essential Plant Care Features',
+            description: 'Master these key practices for healthy, thriving plants year-round',
+            features: [
+              'Reduce watering frequency as growth slows',
+              'Move tender plants indoors before first frost!',
+              'Apply winter protection to marginally hardy plants'
+            ]
+          },
+          settings: {
+            backgroundColor: 'alternate'
+          }
+        },
+        categories: {
+          type: 'categories',
+          order: 4,
+          visible: true,
+          data: {
+            headline: 'Find Your Perfect Plant Match',
+            description: 'Browse our expertly curated collections organized by care complexity and plant type'
+          },
+          settings: {
+            backgroundColor: 'default'
+          }
+        },
+        cta: {
+          type: 'cta',
+          order: 5,
+          visible: true,
+          data: {
+            headline: 'Growing Together, Sustainably',
+            description: 'Our mission is to help you create thriving plant sanctuaries while protecting our planet. Every plant comes with expert care guidance, sustainable growing practices, and our commitment to your plant parenthood success.',
+            ctaText: 'Shop Plants',
+            ctaLink: '/',
+            secondaryCtaText: 'Browse Plants',
+            secondaryCtaLink: '/'
+          },
+          settings: {
+            backgroundColor: 'primary'
+          }
+        }
+      }
+    }
+  }
+  
+  // Return empty template when no sample content is requested
   return {
     version: '1.0',
     layout: 'landing',
     sections: {
       hero: {
         type: 'hero',
+        order: 1,
         visible: true,
-        order: 0,
         data: {
-          content: `<h1>${title || 'Welcome to Our Plant Paradise'}</h1>
-<p class="text-xl text-gray-600">${subtitle || 'Discover the perfect plants for your home and garden'}</p>
-<p>Transform your space with our carefully curated collection of healthy, beautiful plants. From beginners to experts, we have something for every plant lover.</p>`,
-          items: [
-            {
-              id: 'cta-primary',
-              title: 'Shop Plants',
-              url: '/products',
-              metadata: { variant: 'primary' }
-            },
-            {
-              id: 'cta-secondary',
-              title: 'Plant Care Guide',
-              url: '/guides',
-              metadata: { variant: 'secondary' }
-            }
-          ],
-          features: [
-            'Expert Care Guides',
-            'Healthy Plants Guaranteed',
-            'Fast & Safe Delivery',
-            'Plant Parent Support'
-          ]
+          headline: title || '',
+          subheadline: subtitle || '',
+          features: [],
+          ctaText: '',
+          ctaLink: '',
+          secondaryCtaText: '',
+          secondaryCtaLink: '',
+          backgroundImage: ''
         }
       },
       featured: {
-        type: 'features',
-        visible: true,
-        order: 1,
-        data: {
-          headline: 'Featured Plants',
-          description: 'Hand-picked favorites that bring life to any space',
-          items: [
-            {
-              id: 'featured-1',
-              title: 'Monstera Deliciosa',
-              subtitle: 'Indoor Tropical',
-              content: 'Perfect statement plant with stunning split leaves',
-              image: '/api/placeholder/300/300',
-              price: '$45',
-              originalPrice: '$55',
-              features: ['Low Light', 'Air Purifying', 'Pet Safe'],
-              order: 0
-            },
-            {
-              id: 'featured-2',
-              title: 'Snake Plant',
-              subtitle: 'Beginner Friendly',
-              content: 'Nearly indestructible and perfect for beginners',
-              image: '/api/placeholder/300/300',
-              price: '$25',
-              features: ['Very Low Light', 'Drought Tolerant', 'Air Purifying'],
-              order: 1
-            },
-            {
-              id: 'featured-3',
-              title: 'Fiddle Leaf Fig',
-              subtitle: 'Statement Plant',
-              content: 'Iconic large leaves make a bold statement',
-              image: '/api/placeholder/300/300',
-              price: '$65',
-              features: ['Bright Light', 'Fast Growing', 'Instagram Famous'],
-              order: 2
-            }
-          ]
-        }
-      },
-      categories: {
-        type: 'features',
-        visible: true,
+        type: 'featured',
         order: 2,
+        visible: true,
         data: {
-          headline: 'Shop by Category',
-          description: 'Find the perfect plants for your experience level and space',
-          items: [
-            {
-              id: 'category-1',
-              title: 'Beginner-Friendly',
-              content: 'Easy-care plants perfect for new plant parents',
-              count: '24 plants',
-              order: 0
-            },
-            {
-              id: 'category-2',
-              title: 'Houseplants',
-              content: 'Beautiful indoor plants for every room',
-              count: '48 plants',
-              order: 1
-            },
-            {
-              id: 'category-3',
-              title: 'Outdoor Plants',
-              content: 'Hardy plants for gardens and patios',
-              count: '36 plants',
-              order: 2
-            },
-            {
-              id: 'category-4',
-              title: 'Succulents',
-              content: 'Low-maintenance desert beauties',
-              count: '32 plants',
-              order: 3
-            }
-          ]
+          headline: '',
+          subheadline: '',
+          viewAllText: '',
+          viewAllLink: ''
+        },
+        settings: {
+          backgroundColor: 'default'
         }
       },
       features: {
         type: 'features',
-        visible: true,
         order: 3,
+        visible: true,
         data: {
-          headline: 'Why Choose Our Plants?',
-          description: 'We provide everything you need for plant parent success',
-          items: [
-            {
-              id: 'feature-1',
-              title: 'Health Guarantee',
-              content: 'All plants are quarantined and health-checked before shipping',
-              icon: 'Shield',
-              order: 0
-            },
-            {
-              id: 'feature-2',
-              title: 'Expert Care Guides',
-              content: 'Detailed care instructions and ongoing support included',
-              icon: 'BookOpen',
-              order: 1
-            },
-            {
-              id: 'feature-3',
-              title: 'Safe Packaging',
-              content: 'Specially designed boxes ensure plants arrive perfect',
-              icon: 'Package',
-              order: 2
-            },
-            {
-              id: 'feature-4',
-              title: 'Plant Parent Support',
-              content: '24/7 help from our team of plant care specialists',
-              icon: 'Users',
-              order: 3
-            }
-          ]
+          headline: '',
+          description: '',
+          features: []
+        },
+        settings: {
+          backgroundColor: 'alternate'
+        }
+      },
+      categories: {
+        type: 'categories',
+        order: 4,
+        visible: true,
+        data: {
+          headline: '',
+          description: ''
+        },
+        settings: {
+          backgroundColor: 'default'
         }
       },
       cta: {
         type: 'cta',
+        order: 5,
         visible: true,
-        order: 4,
         data: {
-          content: `<h2>Growing Together, Sustainably</h2>
-<p>Our mission is to help you create thriving plant sanctuaries while protecting our planet. Every plant comes with expert care guidance, sustainable growing practices, and our commitment to your plant parenthood success.</p>`,
-          items: [
-            {
-              id: 'cta-consultation',
-              title: 'Schedule Consultation',
-              url: '/contact',
-              metadata: { variant: 'primary' }
-            },
-            {
-              id: 'cta-browse',
-              title: 'Browse Plants',
-              url: '/products',
-              metadata: { variant: 'secondary' }
-            }
-          ]
+          headline: '',
+          description: '',
+          ctaText: '',
+          ctaLink: '',
+          secondaryCtaText: '',
+          secondaryCtaLink: ''
+        },
+        settings: {
+          backgroundColor: 'primary'
         }
       }
     }
@@ -739,48 +726,93 @@ function getHomePageTemplate(
 }
 
 /**
- * Minimal landing page template
+ * Minimal landing page template with Hero and CTA sections only
  */
 function getMinimalLandingTemplate(
   title: string,
   subtitle?: string,
   config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
+  // Return populated template when sample content is requested
+  if (config.complexity !== 'simple') {
+    return {
+      version: '1.0',
+      layout: 'landing',
+      sections: {
+        hero: {
+          type: 'hero',
+          order: 1,
+          visible: true,
+          data: {
+            headline: title || 'Transform Your Space with Living Beauty',
+            subheadline: subtitle || 'Discover premium plants and expert horticultural guidance for thriving indoor and outdoor gardens',
+            features: [
+              'Expert horticultural guidance',
+              'Premium plant selection', 
+              'Comprehensive care resources',
+              'Local hardiness zone expertise'
+            ],
+            ctaText: 'Shop Plants',
+            ctaLink: '/plants',
+            secondaryCtaText: 'Care Guides!',
+            secondaryCtaLink: '/care-guides',
+            backgroundImage: '/images/hero-greenhouse.jpg'
+          }
+        },
+        cta: {
+          type: 'cta',
+          order: 5,
+          visible: true,
+          data: {
+            headline: 'Growing Together, Sustainably',
+            description: 'Our mission is to help you create thriving plant sanctuaries while protecting our planet. Every plant comes with expert care guidance, sustainable growing practices, and our commitment to your plant parenthood success.',
+            ctaText: 'Shop Plants',
+            ctaLink: '/',
+            secondaryCtaText: 'Browse Plants',
+            secondaryCtaLink: '/'
+          },
+          settings: {
+            backgroundColor: 'primary'
+          }
+        }
+      }
+    }
+  }
+  
+  // Return empty template when no sample content is requested
   return {
     version: '1.0',
     layout: 'landing',
     sections: {
       hero: {
         type: 'hero',
+        order: 1,
         visible: true,
-        order: 0,
         data: {
-          content: `<h1>${title || 'Welcome'}</h1>
-<p class="text-xl text-gray-600">${subtitle || 'Your journey starts here'}</p>`,
-          items: [
-            {
-              id: 'cta-primary',
-              title: 'Get Started',
-              url: '/contact',
-              metadata: { variant: 'primary' }
-            }
-          ]
+          headline: title || '',
+          subheadline: subtitle || '',
+          features: [],
+          ctaText: '',
+          ctaLink: '',
+          secondaryCtaText: '',
+          secondaryCtaLink: '',
+          backgroundImage: ''
         }
       },
       cta: {
         type: 'cta',
+        order: 5,
         visible: true,
-        order: 1,
         data: {
-          content: `<h2>Ready to Begin?</h2>
-<p>Take the first step towards your goals.</p>`,
-          items: [
-            {
-              id: 'cta-bottom',
-              title: 'Contact Us',
-              url: '/contact'
-            }
-          ]
+          headline: '',
+          description: '',
+          ctaText: '',
+          ctaLink: '',
+          secondaryCtaText: '',
+          secondaryCtaLink: ''
+        },
+        settings: {
+          backgroundColor: 'primary'
         }
       }
     }
