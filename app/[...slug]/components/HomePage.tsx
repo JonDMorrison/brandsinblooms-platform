@@ -94,7 +94,7 @@ export async function HomePage() {
   // Get hardcoded content for other sections (keep existing functionality)
   const homePageData = plantShopContent.home
   const categoriesBlock = homePageData.blocks.find(block => block.type === 'categories')
-  const seasonalBlock = homePageData.blocks.find(block => block.type === 'seasonal')
+  const featuresBlock = homePageData.blocks.find(block => block.type === 'features')
   const careGuidesBlock = homePageData.blocks.find(block => block.type === 'care_guides')
   
   // Get data for sections
@@ -417,53 +417,33 @@ export async function HomePage() {
       )}
 
 
-      {/* Seasonal Plant Care Section - Lazy loaded */}
+      {/* Plant Care Features Section - Lazy loaded */}
       <ViewportLazyLoad
         fallback={<SeasonalSectionSkeleton />}
         delay={200}
       >
-        {seasonalBlock?.isVisible && (
+        {featuresBlock?.isVisible && (
           <section className="py-16" style={{backgroundColor: 'var(--theme-background)'}}>
             <div className="brand-container">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                  {(seasonalBlock.content as any).headline}
+                  {(featuresBlock.content as any).headline}
                 </h2>
                 <p className="text-lg max-w-2xl mx-auto" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                  {(seasonalBlock.content as any).description}
+                  {(featuresBlock.content as any).description}
                 </p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                {((seasonalBlock.content as any).tips as string[]).map((tip, index) => (
-                  <div key={`seasonal-tip-${index}`} className="p-6 rounded-lg border" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.05)', borderColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{backgroundColor: 'var(--theme-primary)'}}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {((featuresBlock.content as any).features as string[]).map((feature, index) => (
+                  <div key={`feature-${index}`} className="p-6 rounded-lg border text-center" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.05)', borderColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto" style={{backgroundColor: 'var(--theme-primary)'}}>
                       <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{tip}</p>
+                    <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{feature}</p>
                   </div>
                 ))}
-              </div>
-              <div className="text-center">
-                <div className="bg-white p-6 rounded-lg shadow-md inline-block">
-                  <h3 className="text-xl font-semibold mb-2" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                    Featured Seasonal Guide
-                  </h3>
-                  <p className="text-sm mb-4" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                    {(seasonalBlock.content as any).guideTitle}
-                  </p>
-                  <a 
-                    href={(seasonalBlock.content as any).guideLink}
-                    className="inline-flex items-center px-6 py-3 rounded-lg font-medium border transition-all duration-200 hover:opacity-80 cursor-pointer"
-                    style={{borderColor: 'var(--theme-secondary)', color: 'var(--theme-secondary)', backgroundColor: 'transparent', fontFamily: 'var(--theme-font-body)'}}
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 0a1 1 0 100 2h.01a1 1 0 100-2H9zm2 0a1 1 0 100 2h.01a1 1 0 100-2H11z" clipRule="evenodd" />
-                    </svg>
-                    Download PDF Guide
-                  </a>
-                </div>
               </div>
             </div>
           </section>

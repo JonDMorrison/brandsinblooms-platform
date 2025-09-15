@@ -55,7 +55,7 @@ export interface TeamMember {
 }
 
 export interface ContentBlock {
-  type: 'hero' | 'featured' | 'categories' | 'mission' | 'team' | 'contact' | 'care_guides' | 'testimonials' | 'seasonal' | 'legal';
+  type: 'hero' | 'featured' | 'categories' | 'mission' | 'team' | 'contact' | 'care_guides' | 'testimonials' | 'features' | 'legal';
   id: string;
   title?: string;
   content: unknown;
@@ -431,21 +431,17 @@ export const plantShopContent: Record<string, PageData> = {
         order: 3
       },
       {
-        type: 'seasonal',
-        id: 'seasonal-guidance',
-        title: 'Seasonal Plant Care',
+        type: 'features',
+        id: 'features-guidance',
+        title: 'Plant Care Features',
         content: {
-          headline: 'Fall Plant Care Essentials',
-          description: 'Prepare your plants for the changing season with expert guidance',
-          currentSeason: 'fall',
-          tips: [
+          headline: 'Essential Plant Care Features',
+          description: 'Master these key practices for healthy, thriving plants year-round',
+          features: [
             'Reduce watering frequency as growth slows',
             'Move tender plants indoors before first frost',
-            'Apply winter protection to marginally hardy plants',
-            'Clean up fallen leaves to prevent fungal issues',
-            'Adjust fertilizer schedules for dormant season'
-          ],
-          featuredGuide: careGuidesData.find(guide => guide.category === 'seasonal')
+            'Apply winter protection to marginally hardy plants'
+          ]
         },
         isVisible: true,
         order: 4
