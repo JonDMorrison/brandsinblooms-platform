@@ -8,6 +8,7 @@ import { SitePageProps } from './types'
 import { HomePage } from './components/HomePage'
 import { AboutPage } from './components/AboutPage'
 import { ContactPage } from './components/ContactPage'
+import { DynamicContentPage } from './components/DynamicContentPage'
 import { 
   PrivacyPage, 
   TermsPage, 
@@ -73,6 +74,7 @@ export default async function SitePage({ params }: SitePageProps) {
         return <CategoryPage slug={categorySlug} />
       }
       
-      return notFound()
+      // Try to find content in database with this slug
+      return <DynamicContentPage slug={path} />
   }
 }
