@@ -1,10 +1,20 @@
 'use client'
 
 import { useMemo, useState, useCallback } from 'react'
-import { Button } from '@/src/components/ui/button'
+import { Button, buttonVariants } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Switch } from '@/src/components/ui/switch'
 import { ScrollArea } from '@/src/components/ui/scroll-area'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/src/components/ui/alert-dialog'
 import { 
   Eye, 
   EyeOff, 
@@ -13,7 +23,9 @@ import {
   GripVertical,
   CheckCircle,
   AlertCircle,
-  Circle
+  Circle,
+  Plus,
+  Trash2
 } from 'lucide-react'
 import {
   DndContext,
@@ -35,6 +47,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { restrictToVerticalAxis, restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers'
+import { cn } from '@/lib/utils'
 
 import { 
   PageContent, 
@@ -58,6 +71,8 @@ interface CombinedSectionManagerProps {
   activeSectionKey?: string
   isDraggingEnabled?: boolean
   onSectionUpdate?: (sectionKey: string, section: ContentSection) => void
+  onAddSection?: (sectionType: ContentSectionType) => void
+  onRemoveSection?: (sectionKey: string) => void
 }
 
 interface ExpandableSectionCardProps {
@@ -70,6 +85,8 @@ interface ExpandableSectionCardProps {
   onToggleExpanded: (sectionKey: string) => void
   onClick: (sectionKey: string) => void
   onSectionUpdate?: (sectionKey: string, section: ContentSection) => void
+  onRemoveSection?: (sectionKey: string) => void
+  onRequestDelete?: (sectionKey: string) => void
   isDraggingEnabled?: boolean
   isDragging?: boolean
   isOverlay?: boolean
@@ -89,6 +106,8 @@ function ExpandableSectionCard({
   onToggleExpanded,
   onClick,
   onSectionUpdate,
+  onRemoveSection,
+  onRequestDelete,
   isDraggingEnabled = false,
   isDragging = false,
   isOverlay = false
@@ -117,24 +136,15 @@ function ExpandableSectionCard({
   }
 
   const getSectionStatus = () => {
-    const hasContent = section.data.content || section.data.url || section.data.icon || 
-                      section.data.headline || section.data.subheadline ||
-                      (section.data.items && Array.isArray(section.data.items) && section.data.items.length > 0) ||
-                      (section.data.features && Array.isArray(section.data.features) && section.data.features.length > 0)
-    
     if (!section.visible) {
       return { icon: EyeOff, label: 'Hidden', className: 'text-gray-500' }
-    }
-    
-    if (hasContent) {
-      return { icon: CheckCircle, label: 'Complete', className: 'text-green-600' }
     }
     
     if (isRequired) {
       return { icon: AlertCircle, label: 'Required', className: 'text-amber-600' }
     }
     
-    return { icon: Circle, label: 'Empty', className: 'text-gray-500' }
+    return { icon: Eye, label: 'Visible', className: 'text-blue-600' }
   }
 
   const status = getSectionStatus()
@@ -231,7 +241,7 @@ function ExpandableSectionCard({
 
         </div>
 
-        {/* Right Zone: Expand Button + Visibility Toggle */}
+        {/* Right Zone: Expand Button + Remove Button + Visibility Toggle */}
         <div className="flex items-center">
           {/* Enhanced Expand Button */}
           <Button
@@ -253,6 +263,25 @@ function ExpandableSectionCard({
               <ChevronRight className="h-4 w-4 transition-transform duration-200" />
             )}
           </Button>
+
+          {/* Remove Button - only for optional sections */}
+          {!isRequired && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-1 text-red-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (onRequestDelete) {
+                  onRequestDelete(sectionKey)
+                }
+              }}
+              title={`Remove ${formatSectionName(sectionKey)} section`}
+              aria-label={`Remove ${formatSectionName(sectionKey)} section`}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          )}
 
           {/* Visibility Toggle */}
           <div 
@@ -315,6 +344,86 @@ function ExpandableSectionCard({
   )
 }
 
+// Add Section Card Component for missing sections
+interface AddSectionCardProps {
+  sectionType: ContentSectionType
+  onAddSection: (sectionType: ContentSectionType) => void
+}
+
+function AddSectionCard({ sectionType, onAddSection }: AddSectionCardProps) {
+  const getSectionIcon = (type: ContentSectionType) => {
+    const iconMap = {
+      hero: '🦸',
+      richText: '📝',
+      text: '📄',
+      image: '🖼️',
+      icon: '⭐',
+      gallery: '🖼️',
+      features: '⚡',
+      featured: '⭐',
+      cta: '📢',
+      testimonials: '💬',
+      form: '📝',
+      pricing: '💰',
+      team: '👥',
+      mission: '🎯',
+      values: '💎',
+      specifications: '📋',
+      categories: '📂'
+    }
+    return iconMap[type] || '📄'
+  }
+
+  const formatSectionName = (key: string) => {
+    return key.replace(/([A-Z])/g, ' $1').trim()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
+
+  return (
+    <div 
+      className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all duration-200"
+      onClick={() => onAddSection(sectionType)}
+    >
+      {/* Add Icon */}
+      <div className="flex items-center text-gray-400">
+        <Plus className="h-4 w-4" />
+      </div>
+
+      {/* Section Info */}
+      <div className="flex items-center gap-2 flex-1">
+        <span className="text-base opacity-50">{getSectionIcon(sectionType)}</span>
+        
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-medium text-gray-600">
+            Add {formatSectionName(sectionType)}
+          </h4>
+          <span className="text-xs text-gray-500">
+            Optional section
+          </span>
+        </div>
+      </div>
+
+      {/* Add Button */}
+      <div className="flex items-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 px-3 text-primary border border-primary/20 hover:bg-primary/10"
+          onClick={(e) => {
+            e.stopPropagation()
+            onAddSection(sectionType)
+          }}
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Add
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 // Sortable wrapper for drag-and-drop functionality
 function SortableExpandableSectionCard({
   id,
@@ -371,7 +480,9 @@ export function CombinedSectionManager({
   onSectionClick,
   activeSectionKey,
   isDraggingEnabled = true,
-  onSectionUpdate
+  onSectionUpdate,
+  onAddSection,
+  onRemoveSection
 }: CombinedSectionManagerProps) {
   const layoutConfig = LAYOUT_SECTIONS[layout]
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -380,7 +491,18 @@ export function CombinedSectionManager({
     key: string
     section: ContentSection
   } | null>(null)
+  const [sectionToDelete, setSectionToDelete] = useState<string | null>(null)
   
+  // Get all available sections for this layout
+  const allAvailableSections = useMemo(() => {
+    const existingSections = Object.keys(content.sections)
+    const requiredSections = layoutConfig.required
+    const optionalSections = layoutConfig.optional
+    
+    return [...requiredSections, ...optionalSections]
+  }, [layoutConfig, content.sections])
+
+  // Get existing sections (sorted by order)
   const sortedSections = useMemo(() => {
     return Object.entries(content.sections).sort((a, b) => {
       const orderA = a[1].order || 0
@@ -388,6 +510,12 @@ export function CombinedSectionManager({
       return orderA - orderB
     })
   }, [content.sections])
+
+  // Get missing sections that can be added
+  const missingSections = useMemo(() => {
+    const existingSectionKeys = Object.keys(content.sections)
+    return layoutConfig.optional.filter(sectionKey => !existingSectionKeys.includes(sectionKey))
+  }, [layoutConfig.optional, content.sections])
 
   // Configure sensors for touch and pointer devices
   const sensors = useSensors(
@@ -405,18 +533,12 @@ export function CombinedSectionManager({
   )
 
   const sectionStats = useMemo(() => {
-    const total = sortedSections.length
+    const available = allAvailableSections.length
+    const added = sortedSections.length
     const visible = sortedSections.filter(([, section]) => section.visible).length
-    const completed = sortedSections.filter(([, section]) => {
-      const hasContent = section.data.content || section.data.url || section.data.icon ||
-                        section.data.headline || section.data.subheadline ||
-                        (section.data.items && Array.isArray(section.data.items) && section.data.items.length > 0) ||
-                        (section.data.features && Array.isArray(section.data.features) && section.data.features.length > 0)
-      return section.visible && hasContent
-    }).length
     
-    return { total, visible, completed }
-  }, [sortedSections])
+    return { available, added, visible }
+  }, [allAvailableSections.length, sortedSections])
 
   const handleSectionClick = (sectionKey: string) => {
     onSectionClick?.(sectionKey)
@@ -487,36 +609,51 @@ export function CombinedSectionManager({
     }
   }, [sortedSections, onReorderSections, onMoveUp, onMoveDown])
 
+  // Handle section deletion confirmation
+  const handleDeleteConfirm = useCallback(() => {
+    if (sectionToDelete && onRemoveSection) {
+      onRemoveSection(sectionToDelete)
+      setSectionToDelete(null)
+    }
+  }, [sectionToDelete, onRemoveSection])
+
+  const handleDeleteCancel = useCallback(() => {
+    setSectionToDelete(null)
+  }, [])
+
+  // Helper function to format section names
+  const formatSectionName = useCallback((key: string) => {
+    return key.replace(/([A-Z])/g, ' $1').trim()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }, [])
+
+  // Handle delete request from section card
+  const handleDeleteRequest = useCallback((sectionKey: string) => {
+    setSectionToDelete(sectionKey)
+  }, [])
+
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
+      {/* Stats */}
       <div className="p-4 border-b">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-sm font-medium">Combined Section Manager</h3>
-            <p className="text-xs text-gray-500">
-              {layout.charAt(0).toUpperCase() + layout.slice(1)} Layout
-            </p>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 text-xs">
           <div className="text-center p-2 bg-muted/50 rounded">
-            <div className="text-lg font-medium">{sectionStats.total}</div>
-            <div className="text-xs text-gray-500">Total</div>
+            <div className="text-lg font-medium">{sectionStats.available}</div>
+            <div className="text-xs text-gray-500">Available</div>
+          </div>
+          <div className="text-center p-2 bg-primary/10 rounded">
+            <div className="text-lg font-medium text-primary">
+              {sectionStats.added}
+            </div>
+            <div className="text-xs text-primary">Added</div>
           </div>
           <div className="text-center p-2 bg-blue-50 rounded">
             <div className="text-lg font-medium text-blue-600">
               {sectionStats.visible}
             </div>
             <div className="text-xs text-blue-600">Visible</div>
-          </div>
-          <div className="text-center p-2 bg-gray-100 rounded">
-            <div className="text-lg font-medium text-green-600">
-              {sectionStats.completed}
-            </div>
-            <div className="text-xs text-green-600">Complete</div>
           </div>
         </div>
       </div>
@@ -542,6 +679,7 @@ export function CombinedSectionManager({
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-2 relative">
+                  {/* Existing Sections */}
                   {sortedSections.map(([sectionKey, section]) => {
                     const isRequired = layoutConfig.required.includes(sectionKey)
                     const isActive = activeSectionKey === sectionKey
@@ -560,9 +698,26 @@ export function CombinedSectionManager({
                         onToggleExpanded={handleToggleExpanded}
                         onClick={handleSectionClick}
                         onSectionUpdate={onSectionUpdate}
+                        onRemoveSection={onRemoveSection}
+                        onRequestDelete={handleDeleteRequest}
                       />
                     )
                   })}
+                  
+                  {/* Add Section Cards for Missing Sections */}
+                  {missingSections.length > 0 && onAddSection && (
+                    <div className="pt-2 mt-4 border-t border-dashed border-gray-300">
+                      <div className="text-xs text-gray-500 mb-2 font-medium">Available to Add</div>
+                      {missingSections.map((sectionType) => (
+                        <div key={`add-${sectionType}`} className="mb-2">
+                          <AddSectionCard
+                            sectionType={sectionType as ContentSectionType}
+                            onAddSection={onAddSection}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </SortableContext>
               
@@ -585,6 +740,8 @@ export function CombinedSectionManager({
                       onToggleExpanded={handleToggleExpanded}
                       onClick={handleSectionClick}
                       onSectionUpdate={onSectionUpdate}
+                      onRemoveSection={onRemoveSection}
+                      onRequestDelete={handleDeleteRequest}
                       isOverlay={true}
                     />
                   </div>
@@ -594,6 +751,7 @@ export function CombinedSectionManager({
           ) : (
             // Fallback to non-draggable version
             <div className="space-y-2">
+              {/* Existing Sections */}
               {sortedSections.map(([sectionKey, section]) => {
                 const isRequired = layoutConfig.required.includes(sectionKey)
                 const isActive = activeSectionKey === sectionKey
@@ -611,10 +769,27 @@ export function CombinedSectionManager({
                     onToggleExpanded={handleToggleExpanded}
                     onClick={handleSectionClick}
                     onSectionUpdate={onSectionUpdate}
+                    onRemoveSection={onRemoveSection}
+                    onRequestDelete={handleDeleteRequest}
                     isDraggingEnabled={false}
                   />
                 )
               })}
+              
+              {/* Add Section Cards for Missing Sections */}
+              {missingSections.length > 0 && onAddSection && (
+                <div className="pt-2 mt-4 border-t border-dashed border-gray-300">
+                  <div className="text-xs text-gray-500 mb-2 font-medium">Available to Add</div>
+                  {missingSections.map((sectionType) => (
+                    <div key={`add-${sectionType}`} className="mb-2">
+                      <AddSectionCard
+                        sectionType={sectionType as ContentSectionType}
+                        onAddSection={onAddSection}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -629,6 +804,28 @@ export function CombinedSectionManager({
           }
         </p>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={sectionToDelete !== null} onOpenChange={(open) => !open && handleDeleteCancel()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Section</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove the &quot;{sectionToDelete ? formatSectionName(sectionToDelete) : ''}&quot; section? 
+              This action cannot be undone and all content in this section will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDeleteCancel}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="!bg-red-600 hover:!bg-red-700 !text-white !border-0"
+            >
+              Remove Section
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

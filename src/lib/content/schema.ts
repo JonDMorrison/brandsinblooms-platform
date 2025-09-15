@@ -209,7 +209,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
 }> = {
   landing: {
     required: ['hero'],
-    optional: ['featured', 'categories', 'features', 'cta', 'richText', 'testimonials'],
+    optional: ['featured', 'categories', 'features', 'cta', 'richText'],
     defaultSections: {
       hero: {
         type: 'hero',
@@ -306,15 +306,6 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         settings: {
           backgroundColor: 'default'
         }
-      },
-      testimonials: {
-        type: 'testimonials',
-        data: {
-          items: [],
-          columns: 2
-        },
-        visible: false,
-        order: 6
       }
     }
   },

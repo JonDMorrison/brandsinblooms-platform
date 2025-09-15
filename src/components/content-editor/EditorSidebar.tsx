@@ -141,6 +141,8 @@ export function EditorSidebar({
                 activeSectionKey={activeSectionKey}
                 isDraggingEnabled={true}
                 onSectionUpdate={contentEditorHook.updateSection}
+                onAddSection={contentEditorHook.addSection}
+                onRemoveSection={contentEditorHook.removeSection}
               />
             </div>
           )}

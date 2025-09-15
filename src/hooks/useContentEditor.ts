@@ -7,6 +7,7 @@ import { getContentById, updateContent } from '@/src/lib/queries/domains/content
 import { 
   PageContent, 
   ContentSection, 
+  ContentSectionType,
   LayoutType,
   LAYOUT_SECTIONS,
   isPageContent,
@@ -42,6 +43,8 @@ interface UseContentEditorReturn {
   moveSectionUp: (sectionKey: string) => void
   moveSectionDown: (sectionKey: string) => void
   reorderSections: (sections: Array<{ key: string; section: ContentSection }>) => void
+  addSection: (sectionType: ContentSectionType) => void
+  removeSection: (sectionKey: string) => void
   saveContent: () => Promise<void>
   resetContent: () => void
   loadContent: () => Promise<void>
@@ -353,6 +356,61 @@ export function useContentEditor({
     })
   }, [])
 
+  // Add section
+  const addSection = useCallback((sectionType: ContentSectionType) => {
+    setContent(prev => {
+      const layoutConfig = LAYOUT_SECTIONS[layout]
+      const defaultSection = layoutConfig.defaultSections[sectionType]
+      
+      if (!defaultSection) {
+        console.warn(`No default section found for type: ${sectionType}`)
+        return prev
+      }
+
+      // Don't add if section already exists
+      if (prev.sections[sectionType]) {
+        return prev
+      }
+
+      // Calculate next order
+      const existingOrders = Object.values(prev.sections).map(s => s.order || 0)
+      const nextOrder = Math.max(0, ...existingOrders) + 1
+
+      return {
+        ...prev,
+        sections: {
+          ...prev.sections,
+          [sectionType]: {
+            ...defaultSection,
+            order: nextOrder,
+            visible: true
+          }
+        }
+      }
+    })
+  }, [layout])
+
+  // Remove section
+  const removeSection = useCallback((sectionKey: string) => {
+    setContent(prev => {
+      const layoutConfig = LAYOUT_SECTIONS[layout]
+      
+      // Don't allow removing required sections
+      if (layoutConfig.required.includes(sectionKey)) {
+        console.warn(`Cannot remove required section: ${sectionKey}`)
+        return prev
+      }
+
+      const newSections = { ...prev.sections }
+      delete newSections[sectionKey]
+
+      return {
+        ...prev,
+        sections: newSections
+      }
+    })
+  }, [layout])
+
   // Reset content to original state
   const resetContent = useCallback(() => {
     setContent(originalContent)
@@ -385,6 +443,8 @@ export function useContentEditor({
     moveSectionUp,
     moveSectionDown,
     reorderSections,
+    addSection,
+    removeSection,
     saveContent,
     resetContent,
     loadContent
