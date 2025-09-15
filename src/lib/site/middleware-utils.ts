@@ -292,8 +292,11 @@ export function getSecurityHeaders(site: Site, hostname: string): Record<string,
   // Determine allowed frame ancestors for preview functionality
   function getAllowedFrameAncestors(): string {
     const isDevelopment = process.env.NODE_ENV === 'development'
-    
-    if (!isDevelopment) {
+    const isStaging = process.env.NEXT_PUBLIC_APP_URL?.includes('staging') ||
+                     process.env.NEXT_PUBLIC_APP_DOMAIN?.includes('staging')
+
+    // Allow frame ancestors in development AND staging for preview functionality
+    if (!isDevelopment && !isStaging) {
       return "'self'"
     }
     
@@ -335,29 +338,49 @@ export function getSecurityHeaders(site: Site, hostname: string): Record<string,
     } else {
       // Production/staging - derive dashboard from app domain
       const protocol = appUrl.protocol
-      const baseDomain = appUrl.hostname.replace(/^(sites?|app|www)\./, '') // Remove common prefixes
-      
-      // Common production patterns based on app domain
-      if (appUrl.hostname.startsWith('sites.') || appUrl.hostname.startsWith('app.')) {
-        // If app is on sites.domain.com, dashboard likely on admin.domain.com or dashboard.domain.com
+      const hostname = appUrl.hostname
+
+      // Handle staging domains (blooms-staging.cc)
+      if (hostname.includes('staging')) {
+        // For staging: dashboard is on main domain, sites are on subdomains
         dashboardUrls.push(
-          `${protocol}//admin.${baseDomain}`,
-          `${protocol}//dashboard.${baseDomain}`,
-          `${protocol}//app.${baseDomain}`
+          `${protocol}//${hostname}`, // Main staging domain (dashboard)
+          `${protocol}//admin.${hostname}`, // Admin subdomain if exists
+          `${protocol}//dashboard.${hostname}` // Dashboard subdomain if exists
         )
-      } else if (appUrl.hostname.startsWith('www.')) {
-        // If app is on www.domain.com, dashboard likely on admin.domain.com
-        dashboardUrls.push(
-          `${protocol}//admin.${baseDomain}`,
-          `${protocol}//dashboard.${baseDomain}`
-        )
+
+        // Allow all subdomains of staging domain to be framed by dashboard
+        // This enables preview functionality where dashboard can frame customer sites
+        if (site.subdomain) {
+          dashboardUrls.push(
+            `${protocol}//${site.subdomain}.${hostname}` // Customer site subdomains
+          )
+        }
       } else {
-        // If app is on domain.com, dashboard could be admin.domain.com or same domain different port
-        dashboardUrls.push(
-          `${protocol}//admin.${appUrl.hostname}`,
-          `${protocol}//dashboard.${appUrl.hostname}`,
-          `${protocol}//${appUrl.hostname}:3000` // Different port on same domain
-        )
+        // Production patterns
+        const baseDomain = hostname.replace(/^(sites?|app|www)\./, '') // Remove common prefixes
+
+        if (hostname.startsWith('sites.') || hostname.startsWith('app.')) {
+          // If app is on sites.domain.com, dashboard likely on admin.domain.com or dashboard.domain.com
+          dashboardUrls.push(
+            `${protocol}//admin.${baseDomain}`,
+            `${protocol}//dashboard.${baseDomain}`,
+            `${protocol}//app.${baseDomain}`
+          )
+        } else if (hostname.startsWith('www.')) {
+          // If app is on www.domain.com, dashboard likely on admin.domain.com
+          dashboardUrls.push(
+            `${protocol}//admin.${baseDomain}`,
+            `${protocol}//dashboard.${baseDomain}`
+          )
+        } else {
+          // If app is on domain.com, dashboard could be admin.domain.com or same domain different port
+          dashboardUrls.push(
+            `${protocol}//admin.${hostname}`,
+            `${protocol}//dashboard.${hostname}`,
+            `${protocol}//${hostname}:3000` // Different port on same domain
+          )
+        }
       }
     }
     

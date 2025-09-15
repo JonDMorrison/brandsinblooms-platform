@@ -6,7 +6,7 @@ import { Button } from '@/src/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/src/components/ui/toggle-group'
 import { Monitor, Tablet, Smartphone, RefreshCw, ExternalLink } from 'lucide-react'
 import { ThemeSettings } from '@/src/lib/queries/domains/theme'
-import { useSiteId } from '@/contexts/SiteContext'
+import { useSiteId, useCurrentSite } from '@/contexts/SiteContext'
 import { useThemeCSS } from '@/hooks/useThemeCSS'
 
 interface DesignPreviewProps {
@@ -22,14 +22,64 @@ const deviceSizes = {
 
 type DeviceType = keyof typeof deviceSizes
 
+/**
+ * Constructs the preview URL for the current site based on environment
+ */
+function getPreviewUrl(site: any): string {
+  // Get environment configuration
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
+
+  if (!site) {
+    // Fallback to app URL if no site context
+    return appUrl
+  }
+
+  try {
+    const url = new URL(appUrl)
+
+    // If site has a custom domain, use it
+    if (site.custom_domain) {
+      return `${url.protocol}//${site.custom_domain}`
+    }
+
+    // Otherwise, construct subdomain URL based on environment
+    if (site.subdomain) {
+      // Extract base domain from app URL
+      const hostname = url.hostname
+
+      // Handle different environment patterns
+      if (hostname === 'localhost' || hostname.includes('localhost')) {
+        // Development: subdomain.localhost:port
+        return `${url.protocol}//${site.subdomain}.localhost${url.port ? ':' + url.port : ''}`
+      } else if (hostname.includes('blooms-staging.cc')) {
+        // Staging: subdomain.blooms-staging.cc
+        return `${url.protocol}//${site.subdomain}.blooms-staging.cc`
+      } else {
+        // Production: subdomain.domain.com
+        return `${url.protocol}//${site.subdomain}.${hostname}`
+      }
+    }
+
+    // Fallback to app URL
+    return appUrl
+  } catch (error) {
+    console.error('Error constructing preview URL:', error)
+    return appUrl
+  }
+}
+
 export function DesignPreview({ settings, className = '' }: DesignPreviewProps) {
   const [device, setDevice] = useState<DeviceType>('desktop')
   const [isLoading, setIsLoading] = useState(true)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const siteId = useSiteId()
-  
+  const { site } = useCurrentSite()
+
   // Use centralized theme CSS generation with iframe mode
   const { fullCSS } = useThemeCSS(settings, 'iframe')
+
+  // Get dynamic preview URL based on current site and environment
+  const previewUrl = getPreviewUrl(site)
   
   // Inject styles into iframe
   useEffect(() => {
@@ -118,7 +168,7 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
   }
   
   const handleOpenInNewTab = () => {
-    window.open(`http://dev.localhost:3001`, '_blank')
+    window.open(previewUrl, '_blank')
   }
   
   return (
@@ -180,7 +230,7 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
             )}
             <iframe
               ref={iframeRef}
-              src={`http://dev.localhost:3001`}
+              src={previewUrl}
               className="w-full h-full border-0"
               title="Design Preview"
               sandbox="allow-same-origin allow-scripts allow-forms"
