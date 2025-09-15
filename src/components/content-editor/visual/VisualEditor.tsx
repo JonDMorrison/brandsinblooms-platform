@@ -118,7 +118,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
       {/* Preview Container with Click Detection */}
       <div
         ref={containerRef}
-        className={`visual-editor-preview ${viewportClassName}`}
+        className={`visual-editor-preview ${viewportClassName} @container`}
         style={viewportContainerStyles}
         data-visual-editor="true"
         data-preview-mode="true"

@@ -7,6 +7,7 @@ import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getFeatureGridClasses } from '@/src/components/content-sections/shared'
+import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
 
 interface HeroPreviewProps {
   section: ContentSection
@@ -17,19 +18,21 @@ interface HeroPreviewProps {
   onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
 }
 
-export function HeroPreview({ 
-  section, 
-  sectionKey, 
-  className = '', 
-  title, 
-  onContentUpdate, 
-  onFeatureUpdate 
+export function HeroPreview({
+  section,
+  sectionKey,
+  className = '',
+  title,
+  onContentUpdate,
+  onFeatureUpdate
 }: HeroPreviewProps) {
   const { data } = section
+  const isPreview = isPreviewMode(onContentUpdate, onFeatureUpdate)
+  const responsive = createResponsiveClassHelper(isPreview)
 
   return (
-    <section 
-      className={`relative py-20 lg:py-32 ${className}`}
+    <section
+      className={`relative ${responsive.spacing.heroSectionPadding} ${className}`}
       style={{
         background: `linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))`
       }}
@@ -49,7 +52,7 @@ export function HeroPreview({
               fieldPath="data.headline"
               format="plain"
               singleLine={true}
-              className="text-4xl md:text-6xl font-bold mb-6 block"
+              className={`${responsive.typography.heroHeadline} mb-6 block`}
               style={{ 
                 color: 'var(--theme-text)',
                 fontFamily: 'var(--theme-font-heading)'
@@ -73,7 +76,7 @@ export function HeroPreview({
               isEnabled={Boolean(onContentUpdate)}
               fieldPath="data.subheadline"
               format="rich"
-              className="text-xl md:text-2xl mb-8 leading-relaxed block [&_.ProseMirror_p:not(:first-child)]:mt-2"
+              className={`${responsive.typography.heroSubheadline} mb-8 leading-relaxed block [&_.ProseMirror_p:not(:first-child)]:mt-2`}
               style={{ 
                 color: 'var(--theme-text)',
                 opacity: 0.8,
@@ -86,7 +89,7 @@ export function HeroPreview({
           )}
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className={`${responsive.flex.heroLayout} gap-4 justify-center mb-12`}>
             {(data.ctaText || onContentUpdate) && (
               <a 
                 href={data.ctaLink || '#'}
@@ -178,8 +181,8 @@ export function HeroPreview({
 
           {/* Features Grid */}
           {data.features && Array.isArray(data.features) && data.features.length > 0 && (
-            <div 
-              className={`grid gap-6 text-center ${getFeatureGridClasses(data.features.length)}`}
+            <div
+              className={`grid gap-6 text-center ${getFeatureGridClasses(data.features.length, isPreview)}`}
             >
               {data.features.slice(0, 4).map((feature: string, index: number) => (
                 <div key={index} className="flex flex-col items-center">

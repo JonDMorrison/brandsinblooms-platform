@@ -86,6 +86,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.53.0",
+    "@tailwindcss/container-queries": "^0.1.1",
     "@tanstack/react-table": "^8.21.3",
     "@tiptap/extension-color": "^3.2.0",
     "@tiptap/extension-highlight": "^3.2.0",

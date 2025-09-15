@@ -8,6 +8,7 @@ import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEdit
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle, getProductGridClasses } from '@/src/components/content-sections/shared'
 import { getFeaturedPlants } from '@/src/data/plant-shop-content'
+import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
 
 interface FeaturedPreviewProps {
   section: ContentSection
@@ -18,21 +19,23 @@ interface FeaturedPreviewProps {
   onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
 }
 
-export function FeaturedPreview({ 
-  section, 
-  sectionKey, 
-  className = '', 
-  title, 
-  onContentUpdate, 
-  onFeatureUpdate 
+export function FeaturedPreview({
+  section,
+  sectionKey,
+  className = '',
+  title,
+  onContentUpdate,
+  onFeatureUpdate
 }: FeaturedPreviewProps) {
   const { data, settings } = section
-  
+  const isPreview = isPreviewMode(onContentUpdate, onFeatureUpdate)
+  const responsive = createResponsiveClassHelper(isPreview)
+
   const featuredPlants = getFeaturedPlants()
   const displayedPlants = featuredPlants.slice(0, 4)
 
   return (
-    <section className={`py-16 ${className}`} style={getSectionBackgroundStyle(settings)}>
+    <section className={`${responsive.spacing.sectionPadding} ${className}`} style={getSectionBackgroundStyle(settings)}>
       <div className="brand-container">
         <div className="text-center mb-12">
           <div className="mb-4">
@@ -47,7 +50,7 @@ export function FeaturedPreview({
               fieldPath="data.headline"
               format="plain"
               singleLine={true}
-              className="text-3xl md:text-4xl font-bold [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0"
+              className={`${responsive.typography.sectionHeading} [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0`}
               style={{
                 color: 'var(--theme-text)', 
                 fontFamily: 'var(--theme-font-heading)'
@@ -78,7 +81,7 @@ export function FeaturedPreview({
             showToolbar={false}
           />
         </div>
-        <div className={`grid ${getProductGridClasses(displayedPlants.length)} gap-6 mb-12`}>
+        <div className={`${responsive.grid.cardsGrid} gap-6 mb-12`}>
           {displayedPlants.map((plant) => (
             <div key={plant.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
               <div className="relative">

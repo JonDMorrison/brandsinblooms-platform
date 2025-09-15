@@ -142,7 +142,7 @@ export function VisualEditorProvider({
     const { createSectionFromTemplate } = require('@/lib/content/section-templates');
     
     // Calculate insertion order
-    let insertOrder = 1;
+    const insertOrder = 1;
     if (insertAfter) {
       // Find the section to insert after and set order accordingly
       // This will be handled by the parent component that manages the full content state
