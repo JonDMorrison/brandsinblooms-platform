@@ -22,7 +22,7 @@ export function BackgroundToggle({
 }: BackgroundToggleProps) {
   const currentBackground = section.settings?.backgroundColor || 'default'
 
-  const handleBackgroundChange = (backgroundColor: 'default' | 'alternate') => {
+  const handleBackgroundChange = (backgroundColor: 'default' | 'alternate' | 'primary') => {
     const newSettings = { ...section.settings, backgroundColor }
     onUpdate(sectionKey, { ...section, settings: newSettings })
   }
@@ -30,7 +30,7 @@ export function BackgroundToggle({
   return (
     <div className={`p-3 border rounded-lg bg-muted/30 space-y-2 ${className}`}>
       <Label className="text-xs text-gray-500">Background Color</Label>
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="radio"
@@ -52,6 +52,17 @@ export function BackgroundToggle({
             className="w-3 h-3"
           />
           <span className="text-xs">Alternate</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name={`${sectionKey}-background`}
+            value="primary"
+            checked={currentBackground === 'primary'}
+            onChange={() => handleBackgroundChange('primary')}
+            className="w-3 h-3"
+          />
+          <span className="text-xs">Primary</span>
         </label>
       </div>
     </div>

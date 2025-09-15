@@ -294,11 +294,18 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
       cta: {
         type: 'cta',
         data: {
-          content: '',
-          alignment: 'center'
+          headline: 'Growing Together, Sustainably',
+          description: 'Our mission is to help you create thriving plant sanctuaries while protecting our planet. Every plant comes with expert care guidance, sustainable growing practices, and our commitment to your plant parenthood success.',
+          ctaText: 'Shop Plants',
+          ctaLink: '/',
+          secondaryCtaText: 'Browse Plants',
+          secondaryCtaLink: '/'
         },
         visible: true,
-        order: 5
+        order: 5,
+        settings: {
+          backgroundColor: 'default'
+        }
       },
       testimonials: {
         type: 'testimonials',

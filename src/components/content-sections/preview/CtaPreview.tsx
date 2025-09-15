@@ -1,12 +1,15 @@
 /**
  * CTA section preview component
+ * Matches the exact design and layout of the customer site CTA section
+ * Implements proper container query responsive design and visual editing
  */
 
 import React from 'react'
-import { ContentSection, ContentItem } from '@/src/lib/content/schema'
-import { ContentRenderer } from '@/src/components/preview/ContentRenderer'
-import { Button } from '@/src/components/ui/button'
-import { getIcon } from '@/src/components/content-sections/shared'
+import { ContentSection } from '@/src/lib/content/schema'
+import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
+import { textToHtml, htmlToText } from '@/src/lib/utils/html-text'
+import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
+import { isPreviewMode, createResponsiveClassHelper } from '@/src/lib/utils/responsive-classes'
 
 interface CtaPreviewProps {
   section: ContentSection
@@ -25,33 +28,174 @@ export function CtaPreview({
   onContentUpdate, 
   onFeatureUpdate 
 }: CtaPreviewProps) {
-  const { data } = section
+  const { data, settings } = section
+  const isPreview = isPreviewMode(onContentUpdate, onFeatureUpdate)
+  const responsive = createResponsiveClassHelper(isPreview)
+  const backgroundStyle = getSectionBackgroundStyle(settings)
+  const isPrimaryBackground = settings?.backgroundColor === 'primary'
+  
+  // Dynamic styling based on background mode
+  const textColor = isPrimaryBackground ? 'white' : 'var(--theme-text)'
+  const descriptionOpacity = isPrimaryBackground ? 1 : 0.7
+  const descriptionColor = isPrimaryBackground ? 'rgba(255,255,255,0.9)' : 'var(--theme-text)'
 
   return (
-    <div className={`text-center bg-white border border-gray-200 rounded-lg p-6 ${className}`}>
-      {data.content && (
-        <ContentRenderer content={data.content} className="text-2xl font-bold mb-4 text-gray-900" />
-      )}
-      {data.items && Array.isArray(data.items) && data.items.length > 0 && (
-        <div className="space-y-4">
-          {data.items.slice(0, 1).map(item => item as unknown as ContentItem).filter(item => 
-            item && typeof item === 'object' && item.id
-          ).map((item: ContentItem, index: number) => (
-            <div key={item.id || index}>
-              {item.subtitle && (
-                <p className="text-gray-600 mb-4">{item.subtitle}</p>
-              )}
-              <Button>
-                {item.title || 'Get Started'}
-                {(() => {
-                  const IconComponent = getIcon('ArrowRight')
-                  return IconComponent ? <IconComponent className="h-4 w-4 ml-2" /> : null
-                })()}
-              </Button>
-            </div>
-          ))}
+    <section 
+      className={`py-16 ${className}`}
+      style={backgroundStyle}
+    >
+      <div className="brand-container">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Inline editable headline */}
+          <InlineTextEditor
+            content={String(data.headline || 'Growing Together, Sustainably')}
+            onUpdate={(content) => {
+              if (onContentUpdate) {
+                onContentUpdate(sectionKey, 'data.headline', content)
+              }
+            }}
+            isEnabled={Boolean(onContentUpdate)}
+            fieldPath="data.headline"
+            format="plain"
+            singleLine={true}
+            className={`${responsive.typography.heroHeadline} mb-6 leading-tight`}
+            style={{
+              color: textColor,
+              fontFamily: 'var(--theme-font-heading)'
+            }}
+            placeholder="Enter CTA headline..."
+          />
+          
+          {/* Rich text description with HTML conversion */}
+          <InlineTextEditor
+            content={textToHtml(String(data.description || 'Our mission is to help you create thriving plant sanctuaries while protecting our planet for future generations.'))}
+            onUpdate={(htmlContent) => {
+              if (onContentUpdate) {
+                const textContent = htmlToText(htmlContent)
+                onContentUpdate(sectionKey, 'data.description', textContent)
+              }
+            }}
+            isEnabled={Boolean(onContentUpdate)}
+            fieldPath="data.description"
+            format="rich"
+            className={`${responsive.typography.heroSubheadline} mb-8 max-w-2xl mx-auto leading-relaxed`}
+            style={{
+              color: descriptionColor,
+              opacity: descriptionOpacity,
+              fontFamily: 'var(--theme-font-body)'
+            }}
+            placeholder="Enter CTA description..."
+          />
+
+          {/* CTA Buttons with responsive layout */}
+          <div 
+            className={`${responsive.flex.heroLayout} gap-4 justify-center`}
+            onClick={(e) => {
+              // Prevent navigation during inline editing
+              const isEditing = e.target.closest('[data-editing="true"]') || 
+                               e.target.closest('.ProseMirror') ||
+                               e.target.closest('.inline-editor-wrapper')
+              if (isEditing) {
+                e.preventDefault()
+                e.stopPropagation()
+              }
+            }}
+          >
+            {/* Primary CTA Button */}
+            {(data.ctaText || data.ctaLink) && (
+              <a 
+                href={String(data.ctaLink || '/plants')}
+                className={`px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 hover:opacity-90 ${
+                  isPrimaryBackground 
+                    ? 'bg-white hover:bg-gray-100' 
+                    : 'hover:bg-theme-primary/90'
+                }`}
+                style={{
+                  backgroundColor: isPrimaryBackground ? 'white' : 'var(--theme-primary)',
+                  color: isPrimaryBackground ? 'var(--theme-primary)' : 'white',
+                  fontFamily: 'var(--theme-font-body)'
+                }}
+                onClick={(e) => {
+                  // Check if inline editor is currently active/editing
+                  const isEditing = e.target.closest('[data-editing="true"]') || 
+                                   e.target.closest('.ProseMirror') ||
+                                   e.target.closest('.inline-editor-wrapper')
+                  if (isEditing) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }
+                }}
+              >
+                <InlineTextEditor
+                  content={String(data.ctaText || 'Shop Plants')}
+                  onUpdate={(content) => {
+                    if (onContentUpdate) {
+                      onContentUpdate(sectionKey, 'data.ctaText', content)
+                    }
+                  }}
+                  isEnabled={Boolean(onContentUpdate)}
+                  fieldPath="data.ctaText"
+                  format="plain"
+                  singleLine={true}
+                  className="inline"
+                  style={{
+                    color: isPrimaryBackground ? 'var(--theme-primary)' : 'white',
+                    fontFamily: 'var(--theme-font-body)'
+                  }}
+                  placeholder="Button text..."
+                />
+              </a>
+            )}
+            
+            {/* Secondary CTA Button */}
+            {(data.secondaryCtaText || data.secondaryCtaLink) && (
+              <a 
+                href={String(data.secondaryCtaLink || '/products')}
+                className={`px-8 py-3 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:opacity-80 ${
+                  isPrimaryBackground 
+                    ? 'border-white text-white hover:bg-white hover:text-theme-primary' 
+                    : 'hover:bg-theme-primary hover:text-white'
+                }`}
+                style={{
+                  borderColor: isPrimaryBackground ? 'white' : 'var(--theme-primary)',
+                  color: isPrimaryBackground ? 'white' : 'var(--theme-primary)',
+                  backgroundColor: 'transparent',
+                  fontFamily: 'var(--theme-font-body)'
+                }}
+                onClick={(e) => {
+                  // Check if inline editor is currently active/editing
+                  const isEditing = e.target.closest('[data-editing="true"]') || 
+                                   e.target.closest('.ProseMirror') ||
+                                   e.target.closest('.inline-editor-wrapper')
+                  if (isEditing) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }
+                }}
+              >
+                <InlineTextEditor
+                  content={String(data.secondaryCtaText || 'Browse Plants')}
+                  onUpdate={(content) => {
+                    if (onContentUpdate) {
+                      onContentUpdate(sectionKey, 'data.secondaryCtaText', content)
+                    }
+                  }}
+                  isEnabled={Boolean(onContentUpdate)}
+                  fieldPath="data.secondaryCtaText"
+                  format="plain"
+                  singleLine={true}
+                  className="inline"
+                  style={{
+                    color: isPrimaryBackground ? 'white' : 'var(--theme-primary)',
+                    fontFamily: 'var(--theme-font-body)'
+                  }}
+                  placeholder="Button text..."
+                />
+              </a>
+            )}
+          </div>
         </div>
-      )}
-    </div>
+      </div>
+    </section>
   )
 }

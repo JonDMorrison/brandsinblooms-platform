@@ -55,6 +55,9 @@ export async function HomePage() {
   let databaseFeaturesData = null
   let featuresStatus = 'not_found' // 'not_found', 'available'
   let featuresBackgroundSetting = 'default' // Store the background setting
+  let databaseCtaData = null
+  let ctaStatus = 'not_found' // 'not_found', 'available'
+  let ctaBackgroundSetting = 'default' // Store the background setting
   
   try {
     const supabase = await createClient()
@@ -95,6 +98,14 @@ export async function HomePage() {
           // Store the background setting
           featuresBackgroundSetting = String(pageContent.sections.features.settings?.backgroundColor || 'default')
         }
+        
+        // Check for cta section data
+        if (pageContent?.sections?.cta?.data && pageContent.sections.cta.visible) {
+          databaseCtaData = pageContent.sections.cta.data
+          ctaStatus = 'available'
+          // Store the background setting
+          ctaBackgroundSetting = String(pageContent.sections.cta.settings?.backgroundColor || 'default')
+        }
       }
     }
   } catch (error) {
@@ -104,7 +115,6 @@ export async function HomePage() {
   
   // Get hardcoded content for other sections (keep existing functionality)
   const homePageData = plantShopContent.home
-  const careGuidesBlock = homePageData.blocks.find(block => block.type === 'care_guides')
   
   // Get data for sections
   const featuredPlants = getFeaturedPlants()
@@ -457,104 +467,88 @@ export async function HomePage() {
         </section>
       )}
 
-      {/* Plant Care Guides Section - Lazy loaded */}
-      <ViewportLazyLoad
-        fallback={<CareGuidesSkeleton />}
-        delay={300}
-      >
-        {careGuidesBlock?.isVisible && (
-          <CareGuidesSectionErrorBoundary>
-            <section className="py-16" style={{backgroundColor: 'rgba(var(--theme-secondary-rgb), 0.03)'}}>
-              <div className="brand-container">
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                    {(careGuidesBlock.content as any).headline}
-                  </h2>
-                  <p className="text-lg max-w-2xl mx-auto" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                    {(careGuidesBlock.content as any).description}
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {((careGuidesBlock.content as any).guides as any[]).map((guide, index) => (
-                    <div key={`guide-${index}`} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                      <div className="p-6">
-                        <div className="w-16 h-16 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
-                          <svg className="w-8 h-8" style={{color: 'var(--theme-primary)'}} fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 0a1 1 0 100 2h.01a1 1 0 100-2H9zm2 0a1 1 0 100 2h.01a1 1 0 100-2H11z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <h3 className="text-xl font-semibold mb-2" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                          {guide.title}
-                        </h3>
-                        <p className="text-sm mb-4" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                          {guide.description}
-                        </p>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {guide.plantTypes.map((type: string, typeIndex: number) => (
-                            <span key={`plant-type-${typeIndex}`} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                              {type}
-                            </span>
-                          ))}
-                        </div>
-                        <a 
-                          href={guide.downloadLink}
-                          className="inline-flex items-center px-4 py-2 rounded-lg font-medium border transition-all duration-200 hover:opacity-80 cursor-pointer"
-                          style={{borderColor: 'var(--theme-secondary)', color: 'var(--theme-secondary)', backgroundColor: 'transparent', fontFamily: 'var(--theme-font-body)'}}
-                        >
-                          <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1zm1-4a1 1 0 100 2h.01a1 1 0 100-2H7zm2 0a1 1 0 100 2h.01a1 1 0 100-2H9zm2 0a1 1 0 100 2h.01a1 1 0 100-2H11z" clipRule="evenodd" />
-                          </svg>
-                          Download PDF
-                        </a>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          </CareGuidesSectionErrorBoundary>
-        )}
-      </ViewportLazyLoad>
 
-      {/* Mission Statement & CTA - Lazy loaded */}
-      <ViewportLazyLoad
-        fallback={<MissionStatementSkeleton />}
-        delay={400}
-      >
-        <section className="py-16" style={{backgroundColor: 'var(--theme-primary)'}}>
-          <div className="brand-container">
-            <div className="max-w-4xl mx-auto text-center text-white">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white" style={{fontFamily: 'var(--theme-font-heading)', color: 'white'}}>
-                Growing Together, Sustainably
-              </h2>
-              <p className="text-lg mb-8 leading-relaxed opacity-90" style={{fontFamily: 'var(--theme-font-body)'}}>
-                Our mission is to help you create thriving plant sanctuaries while protecting our planet. 
-                Every plant comes with expert care guidance, sustainable growing practices, and our commitment 
-                to your plant parenthood success.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a 
-                  href="/contact"
-                  className="px-8 py-4 bg-white rounded-lg font-semibold transition-all duration-200 hover:bg-gray-100"
-                  style={{color: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}
-                >
-                  Schedule Consultation
-                </a>
-                <a 
-                  href="/products"
-                  className="border-2 border-white px-8 py-4 rounded-lg font-semibold text-white transition-all duration-200 hover:bg-white/20"
+      {/* CTA Section - Database driven */}
+      {ctaStatus === 'available' && databaseCtaData && (
+        <ViewportLazyLoad
+          fallback={<MissionStatementSkeleton />}
+          delay={400}
+        >
+          <section className="py-16" style={{
+            backgroundColor: ctaBackgroundSetting === 'alternate' 
+              ? 'rgba(var(--theme-primary-rgb), 0.03)' 
+              : ctaBackgroundSetting === 'primary'
+                ? 'var(--theme-primary)'
+                : 'var(--theme-background)'
+          }}>
+            <div className="brand-container">
+              <div className="max-w-4xl mx-auto text-center">
+                <h2 className={`text-4xl md:text-5xl font-bold mb-6 leading-tight ${
+                  ctaBackgroundSetting === 'primary' ? 'text-white' : ''
+                }`} style={{
+                  fontFamily: 'var(--theme-font-heading)', 
+                  color: ctaBackgroundSetting === 'primary' ? 'white' : 'var(--theme-text)'
+                }}>
+                  {String(databaseCtaData.headline || 'Growing Together, Sustainably')}
+                </h2>
+                <div 
+                  className={`text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed ${
+                    ctaBackgroundSetting === 'primary' ? 'text-white/90' : ''
+                  } [&_p:not(:first-child)]:mt-2`}
                   style={{
                     fontFamily: 'var(--theme-font-body)',
-                    color: 'white',
+                    color: ctaBackgroundSetting === 'primary' ? 'rgba(255,255,255,0.9)' : 'var(--theme-text)',
+                    opacity: ctaBackgroundSetting === 'primary' ? 1 : '0.7'
                   }}
-                >
-                  Browse Plants
-                </a>
+                  dangerouslySetInnerHTML={{
+                    __html: textToHtml(String(databaseCtaData.description || 'Our mission is to help you create thriving plant sanctuaries while protecting our planet for future generations.'))
+                  }}
+                />
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  {/* Primary CTA */}
+                  {(databaseCtaData.ctaText || databaseCtaData.ctaLink) && (
+                    <a 
+                      href={String(databaseCtaData.ctaLink || '/plants')}
+                      className={`px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 hover:opacity-90 ${
+                        ctaBackgroundSetting === 'primary' 
+                          ? 'bg-white hover:bg-gray-100' 
+                          : 'hover:bg-theme-primary/90'
+                      }`}
+                      style={{
+                        backgroundColor: ctaBackgroundSetting === 'primary' ? 'white' : 'var(--theme-primary)',
+                        color: ctaBackgroundSetting === 'primary' ? 'var(--theme-primary)' : 'white',
+                        fontFamily: 'var(--theme-font-body)'
+                      }}
+                    >
+                      {String(databaseCtaData.ctaText || 'Shop Plants')}
+                    </a>
+                  )}
+                  
+                  {/* Secondary CTA */}
+                  {(databaseCtaData.secondaryCtaText || databaseCtaData.secondaryCtaLink) && (
+                    <a 
+                      href={String(databaseCtaData.secondaryCtaLink || '/products')}
+                      className={`px-8 py-3 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:opacity-80 ${
+                        ctaBackgroundSetting === 'primary' 
+                          ? 'border-white text-white hover:bg-white hover:text-theme-primary' 
+                          : 'hover:bg-theme-primary hover:text-white'
+                      }`}
+                      style={{
+                        borderColor: ctaBackgroundSetting === 'primary' ? 'white' : 'var(--theme-primary)',
+                        color: ctaBackgroundSetting === 'primary' ? 'white' : 'var(--theme-primary)',
+                        backgroundColor: 'transparent',
+                        fontFamily: 'var(--theme-font-body)'
+                      }}
+                    >
+                      {String(databaseCtaData.secondaryCtaText || 'Browse Plants')}
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-      </ViewportLazyLoad>
+          </section>
+        </ViewportLazyLoad>
+      )}
     </SiteRenderer>
   )
 }

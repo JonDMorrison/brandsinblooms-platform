@@ -14,6 +14,10 @@ export const getSectionBackgroundStyle = (settings?: ContentSection['settings'])
     return { backgroundColor: 'rgba(var(--theme-primary-rgb), 0.03)' }
   }
   
+  if (backgroundType === 'primary') {
+    return { backgroundColor: 'var(--theme-primary)' }
+  }
+  
   // Default background
   return { backgroundColor: 'var(--theme-background)' }
 }

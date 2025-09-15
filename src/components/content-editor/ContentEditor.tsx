@@ -44,6 +44,9 @@ import {
   SoilGuideEditor
 } from './editors'
 
+// Import the CTAEditor component
+import { CTAEditor } from '@/src/components/content-sections/editors/CTAEditor'
+
 // Import schemas and types
 import { 
   PageContent, 
@@ -146,8 +149,10 @@ const SectionEditor = function SectionEditor({
         return <CategoriesEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
       case 'richText':
-      case 'cta':
         return <RichTextSectionEditor {...commonProps} />
+        
+      case 'cta':
+        return <CTAEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
       case 'text':
         return <TextSectionEditor {...commonProps} />
