@@ -117,11 +117,13 @@ export function getResponsiveGridClasses(
   }
 
   // Container query versions - replace media queries completely
+  // Note: @lg = 512px, @xl = 576px, @2xl = 672px, @3xl = 768px, @4xl = 896px, @5xl = 1024px
+  // Use @5xl (1024px) to match lg: media query behavior for 4-column layouts
   return {
-    featuresGrid: 'grid grid-cols-1 @md:grid-cols-2 @lg:grid-cols-3',
-    cardsGrid: 'grid grid-cols-1 @md:grid-cols-2 @lg:grid-cols-4',
-    testimonialsGrid: 'grid grid-cols-1 @md:grid-cols-2 @lg:grid-cols-3',
-    galleryGrid: 'grid grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4'
+    featuresGrid: 'grid grid-cols-1 @md:grid-cols-2 @5xl:grid-cols-3',
+    cardsGrid: 'grid grid-cols-1 @md:grid-cols-2 @5xl:grid-cols-4',
+    testimonialsGrid: 'grid grid-cols-1 @md:grid-cols-2 @5xl:grid-cols-3',
+    galleryGrid: 'grid grid-cols-2 @md:grid-cols-3 @5xl:grid-cols-4'
   }
 }
 

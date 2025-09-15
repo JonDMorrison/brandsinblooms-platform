@@ -43,12 +43,15 @@ const getFeatureGridClasses = (featureCount: number): string => {
 export async function HomePage() {
   const { siteId } = await getSiteHeaders()
   
-  // Fetch database content for hero and featured sections
+  // Fetch database content for hero, featured, and categories sections
   let databaseHeroData = null
   let heroStatus = 'not_found' // 'not_found', 'unpublished', 'missing_hero', 'available'
   let databaseFeaturedData = null
   let featuredStatus = 'not_found' // 'not_found', 'available'
   let featuredBackgroundSetting = 'default' // Store the background setting
+  let databaseCategoriesData = null
+  let categoriesStatus = 'not_found' // 'not_found', 'available'
+  let categoriesBackgroundSetting = 'default' // Store the background setting
   
   try {
     const supabase = await createClient()
@@ -71,7 +74,15 @@ export async function HomePage() {
           databaseFeaturedData = pageContent.sections.featured.data
           featuredStatus = 'available'
           // Store the background setting
-          featuredBackgroundSetting = pageContent.sections.featured.settings?.backgroundColor || 'default'
+          featuredBackgroundSetting = String(pageContent.sections.featured.settings?.backgroundColor || 'default')
+        }
+        
+        // Check for categories section data
+        if (pageContent?.sections?.categories?.data && pageContent.sections.categories.visible) {
+          databaseCategoriesData = pageContent.sections.categories.data
+          categoriesStatus = 'available'
+          // Store the background setting
+          categoriesBackgroundSetting = String(pageContent.sections.categories.settings?.backgroundColor || 'default')
         }
       }
     }
@@ -297,68 +308,114 @@ export async function HomePage() {
         </FeaturedPlantsErrorBoundary>
       )}
 
-      {/* Plant Categories Section - Lazy loaded */}
-      <ViewportLazyLoad
-        fallback={<PlantCategoriesSkeleton />}
-        delay={100}
-      >
-        {categoriesBlock?.isVisible && (
-          <CategoriesSectionErrorBoundary>
-            <section className="py-16" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.03)'}}>
-              <div className="brand-container">
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                    Shop by Category
-                  </h2>
-                  <p className="text-lg max-w-2xl mx-auto" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                    Find the perfect plants for your experience level and space
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {[
-                    { name: 'Beginner-Friendly', plants: beginnerPlants, description: 'Easy-care plants perfect for new plant parents' },
-                    { name: 'Houseplants', plants: houseplants, description: 'Beautiful indoor plants for every room' },
-                    { name: 'Outdoor Plants', plants: outdoorPlants, description: 'Hardy plants for gardens and patios' },
-                    { name: 'Succulents', plants: succulents, description: 'Low-maintenance desert beauties' }
-                  ].map((category, index) => (
-                    <div key={`category-${category.name}-${index}`} className="group cursor-pointer h-full">
-                      <div className="relative overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-                        <div className="aspect-w-4 aspect-h-3 h-48 flex items-center justify-center" style={{backgroundColor: 'var(--theme-primary)', opacity: '0.1'}}>
+      {/* Categories Section - Database driven */}
+      {categoriesStatus === 'available' && databaseCategoriesData && (
+        <CategoriesSectionErrorBoundary>
+          <section className="py-16" style={{
+            backgroundColor: categoriesBackgroundSetting === 'alternate' 
+              ? 'rgba(var(--theme-primary-rgb), 0.03)' 
+              : 'var(--theme-background)'
+          }}>
+            <div className="brand-container">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                  {String(databaseCategoriesData.headline || 'Shop By Category')}
+                </h2>
+                <div 
+                  className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
+                  style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
+                  dangerouslySetInnerHTML={{
+                    __html: textToHtml(String(databaseCategoriesData.description || 'Find Your Perfect Plant Match'))
+                  }}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {[
+                  {
+                    id: 'beginner-friendly',
+                    name: 'Beginner-Friendly',
+                    image: '/images/golden-pothos.jpg',
+                    link: '/plants?care-level=beginner',
+                    plantCount: 12,
+                    description: 'Perfect for new plant parents - low maintenance, forgiving varieties'
+                  },
+                  {
+                    id: 'houseplants',
+                    name: 'Houseplants',
+                    image: '/images/snake-plant.jpg',
+                    link: '/plants?category=houseplants',
+                    plantCount: 25,
+                    description: 'Transform indoor spaces with air-purifying and decorative plants'
+                  },
+                  {
+                    id: 'outdoor',
+                    name: 'Outdoor Specimens',
+                    image: '/images/japanese-maple.jpg',
+                    link: '/plants?category=outdoor',
+                    plantCount: 18,
+                    description: 'Hardy outdoor plants for landscaping and garden design'
+                  },
+                  {
+                    id: 'succulents',
+                    name: 'Succulents & Cacti',
+                    image: '/images/fiddle-leaf-fig.jpg',
+                    link: '/plants?category=succulents',
+                    plantCount: 15,
+                    description: 'Drought-tolerant beauties perfect for sunny spots and xeriscaping'
+                  }
+                ].map((category: any) => (
+                  <a key={category.id} href={category.link} className="group cursor-pointer h-full block">
+                    <div className="relative overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+                      {/* Category Image Area */}
+                      <div className="aspect-w-4 aspect-h-3 h-48 relative overflow-hidden">
+                        <img 
+                          src={category.image} 
+                          alt={category.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/20"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
                           <div className="text-center p-4">
-                            <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{backgroundColor: 'var(--theme-primary)'}}>
-                              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm1 0v12h12V4H4z" clipRule="evenodd" />
-                                <path d="M9 9a2 2 0 114 0 2 2 0 01-4 0zM7 13l2-2 2 2 4-4v2l-4 4-2-2-2 2v-2z" />
-                              </svg>
-                            </div>
-                            <p className="text-sm font-medium" style={{color: 'var(--theme-primary)'}}>{category.name}</p>
-                          </div>
-                        </div>
-                        <div className="p-6 flex flex-col flex-1">
-                          <h3 className="text-xl font-semibold mb-2" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                            {category.name}
-                          </h3>
-                          <p className="text-sm mb-3 flex-1" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                            {category.description}
-                          </p>
-                          <div className="flex items-center justify-between mt-auto">
-                            <span className="text-sm font-medium" style={{color: 'var(--theme-primary)'}}>
-                              {category.plants.length} plants
-                            </span>
-                            <span className="text-sm font-medium group-hover:translate-x-1 transition-transform" style={{color: 'var(--theme-primary)'}}>
-                              View all →
-                            </span>
+                            <p className="text-sm font-medium text-white bg-black/50 px-3 py-1 rounded-full">
+                              {category.name}
+                            </p>
                           </div>
                         </div>
                       </div>
+                      
+                      {/* Category Info */}
+                      <div className="p-6 flex flex-col flex-1">
+                        <h3 className="text-xl font-semibold mb-2" 
+                            style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                          {category.name}
+                        </h3>
+                        
+                        <p className="text-sm mb-3 flex-1"
+                           style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
+                          {category.description}
+                        </p>
+                        
+                        {/* Bottom Row with Plant Count and View All */}
+                        <div className="flex items-center justify-between mt-auto">
+                          <span className="text-sm font-medium" style={{color: 'var(--theme-primary)'}}>
+                            {category.plantCount} plants
+                          </span>
+                          <span className="text-sm font-medium group-hover:translate-x-1 transition-transform" 
+                                style={{color: 'var(--theme-primary)'}}>
+                            View all →
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  </a>
+                ))}
               </div>
-            </section>
-          </CategoriesSectionErrorBoundary>
-        )}
-      </ViewportLazyLoad>
+            </div>
+          </section>
+        </CategoriesSectionErrorBoundary>
+      )}
+
 
       {/* Seasonal Plant Care Section - Lazy loaded */}
       <ViewportLazyLoad

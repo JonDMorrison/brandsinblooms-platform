@@ -21,6 +21,7 @@ export type ContentSectionType =
   | 'gallery' 
   | 'features'
   | 'featured'
+  | 'categories'
   | 'hero'
   | 'cta'
   | 'testimonials'
@@ -208,7 +209,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
 }> = {
   landing: {
     required: ['hero'],
-    optional: ['featured', 'features', 'cta', 'testimonials'],
+    optional: ['featured', 'categories', 'features', 'cta', 'testimonials'],
     defaultSections: {
       hero: {
         type: 'hero',
@@ -230,6 +231,49 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         visible: false,
         order: 2
       },
+      categories: {
+        type: 'categories',
+        data: {
+          headline: 'Shop By Category',
+          description: 'Find Your Perfect Plant Match',
+          categories: [
+            {
+              id: 'beginner-friendly',
+              name: 'Beginner-Friendly',
+              image: '/images/golden-pothos.jpg',
+              link: '/plants?care-level=beginner',
+              plantCount: 12,
+              description: 'Perfect for new plant parents - low maintenance, forgiving varieties'
+            },
+            {
+              id: 'houseplants',
+              name: 'Houseplants',
+              image: '/images/snake-plant.jpg',
+              link: '/plants?category=houseplants',
+              plantCount: 25,
+              description: 'Transform indoor spaces with air-purifying and decorative plants'
+            },
+            {
+              id: 'outdoor',
+              name: 'Outdoor Specimens',
+              image: '/images/japanese-maple.jpg',
+              link: '/plants?category=outdoor',
+              plantCount: 18,
+              description: 'Hardy outdoor plants for landscaping and garden design'
+            },
+            {
+              id: 'succulents',
+              name: 'Succulents & Cacti',
+              image: '/images/fiddle-leaf-fig.jpg',
+              link: '/plants?category=succulents',
+              plantCount: 15,
+              description: 'Drought-tolerant beauties perfect for sunny spots and xeriscaping'
+            }
+          ]
+        },
+        visible: false,
+        order: 3
+      },
       features: {
         type: 'features',
         data: {
@@ -237,7 +281,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           columns: 3
         },
         visible: true,
-        order: 3
+        order: 4
       },
       cta: {
         type: 'cta',
@@ -246,7 +290,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           alignment: 'center'
         },
         visible: true,
-        order: 4
+        order: 5
       },
       testimonials: {
         type: 'testimonials',
@@ -255,7 +299,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           columns: 2
         },
         visible: false,
-        order: 5
+        order: 6
       }
     }
   },
@@ -488,7 +532,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     required: [], // No required sections - complete flexibility
     optional: [
       'hero', 'text', 'richText', 'image', 'icon', 'gallery', 
-      'features', 'cta', 'testimonials', 'form', 'pricing', 
+      'features', 'featured', 'categories', 'cta', 'testimonials', 'form', 'pricing', 
       'team', 'mission', 'values', 'specifications'
     ],
     defaultSections: {

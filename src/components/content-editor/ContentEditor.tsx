@@ -18,6 +18,7 @@ import { toast } from 'sonner'
 import { 
   HeroEditor,
   FeaturedEditor,
+  CategoriesEditor,
   RichTextSectionEditor,
   TextSectionEditor,
   ImageSectionEditor,
@@ -140,6 +141,9 @@ const SectionEditor = function SectionEditor({
         
       case 'featured':
         return <FeaturedEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
+        
+      case 'categories':
+        return <CategoriesEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
       case 'richText':
       case 'cta':

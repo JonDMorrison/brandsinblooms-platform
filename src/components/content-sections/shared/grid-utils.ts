@@ -16,7 +16,7 @@ export const getFeatureGridClasses = (featureCount: number, isPreviewMode: boole
   } else if (featureCount === 3) {
     return `grid-cols-2 ${mediaPrefix}md:grid-cols-3`
   } else {
-    return `grid-cols-2 ${mediaPrefix}md:grid-cols-4`
+    return `grid-cols-2 ${mediaPrefix}md:grid-cols-2 ${mediaPrefix}lg:grid-cols-4`
   }
 }
 

@@ -8,6 +8,7 @@ import { useSiteTheme } from '@/hooks/useSiteTheme'
 import { 
   HeroPreview, 
   FeaturedPreview, 
+  CategoriesPreview,
   FeaturesPreview,
   CtaPreview,
   TextPreview,
@@ -45,6 +46,9 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
 
     case 'featured':
       return <FeaturedPreview {...commonProps} />
+
+    case 'categories':
+      return <CategoriesPreview {...commonProps} />
 
     case 'features':
       return <FeaturesPreview {...commonProps} />
