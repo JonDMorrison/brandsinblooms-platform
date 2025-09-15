@@ -10,12 +10,17 @@ import {
   User,
   Package,
   Phone,
-  Layers
+  Layers,
+  Globe,
+  Search
 } from 'lucide-react'
 import { ContentEditor, SectionManager } from '@/src/components/content-editor'
 import { CombinedSectionManager } from './CombinedSectionManager'
-import { PageContent, LayoutType as ContentLayoutType } from '@/src/lib/content'
+import { PageTab } from './PageTab'
+import { SEOTab } from './SEOTab'
+import { PageContent, LayoutType as ContentLayoutType, SEOSettings } from '@/src/lib/content'
 import { useContentEditor } from '@/src/hooks/useContentEditor'
+import { usePageSettings } from '@/src/hooks/usePageSettings'
 
 type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact' | 'other'
 
@@ -48,6 +53,14 @@ interface EditorSidebarProps {
   onTitleChange: (title: string) => void
   onPageTitleChange: (title: string) => void
   onSectionClick: (sectionKey: string | undefined) => void
+  siteUrl?: string
+  // Database column props
+  initialSlug?: string
+  initialIsPublished?: boolean
+  onSlugChange?: (slug: string) => void
+  onPublishedChange?: (published: boolean) => void
+  seoSettings?: SEOSettings
+  onSEOChange?: (settings: SEOSettings) => void
 }
 
 export function EditorSidebar({
@@ -62,7 +75,14 @@ export function EditorSidebar({
   onContentChange,
   onTitleChange,
   onPageTitleChange,
-  onSectionClick
+  onSectionClick,
+  siteUrl = 'example.com',
+  initialSlug = '',
+  initialIsPublished = false,
+  onSlugChange,
+  onPublishedChange,
+  seoSettings,
+  onSEOChange
 }: EditorSidebarProps) {
   const validLayout = pageData.layout in layoutInfo ? pageData.layout : 'landing'
   
@@ -75,59 +95,53 @@ export function EditorSidebar({
     onContentChange: onContentChange
   })
 
+  // Page settings management using custom hook
+  const pageSettingsHook = usePageSettings({
+    initialContent: pageContent || contentEditorHook.content,
+    initialSlug,
+    initialIsPublished,
+    pageTitle: pageData.title || '',
+    onContentChange: onContentChange,
+    onSlugChange,
+    onPublishedChange
+  })
+
   return (
     <div className="w-96 border-r bg-muted/30 flex flex-col overflow-hidden">
-      <Tabs defaultValue="combined" className="w-full h-full flex flex-col">
+      <Tabs defaultValue="page" className="w-full h-full flex flex-col">
         <div className="p-4 border-b flex-shrink-0">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="settings">Page</TabsTrigger>
-            <TabsTrigger value="combined">Sections</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="page">Page</TabsTrigger>
+            <TabsTrigger value="seo">SEO</TabsTrigger>
+            <TabsTrigger value="sections">Sections</TabsTrigger>
           </TabsList>
         </div>
         
-        <TabsContent value="settings" className="mt-0 flex-1 overflow-y-auto">
-          <div className="p-4 space-y-4">
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium">Page Settings</h3>
-              
-              {/* Page Title */}
-              <div className="space-y-2">
-                <Label htmlFor="page-title" className="text-xs font-medium">
-                  Page Title
-                </Label>
-                <Input
-                  id="page-title"
-                  type="text"
-                  value={pageData.title || ''}
-                  onChange={(e) => onPageTitleChange(e.target.value)}
-                  className="h-8"
-                  placeholder="Enter page title"
-                />
-                <p className="text-xs text-gray-500">
-                  This is the internal page name and title used for navigation
-                </p>
-              </div>
+        <TabsContent value="page" className="mt-0 flex-1 overflow-y-auto">
+          <PageTab
+            slug={pageSettingsHook.slug}
+            isPublished={pageSettingsHook.isPublished}
+            onSlugChange={pageSettingsHook.handleSlugChange}
+            onPublishedChange={pageSettingsHook.handlePublishedChange}
+            pageTitle={pageData.title || ''}
+            onPageTitleChange={onPageTitleChange}
+            layout={validLayout as ContentLayoutType}
+            siteUrl={siteUrl}
+            siteId={siteId}
+            contentId={contentId}
+          />
+        </TabsContent>
 
-              {/* Layout Display (Read-only) */}
-              <div className="space-y-2">
-                <Label className="text-xs font-medium">Current Layout</Label>
-                <div className="p-3 border rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-3">
-                    <div className="p-1.5 rounded-md bg-primary text-primary-foreground">
-                      <Settings className="h-3.5 w-3.5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{layoutInfo[validLayout].name}</p>
-                      <p className="text-xs text-gray-500">Optimized for {validLayout} pages</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <TabsContent value="seo" className="mt-0 flex-1 overflow-y-auto">
+          <SEOTab
+            seoSettings={seoSettings || { title: '', description: '', keywords: [] }}
+            onSEOChange={onSEOChange || (() => {})}
+            pageTitle={pageData.title}
+            slug={pageSettingsHook.slug}
+          />
         </TabsContent>
         
-        <TabsContent value="combined" className="mt-0 flex-1 overflow-hidden flex flex-col">
+        <TabsContent value="sections" className="mt-0 flex-1 overflow-hidden flex flex-col">
           {(pageContent || contentEditorHook.content) && (
             <div className="flex-1 overflow-y-auto">
               <CombinedSectionManager

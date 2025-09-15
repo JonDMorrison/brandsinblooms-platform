@@ -174,6 +174,15 @@ export interface PlantCategory {
 }
 
 /**
+ * Simplified SEO metadata for pages
+ */
+export interface SEOSettings {
+  title?: string
+  description?: string
+  keywords?: string[]
+}
+
+/**
  * Main page content structure
  */
 export interface PageContent {
@@ -183,12 +192,7 @@ export interface PageContent {
     [sectionKey: string]: ContentSection
   }
   settings?: {
-    seo?: {
-      title?: string
-      description?: string
-      keywords?: string[]
-      ogImage?: string
-    }
+    seo?: SEOSettings
     layout?: {
       containerWidth?: 'narrow' | 'normal' | 'wide' | 'full'
       spacing?: 'tight' | 'normal' | 'loose'

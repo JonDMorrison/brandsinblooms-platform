@@ -8,7 +8,8 @@ import {
   PageContent, 
   LayoutType as ContentLayoutType, 
   serializePageContent, 
-  deserializePageContent 
+  deserializePageContent,
+  SEOSettings 
 } from '@/src/lib/content'
 import { handleError } from '@/src/lib/types/error-handling'
 
@@ -43,6 +44,15 @@ export function useContentEditorData({
   const [pageContent, setPageContent] = useState<PageContent | null>(null)
   const [unifiedContent, setUnifiedContent] = useState<UnifiedPageContent | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  
+  // Database column states
+  const [slug, setSlug] = useState<string>('')
+  const [isPublished, setIsPublished] = useState<boolean>(false)
+  const [seoSettings, setSeoSettings] = useState<SEOSettings>({
+    title: '',
+    description: '',
+    keywords: []
+  })
 
   // Load content from database
   useEffect(() => {
@@ -71,6 +81,18 @@ export function useContentEditorData({
           }
           
           setPageData(pageData)
+          
+          // Extract database column values
+          setSlug(content.slug || '')
+          setIsPublished(content.is_published || false)
+          
+          // Extract SEO settings from meta_data
+          const extractedSeoSettings: SEOSettings = {
+            title: (metaData?.seo as any)?.title || '',
+            description: (metaData?.seo as any)?.description || '',
+            keywords: (metaData?.seo as any)?.keywords || []
+          }
+          setSeoSettings(extractedSeoSettings)
           
           // Deserialize the page content if available
           if (content.content) {
@@ -175,6 +197,74 @@ export function useContentEditorData({
     }
   }, [pageData])
 
+  // Handler for slug changes
+  const handleSlugChange = useCallback(async (newSlug: string) => {
+    if (!contentId || !siteId) {
+      throw new Error('Missing required information to update slug')
+    }
+
+    try {
+      await updateContent(supabase, siteId, contentId, {
+        slug: newSlug
+      })
+      setSlug(newSlug)
+      setHasUnsavedChanges(false)
+      toast.success('Page URL updated successfully!')
+    } catch (error) {
+      handleError(error)
+      toast.error('Failed to update page URL')
+      throw error
+    }
+  }, [contentId, siteId])
+
+  // Handler for published status changes
+  const handlePublishedChange = useCallback(async (published: boolean) => {
+    if (!contentId || !siteId) {
+      throw new Error('Missing required information to update published status')
+    }
+
+    try {
+      await updateContent(supabase, siteId, contentId, {
+        is_published: published,
+        published_at: published ? new Date().toISOString() : null
+      })
+      setIsPublished(published)
+      setHasUnsavedChanges(false)
+      toast.success(`Page ${published ? 'published' : 'unpublished'} successfully!`)
+    } catch (error) {
+      handleError(error)
+      toast.error(`Failed to ${published ? 'publish' : 'unpublish'} page`)
+      throw error
+    }
+  }, [contentId, siteId])
+
+  // Handler for SEO changes
+  const handleSEOChange = useCallback(async (newSeoSettings: SEOSettings) => {
+    if (!contentId || !siteId) {
+      throw new Error('Missing required information to update SEO settings')
+    }
+
+    try {
+      // Get current meta_data and update SEO section
+      const currentMetaData = pageData ? { layout: pageData.layout } : {}
+      const updatedMetaData = {
+        ...currentMetaData,
+        seo: newSeoSettings
+      }
+
+      await updateContent(supabase, siteId, contentId, {
+        meta_data: updatedMetaData as any
+      })
+      setSeoSettings(newSeoSettings)
+      setHasUnsavedChanges(false)
+      toast.success('SEO settings updated successfully!')
+    } catch (error) {
+      handleError(error)
+      toast.error('Failed to update SEO settings')
+      throw error
+    }
+  }, [contentId, siteId, pageData])
+
   // Save content to database
   const handleContentSave = useCallback(async (content: PageContent) => {
     if (!contentId || !siteId || !unifiedContent) {
@@ -192,7 +282,7 @@ export function useContentEditorData({
       contentId,
       {
         title: pageData?.title || '',
-        meta_data: metaData,
+        meta_data: metaData as any,
         content: serializePageContent(content),
         content_type: content.layout === 'blog' ? 'blog_post' : 'page'
       }
@@ -217,8 +307,16 @@ export function useContentEditorData({
     setUnifiedContent,
     hasUnsavedChanges,
     setHasUnsavedChanges,
+    // Database column values
+    slug,
+    isPublished,
+    seoSettings,
+    // Handlers
     handleTitleChange,
     handleContentChange,
-    handleContentSave
+    handleContentSave,
+    handleSlugChange,
+    handlePublishedChange,
+    handleSEOChange
   }
 }

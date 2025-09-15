@@ -85,9 +85,15 @@ function PageEditorContent() {
     setUnifiedContent,
     hasUnsavedChanges,
     setHasUnsavedChanges,
+    slug,
+    isPublished,
+    seoSettings,
     handleTitleChange,
     handleContentChange,
     handleContentSave,
+    handleSlugChange,
+    handlePublishedChange,
+    handleSEOChange,
   } = useContentEditorData({
     contentId,
     siteId: currentSite?.id,
@@ -232,6 +238,13 @@ function PageEditorContent() {
             onTitleChange={handleTitleChange}
             onPageTitleChange={handlePageTitleChange}
             onSectionClick={setActiveSectionKey}
+            siteUrl={process.env.NEXT_PUBLIC_APP_DOMAIN || 'example.com'}
+            initialSlug={slug}
+            initialIsPublished={isPublished}
+            onSlugChange={handleSlugChange}
+            onPublishedChange={handlePublishedChange}
+            seoSettings={seoSettings}
+            onSEOChange={handleSEOChange}
           />
         )}
 
