@@ -18,6 +18,7 @@ interface SEOTabProps {
   onSEOChange: (settings: SEOSettings) => void
   pageTitle?: string
   slug?: string
+  siteUrl?: string
 }
 
 export function SEOTab({ seoSettings, onSEOChange, pageTitle, slug }: SEOTabProps) {

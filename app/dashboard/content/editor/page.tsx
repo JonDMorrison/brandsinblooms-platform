@@ -9,6 +9,9 @@ import { useSiteContext } from '@/src/contexts/SiteContext';
 import { EditModeProvider } from '@/src/contexts/EditModeContext';
 import { VisualEditorProvider } from '@/src/contexts/VisualEditorContext';
 
+// Site Utils
+import { getCustomerSiteDisplayUrl } from '@/src/lib/site/url-utils';
+
 // Content Management
 import { VisualEditor } from '@/src/components/content-editor/visual/VisualEditor';
 import { InlineLoader } from '@/src/components/content-editor/visual/LoadingStates';
@@ -238,7 +241,7 @@ function PageEditorContent() {
             onTitleChange={handleTitleChange}
             onPageTitleChange={handlePageTitleChange}
             onSectionClick={setActiveSectionKey}
-            siteUrl={process.env.NEXT_PUBLIC_APP_DOMAIN || 'example.com'}
+            siteUrl={currentSite ? getCustomerSiteDisplayUrl(currentSite) : 'example.com'}
             initialSlug={slug}
             initialIsPublished={isPublished}
             onSlugChange={handleSlugChange}

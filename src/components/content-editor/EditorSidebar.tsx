@@ -138,6 +138,7 @@ export function EditorSidebar({
             onSEOChange={onSEOChange || (() => {})}
             pageTitle={pageData.title}
             slug={pageSettingsHook.slug}
+            siteUrl={siteUrl}
           />
         </TabsContent>
         
