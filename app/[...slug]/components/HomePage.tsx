@@ -52,6 +52,9 @@ export async function HomePage() {
   let databaseCategoriesData = null
   let categoriesStatus = 'not_found' // 'not_found', 'available'
   let categoriesBackgroundSetting = 'default' // Store the background setting
+  let databaseFeaturesData = null
+  let featuresStatus = 'not_found' // 'not_found', 'available'
+  let featuresBackgroundSetting = 'default' // Store the background setting
   
   try {
     const supabase = await createClient()
@@ -84,6 +87,14 @@ export async function HomePage() {
           // Store the background setting
           categoriesBackgroundSetting = String(pageContent.sections.categories.settings?.backgroundColor || 'default')
         }
+        
+        // Check for features section data
+        if (pageContent?.sections?.features?.data && pageContent.sections.features.visible) {
+          databaseFeaturesData = pageContent.sections.features.data
+          featuresStatus = 'available'
+          // Store the background setting
+          featuresBackgroundSetting = String(pageContent.sections.features.settings?.backgroundColor || 'default')
+        }
       }
     }
   } catch (error) {
@@ -93,16 +104,10 @@ export async function HomePage() {
   
   // Get hardcoded content for other sections (keep existing functionality)
   const homePageData = plantShopContent.home
-  const categoriesBlock = homePageData.blocks.find(block => block.type === 'categories')
-  const featuresBlock = homePageData.blocks.find(block => block.type === 'features')
   const careGuidesBlock = homePageData.blocks.find(block => block.type === 'care_guides')
   
   // Get data for sections
   const featuredPlants = getFeaturedPlants()
-  const beginnerPlants = getPlantsByCareLevel('beginner')
-  const houseplants = getPlantsByCategory('houseplants')
-  const outdoorPlants = getPlantsByCategory('outdoor')
-  const succulents = getPlantsByCategory('succulents')
   
   return (
     <SiteRenderer 
@@ -416,39 +421,41 @@ export async function HomePage() {
         </CategoriesSectionErrorBoundary>
       )}
 
-
-      {/* Plant Care Features Section - Lazy loaded */}
-      <ViewportLazyLoad
-        fallback={<SeasonalSectionSkeleton />}
-        delay={200}
-      >
-        {featuresBlock?.isVisible && (
-          <section className="py-16" style={{backgroundColor: 'var(--theme-background)'}}>
-            <div className="brand-container">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                  {(featuresBlock.content as any).headline}
-                </h2>
-                <p className="text-lg max-w-2xl mx-auto" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                  {(featuresBlock.content as any).description}
-                </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {((featuresBlock.content as any).features as string[]).map((feature, index) => (
-                  <div key={`feature-${index}`} className="p-6 rounded-lg border text-center" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.05)', borderColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto" style={{backgroundColor: 'var(--theme-primary)'}}>
-                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{feature}</p>
-                  </div>
-                ))}
-              </div>
+      {/* Features Section - Database driven */}
+      {featuresStatus === 'available' && databaseFeaturesData && (
+        <section className="py-16" style={{
+          backgroundColor: featuresBackgroundSetting === 'alternate' 
+            ? 'rgba(var(--theme-primary-rgb), 0.03)' 
+            : 'var(--theme-background)'
+        }}>
+          <div className="brand-container">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                {String(databaseFeaturesData.headline || 'Essential Plant Care Features')}
+              </h2>
+              <div 
+                className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
+                style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
+                dangerouslySetInnerHTML={{
+                  __html: textToHtml(String(databaseFeaturesData.description || 'Master these key practices for healthy, thriving plants year-round'))
+                }}
+              />
             </div>
-          </section>
-        )}
-      </ViewportLazyLoad>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {((databaseFeaturesData.features as string[]) || []).map((feature, index) => (
+                <div key={`feature-${index}`} className="p-6 rounded-lg border text-center" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.05)', borderColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto" style={{backgroundColor: 'var(--theme-primary)'}}>
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{String(feature)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Plant Care Guides Section - Lazy loaded */}
       <ViewportLazyLoad

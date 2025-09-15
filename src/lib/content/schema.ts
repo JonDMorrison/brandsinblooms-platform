@@ -277,11 +277,19 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
       features: {
         type: 'features',
         data: {
-          items: [],
-          columns: 3
+          headline: 'Essential Plant Care Features',
+          description: 'Master these key practices for healthy, thriving plants year-round',
+          features: [
+            'Reduce watering frequency as growth slows',
+            'Move tender plants indoors before first frost',
+            'Apply winter protection to marginally hardy plants'
+          ]
         },
         visible: true,
-        order: 4
+        order: 4,
+        settings: {
+          backgroundColor: 'default'
+        }
       },
       cta: {
         type: 'cta',

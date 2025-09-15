@@ -1,125 +1,130 @@
-'use client'
+/**
+ * Features section editor component
+ * Handles features section configuration matching customer site structure:
+ * headline, description, and simple features array
+ */
 
-import React, { useCallback } from 'react'
-import { ContentSection, ContentItem } from '@/src/lib/content/schema'
-import { ItemListEditor } from '../shared/ItemListEditor'
-import { Input } from '@/src/components/ui/input'
-import { Textarea } from '@/src/components/ui/textarea'
-import { IconPicker } from '@/src/components/content-editor'
+import React from 'react'
+import { ContentSection } from '@/src/lib/content/schema'
 import { Label } from '@/src/components/ui/label'
-import { ColumnsSelector } from '../shared/ColumnsSelector'
+import { Button } from '@/src/components/ui/button'
+import { Plus, X } from 'lucide-react'
+import { 
+  FormField, 
+  TextareaField, 
+  FormSection 
+} from '@/src/components/content-editor/editors/shared/form-utils'
+import { BackgroundToggle } from '@/src/components/content-editor/editors/shared/background-toggle'
 
-interface SectionEditorProps {
+interface FeaturesEditorProps {
   section: ContentSection
-  onUpdate: (data: Partial<ContentSection['data']>) => void
+  sectionKey: string
+  onUpdate: (sectionKey: string, section: ContentSection) => void
 }
 
-export function FeaturesEditor({ section, onUpdate }: SectionEditorProps) {
-  const items = (section.data.items as ContentItem[]) || []
-  const columns = section.data.columns || 3
+export function FeaturesEditor({ section, sectionKey, onUpdate }: FeaturesEditorProps) {
+  const { data } = section
+  const features = (data.features as string[]) || []
 
-  const handleAddFeature = useCallback(() => {
-    const newFeature: ContentItem = {
-      id: `feature-${Date.now()}`,
-      title: 'New Feature',
-      content: '',
-      icon: 'star',
-      order: items.length + 1
-    }
-    onUpdate({ items: [...items, newFeature] })
-  }, [items, onUpdate])
+  const handleDataChange = (newData: Partial<ContentSection['data']>) => {
+    onUpdate(sectionKey, {
+      ...section,
+      data: { ...section.data, ...newData }
+    })
+  }
 
-  const handleUpdateFeature = useCallback((index: number, updatedFeature: ContentItem) => {
-    const newItems = [...items]
-    newItems[index] = updatedFeature
-    onUpdate({ items: newItems })
-  }, [items, onUpdate])
+  const handleAddFeature = () => {
+    const newFeatures = [...features, 'New feature description']
+    handleDataChange({ features: newFeatures })
+  }
 
-  const handleRemoveFeature = useCallback((index: number) => {
-    const newItems = items.filter((_, i) => i !== index)
-    onUpdate({ items: newItems })
-  }, [items, onUpdate])
+  const handleUpdateFeature = (index: number, newText: string) => {
+    const newFeatures = [...features]
+    newFeatures[index] = newText
+    handleDataChange({ features: newFeatures })
+  }
 
-  const handleReorder = useCallback((reorderedItems: ContentItem[]) => {
-    const itemsWithOrder = reorderedItems.map((item, index) => ({
-      ...item,
-      order: index + 1
-    }))
-    onUpdate({ items: itemsWithOrder })
-  }, [onUpdate])
-
-  const renderFeatureItem = useCallback((feature: ContentItem, index: number) => {
-    return (
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label className="text-xs">Icon</Label>
-            <IconPicker
-              value={feature.icon || 'star'}
-              onChange={(icon) => {
-                handleUpdateFeature(index, { ...feature, icon })
-              }}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs">Feature Title</Label>
-            <Input
-              value={feature.title || ''}
-              onChange={(e) => {
-                handleUpdateFeature(index, { ...feature, title: e.target.value })
-              }}
-              placeholder="Feature name"
-              className="h-8"
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label className="text-xs">Description</Label>
-          <Textarea
-            value={feature.content || ''}
-            onChange={(e) => {
-              handleUpdateFeature(index, { ...feature, content: e.target.value })
-            }}
-            placeholder="Describe this feature..."
-            rows={3}
-            className="resize-none"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-xs">Link (Optional)</Label>
-          <Input
-            value={feature.url || ''}
-            onChange={(e) => {
-              handleUpdateFeature(index, { ...feature, url: e.target.value })
-            }}
-            placeholder="https://example.com or /page"
-            className="h-8"
-          />
-        </div>
-      </div>
-    )
-  }, [handleUpdateFeature])
+  const handleRemoveFeature = (index: number) => {
+    const newFeatures = features.filter((_, i) => i !== index)
+    handleDataChange({ features: newFeatures })
+  }
 
   return (
-    <div className="space-y-4">
-      <ColumnsSelector
-        value={columns}
-        onChange={(newColumns) => onUpdate({ columns: newColumns })}
-        min={1}
-        max={6}
-        label="Display Columns"
+    <>
+      {/* Features Section Title and Description fields */}
+      <FormSection>
+        <FormField
+          id="features-headline"
+          label="Title"
+          value={data.headline || ''}
+          onChange={(value) => handleDataChange({ headline: value })}
+          placeholder="Essential Plant Care Features"
+        />
+        
+        <TextareaField
+          id="features-description"
+          label="Description"
+          value={data.description || ''}
+          onChange={(value) => handleDataChange({ description: value })}
+          placeholder="Master these key practices for healthy, thriving plants year-round"
+          rows={3}
+        />
+      </FormSection>
+
+      {/* Background Color Toggle */}
+      <BackgroundToggle
+        sectionKey={sectionKey}
+        section={section}
+        onUpdate={onUpdate}
+        className="mb-4"
       />
-      
-      <ItemListEditor
-        items={items}
-        onAdd={handleAddFeature}
-        onUpdate={handleUpdateFeature}
-        onRemove={handleRemoveFeature}
-        onReorder={handleReorder}
-        renderItem={renderFeatureItem}
-        emptyMessage="No features added yet"
-        addButtonLabel="Add Feature"
-      />
-    </div>
+
+      {/* Features List Management */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-medium">Features</Label>
+          <Button
+            onClick={handleAddFeature}
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-xs"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Add Feature
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          {features.map((feature, index) => (
+            <div key={index} className="flex gap-2 items-start">
+              <div className="flex-1">
+                <textarea
+                  value={feature}
+                  onChange={(e) => handleUpdateFeature(index, e.target.value)}
+                  placeholder="Feature description..."
+                  className="w-full px-3 py-2 text-sm border border-input bg-background rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-h-[60px]"
+                  rows={2}
+                />
+              </div>
+              <Button
+                onClick={() => handleRemoveFeature(index)}
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
+
+        {features.length === 0 && (
+          <div className="text-center py-6 text-gray-500 border border-dashed border-gray-300 rounded-lg">
+            <p className="text-sm">No features added yet</p>
+            <p className="text-xs text-gray-400 mt-1">Click "Add Feature" to get started</p>
+          </div>
+        )}
+      </div>
+    </>
   )
 }

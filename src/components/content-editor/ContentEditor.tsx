@@ -159,7 +159,7 @@ const SectionEditor = function SectionEditor({
         return <IconSectionEditor {...commonProps} />
         
       case 'features':
-        return <FeaturesEditor {...commonProps} />
+        return <FeaturesEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
       case 'testimonials':
         return <TestimonialsEditor {...commonProps} />
