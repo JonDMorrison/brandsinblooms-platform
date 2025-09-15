@@ -30,6 +30,14 @@ export async function generatePageMetadata(
     case 'terms':
       pageKey = 'terms'
       break
+    case 'products':
+    case 'cart':
+    case 'checkout':
+    case 'account':
+    case 'account/orders':
+      // E-commerce and account pages use home page SEO as fallback
+      pageKey = 'home'
+      break
     default:
       // Try to get metadata from database content
       try {
