@@ -79,7 +79,7 @@ export function EditorSidebar({
       <Tabs defaultValue="content" className="w-full h-full flex flex-col">
         <div className="p-4 border-b flex-shrink-0">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="settings">Page</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="sections">Sections</TabsTrigger>
           </TabsList>

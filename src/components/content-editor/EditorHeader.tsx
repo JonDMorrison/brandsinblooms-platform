@@ -182,7 +182,7 @@ export function EditorHeader({
               ) : (
                 <PanelLeftOpen className="w-3.5 h-3.5 mr-1" />
               )}
-              {isSidebarOpen ? 'Close Panel' : 'Open Panel'}
+              Settings Panel
             </Button>
             
             <Separator orientation="vertical" className="h-4" />
