@@ -139,15 +139,16 @@ export function getGridColumns(columns: number = 3): string {
 
 /**
  * Get spacing classes based on spacing setting
+ * Note: Sections handle their own internal spacing, so inter-section spacing is minimal
  */
 export function getSpacingClass(spacing: 'tight' | 'normal' | 'loose' = 'normal'): string {
   switch (spacing) {
     case 'tight':
-      return 'space-y-4'
+      return 'space-y-0'
     case 'loose':
-      return 'space-y-12'
+      return 'space-y-4'
     default:
-      return 'space-y-8'
+      return 'space-y-0'
   }
 }
 
