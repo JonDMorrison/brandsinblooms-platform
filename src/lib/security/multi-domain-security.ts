@@ -413,9 +413,26 @@ export function applyRateLimit(
  */
 export function applySecurityHeaders(
   response: NextResponse,
-  site: Site
+  site: Site,
+  request?: NextRequest
 ): void {
   const config = getSecurityConfig()
+
+  // Check if this is an iframe preview request
+  const isPreviewMode = request &&
+    request.nextUrl.searchParams.get('_preview_mode') === 'iframe'
+
+  // Debug logging for preview mode detection
+  if (process.env.NODE_ENV !== 'production') {
+    const searchParams = request?.nextUrl.searchParams
+    console.log('[SECURITY_DEBUG] Preview mode detection:', {
+      isPreviewMode,
+      previewModeParam: searchParams?.get('_preview_mode'),
+      dashboardOrigin: searchParams?.get('_dashboard_origin'),
+      url: request?.url,
+      willSkipXFrameOptions: isPreviewMode
+    })
+  }
 
   // HSTS (HTTP Strict Transport Security)
   if (config.headers.hsts && process.env.NODE_ENV === 'production') {
@@ -548,9 +565,21 @@ export function applySecurityHeaders(
     response.headers.set('Content-Security-Policy', cspDirectives.join('; '))
   }
 
-  // X-Frame-Options - allow SAMEORIGIN in development for previews
-  const frameOptions = process.env.NODE_ENV === 'development' ? 'SAMEORIGIN' : config.headers.frameOptions
-  response.headers.set('X-Frame-Options', frameOptions)
+  // X-Frame-Options - skip for preview mode to let CSP frame-ancestors handle security
+  if (!isPreviewMode) {
+    const frameOptions = process.env.NODE_ENV === 'development' ? 'SAMEORIGIN' : config.headers.frameOptions
+    response.headers.set('X-Frame-Options', frameOptions)
+
+    // Debug logging for X-Frame-Options
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[SECURITY_DEBUG] X-Frame-Options set:', frameOptions)
+    }
+  } else {
+    // Debug logging for skipped X-Frame-Options
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[SECURITY_DEBUG] X-Frame-Options skipped for preview mode - CSP frame-ancestors will handle security')
+    }
+  }
 
   // X-Content-Type-Options
   if (config.headers.contentTypeOptions) {
@@ -650,7 +679,7 @@ export async function applyMultiDomainSecurity(
     }
 
     // Apply security headers
-    applySecurityHeaders(response, site)
+    applySecurityHeaders(response, site, request)
 
     return { success: true, response }
   } catch (error: unknown) {

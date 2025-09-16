@@ -125,7 +125,9 @@ function getPreviewUrl(site: any): string {
           environmentDetected: 'localhost'
         });
 
-        return devUrl;
+        // Add preview mode query parameter for iframe embedding security
+        const devUrlWithPreview = `${devUrl}?_preview_mode=iframe&_dashboard_origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : 'unknown')}`;
+        return devUrlWithPreview;
       } else if (hostname.includes('blooms-staging.cc')) {
         // Staging: subdomain.blooms-staging.cc
         const stagingUrl = `${url.protocol}//${site.subdomain}.blooms-staging.cc`;
@@ -141,7 +143,9 @@ function getPreviewUrl(site: any): string {
           expectedInCSP: stagingUrl
         });
 
-        return stagingUrl;
+        // Add preview mode query parameter for iframe embedding security
+        const stagingUrlWithPreview = `${stagingUrl}?_preview_mode=iframe&_dashboard_origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : 'unknown')}`;
+        return stagingUrlWithPreview;
       } else {
         // Production: subdomain.domain.com
         const prodUrl = `${url.protocol}//${site.subdomain}.${hostname}`;
@@ -155,7 +159,9 @@ function getPreviewUrl(site: any): string {
           environmentDetected: hostname
         });
 
-        return prodUrl;
+        // Add preview mode query parameter for iframe embedding security
+        const prodUrlWithPreview = `${prodUrl}?_preview_mode=iframe&_dashboard_origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : 'unknown')}`;
+        return prodUrlWithPreview;
       }
     }
 
