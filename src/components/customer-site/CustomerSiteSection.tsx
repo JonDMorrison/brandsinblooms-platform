@@ -15,6 +15,7 @@ import {
 import { MissionStatementSkeleton } from '@/src/components/ui/plant-shop-loading-states'
 import { textToHtml } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
+import { getFeatureGridClasses } from '@/src/components/content-sections/shared/grid-utils'
 
 interface CustomerSiteSectionProps {
   section: ContentSection
@@ -74,6 +75,43 @@ export function CustomerSiteSection({
                     </a>
                   )}
                 </div>
+
+                {/* Features Grid */}
+                {sectionData.features && Array.isArray(sectionData.features) && sectionData.features.length > 0 && (
+                  <div
+                    className={`grid gap-6 text-center ${getFeatureGridClasses(sectionData.features.length, false)}`}
+                  >
+                    {sectionData.features.slice(0, 4).map((feature: string, index: number) => (
+                      <div key={index} className="flex flex-col items-center">
+                        <div 
+                          className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
+                          style={{ backgroundColor: 'var(--theme-primary)' }}
+                        >
+                          <svg 
+                            className="w-6 h-6 text-white" 
+                            fill="currentColor" 
+                            viewBox="0 0 20 20"
+                          >
+                            <path 
+                              fillRule="evenodd" 
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <span
+                          className="text-sm font-medium"
+                          style={{
+                            color: 'var(--theme-text)',
+                            fontFamily: 'var(--theme-font-body)'
+                          }}
+                        >
+                          {String(feature)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </section>

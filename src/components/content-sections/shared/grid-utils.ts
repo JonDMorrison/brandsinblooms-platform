@@ -7,16 +7,14 @@
  * Get responsive grid classes for feature grids
  */
 export const getFeatureGridClasses = (featureCount: number, isPreviewMode: boolean = false): string => {
-  const mediaPrefix = isPreviewMode ? '@' : ''
-
   if (featureCount === 1) {
     return 'grid-cols-1'
   } else if (featureCount === 2) {
     return 'grid-cols-2'
   } else if (featureCount === 3) {
-    return `grid-cols-2 ${mediaPrefix}md:grid-cols-3`
+    return isPreviewMode ? 'grid-cols-2 @md:grid-cols-3' : 'grid-cols-2 md:grid-cols-3'
   } else {
-    return `grid-cols-2 ${mediaPrefix}5xl:grid-cols-4`
+    return isPreviewMode ? 'grid-cols-2 @5xl:grid-cols-4' : 'grid-cols-2 lg:grid-cols-4'
   }
 }
 

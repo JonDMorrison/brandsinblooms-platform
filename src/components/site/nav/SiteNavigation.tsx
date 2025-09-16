@@ -32,12 +32,15 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const stickyHeader = theme?.layout?.stickyHeader !== false
   const headerStyle = theme?.layout?.headerStyle || 'modern'
   
-  // Build navigation items - always include Products, plus configured optional items
+  // Build navigation items in proper order: Home, Products, About, Contact
   const configuredNavItems = theme?.navigation?.items || []
+  
+  // Create navigation in desired order
   const navItems = [
+    { label: 'Home', href: '/home' },
     { label: 'Products', href: '/products' },
     ...configuredNavItems.filter(item => 
-      ['About', 'Contact', 'Home', 'Blog'].includes(item.label)
+      ['About', 'Contact', 'Blog'].includes(item.label)
     )
   ]
   
