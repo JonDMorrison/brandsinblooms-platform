@@ -40,6 +40,9 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const router = useRouter()
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const searchInputRef = useRef<HTMLDivElement>(null)
+  
+  // Check if dev features are enabled
+  const isDevFeaturesEnabled = process.env.NEXT_PUBLIC_ENABLE_DEV_FEATURES === 'true'
 
   // Keyboard shortcut for search (⌘K)
   useEffect(() => {
@@ -141,7 +144,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             </TooltipContent>
           </Tooltip>
 
-          {/* User menu */}
+          {/* User menu - Always visible */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 px-2 space-x-2">
@@ -174,19 +177,25 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/profile" className="flex items-center">
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings" className="flex items-center">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {/* Development-only menu items */}
+              {isDevFeaturesEnabled && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/settings" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              {/* Always show sign out */}
               <DropdownMenuItem
                 className="text-red-600 focus:text-red-600 focus:bg-red-50"
                 onClick={handleSignOut}

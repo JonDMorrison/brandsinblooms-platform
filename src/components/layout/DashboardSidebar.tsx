@@ -21,14 +21,20 @@ interface DashboardSidebarProps {
   onClose?: () => void
 }
 
-const navigationItems = [
+const allNavigationItems = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Content', href: '/dashboard/content', icon: FileText },
   { name: 'Design', href: '/dashboard/design', icon: Palette },
-  { name: 'Products', href: '/dashboard/products', icon: Package },
-  { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Products', href: '/dashboard/products', icon: Package, adminOnly: true },
+  { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart, adminOnly: true },
+  { name: 'Settings', href: '/dashboard/settings', icon: Settings, adminOnly: true },
 ]
+
+// Filter navigation items based on environment variable
+const isDevFeaturesEnabled = process.env.NEXT_PUBLIC_ENABLE_DEV_FEATURES === 'true'
+const navigationItems = allNavigationItems.filter(item => 
+  !item.adminOnly || isDevFeaturesEnabled
+)
 
 export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
   const pathname = usePathname()
