@@ -52,16 +52,21 @@ function getPreviewUrl(site: any): string {
 
   console.log('[IFRAME_DEBUG] Window Location Analysis:', windowLocationData);
 
-  // Get environment configuration
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
+  // Get environment configuration with dynamic fallback
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ||
+    (typeof window !== 'undefined'
+      ? `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`
+      : 'http://localhost:3001')
 
   // 🔍 URL CONSTRUCTION DECISION LOGGING
   console.log('[IFRAME_DEBUG] URL Construction Decision:', {
     useEnvVar: !!process.env.NEXT_PUBLIC_APP_URL,
-    useFallback: !process.env.NEXT_PUBLIC_APP_URL,
+    useDynamicFallback: !process.env.NEXT_PUBLIC_APP_URL && typeof window !== 'undefined',
+    useStaticFallback: !process.env.NEXT_PUBLIC_APP_URL && typeof window === 'undefined',
     selectedAppUrl: appUrl,
     envVarValue: process.env.NEXT_PUBLIC_APP_URL,
-    fallbackValue: 'http://localhost:3001'
+    dynamicFallbackSource: typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}` : 'SSR_MODE',
+    staticFallbackValue: 'http://localhost:3001'
   });
 
   console.log('[IFRAME_DEBUG] getPreviewUrl - Starting URL construction:', {
