@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { SiteRenderer } from '@/src/components/site/SiteRenderer'
 import { ProductCatalog } from '@/src/components/site/ProductCatalog'
 import { generateStructuredData } from '@/src/data/seo-data'
@@ -297,18 +298,18 @@ export async function AccountPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1">
             <nav className="space-y-2">
-              <a href="/account" className="block p-3 rounded-md" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
+              <Link href="/account" className="block p-3 rounded-md" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
                 Profile
-              </a>
-              <a href="/account/orders" className="block p-3 rounded-md hover:bg-gray-50">
+              </Link>
+              <Link href="/account/orders" className="block p-3 rounded-md hover:bg-gray-50">
                 Orders
-              </a>
-              <a href="/account/addresses" className="block p-3 rounded-md hover:bg-gray-50">
+              </Link>
+              <Link href="/account/addresses" className="block p-3 rounded-md hover:bg-gray-50">
                 Addresses
-              </a>
-              <a href="/account/settings" className="block p-3 rounded-md hover:bg-gray-50">
+              </Link>
+              <Link href="/account/settings" className="block p-3 rounded-md hover:bg-gray-50">
                 Settings
-              </a>
+              </Link>
             </nav>
           </div>
           <div className="md:col-span-2">

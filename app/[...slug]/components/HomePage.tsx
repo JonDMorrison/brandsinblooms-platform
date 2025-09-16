@@ -1,4 +1,6 @@
+import Link from 'next/link'
 import { SiteRenderer } from '@/src/components/site/SiteRenderer'
+import { ContentSection } from '@/src/lib/content/schema'
 import { plantShopContent, getFeaturedPlants, getPlantsByCareLevel, getPlantsByCategory } from '@/src/data/plant-shop-content'
 import { 
   HeroSectionErrorBoundary,
@@ -129,7 +131,7 @@ export async function HomePage() {
       id: 'beginner-friendly',
       name: 'Beginner-Friendly',
       image: '/images/golden-pothos.jpg',
-      link: '/plants?care-level=beginner',
+      link: '/products',
       plantCount: 12,
       description: 'Perfect for new plant parents - low maintenance, forgiving varieties'
     },
@@ -137,7 +139,7 @@ export async function HomePage() {
       id: 'houseplants',
       name: 'Houseplants',
       image: '/images/snake-plant.jpg',
-      link: '/plants?category=houseplants',
+      link: '/products',
       plantCount: 25,
       description: 'Transform indoor spaces with air-purifying and decorative plants'
     },
@@ -145,7 +147,7 @@ export async function HomePage() {
       id: 'outdoor',
       name: 'Outdoor Specimens',
       image: '/images/japanese-maple.jpg',
-      link: '/plants?category=outdoor',
+      link: '/products',
       plantCount: 18,
       description: 'Hardy outdoor plants for landscaping and garden design'
     },
@@ -153,7 +155,7 @@ export async function HomePage() {
       id: 'succulents',
       name: 'Succulents & Cacti',
       image: '/images/fiddle-leaf-fig.jpg',
-      link: '/plants?category=succulents',
+      link: '/products',
       plantCount: 15,
       description: 'Drought-tolerant beauties perfect for sunny spots and xeriscaping'
     }
@@ -223,7 +225,7 @@ export async function HomePage() {
           return (
             <CustomerSiteSection
               key={key}
-              section={section}
+              section={section as ContentSection}
               sectionKey={key}
               sectionData={sectionInfo.data}
               backgroundSetting={sectionInfo.backgroundSetting}
@@ -243,20 +245,20 @@ export async function HomePage() {
                   Discover premium plants, expert care guidance, and create your thriving green sanctuary
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                  <a 
+                  <Link 
                     href="/plants"
                     className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
                     style={{backgroundColor: 'var(--theme-primary)', color: '#fff', fontFamily: 'var(--theme-font-body)'}}
                   >
                     Shop Plants
-                  </a>
-                  <a 
+                  </Link>
+                  <Link 
                     href="/about"
                     className="px-8 py-4 border-2 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
                     style={{borderColor: 'var(--theme-primary)', color: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}
                   >
                     Learn More
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

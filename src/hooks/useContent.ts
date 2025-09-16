@@ -25,18 +25,65 @@ import { handleError } from '@/lib/types/error-handling';
 // Cache management utilities
 const clearContentCaches = (siteId: string) => {
   if (typeof window === 'undefined') return;
-  
+
   const keys = Object.keys(localStorage);
-  const contentKeys = keys.filter(key => 
+  const contentKeys = keys.filter(key =>
     key.includes(`content-`) && key.includes(`-${siteId}-`)
   );
-  
+
   contentKeys.forEach(key => {
     try {
       localStorage.removeItem(key);
     } catch (error) {
       console.warn('Failed to clear cache key:', key, error);
     }
+  });
+};
+
+// Validation utilities to ensure data matches current site
+const validateContentData = (data: unknown, currentSiteId: string): boolean => {
+  if (!data || !currentSiteId) return false;
+
+  try {
+    // Handle array of content items
+    if (Array.isArray(data)) {
+      return data.every(item =>
+        item && typeof item === 'object' &&
+        'site_id' in item &&
+        item.site_id === currentSiteId
+      );
+    }
+
+    // Handle single content item
+    if (typeof data === 'object' && 'site_id' in data) {
+      return data.site_id === currentSiteId;
+    }
+
+    // Handle API response with data property
+    if (typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
+      return data.data.every((item: any) =>
+        item && typeof item === 'object' &&
+        'site_id' in item &&
+        item.site_id === currentSiteId
+      );
+    }
+
+    // For stats or other data without site_id, always validate as true
+    // since the query itself is scoped to the site
+    return true;
+  } catch (error) {
+    console.warn('[CONTENT_VALIDATION] Error validating content data:', error);
+    return false;
+  }
+};
+
+const logDataValidation = (queryType: string, isValid: boolean, currentSiteId: string, data: unknown) => {
+  console.log(`[CONTENT_VALIDATION] ${queryType}:`, {
+    isValid,
+    currentSiteId,
+    dataType: Array.isArray(data) ? 'array' : typeof data,
+    dataCount: Array.isArray(data) ? data.length : 'n/a',
+    firstItemSiteId: Array.isArray(data) && data.length > 0 && data[0] ? data[0].site_id : 'n/a'
   });
 };
 
@@ -63,25 +110,56 @@ const clearSpecificContentCache = (siteId: string, contentId?: string) => {
   });
 };
 
-// Main content query hook
+// Main content query hook with validation
 export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) {
   const siteId = useSiteId();
-  
+
   const memoizedDeps = useMemo(() => [
     siteId,
     JSON.stringify(filters || {}),
     JSON.stringify(sort || {})
   ], [siteId, filters, sort]);
-  
-  return useSupabaseQuery(
+
+  const queryResult = useSupabaseQuery(
     (signal) => getContent(supabase, siteId!, filters),
     {
       enabled: !!siteId,
       staleTime: 2 * 60 * 1000, // 2 minutes for better performance
       persistKey: `content-list-${siteId}-${JSON.stringify(filters || {})}-${JSON.stringify(sort || {})}`,
+      onSuccess: (data) => {
+        // Validate that returned data belongs to current site
+        if (siteId) {
+          const isValid = validateContentData(data, siteId);
+          logDataValidation('useContent', isValid, siteId, data);
+
+          if (!isValid) {
+            console.warn('[CONTENT_VALIDATION] Received invalid content data for site:', siteId);
+            // Clear cache to force refetch with correct data
+            clearContentCaches(siteId);
+          }
+        }
+      }
     },
     memoizedDeps
   );
+
+  // Filter out any invalid data as an extra safety measure
+  const validatedData = useMemo(() => {
+    if (!queryResult.data || !siteId) return queryResult.data;
+
+    const isValid = validateContentData(queryResult.data, siteId);
+    if (!isValid) {
+      console.warn('[CONTENT_VALIDATION] Filtering out invalid content data');
+      return null;
+    }
+
+    return queryResult.data;
+  }, [queryResult.data, siteId]);
+
+  return {
+    ...queryResult,
+    data: validatedData
+  };
 }
 
 // Get single content item

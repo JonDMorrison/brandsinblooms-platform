@@ -24,8 +24,15 @@ export default function ContentPage() {
   const [activeTab, setActiveTab] = useState('all')
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const siteId = useSiteId()
-  const { loading: siteLoading } = useSiteContext()
-  
+  const { loading: siteLoading, currentSite } = useSiteContext()
+
+  console.log('[CONTENT_DEBUG] Content page render:', {
+    siteId,
+    siteLoading,
+    currentSite: !!currentSite,
+    siteName: currentSite?.name
+  })
+
   // Fetch real content data
   const { data: contentResponse, loading: isLoading, error, refresh: refetch } = useContent()
   const { data: contentStats, loading: statsLoading, refresh: refetchStats } = useContentStats()
@@ -150,8 +157,18 @@ export default function ContentPage() {
             </TabsList>
             
             <TabsContent value={activeTab} className="mt-6">
-              {isLoading || siteLoading || !siteId ? (
+              {isLoading || siteLoading || !siteId || !currentSite ? (
                 <div className="w-full space-y-3">
+                  {console.log('[CONTENT_DEBUG] Showing loading state:', {
+                    isLoading,
+                    siteLoading,
+                    hasSiteId: !!siteId,
+                    hasCurrentSite: !!currentSite,
+                    reason: isLoading ? 'content-loading' :
+                           siteLoading ? 'site-loading' :
+                           !siteId ? 'no-site-id' :
+                           !currentSite ? 'no-current-site' : 'unknown'
+                  })}
                   <Skeleton className="h-10 w-full" />
                   {[1, 2, 3, 4, 5].map(i => (
                     <Skeleton key={i} className="h-16 w-full" />

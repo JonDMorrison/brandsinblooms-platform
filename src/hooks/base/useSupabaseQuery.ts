@@ -65,7 +65,12 @@ export function useSupabaseQuery<T>(
           return parsed.data || initialData
         }
       } catch {
-        // Ignore parse errors
+        // Ignore parse errors and clear invalid cache
+        try {
+          localStorage.removeItem(persistKey)
+        } catch {
+          // Ignore cleanup errors
+        }
       }
     }
     return initialData
@@ -75,10 +80,12 @@ export function useSupabaseQuery<T>(
   const [error, setError] = useState<ErrorType | null>(null)
   const [lastFetch, setLastFetch] = useState<Date | null>(null)
   const [isStale, setIsStale] = useState(false)
+  const [cacheVersion, setCacheVersion] = useState(0)
 
   // AbortController ref for cancelling in-flight requests
   const abortRef = useRef<AbortController>()
   const intervalRef = useRef<NodeJS.Timeout>()
+  const previousDepsRef = useRef<React.DependencyList | undefined>(deps)
 
   // Execute query function
   const execute = useCallback(async () => {
@@ -144,6 +151,70 @@ export function useSupabaseQuery<T>(
     }
   }, [lastFetch, staleTime])
 
+  // Listen for site switch events to invalidate cache
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const handleSiteSwitch = (event: CustomEvent) => {
+      console.log('[QUERY_DEBUG] Received siteSwitch event, invalidating cache for:', persistKey)
+
+      // Clear cache and reset data
+      if (persistKey) {
+        try {
+          localStorage.removeItem(persistKey)
+        } catch (error) {
+          console.warn('[QUERY_DEBUG] Failed to clear cache on site switch:', error)
+        }
+      }
+
+      // Increment cache version to trigger refetch
+      setCacheVersion(prev => prev + 1)
+      setData(initialData)
+      setIsStale(true)
+      setLastFetch(null)
+    }
+
+    window.addEventListener('siteSwitch', handleSiteSwitch as EventListener)
+    return () => {
+      window.removeEventListener('siteSwitch', handleSiteSwitch as EventListener)
+    }
+  }, [persistKey, initialData])
+
+  // Detect when critical dependencies change (like siteId) and clear cache
+  useEffect(() => {
+    const currentDeps = deps || []
+    const previousDeps = previousDepsRef.current || []
+
+    // Check if any dependency changed (especially siteId which is usually first)
+    const depsChanged = currentDeps.length !== previousDeps.length ||
+                       currentDeps.some((dep, index) => dep !== previousDeps[index])
+
+    if (depsChanged && !isFirstRenderRef.current) {
+      console.log('[QUERY_DEBUG] Dependencies changed, clearing cache:', {
+        persistKey,
+        previousDeps,
+        currentDeps
+      })
+
+      // Clear cache when dependencies change
+      if (persistKey && typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem(persistKey)
+        } catch (error) {
+          console.warn('[QUERY_DEBUG] Failed to clear cache on dependency change:', error)
+        }
+      }
+
+      // Reset state to force refetch
+      setData(initialData)
+      setIsStale(true)
+      setLastFetch(null)
+      setCacheVersion(prev => prev + 1)
+    }
+
+    previousDepsRef.current = currentDeps
+  }, deps)
+
   // Track if this is the first render to prevent duplicate initial fetches
   const isFirstRenderRef = useRef(true)
 
@@ -152,10 +223,21 @@ export function useSupabaseQuery<T>(
     if (!enabled) return
 
     // On first render, always fetch if no data or refetchOnMount is true
-    // On subsequent renders (dependency changes), always fetch
-    const shouldFetch = !isFirstRenderRef.current || !data || refetchOnMount
-    
+    // On subsequent renders (dependency changes or cache invalidation), always fetch
+    const shouldFetch = !isFirstRenderRef.current || !data || refetchOnMount || cacheVersion > 0
+
     if (shouldFetch) {
+      console.log('[QUERY_DEBUG] Triggering fetch:', {
+        persistKey,
+        isFirstRender: isFirstRenderRef.current,
+        hasData: !!data,
+        refetchOnMount,
+        cacheVersion,
+        reason: !isFirstRenderRef.current ? 'dependency-change' :
+                !data ? 'no-data' :
+                refetchOnMount ? 'refetch-on-mount' :
+                cacheVersion > 0 ? 'cache-invalidated' : 'unknown'
+      })
       execute()
     }
 
@@ -175,7 +257,7 @@ export function useSupabaseQuery<T>(
         intervalRef.current = null as any
       }
     }
-  }, deps ? [enabled, ...deps] : [enabled])
+  }, deps ? [enabled, cacheVersion, ...deps] : [enabled, cacheVersion])
 
   // Handle reconnect
   useEffect(() => {
