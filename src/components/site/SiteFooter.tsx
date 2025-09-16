@@ -164,13 +164,14 @@ export function SiteFooter({ className }: SiteFooterProps) {
                 {footerNavItems.length > 0 && (
                   <div className="flex justify-center gap-6 text-sm">
                     {footerNavItems.map((item) => (
-                      <span
+                      <Link
                         key={item.href}
+                        href={item.href}
                         className="hover:opacity-70 cursor-pointer transition-opacity capitalize"
                         style={{ color: 'var(--theme-secondary)' }}
                       >
                         {item.label}
-                      </span>
+                      </Link>
                     ))}
                   </div>
                 )}

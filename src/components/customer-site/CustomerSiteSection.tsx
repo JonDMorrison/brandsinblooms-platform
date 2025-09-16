@@ -5,6 +5,7 @@
  */
 
 import React from 'react'
+import Link from 'next/link'
 import { ContentSection } from '@/src/lib/content/schema'
 import { ViewportLazyLoad } from '@/src/components/ui/lazy-loading'
 import {
@@ -58,21 +59,21 @@ export function CustomerSiteSection({
                   }}
                 />
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                  <a 
+                  <Link 
                     href={String(sectionData.ctaLink || '/plants')}
                     className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
                     style={{backgroundColor: 'var(--theme-primary)', color: '#fff', fontFamily: 'var(--theme-font-body)'}}
                   >
                     {String(sectionData.ctaText || 'Shop Plants')}
-                  </a>
+                  </Link>
                   {sectionData.secondaryCtaText && (
-                    <a 
+                    <Link 
                       href={String(sectionData.secondaryCtaLink || '/about')}
                       className="px-8 py-4 border-2 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
                       style={{borderColor: 'var(--theme-primary)', color: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}
                     >
                       {String(sectionData.secondaryCtaText)}
-                    </a>
+                    </Link>
                   )}
                 </div>
 
@@ -194,7 +195,7 @@ export function CustomerSiteSection({
                   ))}
                 </div>
                 <div className="text-center">
-                  <a
+                  <Link
                     href={String(sectionData.viewAllLink || '/plants')}
                     className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
                     style={{
@@ -204,7 +205,7 @@ export function CustomerSiteSection({
                     }}
                   >
                     {String(sectionData.viewAllText || 'View All Plants')}
-                  </a>
+                  </Link>
                 </div>
               </div>
             </section>
@@ -232,7 +233,7 @@ export function CustomerSiteSection({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                   {((sectionData.categories as any[]) || []).map((category: any) => (
-                    <a key={category.id} href={category.link} className="group cursor-pointer h-full block">
+                    <Link key={category.id} href={category.link} className="group cursor-pointer h-full block">
                       <div className="relative overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col">
                         {/* Category Image Area */}
                         <div className="aspect-w-4 aspect-h-3 h-48 relative overflow-hidden">
@@ -276,7 +277,7 @@ export function CustomerSiteSection({
                           </div>
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -347,7 +348,7 @@ export function CustomerSiteSection({
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   {/* Primary CTA */}
                   {(sectionData.ctaText || sectionData.ctaLink) && (
-                    <a 
+                    <Link 
                       href={String(sectionData.ctaLink || '/plants')}
                       className={`px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 hover:opacity-90 ${
                         backgroundSetting === 'primary' 
@@ -361,12 +362,12 @@ export function CustomerSiteSection({
                       }}
                     >
                       {String(sectionData.ctaText || 'Shop Plants')}
-                    </a>
+                    </Link>
                   )}
                   
                   {/* Secondary CTA */}
                   {(sectionData.secondaryCtaText || sectionData.secondaryCtaLink) && (
-                    <a 
+                    <Link 
                       href={String(sectionData.secondaryCtaLink || '/products')}
                       className={`px-8 py-3 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:opacity-80 ${
                         backgroundSetting === 'primary' 
@@ -381,7 +382,7 @@ export function CustomerSiteSection({
                       }}
                     >
                       {String(sectionData.secondaryCtaText || 'Browse Plants')}
-                    </a>
+                    </Link>
                   )}
                 </div>
               </div>
