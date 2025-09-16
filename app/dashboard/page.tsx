@@ -108,6 +108,16 @@ export default function DashboardPage() {
   const { data: siteStats, loading: statsLoading } = useSiteStats()
   const { data: metrics, loading: metricsLoading } = useDashboardMetrics()
 
+  console.log('[DASHBOARD_DEBUG] Dashboard page render:', {
+    user: !!user,
+    currentSite: !!currentSite,
+    siteLoading,
+    statsLoading,
+    metricsLoading,
+    siteId: currentSite?.id,
+    siteName: currentSite?.name
+  })
+
   // Memoize dashboard stats to prevent recalculation on every render
   const dashboardStats: DashboardStat[] = useMemo(() => [
     {
@@ -146,9 +156,19 @@ export default function DashboardPage() {
 
   const isLoading = statsLoading || metricsLoading
 
+  // Enhanced loading detection for site switching scenarios
+  const isCriticalLoading = siteLoading || !user || (!currentSite && !siteLoading)
+
   // Wait for critical data (site and user) to load before rendering
-  // This prevents the animations from playing twice
-  if (siteLoading || !user) {
+  // This prevents the animations from playing twice and handles site switching properly
+  if (isCriticalLoading) {
+    console.log('[DASHBOARD_DEBUG] Showing loading state:', {
+      siteLoading,
+      hasUser: !!user,
+      hasCurrentSite: !!currentSite,
+      reason: !user ? 'no-user' : siteLoading ? 'site-loading' : !currentSite ? 'no-site' : 'unknown'
+    })
+
     return (
       <div className="space-y-8">
         {/* Loading skeleton that matches the layout */}
@@ -173,6 +193,8 @@ export default function DashboardPage() {
       </div>
     )
   }
+
+  console.log('[DASHBOARD_DEBUG] Rendering dashboard content for site:', currentSite?.name)
 
   return (
     <div className="space-y-8">

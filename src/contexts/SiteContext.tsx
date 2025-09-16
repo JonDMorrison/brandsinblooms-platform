@@ -82,10 +82,72 @@ export function SiteProvider({
   const [userSitesError, setUserSitesError] = useState<SiteQueryError | null>(null)
 
   const { user, loading: authLoading } = useAuth()
-  
+
   // AbortController refs for cancelling in-flight requests
   const siteLoadAbortRef = useRef<AbortController>()
   const userSitesAbortRef = useRef<AbortController>()
+
+  /**
+   * Comprehensive cache clearing for site-related data
+   * Clears all localStorage keys related to a specific site
+   */
+  const clearAllSiteCaches = useCallback((siteId: string) => {
+    if (typeof window === 'undefined') return
+
+    console.log('[SITE_DEBUG] clearAllSiteCaches - Clearing caches for siteId:', siteId)
+
+    try {
+      const keys = Object.keys(localStorage)
+      const siteKeys = keys.filter(key => {
+        return (
+          // Content-related caches
+          (key.includes('content-') && key.includes(`-${siteId}-`)) ||
+          // Design/theme caches
+          (key.includes('design-') && key.includes(`-${siteId}-`)) ||
+          (key.includes('theme-') && key.includes(`-${siteId}-`)) ||
+          // Stats caches
+          (key.includes('stats-') && key.includes(`-${siteId}-`)) ||
+          // Product caches
+          (key.includes('product-') && key.includes(`-${siteId}-`)) ||
+          // Order caches
+          (key.includes('order-') && key.includes(`-${siteId}-`)) ||
+          // General site caches
+          (key.includes('site-') && key.includes(`-${siteId}`)) ||
+          // Any other cache that mentions this siteId
+          key.includes(`-${siteId}-`) ||
+          key.includes(`-${siteId}`)
+        )
+      })
+
+      console.log('[SITE_DEBUG] clearAllSiteCaches - Found cache keys to clear:', siteKeys)
+
+      siteKeys.forEach(key => {
+        try {
+          localStorage.removeItem(key)
+        } catch (error) {
+          console.warn('[SITE_DEBUG] Failed to clear cache key:', key, error)
+        }
+      })
+
+      console.log('[SITE_DEBUG] clearAllSiteCaches - Cleared', siteKeys.length, 'cache keys')
+    } catch (error) {
+      console.error('[SITE_DEBUG] clearAllSiteCaches - Error during cache clearing:', error)
+    }
+  }, [])
+
+  /**
+   * Clears all caches and resets query states when switching sites
+   */
+  const resetAllQueries = useCallback(() => {
+    if (typeof window === 'undefined') return
+
+    console.log('[SITE_DEBUG] resetAllQueries - Dispatching cache reset event')
+
+    // Dispatch a custom event that query hooks can listen to for cache invalidation
+    window.dispatchEvent(new CustomEvent('siteSwitch', {
+      detail: { timestamp: Date.now() }
+    }))
+  }, [])
 
   /**
    * Resolves and loads a site from hostname
@@ -337,25 +399,68 @@ export function SiteProvider({
   }, [user?.id])
 
   /**
-   * Switches to a different site
+   * Switches to a different site with comprehensive cache clearing
    */
   const switchSite = useCallback(async (siteId: string | null) => {
-    if (siteId) {
-      await loadSiteById(siteId)
-    } else {
-      // Clear site selection
-      setCurrentSite(null)
-      setUserAccess(null)
-      setCanEdit(false)
-      setCanManage(false)
-      setSiteResolution(null)
-      
-      // Clear from localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('selectedSiteId')
+    console.log('[SITE_DEBUG] switchSite - Starting site switch:', {
+      fromSiteId: currentSite?.id,
+      toSiteId: siteId,
+      timestamp: Date.now()
+    })
+
+    try {
+      // Cancel any ongoing requests
+      siteLoadAbortRef.current?.abort()
+      userSitesAbortRef.current?.abort()
+
+      // Set loading state immediately
+      setLoading(true)
+      setError(null)
+
+      // Clear caches for the current site before switching
+      if (currentSite?.id && currentSite.id !== siteId) {
+        console.log('[SITE_DEBUG] switchSite - Clearing caches for previous site:', currentSite.id)
+        clearAllSiteCaches(currentSite.id)
       }
+
+      // Reset all query states by dispatching siteSwitch event
+      resetAllQueries()
+
+      if (siteId) {
+        // Clear any caches for the target site too (in case of stale data)
+        clearAllSiteCaches(siteId)
+
+        console.log('[SITE_DEBUG] switchSite - Loading new site:', siteId)
+        await loadSiteById(siteId)
+      } else {
+        // Clear site selection completely
+        console.log('[SITE_DEBUG] switchSite - Clearing site selection')
+
+        setCurrentSite(null)
+        setUserAccess(null)
+        setCanEdit(false)
+        setCanManage(false)
+        setSiteResolution(null)
+
+        // Clear from localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('selectedSiteId')
+        }
+
+        setLoading(false)
+      }
+
+      console.log('[SITE_DEBUG] switchSite - Site switch completed successfully')
+    } catch (error) {
+      console.error('[SITE_DEBUG] switchSite - Error during site switch:', error)
+      setError({
+        code: 'SWITCH_FAILED',
+        message: 'Failed to switch sites',
+        details: error
+      })
+      setLoading(false)
     }
-  }, [loadSiteById])
+  }, [currentSite?.id, clearAllSiteCaches, resetAllQueries, loadSiteById])
 
   /**
    * Refreshes the current site data
