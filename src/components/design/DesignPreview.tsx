@@ -26,8 +26,43 @@ type DeviceType = keyof typeof deviceSizes
  * Constructs the preview URL for the current site based on environment
  */
 function getPreviewUrl(site: any): string {
+  // 🔍 COMPREHENSIVE ENVIRONMENT VARIABLE DEBUGGING
+  console.log('[IFRAME_DEBUG] Environment Variables Analysis:', {
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_APP_DOMAIN: process.env.NEXT_PUBLIC_APP_DOMAIN,
+    NODE_ENV: process.env.NODE_ENV,
+    allNextPublicVars: Object.keys(process.env || {}).filter(key => key.startsWith('NEXT_PUBLIC_')),
+    allEnvVarsCount: Object.keys(process.env || {}).length,
+    processEnvExists: typeof process !== 'undefined' && !!process.env
+  });
+
+  // 🔍 WINDOW LOCATION ANALYSIS
+  const windowLocationData = typeof window !== 'undefined' ? {
+    href: window.location.href,
+    protocol: window.location.protocol,
+    hostname: window.location.hostname,
+    port: window.location.port,
+    pathname: window.location.pathname,
+    isLocalhost: window.location.hostname === 'localhost',
+    isStaging: window.location.hostname.includes('blooms-staging.cc'),
+    isVercel: window.location.hostname.includes('.vercel.app'),
+    isRailway: window.location.hostname.includes('.railway.app'),
+    proposedFallbackUrl: `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`
+  } : 'SSR_MODE';
+
+  console.log('[IFRAME_DEBUG] Window Location Analysis:', windowLocationData);
+
   // Get environment configuration
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
+
+  // 🔍 URL CONSTRUCTION DECISION LOGGING
+  console.log('[IFRAME_DEBUG] URL Construction Decision:', {
+    useEnvVar: !!process.env.NEXT_PUBLIC_APP_URL,
+    useFallback: !process.env.NEXT_PUBLIC_APP_URL,
+    selectedAppUrl: appUrl,
+    envVarValue: process.env.NEXT_PUBLIC_APP_URL,
+    fallbackValue: 'http://localhost:3001'
+  });
 
   console.log('[IFRAME_DEBUG] getPreviewUrl - Starting URL construction:', {
     site,
@@ -76,25 +111,75 @@ function getPreviewUrl(site: any): string {
         // Development: subdomain.localhost:port
         const devUrl = `${url.protocol}//${site.subdomain}.localhost${url.port ? ':' + url.port : ''}`;
         console.log('[IFRAME_DEBUG] getPreviewUrl - Development URL constructed:', devUrl);
+
+        // 🔍 DEVELOPMENT URL RESULT ANALYSIS
+        console.log('[IFRAME_DEBUG] Final URL Construction Result:', {
+          finalUrl: devUrl,
+          urlSource: 'development_subdomain',
+          isCorrectForEnvironment: true,
+          environmentDetected: 'localhost'
+        });
+
         return devUrl;
       } else if (hostname.includes('blooms-staging.cc')) {
         // Staging: subdomain.blooms-staging.cc
         const stagingUrl = `${url.protocol}//${site.subdomain}.blooms-staging.cc`;
         console.log('[IFRAME_DEBUG] getPreviewUrl - Staging URL constructed:', stagingUrl);
+
+        // 🔍 STAGING URL RESULT ANALYSIS
+        console.log('[IFRAME_DEBUG] Final URL Construction Result:', {
+          finalUrl: stagingUrl,
+          urlSource: 'staging_subdomain',
+          isCorrectForEnvironment: true,
+          environmentDetected: 'blooms-staging.cc',
+          shouldFixCSP: stagingUrl !== appUrl,
+          expectedInCSP: stagingUrl
+        });
+
         return stagingUrl;
       } else {
         // Production: subdomain.domain.com
         const prodUrl = `${url.protocol}//${site.subdomain}.${hostname}`;
         console.log('[IFRAME_DEBUG] getPreviewUrl - Production URL constructed:', prodUrl);
+
+        // 🔍 PRODUCTION URL RESULT ANALYSIS
+        console.log('[IFRAME_DEBUG] Final URL Construction Result:', {
+          finalUrl: prodUrl,
+          urlSource: 'production_subdomain',
+          isCorrectForEnvironment: true,
+          environmentDetected: hostname
+        });
+
         return prodUrl;
       }
     }
 
     // Fallback to app URL
     console.log('[IFRAME_DEBUG] getPreviewUrl - No subdomain, falling back to app URL:', appUrl);
+
+    // 🔍 FINAL URL RESULT ANALYSIS
+    console.log('[IFRAME_DEBUG] Final URL Construction Result:', {
+      finalUrl: appUrl,
+      urlSource: 'fallback_no_subdomain',
+      expectedForStaging: typeof window !== 'undefined' && window.location.hostname.includes('blooms-staging.cc')
+        ? `https://dev.blooms-staging.cc`
+        : 'N/A',
+      urlIsCorrectForEnvironment: typeof window !== 'undefined'
+        ? appUrl.includes(window.location.hostname.includes('blooms-staging.cc') ? 'blooms-staging.cc' : 'localhost')
+        : 'SSR_MODE'
+    });
+
     return appUrl
   } catch (error) {
     console.error('[IFRAME_DEBUG] getPreviewUrl - Error constructing preview URL:', error)
+
+    // 🔍 ERROR FALLBACK ANALYSIS
+    console.log('[IFRAME_DEBUG] Error Fallback Result:', {
+      finalUrl: appUrl,
+      urlSource: 'error_fallback',
+      error: error instanceof Error ? error.message : String(error)
+    });
+
     return appUrl
   }
 }
