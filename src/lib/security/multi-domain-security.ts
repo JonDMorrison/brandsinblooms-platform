@@ -422,16 +422,33 @@ export function applySecurityHeaders(
   const isPreviewMode = request &&
     request.nextUrl.searchParams.get('_preview_mode') === 'iframe'
 
-  // Debug logging for preview mode detection
+  // Enhanced debug logging for preview mode detection
   if (process.env.NODE_ENV !== 'production') {
     const searchParams = request?.nextUrl.searchParams
-    console.log('[SECURITY_DEBUG] Preview mode detection:', {
-      isPreviewMode,
-      previewModeParam: searchParams?.get('_preview_mode'),
-      dashboardOrigin: searchParams?.get('_dashboard_origin'),
-      url: request?.url,
-      willSkipXFrameOptions: isPreviewMode
+    const previewModeParam = searchParams?.get('_preview_mode')
+    const dashboardOriginParam = searchParams?.get('_dashboard_origin')
+
+    console.log('[SECURITY_DEBUG] 🔍 Preview Mode Detection Analysis:', {
+      fullUrl: request?.url,
+      pathname: request?.nextUrl.pathname,
+      allSearchParams: searchParams ? Object.fromEntries(searchParams.entries()) : 'NO_PARAMS',
+      previewModeParam,
+      isPreviewModeIframe: previewModeParam === 'iframe',
+      dashboardOriginParam,
+      hasPreviewModeParam: !!previewModeParam,
+      finalIsPreviewMode: isPreviewMode,
+      willSkipXFrameOptions: isPreviewMode,
+      parameterPreservationWorking: !!(previewModeParam && request?.nextUrl.pathname === '/home')
     })
+
+    if (isPreviewMode) {
+      console.log('[SECURITY_DEBUG] ✅ PREVIEW MODE DETECTED - Iframe embedding will be ALLOWED')
+    } else {
+      console.log('[SECURITY_DEBUG] ❌ Normal page load - Iframe embedding will be BLOCKED')
+      if (request?.nextUrl.pathname === '/home' && !previewModeParam) {
+        console.log('[SECURITY_DEBUG] ⚠️  WARNING: This is /home but no _preview_mode param - redirect may have lost parameters!')
+      }
+    }
   }
 
   // HSTS (HTTP Strict Transport Security)
@@ -572,12 +589,20 @@ export function applySecurityHeaders(
 
     // Debug logging for X-Frame-Options
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[SECURITY_DEBUG] X-Frame-Options set:', frameOptions)
+      console.log('[SECURITY_DEBUG] 🚫 X-Frame-Options BLOCKING iframes:', {
+        header: frameOptions,
+        reason: 'Not in preview mode',
+        effect: 'Iframe embedding will be blocked by browser'
+      })
     }
   } else {
     // Debug logging for skipped X-Frame-Options
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[SECURITY_DEBUG] X-Frame-Options skipped for preview mode - CSP frame-ancestors will handle security')
+      console.log('[SECURITY_DEBUG] ✅ X-Frame-Options SKIPPED - iframe embedding ALLOWED', {
+        reason: 'Preview mode detected (_preview_mode=iframe)',
+        security: 'CSP frame-ancestors will handle iframe security',
+        effect: 'Dashboard iframe preview will work'
+      })
     }
   }
 

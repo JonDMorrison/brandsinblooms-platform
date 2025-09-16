@@ -4,14 +4,21 @@ import HomePlatform from './home-platform'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 
-export default async function HomePage() {
+interface HomePageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
   const headersList = await headers()
   const host = headersList.get('host') || ''
-  
+
+  // Get search parameters
+  const searchParamsData = await searchParams
+
   // Get app domain from environment
   const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN
   const isSubdomain = host.includes('.') && host !== appDomain && !host.startsWith('localhost:')
-  
+
   // Debug logging
   console.log('[PAGE DEBUG]', {
     host,
@@ -19,12 +26,37 @@ export default async function HomePage() {
     isSubdomain,
     hostIncludesDots: host.includes('.'),
     hostNotAppDomain: host !== appDomain,
-    hostNotLocalhost: !host.startsWith('localhost:')
+    hostNotLocalhost: !host.startsWith('localhost:'),
+    searchParams: searchParamsData
   })
-  
+
   if (isSubdomain) {
-    console.log('[PAGE] Redirecting to /home because isSubdomain=true')
-    redirect('/home')
+    // Preserve query parameters during redirect
+    const urlSearchParams = new URLSearchParams()
+
+    // Add all search parameters to the URL
+    Object.entries(searchParamsData).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (Array.isArray(value)) {
+          value.forEach(v => urlSearchParams.append(key, v))
+        } else {
+          urlSearchParams.append(key, value)
+        }
+      }
+    })
+
+    const queryString = urlSearchParams.toString()
+    const homeUrl = queryString ? `/home?${queryString}` : '/home'
+
+    console.log('[PAGE] Redirecting to /home with preserved parameters:', {
+      originalParams: searchParamsData,
+      queryString,
+      finalUrl: homeUrl,
+      hasPreviewMode: !!searchParamsData._preview_mode,
+      previewModeValue: searchParamsData._preview_mode
+    })
+
+    redirect(homeUrl)
   }
 
   return (
