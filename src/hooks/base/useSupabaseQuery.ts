@@ -86,18 +86,19 @@ export function useSupabaseQuery<T>(
     return initialData
   })
 
-  // CRITICAL FIX: Always start with loading true if cache data exists but we still need to validate/refresh
+  // STALE-WHILE-REVALIDATE: Only show loading when no cache exists
   const [loading, setLoading] = useState(() => {
     const hasData = data !== null && data !== undefined
-    const shouldStartLoading = !hasData || enabled // Always load if enabled, even with cache
-    console.log('[LOADING_DEBUG] Initial loading state:', {
+    const shouldShowLoading = !hasData // Only show loading skeleton when no cached data
+    console.log('[LOADING_DEBUG] Initial loading state (fixed):', {
       persistKey,
       hasData,
       enabled,
-      shouldStartLoading,
-      dataType: typeof data
+      shouldShowLoading,
+      dataType: typeof data,
+      cacheExists: hasData ? 'yes - show immediately' : 'no - show skeleton'
     })
-    return shouldStartLoading
+    return shouldShowLoading
   })
 
   const [error, setError] = useState<ErrorType | null>(null)
@@ -108,13 +109,17 @@ export function useSupabaseQuery<T>(
   const abortRef = useRef<AbortController>()
   const intervalRef = useRef<NodeJS.Timeout>()
 
-  // Execute query function with comprehensive logging
-  const execute = useCallback(async () => {
+  // Execute query function with stale-while-revalidate pattern
+  const execute = useCallback(async (isBackgroundRefresh = false) => {
+    const hasCurrentData = data !== null && data !== undefined
+
     console.log('[LOADING_DEBUG] execute() called:', {
       persistKey,
       currentLoading: loading,
-      hasCurrentData: !!data,
-      enabled
+      hasCurrentData,
+      enabled,
+      isBackgroundRefresh,
+      strategy: hasCurrentData ? 'background-refresh' : 'normal-fetch'
     })
 
     // Cancel any previous request
@@ -123,8 +128,13 @@ export function useSupabaseQuery<T>(
     const signal = abortRef.current.signal
 
     try {
-      console.log('[LOADING_DEBUG] Setting loading = true:', { persistKey })
-      setLoading(true)
+      // STALE-WHILE-REVALIDATE: Only show loading for fresh fetches (no cache)
+      if (!hasCurrentData && !isBackgroundRefresh) {
+        console.log('[LOADING_DEBUG] Setting loading = true (fresh fetch):', { persistKey })
+        setLoading(true)
+      } else {
+        console.log('[LOADING_DEBUG] Background refresh - keeping loading = false:', { persistKey })
+      }
       setError(null)
 
       const result = await queryFn(signal)
@@ -171,12 +181,14 @@ export function useSupabaseQuery<T>(
         onError?.(handledError)
       }
     } finally {
-      if (!signal.aborted) {
-        console.log('[LOADING_DEBUG] Setting loading = false:', { persistKey })
+      if (!signal.aborted && !hasCurrentData && !isBackgroundRefresh) {
+        console.log('[LOADING_DEBUG] Setting loading = false (fresh fetch complete):', { persistKey })
         setLoading(false)
+      } else if (!signal.aborted) {
+        console.log('[LOADING_DEBUG] Background refresh complete, loading state unchanged:', { persistKey })
       }
     }
-  }, [queryFn, persistKey, onSuccess, onError, loading, data, enabled])
+  }, [queryFn, persistKey, onSuccess, onError, data])
 
   // Check if data is stale
   useEffect(() => {
@@ -219,38 +231,41 @@ export function useSupabaseQuery<T>(
   // Track if this is the first render to prevent duplicate initial fetches
   const isFirstRenderRef = useRef(true)
 
-  // SIMPLIFIED: Normal React fetch logic without complex cache version tracking
+  // STALE-WHILE-REVALIDATE: Smart fetch logic based on cache state
   useEffect(() => {
     if (!enabled) {
       console.log('[LOADING_DEBUG] Query disabled, skipping fetch:', { persistKey })
       return
     }
 
-    // Determine if we should fetch
+    // Determine if we should fetch and how
     const isFirstRender = isFirstRenderRef.current
     const hasData = data !== null && data !== undefined
     const shouldFetch = isFirstRender ? (!hasData || refetchOnMount) : true // Always refetch on dependency changes
+    const isBackgroundRefresh = hasData && (refetchOnMount || !isFirstRender)
 
-    console.log('[LOADING_DEBUG] Fetch decision:', {
+    console.log('[LOADING_DEBUG] Fetch decision (stale-while-revalidate):', {
       persistKey,
       enabled,
       isFirstRender,
       hasData,
       refetchOnMount,
       shouldFetch,
+      isBackgroundRefresh,
+      strategy: hasData ? 'background-refresh' : 'fresh-fetch',
       deps: deps?.length || 0
     })
 
     if (shouldFetch) {
-      execute()
+      execute(isBackgroundRefresh)
     }
 
     // Mark that we've passed the first render
     isFirstRenderRef.current = false
 
-    // Setup refetch interval if specified (but only once)
+    // Setup refetch interval if specified (but only once) - always background refresh
     if (refetchInterval && refetchInterval > 0 && !intervalRef.current) {
-      intervalRef.current = setInterval(execute, refetchInterval)
+      intervalRef.current = setInterval(() => execute(true), refetchInterval)
     }
 
     // Cleanup
@@ -269,13 +284,20 @@ export function useSupabaseQuery<T>(
 
     const handleOnline = () => {
       if (isStale) {
-        execute()
+        const hasCurrentData = data !== null && data !== undefined
+        execute(hasCurrentData) // Background refresh if we have data
       }
     }
 
     window.addEventListener('online', handleOnline)
     return () => window.removeEventListener('online', handleOnline)
-  }, [refetchOnReconnect, enabled, isStale, execute])
+  }, [refetchOnReconnect, enabled, isStale, execute, data])
+
+  // Manual refresh function - always treat as background refresh if we have data
+  const refresh = useCallback(() => {
+    const hasCurrentData = data !== null && data !== undefined
+    return execute(hasCurrentData) // Background refresh if we have data, normal fetch if not
+  }, [execute, data])
 
   // Cancel function
   const cancel = useCallback(() => {
@@ -289,7 +311,7 @@ export function useSupabaseQuery<T>(
     error,
     isStale,
     lastFetch,
-    refresh: execute,
+    refresh,
     cancel
   }
 }
