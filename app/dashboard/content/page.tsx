@@ -33,9 +33,20 @@ export default function ContentPage() {
     siteName: currentSite?.name
   })
 
-  // Fetch real content data
+  // Fetch real content data with detailed logging
   const { data: contentResponse, loading: isLoading, error, refresh: refetch } = useContent()
   const { data: contentStats, loading: statsLoading, refresh: refetchStats } = useContentStats()
+
+  console.log('[CONTENT_PAGE_DEBUG] Hook states:', {
+    siteId,
+    siteName: currentSite?.name,
+    isLoading,
+    statsLoading,
+    siteLoading,
+    hasContentResponse: !!contentResponse,
+    hasContentStats: !!contentStats,
+    contentError: !!error
+  })
   
   // Extract content array from response
   const content = Array.isArray(contentResponse) ? contentResponse : contentResponse?.data || []
@@ -157,38 +168,53 @@ export default function ContentPage() {
             </TabsList>
             
             <TabsContent value={activeTab} className="mt-6">
-              {isLoading || siteLoading || !siteId || !currentSite ? (
-                <div className="w-full space-y-3">
-                  {console.log('[CONTENT_DEBUG] Showing loading state:', {
-                    isLoading,
-                    siteLoading,
-                    hasSiteId: !!siteId,
-                    hasCurrentSite: !!currentSite,
-                    reason: isLoading ? 'content-loading' :
-                           siteLoading ? 'site-loading' :
-                           !siteId ? 'no-site-id' :
-                           !currentSite ? 'no-current-site' : 'unknown'
-                  })}
-                  <Skeleton className="h-10 w-full" />
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                  ))}
-                </div>
-              ) : error ? (
-                <div className="text-center py-8">
-                  <p className="text-red-500">Error loading content: {error.message}</p>
-                  <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
-                    Try Again
-                  </Button>
-                </div>
-              ) : (
-                <DataTable
-                  columns={createContentColumns(refetch, refetchStats)} 
-                  data={filteredContent} 
-                  searchKey="title"
-                  searchPlaceholder="Search content..."
-                />
-              )}
+              {(() => {
+                const shouldShowLoading = isLoading || siteLoading || !siteId || !currentSite;
+                console.log('[CONTENT_DEBUG] Loading decision:', {
+                  shouldShowLoading,
+                  isLoading,
+                  siteLoading,
+                  hasSiteId: !!siteId,
+                  hasCurrentSite: !!currentSite,
+                  hasContentResponse: !!contentResponse,
+                  hasContent: !!content && content.length > 0,
+                  reason: isLoading ? 'content-loading' :
+                         siteLoading ? 'site-loading' :
+                         !siteId ? 'no-site-id' :
+                         !currentSite ? 'no-current-site' : 'none'
+                });
+
+                if (shouldShowLoading) {
+                  return (
+                    <div className="w-full space-y-3">
+                      <Skeleton className="h-10 w-full" />
+                      {[1, 2, 3, 4, 5].map(i => (
+                        <Skeleton key={i} className="h-16 w-full" />
+                      ))}
+                    </div>
+                  );
+                }
+
+                if (error) {
+                  return (
+                    <div className="text-center py-8">
+                      <p className="text-red-500">Error loading content: {error.message}</p>
+                      <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
+                        Try Again
+                      </Button>
+                    </div>
+                  );
+                }
+
+                return (
+                  <DataTable
+                    columns={createContentColumns(refetch, refetchStats)}
+                    data={filteredContent}
+                    searchKey="title"
+                    searchPlaceholder="Search content..."
+                  />
+                );
+              })()}
             </TabsContent>
           </Tabs>
         </CardContent>

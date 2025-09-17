@@ -62,9 +62,18 @@ export function useSupabaseQuery<T>(
         const stored = localStorage.getItem(persistKey)
         if (stored) {
           const parsed = JSON.parse(stored)
-          return parsed.data || initialData
+          const cachedData = parsed.data || initialData
+          console.log('[CACHE_DEBUG] Initializing with cached data:', {
+            persistKey,
+            hasCachedData: !!cachedData,
+            cacheTimestamp: parsed.timestamp,
+            dataType: typeof cachedData,
+            dataKeys: cachedData && typeof cachedData === 'object' ? Object.keys(cachedData) : 'n/a'
+          })
+          return cachedData
         }
-      } catch {
+      } catch (error) {
+        console.warn('[CACHE_DEBUG] Failed to parse cached data:', { persistKey, error })
         // Ignore parse errors and clear invalid cache
         try {
           localStorage.removeItem(persistKey)
@@ -73,35 +82,64 @@ export function useSupabaseQuery<T>(
         }
       }
     }
+    console.log('[CACHE_DEBUG] No cached data, using initialData:', { persistKey, hasInitialData: !!initialData })
     return initialData
   })
 
-  const [loading, setLoading] = useState(!initialData)
+  // CRITICAL FIX: Always start with loading true if cache data exists but we still need to validate/refresh
+  const [loading, setLoading] = useState(() => {
+    const hasData = data !== null && data !== undefined
+    const shouldStartLoading = !hasData || enabled // Always load if enabled, even with cache
+    console.log('[LOADING_DEBUG] Initial loading state:', {
+      persistKey,
+      hasData,
+      enabled,
+      shouldStartLoading,
+      dataType: typeof data
+    })
+    return shouldStartLoading
+  })
+
   const [error, setError] = useState<ErrorType | null>(null)
   const [lastFetch, setLastFetch] = useState<Date | null>(null)
   const [isStale, setIsStale] = useState(false)
-  const [cacheVersion, setCacheVersion] = useState(0)
 
   // AbortController ref for cancelling in-flight requests
   const abortRef = useRef<AbortController>()
   const intervalRef = useRef<NodeJS.Timeout>()
-  const previousDepsRef = useRef<React.DependencyList | undefined>(deps)
 
-  // Execute query function
+  // Execute query function with comprehensive logging
   const execute = useCallback(async () => {
+    console.log('[LOADING_DEBUG] execute() called:', {
+      persistKey,
+      currentLoading: loading,
+      hasCurrentData: !!data,
+      enabled
+    })
+
     // Cancel any previous request
     abortRef.current?.abort()
     abortRef.current = new AbortController()
     const signal = abortRef.current.signal
 
     try {
+      console.log('[LOADING_DEBUG] Setting loading = true:', { persistKey })
       setLoading(true)
       setError(null)
 
       const result = await queryFn(signal)
 
       // Check if request was aborted
-      if (signal.aborted) return
+      if (signal.aborted) {
+        console.log('[LOADING_DEBUG] Request was aborted:', { persistKey })
+        return
+      }
+
+      console.log('[LOADING_DEBUG] Query completed successfully:', {
+        persistKey,
+        hasResult: !!result,
+        resultType: typeof result
+      })
 
       setData(result)
       setLastFetch(new Date())
@@ -115,8 +153,9 @@ export function useSupabaseQuery<T>(
             timestamp: new Date().toISOString()
           }
           localStorage.setItem(persistKey, JSON.stringify(toStore))
+          console.log('[CACHE_DEBUG] Data cached successfully:', { persistKey })
         } catch (e) {
-          console.error('Failed to persist data:', e)
+          console.error('[CACHE_DEBUG] Failed to persist data:', { persistKey, error: e })
         }
       }
 
@@ -126,16 +165,18 @@ export function useSupabaseQuery<T>(
     } catch (err) {
       // Don't set error if request was aborted
       if (!signal.aborted) {
+        console.log('[LOADING_DEBUG] Query failed:', { persistKey, error: err })
         const handledError = handleError(err)
         setError(handledError)
         onError?.(handledError)
       }
     } finally {
       if (!signal.aborted) {
+        console.log('[LOADING_DEBUG] Setting loading = false:', { persistKey })
         setLoading(false)
       }
     }
-  }, [queryFn, persistKey, onSuccess, onError])
+  }, [queryFn, persistKey, onSuccess, onError, loading, data, enabled])
 
   // Check if data is stale
   useEffect(() => {
@@ -151,27 +192,22 @@ export function useSupabaseQuery<T>(
     }
   }, [lastFetch, staleTime])
 
-  // Listen for site switch events to invalidate cache
+  // SIMPLIFIED: Listen for site switch events to invalidate cache (only for site switching)
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || !persistKey) return
 
     const handleSiteSwitch = (event: CustomEvent) => {
-      console.log('[QUERY_DEBUG] Received siteSwitch event, invalidating cache for:', persistKey)
+      console.log('[CACHE_DEBUG] Received siteSwitch event, clearing cache for:', persistKey)
 
-      // Clear cache and reset data
-      if (persistKey) {
-        try {
-          localStorage.removeItem(persistKey)
-        } catch (error) {
-          console.warn('[QUERY_DEBUG] Failed to clear cache on site switch:', error)
-        }
+      try {
+        localStorage.removeItem(persistKey)
+        // Reset to force fresh fetch on next mount/dependency change
+        setData(initialData)
+        setIsStale(true)
+        setLastFetch(null)
+      } catch (error) {
+        console.warn('[CACHE_DEBUG] Failed to clear cache on site switch:', error)
       }
-
-      // Increment cache version to trigger refetch
-      setCacheVersion(prev => prev + 1)
-      setData(initialData)
-      setIsStale(true)
-      setLastFetch(null)
     }
 
     window.addEventListener('siteSwitch', handleSiteSwitch as EventListener)
@@ -180,64 +216,32 @@ export function useSupabaseQuery<T>(
     }
   }, [persistKey, initialData])
 
-  // Detect when critical dependencies change (like siteId) and clear cache
-  useEffect(() => {
-    const currentDeps = deps || []
-    const previousDeps = previousDepsRef.current || []
-
-    // Check if any dependency changed (especially siteId which is usually first)
-    const depsChanged = currentDeps.length !== previousDeps.length ||
-                       currentDeps.some((dep, index) => dep !== previousDeps[index])
-
-    if (depsChanged && !isFirstRenderRef.current) {
-      console.log('[QUERY_DEBUG] Dependencies changed, clearing cache:', {
-        persistKey,
-        previousDeps,
-        currentDeps
-      })
-
-      // Clear cache when dependencies change
-      if (persistKey && typeof window !== 'undefined') {
-        try {
-          localStorage.removeItem(persistKey)
-        } catch (error) {
-          console.warn('[QUERY_DEBUG] Failed to clear cache on dependency change:', error)
-        }
-      }
-
-      // Reset state to force refetch
-      setData(initialData)
-      setIsStale(true)
-      setLastFetch(null)
-      setCacheVersion(prev => prev + 1)
-    }
-
-    previousDepsRef.current = currentDeps
-  }, deps)
-
   // Track if this is the first render to prevent duplicate initial fetches
   const isFirstRenderRef = useRef(true)
 
-  // Combined fetch logic - consolidate initial fetch and dependency-based refetch
+  // SIMPLIFIED: Normal React fetch logic without complex cache version tracking
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled) {
+      console.log('[LOADING_DEBUG] Query disabled, skipping fetch:', { persistKey })
+      return
+    }
 
-    // On first render, always fetch if no data or refetchOnMount is true
-    // On subsequent renders (dependency changes or cache invalidation), always fetch
-    const shouldFetch = !isFirstRenderRef.current || !data || refetchOnMount || cacheVersion > 0
+    // Determine if we should fetch
+    const isFirstRender = isFirstRenderRef.current
+    const hasData = data !== null && data !== undefined
+    const shouldFetch = isFirstRender ? (!hasData || refetchOnMount) : true // Always refetch on dependency changes
+
+    console.log('[LOADING_DEBUG] Fetch decision:', {
+      persistKey,
+      enabled,
+      isFirstRender,
+      hasData,
+      refetchOnMount,
+      shouldFetch,
+      deps: deps?.length || 0
+    })
 
     if (shouldFetch) {
-      console.log('[QUERY_DEBUG] Triggering fetch:', {
-        persistKey,
-        isFirstRender: isFirstRenderRef.current,
-        hasData: !!data,
-        refetchOnMount,
-        cacheVersion,
-        reason: !isFirstRenderRef.current ? 'dependency-change' :
-                !data ? 'no-data' :
-                refetchOnMount ? 'refetch-on-mount' :
-                cacheVersion > 0 ? 'cache-invalidated' : 'unknown'
-      })
       execute()
     }
 
@@ -257,7 +261,7 @@ export function useSupabaseQuery<T>(
         intervalRef.current = null as any
       }
     }
-  }, deps ? [enabled, cacheVersion, ...deps] : [enabled, cacheVersion])
+  }, deps ? [enabled, ...deps] : [enabled]) // Remove cacheVersion from dependencies
 
   // Handle reconnect
   useEffect(() => {
