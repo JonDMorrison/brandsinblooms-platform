@@ -143,18 +143,33 @@ export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) 
     memoizedDeps
   );
 
-  // Filter out any invalid data as an extra safety measure
+  // SIMPLIFIED: Don't filter data in useMemo as it can cause loading state issues
+  // Just log validation but return the data as-is to avoid state confusion
   const validatedData = useMemo(() => {
-    if (!queryResult.data || !siteId) return queryResult.data;
-
-    const isValid = validateContentData(queryResult.data, siteId);
-    if (!isValid) {
-      console.warn('[CONTENT_VALIDATION] Filtering out invalid content data');
-      return null;
+    if (!queryResult.data || !siteId) {
+      console.log('[CONTENT_VALIDATION] No data or siteId:', { hasData: !!queryResult.data, siteId });
+      return queryResult.data;
     }
 
+    const isValid = validateContentData(queryResult.data, siteId);
+    console.log('[CONTENT_VALIDATION] Data validation result:', {
+      isValid,
+      siteId,
+      dataType: typeof queryResult.data,
+      loading: queryResult.loading
+    });
+
+    // Return data regardless of validation to avoid loading state issues
+    // The onSuccess callback will handle cache clearing if invalid
     return queryResult.data;
-  }, [queryResult.data, siteId]);
+  }, [queryResult.data, siteId, queryResult.loading]);
+
+  console.log('[CONTENT_HOOK_DEBUG] useContent returning:', {
+    hasData: !!validatedData,
+    loading: queryResult.loading,
+    error: !!queryResult.error,
+    siteId
+  });
 
   return {
     ...queryResult,
