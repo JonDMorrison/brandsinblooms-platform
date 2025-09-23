@@ -397,13 +397,23 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
   },
   about: {
     required: ['hero'],
-    optional: ['mission', 'team', 'values'],
+    optional: ['mission', 'values', 'team', 'features', 'richText', 'cta'],
     defaultSections: {
       hero: {
         type: 'hero',
         data: {
-          content: '',
-          alignment: 'center'
+          headline: 'About Our Plant Experts',
+          subheadline: 'Years of horticultural expertise helping plant lovers grow their green sanctuaries',
+          ctaText: 'Contact Us',
+          ctaLink: '/contact',
+          secondaryCtaText: 'View Our Services',
+          secondaryCtaLink: '/services',
+          features: [
+            'Professional Horticulturists',
+            'Expert Plant Care Guidance',
+            'Sustainable Growing Practices',
+            'Local Plant Sourcing'
+          ]
         },
         visible: true,
         order: 1
@@ -411,28 +421,102 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
       mission: {
         type: 'mission',
         data: {
-          content: ''
+          headline: 'Our Mission',
+          content: 'We believe that plants have the power to transform spaces and lives. Our mission is to provide expert guidance, premium plants, and sustainable practices that help create thriving green sanctuaries in every home and office.'
         },
         visible: false,
         order: 2
       },
-      team: {
-        type: 'team',
+      values: {
+        type: 'values',
         data: {
-          items: [],
-          columns: 3
+          headline: 'Our Core Values',
+          description: 'The principles that guide everything we do',
+          items: [
+            {
+              id: 'sustainability',
+              title: 'Environmental Sustainability',
+              description: 'We prioritize eco-friendly practices in all aspects of our business, from sourcing to packaging.',
+              icon: 'Leaf'
+            },
+            {
+              id: 'expertise',
+              title: 'Horticultural Expertise',
+              description: 'Our team of certified professionals brings decades of plant care knowledge to every interaction.',
+              icon: 'Award'
+            },
+            {
+              id: 'quality',
+              title: 'Premium Quality',
+              description: 'We source only the healthiest plants and provide ongoing support for long-term success.',
+              icon: 'Star'
+            },
+            {
+              id: 'education',
+              title: 'Plant Education',
+              description: 'We empower customers with knowledge to become confident, successful plant parents.',
+              icon: 'BookOpen'
+            }
+          ],
+          columns: 2
         },
         visible: false,
         order: 3
       },
-      values: {
-        type: 'values',
+      team: {
+        type: 'team',
         data: {
+          headline: 'Meet Our Plant Experts',
+          description: 'Our team combines decades of horticultural expertise with genuine passion for plant care',
           items: [],
           columns: 2
         },
         visible: false,
         order: 4
+      },
+      features: {
+        type: 'features',
+        data: {
+          headline: 'Professional Certifications',
+          description: 'Our credentials and expertise you can trust',
+          features: [
+            'Certified Master Gardener',
+            'ISA Certified Arborist',
+            'Sustainable Agriculture Specialist',
+            'Plant Pathology Expert',
+            'Greenhouse Management Professional'
+          ]
+        },
+        visible: false,
+        order: 5,
+        settings: {
+          backgroundColor: 'alternate'
+        }
+      },
+      richText: {
+        type: 'richText',
+        data: {
+          headline: 'Our Story',
+          content: 'Founded with a passion for plants and a commitment to sustainability, we have grown from a small local nursery into a trusted source for premium plants and expert care guidance. Our journey began with the simple belief that everyone deserves to experience the joy and benefits of thriving plants in their space.'
+        },
+        visible: false,
+        order: 6
+      },
+      cta: {
+        type: 'cta',
+        data: {
+          headline: 'Ready to Start Your Plant Journey?',
+          description: 'Let our experts help you create the perfect green sanctuary for your space.',
+          ctaText: 'Schedule Consultation',
+          ctaLink: '/consultation',
+          secondaryCtaText: 'Browse Plants',
+          secondaryCtaLink: '/plants'
+        },
+        visible: false,
+        order: 7,
+        settings: {
+          backgroundColor: 'primary'
+        }
       }
     }
   },

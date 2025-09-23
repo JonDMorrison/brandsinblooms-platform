@@ -1,207 +1,339 @@
 import { SiteRenderer } from '@/src/components/site/SiteRenderer'
-import { generateStructuredData, BUSINESS_INFO } from '@/src/data/seo-data'
-import { companyStory, teamMembers, sustainabilityPractices } from '@/src/data/plant-content-data'
-import { 
-  TeamSectionErrorBoundary,
-  SustainabilityErrorBoundary
-} from '@/src/components/ui/plant-shop-error-boundaries'
+import { ContentSection } from '@/src/lib/content/schema'
+import { teamMembers } from '@/src/data/plant-content-data'
 import {
-  TeamSectionSkeleton,
-  SustainabilitySkeleton
-} from '@/src/components/ui/plant-shop-loading-states'
-import { ViewportLazyLoad } from '@/src/components/ui/lazy-loading'
+  HeroSectionErrorBoundary
+} from '@/src/components/ui/plant-shop-error-boundaries'
 import { getSiteHeaders } from '../utils/routing'
+import { createClient } from '@/src/lib/supabase/server'
+import { getContentBySlug } from '@/src/lib/queries/domains/content'
+import { deserializePageContent } from '@/src/lib/content/serialization'
+import { getLayoutSections } from '@/src/lib/preview/section-renderers'
+import { CustomerSiteSection } from '@/src/components/customer-site/CustomerSiteSection'
 
 export async function AboutPage() {
   const { siteId } = await getSiteHeaders()
-  
+
+  // Fetch database content for about sections
+  let databaseHeroData = null
+  let heroStatus = 'not_found' // 'not_found', 'unpublished', 'missing_hero', 'available'
+  let databaseMissionData = null
+  let missionStatus = 'not_found'
+  let missionBackgroundSetting = 'default'
+  let databaseValuesData = null
+  let valuesStatus = 'not_found'
+  let valuesBackgroundSetting = 'default'
+  let databaseTeamData = null
+  let teamStatus = 'not_found'
+  let teamBackgroundSetting = 'default'
+  let databaseFeaturesData = null
+  let featuresStatus = 'not_found'
+  let featuresBackgroundSetting = 'default'
+  let databaseRichTextData = null
+  let richTextStatus = 'not_found'
+  let richTextBackgroundSetting = 'default'
+  let databaseCtaData = null
+  let ctaStatus = 'not_found'
+  let ctaBackgroundSetting = 'default'
+  let contentResult = null
+
+  try {
+    const supabase = await createClient()
+    contentResult = await getContentBySlug(supabase, siteId, 'about')
+
+    if (contentResult && contentResult.content) {
+      if (!contentResult.is_published) {
+        heroStatus = 'unpublished'
+      } else {
+        const pageContent = deserializePageContent(contentResult.content)
+
+        // Check for hero section
+        if (pageContent?.sections?.hero?.data && pageContent.sections.hero.visible) {
+          databaseHeroData = pageContent.sections.hero.data
+          heroStatus = 'available'
+        } else {
+          heroStatus = 'missing_hero'
+        }
+
+        // Check for mission section
+        if (pageContent?.sections?.mission?.data && pageContent.sections.mission.visible) {
+          databaseMissionData = pageContent.sections.mission.data
+          missionStatus = 'available'
+          missionBackgroundSetting = String(pageContent.sections.mission.settings?.backgroundColor || 'default')
+        }
+
+        // Check for values section
+        if (pageContent?.sections?.values?.data && pageContent.sections.values.visible) {
+          databaseValuesData = pageContent.sections.values.data
+          valuesStatus = 'available'
+          valuesBackgroundSetting = String(pageContent.sections.values.settings?.backgroundColor || 'default')
+        }
+
+        // Check for team section
+        if (pageContent?.sections?.team?.data && pageContent.sections.team.visible) {
+          databaseTeamData = pageContent.sections.team.data
+          teamStatus = 'available'
+          teamBackgroundSetting = String(pageContent.sections.team.settings?.backgroundColor || 'default')
+        }
+
+        // Check for features section
+        if (pageContent?.sections?.features?.data && pageContent.sections.features.visible) {
+          databaseFeaturesData = pageContent.sections.features.data
+          featuresStatus = 'available'
+          featuresBackgroundSetting = String(pageContent.sections.features.settings?.backgroundColor || 'default')
+        }
+
+        // Check for richText section
+        if (pageContent?.sections?.richText?.data && pageContent.sections.richText.visible) {
+          databaseRichTextData = pageContent.sections.richText.data
+          richTextStatus = 'available'
+          richTextBackgroundSetting = String(pageContent.sections.richText.settings?.backgroundColor || 'default')
+        }
+
+        // Check for cta section
+        if (pageContent?.sections?.cta?.data && pageContent.sections.cta.visible) {
+          databaseCtaData = pageContent.sections.cta.data
+          ctaStatus = 'available'
+          ctaBackgroundSetting = String(pageContent.sections.cta.settings?.backgroundColor || 'default')
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching database content:', error)
+    // heroStatus remains 'not_found'
+  }
+
+  // Hardcoded content for about sections (like HomePage's hardcodedCategories)
+  const hardcodedTeamMembers = teamMembers.map(member => ({
+    id: member.id,
+    name: member.name,
+    title: member.title,
+    specialization: member.specialization,
+    credentials: member.credentials,
+    bio: member.bio,
+    experience: member.experience,
+    image: member.image
+  }))
+
+  const hardcodedValues = [
+    {
+      id: 'sustainability',
+      title: 'Environmental Sustainability',
+      description: 'We prioritize eco-friendly practices in all aspects of our business, from sourcing to packaging.',
+      icon: 'Leaf'
+    },
+    {
+      id: 'expertise',
+      title: 'Horticultural Expertise',
+      description: 'Our team of certified professionals brings decades of plant care knowledge to every interaction.',
+      icon: 'Award'
+    },
+    {
+      id: 'quality',
+      title: 'Premium Quality',
+      description: 'We source only the healthiest plants and provide ongoing support for long-term success.',
+      icon: 'Star'
+    },
+    {
+      id: 'education',
+      title: 'Plant Education',
+      description: 'We empower customers with knowledge to become confident, successful plant parents.',
+      icon: 'BookOpen'
+    }
+  ]
+
+  const hardcodedCertifications = [
+    'Certified Master Gardener',
+    'ISA Certified Arborist',
+    'Sustainable Agriculture Specialist',
+    'Plant Pathology Expert',
+    'Greenhouse Management Professional'
+  ]
+
+  // Get ordered sections from database if available
+  let orderedSections: Array<{ key: string; section: unknown }> = []
+  if (contentResult && contentResult.content && contentResult.is_published) {
+    const pageContent = deserializePageContent(contentResult.content)
+    if (pageContent?.sections) {
+      orderedSections = getLayoutSections(pageContent.sections, 'about')
+    }
+  }
+
+  // Create data mapping for dynamic sections
+  const sectionDataMap = {
+    hero: {
+      data: databaseHeroData,
+      status: heroStatus,
+      backgroundSetting: 'default'
+    },
+    mission: {
+      data: databaseMissionData,
+      status: missionStatus,
+      backgroundSetting: missionBackgroundSetting
+    },
+    values: {
+      data: databaseValuesData ? {
+        ...databaseValuesData,
+        items: hardcodedValues
+      } : null,
+      status: valuesStatus,
+      backgroundSetting: valuesBackgroundSetting
+    },
+    team: {
+      data: databaseTeamData ? {
+        ...databaseTeamData,
+        items: hardcodedTeamMembers
+      } : null,
+      status: teamStatus,
+      backgroundSetting: teamBackgroundSetting
+    },
+    features: {
+      data: databaseFeaturesData ? {
+        ...databaseFeaturesData,
+        features: hardcodedCertifications
+      } : null,
+      status: featuresStatus,
+      backgroundSetting: featuresBackgroundSetting
+    },
+    richText: {
+      data: databaseRichTextData,
+      status: richTextStatus,
+      backgroundSetting: richTextBackgroundSetting
+    },
+    cta: {
+      data: databaseCtaData,
+      status: ctaStatus,
+      backgroundSetting: ctaBackgroundSetting
+    }
+  }
+
   return (
-    <SiteRenderer 
+    <SiteRenderer
       siteId={siteId}
       mode="live"
       showNavigation={true}
     >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(generateStructuredData('about'))
-        }}
-      />
-      
-      {/* Hero Section */}
-      <section className="py-16 lg:py-24" style={{background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))'}}>
-        <div className="brand-container">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-              About Our Plant Experts
-            </h1>
-            <p className="text-xl leading-relaxed mb-8" style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}>
-              {companyStory.founding.year} years of horticultural expertise helping plant lovers grow their green sanctuaries
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* Dynamic sections based on database order */}
+      {orderedSections.length > 0 ? (
+        // Render sections in database order
+        orderedSections.map(({ key, section }) => {
+          const sectionInfo = sectionDataMap[key as keyof typeof sectionDataMap]
 
-      {/* Company Story Section */}
-      <section className="py-16" style={{backgroundColor: 'var(--theme-background)'}}>
-        <div className="brand-container">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                Our Story
-              </h2>
-              <div className="prose max-w-none" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>
-                <p className="text-lg mb-4">{companyStory.story}</p>
-                <p className="text-lg">{companyStory.mission}</p>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                Our Expertise
-              </h3>
-              <div className="space-y-4">
-                {companyStory.expertise.specializations.map((item, index) => (
-                  <div key={`expertise-${index}`} className="flex items-center">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3" style={{backgroundColor: 'var(--theme-primary)'}}>
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <span style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+          // Only render if section has data and is available
+          if (!sectionInfo || sectionInfo.status !== 'available' || !sectionInfo.data) {
+            return null
+          }
 
-      {/* Professional Certifications */}
-      <section className="py-16" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.03)'}}>
-        <div className="brand-container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-              Professional Certifications
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {companyStory.expertise.certifications.map((cert, index) => (
-              <div key={`cert-${index}`} className="text-center">
-                <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-3" style={{backgroundColor: 'var(--theme-primary)'}}>
-                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{cert}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+          return (
+            <CustomerSiteSection
+              key={key}
+              section={section as ContentSection}
+              sectionKey={key}
+              sectionData={sectionInfo.data}
+              backgroundSetting={sectionInfo.backgroundSetting}
+            />
+          )
+        })
+      ) : (
+        // Fallback to hardcoded sections when no database content
+        <>
+          {/* Hero Section */}
+          <HeroSectionErrorBoundary>
+            <CustomerSiteSection
+              section={{ type: 'hero', data: {}, visible: true }}
+              sectionKey="hero"
+              sectionData={{
+                headline: 'About Our Plant Experts',
+                subheadline: 'Years of horticultural expertise helping plant lovers grow their green sanctuaries',
+                ctaText: 'Contact Us',
+                ctaLink: '/contact',
+                secondaryCtaText: 'View Our Services',
+                secondaryCtaLink: '/services',
+                features: [
+                  'Professional Horticulturists',
+                  'Expert Plant Care Guidance',
+                  'Sustainable Growing Practices',
+                  'Local Plant Sourcing'
+                ]
+              }}
+              backgroundSetting="default"
+            />
+          </HeroSectionErrorBoundary>
 
-      {/* Team Section - Lazy loaded */}
-      <ViewportLazyLoad
-        fallback={<TeamSectionSkeleton />}
-        delay={100}
-      >
-        <TeamSectionErrorBoundary>
-          <section className="py-16" style={{backgroundColor: 'var(--theme-background)'}}>
-            <div className="brand-container">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                  Meet Our Plant Experts
-                </h2>
-                <p className="text-lg max-w-2xl mx-auto" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                  Our team combines decades of horticultural expertise with genuine passion for plant care
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {teamMembers.map((member) => (
-                  <div key={member.id} className="bg-white rounded-xl p-6 md:p-8 border hover:shadow-lg transition-shadow">
-                    <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-4 md:gap-6">
-                      <div className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
-                        <span className="text-2xl font-bold" style={{color: 'var(--theme-primary)'}}>
-                          {member.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold mb-1" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>{member.name}</h3>
-                        <p className="font-semibold mb-2" style={{color: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}>{member.title}</p>
-                        <p className="text-sm mb-3" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>{member.specialization}</p>
-                        
-                        <div className="mb-3">
-                          <p className="text-xs font-medium mb-1" style={{color: 'var(--theme-text)', opacity: '0.6', fontFamily: 'var(--theme-font-body)'}}>Professional Credentials:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {member.credentials.map((credential, index) => (
-                              <span key={index} className="text-xs px-2 py-1 rounded-full" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)', color: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}>
-                                {credential}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <p className="text-xs italic" style={{color: 'var(--theme-text)', opacity: '0.6', fontFamily: 'var(--theme-font-body)'}}>
-                          {member.experience}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        </TeamSectionErrorBoundary>
-      </ViewportLazyLoad>
+          {/* Mission Section */}
+          <CustomerSiteSection
+            section={{ type: 'mission', data: {}, visible: true }}
+            sectionKey="mission"
+            sectionData={{
+              headline: 'Our Mission',
+              content: 'We believe that plants have the power to transform spaces and lives. Our mission is to provide expert guidance, premium plants, and sustainable practices that help create thriving green sanctuaries in every home and office.'
+            }}
+            backgroundSetting="default"
+          />
 
-      {/* Sustainability Section - Lazy loaded */}
-      <ViewportLazyLoad
-        fallback={<SustainabilitySkeleton />}
-        delay={200}
-      >
-        <SustainabilityErrorBoundary>
-          <section className="py-16" style={{backgroundColor: 'rgba(var(--theme-secondary-rgb), 0.03)'}}>
-            <div className="brand-container">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                  Sustainability Practices
-                </h2>
-                <p className="text-lg max-w-2xl mx-auto" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                  Our commitment to environmental responsibility guides every aspect of our business
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {sustainabilityPractices.map((practice, index) => (
-                  <div key={`practice-${index}`} className="bg-white rounded-lg p-6 border hover:shadow-lg transition-shadow">
-                    <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{backgroundColor: 'var(--theme-secondary)'}}>
-                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                      {practice.name}
-                    </h3>
-                    <p className="text-sm mb-3" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                      {practice.description}
-                    </p>
-                    <div className="p-3 rounded-lg border" style={{backgroundColor: 'rgba(var(--theme-secondary-rgb), 0.05)', borderColor: 'rgba(var(--theme-secondary-rgb), 0.2)'}}>
-                      <p className="text-xs font-medium mb-1" style={{color: 'var(--theme-secondary)', fontFamily: 'var(--theme-font-body)'}}>Impact:</p>
-                      <p className="text-xs" style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}>{practice.impact}</p>
-                      {practice.metrics && (
-                        <>
-                          <p className="text-xs font-medium mt-2 mb-1" style={{color: 'var(--theme-secondary)', fontFamily: 'var(--theme-font-body)'}}>Results:</p>
-                          <p className="text-xs" style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}>{practice.metrics}</p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        </SustainabilityErrorBoundary>
-      </ViewportLazyLoad>
+          {/* Values Section */}
+          <CustomerSiteSection
+            section={{ type: 'values', data: {}, visible: true }}
+            sectionKey="values"
+            sectionData={{
+              headline: 'Our Core Values',
+              description: 'The principles that guide everything we do',
+              items: hardcodedValues
+            }}
+            backgroundSetting="alternate"
+          />
+
+          {/* Team Section */}
+          <CustomerSiteSection
+            section={{ type: 'team', data: {}, visible: true }}
+            sectionKey="team"
+            sectionData={{
+              headline: 'Meet Our Plant Experts',
+              description: 'Our team combines decades of horticultural expertise with genuine passion for plant care',
+              items: hardcodedTeamMembers
+            }}
+            backgroundSetting="default"
+          />
+
+          {/* Features Section */}
+          <CustomerSiteSection
+            section={{ type: 'features', data: {}, visible: true }}
+            sectionKey="features"
+            sectionData={{
+              headline: 'Professional Certifications',
+              description: 'Our credentials and expertise you can trust',
+              features: hardcodedCertifications
+            }}
+            backgroundSetting="alternate"
+          />
+
+          {/* RichText Section */}
+          <CustomerSiteSection
+            section={{ type: 'richText', data: {}, visible: true }}
+            sectionKey="richText"
+            sectionData={{
+              headline: 'Our Story',
+              content: 'Founded with a passion for plants and a commitment to sustainability, we have grown from a small local nursery into a trusted source for premium plants and expert care guidance. Our journey began with the simple belief that everyone deserves to experience the joy and benefits of thriving plants in their space.<br><br>Today, we continue to honor that founding vision by combining scientific expertise with genuine care for our customers and the environment. Every plant we sell and every piece of advice we give reflects our deep commitment to helping you succeed with your green companions.'
+            }}
+            backgroundSetting="default"
+          />
+
+          {/* CTA Section */}
+          <CustomerSiteSection
+            section={{ type: 'cta', data: {}, visible: true }}
+            sectionKey="cta"
+            sectionData={{
+              headline: 'Ready to Start Your Plant Journey?',
+              description: 'Let our experts help you create the perfect green sanctuary for your space.',
+              ctaText: 'Schedule Consultation',
+              ctaLink: '/consultation',
+              secondaryCtaText: 'Browse Plants',
+              secondaryCtaLink: '/plants'
+            }}
+            backgroundSetting="primary"
+          />
+        </>
+      )}
     </SiteRenderer>
   )
 }

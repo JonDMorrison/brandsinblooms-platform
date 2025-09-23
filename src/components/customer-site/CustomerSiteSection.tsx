@@ -17,6 +17,7 @@ import { MissionStatementSkeleton } from '@/src/components/ui/plant-shop-loading
 import { textToHtml } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
 import { getFeatureGridClasses } from '@/src/components/content-sections/shared/grid-utils'
+import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
 
 interface CustomerSiteSectionProps {
   section: ContentSection
@@ -389,6 +390,176 @@ export function CustomerSiteSection({
             </div>
           </section>
         </ViewportLazyLoad>
+      )
+
+    case 'mission':
+      return (
+        <section className="py-16" style={backgroundStyle}>
+          <div className="brand-container">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                {String(sectionData.headline || 'Our Mission')}
+              </h2>
+              <div
+                className="text-lg md:text-xl leading-relaxed [&_p:not(:first-child)]:mt-4"
+                style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}
+                dangerouslySetInnerHTML={{
+                  __html: textToHtml(String(sectionData.content || ''))
+                }}
+              />
+            </div>
+          </div>
+        </section>
+      )
+
+    case 'values':
+      return (
+        <section className="py-16" style={backgroundStyle}>
+          <div className="brand-container">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                {String(sectionData.headline || 'Our Core Values')}
+              </h2>
+              {sectionData.description && (
+                <div
+                  className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
+                  style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
+                  dangerouslySetInnerHTML={{
+                    __html: textToHtml(String(sectionData.description))
+                  }}
+                />
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {((sectionData.items as any[]) || []).map((value: any) => {
+                const IconComponent = getIcon(value.icon)
+                return (
+                  <div key={value.id} className="bg-white rounded-lg p-8 border hover:shadow-lg transition-shadow">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{backgroundColor: 'var(--theme-primary)'}}>
+                        {IconComponent ? (
+                          <IconComponent className="w-6 h-6 text-white" />
+                        ) : (
+                          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold mb-3" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                          {value.title}
+                        </h3>
+                        <p className="text-sm leading-relaxed" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
+                          {value.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+      )
+
+    case 'team':
+      return (
+        <ViewportLazyLoad fallback={<div className="h-96" />} delay={200}>
+          <section className="py-16" style={backgroundStyle}>
+            <div className="brand-container">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                  {String(sectionData.headline || 'Meet Our Team')}
+                </h2>
+                {sectionData.description && (
+                  <div
+                    className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
+                    style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
+                    dangerouslySetInnerHTML={{
+                      __html: textToHtml(String(sectionData.description))
+                    }}
+                  />
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {((sectionData.items as any[]) || []).map((member: any) => (
+                  <div key={member.id} className="bg-white rounded-xl p-6 md:p-8 border hover:shadow-lg transition-shadow">
+                    <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-4 md:gap-6">
+                      <div className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
+                        {member.image ? (
+                          <img
+                            src={member.image}
+                            alt={member.name}
+                            className="w-24 h-24 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-2xl font-bold" style={{color: 'var(--theme-primary)'}}>
+                            {member.name.split(' ').map((n: string) => n[0]).join('')}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold mb-1" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>{member.name}</h3>
+                        <p className="font-semibold mb-2" style={{color: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}>{member.title}</p>
+                        {member.specialization && (
+                          <p className="text-sm mb-3" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>{member.specialization}</p>
+                        )}
+
+                        {member.credentials && Array.isArray(member.credentials) && member.credentials.length > 0 && (
+                          <div className="mb-3">
+                            <p className="text-xs font-medium mb-1" style={{color: 'var(--theme-text)', opacity: '0.6', fontFamily: 'var(--theme-font-body)'}}>Professional Credentials:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {member.credentials.map((credential: string, index: number) => (
+                                <span key={index} className="text-xs px-2 py-1 rounded-full" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)', color: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}>
+                                  {credential}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {member.bio && (
+                          <p className="text-sm leading-relaxed mb-2" style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
+                            {member.bio}
+                          </p>
+                        )}
+
+                        {member.experience && (
+                          <p className="text-xs italic" style={{color: 'var(--theme-text)', opacity: '0.6', fontFamily: 'var(--theme-font-body)'}}>
+                            {member.experience}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </ViewportLazyLoad>
+      )
+
+    case 'richText':
+      return (
+        <section className="py-16" style={backgroundStyle}>
+          <div className="brand-container">
+            <div className="max-w-4xl mx-auto">
+              {sectionData.headline && (
+                <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                  {String(sectionData.headline)}
+                </h2>
+              )}
+              <div
+                className="prose prose-lg max-w-none [&_p:not(:first-child)]:mt-4 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-8 [&_h3]:mb-4"
+                style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}
+                dangerouslySetInnerHTML={{
+                  __html: textToHtml(String(sectionData.content || ''))
+                }}
+              />
+            </div>
+          </div>
+        </section>
       )
 
     default:

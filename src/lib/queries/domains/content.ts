@@ -164,14 +164,41 @@ export async function getContentBySlug(
   siteId: string,
   slug: string
 ): Promise<ContentWithTags> {
-  const response = await supabase
+  // First try to get the most recent published version
+  let response = await supabase
     .from('content')
     .select('*')
     .eq('site_id', siteId)
     .eq('slug', slug)
-    .single();
+    .eq('is_published', true)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  const data = await handleSingleResponse(response);
+  let data = response.data;
+
+  // If no published version found, get the most recent version regardless of publish status
+  if (!data && !response.error) {
+    response = await supabase
+      .from('content')
+      .select('*')
+      .eq('site_id', siteId)
+      .eq('slug', slug)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    data = response.data;
+  }
+
+  // Handle the response
+  if (response.error) {
+    throw new SupabaseError(response.error.message, response.error.code);
+  }
+
+  if (!data) {
+    return null as any; // Return null when content is not found instead of throwing error
+  }
   
   // Transform tags (empty for now)
   return {
