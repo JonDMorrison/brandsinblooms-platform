@@ -59,6 +59,7 @@ export function PageTab({
   const [slugMessage, setSlugMessage] = useState('')
   const [slugSuggestions, setSlugSuggestions] = useState<string[]>([])
   const [showHomePageDialog, setShowHomePageDialog] = useState(false)
+  const [showAboutPageDialog, setShowAboutPageDialog] = useState(false)
   
   const slugValidator = useSlugValidator(siteId || '', contentId)
   
@@ -133,6 +134,24 @@ export function PageTab({
     onSlugChange('home')
     onPublishedChange(true)
     setShowHomePageDialog(false)
+  }
+
+  const handleAboutPageToggle = (isAbout: boolean) => {
+    if (isAbout && slugInput !== 'about') {
+      setShowAboutPageDialog(true)
+    } else if (isAbout) {
+      // Already has about slug, just publish it
+      onPublishedChange(true)
+    }
+    // If setting to false, do nothing special - user can manually unpublish
+  }
+
+  const confirmAboutPageChange = () => {
+    // Set slug to 'about' and publish the page
+    setSlugInput('about')
+    onSlugChange('about')
+    onPublishedChange(true)
+    setShowAboutPageDialog(false)
   }
 
   const getSlugStatusIcon = () => {
@@ -291,7 +310,7 @@ export function PageTab({
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-md ${
                 slug === 'home' && isPublished
-                  ? 'bg-blue-100 text-blue-600' 
+                  ? 'bg-blue-100 text-blue-600'
                   : 'bg-gray-100 text-gray-500'
               }`}>
                 <Home className="h-4 w-4" />
@@ -300,7 +319,7 @@ export function PageTab({
                 <p className="text-sm font-medium">Set as Home Page</p>
                 <p className="text-xs text-gray-500">
                   {slug === 'home' && isPublished
-                    ? 'This is your site\'s home page' 
+                    ? 'This is your site\'s home page'
                     : 'Make this your site\'s home page'
                   }
                 </p>
@@ -309,6 +328,36 @@ export function PageTab({
             <Switch
               checked={slug === 'home' && isPublished}
               onCheckedChange={handleHomePageToggle}
+            />
+          </div>
+        )}
+
+        {/* About Page Setting (About Pages Only) */}
+        {layout === 'about' && (
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-md ${
+                slug === 'about' && isPublished
+                  ? 'bg-green-100 text-green-600'
+                  : 'bg-gray-100 text-gray-500'
+              }`}>
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Set as About Page</p>
+                <p className="text-xs text-gray-500">
+                  {slug === 'about' && isPublished
+                    ? 'This is your site\'s about page'
+                    : 'Make this your site\'s about page'
+                  }
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={slug === 'about' && isPublished}
+              onCheckedChange={handleAboutPageToggle}
             />
           </div>
         )}
@@ -348,8 +397,8 @@ export function PageTab({
               </p>
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
                 <p className="text-sm text-amber-800">
-                  <strong>Note:</strong> Only one home page is allowed per site. 
-                  If another page is currently set as home, it will be automatically 
+                  <strong>Note:</strong> Only one home page is allowed per site.
+                  If another page is currently set as home, it will be automatically
                   renamed and this page will become the new home page.
                 </p>
               </div>
@@ -365,11 +414,52 @@ export function PageTab({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmHomePageChange}
               className="bg-blue-600 hover:bg-blue-700"
             >
               Make Home Page
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* About Page Confirmation Dialog */}
+      <AlertDialog open={showAboutPageDialog} onOpenChange={setShowAboutPageDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              Set as About Page
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Are you sure you want to make this page your site's about page?
+              </p>
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                <p className="text-sm text-amber-800">
+                  <strong>Note:</strong> Only one about page is allowed per site.
+                  If another page is currently set as about, it will be automatically
+                  renamed and this page will become the new about page.
+                </p>
+              </div>
+              <p className="text-sm text-gray-600">
+                This action will:
+              </p>
+              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                <li>Set this page's URL to /about</li>
+                <li>Automatically publish this page</li>
+                <li>Rename any existing about page</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmAboutPageChange}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Make About Page
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

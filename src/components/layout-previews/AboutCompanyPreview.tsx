@@ -1,3 +1,5 @@
+'use client'
+
 import { Card } from '@/src/components/ui/card'
 import { Avatar, AvatarFallback } from '@/src/components/ui/avatar'
 import { Badge } from '@/src/components/ui/badge'
@@ -6,30 +8,41 @@ import { PageContent, LegacyContent, isPageContent } from '@/src/lib/content/sch
 import { DynamicSection } from '@/src/components/preview/DynamicSection'
 import { getLayoutSections, convertLegacyContent, getSpacingClass } from '@/src/lib/preview/section-renderers'
 import { TeamMemberPhoto, LocationImage } from '@/src/components/ui/plant-shop-image'
+import { SiteThemeProvider, ThemeWrapper, useSiteThemeContext } from '@/src/components/theme/ThemeProvider'
 
 interface AboutCompanyPreviewProps {
   title?: string
   subtitle?: string
   content?: PageContent | LegacyContent
+  onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
+  onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
 }
 
-export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPreviewProps) {
+function AboutCompanyPreviewContent({ title, subtitle, content, onContentUpdate, onFeatureUpdate }: AboutCompanyPreviewProps) {
+  const { theme } = useSiteThemeContext()
+
   // Determine if we have enhanced content or need to use legacy format
   const isEnhanced = content && isPageContent(content)
-  
+
   if (isEnhanced) {
     // Render with enhanced content structure
     const sections = getLayoutSections(content.sections, 'about')
     const spacingClass = getSpacingClass(content.settings?.layout?.spacing)
-    
+
     return (
-      <div className={`w-full h-full bg-white p-6 ${spacingClass}`}>
+      <div
+        className={`w-full h-full ${spacingClass}`}
+        style={{
+          backgroundColor: 'var(--theme-background, #FFFFFF)'
+        }}>
         {sections.map(({ key, section }) => (
           <DynamicSection
             key={key}
             section={section}
             sectionKey={key}
             className=""
+            onContentUpdate={onContentUpdate}
+            onFeatureUpdate={onFeatureUpdate}
           />
         ))}
       </div>
@@ -42,33 +55,77 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
   
   if (legacyTitle || legacySubtitle) {
     return (
-      <div className="w-full min-h-full bg-white p-6 space-y-8">
+      <div
+        className="w-full min-h-full p-6 space-y-8"
+        style={{
+          backgroundColor: 'var(--theme-background, #FFFFFF)'
+        }}>
         {/* Hero Section */}
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold text-gray-900">{legacyTitle}</h1>
+          <h1
+            className="text-3xl font-bold"
+            style={{
+              color: 'var(--theme-text, #1F2937)',
+              fontFamily: 'var(--theme-font-heading, inherit)'
+            }}>{legacyTitle}</h1>
           {legacySubtitle && (
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">{legacySubtitle}</p>
+            <p
+              className="text-lg max-w-2xl mx-auto"
+              style={{
+                color: 'var(--theme-text-secondary, #6B7280)',
+                fontFamily: 'var(--theme-font-body, inherit)'
+              }}>{legacySubtitle}</p>
           )}
         </div>
 
         {/* Company Story */}
         <div className="flex flex-col gap-8">
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900">Our Story</h2>
-            <p className="text-gray-600 leading-relaxed">
-              {content && 'content' in content && content.content 
-                ? content.content 
+            <h2
+              className="text-2xl font-bold"
+              style={{
+                color: 'var(--theme-text, #1F2937)',
+                fontFamily: 'var(--theme-font-heading, inherit)'
+              }}>Our Story</h2>
+            <p
+              className="leading-relaxed"
+              style={{
+                color: 'var(--theme-text-secondary, #6B7280)',
+                fontFamily: 'var(--theme-font-body, inherit)'
+              }}>
+              {content && 'content' in content && content.content
+                ? content.content
                 : 'Tell your company story here. Share your journey, mission, and what makes your business unique. Use the content editor to add rich text, images, and formatting to create an engaging about page.'
               }
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">500+</div>
-                <div className="text-sm text-gray-600">Happy Customers</div>
+                <div
+                  className="text-2xl font-bold"
+                  style={{
+                    color: 'var(--theme-primary, #3B82F6)',
+                    fontFamily: 'var(--theme-font-heading, inherit)'
+                  }}>500+</div>
+                <div
+                  className="text-sm"
+                  style={{
+                    color: 'var(--theme-text-secondary, #6B7280)',
+                    fontFamily: 'var(--theme-font-body, inherit)'
+                  }}>Happy Customers</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">10+</div>
-                <div className="text-sm text-gray-600">Years Experience</div>
+                <div
+                  className="text-2xl font-bold"
+                  style={{
+                    color: 'var(--theme-secondary, #10B981)',
+                    fontFamily: 'var(--theme-font-heading, inherit)'
+                  }}>10+</div>
+                <div
+                  className="text-sm"
+                  style={{
+                    color: 'var(--theme-text-secondary, #6B7280)',
+                    fontFamily: 'var(--theme-font-body, inherit)'
+                  }}>Years Experience</div>
               </div>
             </div>
           </div>
@@ -87,7 +144,12 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
 
         {/* Values */}
         <div>
-          <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">Our Values</h2>
+          <h2
+            className="text-2xl font-bold text-center mb-6"
+            style={{
+              color: 'var(--theme-text, #1F2937)',
+              fontFamily: 'var(--theme-font-heading, inherit)'
+            }}>Our Values</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {[
               { icon: Heart, title: 'Passion', desc: 'Love for what we do' },
@@ -96,12 +158,36 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
             ].map((value, i) => {
               const Icon = value.icon
               return (
-                <Card key={i} className="p-4 text-center bg-white border-gray-200">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Icon className="h-6 w-6 text-blue-600" />
+                <Card
+                  key={i}
+                  className="p-4 text-center border"
+                  style={{
+                    backgroundColor: 'var(--theme-background, #FFFFFF)',
+                    borderColor: 'var(--theme-border, #E5E7EB)'
+                  }}>
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+                    style={{
+                      backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)'
+                    }}>
+                    <Icon
+                      className="h-6 w-6"
+                      style={{
+                        color: 'var(--theme-primary, #3B82F6)'
+                      }} />
                   </div>
-                  <h3 className="font-semibold mb-2 text-gray-900">{value.title}</h3>
-                  <p className="text-sm text-gray-600">{value.desc}</p>
+                  <h3
+                    className="font-semibold mb-2"
+                    style={{
+                      color: 'var(--theme-text, #1F2937)',
+                      fontFamily: 'var(--theme-font-heading, inherit)'
+                    }}>{value.title}</h3>
+                  <p
+                    className="text-sm"
+                    style={{
+                      color: 'var(--theme-text-secondary, #6B7280)',
+                      fontFamily: 'var(--theme-font-body, inherit)'
+                    }}>{value.desc}</p>
                 </Card>
               )
             })}
@@ -110,7 +196,12 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
 
         {/* Team Section */}
         <div>
-          <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">Meet Our Team</h2>
+          <h2
+            className="text-2xl font-bold text-center mb-6"
+            style={{
+              color: 'var(--theme-text, #1F2937)',
+              fontFamily: 'var(--theme-font-heading, inherit)'
+            }}>Meet Our Team</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {[
               {
@@ -132,7 +223,13 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
                 imageSrc: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80'
               }
             ].map((member, i) => (
-              <Card key={i} className="p-4 text-center hover:shadow-lg transition-shadow">
+              <Card
+                key={i}
+                className="p-4 text-center hover:shadow-lg transition-shadow border"
+                style={{
+                  backgroundColor: 'var(--theme-background, #FFFFFF)',
+                  borderColor: 'var(--theme-border, #E5E7EB)'
+                }}>
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden">
                   <TeamMemberPhoto
                     src={member.imageSrc}
@@ -144,12 +241,28 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
                     loading="lazy"
                   />
                 </div>
-                
-                <h3 className="font-semibold mb-1 text-gray-900">{member.name}</h3>
-                <Badge variant="outline" className="mb-3 text-green-700 border-green-200">
+
+                <h3
+                  className="font-semibold mb-1"
+                  style={{
+                    color: 'var(--theme-text, #1F2937)',
+                    fontFamily: 'var(--theme-font-heading, inherit)'
+                  }}>{member.name}</h3>
+                <Badge
+                  variant="outline"
+                  className="mb-3 border"
+                  style={{
+                    color: 'var(--theme-secondary, #10B981)',
+                    borderColor: 'var(--theme-secondary, #10B981)'
+                  }}>
                   {member.role}
                 </Badge>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{
+                    color: 'var(--theme-text-secondary, #6B7280)',
+                    fontFamily: 'var(--theme-font-body, inherit)'
+                  }}>
                   {member.bio}
                 </p>
               </Card>
@@ -158,25 +271,73 @@ export function AboutCompanyPreview({ title, subtitle, content }: AboutCompanyPr
         </div>
 
         {/* Location */}
-        <div className="text-center bg-gray-50 rounded-lg p-6">
+        <div
+          className="text-center rounded-lg p-6"
+          style={{
+            backgroundColor: 'var(--theme-muted, #F9FAFB)'
+          }}>
           <div className="flex items-center justify-center gap-2 mb-2">
-            <MapPin className="h-5 w-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">Visit Us</h3>
+            <MapPin
+              className="h-5 w-5"
+              style={{
+                color: 'var(--theme-primary, #3B82F6)'
+              }} />
+            <h3
+              className="font-semibold"
+              style={{
+                color: 'var(--theme-text, #1F2937)',
+                fontFamily: 'var(--theme-font-heading, inherit)'
+              }}>Visit Us</h3>
           </div>
-          <p className="text-gray-600">Add your business address here</p>
-          <p className="text-sm text-gray-600 mt-1">Include your hours of operation</p>
+          <p
+            style={{
+              color: 'var(--theme-text-secondary, #6B7280)',
+              fontFamily: 'var(--theme-font-body, inherit)'
+            }}>Add your business address here</p>
+          <p
+            className="text-sm mt-1"
+            style={{
+              color: 'var(--theme-text-secondary, #6B7280)',
+              fontFamily: 'var(--theme-font-body, inherit)'
+            }}>Include your hours of operation</p>
         </div>
       </div>
     )
   }
-  
+
   // Empty state
   return (
-    <div className="w-full min-h-full bg-white p-6 flex items-center justify-center">
-      <div className="text-center text-gray-500">
-        <h3 className="text-xl font-semibold mb-2">About Company Preview</h3>
-        <p>Add content to see your about page design</p>
+    <div
+      className="w-full min-h-full p-6 flex items-center justify-center"
+      style={{
+        backgroundColor: 'var(--theme-background, #FFFFFF)'
+      }}>
+      <div
+        className="text-center"
+        style={{
+          color: 'var(--theme-text-muted, #9CA3AF)'
+        }}>
+        <h3
+          className="text-xl font-semibold mb-2"
+          style={{
+            color: 'var(--theme-text, #1F2937)',
+            fontFamily: 'var(--theme-font-heading, inherit)'
+          }}>About Company Preview</h3>
+        <p
+          style={{
+            fontFamily: 'var(--theme-font-body, inherit)'
+          }}>Add content to see your about page design</p>
       </div>
     </div>
+  )
+}
+
+export function AboutCompanyPreview(props: AboutCompanyPreviewProps) {
+  return (
+    <SiteThemeProvider>
+      <ThemeWrapper className="w-full min-h-full">
+        <AboutCompanyPreviewContent {...props} />
+      </ThemeWrapper>
+    </SiteThemeProvider>
   )
 }

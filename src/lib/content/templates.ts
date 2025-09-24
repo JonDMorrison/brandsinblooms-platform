@@ -534,16 +534,22 @@ export function getTemplateContent(
   subtitle?: string,
   config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
-  // If simple complexity is requested, return basic landing template regardless of template choice
+  // If simple complexity is requested, return basic template regardless of template choice
   if (config.complexity === 'simple') {
-    return getBasicLayoutTemplate('landing', title, subtitle)
+    // Determine layout based on template ID
+    const layout = templateId.includes('about') ? 'about' : 'landing'
+    return getBasicLayoutTemplate(layout, title, subtitle)
   }
-  
+
   switch (templateId) {
     case 'home-page':
       return getHomePageTemplate(title, subtitle, config)
     case 'minimal':
       return getMinimalLandingTemplate(title, subtitle, config)
+    case 'full-about':
+      return getFullAboutPageTemplate(title, subtitle, config)
+    case 'minimal-about':
+      return getMinimalAboutPageTemplate(title, subtitle, config)
     default:
       return enhanceLandingTemplate(title, subtitle, config)
   }
@@ -802,6 +808,372 @@ function getMinimalLandingTemplate(
       cta: {
         type: 'cta',
         order: 5,
+        visible: true,
+        data: {
+          headline: '',
+          description: '',
+          ctaText: '',
+          ctaLink: '',
+          secondaryCtaText: '',
+          secondaryCtaLink: ''
+        },
+        settings: {
+          backgroundColor: 'primary'
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Full About Page template with all 7 sections
+ */
+function getFullAboutPageTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
+): PageContent {
+  // Return populated template when sample content is requested
+  if (config.complexity !== 'simple') {
+    return {
+      version: '1.0',
+      layout: 'about',
+      sections: {
+        hero: {
+          type: 'hero',
+          order: 1,
+          visible: true,
+          data: {
+            headline: title || 'About Our Plant Experts',
+            subheadline: subtitle || 'Years of horticultural expertise helping plant lovers grow their green sanctuaries',
+            features: [
+              'Professional Horticulturists',
+              'Expert Plant Care Guidance',
+              'Sustainable Growing Practices',
+              'Local Plant Sourcing'
+            ],
+            ctaText: 'Contact Us',
+            ctaLink: '/contact',
+            secondaryCtaText: 'View Our Services',
+            secondaryCtaLink: '/services'
+          }
+        },
+        mission: {
+          type: 'mission',
+          order: 2,
+          visible: true,
+          data: {
+            headline: 'Our Mission',
+            content: 'We believe that plants have the power to transform spaces and lives. Our mission is to provide expert guidance, premium plants, and sustainable practices that help create thriving green sanctuaries in every home and office.'
+          }
+        },
+        values: {
+          type: 'values',
+          order: 3,
+          visible: true,
+          data: {
+            headline: 'Our Core Values',
+            description: 'The principles that guide everything we do',
+            items: [
+              {
+                id: 'sustainability',
+                title: 'Environmental Sustainability',
+                content: 'We prioritize eco-friendly practices in all aspects of our business, from sourcing to packaging.',
+                icon: 'Leaf',
+                order: 0
+              },
+              {
+                id: 'expertise',
+                title: 'Horticultural Expertise',
+                content: 'Our team of certified professionals brings decades of plant care knowledge to every interaction.',
+                icon: 'Award',
+                order: 1
+              },
+              {
+                id: 'quality',
+                title: 'Premium Quality',
+                content: 'We source only the healthiest plants and provide ongoing support for long-term success.',
+                icon: 'Star',
+                order: 2
+              },
+              {
+                id: 'education',
+                title: 'Plant Education',
+                content: 'We empower customers with knowledge to become confident, successful plant parents.',
+                icon: 'BookOpen',
+                order: 3
+              }
+            ]
+          },
+          settings: {
+            backgroundColor: 'alternate'
+          }
+        },
+        team: {
+          type: 'team',
+          order: 4,
+          visible: true,
+          data: {
+            headline: 'Meet Our Plant Experts',
+            description: 'Our team combines decades of horticultural expertise with genuine passion for plant care',
+            items: [
+              {
+                id: 'member-1',
+                name: 'Dr. Sarah Martinez',
+                title: 'Master Horticulturist',
+                specialization: 'Indoor Plant Care & Tropical Species',
+                bio: 'With over 15 years of experience in plant sciences, Dr. Martinez specializes in helping customers create thriving indoor environments.',
+                credentials: ['Ph.D. Plant Sciences', 'Certified Master Gardener', 'Tropical Plant Specialist'],
+                experience: '15+ years in professional horticulture',
+                order: 0
+              },
+              {
+                id: 'member-2',
+                name: 'James Thompson',
+                title: 'Plant Care Specialist',
+                specialization: 'Sustainable Growing & Organic Methods',
+                bio: 'James brings practical expertise in sustainable growing practices and helps customers develop eco-friendly plant care routines.',
+                credentials: ['Certified Organic Specialist', 'Permaculture Design', 'Soil Health Expert'],
+                experience: '12+ years in sustainable agriculture',
+                order: 1
+              }
+            ]
+          }
+        },
+        features: {
+          type: 'features',
+          order: 5,
+          visible: true,
+          data: {
+            headline: 'Professional Certifications',
+            description: 'Our credentials and expertise you can trust',
+            features: [
+              'Certified Master Gardener',
+              'ISA Certified Arborist',
+              'Sustainable Agriculture Specialist',
+              'Plant Pathology Expert',
+              'Greenhouse Management Professional'
+            ]
+          },
+          settings: {
+            backgroundColor: 'alternate'
+          }
+        },
+        richText: {
+          type: 'richText',
+          order: 6,
+          visible: true,
+          data: {
+            headline: 'Our Story',
+            content: 'Founded with a passion for plants and a commitment to sustainability, we have grown from a small local nursery into a trusted source for premium plants and expert care guidance. Our journey began with the simple belief that everyone deserves to experience the joy and benefits of thriving plants in their space.<br><br>Today, we continue to honor that founding vision by combining scientific expertise with genuine care for our customers and the environment. Every plant we sell and every piece of advice we give reflects our deep commitment to helping you succeed with your green companions.'
+          }
+        },
+        cta: {
+          type: 'cta',
+          order: 7,
+          visible: true,
+          data: {
+            headline: 'Ready to Start Your Plant Journey?',
+            description: 'Let our experts help you create the perfect green sanctuary for your space.',
+            ctaText: 'Schedule Consultation',
+            ctaLink: '/consultation',
+            secondaryCtaText: 'Browse Plants',
+            secondaryCtaLink: '/plants'
+          },
+          settings: {
+            backgroundColor: 'primary'
+          }
+        }
+      }
+    }
+  }
+
+  // Return empty template when no sample content is requested
+  return {
+    version: '1.0',
+    layout: 'about',
+    sections: {
+      hero: {
+        type: 'hero',
+        order: 1,
+        visible: true,
+        data: {
+          headline: title || '',
+          subheadline: subtitle || '',
+          features: [],
+          ctaText: '',
+          ctaLink: '',
+          secondaryCtaText: '',
+          secondaryCtaLink: ''
+        }
+      },
+      mission: {
+        type: 'mission',
+        order: 2,
+        visible: true,
+        data: {
+          headline: '',
+          content: ''
+        }
+      },
+      values: {
+        type: 'values',
+        order: 3,
+        visible: true,
+        data: {
+          headline: '',
+          description: '',
+          items: []
+        },
+        settings: {
+          backgroundColor: 'alternate'
+        }
+      },
+      team: {
+        type: 'team',
+        order: 4,
+        visible: true,
+        data: {
+          headline: '',
+          description: '',
+          items: []
+        }
+      },
+      features: {
+        type: 'features',
+        order: 5,
+        visible: true,
+        data: {
+          headline: '',
+          description: '',
+          features: []
+        },
+        settings: {
+          backgroundColor: 'alternate'
+        }
+      },
+      richText: {
+        type: 'richText',
+        order: 6,
+        visible: true,
+        data: {
+          headline: '',
+          content: ''
+        }
+      },
+      cta: {
+        type: 'cta',
+        order: 7,
+        visible: true,
+        data: {
+          headline: '',
+          description: '',
+          ctaText: '',
+          ctaLink: '',
+          secondaryCtaText: '',
+          secondaryCtaLink: ''
+        },
+        settings: {
+          backgroundColor: 'primary'
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Minimal About Page template with essential sections only
+ */
+function getMinimalAboutPageTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
+): PageContent {
+  // Return populated template when sample content is requested
+  if (config.complexity !== 'simple') {
+    return {
+      version: '1.0',
+      layout: 'about',
+      sections: {
+        hero: {
+          type: 'hero',
+          order: 1,
+          visible: true,
+          data: {
+            headline: title || 'About Our Plant Experts',
+            subheadline: subtitle || 'Years of horticultural expertise helping plant lovers grow their green sanctuaries',
+            features: [
+              'Professional Horticulturists',
+              'Expert Plant Care Guidance',
+              'Sustainable Growing Practices',
+              'Local Plant Sourcing'
+            ],
+            ctaText: 'Contact Us',
+            ctaLink: '/contact',
+            secondaryCtaText: 'View Our Services',
+            secondaryCtaLink: '/services'
+          }
+        },
+        mission: {
+          type: 'mission',
+          order: 2,
+          visible: true,
+          data: {
+            headline: 'Our Mission',
+            content: 'We believe that plants have the power to transform spaces and lives. Our mission is to provide expert guidance, premium plants, and sustainable practices that help create thriving green sanctuaries in every home and office.'
+          }
+        },
+        cta: {
+          type: 'cta',
+          order: 3,
+          visible: true,
+          data: {
+            headline: 'Ready to Start Your Plant Journey?',
+            description: 'Let our experts help you create the perfect green sanctuary for your space.',
+            ctaText: 'Schedule Consultation',
+            ctaLink: '/consultation',
+            secondaryCtaText: 'Browse Plants',
+            secondaryCtaLink: '/plants'
+          },
+          settings: {
+            backgroundColor: 'primary'
+          }
+        }
+      }
+    }
+  }
+
+  // Return empty template when no sample content is requested
+  return {
+    version: '1.0',
+    layout: 'about',
+    sections: {
+      hero: {
+        type: 'hero',
+        order: 1,
+        visible: true,
+        data: {
+          headline: title || '',
+          subheadline: subtitle || '',
+          features: [],
+          ctaText: '',
+          ctaLink: '',
+          secondaryCtaText: '',
+          secondaryCtaLink: ''
+        }
+      },
+      mission: {
+        type: 'mission',
+        order: 2,
+        visible: true,
+        data: {
+          headline: '',
+          content: ''
+        }
+      },
+      cta: {
+        type: 'cta',
+        order: 3,
         visible: true,
         data: {
           headline: '',
