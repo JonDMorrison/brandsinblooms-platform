@@ -7,7 +7,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useFloating, autoUpdate, offset, flip, shift, arrow } from '@floating-ui/react';
-import { Bold, Italic, Link, Type, Check, X } from 'lucide-react';
+import { Bold, Italic, Link, Type, Check, X, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
@@ -80,8 +80,28 @@ export const FloatingToolbar = ({
     editor?.chain().focus().toggleItalic().run();
   }, [editor]);
   
-  const handleHeading = useCallback(() => {
+  const handleParagraph = useCallback(() => {
+    editor?.chain().focus().setParagraph().run();
+  }, [editor]);
+
+  const handleHeading1 = useCallback(() => {
+    editor?.chain().focus().toggleHeading({ level: 1 }).run();
+  }, [editor]);
+
+  const handleHeading2 = useCallback(() => {
     editor?.chain().focus().toggleHeading({ level: 2 }).run();
+  }, [editor]);
+
+  const handleAlignLeft = useCallback(() => {
+    editor?.chain().focus().setTextAlign('left').run();
+  }, [editor]);
+
+  const handleAlignCenter = useCallback(() => {
+    editor?.chain().focus().setTextAlign('center').run();
+  }, [editor]);
+
+  const handleAlignRight = useCallback(() => {
+    editor?.chain().focus().setTextAlign('right').run();
   }, [editor]);
   
   const handleLink = useCallback(() => {
@@ -153,6 +173,7 @@ export const FloatingToolbar = ({
       
       {!showLinkInput ? (
         <>
+          {/* Basic Formatting: Bold, Italic */}
           <Button
             size="sm"
             variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
@@ -162,7 +183,7 @@ export const FloatingToolbar = ({
           >
             <Bold className="h-3.5 w-3.5" />
           </Button>
-          
+
           <Button
             size="sm"
             variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
@@ -172,21 +193,81 @@ export const FloatingToolbar = ({
           >
             <Italic className="h-3.5 w-3.5" />
           </Button>
-          
+
           {format === 'rich' && (
             <>
+              {/* Separator */}
               <div className="w-px h-5 bg-border mx-0.5" />
-              
+
+              {/* Heading Controls: Paragraph, H1, H2 */}
+              <Button
+                size="sm"
+                variant={!editor.isActive('heading') ? 'secondary' : 'ghost'}
+                onClick={handleParagraph}
+                className="h-7 w-7 p-0 text-xs font-medium"
+                title="Paragraph"
+              >
+                P
+              </Button>
+
+              <Button
+                size="sm"
+                variant={editor.isActive('heading', { level: 1 }) ? 'secondary' : 'ghost'}
+                onClick={handleHeading1}
+                className="h-7 w-8 p-0 text-xs font-medium"
+                title="Heading 1"
+              >
+                H1
+              </Button>
+
               <Button
                 size="sm"
                 variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'}
-                onClick={handleHeading}
-                className="h-7 w-7 p-0"
-                title="Heading"
+                onClick={handleHeading2}
+                className="h-7 w-8 p-0 text-xs font-medium"
+                title="Heading 2"
               >
-                <Type className="h-3.5 w-3.5" />
+                H2
               </Button>
-              
+
+              {/* Separator */}
+              <div className="w-px h-5 bg-border mx-0.5" />
+
+              {/* Alignment Controls */}
+              <Button
+                size="sm"
+                variant={editor.isActive({ textAlign: 'left' }) || (!editor.isActive({ textAlign: 'center' }) && !editor.isActive({ textAlign: 'right' })) ? 'secondary' : 'ghost'}
+                onClick={handleAlignLeft}
+                className="h-7 w-7 p-0"
+                title="Align Left"
+              >
+                <AlignLeft className="h-3.5 w-3.5" />
+              </Button>
+
+              <Button
+                size="sm"
+                variant={editor.isActive({ textAlign: 'center' }) ? 'secondary' : 'ghost'}
+                onClick={handleAlignCenter}
+                className="h-7 w-7 p-0"
+                title="Align Center"
+              >
+                <AlignCenter className="h-3.5 w-3.5" />
+              </Button>
+
+              <Button
+                size="sm"
+                variant={editor.isActive({ textAlign: 'right' }) ? 'secondary' : 'ghost'}
+                onClick={handleAlignRight}
+                className="h-7 w-7 p-0"
+                title="Align Right"
+              >
+                <AlignRight className="h-3.5 w-3.5" />
+              </Button>
+
+              {/* Separator */}
+              <div className="w-px h-5 bg-border mx-0.5" />
+
+              {/* Link Control */}
               <Button
                 size="sm"
                 variant={editor.isActive('link') ? 'secondary' : 'ghost'}
