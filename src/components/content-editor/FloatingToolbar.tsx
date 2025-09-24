@@ -130,16 +130,20 @@ export const FloatingToolbar = ({
       }}
       style={floatingStyles}
       className={cn(
-        "inline-toolbar z-50 flex items-center gap-1 rounded-md border bg-popover p-1 shadow-md",
-        "animate-in fade-in-0 zoom-in-95"
+        "inline-toolbar z-50 flex items-center gap-1 rounded-lg border shadow-lg",
+        // Enhanced visibility - always light background (consistent with SimpleFloatingToolbar)
+        "bg-white/95 backdrop-blur-sm",
+        "border-gray-200",
+        "animate-in fade-in-0 zoom-in-95 duration-150",
+        "p-2"
       )}
       onMouseDown={(e) => e.preventDefault()} // Prevent blur
       onKeyDown={handleKeyDown}
       data-state="open"
     >
-      <div 
+      <div
         ref={arrowRef}
-        className="absolute w-2 h-2 bg-popover border rotate-45"
+        className="absolute w-2 h-2 bg-white/95 border border-gray-200 rotate-45"
         style={{
           bottom: '-5px',
           left: '50%',
