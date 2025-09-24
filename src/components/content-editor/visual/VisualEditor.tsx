@@ -26,14 +26,8 @@ import {
 // Import component dependencies
 import { EditOverlay } from './EditOverlay'
 
-// Import layout preview components for visual editing
-import { LandingPagePreview } from '@/components/layout-previews/LandingPagePreview'
-import { BlogArticlePreview } from '@/components/layout-previews/BlogArticlePreview'
-import { PortfolioGridPreview } from '@/components/layout-previews/PortfolioGridPreview'
-import { AboutCompanyPreview } from '@/components/layout-previews/AboutCompanyPreview'
-import { ProductPagePreview } from '@/components/layout-previews/ProductPagePreview'
-import { ContactServicesPreview } from '@/components/layout-previews/ContactServicesPreview'
-import { OtherLayoutPreview } from '@/components/layout-previews/OtherLayoutPreview'
+// Import unified layout preview component
+import { UnifiedPagePreview } from '@/components/layout-previews/UnifiedPagePreview'
 
 interface VisualEditorProps {
   content: PageContent
@@ -48,13 +42,13 @@ interface VisualEditorProps {
 }
 
 const layoutComponents = {
-  landing: LandingPagePreview,
-  blog: BlogArticlePreview,
-  portfolio: PortfolioGridPreview,
-  about: AboutCompanyPreview,
-  product: ProductPagePreview,
-  contact: ContactServicesPreview,
-  other: OtherLayoutPreview
+  landing: UnifiedPagePreview,
+  blog: UnifiedPagePreview,
+  portfolio: UnifiedPagePreview,
+  about: UnifiedPagePreview,
+  product: UnifiedPagePreview,
+  contact: UnifiedPagePreview,
+  other: UnifiedPagePreview
 }
 
 const VisualEditorContent = memo(function VisualEditorContent({
@@ -124,8 +118,9 @@ const VisualEditorContent = memo(function VisualEditorContent({
         data-preview-mode="true"
       >
         <PreviewComponent
-          title={layout === 'landing' ? undefined : title}
-          subtitle={layout === 'landing' ? undefined : subtitle}
+          layout={layout}
+          title={title}
+          subtitle={subtitle}
           content={content}
           onContentUpdate={handleSectionContentUpdate}
           onFeatureUpdate={handleFeatureUpdate}

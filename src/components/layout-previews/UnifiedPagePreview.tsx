@@ -1,32 +1,39 @@
 'use client'
 
-import { Card } from '@/src/components/ui/card'
-import { Button } from '@/src/components/ui/button'
-import { Star, ArrowRight } from 'lucide-react'
-import { PageContent, LegacyContent, isPageContent } from '@/src/lib/content/schema'
+import { PageContent, LegacyContent, isPageContent, LayoutType } from '@/src/lib/content/schema'
 import { DynamicSection } from '@/src/components/preview/DynamicSection'
-import { getLayoutSections, convertLegacyContent, getSpacingClass } from '@/src/lib/preview/section-renderers'
+import { getLayoutSections, getSpacingClass } from '@/src/lib/preview/section-renderers'
 import { SiteThemeProvider, ThemeWrapper, useSiteThemeContext } from '@/src/components/theme/ThemeProvider'
 
-interface LandingPagePreviewProps {
+interface UnifiedPagePreviewProps {
+  layout: LayoutType
   content?: PageContent | LegacyContent
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
   onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
+  title?: string
+  subtitle?: string
 }
 
-function LandingPagePreviewContent({ content, onContentUpdate, onFeatureUpdate }: LandingPagePreviewProps) {
+function UnifiedPagePreviewContent({
+  layout,
+  content,
+  onContentUpdate,
+  onFeatureUpdate,
+  title,
+  subtitle
+}: UnifiedPagePreviewProps) {
   const { theme } = useSiteThemeContext()
-  
+
   // Determine if we have enhanced content or need to use legacy format
   const isEnhanced = content && isPageContent(content)
-  
+
   if (isEnhanced) {
     // Render with enhanced content structure
-    const sections = getLayoutSections(content.sections, 'landing')
+    const sections = getLayoutSections(content.sections, layout)
     const spacingClass = getSpacingClass(content.settings?.layout?.spacing)
-    
+
     return (
-      <div 
+      <div
         className={`w-full h-full ${spacingClass}`}
         style={{
           backgroundColor: 'var(--theme-background, #FFFFFF)'
@@ -37,6 +44,7 @@ function LandingPagePreviewContent({ content, onContentUpdate, onFeatureUpdate }
               section={section}
               sectionKey={key}
               className=""
+              title={title}
               onContentUpdate={onContentUpdate}
               onFeatureUpdate={onFeatureUpdate}
             />
@@ -44,27 +52,45 @@ function LandingPagePreviewContent({ content, onContentUpdate, onFeatureUpdate }
       </div>
     )
   }
-  
-  // Empty state
+
+  // Generic empty state for any layout type
+  const layoutDisplayName = layout.charAt(0).toUpperCase() + layout.slice(1)
+
   return (
-    <div 
+    <div
       className="w-full min-h-full flex items-center justify-center"
       style={{
         backgroundColor: 'var(--theme-background, #FFFFFF)'
       }}>
-        <div className="text-center text-gray-500">
-          <h3 className="text-xl font-semibold mb-2">Landing Page Preview</h3>
-          <p>Add content to see your landing page design</p>
+        <div
+          className="text-center"
+          style={{
+            color: 'var(--theme-text-muted, #9CA3AF)'
+          }}>
+          <h3
+            className="text-xl font-semibold mb-2"
+            style={{
+              color: 'var(--theme-text, #1F2937)',
+              fontFamily: 'var(--theme-font-heading, inherit)'
+            }}>
+            {layoutDisplayName} Page Preview
+          </h3>
+          <p
+            style={{
+              fontFamily: 'var(--theme-font-body, inherit)'
+            }}>
+            Add content to see your {layout} page design
+          </p>
         </div>
     </div>
   )
 }
 
-export function LandingPagePreview(props: LandingPagePreviewProps) {
+export function UnifiedPagePreview(props: UnifiedPagePreviewProps) {
   return (
     <SiteThemeProvider>
       <ThemeWrapper className="w-full min-h-full">
-        <LandingPagePreviewContent {...props} />
+        <UnifiedPagePreviewContent {...props} />
       </ThemeWrapper>
     </SiteThemeProvider>
   )
