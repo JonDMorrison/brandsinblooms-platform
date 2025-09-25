@@ -188,6 +188,61 @@
     -webkit-backdrop-filter: none !important;
   }
 
+  /* Customer Site Rich Text Content Styling */
+  .customer-richtext-content h1 {
+    font-size: 2.25rem; /* text-4xl */
+    font-weight: 700; /* font-bold */
+    margin-bottom: 1.5rem; /* mb-6 */
+    color: var(--theme-primary);
+    font-family: var(--theme-font-heading);
+  }
+
+  @media (min-width: 768px) {
+    .customer-richtext-content h1 {
+      font-size: 3.75rem; /* md:text-6xl */
+    }
+  }
+
+  .customer-richtext-content h2 {
+    font-size: 1.875rem; /* text-3xl */
+    font-weight: 700; /* font-bold */
+    margin-bottom: 2rem; /* mb-8 */
+    color: var(--theme-primary);
+    font-family: var(--theme-font-heading);
+  }
+
+  @media (min-width: 768px) {
+    .customer-richtext-content h2 {
+      font-size: 2.25rem; /* md:text-4xl */
+    }
+  }
+
+  /* Text alignment support for headings */
+  .customer-richtext-content h1.text-center,
+  .customer-richtext-content h2.text-center {
+    text-align: center;
+  }
+
+  .customer-richtext-content h1.text-right,
+  .customer-richtext-content h2.text-right {
+    text-align: right;
+  }
+
+  .customer-richtext-content h1.text-left,
+  .customer-richtext-content h2.text-left,
+  .customer-richtext-content h1:not(.text-center):not(.text-right),
+  .customer-richtext-content h2:not(.text-center):not(.text-right) {
+    text-align: left;
+  }
+
+  /* Paragraph styles */
+  .customer-richtext-content p {
+    color: var(--theme-text);
+    font-family: var(--theme-font-body);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
   [data-sonner-toast][data-styled="true"] {
     background-color: white !important;
     background: white !important;

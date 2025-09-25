@@ -312,7 +312,6 @@ export async function AboutPage() {
             section={{ type: 'richText', data: {}, visible: true }}
             sectionKey="richText"
             sectionData={{
-              headline: 'Our Story',
               content: 'Founded with a passion for plants and a commitment to sustainability, we have grown from a small local nursery into a trusted source for premium plants and expert care guidance. Our journey began with the simple belief that everyone deserves to experience the joy and benefits of thriving plants in their space.<br><br>Today, we continue to honor that founding vision by combining scientific expertise with genuine care for our customers and the environment. Every plant we sell and every piece of advice we give reflects our deep commitment to helping you succeed with your green companions.'
             }}
             backgroundSetting="default"

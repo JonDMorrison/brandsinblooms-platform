@@ -15,6 +15,7 @@ import {
 } from '@/src/components/ui/plant-shop-error-boundaries'
 import { MissionStatementSkeleton } from '@/src/components/ui/plant-shop-loading-states'
 import { textToHtml } from '@/src/lib/utils/html-text'
+import { ContentRenderer } from '@/src/components/preview/ContentRenderer'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
 import { getFeatureGridClasses } from '@/src/components/content-sections/shared/grid-utils'
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
@@ -545,18 +546,12 @@ export function CustomerSiteSection({
         <section className="py-16" style={backgroundStyle}>
           <div className="brand-container">
             <div className="max-w-4xl mx-auto">
-              {sectionData.headline && (
-                <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                  {String(sectionData.headline)}
-                </h2>
-              )}
-              <div
-                className="prose prose-lg max-w-none [&_p:not(:first-child)]:mt-4 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-8 [&_h3]:mb-4"
-                style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}
-                dangerouslySetInnerHTML={{
-                  __html: textToHtml(String(sectionData.content || ''))
-                }}
-              />
+              <div className="prose prose-gray max-w-none customer-richtext-content">
+                <ContentRenderer
+                  content={String(sectionData.content || '')}
+                  className="prose prose-gray max-w-none"
+                />
+              </div>
             </div>
           </div>
         </section>
