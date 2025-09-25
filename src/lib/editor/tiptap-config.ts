@@ -5,6 +5,7 @@
 import { type Extensions } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
 
 /**
@@ -60,7 +61,14 @@ export const getTiptapConfig = (placeholder?: string): Extensions => {
         }
       },
     }),
-    
+
+    // Text alignment extension
+    TextAlign.configure({
+      types: ['heading', 'paragraph'],
+      alignments: ['left', 'center', 'right'],
+      defaultAlignment: 'left'
+    }),
+
     // Placeholder text
     Placeholder.configure({
       placeholder: placeholder || 'Start writing...',
