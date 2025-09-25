@@ -122,21 +122,6 @@ const InlineTextEditorComponent = ({
           }),
           Heading.configure({
             levels: [1, 2]
-          }).extend({
-            renderHTML({ node, HTMLAttributes }) {
-              const level = node.attrs.level;
-              const classes = level === 1
-                ? 'text-4xl md:text-6xl font-bold mb-6'
-                : level === 2
-                ? 'text-3xl md:text-4xl font-bold mb-8'
-                : '';
-
-              return [`h${level}`, {
-                ...HTMLAttributes,
-                class: classes,
-                style: 'color: var(--theme-primary); font-family: var(--theme-font-heading);'
-              }, 0];
-            }
           }),
           Link.configure({
             openOnClick: false,
