@@ -29,9 +29,9 @@ export async function AboutPage() {
   let databaseFeaturesData = null
   let featuresStatus = 'not_found'
   let featuresBackgroundSetting = 'default'
-  let databaseRichTextData = null
-  let richTextStatus = 'not_found'
-  let richTextBackgroundSetting = 'default'
+  let databaseRichTextSections: Record<string, any> = {}
+  let richTextStatuses: Record<string, string> = {}
+  let richTextBackgroundSettings: Record<string, string> = {}
   let databaseCtaData = null
   let ctaStatus = 'not_found'
   let ctaBackgroundSetting = 'default'
@@ -83,11 +83,15 @@ export async function AboutPage() {
           featuresBackgroundSetting = String(pageContent.sections.features.settings?.backgroundColor || 'default')
         }
 
-        // Check for richText section
-        if (pageContent?.sections?.richText?.data && pageContent.sections.richText.visible) {
-          databaseRichTextData = pageContent.sections.richText.data
-          richTextStatus = 'available'
-          richTextBackgroundSetting = String(pageContent.sections.richText.settings?.backgroundColor || 'default')
+        // Check for richText sections (richText, richText_1, richText_2, etc.)
+        if (pageContent?.sections) {
+          Object.entries(pageContent.sections).forEach(([sectionKey, section]) => {
+            if (sectionKey.startsWith('richText') && section?.data && section.visible) {
+              databaseRichTextSections[sectionKey] = section.data
+              richTextStatuses[sectionKey] = 'available'
+              richTextBackgroundSettings[sectionKey] = String(section.settings?.backgroundColor || 'default')
+            }
+          })
         }
 
         // Check for cta section
@@ -195,17 +199,22 @@ export async function AboutPage() {
       status: featuresStatus,
       backgroundSetting: featuresBackgroundSetting
     },
-    richText: {
-      data: databaseRichTextData,
-      status: richTextStatus,
-      backgroundSetting: richTextBackgroundSetting
-    },
+    // Dynamic Rich Text sections will be added below
     cta: {
       data: databaseCtaData,
       status: ctaStatus,
       backgroundSetting: ctaBackgroundSetting
     }
   }
+
+  // Add all found Rich Text sections to the sectionDataMap
+  Object.entries(databaseRichTextSections).forEach(([sectionKey, sectionData]) => {
+    sectionDataMap[sectionKey as keyof typeof sectionDataMap] = {
+      data: sectionData,
+      status: richTextStatuses[sectionKey],
+      backgroundSetting: richTextBackgroundSettings[sectionKey]
+    }
+  })
 
   return (
     <SiteRenderer

@@ -135,6 +135,21 @@ function SectionItem({
   const StatusIcon = status.icon
 
   const formatSectionName = (key: string) => {
+    // Special handling for Rich Text sections with numbering
+    if (key.startsWith('richText')) {
+      if (key === 'richText') {
+        return 'Rich Text'
+      } else {
+        // Handle richText_1, richText_2, etc. -> Rich Text 02, Rich Text 03, etc.
+        const match = key.match(/^richText_(\d+)$/)
+        if (match) {
+          const number = parseInt(match[1], 10) + 1 // Start from 02 (1+1)
+          return `Rich Text ${number.toString().padStart(2, '0')}`
+        }
+      }
+    }
+
+    // Default formatting for other section types
     return key.replace(/([A-Z])/g, ' $1').trim()
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))

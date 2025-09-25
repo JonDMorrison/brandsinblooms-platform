@@ -12,14 +12,13 @@ export function getLayoutSections(
   content: Record<string, ContentSection>,
   layout: LayoutType
 ): Array<{ key: string; section: ContentSection }> {
-  const layoutConfig = LAYOUT_SECTIONS[layout]
-  const allSectionKeys = [...layoutConfig.required, ...layoutConfig.optional]
-  
-  const sections = allSectionKeys
-    .map(key => ({ key, section: content[key] }))
+  // Get all sections from content, not just those defined in schema
+  // This allows for multiple instances of sections like richText_1, richText_2, etc.
+  const sections = Object.entries(content)
+    .map(([key, section]) => ({ key, section }))
     .filter(({ section }) => section && section.visible)
     .sort((a, b) => (a.section.order || 0) - (b.section.order || 0))
-  
+
   return sections
 }
 

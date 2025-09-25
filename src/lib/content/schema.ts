@@ -317,7 +317,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           headline: 'Welcome to Your Plant Paradise',
           content: 'Discover the joy of growing with our carefully curated selection of premium plants and expert guidance. Whether you\'re just starting your plant journey or expanding your green sanctuary, we\'re here to help you create a thriving indoor oasis that brings nature into your everyday life.'
         },
-        visible: false,
+        visible: true,
         order: 6
       }
     }
@@ -508,7 +508,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           headline: 'Our Story',
           content: 'Founded with a passion for plants and a commitment to sustainability, we have grown from a small local nursery into a trusted source for premium plants and expert care guidance. Our journey began with the simple belief that everyone deserves to experience the joy and benefits of thriving plants in their space.'
         },
-        visible: false,
+        visible: true,
         order: 6
       },
       cta: {
@@ -662,7 +662,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           content: '',
           json: null
         },
-        visible: false,
+        visible: true,
         order: 3
       },
       image: {
