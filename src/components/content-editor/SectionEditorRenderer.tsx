@@ -74,7 +74,7 @@ export function SectionEditorRenderer({
         return <CategoriesEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
       case 'richText':
-        return <RichTextSectionEditor {...commonProps} />
+        return <RichTextSectionEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
       case 'cta':
         return <CTAEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />

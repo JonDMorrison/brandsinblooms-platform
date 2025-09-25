@@ -8,6 +8,7 @@ import { ContentSection } from '@/src/lib/content/schema'
 import { ContentRenderer } from '@/src/components/preview/ContentRenderer'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
+import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
 
 interface TextPreviewProps {
   section: ContentSection
@@ -26,7 +27,7 @@ export function TextPreview({
   onContentUpdate,
   onFeatureUpdate
 }: TextPreviewProps) {
-  const { data } = section
+  const { data, settings } = section
   const isPreview = isPreviewMode(onContentUpdate, onFeatureUpdate)
   const responsive = createResponsiveClassHelper(isPreview)
 
@@ -35,9 +36,7 @@ export function TextPreview({
     return (
       <section
         className={`relative ${responsive.spacing.sectionPadding} ${className}`}
-        style={{
-          background: `linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.02), rgba(var(--theme-secondary-rgb), 0.05))`
-        }}
+        style={getSectionBackgroundStyle(settings)}
       >
         <div className="brand-container">
           <div className="max-w-4xl mx-auto">
@@ -123,9 +122,7 @@ export function TextPreview({
   return (
     <section
       className={`relative ${responsive.spacing.sectionPadding} ${className}`}
-      style={{
-        background: `linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.02), rgba(var(--theme-secondary-rgb), 0.05))`
-      }}
+      style={getSectionBackgroundStyle(settings)}
     >
       <div className="brand-container">
         <div className="max-w-4xl mx-auto">

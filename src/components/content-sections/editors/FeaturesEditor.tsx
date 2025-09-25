@@ -77,6 +77,7 @@ export function FeaturesEditor({ section, sectionKey, onUpdate }: FeaturesEditor
         section={section}
         onUpdate={onUpdate}
         className="mb-4"
+        availableOptions={['default', 'alternate']}
       />
 
       {/* Features List Management */}

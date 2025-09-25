@@ -127,6 +127,7 @@ export function CategoriesEditor({ section, sectionKey, onUpdate }: CategoriesEd
         section={section}
         onUpdate={onUpdate}
         className="mb-4"
+        availableOptions={['default', 'alternate']}
       />
 
       {/* Category Selection */}
