@@ -213,7 +213,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
 }> = {
   landing: {
     required: ['hero'],
-    optional: ['featured', 'categories', 'features', 'cta'],
+    optional: ['featured', 'categories', 'features', 'richText', 'cta'],
     defaultSections: {
       hero: {
         type: 'hero',
@@ -310,6 +310,15 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         settings: {
           backgroundColor: 'default'
         }
+      },
+      richText: {
+        type: 'richText',
+        data: {
+          headline: 'Welcome to Your Plant Paradise',
+          content: 'Discover the joy of growing with our carefully curated selection of premium plants and expert guidance. Whether you\'re just starting your plant journey or expanding your green sanctuary, we\'re here to help you create a thriving indoor oasis that brings nature into your everyday life.'
+        },
+        visible: false,
+        order: 6
       }
     }
   },

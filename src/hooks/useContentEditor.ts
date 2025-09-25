@@ -361,15 +361,18 @@ export function useContentEditor({
     setContent(prev => {
       const layoutConfig = LAYOUT_SECTIONS[layout]
       const defaultSection = layoutConfig.defaultSections[sectionType]
-      
+
       if (!defaultSection) {
         console.warn(`No default section found for type: ${sectionType}`)
         return prev
       }
 
-      // Don't add if section already exists
-      if (prev.sections[sectionType]) {
-        return prev
+      // Generate unique key for multiple instances
+      let sectionKey = sectionType
+      let counter = 1
+      while (prev.sections[sectionKey]) {
+        sectionKey = `${sectionType}_${counter}`
+        counter++
       }
 
       // Calculate next order
@@ -380,7 +383,7 @@ export function useContentEditor({
         ...prev,
         sections: {
           ...prev.sections,
-          [sectionType]: {
+          [sectionKey]: {
             ...defaultSection,
             order: nextOrder,
             visible: true

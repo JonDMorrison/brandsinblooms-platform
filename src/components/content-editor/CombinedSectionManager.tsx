@@ -514,7 +514,18 @@ export function CombinedSectionManager({
   // Get missing sections that can be added
   const missingSections = useMemo(() => {
     const existingSectionKeys = Object.keys(content.sections)
-    return layoutConfig.optional.filter(sectionKey => !existingSectionKeys.includes(sectionKey))
+
+    // Section types that allow multiple instances
+    const multipleInstanceTypes: ContentSectionType[] = ['richText']
+
+    return layoutConfig.optional.filter(sectionKey => {
+      // Always allow multiple instance types to be added
+      if (multipleInstanceTypes.includes(sectionKey as ContentSectionType)) {
+        return true
+      }
+      // For other types, only show if they don't exist yet
+      return !existingSectionKeys.includes(sectionKey)
+    })
   }, [layoutConfig.optional, content.sections])
 
   // Configure sensors for touch and pointer devices
