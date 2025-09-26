@@ -4,16 +4,15 @@
 
 An analysis of the codebase and Supabase migrations reveals the following about the "Brands in Blooms" platform:
 
-*   **Product:** It is a multi-tenant e-commerce platform, primarily designed for garden centers and plant shops. The system allows administrators to create and manage individual, domain-based websites for different businesses.
-*   **Site Structure:** The `sites` table is the core of the multi-tenancy, defining each site's unique identity (name, subdomain, custom domain, etc.). New sites are instantiated from `site_templates`, which provide a baseline of configuration, pages, and products.
+*   **Product:** It is a multi-tenant website platform, primarily designed for garden centers and plant shops. The system allows administrators to create and manage individual, domain-based websites for different businesses.
+*   **Site Structure:** The `sites` table is the core of the multi-tenancy, defining each site's unique identity (name, subdomain, custom domain, etc.). New sites are instantiated from `site_templates`, which provide a baseline of configuration and pages.
 *   **Content Model:** Page content is stored in the `content` table's `content` column, which is a `JSONB` field. A recent migration (`20250910000000_add_plant_shop_content_types.sql`) introduced a more structured, section-based format for this JSON, which includes `version`, `layout`, and `sections` (containing sections like `hero`, `richText`, `features`). The `content_type` column categorizes pages (e.g., `home_page`, `about_page`, `plant_catalog`).
-*   **Products:** The `products` table holds site-specific product information, including name, description, price, category, and images.
 *   **Dynamic Pages:** The application uses a combination of the `sites` table's domain information and the `content` table's `slug` to construct and render page URLs. The `app/[...slug]/page.tsx` component is responsible for fetching the corresponding data and rendering the page dynamically.
 *   **Existing Infrastructure:** The platform already has `create_site_with_template` and `validate_plant_content` functions that can be leveraged for the LLM integration.
 
 ### Implication for LLM Site Generator
 
-The LLM's primary responsibility will be to **generate the `JSONB` data** for the `content` and `products` tables based on a natural language prompt. This generated JSON must strictly adhere to the new, structured format to be compatible with the frontend components.
+The LLM's primary responsibility will be to **generate the `JSONB` data** for the `content` table based on a natural language prompt. This generated JSON must strictly adhere to the new, structured format to be compatible with the frontend components.
 
 ---
 
@@ -23,7 +22,7 @@ Based on the codebase analysis and the requirements discussed in the project mee
 
 ### 2.1. High-Level Summary
 
-The feature will enable users to generate a complete e-commerce website by providing a natural language description of their business. This is achieved via a new API endpoint that orchestrates a call to a Large Language Model (LLM). The LLM, guided by a detailed system prompt, will return a structured JSON object defining the entire site—including theme settings, page content, and a product catalog. This JSON is then parsed and persisted to the database to instantiate the new site.
+The feature will enable users to generate a complete business website by providing a natural language description of their business. This is achieved via a new API endpoint that orchestrates a call to a Large Language Model (LLM). The LLM, guided by a detailed system prompt, will return a structured JSON object defining the entire site—including theme settings and page content. This JSON is then parsed and persisted to the database to instantiate the new site.
 
 **Critical Requirements:**
 - **Security:** Input sanitization, output validation, and content moderation are mandatory
@@ -112,10 +111,59 @@ The LLM must be prompted to generate a single, valid JSON object with the follow
       "sunday": {"open": null, "close": null, "closed": true}
     },
     "theme": {
-      "primaryColor": "#34D399",
-      "secondaryColor": "#059669",
-      "fontFamily": "Inter",
-      "layoutStyle": "modern"
+      "colors": {
+        "primary": "#34D399",
+        "secondary": "#059669",
+        "accent": "#fcd34d",
+        "background": "#ffffff",
+        "text": "#1f2937"
+      },
+      "typography": {
+        "headingFont": "Inter",
+        "bodyFont": "Inter",
+        "fontSize": "medium"
+      },
+      "layout": {
+        "headerStyle": "modern",
+        "footerStyle": "minimal",
+        "menuStyle": "horizontal",
+        "ctaButton": {
+          "text": "Get Started",
+          "href": "/contact"
+        }
+      },
+      "logo": {
+        "url": null,
+        "text": "[Business Name]",
+        "position": "left",
+        "size": "medium",
+        "displayType": "text",
+        "pixelSize": 40
+      },
+      "navigation": {
+        "items": [
+          {"label": "Home", "href": "/"},
+          {"label": "About", "href": "/about"},
+          {"label": "Contact", "href": "/contact"}
+        ],
+        "style": "horizontal"
+      },
+      "footer": {
+        "style": "minimal",
+        "columns": [
+          {
+            "title": "Quick Links",
+            "links": [
+              {"label": "About Us", "href": "/about"},
+              {"label": "Contact", "href": "/contact"}
+            ]
+          }
+        ],
+        "copyright": "© 2025 [Business Name]. All rights reserved.",
+        "socialLinks": [],
+        "newsletter": false,
+        "paymentBadges": []
+      }
     }
   },
   "pages": [
@@ -127,15 +175,22 @@ The LLM must be prompted to generate a single, valid JSON object with the follow
       "sortOrder": 1,
       "content": {
         "version": "1.0",
-        "layout": "home",
+        "layout": "landing",
         "sections": {
           "hero": {
             "type": "hero",
             "data": {
-              "title": "Welcome to [Business Name]",
-              "subtitle": "A catchy tagline about the business.",
-              "buttonText": "Shop Our Products",
-              "buttonLink": "/products"
+              "headline": "Welcome to [Business Name]",
+              "subheadline": "A catchy tagline about the business.",
+              "features": [
+                "Expert plant care guidance",
+                "Sustainable growing practices",
+                "Local plant sourcing"
+              ],
+              "ctaText": "Learn More",
+              "ctaLink": "/about",
+              "secondaryCtaText": "Contact Us",
+              "secondaryCtaLink": "/contact"
             },
             "visible": true,
             "order": 1
@@ -143,15 +198,35 @@ The LLM must be prompted to generate a single, valid JSON object with the follow
           "features": {
             "type": "features",
             "data": {
-              "title": "Why Choose Us",
+              "headline": "Why Choose Us",
+              "description": "The key benefits of working with our team",
               "features": [
-                {"title": "Feature One", "description": "Description of feature one."},
-                {"title": "Feature Two", "description": "Description of feature two."},
-                {"title": "Feature Three", "description": "Description of feature three."}
+                "Professional expertise and guidance",
+                "Sustainable and eco-friendly practices",
+                "Personalized service and support"
               ]
             },
             "visible": true,
-            "order": 2
+            "order": 2,
+            "settings": {
+              "backgroundColor": "alternate"
+            }
+          },
+          "cta": {
+            "type": "cta",
+            "data": {
+              "headline": "Ready to Get Started?",
+              "description": "Contact us today to learn more about our services.",
+              "ctaText": "Get In Touch",
+              "ctaLink": "/contact",
+              "secondaryCtaText": "Learn More",
+              "secondaryCtaLink": "/about"
+            },
+            "visible": true,
+            "order": 3,
+            "settings": {
+              "backgroundColor": "primary"
+            }
           }
         }
       }
@@ -166,13 +241,59 @@ The LLM must be prompted to generate a single, valid JSON object with the follow
         "version": "1.0",
         "layout": "about",
         "sections": {
-          "story": {
-            "type": "richText",
+          "hero": {
+            "type": "hero",
             "data": {
-              "content": "Detailed story about the business."
+              "headline": "About [Business Name]",
+              "subheadline": "Our story, mission, and commitment to excellence.",
+              "features": [
+                "Years of industry experience",
+                "Dedicated to customer success",
+                "Committed to sustainable practices"
+              ],
+              "ctaText": "Contact Us",
+              "ctaLink": "/contact"
             },
             "visible": true,
             "order": 1
+          },
+          "values": {
+            "type": "values",
+            "data": {
+              "headline": "Our Core Values",
+              "description": "The principles that guide everything we do",
+              "items": [
+                {
+                  "id": "quality",
+                  "title": "Quality",
+                  "content": "We never compromise on the quality of our work.",
+                  "icon": "Star"
+                },
+                {
+                  "id": "integrity",
+                  "title": "Integrity",
+                  "content": "Honest, transparent relationships with all our clients.",
+                  "icon": "Shield"
+                },
+                {
+                  "id": "innovation",
+                  "title": "Innovation",
+                  "content": "Always seeking better ways to serve our customers.",
+                  "icon": "Lightbulb"
+                }
+              ]
+            },
+            "visible": true,
+            "order": 2
+          },
+          "richText": {
+            "type": "richText",
+            "data": {
+              "headline": "Our Story",
+              "content": "Detailed story about the business, its founding, growth, and commitment to serving customers with excellence."
+            },
+            "visible": true,
+            "order": 3
           }
         }
       }
@@ -187,13 +308,73 @@ The LLM must be prompted to generate a single, valid JSON object with the follow
         "version": "1.0",
         "layout": "contact",
         "sections": {
-          "contact_form": {
-            "type": "form",
+          "header": {
+            "type": "hero",
             "data": {
-              "title": "Get In Touch"
+              "headline": "Contact Us",
+              "subheadline": "We'd love to hear from you. Get in touch today.",
+              "content": "Ready to get started? Contact our team for personalized service and expert guidance."
             },
             "visible": true,
             "order": 1
+          },
+          "form": {
+            "type": "form",
+            "data": {
+              "fields": [
+                {
+                  "id": "name",
+                  "type": "text",
+                  "label": "Full Name",
+                  "required": true,
+                  "order": 1
+                },
+                {
+                  "id": "email",
+                  "type": "email",
+                  "label": "Email Address",
+                  "required": true,
+                  "order": 2
+                },
+                {
+                  "id": "message",
+                  "type": "textarea",
+                  "label": "Message",
+                  "required": true,
+                  "order": 3
+                }
+              ]
+            },
+            "visible": true,
+            "order": 2
+          },
+          "features": {
+            "type": "features",
+            "data": {
+              "headline": "Get In Touch",
+              "items": [
+                {
+                  "id": "email",
+                  "title": "Email Us",
+                  "content": "hello@business.com",
+                  "icon": "Mail"
+                },
+                {
+                  "id": "phone",
+                  "title": "Call Us",
+                  "content": "+1 (555) 123-4567",
+                  "icon": "Phone"
+                },
+                {
+                  "id": "address",
+                  "title": "Visit Us",
+                  "content": "123 Business St, City, State 12345",
+                  "icon": "MapPin"
+                }
+              ]
+            },
+            "visible": true,
+            "order": 3
           }
         }
       }
@@ -201,20 +382,29 @@ The LLM must be prompted to generate a single, valid JSON object with the follow
     {
       "title": "Privacy Policy",
       "slug": "privacy",
-      "contentType": "privacy_page",
+      "contentType": "page",
       "isPublished": true,
       "sortOrder": 98,
       "content": {
         "version": "1.0",
-        "layout": "legal",
+        "layout": "landing",
         "sections": {
-          "legal_text": {
+          "hero": {
+            "type": "hero",
+            "data": {
+              "title": "Privacy Policy",
+              "subtitle": "How we protect and use your information."
+            },
+            "visible": true,
+            "order": 1
+          },
+          "richText": {
             "type": "richText",
             "data": {
               "content": "Generic but comprehensive privacy policy text."
             },
             "visible": true,
-            "order": 1
+            "order": 2
           }
         }
       }
@@ -222,51 +412,32 @@ The LLM must be prompted to generate a single, valid JSON object with the follow
     {
       "title": "Terms of Service",
       "slug": "terms",
-      "contentType": "terms_page",
+      "contentType": "page",
       "isPublished": true,
       "sortOrder": 99,
       "content": {
         "version": "1.0",
-        "layout": "legal",
+        "layout": "landing",
         "sections": {
-          "legal_text": {
+          "hero": {
+            "type": "hero",
+            "data": {
+              "title": "Terms of Service",
+              "subtitle": "The terms and conditions for using our services."
+            },
+            "visible": true,
+            "order": 1
+          },
+          "richText": {
             "type": "richText",
             "data": {
               "content": "Generic but comprehensive terms of service text."
             },
             "visible": true,
-            "order": 1
+            "order": 2
           }
         }
       }
-    }
-  ],
-  "products": [
-    {
-      "name": "Product One Name",
-      "slug": "product-one-name",
-      "description": "Detailed description of the first product.",
-      "category": "Product Category",
-      "price": 29.99,
-      "isActive": true,
-      "isFeatured": true,
-      "inStock": true,
-      "images": [
-        {"url": "https://placehold.co/600x400/EEE/31343C?text=Product+One", "alt": "Image of Product One"}
-      ]
-    },
-    {
-      "name": "Product Two Name",
-      "slug": "product-two-name",
-      "description": "Detailed description of the second product.",
-      "category": "Product Category",
-      "price": 39.99,
-      "isActive": true,
-      "isFeatured": false,
-      "inStock": true,
-      "images": [
-        {"url": "https://placehold.co/600x400/EEE/31343C?text=Product+Two", "alt": "Image of Product Two"}
-      ]
     }
   ]
 }
@@ -313,34 +484,75 @@ const LLMGeneratedSiteSchema = z.object({
       closed: z.boolean()
     })),
     theme: z.object({
-      primaryColor: z.string().regex(/^#[0-9A-F]{6}$/i),
-      secondaryColor: z.string().regex(/^#[0-9A-F]{6}$/i),
-      fontFamily: z.enum(['Inter', 'Roboto', 'Open Sans']),
-      layoutStyle: z.enum(['modern', 'classic', 'minimal'])
+      colors: z.object({
+        primary: z.string().regex(/^#[0-9A-F]{6}$/i),
+        secondary: z.string().regex(/^#[0-9A-F]{6}$/i),
+        accent: z.string().regex(/^#[0-9A-F]{6}$/i),
+        background: z.string().regex(/^#[0-9A-F]{6}$/i),
+        text: z.string().regex(/^#[0-9A-F]{6}$/i)
+      }),
+      typography: z.object({
+        headingFont: z.enum(['Inter', 'Roboto', 'Open Sans', 'Lato', 'Poppins']),
+        bodyFont: z.enum(['Inter', 'Roboto', 'Open Sans', 'Source Sans Pro']),
+        fontSize: z.enum(['small', 'medium', 'large'])
+      }),
+      layout: z.object({
+        headerStyle: z.enum(['modern', 'classic', 'minimal']),
+        footerStyle: z.enum(['minimal', 'comprehensive', 'centered']),
+        menuStyle: z.enum(['horizontal', 'sidebar', 'hamburger'])
+      }),
+      logo: z.object({
+        url: z.string().nullable(),
+        text: z.string().optional(),
+        position: z.enum(['left', 'center', 'right']),
+        size: z.enum(['small', 'medium', 'large']),
+        displayType: z.enum(['text', 'logo', 'both']).optional(),
+        pixelSize: z.number().optional()
+      }),
+      navigation: z.object({
+        items: z.array(z.object({
+          label: z.string(),
+          href: z.string()
+        })),
+        style: z.enum(['horizontal', 'sidebar', 'hamburger'])
+      }),
+      footer: z.object({
+        style: z.enum(['minimal', 'comprehensive', 'centered']),
+        columns: z.array(z.object({
+          title: z.string(),
+          links: z.array(z.object({
+            label: z.string(),
+            href: z.string()
+          }))
+        })),
+        copyright: z.string(),
+        socialLinks: z.array(z.object({
+          platform: z.string(),
+          url: z.string()
+        })),
+        newsletter: z.boolean().optional(),
+        paymentBadges: z.array(z.string()).optional()
+      })
     })
   }),
   pages: z.array(z.object({
     title: z.string().max(100),
     slug: z.string().regex(/^[a-z0-9\-]+$/),
-    contentType: z.enum(['home_page', 'about_page', 'contact_page', 'privacy_page', 'terms_page']),
+    contentType: z.enum(['home_page', 'about_page', 'contact_page', 'page']),
     isPublished: z.boolean(),
     sortOrder: z.number().min(1).max(100),
-    content: PageContentSchema
-  })).max(10), // Limit pages to prevent DoS
-  products: z.array(z.object({
-    name: z.string().max(100),
-    slug: z.string().regex(/^[a-z0-9\-]+$/),
-    description: z.string().max(1000),
-    price: z.number().positive().max(999999),
-    category: z.string().max(50),
-    isActive: z.boolean(),
-    isFeatured: z.boolean(),
-    inStock: z.boolean(),
-    images: z.array(z.object({
-      url: z.string().url(),
-      alt: z.string().max(200)
-    })).max(5)
-  })).max(20) // Limit products
+    content: z.object({
+      version: z.literal('1.0'),
+      layout: z.enum(['landing', 'about', 'contact', 'other']),
+      sections: z.record(z.object({
+        type: z.enum(['hero', 'richText', 'features', 'cta', 'form', 'values', 'team', 'mission']),
+        data: z.record(z.unknown()),
+        visible: z.boolean(),
+        order: z.number().min(1).max(100),
+        settings: z.record(z.unknown()).optional()
+      }))
+    })
+  })).max(10) // Limit pages to prevent DoS
 });
 ```
 
@@ -374,33 +586,28 @@ const llmRateLimit = {
 ### 2.6. System Prompt for LLM
 
 ```
-You are an expert website designer and content strategist for e-commerce businesses, specializing in the garden and plant industry. Your task is to generate a complete website structure in a single, valid JSON object based on a user's business description.
+You are an expert website designer and content strategist, specializing in the garden and plant industry. Your task is to generate a complete website structure in a single, valid JSON object based on a user's business description.
 
 **Instructions:**
 
-1.  **Analyze the User's Prompt:** Carefully read the user's description to understand their business name, industry, products, target audience, and desired brand aesthetic.
+1.  **Analyze the User's Prompt:** Carefully read the user's description to understand their business name, industry, services, target audience, and desired brand aesthetic.
 2.  **Generate Core Site Details:**
     *   `site.name`: A creative and relevant name for the website.
     *   `site.businessName`: The official business name from the prompt.
     *   `site.businessEmail`: A plausible contact email (e.g., `contact@[businessname].com`).
     *   `site.businessHours`: Generate a standard business schedule unless otherwise specified.
-    *   `site.theme`: Choose a `primaryColor` and `secondaryColor` (in hex format) that match the brand's aesthetic. Use "Inter" for `fontFamily` and "modern" for `layoutStyle`.
+    *   `site.theme`: Generate complete theme object with `colors` (primary, secondary, accent, background, text), `typography` (headingFont, bodyFont, fontSize), `layout` (headerStyle, footerStyle, menuStyle), `logo` (url, text, position, size), `navigation` (items array, style), and `footer` (style, columns, copyright, socialLinks) that match the brand's aesthetic.
 3.  **Generate Standard Pages:** Create a JSON object for each of the following pages in the `pages` array: **Home, About Us, Contact Us, Privacy Policy, and Terms of Service**.
-    *   The `slug` must be URL-friendly (e.g., "about-us").
-    *   The `contentType` must match the page type (e.g., `home_page`, `about_page`).
-    *   The `content` object must follow the specified `sections` structure. Populate the `title`, `subtitle`, and `description` fields with compelling, well-written copy that is tailored to the user's business. For legal pages, generate standard boilerplate text.
-4.  **Generate Products:** Create a list of 3-5 sample products in the `products` array.
-    *   Infer product `name`, `description`, and `category` from the user's prompt.
-    *   Generate a realistic `price`.
-    *   Generate a URL-friendly `slug` for each product.
-    *   For `images`, use a placeholder URL format: `https://placehold.co/600x400/EEE/31343C?text=[Product+Name]`, replacing `[Product+Name]` with the actual product name.
-5.  **Output Format:** The final output MUST be a single, valid JSON object that strictly adheres to the provided schema. Do not include any text, explanations, or markdown formatting outside of the JSON object itself.
+    *   The `slug` must be URL-friendly (e.g., "about", "contact").
+    *   The `contentType` must match the page type (e.g., `home_page`, `about_page`, `page` for legal pages).
+    *   The `content` object must follow the specified `sections` structure. Use `headline` and `subheadline` instead of `title` and `subtitle`. Include proper `data` structures with features arrays, CTA buttons, and settings objects. For legal pages, generate standard boilerplate text in richText sections.
+4.  **Output Format:** The final output MUST be a single, valid JSON object that strictly adheres to the provided schema. Do not include any text, explanations, or markdown formatting outside of the JSON object itself.
 
 **JSON Schema:**
 <PASTE THE FULL JSON SPECIFICATION FROM SECTION 2.4 HERE>
 
 **Example User Prompt:**
-"I'm starting an online store called 'Petal & Stem'. We are a boutique plant shop in San Francisco specializing in rare and exotic indoor plants for city dwellers. We focus on high-quality, low-maintenance plants for apartments and small spaces. Our brand is modern, minimalist, and a bit luxurious."
+"I'm starting a plant consulting business called 'Petal & Stem'. We are a boutique plant service in San Francisco specializing in helping city dwellers choose and care for indoor plants. We focus on providing expert guidance for apartment and small space plant care. Our brand is modern, minimalist, and professional."
 
 **Begin Generation.**
 ```
