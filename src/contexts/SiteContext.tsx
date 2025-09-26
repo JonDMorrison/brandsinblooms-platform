@@ -20,11 +20,12 @@ import {
   UserSiteAccess,
   SiteQueryError 
 } from '@/src/lib/site/queries'
-import { 
-  resolveSiteFromHost, 
+import {
+  resolveSiteFromHost,
   extractHostname,
-  SiteResolution 
+  SiteResolution
 } from '@/src/lib/site/resolution'
+import { debug } from '@/src/lib/utils/debug'
 
 export interface SiteContextType {
   // Current site state
@@ -94,7 +95,7 @@ export function SiteProvider({
   const clearAllSiteCaches = useCallback((siteId: string) => {
     if (typeof window === 'undefined') return
 
-    console.log('[SITE_DEBUG] clearAllSiteCaches - Clearing caches for siteId:', siteId)
+    debug.site('clearAllSiteCaches - Clearing caches for siteId:', siteId)
 
     try {
       const keys = Object.keys(localStorage)
@@ -119,19 +120,19 @@ export function SiteProvider({
         )
       })
 
-      console.log('[SITE_DEBUG] clearAllSiteCaches - Found cache keys to clear:', siteKeys)
+      debug.site('clearAllSiteCaches - Found cache keys to clear:', siteKeys)
 
       siteKeys.forEach(key => {
         try {
           localStorage.removeItem(key)
         } catch (error) {
-          console.warn('[SITE_DEBUG] Failed to clear cache key:', key, error)
+          debug.site('Failed to clear cache key:', key, error)
         }
       })
 
-      console.log('[SITE_DEBUG] clearAllSiteCaches - Cleared', siteKeys.length, 'cache keys')
+      debug.site('clearAllSiteCaches - Cleared', siteKeys.length, 'cache keys')
     } catch (error) {
-      console.error('[SITE_DEBUG] clearAllSiteCaches - Error during cache clearing:', error)
+      debug.site('clearAllSiteCaches - Error during cache clearing:', error)
     }
   }, [])
 
@@ -141,7 +142,7 @@ export function SiteProvider({
   const resetAllQueries = useCallback(() => {
     if (typeof window === 'undefined') return
 
-    console.log('[SITE_DEBUG] resetAllQueries - Dispatching cache reset event')
+    debug.site('resetAllQueries - Dispatching cache reset event')
 
     // Dispatch a custom event that query hooks can listen to for cache invalidation
     window.dispatchEvent(new CustomEvent('siteSwitch', {
@@ -153,14 +154,14 @@ export function SiteProvider({
    * Resolves and loads a site from hostname
    */
   const resolveSiteFromUrl = useCallback(async (url: string) => {
-    console.log('[SITE_DEBUG] resolveSiteFromUrl - Starting resolution for URL:', url);
+    debug.site('resolveSiteFromUrl - Starting resolution for URL:', url);
 
     try {
       setLoading(true)
       setError(null)
 
       const hostname = extractHostname(url)
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Extracted hostname:', hostname);
+      debug.site('resolveSiteFromUrl - Extracted hostname:', hostname);
       
       // Check if this is the main app domain - if so, don't try to resolve it as a site
       const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
@@ -169,7 +170,7 @@ export function SiteProvider({
                           hostname.endsWith('.railway.app') ||
                           hostname === 'localhost'
 
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Domain check:', {
+      debug.site('resolveSiteFromUrl - Domain check:', {
         hostname,
         appDomain,
         isMainDomain,
@@ -177,7 +178,7 @@ export function SiteProvider({
       });
 
       if (isMainDomain) {
-        console.log('[SITE_DEBUG] resolveSiteFromUrl - Main domain detected, skipping site resolution');
+        debug.site('resolveSiteFromUrl - Main domain detected, skipping site resolution');
         setSiteResolution(null)
         // Don't set currentSite to null - let the URL/localStorage logic handle it
         setLoading(false)
@@ -187,14 +188,14 @@ export function SiteProvider({
       const resolution = resolveSiteFromHost(hostname)
       setSiteResolution(resolution)
 
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Site resolution result:', {
+      debug.site('resolveSiteFromUrl - Site resolution result:', {
         isValid: resolution.isValid,
         type: resolution.type,
         value: resolution.value
       });
 
       if (!resolution.isValid) {
-        console.log('[SITE_DEBUG] resolveSiteFromUrl - Invalid hostname format');
+        debug.site('resolveSiteFromUrl - Invalid hostname format');
         setError({
           code: 'INVALID_HOSTNAME',
           message: 'Invalid hostname format'
@@ -205,13 +206,13 @@ export function SiteProvider({
       }
 
       // Try to get the site
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Querying site with:', {
+      debug.site('resolveSiteFromUrl - Querying site with:', {
         value: resolution.value,
         type: resolution.type
       });
       const siteResult = await getSite(resolution.value, resolution.type)
 
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Site query result:', {
+      debug.site('resolveSiteFromUrl - Site query result:', {
         hasData: !!siteResult.data,
         hasError: !!siteResult.error,
         error: siteResult.error,
@@ -220,7 +221,7 @@ export function SiteProvider({
       });
 
       if (siteResult.error) {
-        console.log('[SITE_DEBUG] resolveSiteFromUrl - Site query error:', siteResult.error);
+        debug.site('resolveSiteFromUrl - Site query error:', siteResult.error);
         setError(siteResult.error)
         setCurrentSite(null)
         setUserAccess(null)
@@ -228,7 +229,7 @@ export function SiteProvider({
       }
 
       if (!siteResult.data) {
-        console.log('[SITE_DEBUG] resolveSiteFromUrl - Site not found');
+        debug.site('resolveSiteFromUrl - Site not found');
         setError({
           code: 'SITE_NOT_FOUND',
           message: `Site not found for ${resolution.type}: ${resolution.value}`
@@ -238,7 +239,7 @@ export function SiteProvider({
         return
       }
 
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Setting current site:', {
+      debug.site('resolveSiteFromUrl - Setting current site:', {
         id: siteResult.data.id,
         name: siteResult.data.name,
         subdomain: siteResult.data.subdomain
@@ -402,7 +403,7 @@ export function SiteProvider({
    * Switches to a different site with comprehensive cache clearing
    */
   const switchSite = useCallback(async (siteId: string | null) => {
-    console.log('[SITE_DEBUG] switchSite - Starting site switch:', {
+    debug.site('switchSite - Starting site switch:', {
       fromSiteId: currentSite?.id,
       toSiteId: siteId,
       timestamp: Date.now()
@@ -419,7 +420,7 @@ export function SiteProvider({
 
       // Clear caches for the current site before switching
       if (currentSite?.id && currentSite.id !== siteId) {
-        console.log('[SITE_DEBUG] switchSite - Clearing caches for previous site:', currentSite.id)
+        debug.site('switchSite - Clearing caches for previous site:', currentSite.id)
         clearAllSiteCaches(currentSite.id)
       }
 
@@ -430,11 +431,11 @@ export function SiteProvider({
         // Clear any caches for the target site too (in case of stale data)
         clearAllSiteCaches(siteId)
 
-        console.log('[SITE_DEBUG] switchSite - Loading new site:', siteId)
+        debug.site('switchSite - Loading new site:', siteId)
         await loadSiteById(siteId)
       } else {
         // Clear site selection completely
-        console.log('[SITE_DEBUG] switchSite - Clearing site selection')
+        debug.site('switchSite - Clearing site selection')
 
         setCurrentSite(null)
         setUserAccess(null)
@@ -450,7 +451,7 @@ export function SiteProvider({
         setLoading(false)
       }
 
-      console.log('[SITE_DEBUG] switchSite - Site switch completed successfully')
+      debug.site('switchSite - Site switch completed successfully')
     } catch (error) {
       console.error('[SITE_DEBUG] switchSite - Error during site switch:', error)
       setError({
@@ -475,7 +476,7 @@ export function SiteProvider({
 
   // Initialize site resolution on mount
   useEffect(() => {
-    console.log('[SITE_DEBUG] SiteProvider - Initial effect triggered:', {
+    debug.site('SiteProvider - Initial effect triggered:', {
       authLoading,
       hasInitialSiteData: !!initialSiteData,
       initialSiteId,
@@ -484,13 +485,13 @@ export function SiteProvider({
     });
 
     if (authLoading) {
-      console.log('[SITE_DEBUG] SiteProvider - Auth still loading, waiting');
+      debug.site('SiteProvider - Auth still loading, waiting');
       return
     }
 
     // If we already have initial site data, don't reload
     if (initialSiteData) {
-      console.log('[SITE_DEBUG] SiteProvider - Using initial site data:', {
+      debug.site('SiteProvider - Using initial site data:', {
         id: initialSiteData.id,
         name: initialSiteData.name,
         subdomain: initialSiteData.subdomain
@@ -501,12 +502,12 @@ export function SiteProvider({
 
     // Priority: initialSiteId > initialHostname > current URL
     if (initialSiteId) {
-      console.log('[SITE_DEBUG] SiteProvider - Loading by initial siteId:', initialSiteId);
+      debug.site('SiteProvider - Loading by initial siteId:', initialSiteId);
       setTimeout(() => {
         loadSiteById(initialSiteId)
       }, 0)
     } else if (initialHostname) {
-      console.log('[SITE_DEBUG] SiteProvider - Resolving by initial hostname:', initialHostname);
+      debug.site('SiteProvider - Resolving by initial hostname:', initialHostname);
       setTimeout(() => {
         resolveSiteFromUrl(`https://${initialHostname}`)
       }, 0)
@@ -520,7 +521,7 @@ export function SiteProvider({
                           hostname.endsWith('.vercel.app') ||
                           hostname.endsWith('.railway.app')
 
-      console.log('[SITE_DEBUG] SiteProvider - Browser environment detected:', {
+      debug.site('SiteProvider - Browser environment detected:', {
         hostname,
         appDomain,
         isMainDomain,
@@ -529,17 +530,17 @@ export function SiteProvider({
 
       if (!isMainDomain) {
         // Only try to resolve from URL if we're on a site-specific domain
-        console.log('[SITE_DEBUG] SiteProvider - Site-specific domain detected, resolving from URL');
+        debug.site('SiteProvider - Site-specific domain detected, resolving from URL');
         setTimeout(() => {
           resolveSiteFromUrl(window.location.href)
         }, 0)
       } else {
         // On main domain, let the URL/localStorage effect handle site selection
-        console.log('[SITE_DEBUG] SiteProvider - Main domain detected, skipping URL resolution');
+        debug.site('SiteProvider - Main domain detected, skipping URL resolution');
         setLoading(false)
       }
     } else {
-      console.log('[SITE_DEBUG] SiteProvider - Server-side, setting loading false');
+      debug.site('SiteProvider - Server-side, setting loading false');
       setLoading(false)
     }
   }, [authLoading, initialSiteId, initialHostname, initialSiteData]) // Remove function dependencies to prevent infinite loops
@@ -756,7 +757,7 @@ export const useSiteId = () => {
   const { currentSite } = useSiteContext()
   const siteId = currentSite?.id || null
 
-  console.log('[SITE_DEBUG] useSiteId - Returning siteId:', {
+  debug.site('useSiteId - Returning siteId:', {
     siteId,
     siteName: currentSite?.name,
     hasCurrentSite: !!currentSite

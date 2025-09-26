@@ -2,6 +2,7 @@ import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
+import { debug } from '@/src/lib/utils/debug';
 import {
   getSiteTheme,
   updateSiteTheme,
@@ -20,24 +21,24 @@ export function useSiteTheme() {
   const siteId = useSiteId();
 
   // Debug logging for theme loading
-  console.log('[THEME_DEBUG] useSiteTheme - siteId:', siteId);
-  console.log('[THEME_DEBUG] useSiteTheme - client available:', !!client);
+  debug.theme('useSiteTheme - siteId:', siteId);
+  debug.theme('useSiteTheme - client available:', !!client);
 
   const query = useSupabaseQuery<ThemeSettings>(
     async (signal) => {
-      console.log('[THEME_DEBUG] useSiteTheme - Starting theme query for siteId:', siteId);
+      debug.theme('useSiteTheme - Starting theme query for siteId:', siteId);
       if (!siteId) {
-        console.error('[THEME_DEBUG] useSiteTheme - No siteId provided');
+        debug.theme('useSiteTheme - No siteId provided');
         throw new Error('Site ID is required');
       }
 
       try {
         const theme = await getSiteTheme(client, siteId);
-        console.log('[THEME_DEBUG] useSiteTheme - Theme loaded successfully:', theme);
-        console.log('[THEME_DEBUG] useSiteTheme - Theme colors:', theme?.colors);
+        debug.theme('useSiteTheme - Theme loaded successfully:', theme);
+        debug.theme('useSiteTheme - Theme colors:', theme?.colors);
         return theme;
       } catch (error) {
-        console.error('[THEME_DEBUG] useSiteTheme - Theme loading error:', error);
+        debug.theme('useSiteTheme - Theme loading error:', error);
         throw error;
       }
     },
@@ -49,7 +50,7 @@ export function useSiteTheme() {
   );
 
   // Log query state changes
-  console.log('[THEME_DEBUG] useSiteTheme - Query state:', {
+  debug.theme('useSiteTheme - Query state:', {
     loading: query.loading,
     error: query.error,
     hasData: !!query.data,

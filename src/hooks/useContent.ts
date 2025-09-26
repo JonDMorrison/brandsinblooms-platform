@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
+import { debug } from '@/src/lib/utils/debug';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { 
@@ -164,7 +165,7 @@ export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) 
     return queryResult.data;
   }, [queryResult.data, siteId, queryResult.loading]);
 
-  console.log('[CONTENT_HOOK_DEBUG] useContent returning:', {
+  debug.general('CONTENT_HOOK: useContent returning:', {
     hasData: !!validatedData,
     loading: queryResult.loading,
     error: !!queryResult.error,
