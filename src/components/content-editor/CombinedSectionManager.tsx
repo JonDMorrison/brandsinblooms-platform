@@ -15,6 +15,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/src/components/ui/alert-dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/src/components/ui/dropdown-menu'
 import { 
   Eye, 
   EyeOff, 
@@ -71,7 +77,7 @@ interface CombinedSectionManagerProps {
   activeSectionKey?: string
   isDraggingEnabled?: boolean
   onSectionUpdate?: (sectionKey: string, section: ContentSection) => void
-  onAddSection?: (sectionType: ContentSectionType) => void
+  onAddSection?: (sectionType: ContentSectionType, variant?: string) => void
   onRemoveSection?: (sectionKey: string) => void
 }
 
@@ -112,6 +118,31 @@ function ExpandableSectionCard({
   isDragging = false,
   isOverlay = false
 }: ExpandableSectionCardProps) {
+  const getRichTextContentType = (section: ContentSection): 'mission' | 'story' | 'other' => {
+    const content = section.data.content || ''
+    const headline = section.data.headline || ''
+
+    // Check for mission-related keywords
+    if (headline.toLowerCase().includes('mission') ||
+        content.toLowerCase().includes('mission') ||
+        content.toLowerCase().includes('we believe') ||
+        content.toLowerCase().includes('our purpose')) {
+      return 'mission'
+    }
+
+    // Check for story-related keywords
+    if (headline.toLowerCase().includes('story') ||
+        headline.toLowerCase().includes('history') ||
+        content.toLowerCase().includes('founded') ||
+        content.toLowerCase().includes('journey') ||
+        content.toLowerCase().includes('began') ||
+        content.toLowerCase().includes('started')) {
+      return 'story'
+    }
+
+    return 'other'
+  }
+
   const getSectionIcon = (type: ContentSectionType) => {
     const iconMap = {
       hero: '🦸',
@@ -132,7 +163,44 @@ function ExpandableSectionCard({
       specifications: '📋',
       categories: '📂'
     }
+
+    // Content-aware icons for Rich Text sections
+    if (type === 'richText') {
+      const contentType = getRichTextContentType(section)
+      switch (contentType) {
+        case 'mission': return '🎯'
+        case 'story': return '📖'
+        case 'other': return '📝'
+      }
+    }
+
     return iconMap[type] || '📄'
+  }
+
+  const formatSectionName = (key: string) => {
+    // Special handling for Rich Text sections with semantic naming
+    if (key.startsWith('richText')) {
+      const contentType = getRichTextContentType(section)
+
+      // Generate name based on variant type - always show semantic name
+      const baseName = contentType === 'mission' ? 'Our Mission' :
+                      contentType === 'story' ? 'Our Story' : 'Other'
+
+      // For this component, we'll just show the base name without numbering
+      // since this is used for aria-labels and doesn't need the detailed counting
+      return baseName
+    }
+
+    // Special handling for dedicated mission section
+    if (key === 'mission') {
+      return 'Our Mission'
+    }
+
+    // Default formatting for other section types
+    return key.replace(/([A-Z])/g, ' $1').trim()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
   }
 
   const getSectionStatus = () => {
@@ -149,28 +217,6 @@ function ExpandableSectionCard({
 
   const status = getSectionStatus()
   const StatusIcon = status.icon
-
-  const formatSectionName = (key: string) => {
-    // Special handling for Rich Text sections with numbering
-    if (key.startsWith('richText')) {
-      if (key === 'richText') {
-        return 'Rich Text'
-      } else {
-        // Handle richText_1, richText_2, etc. -> Rich Text 02, Rich Text 03, etc.
-        const match = key.match(/^richText_(\d+)$/)
-        if (match) {
-          const number = parseInt(match[1], 10) + 1 // Start from 02 (1+1)
-          return `Rich Text ${number.toString().padStart(2, '0')}`
-        }
-      }
-    }
-
-    // Default formatting for other section types
-    return key.replace(/([A-Z])/g, ' $1').trim()
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
 
   const handleExpandButtonClick = (e: React.MouseEvent) => {
     // Expand button click - expand/collapse and notify parent
@@ -362,7 +408,29 @@ function ExpandableSectionCard({
 // Add Section Card Component for missing sections
 interface AddSectionCardProps {
   sectionType: ContentSectionType
-  onAddSection: (sectionType: ContentSectionType) => void
+  onAddSection: (sectionType: ContentSectionType, variant?: string) => void
+}
+
+type RichTextVariant = 'mission' | 'story' | 'other'
+
+// Rich Text template content generator
+export function createRichTextTemplate(variant: RichTextVariant) {
+  const templates = {
+    mission: {
+      headline: 'Our Mission',
+      content: `<p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">We believe in transforming spaces and lives through the power of plants. Our mission is to provide expert guidance, premium plants, and sustainable practices that help create thriving green sanctuaries in every home and office.</p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;"></p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">We're committed to making plant care accessible, enjoyable, and successful for everyone – from beginners taking their first steps into gardening to experienced plant enthusiasts expanding their collections.</p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;"></p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">Through our carefully curated selection and personalized support, we aim to foster a deeper connection between people and nature, one plant at a time.</p>`
+    },
+    story: {
+      headline: 'Our Story',
+      content: `<p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">Founded with a passion for plants and a commitment to sustainability, we have grown from a small local nursery into a trusted source for premium plants and expert care guidance.</p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;"></p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">Our journey began with the simple belief that everyone deserves to experience the joy and benefits of thriving plants in their space. What started as a weekend farmer's market booth has evolved into a comprehensive plant care ecosystem, serving thousands of plant lovers in our community.</p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;"></p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">Today, we continue to honor that founding vision by combining scientific expertise with genuine care for our customers and the environment. Every plant we sell and every piece of advice we give reflects our deep commitment to helping you succeed with your green companions.</p>`
+    },
+    other: {
+      headline: 'Other',
+      content: `<p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">Add your custom content here. This rich text section supports <strong>bold text</strong>, <em>italic text</em>, and other formatting options.</p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;"></p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">You can create multiple paragraphs, add lists, and structure your content to engage your visitors effectively.</p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;"></p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">Replace this placeholder content with information that's relevant to your business and audience.</p>`
+    }
+  }
+
+  return templates[variant] || templates.other
 }
 
 function AddSectionCard({ sectionType, onAddSection }: AddSectionCardProps) {
@@ -389,32 +457,116 @@ function AddSectionCard({ sectionType, onAddSection }: AddSectionCardProps) {
     return iconMap[type] || '📄'
   }
 
-  const formatSectionName = (key: string) => {
-    // Special handling for Rich Text sections with numbering
-    if (key.startsWith('richText')) {
-      if (key === 'richText') {
-        return 'Rich Text'
-      } else {
-        // Handle richText_1, richText_2, etc. -> Rich Text 02, Rich Text 03, etc.
-        const match = key.match(/^richText_(\d+)$/)
-        if (match) {
-          const number = parseInt(match[1], 10) + 1 // Start from 02 (1+1)
-          return `Rich Text ${number.toString().padStart(2, '0')}`
-        }
-      }
+  const formatSectionName = (type: string) => {
+    // Special handling for Rich Text section
+    if (type === 'richText') {
+      return 'Rich Text'
+    }
+
+    // Special handling for dedicated mission section
+    if (type === 'mission') {
+      return 'Our Mission'
     }
 
     // Default formatting for other section types
-    return key.replace(/([A-Z])/g, ' $1').trim()
+    return type.replace(/([A-Z])/g, ' $1').trim()
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
   }
 
+  const richTextVariants = [
+    {
+      key: 'mission' as RichTextVariant,
+      label: 'Our Mission',
+      icon: '🎯',
+      description: 'Company mission and purpose statement'
+    },
+    {
+      key: 'story' as RichTextVariant,
+      label: 'Our Story',
+      icon: '📖',
+      description: 'Company history and journey'
+    },
+    {
+      key: 'other' as RichTextVariant,
+      label: 'Other',
+      icon: '📝',
+      description: 'General rich text content'
+    }
+  ]
+
+  const handleVariantSelect = (variant: RichTextVariant) => {
+    onAddSection(sectionType, variant)
+  }
+
+  const handleDirectAdd = () => {
+    onAddSection(sectionType)
+  }
+
+  // For Rich Text sections, show variant selection dropdown
+  if (sectionType === 'richText') {
+    return (
+      <div className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
+        {/* Add Icon */}
+        <div className="flex items-center text-gray-400">
+          <Plus className="h-4 w-4" />
+        </div>
+
+        {/* Section Info */}
+        <div className="flex items-center gap-2 flex-1">
+          <span className="text-base opacity-50">{getSectionIcon(sectionType)}</span>
+
+          <div className="flex-1 min-w-0">
+            <h4 className="text-sm font-medium text-gray-600">
+              Add {formatSectionName(sectionType)}
+            </h4>
+            <span className="text-xs text-gray-500">
+              Choose a variant to add
+            </span>
+          </div>
+        </div>
+
+        {/* Variant Selection Dropdown */}
+        <div className="flex items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-3 text-primary border border-primary/20 hover:bg-primary/10"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+                <ChevronDown className="h-3 w-3 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              {richTextVariants.map((variant) => (
+                <DropdownMenuItem
+                  key={variant.key}
+                  onClick={() => handleVariantSelect(variant.key)}
+                  className="flex items-start gap-3 p-3 cursor-pointer"
+                >
+                  <span className="text-base mt-0.5">{variant.icon}</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{variant.label}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{variant.description}</div>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    )
+  }
+
+  // For other section types, use the original layout
   return (
-    <div 
+    <div
       className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all duration-200"
-      onClick={() => onAddSection(sectionType)}
+      onClick={handleDirectAdd}
     >
       {/* Add Icon */}
       <div className="flex items-center text-gray-400">
@@ -424,7 +576,7 @@ function AddSectionCard({ sectionType, onAddSection }: AddSectionCardProps) {
       {/* Section Info */}
       <div className="flex items-center gap-2 flex-1">
         <span className="text-base opacity-50">{getSectionIcon(sectionType)}</span>
-        
+
         <div className="flex-1 min-w-0">
           <h4 className="text-sm font-medium text-gray-600">
             Add {formatSectionName(sectionType)}
@@ -443,7 +595,7 @@ function AddSectionCard({ sectionType, onAddSection }: AddSectionCardProps) {
           className="h-8 px-3 text-primary border border-primary/20 hover:bg-primary/10"
           onClick={(e) => {
             e.stopPropagation()
-            onAddSection(sectionType)
+            handleDirectAdd()
           }}
         >
           <Plus className="h-4 w-4 mr-1" />
@@ -662,20 +814,75 @@ export function CombinedSectionManager({
     setSectionToDelete(null)
   }, [])
 
-  // Helper function to format section names with special handling for Rich Text numbering
+  // Helper function to detect Rich Text content type
+  const getRichTextContentType = useCallback((section: ContentSection): 'mission' | 'story' | 'other' => {
+    const content = section.data.content || ''
+    const headline = section.data.headline || ''
+
+    // Check for mission-related keywords
+    if (headline.toLowerCase().includes('mission') ||
+        content.toLowerCase().includes('mission') ||
+        content.toLowerCase().includes('we believe') ||
+        content.toLowerCase().includes('our purpose')) {
+      return 'mission'
+    }
+
+    // Check for story-related keywords
+    if (headline.toLowerCase().includes('story') ||
+        headline.toLowerCase().includes('history') ||
+        content.toLowerCase().includes('founded') ||
+        content.toLowerCase().includes('journey') ||
+        content.toLowerCase().includes('began') ||
+        content.toLowerCase().includes('started')) {
+      return 'story'
+    }
+
+    return 'other'
+  }, [])
+
+  // Helper function to format section names with semantic Rich Text handling
   const formatSectionName = useCallback((key: string) => {
-    // Special handling for Rich Text sections with numbering
+    // Special handling for Rich Text sections with semantic naming
     if (key.startsWith('richText')) {
-      if (key === 'richText') {
-        return 'Rich Text'
-      } else {
-        // Handle richText_1, richText_2, etc. -> Rich Text 02, Rich Text 03, etc.
-        const match = key.match(/^richText_(\d+)$/)
-        if (match) {
-          const number = parseInt(match[1], 10) + 1 // Start from 02 (1+1)
-          return `Rich Text ${number.toString().padStart(2, '0')}`
+      const section = content.sections[key]
+      if (section) {
+        const contentType = getRichTextContentType(section)
+
+        // Count how many sections of this same variant type exist (including this one)
+        const sameVariantSections = Object.entries(content.sections)
+          .filter(([sectionKey, sectionData]) => {
+            if (!sectionKey.startsWith('richText') || sectionData.type !== 'richText') return false
+            return getRichTextContentType(sectionData) === contentType
+          })
+          .sort(([a], [b]) => {
+            // Sort by key to maintain consistent ordering
+            if (a === 'richText') return -1
+            if (b === 'richText') return 1
+            const aNum = parseInt(a.replace('richText_', ''), 10) || 0
+            const bNum = parseInt(b.replace('richText_', ''), 10) || 0
+            return aNum - bNum
+          })
+
+        // Find the index of the current section in the sorted list
+        const currentIndex = sameVariantSections.findIndex(([sectionKey]) => sectionKey === key)
+
+        // Generate name based on variant type and position
+        const baseName = contentType === 'mission' ? 'Our Mission' :
+                        contentType === 'story' ? 'Our Story' : 'Other'
+
+        if (currentIndex === 0) {
+          // First instance of this variant type gets no number
+          return baseName
+        } else {
+          // Subsequent instances get numbered starting from 02
+          const number = currentIndex + 1
+          const paddedNumber = number.toString().padStart(2, '0')
+          return `${baseName} ${paddedNumber}`
         }
       }
+
+      // Fallback for Rich Text sections without content
+      return 'Other'
     }
 
     // Default formatting for other section types
@@ -683,7 +890,7 @@ export function CombinedSectionManager({
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
-  }, [])
+  }, [content.sections, getRichTextContentType])
 
   // Handle delete request from section card
   const handleDeleteRequest = useCallback((sectionKey: string) => {

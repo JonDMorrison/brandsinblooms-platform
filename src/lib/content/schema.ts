@@ -406,7 +406,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
   },
   about: {
     required: ['hero'],
-    optional: ['mission', 'values', 'team', 'features', 'richText', 'cta'],
+    optional: ['values', 'team', 'features', 'richText', 'cta'],
     defaultSections: {
       hero: {
         type: 'hero',
@@ -426,15 +426,6 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         },
         visible: true,
         order: 1
-      },
-      mission: {
-        type: 'mission',
-        data: {
-          headline: 'Our Mission',
-          content: 'We believe that plants have the power to transform spaces and lives. Our mission is to provide expert guidance, premium plants, and sustainable practices that help create thriving green sanctuaries in every home and office.'
-        },
-        visible: false,
-        order: 2
       },
       values: {
         type: 'values',
@@ -634,9 +625,9 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
   other: {
     required: [], // No required sections - complete flexibility
     optional: [
-      'hero', 'text', 'richText', 'image', 'icon', 'gallery', 
-      'features', 'featured', 'categories', 'cta', 'testimonials', 'form', 'pricing', 
-      'team', 'mission', 'values', 'specifications'
+      'hero', 'text', 'richText', 'image', 'icon', 'gallery',
+      'features', 'featured', 'categories', 'cta', 'testimonials', 'form', 'pricing',
+      'team', 'values', 'specifications'
     ],
     defaultSections: {
       hero: {
@@ -767,14 +758,6 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         },
         visible: false,
         order: 12
-      },
-      mission: {
-        type: 'mission',
-        data: {
-          content: ''
-        },
-        visible: false,
-        order: 13
       },
       values: {
         type: 'values',

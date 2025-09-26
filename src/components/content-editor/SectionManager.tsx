@@ -59,6 +59,7 @@ interface SectionManagerProps {
 interface SectionItemProps {
   sectionKey: string
   section: ContentSection
+  content: PageContent
   isRequired: boolean
   isActive: boolean
   canMoveUp: boolean
@@ -79,6 +80,7 @@ interface SortableSectionItemProps extends SectionItemProps {
 function SectionItem({
   sectionKey,
   section,
+  content,
   isRequired,
   isActive,
   canMoveUp,
@@ -92,6 +94,16 @@ function SectionItem({
   isOverlay = false
 }: SectionItemProps) {
   const getSectionIcon = (type: ContentSectionType) => {
+    // Content-aware icons for Rich Text sections
+    if (type === 'richText') {
+      const contentType = getRichTextContentType(section)
+      switch (contentType) {
+        case 'mission': return '🎯'
+        case 'story': return '📖'
+        case 'other': return '📝'
+      }
+    }
+
     const iconMap = {
       hero: '🦸',
       richText: '📝',
@@ -134,19 +146,72 @@ function SectionItem({
   const status = getSectionStatus()
   const StatusIcon = status.icon
 
+  const getRichTextContentType = (section: ContentSection): 'mission' | 'story' | 'other' => {
+    const content = section.data.content || ''
+    const headline = section.data.headline || ''
+
+    // Check for mission-related keywords
+    if (headline.toLowerCase().includes('mission') ||
+        content.toLowerCase().includes('mission') ||
+        content.toLowerCase().includes('we believe') ||
+        content.toLowerCase().includes('our purpose')) {
+      return 'mission'
+    }
+
+    // Check for story-related keywords
+    if (headline.toLowerCase().includes('story') ||
+        headline.toLowerCase().includes('history') ||
+        content.toLowerCase().includes('founded') ||
+        content.toLowerCase().includes('journey') ||
+        content.toLowerCase().includes('began') ||
+        content.toLowerCase().includes('started')) {
+      return 'story'
+    }
+
+    return 'other'
+  }
+
   const formatSectionName = (key: string) => {
-    // Special handling for Rich Text sections with numbering
+    // Special handling for Rich Text sections with semantic naming
     if (key.startsWith('richText')) {
-      if (key === 'richText') {
-        return 'Rich Text'
+      const contentType = getRichTextContentType(section)
+
+      // Count how many sections of this same variant type exist (including this one)
+      const sameVariantSections = Object.entries(content.sections)
+        .filter(([sectionKey, sectionData]) => {
+          if (!sectionKey.startsWith('richText') || sectionData.type !== 'richText') return false
+          return getRichTextContentType(sectionData) === contentType
+        })
+        .sort(([a], [b]) => {
+          // Sort by key to maintain consistent ordering
+          if (a === 'richText') return -1
+          if (b === 'richText') return 1
+          const aNum = parseInt(a.replace('richText_', ''), 10) || 0
+          const bNum = parseInt(b.replace('richText_', ''), 10) || 0
+          return aNum - bNum
+        })
+
+      // Find the index of the current section in the sorted list
+      const currentIndex = sameVariantSections.findIndex(([sectionKey]) => sectionKey === key)
+
+      // Generate name based on variant type and position
+      const baseName = contentType === 'mission' ? 'Our Mission' :
+                      contentType === 'story' ? 'Our Story' : 'Other'
+
+      if (currentIndex === 0) {
+        // First instance of this variant type gets no number
+        return baseName
       } else {
-        // Handle richText_1, richText_2, etc. -> Rich Text 02, Rich Text 03, etc.
-        const match = key.match(/^richText_(\d+)$/)
-        if (match) {
-          const number = parseInt(match[1], 10) + 1 // Start from 02 (1+1)
-          return `Rich Text ${number.toString().padStart(2, '0')}`
-        }
+        // Subsequent instances get numbered starting from 02
+        const number = currentIndex + 1
+        const paddedNumber = number.toString().padStart(2, '0')
+        return `${baseName} ${paddedNumber}`
       }
+    }
+
+    // Special handling for dedicated mission section
+    if (key === 'mission') {
+      return 'Our Mission'
     }
 
     // Default formatting for other section types
@@ -474,6 +539,7 @@ export function SectionManager({
                         id={sectionKey}
                         sectionKey={sectionKey}
                         section={section}
+                        content={content}
                         isRequired={isRequired}
                         isActive={isActive}
                         canMoveUp={canMoveUp(index)}
@@ -500,6 +566,7 @@ export function SectionManager({
                     <SectionItem
                       sectionKey={draggedSection.key}
                       section={draggedSection.section}
+                      content={content}
                       isRequired={layoutConfig.required.includes(draggedSection.key)}
                       isActive={activeSectionKey === draggedSection.key}
                       canMoveUp={false}
@@ -526,6 +593,7 @@ export function SectionManager({
                     key={sectionKey}
                     sectionKey={sectionKey}
                     section={section}
+                    content={content}
                     isRequired={isRequired}
                     isActive={isActive}
                     canMoveUp={canMoveUp(index)}

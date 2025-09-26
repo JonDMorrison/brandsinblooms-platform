@@ -60,7 +60,7 @@ function getSectionDisplayName(sectionKey: string, type: ContentSectionType): st
     form: 'Form',
     pricing: 'Pricing',
     team: 'Team',
-    mission: 'Mission',
+    mission: 'Our Mission',
     values: 'Values',
     specifications: 'Specifications',
     plant_showcase: 'Plant Showcase',
