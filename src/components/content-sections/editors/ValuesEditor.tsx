@@ -111,11 +111,12 @@ export function ValuesEditor({ section, sectionKey, onUpdate }: ValuesEditorProp
           </Button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           {items.map((valueItem, index) => (
-            <div key={valueItem.id || index} className="p-4 border border-input rounded-md space-y-3">
+            <div key={valueItem.id || index} className="border border-input rounded-md p-3 space-y-2">
+              {/* Header with Value # and Remove button */}
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium">Value {index + 1}</Label>
+                <Label className="text-xs font-medium text-gray-600">Value {index + 1}</Label>
                 <Button
                   onClick={() => handleRemoveValue(index)}
                   size="sm"
@@ -126,33 +127,35 @@ export function ValuesEditor({ section, sectionKey, onUpdate }: ValuesEditorProp
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs">Icon</Label>
+              {/* Compact horizontal layout for Icon and Title */}
+              <div className="flex gap-3 items-start">
+                <div className="w-20 flex-shrink-0">
+                  <Label className="text-xs text-gray-500 mb-1 block">Icon</Label>
                   <IconPicker
                     value={valueItem.icon || 'Star'}
                     onChange={(icon) => handleUpdateValue(index, 'icon', icon)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Title</Label>
+                <div className="flex-1">
+                  <Label className="text-xs text-gray-500 mb-1 block">Title</Label>
                   <Input
                     value={valueItem.title || ''}
                     onChange={(e) => handleUpdateValue(index, 'title', e.target.value)}
                     placeholder="Value title"
-                    className="h-8"
+                    className="h-8 text-sm"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs">Description</Label>
+              {/* Description */}
+              <div>
+                <Label className="text-xs text-gray-500 mb-1 block">Description</Label>
                 <Textarea
                   value={valueItem.description || ''}
                   onChange={(e) => handleUpdateValue(index, 'description', e.target.value)}
                   placeholder="Describe this value..."
-                  rows={3}
-                  className="resize-none"
+                  rows={2}
+                  className="resize-none text-sm"
                 />
               </div>
             </div>
@@ -160,7 +163,7 @@ export function ValuesEditor({ section, sectionKey, onUpdate }: ValuesEditorProp
         </div>
 
         {items.length === 0 && (
-          <div className="text-center py-6 text-gray-500 border border-dashed border-gray-300 rounded-lg">
+          <div className="text-center py-4 text-gray-500 border border-dashed border-gray-300 rounded-lg">
             <p className="text-sm">No values added yet</p>
             <p className="text-xs text-gray-400 mt-1">Click "Add Value" to get started</p>
           </div>

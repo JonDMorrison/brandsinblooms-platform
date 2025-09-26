@@ -98,7 +98,7 @@ export function SectionEditorRenderer({
         return <TeamEditor {...commonProps} />
         
       case 'values':
-        return <ValuesEditor {...commonProps} />
+        return <ValuesEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
       case 'gallery':
         return <GalleryEditor {...commonProps} />

@@ -176,10 +176,7 @@ export async function AboutPage() {
       backgroundSetting: missionBackgroundSetting
     },
     values: {
-      data: databaseValuesData ? {
-        ...databaseValuesData,
-        items: hardcodedValues
-      } : null,
+      data: databaseValuesData,
       status: valuesStatus,
       backgroundSetting: valuesBackgroundSetting
     },
