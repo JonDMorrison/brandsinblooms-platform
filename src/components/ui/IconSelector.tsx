@@ -57,30 +57,24 @@ const ICON_CATEGORIES = {
 
 // Get all available icons and create searchable list
 const getAllIcons = (): IconOption[] => {
-  console.log('🔍 getAllIcons - Starting icon collection...');
-  console.log('🔍 getAllIcons - LucideIcons keys:', Object.keys(LucideIcons).slice(0, 10));
+  const iconMap = new Map<string, IconOption>();
 
-  const iconList: IconOption[] = [];
-
-  // Get all category icons first
+  // Get all category icons first, using Map to prevent duplicates
   Object.entries(ICON_CATEGORIES).forEach(([category, iconNames]) => {
-    console.log(`🔍 getAllIcons - Processing category ${category}:`, iconNames);
     iconNames.forEach(iconName => {
       const IconComponent = (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[iconName];
-      console.log(`🔍 getAllIcons - Checking ${iconName}:`, IconComponent ? 'Found' : 'NOT FOUND', typeof IconComponent);
-      console.log(`🔍 getAllIcons - ${iconName} details:`, {
-        exists: !!IconComponent,
-        type: typeof IconComponent,
-        isFunction: typeof IconComponent === 'function',
-        isObject: typeof IconComponent === 'object',
-        constructor: IconComponent?.constructor?.name
-      });
       if (IconComponent && (typeof IconComponent === 'function' || typeof IconComponent === 'object')) {
-        iconList.push({
-          name: iconName,
-          component: IconComponent,
-          keywords: [category, iconName.toLowerCase()]
-        });
+        // If icon already exists, merge keywords
+        const existing = iconMap.get(iconName);
+        if (existing) {
+          existing.keywords = [...(existing.keywords || []), category];
+        } else {
+          iconMap.set(iconName, {
+            name: iconName,
+            component: IconComponent,
+            keywords: [category, iconName.toLowerCase()]
+          });
+        }
       }
     });
   });
@@ -92,12 +86,12 @@ const getAllIcons = (): IconOption[] => {
   ];
 
   additionalIcons.forEach(iconName => {
-    // Skip if already in our list
-    if (iconList.some(icon => icon.name === iconName)) return;
+    // Skip if already in our map
+    if (iconMap.has(iconName)) return;
 
     const IconComponent = (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[iconName];
     if (IconComponent && (typeof IconComponent === 'function' || typeof IconComponent === 'object')) {
-      iconList.push({
+      iconMap.set(iconName, {
         name: iconName,
         component: IconComponent,
         keywords: [iconName.toLowerCase()]
@@ -105,7 +99,8 @@ const getAllIcons = (): IconOption[] => {
     }
   });
 
-  return iconList.sort((a, b) => a.name.localeCompare(b.name));
+  // Convert Map to Array and sort
+  return Array.from(iconMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 };
 
 export function IconSelector({
@@ -120,15 +115,7 @@ export function IconSelector({
 }: IconSelectorProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [allIcons] = React.useState<IconOption[]>(() => {
-    const icons = getAllIcons();
-    console.log('🔍 IconSelector - getAllIcons() returned:', icons.length, 'icons');
-    console.log('🔍 IconSelector - first few icons:', icons.slice(0, 5).map(i => i.name));
-    return icons;
-  });
-
-  // DEBUG: Log what value we receive
-  console.log('🔍 IconSelector - received value:', value, typeof value);
+  const [allIcons] = React.useState<IconOption[]>(() => getAllIcons());
 
   const filteredIcons = React.useMemo(() => {
     if (!searchQuery.trim()) {
@@ -153,10 +140,7 @@ export function IconSelector({
   }, [onChange]);
 
   const renderIconButton = () => {
-    console.log('🔍 renderIconButton - Looking for icon with value:', value);
-    console.log('🔍 renderIconButton - Available icon names:', allIcons.map(i => i.name).slice(0, 10));
     const icon = allIcons.find(i => i.name === value);
-    console.log('🔍 renderIconButton - Found icon:', icon ? icon.name : 'NOT FOUND');
     if (!icon) {
       return (
         <PopoverTrigger asChild>
@@ -203,7 +187,7 @@ export function IconSelector({
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         {renderIconButton()}
 
-        <PopoverContent className="w-80 p-0" align="start">
+        <PopoverContent className="w-80 p-0 bg-white border border-gray-200 shadow-lg" align="start">
           <div className="p-3 space-y-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />

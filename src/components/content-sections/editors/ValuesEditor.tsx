@@ -36,18 +36,6 @@ export function ValuesEditor({ section, sectionKey, onUpdate }: ValuesEditorProp
   const { data } = section
   const items = (data.items as ValueItem[]) || []
 
-  // DEBUG: Log the items to see what we're working with
-  console.log('📝 ValuesEditor - section data:', data)
-  console.log('📝 ValuesEditor - items:', items)
-  items.forEach((item, index) => {
-    console.log(`📝 ValuesEditor - item ${index}:`, {
-      id: item.id,
-      title: item.title,
-      icon: item.icon,
-      iconType: typeof item.icon
-    })
-  })
-
   const handleDataChange = (newData: Partial<ContentSection['data']>) => {
     onUpdate(sectionKey, {
       ...section,
@@ -139,16 +127,16 @@ export function ValuesEditor({ section, sectionKey, onUpdate }: ValuesEditorProp
                 </Button>
               </div>
 
-              {/* Compact horizontal layout for Icon and Title */}
-              <div className="flex gap-3 items-start">
-                <div className="w-20 flex-shrink-0">
+              {/* Vertical layout for Icon and Title */}
+              <div className="space-y-2">
+                <div>
                   <Label className="text-xs text-gray-500 mb-1 block">Icon</Label>
                   <IconSelector
                     value={valueItem.icon || 'Star'}
                     onChange={(icon) => handleUpdateValue(index, 'icon', icon)}
                   />
                 </div>
-                <div className="flex-1">
+                <div>
                   <Label className="text-xs text-gray-500 mb-1 block">Title</Label>
                   <Input
                     value={valueItem.title || ''}
