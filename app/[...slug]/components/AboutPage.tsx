@@ -192,10 +192,7 @@ export async function AboutPage() {
       backgroundSetting: teamBackgroundSetting
     },
     features: {
-      data: databaseFeaturesData ? {
-        ...databaseFeaturesData,
-        features: hardcodedCertifications
-      } : null,
+      data: databaseFeaturesData,
       status: featuresStatus,
       backgroundSetting: featuresBackgroundSetting
     },
