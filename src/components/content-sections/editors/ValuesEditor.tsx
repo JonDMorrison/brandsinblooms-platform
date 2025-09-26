@@ -11,7 +11,7 @@ import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { Textarea } from '@/src/components/ui/textarea'
 import { Plus, X } from 'lucide-react'
-import { IconPicker } from '@/src/components/content-editor'
+import { IconSelector } from '@/src/components/ui/IconSelector'
 import {
   FormField,
   TextareaField,
@@ -35,6 +35,18 @@ interface ValueItem {
 export function ValuesEditor({ section, sectionKey, onUpdate }: ValuesEditorProps) {
   const { data } = section
   const items = (data.items as ValueItem[]) || []
+
+  // DEBUG: Log the items to see what we're working with
+  console.log('📝 ValuesEditor - section data:', data)
+  console.log('📝 ValuesEditor - items:', items)
+  items.forEach((item, index) => {
+    console.log(`📝 ValuesEditor - item ${index}:`, {
+      id: item.id,
+      title: item.title,
+      icon: item.icon,
+      iconType: typeof item.icon
+    })
+  })
 
   const handleDataChange = (newData: Partial<ContentSection['data']>) => {
     onUpdate(sectionKey, {
@@ -131,7 +143,7 @@ export function ValuesEditor({ section, sectionKey, onUpdate }: ValuesEditorProp
               <div className="flex gap-3 items-start">
                 <div className="w-20 flex-shrink-0">
                   <Label className="text-xs text-gray-500 mb-1 block">Icon</Label>
-                  <IconPicker
+                  <IconSelector
                     value={valueItem.icon || 'Star'}
                     onChange={(icon) => handleUpdateValue(index, 'icon', icon)}
                   />
