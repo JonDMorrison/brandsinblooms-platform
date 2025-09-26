@@ -5,14 +5,15 @@ import { ContentSection } from '@/src/lib/content/schema'
 import { useSiteTheme } from '@/hooks/useSiteTheme'
 
 // Import preview components
-import { 
-  HeroPreview, 
-  FeaturedPreview, 
+import {
+  HeroPreview,
+  FeaturedPreview,
   CategoriesPreview,
   FeaturesPreview,
+  ValuesPreview,
   CtaPreview,
   TextPreview,
-  DefaultPreview 
+  DefaultPreview
 } from '@/src/components/content-sections/preview'
 
 // Helper functions have been moved to shared utilities and individual preview components
@@ -24,9 +25,10 @@ interface DynamicSectionProps {
   title?: string // Page title for hero sections
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
   onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
+  onValueUpdate?: (sectionKey: string, valueIndex: number, fieldPath: string, newContent: string) => void
 }
 
-function DynamicSectionComponent({ section, sectionKey, className = '', title, onContentUpdate, onFeatureUpdate }: DynamicSectionProps) {
+function DynamicSectionComponent({ section, sectionKey, className = '', title, onContentUpdate, onFeatureUpdate, onValueUpdate }: DynamicSectionProps) {
   const { theme } = useSiteTheme()
   
   // Don't render if section is not visible or has no data
@@ -37,7 +39,7 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
   const { type, data, settings } = section
   
   // Common props for all preview components
-  const commonProps = { section, sectionKey, className, title, onContentUpdate, onFeatureUpdate }
+  const commonProps = { section, sectionKey, className, title, onContentUpdate, onFeatureUpdate, onValueUpdate }
 
   // Section-specific rendering logic
   switch (type) {
@@ -52,6 +54,9 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
 
     case 'features':
       return <FeaturesPreview {...commonProps} />
+
+    case 'values':
+      return <ValuesPreview {...commonProps} />
 
     case 'cta':
       return <CtaPreview {...commonProps} />

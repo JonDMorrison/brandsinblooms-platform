@@ -10,6 +10,7 @@ interface UnifiedPagePreviewProps {
   content?: PageContent | LegacyContent
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
   onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
+  onValueUpdate?: (sectionKey: string, valueIndex: number, fieldPath: string, newContent: string) => void
   title?: string
   subtitle?: string
 }
@@ -19,6 +20,7 @@ function UnifiedPagePreviewContent({
   content,
   onContentUpdate,
   onFeatureUpdate,
+  onValueUpdate,
   title,
   subtitle
 }: UnifiedPagePreviewProps) {
@@ -47,6 +49,7 @@ function UnifiedPagePreviewContent({
               title={title}
               onContentUpdate={onContentUpdate}
               onFeatureUpdate={onFeatureUpdate}
+              onValueUpdate={onValueUpdate}
             />
           ))}
       </div>

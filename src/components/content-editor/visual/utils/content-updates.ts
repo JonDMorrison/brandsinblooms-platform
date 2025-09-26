@@ -44,23 +44,23 @@ export function updateContentByPath(
  */
 export function updateSectionFeature(
   content: PageContent,
-  sectionKey: string, 
-  featureIndex: number, 
+  sectionKey: string,
+  featureIndex: number,
   newContent: string
 ): PageContent {
   if (!content || !content.sections[sectionKey]) {
     return content
   }
-  
+
   const section = content.sections[sectionKey]
   if (!section || !section.data.features || !Array.isArray(section.data.features)) {
     return content
   }
-  
+
   // Create updated features array
   const updatedFeatures = [...section.data.features]
   updatedFeatures[featureIndex] = newContent
-  
+
   // Create updated content with new features array
   return {
     ...content,
@@ -71,6 +71,50 @@ export function updateSectionFeature(
         data: {
           ...section.data,
           features: updatedFeatures
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Helper to update value item fields in sections
+ */
+export function updateSectionValue(
+  content: PageContent,
+  sectionKey: string,
+  valueIndex: number,
+  fieldPath: string,
+  newContent: string
+): PageContent {
+  if (!content || !content.sections[sectionKey]) {
+    return content
+  }
+
+  const section = content.sections[sectionKey]
+  if (!section || !section.data.items || !Array.isArray(section.data.items)) {
+    return content
+  }
+
+  // Create updated items array
+  const updatedItems = [...section.data.items]
+  if (updatedItems[valueIndex]) {
+    updatedItems[valueIndex] = {
+      ...updatedItems[valueIndex],
+      [fieldPath]: newContent
+    }
+  }
+
+  // Create updated content with new items array
+  return {
+    ...content,
+    sections: {
+      ...content.sections,
+      [sectionKey]: {
+        ...section,
+        data: {
+          ...section.data,
+          items: updatedItems
         }
       }
     }
@@ -108,6 +152,14 @@ export function createContentUpdateHandlers(
     const updatedContent = updateSectionFeature(content, sectionKey, featureIndex, newContent)
     onContentChange(updatedContent)
   }
+
+  /**
+   * Handle value item field updates
+   */
+  const handleValueUpdate = (sectionKey: string, valueIndex: number, fieldPath: string, newContent: string) => {
+    const updatedContent = updateSectionValue(content, sectionKey, valueIndex, fieldPath, newContent)
+    onContentChange(updatedContent)
+  }
   
   /**
    * Handle title updates (with fallback support)
@@ -141,6 +193,7 @@ export function createContentUpdateHandlers(
     handleInlineContentUpdate,
     handleSectionContentUpdate,
     handleFeatureUpdate,
+    handleValueUpdate,
     handleTitleUpdate,
     handleSubtitleUpdate
   }
