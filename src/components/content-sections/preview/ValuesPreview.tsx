@@ -3,13 +3,15 @@
  * Matches the exact design and layout of the customer site values section
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { textToHtml, htmlToText } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared'
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
 import { isPreviewMode, createResponsiveClassHelper } from '@/src/lib/utils/responsive-classes'
+import { IconSelector } from '@/src/components/ui/IconSelector'
+import { Dialog, DialogContent, DialogOverlay, DialogTitle } from '@/src/components/ui/dialog'
 
 interface ValuesPreviewProps {
   section: ContentSection
@@ -32,6 +34,33 @@ export function ValuesPreview({
   const items = (data.items as any[]) || []
   const isPreview = isPreviewMode(onContentUpdate, onValueUpdate)
   const responsive = createResponsiveClassHelper(isPreview)
+
+  // State for inline icon editing
+  const [editingIconIndex, setEditingIconIndex] = useState<number | null>(null)
+
+  // Handle icon click to open selector
+  const handleIconClick = (index: number, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Only allow icon editing in preview mode
+    if (onValueUpdate && isPreview) {
+      setEditingIconIndex(index)
+    }
+  }
+
+  // Handle icon selection from modal
+  const handleIconSelect = (iconName: string) => {
+    if (editingIconIndex !== null && onValueUpdate) {
+      onValueUpdate(sectionKey, editingIconIndex, 'icon', iconName)
+    }
+    setEditingIconIndex(null)
+  }
+
+  // Close modal
+  const handleCloseModal = () => {
+    setEditingIconIndex(null)
+  }
 
   return (
     <section
@@ -105,10 +134,14 @@ export function ValuesPreview({
                 }}
               >
                 <div className="flex items-start gap-4">
-                  {/* Icon container with dynamic icon */}
+                  {/* Icon container with dynamic icon - clickable for editing */}
                   <div
-                    className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                    className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      isPreview && onValueUpdate ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''
+                    }`}
                     style={{ backgroundColor: 'var(--theme-primary)' }}
+                    onClick={(e) => handleIconClick(index, e)}
+                    title={isPreview && onValueUpdate ? 'Click to change icon' : undefined}
                   >
                     {IconComponent ? (
                       <IconComponent className="w-6 h-6 text-white" />
@@ -173,6 +206,28 @@ export function ValuesPreview({
           })}
         </div>
       </div>
+
+      {/* Icon Selection Modal */}
+      <Dialog open={editingIconIndex !== null} onOpenChange={handleCloseModal}>
+        <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 z-50" />
+        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[500px] max-w-[90vw] bg-white rounded-lg shadow-xl p-0">
+          <DialogTitle className="sr-only">Select Icon</DialogTitle>
+          <div className="p-6 border-b">
+            <h3 className="text-lg font-semibold">Choose an Icon</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {editingIconIndex !== null ? `Editing icon for "${items[editingIconIndex]?.title || 'value'}"` : ''}
+            </p>
+          </div>
+          <div className="p-6">
+            <IconSelector
+              value={editingIconIndex !== null ? items[editingIconIndex]?.icon || '' : ''}
+              onChange={handleIconSelect}
+              iconSize={16}
+              maxResults={60}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
