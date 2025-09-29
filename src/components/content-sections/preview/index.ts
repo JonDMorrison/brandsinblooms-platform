@@ -7,6 +7,7 @@ export { PlantShopPreview, useResponsivePlantGrid, usePreviewThemeInjection } fr
 
 // Core section preview components
 export { HeroPreview } from './HeroPreview'
+export { HeaderPreview } from './HeaderPreview'
 export { FeaturedPreview } from './FeaturedPreview'
 export { CategoriesPreview } from './CategoriesPreview'
 export { FeaturesPreview } from './FeaturesPreview'
@@ -14,6 +15,8 @@ export { ValuesPreview } from './ValuesPreview'
 export { CtaPreview } from './CtaPreview'
 export { TextPreview } from './TextPreview'
 export { DefaultPreview } from './DefaultPreview'
+export { FAQPreview } from './FAQPreview'
+export { BusinessInfoPreview } from './BusinessInfoPreview'
 
 // Additional preview components can be added here following the same pattern:
 // export { TestimonialsPreview } from './TestimonialsPreview'

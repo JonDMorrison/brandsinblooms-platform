@@ -13,16 +13,17 @@ export type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' 
 /**
  * Content section types for different layout components
  */
-export type ContentSectionType = 
-  | 'text' 
-  | 'richText' 
-  | 'image' 
-  | 'icon' 
-  | 'gallery' 
+export type ContentSectionType =
+  | 'text'
+  | 'richText'
+  | 'image'
+  | 'icon'
+  | 'gallery'
   | 'features'
   | 'featured'
   | 'categories'
   | 'hero'
+  | 'header' // Simplified hero - title + subtitle only
   | 'cta'
   | 'testimonials'
   | 'form'
@@ -31,6 +32,8 @@ export type ContentSectionType =
   | 'mission'
   | 'values'
   | 'specifications'
+  | 'businessInfo' // Business information section
+  | 'faq' // FAQ section
   // Plant shop specific section types
   | 'plant_showcase'
   | 'plant_grid'
@@ -397,24 +400,17 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     }
   },
   about: {
-    required: ['hero'],
-    optional: ['values', 'features', 'richText', 'cta'],
+    required: [],
+    optional: ['header', 'values', 'features', 'richText', 'cta'],
     defaultSections: {
-      hero: {
-        type: 'hero',
+      header: {
+        type: 'header',
         data: {
           headline: 'About Our Plant Experts',
-          subheadline: 'Years of horticultural expertise helping plant lovers grow their green sanctuaries',
-          ctaText: 'Contact Us',
-          ctaLink: '/contact',
-          secondaryCtaText: 'View Our Services',
-          secondaryCtaLink: '/services',
-          features: [
-            'Professional Horticulturists',
-            'Expert Plant Care Guidance',
-            'Sustainable Growing Practices',
-            'Local Plant Sourcing'
-          ]
+          subheadline: 'Years of horticultural expertise helping plant lovers grow their green sanctuaries'
+        },
+        settings: {
+          backgroundColor: 'gradient'
         },
         visible: true,
         order: 1
@@ -543,60 +539,62 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     }
   },
   contact: {
-    required: ['header', 'form'],
-    optional: ['info', 'map'],
+    required: [],
+    optional: ['header', 'businessInfo', 'richText', 'faq'],
     defaultSections: {
       header: {
-        type: 'hero',
+        type: 'header',
         data: {
-          content: '',
-          alignment: 'center'
+          headline: 'Get Expert Plant Care Help',
+          subheadline: 'Connect with our certified horticulturists for personalized plant care guidance'
+        },
+        settings: {
+          backgroundColor: 'gradient'
         },
         visible: true,
         order: 1
       },
-      form: {
-        type: 'form',
+      businessInfo: {
+        type: 'businessInfo',
         data: {
-          fields: [
-            {
-              id: 'name',
-              type: 'text',
-              label: 'Name',
-              required: true,
-              order: 1
-            },
-            {
-              id: 'email',
-              type: 'email',
-              label: 'Email',
-              required: true,
-              order: 2
-            },
-            {
-              id: 'message',
-              type: 'textarea',
-              label: 'Message',
-              required: true,
-              order: 3
-            }
-          ]
+          headline: 'Contact Information',
+          phone: '',
+          email: '',
+          address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: ''
+          },
+          hours: [],
+          socials: {
+            facebook: '',
+            instagram: '',
+            twitter: '',
+            linkedin: ''
+          }
         },
-        visible: true,
+        visible: false,
         order: 2
       },
-      info: {
-        type: 'text',
+      richText: {
+        type: 'richText',
         data: {
+          headline: '',
           content: ''
         },
         visible: false,
         order: 3
       },
-      map: {
-        type: 'text', // Will be enhanced with map component later
+      faq: {
+        type: 'faq',
         data: {
-          content: ''
+          headline: 'Frequently Asked Questions',
+          description: '',
+          faqs: []
+        },
+        settings: {
+          backgroundColor: 'alternate'
         },
         visible: false,
         order: 4

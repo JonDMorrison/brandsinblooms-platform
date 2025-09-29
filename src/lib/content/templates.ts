@@ -524,6 +524,10 @@ export function getTemplateContent(
       return getFullAboutPageTemplate(title, subtitle, config)
     case 'minimal-about':
       return getMinimalAboutPageTemplate(title, subtitle, config)
+    case 'full-contact':
+      return getFullContactPageTemplate(title, subtitle, config)
+    case 'minimal-contact':
+      return getMinimalContactPageTemplate(title, subtitle, config)
     default:
       return enhanceLandingTemplate(title, subtitle, config)
   }
@@ -1734,6 +1738,274 @@ function enhancePortfolioTemplate(
               url: '/contact'
             }
           ]
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Full Contact Page template with Header, Business Info, Rich Text, and FAQ sections
+ */
+function getFullContactPageTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
+): PageContent {
+  // Return populated template when sample content is requested
+  if (config.complexity !== 'simple') {
+    return {
+      version: '1.0',
+      layout: 'contact',
+      sections: {
+        header: {
+          type: 'header',
+          order: 1,
+          visible: true,
+          data: {
+            headline: title || 'Get in Touch',
+            subheadline: subtitle || "We'd love to hear from you. Reach out to us for questions, support, or just to say hello."
+          },
+          settings: {
+            backgroundColor: 'gradient'
+          }
+        },
+        businessInfo: {
+          type: 'businessInfo',
+          order: 2,
+          visible: true,
+          data: {
+            headline: 'Contact Information',
+            phone: '(555) 123-4567',
+            email: 'contact@example.com',
+            address: {
+              street: '123 Plant Avenue',
+              city: 'Green City',
+              state: 'CA',
+              zip: '94105'
+            },
+            hours: [
+              { days: 'Monday - Friday', time: '9:00 AM - 6:00 PM' },
+              { days: 'Saturday', time: '10:00 AM - 4:00 PM' },
+              { days: 'Sunday', time: 'Closed' }
+            ],
+            socials: {
+              facebook: 'https://facebook.com/yourpage',
+              instagram: 'https://instagram.com/yourpage',
+              twitter: '',
+              linkedin: ''
+            }
+          }
+        },
+        richText: {
+          type: 'richText',
+          order: 3,
+          visible: true,
+          data: {
+            headline: 'We\'re Here to Help',
+            content: 'Whether you have questions about our products, need support, or want to learn more about what we offer, our team is ready to assist you. We strive to respond to all inquiries within 24 hours during business days.<br><br>For urgent matters, please call us directly. For general inquiries, feel free to email us or visit our location during business hours.'
+          }
+        },
+        faq: {
+          type: 'faq',
+          order: 4,
+          visible: true,
+          data: {
+            headline: 'Frequently Asked Questions',
+            items: [
+              {
+                id: 'faq-1',
+                question: 'What are your business hours?',
+                answer: 'We are open Monday through Friday from 9:00 AM to 6:00 PM, and Saturdays from 10:00 AM to 4:00 PM. We are closed on Sundays.',
+                order: 0
+              },
+              {
+                id: 'faq-2',
+                question: 'How can I reach customer support?',
+                answer: 'You can reach our customer support team by phone at (555) 123-4567, by email at contact@example.com, or by visiting our location during business hours.',
+                order: 1
+              },
+              {
+                id: 'faq-3',
+                question: 'Do you offer consultations?',
+                answer: 'Yes! We offer free consultations to help you choose the right solutions for your needs. Contact us to schedule an appointment.',
+                order: 2
+              },
+              {
+                id: 'faq-4',
+                question: 'Where are you located?',
+                answer: 'We are located at 123 Plant Avenue in Green City, CA 94105. Parking is available on-site.',
+                order: 3
+              }
+            ]
+          },
+          settings: {
+            backgroundColor: 'alternate'
+          }
+        }
+      }
+    }
+  }
+
+  // Return empty template when no sample content is requested
+  return {
+    version: '1.0',
+    layout: 'contact',
+    sections: {
+      header: {
+        type: 'header',
+        order: 1,
+        visible: true,
+        data: {
+          headline: title || '',
+          subheadline: subtitle || ''
+        },
+        settings: {
+          backgroundColor: 'gradient'
+        }
+      },
+      businessInfo: {
+        type: 'businessInfo',
+        order: 2,
+        visible: true,
+        data: {
+          headline: 'Contact Information',
+          phone: '',
+          email: '',
+          address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: ''
+          },
+          hours: [],
+          socials: {
+            facebook: '',
+            instagram: '',
+            twitter: '',
+            linkedin: ''
+          }
+        }
+      },
+      richText: {
+        type: 'richText',
+        order: 3,
+        visible: true,
+        data: {
+          headline: '',
+          content: ''
+        }
+      },
+      faq: {
+        type: 'faq',
+        order: 4,
+        visible: true,
+        data: {
+          headline: '',
+          items: []
+        },
+        settings: {
+          backgroundColor: 'alternate'
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Minimal Contact Page template with Header and Business Info sections only
+ */
+function getMinimalContactPageTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
+): PageContent {
+  // Return populated template when sample content is requested
+  if (config.complexity !== 'simple') {
+    return {
+      version: '1.0',
+      layout: 'contact',
+      sections: {
+        header: {
+          type: 'header',
+          order: 1,
+          visible: true,
+          data: {
+            headline: title || 'Contact Us',
+            subheadline: subtitle || 'Get in touch with our team. We\'re here to help answer your questions.'
+          },
+          settings: {
+            backgroundColor: 'gradient'
+          }
+        },
+        businessInfo: {
+          type: 'businessInfo',
+          order: 2,
+          visible: true,
+          data: {
+            headline: 'Contact Information',
+            phone: '(555) 123-4567',
+            email: 'contact@example.com',
+            address: {
+              street: '123 Plant Avenue',
+              city: 'Green City',
+              state: 'CA',
+              zip: '94105'
+            },
+            hours: [
+              { days: 'Monday - Friday', time: '9:00 AM - 6:00 PM' },
+              { days: 'Saturday', time: '10:00 AM - 4:00 PM' }
+            ],
+            socials: {
+              facebook: '',
+              instagram: '',
+              twitter: '',
+              linkedin: ''
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Return empty template when no sample content is requested
+  return {
+    version: '1.0',
+    layout: 'contact',
+    sections: {
+      header: {
+        type: 'header',
+        order: 1,
+        visible: true,
+        data: {
+          headline: title || '',
+          subheadline: subtitle || ''
+        },
+        settings: {
+          backgroundColor: 'gradient'
+        }
+      },
+      businessInfo: {
+        type: 'businessInfo',
+        order: 2,
+        visible: true,
+        data: {
+          headline: 'Contact Information',
+          phone: '',
+          email: '',
+          address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: ''
+          },
+          hours: [],
+          socials: {
+            facebook: '',
+            instagram: '',
+            twitter: '',
+            linkedin: ''
+          }
         }
       }
     }

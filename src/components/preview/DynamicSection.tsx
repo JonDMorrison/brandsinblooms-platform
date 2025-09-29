@@ -7,13 +7,16 @@ import { useSiteTheme } from '@/hooks/useSiteTheme'
 // Import preview components
 import {
   HeroPreview,
+  HeaderPreview,
   FeaturedPreview,
   CategoriesPreview,
   FeaturesPreview,
   ValuesPreview,
   CtaPreview,
   TextPreview,
-  DefaultPreview
+  DefaultPreview,
+  FAQPreview,
+  BusinessInfoPreview
 } from '@/src/components/content-sections/preview'
 
 // Helper functions have been moved to shared utilities and individual preview components
@@ -46,6 +49,9 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
     case 'hero':
       return <HeroPreview {...commonProps} />
 
+    case 'header':
+      return <HeaderPreview {...commonProps} />
+
     case 'featured':
       return <FeaturedPreview {...commonProps} />
 
@@ -65,6 +71,11 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
     case 'text':
       return <TextPreview {...commonProps} />
 
+    case 'faq':
+      return <FAQPreview {...commonProps} />
+
+    case 'businessInfo':
+      return <BusinessInfoPreview {...commonProps} />
 
     default:
       // Use DefaultPreview for all other section types

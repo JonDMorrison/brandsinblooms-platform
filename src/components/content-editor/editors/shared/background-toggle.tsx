@@ -12,7 +12,7 @@ interface BackgroundToggleProps {
   section: ContentSection
   onUpdate: (sectionKey: string, section: ContentSection) => void
   className?: string
-  availableOptions?: Array<'default' | 'alternate' | 'primary'>
+  availableOptions?: Array<'default' | 'alternate' | 'primary' | 'gradient'>
 }
 
 export function BackgroundToggle({
@@ -24,7 +24,7 @@ export function BackgroundToggle({
 }: BackgroundToggleProps) {
   const currentBackground = section.settings?.backgroundColor || 'default'
 
-  const handleBackgroundChange = (backgroundColor: 'default' | 'alternate' | 'primary') => {
+  const handleBackgroundChange = (backgroundColor: 'default' | 'alternate' | 'primary' | 'gradient') => {
     const newSettings = { ...section.settings, backgroundColor }
     onUpdate(sectionKey, { ...section, settings: newSettings })
   }
@@ -70,6 +70,19 @@ export function BackgroundToggle({
               className="w-3 h-3"
             />
             <span className="text-xs">Primary</span>
+          </label>
+        )}
+        {availableOptions.includes('gradient') && (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name={`${sectionKey}-background`}
+              value="gradient"
+              checked={currentBackground === 'gradient'}
+              onChange={() => handleBackgroundChange('gradient')}
+              className="w-3 h-3"
+            />
+            <span className="text-xs">Gradient</span>
           </label>
         )}
       </div>

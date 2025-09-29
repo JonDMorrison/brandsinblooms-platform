@@ -144,8 +144,9 @@ function ExpandableSectionCard({
   }
 
   const getSectionIcon = (type: ContentSectionType) => {
-    const iconMap = {
+    const iconMap: Record<string, string> = {
       hero: '🦸',
+      header: '📋',
       richText: '📝',
       text: '📄',
       image: '🖼️',
@@ -161,7 +162,9 @@ function ExpandableSectionCard({
       mission: '🎯',
       values: '💎',
       specifications: '📋',
-      categories: '📂'
+      categories: '📂',
+      businessInfo: '📞',
+      faq: '❓'
     }
 
     // Content-aware icons for Rich Text sections
@@ -435,8 +438,9 @@ export function createRichTextTemplate(variant: RichTextVariant) {
 
 function AddSectionCard({ sectionType, onAddSection }: AddSectionCardProps) {
   const getSectionIcon = (type: ContentSectionType) => {
-    const iconMap = {
+    const iconMap: Record<string, string> = {
       hero: '🦸',
+      header: '📋',
       richText: '📝',
       text: '📄',
       image: '🖼️',
@@ -452,7 +456,9 @@ function AddSectionCard({ sectionType, onAddSection }: AddSectionCardProps) {
       mission: '🎯',
       values: '💎',
       specifications: '📋',
-      categories: '📂'
+      categories: '📂',
+      businessInfo: '📞',
+      faq: '❓'
     }
     return iconMap[type] || '📄'
   }
@@ -466,6 +472,16 @@ function AddSectionCard({ sectionType, onAddSection }: AddSectionCardProps) {
     // Special handling for dedicated mission section
     if (type === 'mission') {
       return 'Our Mission'
+    }
+
+    // Special handling for businessInfo
+    if (type === 'businessInfo') {
+      return 'Business Information'
+    }
+
+    // Special handling for faq
+    if (type === 'faq') {
+      return 'FAQ'
     }
 
     // Default formatting for other section types

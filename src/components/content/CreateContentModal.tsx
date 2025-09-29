@@ -44,14 +44,14 @@ import {
 
 const createContentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  layout: z.enum(['landing', 'about']),
+  layout: z.enum(['landing', 'about', 'contact']),
   template: z.string().optional()
 })
 
 type CreateContentForm = z.infer<typeof createContentSchema>
 
 interface PageTypeOption {
-  id: 'landing' | 'about'
+  id: 'landing' | 'about' | 'contact'
   name: string
   description: string
   preview: string
@@ -80,10 +80,21 @@ const pageTypeOptions: PageTypeOption[] = [
     id: 'about',
     name: 'About Page',
     description: 'Professional about page with company information',
-    preview: 'Hero, Mission, Values, Team, Features, Story, and CTA blocks',
+    preview: 'Header, Mission, Values, Features, Story, and CTA blocks',
     icon: ({ className }) => (
       <svg className={className} fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+      </svg>
+    )
+  },
+  {
+    id: 'contact',
+    name: 'Contact Page',
+    description: 'Contact page with business information and FAQ',
+    preview: 'Header, Business Info, Rich Text, and FAQ blocks',
+    icon: ({ className }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
       </svg>
     )
   }
@@ -111,14 +122,31 @@ const aboutTemplateOptions: TemplateOption[] = [
     id: 'full-about',
     name: 'Full About Page',
     description: 'Complete about page with all sections',
-    preview: 'Hero, Mission, Values, Team, Features, Story, and CTA sections',
+    preview: 'Header, Mission, Values, Features, Story, and CTA sections',
     recommended: true
   },
   {
     id: 'minimal-about',
     name: 'Minimal About',
     description: 'Essential about sections only',
-    preview: 'Hero, Mission, and CTA sections only',
+    preview: 'Header, Mission, and CTA sections only',
+    recommended: false
+  }
+]
+
+const contactTemplateOptions: TemplateOption[] = [
+  {
+    id: 'full-contact',
+    name: 'Full Contact Page',
+    description: 'Complete contact page with all sections',
+    preview: 'Header, Business Info, Rich Text, and FAQ sections',
+    recommended: true
+  },
+  {
+    id: 'minimal-contact',
+    name: 'Simple Contact',
+    description: 'Essential contact sections only',
+    preview: 'Header and Business Info sections only',
     recommended: false
   }
 ]
@@ -133,7 +161,7 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
   const router = useRouter()
   const { currentSite } = useSiteContext()
   const [step, setStep] = useState(1)
-  const [selectedPageType, setSelectedPageType] = useState<'landing' | 'about'>('landing')
+  const [selectedPageType, setSelectedPageType] = useState<'landing' | 'about' | 'contact'>('landing')
   const [selectedTemplate, setSelectedTemplate] = useState<string>('home-page')
   const [isCreating, setIsCreating] = useState(false)
   const [useMockData, setUseMockData] = useState(true)
@@ -148,14 +176,20 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
   })
 
   // Get current template options based on selected page type
-  const currentTemplateOptions = selectedPageType === 'about' ? aboutTemplateOptions : landingTemplateOptions
+  const currentTemplateOptions =
+    selectedPageType === 'about' ? aboutTemplateOptions :
+    selectedPageType === 'contact' ? contactTemplateOptions :
+    landingTemplateOptions
 
-  const handlePageTypeSelect = (pageType: 'landing' | 'about') => {
+  const handlePageTypeSelect = (pageType: 'landing' | 'about' | 'contact') => {
     setSelectedPageType(pageType)
     form.setValue('layout', pageType, { shouldValidate: true })
 
     // Reset template selection when page type changes
-    const defaultTemplate = pageType === 'about' ? 'full-about' : 'home-page'
+    const defaultTemplate =
+      pageType === 'about' ? 'full-about' :
+      pageType === 'contact' ? 'full-contact' :
+      'home-page'
     setSelectedTemplate(defaultTemplate)
     form.setValue('template', defaultTemplate, { shouldValidate: true })
   }
@@ -466,17 +500,23 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
               <div className="space-y-6">
                 {/* Page Type Display */}
                 <div className={`p-4 rounded-lg border ${
-                  selectedPageType === 'about'
-                    ? 'bg-blue-50 border-blue-200'
-                    : 'bg-green-50 border-green-200'
+                  selectedPageType === 'about' ? 'bg-blue-50 border-blue-200' :
+                  selectedPageType === 'contact' ? 'bg-purple-50 border-purple-200' :
+                  'bg-green-50 border-green-200'
                 }`}>
                   <div className="flex items-center gap-3">
                     <div className={`p-2 text-white rounded-md ${
-                      selectedPageType === 'about' ? 'bg-blue-600' : 'bg-green-600'
+                      selectedPageType === 'about' ? 'bg-blue-600' :
+                      selectedPageType === 'contact' ? 'bg-purple-600' :
+                      'bg-green-600'
                     }`}>
                       {selectedPageType === 'about' ? (
                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                        </svg>
+                      ) : selectedPageType === 'contact' ? (
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                       ) : (
                         <Layout className="h-5 w-5" />
@@ -484,15 +524,23 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
                     </div>
                     <div>
                       <h3 className={`font-semibold ${
-                        selectedPageType === 'about' ? 'text-blue-900' : 'text-green-900'
+                        selectedPageType === 'about' ? 'text-blue-900' :
+                        selectedPageType === 'contact' ? 'text-purple-900' :
+                        'text-green-900'
                       }`}>
-                        {selectedPageType === 'about' ? 'About Page' : 'Landing Page'}
+                        {selectedPageType === 'about' ? 'About Page' :
+                         selectedPageType === 'contact' ? 'Contact Page' :
+                         'Landing Page'}
                       </h3>
                       <p className={`text-sm ${
-                        selectedPageType === 'about' ? 'text-blue-700' : 'text-green-700'
+                        selectedPageType === 'about' ? 'text-blue-700' :
+                        selectedPageType === 'contact' ? 'text-purple-700' :
+                        'text-green-700'
                       }`}>
                         {selectedPageType === 'about'
-                          ? 'Includes: Hero, Mission, Values, Team, Features, Story, and CTA blocks'
+                          ? 'Includes: Header, Mission, Values, Features, Story, and CTA blocks'
+                          : selectedPageType === 'contact'
+                          ? 'Includes: Header, Business Info, Rich Text, and FAQ blocks'
                           : 'Includes: Hero, Featured, Categories, Features, and CTA blocks'
                         }
                       </p>
@@ -503,7 +551,11 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
                 <div>
                   <Label className="text-base font-semibold mb-4 block">Choose a Template</Label>
                   <p className="text-sm text-gray-600 mb-6">
-                    Select a template for your {selectedPageType === 'about' ? 'About Page' : 'Landing Page'}. You can customize all content later.
+                    Select a template for your {
+                      selectedPageType === 'about' ? 'About Page' :
+                      selectedPageType === 'contact' ? 'Contact Page' :
+                      'Landing Page'
+                    }. You can customize all content later.
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

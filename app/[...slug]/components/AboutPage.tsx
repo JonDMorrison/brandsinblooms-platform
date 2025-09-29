@@ -15,8 +15,9 @@ export async function AboutPage() {
   const { siteId } = await getSiteHeaders()
 
   // Fetch database content for about sections
-  let databaseHeroData = null
-  let heroStatus = 'not_found' // 'not_found', 'unpublished', 'missing_hero', 'available'
+  let databaseHeaderData = null
+  let headerStatus = 'not_found' // 'not_found', 'unpublished', 'missing_header', 'available'
+  let headerBackgroundSetting = 'gradient'
   let databaseMissionData = null
   let missionStatus = 'not_found'
   let missionBackgroundSetting = 'default'
@@ -43,16 +44,17 @@ export async function AboutPage() {
 
     if (contentResult && contentResult.content) {
       if (!contentResult.is_published) {
-        heroStatus = 'unpublished'
+        headerStatus = 'unpublished'
       } else {
         const pageContent = deserializePageContent(contentResult.content)
 
-        // Check for hero section
-        if (pageContent?.sections?.hero?.data && pageContent.sections.hero.visible) {
-          databaseHeroData = pageContent.sections.hero.data
-          heroStatus = 'available'
+        // Check for header section
+        if (pageContent?.sections?.header?.data && pageContent.sections.header.visible) {
+          databaseHeaderData = pageContent.sections.header.data
+          headerStatus = 'available'
+          headerBackgroundSetting = String(pageContent.sections.header.settings?.backgroundColor || 'gradient')
         } else {
-          heroStatus = 'missing_hero'
+          headerStatus = 'missing_header'
         }
 
         // Check for mission section
@@ -165,10 +167,10 @@ export async function AboutPage() {
 
   // Create data mapping for dynamic sections
   const sectionDataMap = {
-    hero: {
-      data: databaseHeroData,
-      status: heroStatus,
-      backgroundSetting: 'default'
+    header: {
+      data: databaseHeaderData,
+      status: headerStatus,
+      backgroundSetting: headerBackgroundSetting
     },
     mission: {
       data: databaseMissionData,
@@ -240,26 +242,16 @@ export async function AboutPage() {
       ) : (
         // Fallback to hardcoded sections when no database content
         <>
-          {/* Hero Section */}
+          {/* Header Section */}
           <HeroSectionErrorBoundary>
             <CustomerSiteSection
-              section={{ type: 'hero', data: {}, visible: true }}
-              sectionKey="hero"
+              section={{ type: 'header', data: {}, visible: true }}
+              sectionKey="header"
               sectionData={{
                 headline: 'About Our Plant Experts',
-                subheadline: 'Years of horticultural expertise helping plant lovers grow their green sanctuaries',
-                ctaText: 'Contact Us',
-                ctaLink: '/contact',
-                secondaryCtaText: 'View Our Services',
-                secondaryCtaLink: '/services',
-                features: [
-                  'Professional Horticulturists',
-                  'Expert Plant Care Guidance',
-                  'Sustainable Growing Practices',
-                  'Local Plant Sourcing'
-                ]
+                subheadline: 'Years of horticultural expertise helping plant lovers grow their green sanctuaries'
               }}
-              backgroundSetting="default"
+              backgroundSetting="gradient"
             />
           </HeroSectionErrorBoundary>
 
