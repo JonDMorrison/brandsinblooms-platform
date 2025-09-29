@@ -8,7 +8,6 @@ import {
   generateTestimonials,
   generatePricingTiers,
   generateFeatures,
-  generateTeamMembers,
   generateGalleryItems,
   MOCK_DATA_PRESETS,
   type MockDataOptions
@@ -239,31 +238,6 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
                 content: 'We strive for excellence in everything we do.',
                 icon: 'Award',
                 order: 2
-              }
-            ]
-          }
-        },
-        team: {
-          type: 'team',
-          visible: true,
-          order: 3,
-          data: {
-            items: [
-              {
-                id: 'member-1',
-                title: 'John Doe',
-                subtitle: 'Founder & CEO',
-                content: 'Leading our vision with passion and expertise.',
-                image: '/api/placeholder/200/200',
-                order: 0
-              },
-              {
-                id: 'member-2',
-                title: 'Jane Smith',
-                subtitle: 'Chief Technology Officer',
-                content: 'Driving innovation and technical excellence.',
-                image: '/api/placeholder/200/200',
-                order: 1
               }
             ]
           }
@@ -909,37 +883,6 @@ function getFullAboutPageTemplate(
             backgroundColor: 'alternate'
           }
         },
-        team: {
-          type: 'team',
-          order: 4,
-          visible: true,
-          data: {
-            headline: 'Meet Our Plant Experts',
-            description: 'Our team combines decades of horticultural expertise with genuine passion for plant care',
-            items: [
-              {
-                id: 'member-1',
-                name: 'Dr. Sarah Martinez',
-                title: 'Master Horticulturist',
-                specialization: 'Indoor Plant Care & Tropical Species',
-                bio: 'With over 15 years of experience in plant sciences, Dr. Martinez specializes in helping customers create thriving indoor environments.',
-                credentials: ['Ph.D. Plant Sciences', 'Certified Master Gardener', 'Tropical Plant Specialist'],
-                experience: '15+ years in professional horticulture',
-                order: 0
-              },
-              {
-                id: 'member-2',
-                name: 'James Thompson',
-                title: 'Plant Care Specialist',
-                specialization: 'Sustainable Growing & Organic Methods',
-                bio: 'James brings practical expertise in sustainable growing practices and helps customers develop eco-friendly plant care routines.',
-                credentials: ['Certified Organic Specialist', 'Permaculture Design', 'Soil Health Expert'],
-                experience: '12+ years in sustainable agriculture',
-                order: 1
-              }
-            ]
-          }
-        },
         features: {
           type: 'features',
           order: 5,
@@ -1027,16 +970,6 @@ function getFullAboutPageTemplate(
         },
         settings: {
           backgroundColor: 'alternate'
-        }
-      },
-      team: {
-        type: 'team',
-        order: 4,
-        visible: true,
-        data: {
-          headline: '',
-          description: '',
-          items: []
         }
       },
       features: {
@@ -1288,7 +1221,6 @@ function enhanceAboutTemplate(
   subtitle?: string,
   config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
-  const teamMembers = generateTeamMembers(4, config)
   const testimonials = generateTestimonials(2, config)
 
   return {
@@ -1368,14 +1300,6 @@ function enhanceAboutTemplate(
               order: 5
             }
           ]
-        }
-      },
-      team: {
-        type: 'team',
-        visible: true,
-        order: 3,
-        data: {
-          items: teamMembers
         }
       },
       testimonials: {

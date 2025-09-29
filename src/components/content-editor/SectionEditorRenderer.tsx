@@ -4,7 +4,7 @@ import React, { useCallback } from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 
 // Import all section editor components from centralized index
-import { 
+import {
   HeroEditor,
   FeaturedEditor,
   CategoriesEditor,
@@ -14,7 +14,6 @@ import {
   IconSectionEditor,
   FeaturesEditor,
   TestimonialsEditor,
-  TeamEditor,
   ValuesEditor,
   GalleryEditor,
   PricingEditor,
@@ -93,10 +92,7 @@ export function SectionEditorRenderer({
         
       case 'testimonials':
         return <TestimonialsEditor {...commonProps} />
-        
-      case 'team':
-        return <TeamEditor {...commonProps} />
-        
+
       case 'values':
         return <ValuesEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         

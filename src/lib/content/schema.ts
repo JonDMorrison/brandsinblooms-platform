@@ -324,7 +324,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
   },
   blog: {
     required: ['header', 'content'],
-    optional: ['author', 'related'],
+    optional: ['related'],
     defaultSections: {
       header: {
         type: 'hero',
@@ -343,14 +343,6 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         },
         visible: true,
         order: 2
-      },
-      author: {
-        type: 'team',
-        data: {
-          items: []
-        },
-        visible: false,
-        order: 3
       },
       related: {
         type: 'features',
@@ -406,7 +398,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
   },
   about: {
     required: ['hero'],
-    optional: ['values', 'team', 'features', 'richText', 'cta'],
+    optional: ['values', 'features', 'richText', 'cta'],
     defaultSections: {
       hero: {
         type: 'hero',
@@ -462,17 +454,6 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         },
         visible: false,
         order: 3
-      },
-      team: {
-        type: 'team',
-        data: {
-          headline: 'Meet Our Plant Experts',
-          description: 'Our team combines decades of horticultural expertise with genuine passion for plant care',
-          items: [],
-          columns: 2
-        },
-        visible: false,
-        order: 4
       },
       features: {
         type: 'features',
@@ -627,7 +608,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     optional: [
       'hero', 'text', 'richText', 'image', 'icon', 'gallery',
       'features', 'featured', 'categories', 'cta', 'testimonials', 'form', 'pricing',
-      'team', 'values', 'specifications'
+      'values', 'specifications'
     ],
     defaultSections: {
       hero: {
@@ -749,15 +730,6 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         },
         visible: false,
         order: 11
-      },
-      team: {
-        type: 'team',
-        data: {
-          items: [],
-          columns: 3
-        },
-        visible: false,
-        order: 12
       },
       values: {
         type: 'values',

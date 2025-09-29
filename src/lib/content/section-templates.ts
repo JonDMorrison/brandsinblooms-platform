@@ -370,37 +370,6 @@ export const SECTION_TEMPLATES: SectionTemplate[] = [
 
   // Social Category
   {
-    id: 'team',
-    name: 'Team Members',
-    description: 'Team member profiles',
-    category: 'social',
-    icon: 'Users',
-    section: {
-      type: 'team',
-      data: {
-        items: [
-          {
-            id: 'member_1',
-            title: 'Alex Johnson',
-            subtitle: 'CEO & Founder',
-            content: 'Leading the company vision with 10+ years experience',
-            order: 1
-          },
-          {
-            id: 'member_2',
-            title: 'Sarah Wilson',
-            subtitle: 'Head of Design',
-            content: 'Creating beautiful user experiences',
-            order: 2
-          }
-        ],
-        columns: 2
-      },
-      visible: true,
-      order: 1
-    }
-  },
-  {
     id: 'mission',
     name: 'Mission Statement',
     description: 'Company mission and values',

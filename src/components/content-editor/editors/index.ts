@@ -15,7 +15,6 @@ export { IconSectionEditor } from './IconSectionEditor'
 // Existing modular editor components
 export { FeaturesEditor } from '@/src/components/content-sections/editors/FeaturesEditor'
 export { TestimonialsEditor } from '@/src/components/content-sections/editors/TestimonialsEditor'
-export { TeamEditor } from '@/src/components/content-sections/editors/TeamEditor'
 export { ValuesEditor } from '@/src/components/content-sections/editors/ValuesEditor'
 export { GalleryEditor } from '@/src/components/content-sections/editors/GalleryEditor'
 export { PricingEditor } from '@/src/components/content-sections/editors/PricingEditor'
