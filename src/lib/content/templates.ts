@@ -1812,7 +1812,7 @@ function getFullContactPageTemplate(
           visible: true,
           data: {
             headline: 'Frequently Asked Questions',
-            items: [
+            faqs: [
               {
                 id: 'faq-1',
                 question: 'What are your business hours?',
@@ -1902,7 +1902,7 @@ function getFullContactPageTemplate(
         visible: true,
         data: {
           headline: '',
-          items: []
+          faqs: []
         },
         settings: {
           backgroundColor: 'alternate'
