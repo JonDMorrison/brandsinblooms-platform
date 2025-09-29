@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Site } from '@/lib/database/aliases'
 import { handleError } from '@/lib/types/error-handling'
+import { debug } from '@/src/lib/utils/debug'
 
 // Security configuration
 interface SecurityConfig {
@@ -95,17 +96,11 @@ class RateLimitStore {
 
   private cleanup(): void {
     const now = Date.now()
-    let removed = 0
 
     for (const [key, entry] of this.store.entries()) {
       if (now > entry.resetTime) {
         this.store.delete(key)
-        removed++
       }
-    }
-
-    if (removed > 0 && process.env.NODE_ENV === 'development') {
-      console.log(`[Rate Limit] Cleaned up ${removed} expired entries`)
     }
   }
 
@@ -428,7 +423,7 @@ export function applySecurityHeaders(
     const previewModeParam = searchParams?.get('_preview_mode')
     const dashboardOriginParam = searchParams?.get('_dashboard_origin')
 
-    console.log('[SECURITY_DEBUG] 🔍 Preview Mode Detection Analysis:', {
+    debug.security('🔍 Preview Mode Detection Analysis:', {
       fullUrl: request?.url,
       pathname: request?.nextUrl.pathname,
       allSearchParams: searchParams ? Object.fromEntries(searchParams.entries()) : 'NO_PARAMS',
@@ -442,11 +437,11 @@ export function applySecurityHeaders(
     })
 
     if (isPreviewMode) {
-      console.log('[SECURITY_DEBUG] ✅ PREVIEW MODE DETECTED - Iframe embedding will be ALLOWED')
+      debug.security('✅ PREVIEW MODE DETECTED - Iframe embedding will be ALLOWED')
     } else {
-      console.log('[SECURITY_DEBUG] ❌ Normal page load - Iframe embedding will be BLOCKED')
+      debug.security('❌ Normal page load - Iframe embedding will be BLOCKED')
       if (request?.nextUrl.pathname === '/home' && !previewModeParam) {
-        console.log('[SECURITY_DEBUG] ⚠️  WARNING: This is /home but no _preview_mode param - redirect may have lost parameters!')
+        debug.security('⚠️  WARNING: This is /home but no _preview_mode param - redirect may have lost parameters!')
       }
     }
   }
@@ -589,7 +584,7 @@ export function applySecurityHeaders(
 
     // Debug logging for X-Frame-Options
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[SECURITY_DEBUG] 🚫 X-Frame-Options BLOCKING iframes:', {
+      debug.security('🚫 X-Frame-Options BLOCKING iframes:', {
         header: frameOptions,
         reason: 'Not in preview mode',
         effect: 'Iframe embedding will be blocked by browser'
@@ -598,7 +593,7 @@ export function applySecurityHeaders(
   } else {
     // Debug logging for skipped X-Frame-Options
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[SECURITY_DEBUG] ✅ X-Frame-Options SKIPPED - iframe embedding ALLOWED', {
+      debug.security('✅ X-Frame-Options SKIPPED - iframe embedding ALLOWED', {
         reason: 'Preview mode detected (_preview_mode=iframe)',
         security: 'CSP frame-ancestors will handle iframe security',
         effect: 'Dashboard iframe preview will work'

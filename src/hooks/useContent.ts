@@ -73,13 +73,13 @@ const validateContentData = (data: unknown, currentSiteId: string): boolean => {
     // since the query itself is scoped to the site
     return true;
   } catch (error) {
-    console.warn('[CONTENT_VALIDATION] Error validating content data:', error);
+    debug.content('Error validating content data:', error);
     return false;
   }
 };
 
 const logDataValidation = (queryType: string, isValid: boolean, currentSiteId: string, data: unknown) => {
-  console.log(`[CONTENT_VALIDATION] ${queryType}:`, {
+  debug.content(`${queryType}:`, {
     isValid,
     currentSiteId,
     dataType: Array.isArray(data) ? 'array' : typeof data,
@@ -134,7 +134,7 @@ export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) 
           logDataValidation('useContent', isValid, siteId, data);
 
           if (!isValid) {
-            console.warn('[CONTENT_VALIDATION] Received invalid content data for site:', siteId);
+            debug.content('Received invalid content data for site:', siteId);
             // Clear cache to force refetch with correct data
             clearContentCaches(siteId);
           }
@@ -148,12 +148,12 @@ export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) 
   // Just log validation but return the data as-is to avoid state confusion
   const validatedData = useMemo(() => {
     if (!queryResult.data || !siteId) {
-      console.log('[CONTENT_VALIDATION] No data or siteId:', { hasData: !!queryResult.data, siteId });
+      debug.content('No data or siteId:', { hasData: !!queryResult.data, siteId });
       return queryResult.data;
     }
 
     const isValid = validateContentData(queryResult.data, siteId);
-    console.log('[CONTENT_VALIDATION] Data validation result:', {
+    debug.content('Data validation result:', {
       isValid,
       siteId,
       dataType: typeof queryResult.data,

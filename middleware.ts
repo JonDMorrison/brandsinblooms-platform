@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import { 
-  resolveSiteFromHost, 
+import {
+  resolveSiteFromHost,
   extractHostname as extractHostnameFromResolution,
   isValidSubdomain,
   isValidCustomDomain
@@ -12,6 +12,7 @@ import { getSiteFromCache, setSiteCache } from '@/lib/cache/site-cache'
 import { logDomainResolution } from '@/lib/site/middleware-utils'
 import { applyMultiDomainSecurity } from '@/lib/security/multi-domain-security'
 import { trackDomainResolution, trackPerformance } from '@/lib/monitoring/site-analytics'
+import { debug } from '@/src/lib/utils/debug'
 
 // Environment configuration
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
@@ -88,7 +89,7 @@ export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname
     
     // Debug logging for environment variables and request details
-    console.log('[MIDDLEWARE DEBUG]', {
+    debug.middleware('Request details:', {
       hostname,
       pathname,
       requestUrl: request.url,
@@ -210,8 +211,8 @@ async function handleAdminRoute(request: NextRequest): Promise<NextResponse> {
   
   // Log admin route access
   const pathname = request.nextUrl.pathname
-  console.log(`Admin route accessed: ${pathname} from ${extractHostname(request)}`)
-  
+  debug.middleware(`Admin route accessed: ${pathname} from ${extractHostname(request)}`)
+
   return response
 }
 

@@ -3,14 +3,19 @@
  *
  * All debug logging is disabled by default for clean console output.
  * Enable specific categories by setting environment variables to 'true':
- * - DEBUG_SITE=true
- * - DEBUG_CACHE=true
- * - DEBUG_LOADING=true
- * - DEBUG_THEME=true
- * - DEBUG_ALL=true (enables all categories)
+ * - DEBUG_SITE=true        Site context and resolution
+ * - DEBUG_CACHE=true       Data caching and persistence
+ * - DEBUG_LOADING=true     Loading states and data fetching
+ * - DEBUG_THEME=true       Theme loading and CSS generation
+ * - DEBUG_CONTENT=true     Content management and rendering
+ * - DEBUG_DASHBOARD=true   Dashboard page and components
+ * - DEBUG_MIDDLEWARE=true  Middleware and request routing
+ * - DEBUG_SECURITY=true    Security and authentication
+ * - DEBUG_GENERAL=true     General purpose debugging
+ * - DEBUG_ALL=true         Enables all categories
  */
 
-type DebugCategory = 'site' | 'cache' | 'loading' | 'theme' | 'general';
+type DebugCategory = 'site' | 'cache' | 'loading' | 'theme' | 'general' | 'content' | 'dashboard' | 'middleware' | 'security';
 
 /**
  * Check if debug logging is enabled for a specific category
@@ -90,11 +95,51 @@ export const debug = {
   },
 
   /**
+   * Content management and rendering debugging
+   * Controlled by DEBUG_CONTENT environment variable
+   */
+  content: (message: string, ...args: unknown[]): void => {
+    if (isDebugEnabled('content')) {
+      console.log(`[CONTENT_DEBUG] ${message}`, ...args);
+    }
+  },
+
+  /**
+   * Dashboard page and component debugging
+   * Controlled by DEBUG_DASHBOARD environment variable
+   */
+  dashboard: (message: string, ...args: unknown[]): void => {
+    if (isDebugEnabled('dashboard')) {
+      console.log(`[DASHBOARD_DEBUG] ${message}`, ...args);
+    }
+  },
+
+  /**
+   * Middleware and request routing debugging
+   * Controlled by DEBUG_MIDDLEWARE environment variable
+   */
+  middleware: (message: string, ...args: unknown[]): void => {
+    if (isDebugEnabled('middleware')) {
+      console.log(`[MIDDLEWARE_DEBUG] ${message}`, ...args);
+    }
+  },
+
+  /**
+   * Security and authentication debugging
+   * Controlled by DEBUG_SECURITY environment variable
+   */
+  security: (message: string, ...args: unknown[]): void => {
+    if (isDebugEnabled('security')) {
+      console.log(`[SECURITY_DEBUG] ${message}`, ...args);
+    }
+  },
+
+  /**
    * Get current debug configuration for troubleshooting
    * Only logs if at least one debug category is enabled
    */
   showConfig: (): void => {
-    const categories: DebugCategory[] = ['site', 'cache', 'loading', 'theme', 'general'];
+    const categories: DebugCategory[] = ['site', 'cache', 'loading', 'theme', 'general', 'content', 'dashboard', 'middleware', 'security'];
     const enabled = categories.filter(cat => isDebugEnabled(cat));
 
     if (enabled.length > 0 || process.env.DEBUG_ALL === 'true') {
@@ -108,6 +153,10 @@ export const debug = {
           DEBUG_LOADING: process.env.DEBUG_LOADING,
           DEBUG_THEME: process.env.DEBUG_THEME,
           DEBUG_GENERAL: process.env.DEBUG_GENERAL,
+          DEBUG_CONTENT: process.env.DEBUG_CONTENT,
+          DEBUG_DASHBOARD: process.env.DEBUG_DASHBOARD,
+          DEBUG_MIDDLEWARE: process.env.DEBUG_MIDDLEWARE,
+          DEBUG_SECURITY: process.env.DEBUG_SECURITY,
         }
       });
     }

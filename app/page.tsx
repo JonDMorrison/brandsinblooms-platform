@@ -19,17 +19,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN
   const isSubdomain = host.includes('.') && host !== appDomain && !host.startsWith('localhost:')
 
-  // Debug logging
-  console.log('[PAGE DEBUG]', {
-    host,
-    appDomain,
-    isSubdomain,
-    hostIncludesDots: host.includes('.'),
-    hostNotAppDomain: host !== appDomain,
-    hostNotLocalhost: !host.startsWith('localhost:'),
-    searchParams: searchParamsData
-  })
-
   if (isSubdomain) {
     // Preserve query parameters during redirect
     const urlSearchParams = new URLSearchParams()
@@ -47,14 +36,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
     const queryString = urlSearchParams.toString()
     const homeUrl = queryString ? `/home?${queryString}` : '/home'
-
-    console.log('[PAGE] Redirecting to /home with preserved parameters:', {
-      originalParams: searchParamsData,
-      queryString,
-      finalUrl: homeUrl,
-      hasPreviewMode: !!searchParamsData._preview_mode,
-      previewModeValue: searchParamsData._preview_mode
-    })
 
     redirect(homeUrl)
   }

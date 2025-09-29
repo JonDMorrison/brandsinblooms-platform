@@ -38,7 +38,16 @@ export async function DynamicContentPage({ slug }: DynamicContentPageProps) {
     }
     
   } catch (error) {
-    console.error('Error fetching content for slug:', slug, error)
+    // Filter out expected 404 errors to reduce noise
+    const isExpected404 =
+      slug.includes('.well-known/') ||
+      slug.includes('/_next/static/') ||
+      slug.endsWith('.map') ||
+      slug.includes('favicon.ico')
+
+    if (!isExpected404) {
+      console.error('Error fetching content for slug:', slug, error)
+    }
     return notFound()
   }
   

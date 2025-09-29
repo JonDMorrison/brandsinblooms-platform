@@ -5,6 +5,7 @@
 
 import { Site } from '@/lib/database/aliases'
 import { generateSiteCacheKey, getSiteCacheTTL } from '@/lib/site/middleware-utils'
+import { debug } from '@/src/lib/utils/debug'
 
 interface CacheEntry {
   data: Site
@@ -110,8 +111,8 @@ export class MemorySiteCache {
       }
     }
 
-    if (removedCount > 0 && process.env.NODE_ENV === 'development') {
-      console.log(`[Site Cache] Cleaned up ${removedCount} expired entries`)
+    if (removedCount > 0) {
+      debug.cache(`Cleaned up ${removedCount} expired site cache entries`)
     }
   }
 
@@ -129,9 +130,7 @@ export class MemorySiteCache {
       this.cache.delete(entries[i][0])
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[Site Cache] Evicted ${toRemove} oldest entries`)
-    }
+    debug.cache(`Evicted ${toRemove} oldest site cache entries`)
   }
 
   /**
@@ -188,10 +187,10 @@ export async function getSiteFromCache(
   try {
     const site = await cache.get(key)
     
-    if (process.env.NODE_ENV === 'development' && site) {
-      console.log(`[Site Cache] HIT: ${key}`)
+    if (site) {
+      debug.cache(`Site cache HIT: ${key}`)
     }
-    
+
     return site
   } catch (error) {
     console.error('[Site Cache] Error getting from cache:', error)
@@ -213,10 +212,8 @@ export async function setSiteCache(
   
   try {
     await cache.set(key, site, ttl)
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[Site Cache] SET: ${key} (TTL: ${ttl}s)`)
-    }
+
+    debug.cache(`Site cache SET: ${key} (TTL: ${ttl}s)`)
   } catch (error) {
     console.error('[Site Cache] Error setting cache:', error)
   }
@@ -234,10 +231,8 @@ export async function deleteSiteFromCache(
   
   try {
     await cache.delete(key)
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[Site Cache] DELETE: ${key}`)
-    }
+
+    debug.cache(`Site cache DELETE: ${key}`)
   } catch (error) {
     console.error('[Site Cache] Error deleting from cache:', error)
   }
@@ -258,10 +253,8 @@ export async function invalidateSiteCache(site: Site): Promise<void> {
   }
   
   await Promise.all(promises)
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[Site Cache] Invalidated cache for site: ${site.id}`)
-  }
+
+  debug.cache(`Invalidated site cache for site: ${site.id}`)
 }
 
 /**
@@ -272,10 +265,8 @@ export async function clearSiteCache(): Promise<void> {
   
   try {
     await cache.clear()
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Site Cache] Cleared all entries')
-    }
+
+    debug.cache('Cleared all site cache entries')
   } catch (error) {
     console.error('[Site Cache] Error clearing cache:', error)
   }
@@ -311,10 +302,8 @@ export async function warmupSiteCache(sites: Site[]): Promise<void> {
   }
   
   await Promise.all(promises)
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[Site Cache] Warmed up cache with ${sites.length} sites`)
-  }
+
+  debug.cache(`Warmed up site cache with ${sites.length} sites`)
 }
 
 /**
