@@ -79,7 +79,7 @@ const quickActions: QuickAction[] = [
     id: '1',
     title: 'Create New Page',
     description: 'Design and publish a new page',
-    href: '/dashboard/content/new',
+    href: '/dashboard/content',
     icon: <Plus className="h-5 w-5" />,
     color: 'bg-blue-500 hover:bg-blue-600'
   },

@@ -140,8 +140,8 @@ export function useContentEditorData({
         // Wait for site context to finish loading
         return
       } else if (!contentId) {
-        // No content ID - redirect to content creation
-        router.push('/dashboard/content/new')
+        // No content ID - redirect to content page (modal will open for creation)
+        router.push('/dashboard/content')
       }
     }
     
