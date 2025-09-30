@@ -2047,8 +2047,9 @@ function getPrivacyPolicyTemplate(
           order: 2,
           visible: true,
           data: {
-            headline: 'Information We Collect',
-            content: `<p>We collect information you provide directly to us, such as when you create an account, make a purchase, subscribe to our newsletter, or contact us for support.</p>
+            headline: '',
+            content: `<h2>Information We Collect</h2>
+<p>We collect information you provide directly to us, such as when you create an account, make a purchase, subscribe to our newsletter, or contact us for support.</p>
 
 <h3>Personal Information</h3>
 <ul>
@@ -2063,20 +2064,10 @@ function getPrivacyPolicyTemplate(
 <li>Device information (IP address, browser type, operating system)</li>
 <li>Usage data (pages visited, time spent, features used)</li>
 <li>Cookies and similar tracking technologies</li>
-</ul>`
-          },
-          settings: {
-            backgroundColor: 'default'
-          }
-        },
-        richText_1: {
-          type: 'richText',
-          order: 3,
-          visible: true,
-          data: {
-            headline: 'How We Use Your Information',
-            content: `<p>We use the information we collect to provide, maintain, and improve our services, as well as to develop new features and protect our users.</p>
+</ul>
 
+<h2>How We Use Your Information</h2>
+<p>We use the information we collect to provide, maintain, and improve our services, as well as to develop new features and protect our users.</p>
 <ul>
 <li>Process orders and deliver products or services you request</li>
 <li>Communicate with you about your account, orders, and updates</li>
@@ -2085,19 +2076,10 @@ function getPrivacyPolicyTemplate(
 <li>Send you promotional materials and marketing communications (with your consent)</li>
 <li>Protect against fraud and unauthorized activities</li>
 <li>Comply with legal obligations and enforce our terms</li>
-</ul>`
-          },
-          settings: {
-            backgroundColor: 'default'
-          }
-        },
-        richText_2: {
-          type: 'richText',
-          order: 4,
-          visible: true,
-          data: {
-            headline: 'Information Sharing and Disclosure',
-            content: `<p>We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:</p>
+</ul>
+
+<h2>Information Sharing and Disclosure</h2>
+<p>We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:</p>
 
 <h3>Service Providers</h3>
 <p>We work with third-party service providers who help us operate our business, such as:</p>
@@ -2112,42 +2094,24 @@ function getPrivacyPolicyTemplate(
 <p>We may disclose information when required by law, such as to comply with a subpoena, court order, or other legal process, or to protect our rights, property, or safety, or that of our users or the public.</p>
 
 <h3>Business Transfers</h3>
-<p>If we are involved in a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction. We will notify you of any such change in ownership or control of your information.</p>`
-          },
-          settings: {
-            backgroundColor: 'alternate'
-          }
-        },
-        richText_3: {
-          type: 'richText',
-          order: 5,
-          visible: true,
-          data: {
-            headline: 'Data Security',
-            content: `<p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
+<p>If we are involved in a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction. We will notify you of any such change in ownership or control of your information.</p>
+
+<h2>Data Security</h2>
+<p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
 
 <h3>Security Measures</h3>
 <ul>
-<li>Encryption of data in transit and at rest</li>
-<li>Regular security audits and vulnerability assessments</li>
+<li><strong>Encryption</strong> of data in transit and at rest</li>
+<li>Regular <strong>security audits</strong> and vulnerability assessments</li>
 <li>Access controls and authentication requirements</li>
 <li>Secure data storage and backup procedures</li>
 <li>Employee training on data protection practices</li>
 </ul>
 
-<p>However, no method of transmission over the Internet or electronic storage is 100% secure. While we strive to protect your information, we cannot guarantee absolute security.</p>`
-          },
-          settings: {
-            backgroundColor: 'default'
-          }
-        },
-        richText_4: {
-          type: 'richText',
-          order: 6,
-          visible: true,
-          data: {
-            headline: 'Your Rights and Choices',
-            content: `<p>You have certain rights regarding your personal information, including:</p>
+<p><em>Note: No method of transmission over the Internet or electronic storage is 100% secure. While we strive to protect your information, we cannot guarantee absolute security.</em></p>
+
+<h2>Your Rights and Choices</h2>
+<p>You have certain rights regarding your personal information, including:</p>
 
 <h3>Access and Portability</h3>
 <p>You can request a copy of your personal information in a commonly used electronic format.</p>
@@ -2162,60 +2126,28 @@ function getPrivacyPolicyTemplate(
 <p>You can opt out of receiving promotional emails by following the unsubscribe link in those messages or updating your communication preferences in your account settings.</p>
 
 <h3>Cookies and Tracking</h3>
-<p>Most web browsers allow you to control cookies through their settings. You can set your browser to refuse cookies or alert you when cookies are being sent.</p>`
-          },
-          settings: {
-            backgroundColor: 'default'
-          }
-        },
-        richText_5: {
-          type: 'richText',
-          order: 7,
-          visible: true,
-          data: {
-            headline: 'Children\'s Privacy',
-            content: `<p>Our services are not intended for individuals under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected personal information from a child under 13, we will take steps to delete such information.</p>
+<p>Most web browsers allow you to control cookies through their settings. You can set your browser to refuse cookies or alert you when cookies are being sent.</p>
 
-<p>If you are a parent or guardian and believe your child has provided us with personal information, please contact us so we can take appropriate action.</p>`
-          },
-          settings: {
-            backgroundColor: 'default'
-          }
-        },
-        richText_6: {
-          type: 'richText',
-          order: 8,
-          visible: true,
-          data: {
-            headline: 'Changes to This Privacy Policy',
-            content: `<p>We may update this Privacy Policy from time to time to reflect changes in our practices, technologies, legal requirements, or other factors. We will notify you of any material changes by:</p>
+<h2>Children's Privacy</h2>
+<p>Our services are not intended for individuals under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected personal information from a child under 13, we will take steps to delete such information.</p>
+<p>If you are a parent or guardian and believe your child has provided us with personal information, please contact us so we can take appropriate action.</p>
 
+<h2>Changes to This Privacy Policy</h2>
+<p>We may update this Privacy Policy from time to time to reflect changes in our practices, technologies, legal requirements, or other factors. We will notify you of any material changes by:</p>
 <ul>
 <li>Posting the updated policy on our website</li>
 <li>Updating the "Last Updated" date at the top of this policy</li>
 <li>Sending you an email notification (for significant changes)</li>
 </ul>
+<p>We encourage you to review this Privacy Policy periodically to stay informed about how we protect your information.</p>
 
-<p>We encourage you to review this Privacy Policy periodically to stay informed about how we protect your information.</p>`
-          },
-          settings: {
-            backgroundColor: 'alternate'
-          }
-        },
-        richText_7: {
-          type: 'richText',
-          order: 9,
-          visible: true,
-          data: {
-            headline: 'Contact Us',
-            content: `<p>If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:</p>
-
+<h2>Contact Us</h2>
+<p>If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:</p>
 <ul>
 <li><strong>By email:</strong> Contact us through our website contact form</li>
 <li><strong>By mail:</strong> Send correspondence to your business address</li>
 <li><strong>Through your account:</strong> Submit inquiries via your account dashboard</li>
 </ul>
-
 <p>We will respond to your inquiry within a reasonable timeframe, typically within 30 days.</p>`
           },
           settings: {
@@ -2290,22 +2222,13 @@ function getTermsOfServiceTemplate(
           order: 2,
           visible: true,
           data: {
-            headline: 'Agreement to Terms',
-            content: `<p>By accessing or using our services, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing our services.</p>
+            headline: '',
+            content: `<h2>Agreement to Terms</h2>
+<p>By accessing or using our services, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing our services.</p>
+<p>These Terms constitute a <strong>legally binding agreement</strong> between you and us. Your continued use of our services signifies your acceptance of these Terms, including any updates or modifications we may make from time to time.</p>
 
-<p>These Terms constitute a legally binding agreement between you and us. Your continued use of our services signifies your acceptance of these Terms, including any updates or modifications we may make from time to time.</p>`
-          },
-          settings: {
-            backgroundColor: 'default'
-          }
-        },
-        richText_1: {
-          type: 'richText',
-          order: 3,
-          visible: true,
-          data: {
-            headline: 'Use License and Restrictions',
-            content: `<p>We grant you a limited, non-exclusive, non-transferable license to access and use our services for personal or business purposes, subject to these Terms.</p>
+<h2>Use License and Restrictions</h2>
+<p>We grant you a limited, non-exclusive, non-transferable license to access and use our services for personal or business purposes, subject to these Terms.</p>
 
 <h3>You May:</h3>
 <ul>
@@ -2319,46 +2242,29 @@ function getTermsOfServiceTemplate(
 <li>Modify, copy, or create derivative works based on our services</li>
 <li>Reverse engineer, decompile, or attempt to extract source code</li>
 <li>Remove or alter any copyright, trademark, or other proprietary notices</li>
-<li>Use our services for any unlawful or fraudulent purpose</li>
+<li>Use our services for any <strong>unlawful or fraudulent purpose</strong></li>
 <li>Transmit viruses, malware, or other harmful code</li>
 <li>Interfere with or disrupt our services or servers</li>
 <li>Attempt to gain unauthorized access to any portion of our services</li>
-</ul>`
-          },
-          settings: {
-            backgroundColor: 'default'
-          }
-        },
-        richText_2: {
-          type: 'richText',
-          order: 4,
-          visible: true,
-          data: {
-            headline: 'User Accounts and Responsibilities',
-            content: `<p>When you create an account with us, you are responsible for maintaining the security of your account and for all activities that occur under your account.</p>
+</ul>
+
+<h2>User Accounts and Responsibilities</h2>
+<p>When you create an account with us, you are responsible for maintaining the security of your account and for all activities that occur under your account.</p>
 
 <h3>Account Security</h3>
 <ul>
 <li>Maintain the confidentiality of your account credentials</li>
-<li>Use a strong, unique password</li>
+<li>Use a <strong>strong, unique password</strong></li>
 <li>Notify us immediately of any unauthorized use or security breach</li>
 <li>Accept responsibility for all activities under your account</li>
 </ul>
 
 <h3>Account Information</h3>
-<p>You agree to provide accurate, current, and complete information during registration and to update such information to keep it accurate, current, and complete. We reserve the right to suspend or terminate accounts with false or misleading information.</p>`
-          },
-          settings: {
-            backgroundColor: 'alternate'
-          }
-        },
-        richText_3: {
-          type: 'richText',
-          order: 5,
-          visible: true,
-          data: {
-            headline: 'Payment Terms and Refunds',
-            content: `<h3>Payments</h3>
+<p>You agree to provide accurate, current, and complete information during registration and to update such information to keep it accurate, current, and complete. We reserve the right to suspend or terminate accounts with false or misleading information.</p>
+
+<h2>Payment Terms and Refunds</h2>
+
+<h3>Payments</h3>
 <p>If you purchase products or services from us, you agree to provide current, complete, and accurate payment information. You authorize us to charge your payment method for all fees and charges incurred in connection with your use of our services.</p>
 
 <h3>Pricing</h3>
@@ -2375,19 +2281,10 @@ function getTermsOfServiceTemplate(
 <li>Some products or services may be non-refundable</li>
 <li>Refunds will be processed using the original payment method</li>
 <li>Processing time may vary depending on your payment provider</li>
-</ul>`
-          },
-          settings: {
-            backgroundColor: 'default'
-          }
-        },
-        richText_4: {
-          type: 'richText',
-          order: 6,
-          visible: true,
-          data: {
-            headline: 'Intellectual Property Rights',
-            content: `<p>All content, features, and functionality of our services, including but not limited to text, graphics, logos, images, software, and design, are owned by us or our licensors and are protected by copyright, trademark, patent, and other intellectual property laws.</p>
+</ul>
+
+<h2>Intellectual Property Rights</h2>
+<p>All content, features, and functionality of our services, including but not limited to text, graphics, logos, images, software, and design, are owned by us or our licensors and are protected by <strong>copyright, trademark, patent, and other intellectual property laws</strong>.</p>
 
 <h3>Our Rights</h3>
 <ul>
@@ -2397,20 +2294,12 @@ function getTermsOfServiceTemplate(
 </ul>
 
 <h3>Your Content</h3>
-<p>You retain ownership of any content you submit or upload to our services. By submitting content, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and display such content in connection with providing our services.</p>`
-          },
-          settings: {
-            backgroundColor: 'default'
-          }
-        },
-        richText_5: {
-          type: 'richText',
-          order: 7,
-          visible: true,
-          data: {
-            headline: 'Disclaimers and Limitation of Liability',
-            content: `<h3>Service Disclaimer</h3>
-<p>Our services are provided "as is" and "as available" without warranties of any kind, either express or implied, including but not limited to:</p>
+<p>You retain ownership of any content you submit or upload to our services. By submitting content, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and display such content in connection with providing our services.</p>
+
+<h2>Disclaimers and Limitation of Liability</h2>
+
+<h3>Service Disclaimer</h3>
+<p>Our services are provided <em>"as is"</em> and <em>"as available"</em> without warranties of any kind, either express or implied, including but not limited to:</p>
 <ul>
 <li>Warranties of merchantability or fitness for a particular purpose</li>
 <li>Non-infringement of third-party rights</li>
@@ -2426,19 +2315,11 @@ function getTermsOfServiceTemplate(
 <li>Any interruption or cessation of our services</li>
 <li>Any bugs, viruses, or other harmful code transmitted through our services</li>
 <li>Any errors, mistakes, or inaccuracies in content</li>
-</ul>`
-          },
-          settings: {
-            backgroundColor: 'alternate'
-          }
-        },
-        richText_6: {
-          type: 'richText',
-          order: 8,
-          visible: true,
-          data: {
-            headline: 'Governing Law and Dispute Resolution',
-            content: `<h3>Governing Law</h3>
+</ul>
+
+<h2>Governing Law and Dispute Resolution</h2>
+
+<h3>Governing Law</h3>
 <p>These Terms shall be governed by and construed in accordance with the laws of your jurisdiction, without regard to its conflict of law provisions.</p>
 
 <h3>Dispute Resolution</h3>
@@ -2450,26 +2331,17 @@ function getTermsOfServiceTemplate(
 </ul>
 
 <h3>Class Action Waiver</h3>
-<p>To the extent permitted by law, any dispute resolution proceedings will be conducted only on an individual basis and not in a class, consolidated, or representative action.</p>`
-          },
-          settings: {
-            backgroundColor: 'default'
-          }
-        },
-        richText_7: {
-          type: 'richText',
-          order: 9,
-          visible: true,
-          data: {
-            headline: 'Changes to Terms and Contact Information',
-            content: `<h3>Modifications to Terms</h3>
+<p>To the extent permitted by law, any dispute resolution proceedings will be conducted only on an individual basis and not in a class, consolidated, or representative action.</p>
+
+<h2>Changes to Terms and Contact Information</h2>
+
+<h3>Modifications to Terms</h3>
 <p>We reserve the right to modify these Terms at any time. When we make changes, we will:</p>
 <ul>
 <li>Update the "Last Updated" date at the top of this page</li>
 <li>Notify users of material changes via email or service notification</li>
 <li>Provide reasonable time for you to review the changes</li>
 </ul>
-
 <p>Your continued use of our services after changes become effective constitutes acceptance of the modified Terms.</p>
 
 <h3>Contact Us</h3>
@@ -2479,7 +2351,6 @@ function getTermsOfServiceTemplate(
 <li>Your account support dashboard</li>
 <li>Written correspondence to your business address</li>
 </ul>
-
 <p>We will respond to inquiries in a timely manner, typically within 5-7 business days.</p>`
           },
           settings: {
