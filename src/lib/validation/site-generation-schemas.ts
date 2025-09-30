@@ -132,7 +132,7 @@ export const ValueItemSchema = z
     description: z
       .string()
       .min(10, 'Value description must be at least 10 characters')
-      .max(300, 'Value description must not exceed 300 characters')
+      .max(10000, 'Value description must not exceed 10,000 characters')
       .describe('Value description'),
     icon: z
       .string()

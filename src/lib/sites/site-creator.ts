@@ -100,8 +100,33 @@ export async function createSiteFromGenerated(
         business_address: data.contact?.address,
         primary_color: data.branding?.primary_color || '#3B82F6',
         theme_settings: {
-          branding: data.branding,
-          seo: data.seo,
+          colors: {
+            primary: data.branding?.primary_color || '#8B5CF6',
+            secondary: data.branding?.secondary_color || '#06B6D4',
+            accent: data.branding?.accent_color || '#F59E0B',
+            background: '#FFFFFF'
+          },
+          typography: {
+            headingFont: data.branding?.font_family?.split(',')[0]?.trim() || 'Inter',
+            bodyFont: data.branding?.font_family?.split(',')[1]?.trim() || 'Inter',
+            fontSize: 'medium'
+          },
+          layout: {
+            headerStyle: 'modern',
+            footerStyle: 'minimal',
+            menuStyle: 'horizontal'
+          },
+          logo: {
+            url: null,
+            position: 'left',
+            size: 'medium',
+            description: data.branding?.logo_description || null
+          },
+          // Store original branding and SEO for reference
+          _generated: {
+            branding: data.branding,
+            seo: data.seo
+          }
         },
         is_active: true,
         is_published: false, // Requires manual review before publishing
