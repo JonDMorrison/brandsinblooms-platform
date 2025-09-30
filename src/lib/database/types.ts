@@ -2687,8 +2687,8 @@ export type Database = {
       admin_bulk_update_content: {
         Args: {
           content_ids: string[]
-          bulk_updates: Json
           admin_notes?: string
+          bulk_updates: Json
         }
         Returns: Json
       }
@@ -2714,30 +2714,30 @@ export type Database = {
       }
       admin_get_site_content: {
         Args: {
-          offset_count?: number
-          limit_count?: number
           status_filter?: string
+          limit_count?: number
+          site_uuid: string
           search_query?: string
           content_type_filter?: string
-          site_uuid: string
+          offset_count?: number
         }
         Returns: Json
       }
       admin_get_site_products: {
         Args: {
+          status_filter?: string
+          offset_count?: number
           site_uuid: string
           search_query?: string
           category_filter?: string
-          status_filter?: string
           limit_count?: number
-          offset_count?: number
         }
         Returns: Json
       }
       admin_update_content: {
         Args: {
-          content_updates: Json
           admin_notes?: string
+          content_updates: Json
           content_uuid: string
         }
         Returns: Json
@@ -2753,9 +2753,9 @@ export type Database = {
       admin_update_site_status: {
         Args: {
           site_uuid: string
-          notes?: string
-          new_is_published?: boolean
           new_is_active?: boolean
+          new_is_published?: boolean
+          notes?: string
         }
         Returns: boolean
       }
@@ -2764,7 +2764,7 @@ export type Database = {
         Returns: string
       }
       can_upload_product_image: {
-        Args: { site_id_param: string; user_id_param: string }
+        Args: { user_id_param: string; site_id_param: string }
         Returns: boolean
       }
       check_site_health: {
@@ -2782,8 +2782,8 @@ export type Database = {
       cleanup_old_generation_jobs: {
         Args: { days_to_keep?: number }
         Returns: {
-          oldest_deletion_date: string
           deleted_count: number
+          oldest_deletion_date: string
         }[]
       }
       cleanup_temp_product_images: {
@@ -2791,7 +2791,7 @@ export type Database = {
         Returns: undefined
       }
       create_initial_admin: {
-        Args: { admin_full_name?: string; target_user_id: string }
+        Args: { target_user_id: string; admin_full_name?: string }
         Returns: boolean
       }
       create_plant_page_content: {
@@ -2800,11 +2800,11 @@ export type Database = {
       }
       create_site_with_template: {
         Args: {
-          site_name: string
-          template_slug: string
           business_info?: Json
-          owner_email: string
           site_subdomain: string
+          owner_email: string
+          template_slug: string
+          site_name: string
         }
         Returns: Json
       }
@@ -2838,7 +2838,7 @@ export type Database = {
         Returns: string
       }
       generate_unique_slug: {
-        Args: { p_exclude_id?: string; p_site_id: string; p_name: string }
+        Args: { p_site_id: string; p_name: string; p_exclude_id?: string }
         Returns: string
       }
       get_active_impersonation_sessions: {
@@ -2851,23 +2851,23 @@ export type Database = {
       }
       get_admin_action_logs: {
         Args: {
-          start_date?: string
           limit_count?: number
-          offset_count?: number
-          target_type_filter?: string
           site_uuid?: string
           admin_user_uuid?: string
           action_type_filter?: string
+          target_type_filter?: string
+          start_date?: string
           end_date?: string
+          offset_count?: number
         }
         Returns: Json
       }
       get_all_sites_with_stats: {
         Args: {
-          status_filter?: string
+          search_query?: string
           offset_count?: number
           limit_count?: number
-          search_query?: string
+          status_filter?: string
         }
         Returns: Json
       }
@@ -2884,16 +2884,16 @@ export type Database = {
       get_category_tree: {
         Args: { p_site_id: string }
         Returns: {
-          level: number
+          slug: string
           id: string
           parent_id: string
           name: string
-          slug: string
           description: string
           image_url: string
           icon: string
           color: string
           path: string
+          level: number
           sort_order: number
           is_active: boolean
           product_count: number
@@ -2911,23 +2911,23 @@ export type Database = {
       get_job_statistics: {
         Args: { p_user_id?: string }
         Returns: {
-          completed_jobs: number
-          total_jobs: number
-          processing_jobs: number
           failed_jobs: number
+          processing_jobs: number
           pending_jobs: number
-          avg_completion_time_seconds: number
+          total_jobs: number
           total_cost_cents: number
+          avg_completion_time_seconds: number
+          completed_jobs: number
         }[]
       }
       get_migration_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
+          migrated_records: number
+          failed_records: number
           table_name: string
           total_records: number
-          migrated_records: number
           pending_records: number
-          failed_records: number
           migration_percentage: number
         }[]
       }
@@ -2972,7 +2972,7 @@ export type Database = {
         Returns: Json
       }
       get_site_templates: {
-        Args: { category_filter?: string; active_only?: boolean }
+        Args: { active_only?: boolean; category_filter?: string }
         Returns: Json
       }
       get_unread_notification_count: {
@@ -2989,8 +2989,6 @@ export type Database = {
       }
       log_admin_action: {
         Args: {
-          user_agent_val?: string
-          admin_id: string
           site_uuid: string
           action_type_val: string
           target_type_val: string
@@ -2999,6 +2997,8 @@ export type Database = {
           new_vals?: Json
           details?: string
           ip_addr?: unknown
+          user_agent_val?: string
+          admin_id: string
         }
         Returns: string
       }
@@ -3029,7 +3029,7 @@ export type Database = {
         Returns: number
       }
       release_migration_lock: {
-        Args: { p_migration_batch: string; p_instance_id: string }
+        Args: { p_instance_id: string; p_migration_batch: string }
         Returns: boolean
       }
       rollback_image_migration: {
