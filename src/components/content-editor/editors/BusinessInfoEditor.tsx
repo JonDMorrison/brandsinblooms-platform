@@ -12,6 +12,7 @@ import {
   FormField,
   FormSection
 } from './shared/form-utils'
+import { BackgroundToggle } from './shared/background-toggle'
 
 interface BusinessInfoEditorProps {
   section: ContentSection
@@ -61,6 +62,15 @@ export function BusinessInfoEditor({ section, sectionKey, onUpdate }: BusinessIn
           placeholder="e.g., Contact Information"
         />
       </FormSection>
+
+      {/* Background Color Toggle */}
+      <BackgroundToggle
+        sectionKey={sectionKey}
+        section={section}
+        onUpdate={onUpdate}
+        className="mb-4"
+        availableOptions={['default', 'alternate']}
+      />
 
       {/* Phone */}
       <FormSection>

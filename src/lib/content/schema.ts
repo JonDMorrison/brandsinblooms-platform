@@ -558,18 +558,22 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         type: 'businessInfo',
         data: {
           headline: 'Contact Information',
-          phone: '',
-          email: '',
+          phone: '(555) 123-4567',
+          email: 'hello@yourcompany.com',
           address: {
-            street: '',
-            city: '',
-            state: '',
-            zip: ''
+            street: '123 Plant Avenue',
+            city: 'Green City',
+            state: 'CA',
+            zip: '94105'
           },
-          hours: [],
+          hours: [
+            { days: 'Monday - Friday', time: '9:00 AM - 6:00 PM' },
+            { days: 'Saturday', time: '10:00 AM - 4:00 PM' },
+            { days: 'Sunday', time: 'Closed' }
+          ],
           socials: {
-            facebook: '',
-            instagram: '',
+            facebook: 'https://facebook.com/yourcompany',
+            instagram: 'https://instagram.com/yourcompany',
             twitter: '',
             linkedin: ''
           }
@@ -591,7 +595,32 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         data: {
           headline: 'Frequently Asked Questions',
           description: '',
-          faqs: []
+          faqs: [
+            {
+              id: 'faq-1',
+              question: 'How can I reach customer support?',
+              answer: 'You can reach us by phone at (555) 123-4567, by email at hello@yourcompany.com, or visit our location during business hours. We typically respond to all inquiries within 24 hours.',
+              order: 0
+            },
+            {
+              id: 'faq-2',
+              question: 'What are your business hours?',
+              answer: 'We\'re open Monday through Friday from 9:00 AM to 6:00 PM, Saturday from 10:00 AM to 4:00 PM, and closed on Sundays.',
+              order: 1
+            },
+            {
+              id: 'faq-3',
+              question: 'Do you offer consultations?',
+              answer: 'Yes! We offer free consultations to help you with your needs. Contact us to schedule an appointment at a time that works for you.',
+              order: 2
+            },
+            {
+              id: 'faq-4',
+              question: 'Where are you located?',
+              answer: 'We\'re located at 123 Plant Avenue in Green City, CA 94105. Parking is available on-site for your convenience.',
+              order: 3
+            }
+          ]
         },
         settings: {
           backgroundColor: 'alternate'

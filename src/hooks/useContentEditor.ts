@@ -377,7 +377,7 @@ export function useContentEditor({
       let sectionKey = sectionType
 
       if (sectionType === 'richText' && variant) {
-        const template = createRichTextTemplate(variant as 'mission' | 'story' | 'other')
+        const template = createRichTextTemplate(variant as 'mission' | 'story' | 'contact' | 'other')
 
         // Find existing Rich Text sections of the same variant type
         const sameVariantSections = Object.entries(prev.sections).filter(([key, section]) => {

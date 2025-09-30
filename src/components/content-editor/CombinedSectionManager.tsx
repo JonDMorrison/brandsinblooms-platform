@@ -414,7 +414,7 @@ interface AddSectionCardProps {
   onAddSection: (sectionType: ContentSectionType, variant?: string) => void
 }
 
-type RichTextVariant = 'mission' | 'story' | 'other'
+type RichTextVariant = 'mission' | 'story' | 'contact' | 'other'
 
 // Rich Text template content generator
 export function createRichTextTemplate(variant: RichTextVariant) {
@@ -426,6 +426,10 @@ export function createRichTextTemplate(variant: RichTextVariant) {
     story: {
       headline: 'Our Story',
       content: `<p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">Founded with a passion for plants and a commitment to sustainability, we have grown from a small local nursery into a trusted source for premium plants and expert care guidance.</p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;"></p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">Our journey began with the simple belief that everyone deserves to experience the joy and benefits of thriving plants in their space. What started as a weekend farmer's market booth has evolved into a comprehensive plant care ecosystem, serving thousands of plant lovers in our community.</p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;"></p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">Today, we continue to honor that founding vision by combining scientific expertise with genuine care for our customers and the environment. Every plant we sell and every piece of advice we give reflects our deep commitment to helping you succeed with your green companions.</p>`
+    },
+    contact: {
+      headline: 'Get in Touch',
+      content: `<p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">We'd love to hear from you. Whether you have questions about our products, need support, or want to learn more about what we offer, our team is ready to help.</p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;"></p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">Reach out via phone, email, or stop by during our business hours. We strive to respond to all inquiries within 24 hours.</p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;"></p><p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">For urgent matters, please call us directly. For general inquiries, feel free to use any of the contact methods listed above.</p>`
     },
     other: {
       headline: 'Other',
@@ -503,6 +507,12 @@ function AddSectionCard({ sectionType, onAddSection }: AddSectionCardProps) {
       label: 'Our Story',
       icon: '📖',
       description: 'Company history and journey'
+    },
+    {
+      key: 'contact' as RichTextVariant,
+      label: 'Get in Touch',
+      icon: '📧',
+      description: 'Contact information and support details'
     },
     {
       key: 'other' as RichTextVariant,

@@ -7,6 +7,7 @@ import React from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { isPreviewMode } from '@/src/lib/utils/responsive-classes'
+import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared'
 import { Phone, Mail, MapPin, Clock, Facebook, Instagram, Twitter, Linkedin } from 'lucide-react'
 
 interface BusinessInfoPreviewProps {
@@ -22,7 +23,7 @@ export function BusinessInfoPreview({
   className = '',
   onContentUpdate
 }: BusinessInfoPreviewProps) {
-  const { data } = section
+  const { data, settings } = section
   const isPreview = isPreviewMode(onContentUpdate)
 
   const address = (data.address || {}) as any
@@ -33,7 +34,7 @@ export function BusinessInfoPreview({
   const hasSocials = socials.facebook || socials.instagram || socials.twitter || socials.linkedin
 
   return (
-    <section className={`py-16 ${className}`} style={{ backgroundColor: 'var(--theme-background)' }}>
+    <section className={`py-16 ${className}`} style={getSectionBackgroundStyle(settings)}>
       <div className="brand-container">
         {/* Section Headline */}
         {(data.headline || onContentUpdate) && (
