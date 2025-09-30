@@ -81,17 +81,17 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    const isAdmin = profile?.role === 'admin';
+    const isAuthorized = profile?.role === 'admin' || profile?.role === 'site_owner';
 
-    if (!isAdmin) {
-      console.log(`[${requestId}] Authorization failed - not admin`);
+    if (!isAuthorized) {
+      console.log(`[${requestId}] Authorization failed - not admin or site_owner`);
       logSecurityEvent('generation_unauthorized_attempt', {
         userId: user.id,
         requestId,
       });
 
       return apiError(
-        'Site generation is currently available to administrators only',
+        'Site generation is currently available to administrators and site owners only',
         'ADMIN_REQUIRED' as GenerationErrorCode,
         403
       );

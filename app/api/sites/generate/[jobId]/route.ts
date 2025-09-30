@@ -60,7 +60,7 @@ export async function GET(
 
     console.log(`[${requestId}] User authenticated: ${user.id}`);
 
-    // 2. Check if user is admin
+    // 2. Check if user is admin or site_owner
     const supabase = await createClient();
     const { data: profile } = await supabase
       .from('profiles')
@@ -68,7 +68,7 @@ export async function GET(
       .eq('id', user.id)
       .single();
 
-    const isAdmin = profile?.role === 'admin';
+    const isAdmin = profile?.role === 'admin' || profile?.role === 'site_owner';
 
     // 3. Validate job ownership
     console.log(`[${requestId}] Validating job ownership...`);
