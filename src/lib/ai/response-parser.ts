@@ -53,6 +53,18 @@ import {
 import { recoverFromValidationError } from '@/lib/ai/error-recovery';
 
 /**
+ * Type guard to check if value is a plain object
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.getPrototypeOf(value) === Object.prototype
+  );
+}
+
+/**
  * Foundation data structure from Phase 1
  */
 export interface FoundationData {
@@ -194,6 +206,16 @@ export function parseFoundationResponse(response: string): FoundationData | null
 
     // Attempt error recovery
     console.log('Zod validation failed, attempting recovery...');
+
+    // Truncate SEO description if needed (before validation)
+    if (isPlainObject(json) && isPlainObject(json.seo)) {
+      const seo = json.seo as Record<string, unknown>;
+      if (typeof seo.description === 'string' && seo.description.length > 160) {
+        console.log(`Truncating SEO description: ${seo.description.length} chars -> 160 chars`);
+        seo.description = seo.description.substring(0, 157) + '...';
+      }
+    }
+
     const recovered = recoverFromValidationError(
       json,
       FoundationDataSchema,
