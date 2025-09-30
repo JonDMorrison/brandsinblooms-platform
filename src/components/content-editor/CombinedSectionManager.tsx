@@ -118,7 +118,7 @@ function ExpandableSectionCard({
   isDragging = false,
   isOverlay = false
 }: ExpandableSectionCardProps) {
-  const getRichTextContentType = (section: ContentSection): 'mission' | 'story' | 'other' => {
+  const getRichTextContentType = (section: ContentSection): 'mission' | 'story' | 'contact' | 'other' => {
     const content = section.data.content || ''
     const headline = section.data.headline || ''
 
@@ -138,6 +138,15 @@ function ExpandableSectionCard({
         content.toLowerCase().includes('began') ||
         content.toLowerCase().includes('started')) {
       return 'story'
+    }
+
+    // Check for contact-related keywords
+    if (headline.toLowerCase().includes('get in touch') ||
+        headline.toLowerCase().includes('contact') ||
+        content.toLowerCase().includes('get in touch') ||
+        content.toLowerCase().includes("we'd love to hear from you") ||
+        content.toLowerCase().includes('reach out')) {
+      return 'contact'
     }
 
     return 'other'
@@ -173,6 +182,7 @@ function ExpandableSectionCard({
       switch (contentType) {
         case 'mission': return '🎯'
         case 'story': return '📖'
+        case 'contact': return '📧'
         case 'other': return '📝'
       }
     }
@@ -187,7 +197,8 @@ function ExpandableSectionCard({
 
       // Generate name based on variant type - always show semantic name
       const baseName = contentType === 'mission' ? 'Our Mission' :
-                      contentType === 'story' ? 'Our Story' : 'Other'
+                      contentType === 'story' ? 'Our Story' :
+                      contentType === 'contact' ? 'Get in Touch' : 'Other'
 
       // For this component, we'll just show the base name without numbering
       // since this is used for aria-labels and doesn't need the detailed counting
