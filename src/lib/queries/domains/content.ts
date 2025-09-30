@@ -620,3 +620,97 @@ export async function checkSlugAvailability(
 
   return response.data === null;
 }
+
+/**
+ * Handle publishing a special page (home, about, contact)
+ * - Finds any existing published page with the canonical slug
+ * - Renames and unpublishes the existing page
+ * - Sets the new page's slug to canonical and publishes it
+ */
+export async function handleSpecialPagePublish(
+  supabase: SupabaseClient<Database>,
+  siteId: string,
+  contentId: string,
+  pageType: 'home' | 'about' | 'contact'
+): Promise<Content> {
+  const canonicalSlug = pageType
+
+  // Find any existing content with the canonical slug
+  const existingResponse = await supabase
+    .from('content')
+    .select('*')
+    .eq('site_id', siteId)
+    .eq('slug', canonicalSlug)
+    .neq('id', contentId)
+    .maybeSingle()
+
+  // If there's an existing page with this slug, rename it and unpublish it
+  if (existingResponse.data) {
+    const timestamp = Date.now()
+    const archivedSlug = `${canonicalSlug}-archived-${timestamp}`
+
+    await supabase
+      .from('content')
+      .update({
+        slug: archivedSlug,
+        is_published: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', existingResponse.data.id)
+  }
+
+  // Update the new page: set canonical slug and publish
+  const updateData: UpdateContent = {
+    slug: canonicalSlug,
+    is_published: true,
+    published_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+
+  const response = await supabase
+    .from('content')
+    .update(updateData)
+    .eq('site_id', siteId)
+    .eq('id', contentId)
+    .select()
+    .single()
+
+  return handleSingleResponse(response)
+}
+
+/**
+ * Handle unpublishing a special page (about, contact)
+ * - If the page has a canonical slug (about/contact), rename it to free up the slug
+ * - Unpublish the page
+ */
+export async function handleSpecialPageUnpublish(
+  supabase: SupabaseClient<Database>,
+  siteId: string,
+  contentId: string,
+  currentSlug: string
+): Promise<Content> {
+  const specialSlugs = ['about', 'contact']
+  let newSlug = currentSlug
+
+  // If current slug is a special/canonical slug, rename it
+  if (specialSlugs.includes(currentSlug)) {
+    const timestamp = Date.now()
+    newSlug = `${currentSlug}-draft-${timestamp}`
+  }
+
+  const updateData: UpdateContent = {
+    slug: newSlug,
+    is_published: false,
+    updated_at: new Date().toISOString()
+  }
+
+  const response = await supabase
+    .from('content')
+    .update(updateData)
+    .eq('site_id', siteId)
+    .eq('id', contentId)
+    .select()
+    .single()
+
+  return handleSingleResponse(response)
+}

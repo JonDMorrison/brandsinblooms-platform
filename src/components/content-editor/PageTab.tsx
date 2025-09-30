@@ -59,7 +59,8 @@ export function PageTab({
   const [slugMessage, setSlugMessage] = useState('')
   const [slugSuggestions, setSlugSuggestions] = useState<string[]>([])
   const [showHomePageDialog, setShowHomePageDialog] = useState(false)
-  const [showAboutPageDialog, setShowAboutPageDialog] = useState(false)
+  const [showPublishDialog, setShowPublishDialog] = useState(false)
+  const [pendingPublishState, setPendingPublishState] = useState(false)
   
   const slugValidator = useSlugValidator(siteId || '', contentId)
   
@@ -115,7 +116,25 @@ export function PageTab({
   }
 
   const handlePublishedToggle = (published: boolean) => {
-    onPublishedChange(published)
+    // For about/contact pages, show confirmation dialog when publishing
+    if (published && (layout === 'about' || layout === 'contact')) {
+      setPendingPublishState(true)
+      setShowPublishDialog(true)
+    } else {
+      // Regular pages or unpublishing - no confirmation needed
+      onPublishedChange(published)
+    }
+  }
+
+  const confirmPublish = () => {
+    onPublishedChange(true)
+    setShowPublishDialog(false)
+    setPendingPublishState(false)
+  }
+
+  const cancelPublish = () => {
+    setShowPublishDialog(false)
+    setPendingPublishState(false)
   }
 
   const handleHomePageToggle = (isHome: boolean) => {
@@ -134,24 +153,6 @@ export function PageTab({
     onSlugChange('home')
     onPublishedChange(true)
     setShowHomePageDialog(false)
-  }
-
-  const handleAboutPageToggle = (isAbout: boolean) => {
-    if (isAbout && slugInput !== 'about') {
-      setShowAboutPageDialog(true)
-    } else if (isAbout) {
-      // Already has about slug, just publish it
-      onPublishedChange(true)
-    }
-    // If setting to false, do nothing special - user can manually unpublish
-  }
-
-  const confirmAboutPageChange = () => {
-    // Set slug to 'about' and publish the page
-    setSlugInput('about')
-    onSlugChange('about')
-    onPublishedChange(true)
-    setShowAboutPageDialog(false)
   }
 
   const getSlugStatusIcon = () => {
@@ -197,80 +198,82 @@ export function PageTab({
           </p>
         </div>
 
-        {/* Page URL/Slug */}
-        <div className="space-y-2">
-          <Label htmlFor="page-slug" className="text-xs font-medium">
-            Page URL
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              id="page-slug"
-              type="text"
-              value={slugInput}
-              onChange={(e) => setSlugInput(e.target.value.toLowerCase())}
-              className="h-8 flex-1"
-              placeholder="page-url"
-            />
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={generateSlugFromTitle}
-              disabled={!pageTitle}
-              className="h-8"
-            >
-              Auto
-            </Button>
-          </div>
-          
-          {/* URL Preview */}
-          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-            <Globe className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-600">
-              {siteUrl}/{slugInput || 'page-url'}
-            </span>
-            <ExternalLink className="h-3 w-3 text-gray-400" />
-          </div>
-
-          {/* Slug Status */}
-          {slugInput && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                {getSlugStatusIcon()}
-                <span className={`text-xs ${
-                  slugStatus === 'available' ? 'text-green-600' :
-                  slugStatus === 'taken' || slugStatus === 'invalid' ? 'text-red-600' :
-                  'text-gray-500'
-                }`}>
-                  {getSlugStatusMessage()}
-                </span>
-              </div>
-              
-              {/* Suggestions */}
-              {slugStatus === 'taken' && slugSuggestions.length > 0 && (
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-600">Try these alternatives:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {slugSuggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => applySuggestion(suggestion)}
-                        className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+        {/* Page URL/Slug - Hidden for About and Contact pages */}
+        {layout !== 'about' && layout !== 'contact' && (
+          <div className="space-y-2">
+            <Label htmlFor="page-slug" className="text-xs font-medium">
+              Page URL
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                id="page-slug"
+                type="text"
+                value={slugInput}
+                onChange={(e) => setSlugInput(e.target.value.toLowerCase())}
+                className="h-8 flex-1"
+                placeholder="page-url"
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={generateSlugFromTitle}
+                disabled={!pageTitle}
+                className="h-8"
+              >
+                Auto
+              </Button>
             </div>
-          )}
-          
-          <p className="text-xs text-gray-500">
-            URL-friendly version of your page title (lowercase, hyphens only)
-          </p>
-        </div>
+
+            {/* URL Preview */}
+            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
+              <Globe className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-600">
+                {siteUrl}/{slugInput || 'page-url'}
+              </span>
+              <ExternalLink className="h-3 w-3 text-gray-400" />
+            </div>
+
+            {/* Slug Status */}
+            {slugInput && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  {getSlugStatusIcon()}
+                  <span className={`text-xs ${
+                    slugStatus === 'available' ? 'text-green-600' :
+                    slugStatus === 'taken' || slugStatus === 'invalid' ? 'text-red-600' :
+                    'text-gray-500'
+                  }`}>
+                    {getSlugStatusMessage()}
+                  </span>
+                </div>
+
+                {/* Suggestions */}
+                {slugStatus === 'taken' && slugSuggestions.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-600">Try these alternatives:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {slugSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => applySuggestion(suggestion)}
+                          className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <p className="text-xs text-gray-500">
+              URL-friendly version of your page title (lowercase, hyphens only)
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Publication Settings */}
@@ -328,36 +331,6 @@ export function PageTab({
             <Switch
               checked={slug === 'home' && isPublished}
               onCheckedChange={handleHomePageToggle}
-            />
-          </div>
-        )}
-
-        {/* About Page Setting (About Pages Only) */}
-        {layout === 'about' && (
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-md ${
-                slug === 'about' && isPublished
-                  ? 'bg-green-100 text-green-600'
-                  : 'bg-gray-100 text-gray-500'
-              }`}>
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Set as About Page</p>
-                <p className="text-xs text-gray-500">
-                  {slug === 'about' && isPublished
-                    ? 'This is your site\'s about page'
-                    : 'Make this your site\'s about page'
-                  }
-                </p>
-              </div>
-            </div>
-            <Switch
-              checked={slug === 'about' && isPublished}
-              onCheckedChange={handleAboutPageToggle}
             />
           </div>
         )}
@@ -424,42 +397,44 @@ export function PageTab({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* About Page Confirmation Dialog */}
-      <AlertDialog open={showAboutPageDialog} onOpenChange={setShowAboutPageDialog}>
+      {/* Publish Confirmation Dialog (About/Contact Pages) */}
+      <AlertDialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-600" />
-              Set as About Page
+              Publish {layout === 'about' ? 'About' : 'Contact'} Page
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p>
-                Are you sure you want to make this page your site's about page?
+          </AlertDialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to publish this {layout} page?
+            </p>
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <p className="text-sm text-amber-800">
+                <strong>Note:</strong> Only one {layout} page can be published at a time.
+                If another {layout} page is currently published, it will be automatically
+                unpublished and archived.
               </p>
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
-                <p className="text-sm text-amber-800">
-                  <strong>Note:</strong> Only one about page is allowed per site.
-                  If another page is currently set as about, it will be automatically
-                  renamed and this page will become the new about page.
-                </p>
-              </div>
-              <p className="text-sm text-gray-600">
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-2">
                 This action will:
               </p>
               <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
-                <li>Set this page's URL to /about</li>
-                <li>Automatically publish this page</li>
-                <li>Rename any existing about page</li>
+                <li>Set this page's URL to /{layout}</li>
+                <li>Publish this page</li>
+                <li>Unpublish and archive any existing {layout} page</li>
               </ul>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </div>
+          </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={cancelPublish}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmAboutPageChange}
-              className="bg-green-600 hover:bg-green-700"
+              onClick={confirmPublish}
+              className="bg-gradient-primary hover:opacity-90"
             >
-              Make About Page
+              Publish Page
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

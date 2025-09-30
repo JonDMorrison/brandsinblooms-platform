@@ -3,13 +3,18 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
 import { supabase } from '@/src/lib/supabase/client'
-import { getContentById, updateContent } from '@/src/lib/queries/domains/content'
-import { 
-  PageContent, 
-  LayoutType as ContentLayoutType, 
-  serializePageContent, 
+import {
+  getContentById,
+  updateContent,
+  handleSpecialPagePublish,
+  handleSpecialPageUnpublish
+} from '@/src/lib/queries/domains/content'
+import {
+  PageContent,
+  LayoutType as ContentLayoutType,
+  serializePageContent,
   deserializePageContent,
-  SEOSettings 
+  SEOSettings
 } from '@/src/lib/content'
 import { handleError } from '@/src/lib/types/error-handling'
 
@@ -219,16 +224,36 @@ export function useContentEditorData({
 
   // Handler for published status changes
   const handlePublishedChange = useCallback(async (published: boolean) => {
-    if (!contentId || !siteId) {
+    if (!contentId || !siteId || !pageData) {
       throw new Error('Missing required information to update published status')
     }
 
     try {
-      await updateContent(supabase, siteId, contentId, {
-        is_published: published,
-        published_at: published ? new Date().toISOString() : null
-      })
-      setIsPublished(published)
+      const layout = pageData.layout
+      const isSpecialPage = layout === 'about' || layout === 'contact'
+
+      if (isSpecialPage) {
+        if (published) {
+          // Publishing a special page - handle slug conflict resolution
+          const pageType = layout === 'about' ? 'about' : 'contact'
+          const result = await handleSpecialPagePublish(supabase, siteId, contentId, pageType)
+          setSlug(result.slug)
+          setIsPublished(true)
+        } else {
+          // Unpublishing a special page - rename slug if it's canonical
+          const result = await handleSpecialPageUnpublish(supabase, siteId, contentId, slug)
+          setSlug(result.slug)
+          setIsPublished(false)
+        }
+      } else {
+        // Regular page - use normal update
+        await updateContent(supabase, siteId, contentId, {
+          is_published: published,
+          published_at: published ? new Date().toISOString() : null
+        })
+        setIsPublished(published)
+      }
+
       setHasUnsavedChanges(false)
       toast.success(`Page ${published ? 'published' : 'unpublished'} successfully!`)
     } catch (error) {
@@ -236,7 +261,7 @@ export function useContentEditorData({
       toast.error(`Failed to ${published ? 'publish' : 'unpublish'} page`)
       throw error
     }
-  }, [contentId, siteId])
+  }, [contentId, siteId, pageData, slug])
 
   // Handler for SEO changes
   const handleSEOChange = useCallback(async (newSeoSettings: SEOSettings) => {
