@@ -8,17 +8,17 @@ import { SitePageProps } from './types'
 import { HomePage } from './components/HomePage'
 import { AboutPage } from './components/AboutPage'
 import { ContactPage } from './components/ContactPage'
+import { PrivacyPage } from './components/PrivacyPage'
+import { TermsPage } from './components/TermsPage'
 import { DynamicContentPage } from './components/DynamicContentPage'
-import { 
-  PrivacyPage, 
-  TermsPage, 
-  ProductsPage, 
-  CartPage, 
-  CheckoutPage, 
-  AccountPage, 
+import {
+  ProductsPage,
+  CartPage,
+  CheckoutPage,
+  AccountPage,
   OrdersPage,
   ProductDetailPage,
-  CategoryPage 
+  CategoryPage
 } from './components/SimplePages'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug?: string[] }> }): Promise<Metadata> {
