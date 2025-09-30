@@ -2019,7 +2019,7 @@ function getMinimalContactPageTemplate(
 /**
  * Privacy Policy template with generic, non-company-specific content
  */
-function getPrivacyPolicyTemplate(
+export function getPrivacyPolicyTemplate(
   title: string,
   subtitle?: string,
   config: MockDataOptions = MOCK_DATA_PRESETS.technology
@@ -2194,7 +2194,7 @@ function getPrivacyPolicyTemplate(
 /**
  * Terms of Service template with generic, non-company-specific content
  */
-function getTermsOfServiceTemplate(
+export function getTermsOfServiceTemplate(
   title: string,
   subtitle?: string,
   config: MockDataOptions = MOCK_DATA_PRESETS.technology
