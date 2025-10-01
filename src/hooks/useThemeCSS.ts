@@ -45,9 +45,12 @@ function loadGoogleFont(fontFamily: string): Promise<void> {
       loadedFonts.add(fontKey)
       resolve()
     }
-    
+
     link.onerror = () => {
-      reject(new Error(`Failed to load font: ${fontFamily}`))
+      // Silently handle font load failure - browser will use fallback fonts
+      console.warn(`Failed to load font: ${fontFamily}. Using fallback.`)
+      loadedFonts.add(fontKey) // Mark as loaded to prevent retry loops
+      resolve() // Resolve instead of reject to allow page to continue
     }
     
     document.head.appendChild(link)
@@ -726,8 +729,10 @@ export function useApplyTheme(theme: ThemeSettings | null, enabled = true, mode:
       fontsToLoad.push(loadGoogleFont(theme.typography.bodyFont))
     }
     
-    // Load fonts and then apply styles
-    Promise.all(fontsToLoad).catch(console.error)
+    // Load fonts and then apply styles (errors are handled in loadGoogleFont)
+    Promise.all(fontsToLoad).catch((err) => {
+      console.warn('Some fonts failed to load, using fallbacks:', err)
+    })
     
     // Check if styles have changed before updating
     const existingStyle = document.getElementById('site-theme-styles')

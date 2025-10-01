@@ -15,7 +15,7 @@ import {
 import { toast } from 'sonner'
 
 // Import all section editor components from centralized index
-import { 
+import {
   HeroEditor,
   FeaturedEditor,
   CategoriesEditor,
@@ -25,7 +25,6 @@ import {
   IconSectionEditor,
   FeaturesEditor,
   TestimonialsEditor,
-  TeamEditor,
   ValuesEditor,
   GalleryEditor,
   PricingEditor,
@@ -168,10 +167,11 @@ const SectionEditor = function SectionEditor({
         
       case 'testimonials':
         return <TestimonialsEditor {...commonProps} />
-        
-      case 'team':
-        return <TeamEditor {...commonProps} />
-        
+
+      // TODO: TeamEditor not yet implemented
+      // case 'team':
+      //   return <TeamEditor {...commonProps} />
+
       case 'values':
         return <ValuesEditor {...commonProps} />
         
