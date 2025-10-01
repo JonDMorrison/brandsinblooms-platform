@@ -25,8 +25,8 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
-  // E-commerce feature flag
-  const ecommerceEnabled = process.env.NEXT_PUBLIC_ENABLE_ECOMMERCE !== 'false'
+  // E-commerce feature flag - disabled by default, must be explicitly enabled
+  const ecommerceEnabled = process.env.NEXT_PUBLIC_ENABLE_ECOMMERCE === 'true'
 
   // Get navigation configuration from theme settings
   const theme = designSettings

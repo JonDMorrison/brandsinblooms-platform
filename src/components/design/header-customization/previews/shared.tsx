@@ -34,7 +34,7 @@ export function BrandingElement({ value, colors, typography, logoSize, brandingT
 }
 
 export function NavigationItems({ selectedNavItems, colors, typography }: Pick<SharedPreviewProps, 'selectedNavItems' | 'colors' | 'typography'>) {
-  const ecommerceEnabled = process.env.NEXT_PUBLIC_ENABLE_ECOMMERCE !== 'false'
+  const ecommerceEnabled = process.env.NEXT_PUBLIC_ENABLE_ECOMMERCE === 'true'
 
   return (
     <>
@@ -48,7 +48,7 @@ export function NavigationItems({ selectedNavItems, colors, typography }: Pick<S
 }
 
 export function ActionIcons({ colors }: Pick<SharedPreviewProps, 'colors'>) {
-  const ecommerceEnabled = process.env.NEXT_PUBLIC_ENABLE_ECOMMERCE !== 'false'
+  const ecommerceEnabled = process.env.NEXT_PUBLIC_ENABLE_ECOMMERCE === 'true'
 
   if (!ecommerceEnabled) return null
 
