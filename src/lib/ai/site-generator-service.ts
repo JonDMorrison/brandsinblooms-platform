@@ -641,8 +641,18 @@ export async function generateSiteContent(
     if (!about) {
       throw new Error('About section is required but failed to generate');
     }
+
+    // If contact section failed, create minimal fallback
     if (!contact) {
-      throw new Error('Contact section is required but failed to generate');
+      console.warn('Contact section generation failed, using fallback');
+      contact = {
+        title: 'Contact Us',
+        email: undefined,
+        phone: undefined,
+        address: undefined,
+        hours: undefined
+      };
+      failedSections.push('contact-fallback-used');
     }
 
     // Build complete site data

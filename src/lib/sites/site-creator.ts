@@ -238,6 +238,7 @@ function createAboutPageContent(data: GeneratedSiteData) {
  */
 function createContactPageContent(data: GeneratedSiteData) {
   const contact = data.contact;
+  const hasAnyContactInfo = contact.email || contact.phone || contact.address || contact.hours;
 
   return {
     version: '1.0',
@@ -249,7 +250,9 @@ function createContactPageContent(data: GeneratedSiteData) {
         visible: true,
         data: {
           headline: contact.title || 'Contact',
-          subheadline: 'We\'d love to hear from you. Reach out to us for questions, support, or just to say hello.'
+          subheadline: hasAnyContactInfo
+            ? 'We\'d love to hear from you. Reach out to us for questions, support, or just to say hello.'
+            : 'We\'re updating our contact information. Please check back soon!'
         },
         settings: {
           backgroundColor: 'gradient'
@@ -259,10 +262,10 @@ function createContactPageContent(data: GeneratedSiteData) {
         type: 'businessInfo',
         order: 2,
         visible: true,
-        data: {
+        data: hasAnyContactInfo ? {
           headline: 'Contact Information',
-          email: contact.email,
-          phone: contact.phone || '',
+          email: contact.email || undefined,
+          phone: contact.phone || undefined,
           address: contact.address ? {
             street: contact.address,
             city: '',
@@ -271,17 +274,16 @@ function createContactPageContent(data: GeneratedSiteData) {
           } : undefined,
           hours: contact.hours ? [
             { days: 'Monday - Friday', time: contact.hours }
-          ] : [
-            { days: 'Monday - Friday', time: '9:00 AM - 6:00 PM' },
-            { days: 'Saturday', time: '10:00 AM - 4:00 PM' },
-            { days: 'Sunday', time: 'Closed' }
-          ],
+          ] : undefined,
           socials: {
             facebook: '',
             instagram: '',
             twitter: '',
             linkedin: ''
           }
+        } : {
+          headline: 'Contact Information',
+          message: "We're updating our contact information. Please check back soon for ways to reach us!"
         }
       },
       richText: {
@@ -289,8 +291,10 @@ function createContactPageContent(data: GeneratedSiteData) {
         order: 3,
         visible: true,
         data: {
-          content: 'Whether you have questions about our products, need support, or want to learn more about what we offer, our team is ready to assist you. We strive to respond to all inquiries within 24 hours during business days.<br><br>For urgent matters, please call us directly. For general inquiries, feel free to email us or visit our location during business hours.',
-          headline: 'We\'re Here to Help'
+          headline: hasAnyContactInfo ? 'We\'re Here to Help' : 'Coming Soon',
+          content: hasAnyContactInfo
+            ? 'Whether you have questions about our products, need support, or want to learn more about what we offer, our team is ready to assist you. We strive to respond to all inquiries within 24 hours during business days.<br><br>For urgent matters, please call us directly. For general inquiries, feel free to email us or visit our location during business hours.'
+            : 'We\'re currently updating our contact information. In the meantime, feel free to visit us in person or check back soon for updated contact details.'
         }
       },
       faq: {
@@ -300,34 +304,56 @@ function createContactPageContent(data: GeneratedSiteData) {
         data: {
           headline: 'Frequently Asked Questions',
           description: '',
-          faqs: [
-            {
+          faqs: hasAnyContactInfo ? [
+            // Only include hours FAQ if hours are provided
+            ...(contact.hours ? [{
               id: 'faq-1',
               order: 0,
               question: 'What are your business hours?',
-              answer: contact.hours
-                ? `We are open ${contact.hours}.`
-                : 'We are open Monday through Friday from 9:00 AM to 6:00 PM, and Saturdays from 10:00 AM to 4:00 PM. We are closed on Sundays.'
+              answer: `We are open ${contact.hours}.`
+            }] : []),
+            {
+              id: 'faq-2',
+              order: contact.hours ? 1 : 0,
+              question: 'How can I reach customer support?',
+              answer: [
+                contact.phone && `You can reach us by phone at ${contact.phone}`,
+                contact.email && `by email at ${contact.email}`,
+                'We typically respond to inquiries within 24 hours during business days.'
+              ].filter(Boolean).join(', ')
+            },
+            {
+              id: 'faq-3',
+              order: contact.hours ? 2 : 1,
+              question: 'Do you offer consultations?',
+              answer: 'Yes! We offer consultations to help you choose the right solutions for your needs. Contact us to schedule an appointment.'
+            },
+            // Only include location FAQ if address is provided
+            ...(contact.address ? [{
+              id: 'faq-4',
+              order: contact.hours ? 3 : 2,
+              question: 'Where are you located?',
+              answer: `We are located at ${contact.address}. Parking is available on-site.`
+            }] : [])
+          ] : [
+            // Generic FAQs when no contact info is available
+            {
+              id: 'faq-1',
+              order: 0,
+              question: 'How can I get in touch?',
+              answer: 'We\'re currently updating our contact information. Please check back soon for updated ways to reach us.'
             },
             {
               id: 'faq-2',
               order: 1,
-              question: 'How can I reach customer support?',
-              answer: `You can reach our customer support team by phone at ${contact.phone || '(555) 123-4567'}, by email at ${contact.email}, or by visiting our location during business hours.`
+              question: 'Do you have a physical location?',
+              answer: 'Yes! Check back soon for our address and visiting hours.'
             },
             {
               id: 'faq-3',
               order: 2,
-              question: 'Do you offer consultations?',
-              answer: 'Yes! We offer free consultations to help you choose the right solutions for your needs. Contact us to schedule an appointment.'
-            },
-            {
-              id: 'faq-4',
-              order: 3,
-              question: 'Where are you located?',
-              answer: contact.address
-                ? `We are located at ${contact.address}. Parking is available on-site.`
-                : 'We are located at 123 Plant Avenue. Parking is available on-site.'
+              question: 'When will contact information be available?',
+              answer: 'We\'re working on updating our site. Please check back soon for our full contact details.'
             }
           ]
         },

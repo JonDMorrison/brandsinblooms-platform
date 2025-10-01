@@ -54,6 +54,7 @@ export default function DashboardSitesPage() {
     location: '',
     email: '',
     phone: '',
+    address: '',
     subdomain: '',
     brandColors: '',
     logoUrl: null as string | null
@@ -350,7 +351,8 @@ export default function DashboardSitesPage() {
         phone: newSite.phone || undefined,
         description: newSite.description,
         brandColors: newSite.brandColors || undefined,
-        logoUrl: newSite.logoUrl || undefined
+        logoUrl: newSite.logoUrl || undefined,
+        additionalDetails: newSite.address ? { address: newSite.address } : undefined
       }
 
       // Call AI generation API
@@ -391,6 +393,7 @@ export default function DashboardSitesPage() {
       location: '',
       email: '',
       phone: '',
+      address: '',
       subdomain: '',
       brandColors: '',
       logoUrl: null
@@ -849,6 +852,19 @@ export default function DashboardSitesPage() {
                       />
                     </div>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Business Address (Optional)</Label>
+                    <Input
+                      id="address"
+                      placeholder="123 Main Street, City, State 12345"
+                      value={newSite.address}
+                      onChange={(e) => setNewSite({ ...newSite, address: e.target.value })}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Only provide if you want it displayed on your contact page
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -977,6 +993,12 @@ export default function DashboardSitesPage() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Phone:</span>
                             <span className="font-medium">{newSite.phone}</span>
+                          </div>
+                        )}
+                        {newSite.address && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Address:</span>
+                            <span className="font-medium">{newSite.address}</span>
                           </div>
                         )}
                       </div>

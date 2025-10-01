@@ -375,7 +375,7 @@ export function isContactSection(data: unknown): data is ContactSection {
     return false;
   }
 
-  const required = hasRequiredKeys(data, ['title', 'email']);
+  const required = hasRequiredKeys(data, ['title']);
   if (!required) {
     return false;
   }
@@ -396,7 +396,7 @@ export function isContactSection(data: unknown): data is ContactSection {
 
   return (
     isNonEmptyString(data.title) &&
-    isNonEmptyString(data.email) &&
+    (data.email === undefined || isNonEmptyString(data.email)) &&
     (data.phone === undefined || typeof data.phone === 'string') &&
     (data.address === undefined || typeof data.address === 'string') &&
     (data.hours === undefined || typeof data.hours === 'string')

@@ -601,7 +601,15 @@ export function CustomerSiteSection({
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Show message if no contact info is available */}
+            {sectionData.message ? (
+              <div className="text-center py-8 max-w-2xl mx-auto">
+                <p className="text-lg" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>
+                  {String(sectionData.message)}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Phone */}
               {sectionData.phone && (
                 <div className="flex items-start gap-3">
@@ -673,6 +681,7 @@ export function CustomerSiteSection({
                 </div>
               )}
             </div>
+            )}
 
             {/* Social Media */}
             {hasSocials && (

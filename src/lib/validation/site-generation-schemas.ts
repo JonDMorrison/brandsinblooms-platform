@@ -435,6 +435,7 @@ export const ContactSectionSchema = z
       .string()
       .email('Must be a valid email address')
       .max(200, 'Email must not exceed 200 characters')
+      .optional()
       .describe('Contact email address'),
     phone: z
       .string()

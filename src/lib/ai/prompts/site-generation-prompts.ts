@@ -170,10 +170,13 @@ IMPORTANT GUIDELINES:
 - Include specific details about products or services
 
 *Contact Section:*
-- Include email (use provided or create professional placeholder)
-- Include phone (use provided or create placeholder like "(555) 123-4567")
-- Include address if location provided (or create realistic placeholder)
-- Include business hours (e.g., "Mon-Sat: 9am-6pm, Sun: 10am-5pm")
+- ALWAYS generate a contact section with at least a title field
+- Include email ONLY if explicitly provided in the business information (do not create placeholders)
+- Include phone ONLY if explicitly provided in the business information (do not create placeholders)
+- Include address ONLY if explicitly provided in the business information (do not create placeholders or use location field as address)
+- Include business hours ONLY if explicitly provided (do not create default hours)
+- If no contact information is provided, return JSON with just the title: {"title": "Contact Us"}
+- Do NOT create placeholder, fake, or example contact information
 
 RESPOND ONLY WITH VALID JSON matching the schema for the requested section type. Do not include any other text, explanations, or markdown formatting around the JSON.`;
 
@@ -306,6 +309,9 @@ export function buildPagePrompt(
     if (businessInfo.phone) {
       parts.push(`- Phone: ${businessInfo.phone}`);
     }
+    if (businessInfo.additionalDetails?.address) {
+      parts.push(`- Address: ${String(businessInfo.additionalDetails.address)}`);
+    }
   }
 
   parts.push('');
@@ -392,15 +398,16 @@ export function buildPagePrompt(
   ]
 }`,
     contact: `{
-  "title": "Section title",
-  "email": "contact@example.com",
-  "phone": "(555) 123-4567",
-  "address": "123 Main St, City, ST 12345",
-  "hours": "Mon-Sat: 9am-6pm, Sun: 10am-5pm",
-  "additionalInfo": {
-    "parking": "Free parking available",
-    "accessibility": "Wheelchair accessible"
-  }
+  "title": "Contact Us (ALWAYS required)",
+  "email": "contact@example.com (optional - omit if not provided)",
+  "phone": "(555) 123-4567 (optional - omit if not provided)",
+  "address": "123 Main St, City, ST 12345 (optional - omit if not provided)",
+  "hours": "Mon-Sat: 9am-6pm, Sun: 10am-5pm (optional - omit if not provided)"
+}
+
+Example with no contact info:
+{
+  "title": "Contact Us"
 }`
   };
 

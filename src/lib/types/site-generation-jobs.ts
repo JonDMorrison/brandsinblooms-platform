@@ -232,7 +232,7 @@ export interface ContactSection {
   /** Section title */
   title: string;
   /** Contact email */
-  email: string;
+  email?: string;
   /** Contact phone */
   phone?: string;
   /** Physical address */
