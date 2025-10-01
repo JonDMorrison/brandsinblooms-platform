@@ -5,6 +5,8 @@
 import { type Extensions } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import TextAlign from '@tiptap/extension-text-align';
+import Heading from '@tiptap/extension-heading';
 import Placeholder from '@tiptap/extension-placeholder';
 
 /**
@@ -17,37 +19,34 @@ export const getTiptapConfig = (placeholder?: string): Extensions => {
     StarterKit.configure({
       // Disable Link extension from StarterKit since we're adding our own
       link: false,
-      // Configure heading levels (H1-H3)
-      heading: {
-        levels: [1, 2, 3],
-      },
-      // Enable bullet and ordered lists
-      bulletList: {
-        keepMarks: true,
-        keepAttributes: false,
-      },
-      orderedList: {
-        keepMarks: true,
-        keepAttributes: false,
-      },
+      // Disable StarterKit's heading to use custom one (match InlineTextEditor)
+      heading: false,
+      // Disable lists and strike to match InlineTextEditor
+      bulletList: false,
+      orderedList: false,
+      strike: false,
       // Basic text formatting
       bold: {},
       italic: {},
-      strike: {},
-      // Paragraph and line breaks
+      // Paragraph with inline styles to match InlineTextEditor
       paragraph: {
         HTMLAttributes: {
-          class: 'editor-paragraph',
+          style: 'color: var(--theme-text); font-family: var(--theme-font-body);'
         },
       },
       // History for undo/redo (enabled by default in StarterKit)
     }),
+
+    // Custom Heading extension to match InlineTextEditor exactly
+    Heading.configure({
+      levels: [1, 2]
+    }),
     
-    // Link extension with proper configuration
+    // Link extension with configuration matching InlineTextEditor
     Link.configure({
       openOnClick: false,
       HTMLAttributes: {
-        class: 'editor-link',
+        class: 'text-primary underline',
         rel: 'noopener noreferrer',
       },
       validate: (url) => {
@@ -60,7 +59,14 @@ export const getTiptapConfig = (placeholder?: string): Extensions => {
         }
       },
     }),
-    
+
+    // Text alignment extension
+    TextAlign.configure({
+      types: ['heading', 'paragraph'],
+      alignments: ['left', 'center', 'right'],
+      defaultAlignment: 'left'
+    }),
+
     // Placeholder text
     Placeholder.configure({
       placeholder: placeholder || 'Start writing...',

@@ -63,6 +63,7 @@ export function FeaturedEditor({ section, sectionKey, onUpdate }: FeaturedEditor
         section={section}
         onUpdate={onUpdate}
         className="mb-4"
+        availableOptions={['default', 'alternate']}
       />
 
       {/* View All Button Configuration */}

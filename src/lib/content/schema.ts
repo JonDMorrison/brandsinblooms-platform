@@ -13,16 +13,17 @@ export type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' 
 /**
  * Content section types for different layout components
  */
-export type ContentSectionType = 
-  | 'text' 
-  | 'richText' 
-  | 'image' 
-  | 'icon' 
-  | 'gallery' 
+export type ContentSectionType =
+  | 'text'
+  | 'richText'
+  | 'image'
+  | 'icon'
+  | 'gallery'
   | 'features'
   | 'featured'
   | 'categories'
   | 'hero'
+  | 'header' // Simplified hero - title + subtitle only
   | 'cta'
   | 'testimonials'
   | 'form'
@@ -31,6 +32,8 @@ export type ContentSectionType =
   | 'mission'
   | 'values'
   | 'specifications'
+  | 'businessInfo' // Business information section
+  | 'faq' // FAQ section
   // Plant shop specific section types
   | 'plant_showcase'
   | 'plant_grid'
@@ -213,7 +216,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
 }> = {
   landing: {
     required: ['hero'],
-    optional: ['featured', 'categories', 'features', 'cta'],
+    optional: ['featured', 'categories', 'features', 'richText', 'cta'],
     defaultSections: {
       hero: {
         type: 'hero',
@@ -310,12 +313,21 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         settings: {
           backgroundColor: 'default'
         }
+      },
+      richText: {
+        type: 'richText',
+        data: {
+          headline: 'Welcome to Your Plant Paradise',
+          content: 'Discover the joy of growing with our carefully curated selection of premium plants and expert guidance. Whether you\'re just starting your plant journey or expanding your green sanctuary, we\'re here to help you create a thriving indoor oasis that brings nature into your everyday life.'
+        },
+        visible: true,
+        order: 6
       }
     }
   },
   blog: {
     required: ['header', 'content'],
-    optional: ['author', 'related'],
+    optional: ['related'],
     defaultSections: {
       header: {
         type: 'hero',
@@ -334,14 +346,6 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         },
         visible: true,
         order: 2
-      },
-      author: {
-        type: 'team',
-        data: {
-          items: []
-        },
-        visible: false,
-        order: 3
       },
       related: {
         type: 'features',
@@ -396,43 +400,100 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     }
   },
   about: {
-    required: ['hero'],
-    optional: ['mission', 'team', 'values'],
+    required: [],
+    optional: ['header', 'values', 'features', 'richText', 'cta'],
     defaultSections: {
-      hero: {
-        type: 'hero',
+      header: {
+        type: 'header',
         data: {
-          content: '',
-          alignment: 'center'
+          headline: 'About Our Plant Experts',
+          subheadline: 'Years of horticultural expertise helping plant lovers grow their green sanctuaries'
+        },
+        settings: {
+          backgroundColor: 'gradient'
         },
         visible: true,
         order: 1
       },
-      mission: {
-        type: 'mission',
+      values: {
+        type: 'values',
         data: {
-          content: ''
-        },
-        visible: false,
-        order: 2
-      },
-      team: {
-        type: 'team',
-        data: {
-          items: [],
-          columns: 3
+          headline: 'Our Core Values',
+          description: 'The principles that guide everything we do',
+          items: [
+            {
+              id: 'sustainability',
+              title: 'Environmental Sustainability',
+              description: 'We prioritize eco-friendly practices in all aspects of our business, from sourcing to packaging.',
+              icon: 'Leaf'
+            },
+            {
+              id: 'expertise',
+              title: 'Horticultural Expertise',
+              description: 'Our team of certified professionals brings decades of plant care knowledge to every interaction.',
+              icon: 'Award'
+            },
+            {
+              id: 'quality',
+              title: 'Premium Quality',
+              description: 'We source only the healthiest plants and provide ongoing support for long-term success.',
+              icon: 'Star'
+            },
+            {
+              id: 'education',
+              title: 'Plant Education',
+              description: 'We empower customers with knowledge to become confident, successful plant parents.',
+              icon: 'BookOpen'
+            }
+          ],
+          columns: 2
         },
         visible: false,
         order: 3
       },
-      values: {
-        type: 'values',
+      features: {
+        type: 'features',
         data: {
-          items: [],
-          columns: 2
+          headline: 'Professional Certifications',
+          description: 'Our credentials and expertise you can trust',
+          features: [
+            'Certified Master Gardener',
+            'ISA Certified Arborist',
+            'Sustainable Agriculture Specialist',
+            'Plant Pathology Expert',
+            'Greenhouse Management Professional'
+          ]
         },
         visible: false,
-        order: 4
+        order: 5,
+        settings: {
+          backgroundColor: 'alternate'
+        }
+      },
+      richText: {
+        type: 'richText',
+        data: {
+          headline: 'Our Story',
+          content: 'Founded with a passion for plants and a commitment to sustainability, we have grown from a small local nursery into a trusted source for premium plants and expert care guidance. Our journey began with the simple belief that everyone deserves to experience the joy and benefits of thriving plants in their space.'
+        },
+        visible: true,
+        order: 6
+      },
+      cta: {
+        type: 'cta',
+        data: {
+          headline: 'Ready to Start Your Plant Journey?',
+          description: 'Let our experts help you create the perfect green sanctuary for your space.',
+          ctaText: 'Schedule Consultation',
+          ctaLink: '/consultation',
+          secondaryCtaText: 'Browse Plants',
+          secondaryCtaLink: '/plants'
+        },
+        visible: false,
+        order: 7,
+        settings: {
+          backgroundColor: 'primary'
+        }
       }
     }
   },
@@ -478,60 +539,91 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     }
   },
   contact: {
-    required: ['header', 'form'],
-    optional: ['info', 'map'],
+    required: [],
+    optional: ['header', 'businessInfo', 'richText', 'faq'],
     defaultSections: {
       header: {
-        type: 'hero',
+        type: 'header',
         data: {
-          content: '',
-          alignment: 'center'
+          headline: 'Get Expert Plant Care Help',
+          subheadline: 'Connect with our certified horticulturists for personalized plant care guidance'
+        },
+        settings: {
+          backgroundColor: 'gradient'
         },
         visible: true,
         order: 1
       },
-      form: {
-        type: 'form',
+      businessInfo: {
+        type: 'businessInfo',
         data: {
-          fields: [
-            {
-              id: 'name',
-              type: 'text',
-              label: 'Name',
-              required: true,
-              order: 1
-            },
-            {
-              id: 'email',
-              type: 'email',
-              label: 'Email',
-              required: true,
-              order: 2
-            },
-            {
-              id: 'message',
-              type: 'textarea',
-              label: 'Message',
-              required: true,
-              order: 3
-            }
-          ]
+          headline: 'Contact Information',
+          phone: '(555) 123-4567',
+          email: 'hello@yourcompany.com',
+          address: {
+            street: '123 Plant Avenue',
+            city: 'Green City',
+            state: 'CA',
+            zip: '94105'
+          },
+          hours: [
+            { days: 'Monday - Friday', time: '9:00 AM - 6:00 PM' },
+            { days: 'Saturday', time: '10:00 AM - 4:00 PM' },
+            { days: 'Sunday', time: 'Closed' }
+          ],
+          socials: {
+            facebook: 'https://facebook.com/yourcompany',
+            instagram: 'https://instagram.com/yourcompany',
+            twitter: '',
+            linkedin: ''
+          }
         },
-        visible: true,
+        visible: false,
         order: 2
       },
-      info: {
-        type: 'text',
+      richText: {
+        type: 'richText',
         data: {
+          headline: '',
           content: ''
         },
         visible: false,
         order: 3
       },
-      map: {
-        type: 'text', // Will be enhanced with map component later
+      faq: {
+        type: 'faq',
         data: {
-          content: ''
+          headline: 'Frequently Asked Questions',
+          description: '',
+          faqs: [
+            {
+              id: 'faq-1',
+              question: 'How can I reach customer support?',
+              answer: 'You can reach us by phone at (555) 123-4567, by email at hello@yourcompany.com, or visit our location during business hours. We typically respond to all inquiries within 24 hours.',
+              order: 0
+            },
+            {
+              id: 'faq-2',
+              question: 'What are your business hours?',
+              answer: 'We\'re open Monday through Friday from 9:00 AM to 6:00 PM, Saturday from 10:00 AM to 4:00 PM, and closed on Sundays.',
+              order: 1
+            },
+            {
+              id: 'faq-3',
+              question: 'Do you offer consultations?',
+              answer: 'Yes! We offer free consultations to help you with your needs. Contact us to schedule an appointment at a time that works for you.',
+              order: 2
+            },
+            {
+              id: 'faq-4',
+              question: 'Where are you located?',
+              answer: 'We\'re located at 123 Plant Avenue in Green City, CA 94105. Parking is available on-site for your convenience.',
+              order: 3
+            }
+          ]
+        },
+        settings: {
+          backgroundColor: 'alternate'
         },
         visible: false,
         order: 4
@@ -541,9 +633,9 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
   other: {
     required: [], // No required sections - complete flexibility
     optional: [
-      'hero', 'text', 'richText', 'image', 'icon', 'gallery', 
-      'features', 'featured', 'categories', 'cta', 'testimonials', 'form', 'pricing', 
-      'team', 'mission', 'values', 'specifications'
+      'hero', 'text', 'richText', 'image', 'icon', 'gallery',
+      'features', 'featured', 'categories', 'cta', 'testimonials', 'form', 'pricing',
+      'values', 'specifications'
     ],
     defaultSections: {
       hero: {
@@ -569,7 +661,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           content: '',
           json: null
         },
-        visible: false,
+        visible: true,
         order: 3
       },
       image: {
@@ -665,23 +757,6 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         },
         visible: false,
         order: 11
-      },
-      team: {
-        type: 'team',
-        data: {
-          items: [],
-          columns: 3
-        },
-        visible: false,
-        order: 12
-      },
-      mission: {
-        type: 'mission',
-        data: {
-          content: ''
-        },
-        visible: false,
-        order: 13
       },
       values: {
         type: 'values',

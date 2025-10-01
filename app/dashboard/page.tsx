@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
-import { 
-  FileText, 
-  Package, 
-  ShoppingCart, 
-  Eye, 
-  Plus, 
+import {
+  FileText,
+  Package,
+  ShoppingCart,
+  Eye,
+  Plus,
   Palette,
   ArrowUpRight,
 } from 'lucide-react'
@@ -19,6 +19,7 @@ import { useSite } from '@/src/hooks/useSite'
 import { useDashboardMetrics, useSiteStats } from '@/src/hooks/useStats'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { DashboardStats, type DashboardStat } from '@/src/components/DashboardStats'
+import { debug } from '@/src/lib/utils/debug'
 
 // Import MetricsChart for actual data visualization
 import { MetricsChart } from '@/src/components/charts/MetricsChart'
@@ -79,7 +80,7 @@ const quickActions: QuickAction[] = [
     id: '1',
     title: 'Create New Page',
     description: 'Design and publish a new page',
-    href: '/dashboard/content/new',
+    href: '/dashboard/content',
     icon: <Plus className="h-5 w-5" />,
     color: 'bg-blue-500 hover:bg-blue-600'
   },
@@ -108,7 +109,7 @@ export default function DashboardPage() {
   const { data: siteStats, loading: statsLoading } = useSiteStats()
   const { data: metrics, loading: metricsLoading } = useDashboardMetrics()
 
-  console.log('[DASHBOARD_DEBUG] Dashboard page render:', {
+  debug.dashboard('Dashboard page render:', {
     user: !!user,
     currentSite: !!currentSite,
     siteLoading,
@@ -162,7 +163,7 @@ export default function DashboardPage() {
   // Wait for critical data (site and user) to load before rendering
   // This prevents the animations from playing twice and handles site switching properly
   if (isCriticalLoading) {
-    console.log('[DASHBOARD_DEBUG] Showing loading state:', {
+    debug.dashboard('Showing loading state:', {
       siteLoading,
       hasUser: !!user,
       hasCurrentSite: !!currentSite,
@@ -194,7 +195,7 @@ export default function DashboardPage() {
     )
   }
 
-  console.log('[DASHBOARD_DEBUG] Rendering dashboard content for site:', currentSite?.name)
+  debug.dashboard('Rendering dashboard content for site:', currentSite?.name)
 
   return (
     <div className="space-y-8">

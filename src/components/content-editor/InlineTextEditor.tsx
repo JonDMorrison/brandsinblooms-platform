@@ -13,6 +13,8 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Document from '@tiptap/extension-document';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
+import TextAlign from '@tiptap/extension-text-align';
+import Heading from '@tiptap/extension-heading';
 import { useDebounceCallback } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
 import { FloatingToolbar } from './FloatingToolbar';
@@ -111,9 +113,15 @@ const InlineTextEditorComponent = ({
         ]
       : [
           StarterKit.configure({
-            heading: {
-              levels: [2, 3]
+            heading: false, // Disable StarterKit's heading to use custom one
+            paragraph: {
+              HTMLAttributes: {
+                style: 'color: var(--theme-text); font-family: var(--theme-font-body);'
+              }
             }
+          }),
+          Heading.configure({
+            levels: [1, 2]
           }),
           Link.configure({
             openOnClick: false,
@@ -121,6 +129,11 @@ const InlineTextEditorComponent = ({
               class: 'text-primary underline',
               rel: 'noopener noreferrer',
             }
+          }),
+          TextAlign.configure({
+            types: ['heading', 'paragraph'],
+            alignments: ['left', 'center', 'right'],
+            defaultAlignment: 'left'
           }),
           Placeholder.configure({
             placeholder,

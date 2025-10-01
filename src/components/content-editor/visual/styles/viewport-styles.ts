@@ -44,15 +44,15 @@ function getMobileViewportStyles(): string {
     .visual-editor-preview.preview-mobile-viewport :global(.text-4xl) {
       font-size: 2.25rem !important;
     }
-    
+
     .visual-editor-preview.preview-mobile-viewport :global(.md\\:text-6xl) {
       font-size: 2.25rem !important;
     }
-    
+
     .visual-editor-preview.preview-mobile-viewport :global(.text-xl) {
       font-size: 1rem !important;
     }
-    
+
     .visual-editor-preview.preview-mobile-viewport :global(.md\\:text-2xl) {
       font-size: 1rem !important;
     }
@@ -111,15 +111,15 @@ function getTabletViewportStyles(): string {
     .visual-editor-preview.preview-tablet-viewport :global(.text-4xl) {
       font-size: 2.25rem !important;
     }
-    
+
     .visual-editor-preview.preview-tablet-viewport :global(.md\\:text-6xl) {
       font-size: 3rem !important;
     }
-    
+
     .visual-editor-preview.preview-tablet-viewport :global(.text-xl) {
       font-size: 1.125rem !important;
     }
-    
+
     .visual-editor-preview.preview-tablet-viewport :global(.md\\:text-2xl) {
       font-size: 1.5rem !important;
     }

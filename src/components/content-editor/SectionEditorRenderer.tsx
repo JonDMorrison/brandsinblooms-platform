@@ -4,8 +4,9 @@ import React, { useCallback } from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 
 // Import all section editor components from centralized index
-import { 
+import {
   HeroEditor,
+  HeaderEditor,
   FeaturedEditor,
   CategoriesEditor,
   RichTextSectionEditor,
@@ -14,7 +15,6 @@ import {
   IconSectionEditor,
   FeaturesEditor,
   TestimonialsEditor,
-  TeamEditor,
   ValuesEditor,
   GalleryEditor,
   PricingEditor,
@@ -30,7 +30,9 @@ import {
   PlantComparisonEditor,
   CareCalendarEditor,
   PlantBenefitsEditor,
-  SoilGuideEditor
+  SoilGuideEditor,
+  FAQEditor,
+  BusinessInfoEditor
 } from './editors'
 
 // Import the CTAEditor component
@@ -66,7 +68,10 @@ export function SectionEditorRenderer({
     switch (section.type) {
       case 'hero':
         return <HeroEditor {...commonProps} />
-        
+
+      case 'header':
+        return <HeaderEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
+
       case 'featured':
         return <FeaturedEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
@@ -74,7 +79,7 @@ export function SectionEditorRenderer({
         return <CategoriesEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
       case 'richText':
-        return <RichTextSectionEditor {...commonProps} />
+        return <RichTextSectionEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
       case 'cta':
         return <CTAEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
@@ -93,12 +98,9 @@ export function SectionEditorRenderer({
         
       case 'testimonials':
         return <TestimonialsEditor {...commonProps} />
-        
-      case 'team':
-        return <TeamEditor {...commonProps} />
-        
+
       case 'values':
-        return <ValuesEditor {...commonProps} />
+        return <ValuesEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
       case 'gallery':
         return <GalleryEditor {...commonProps} />
@@ -145,7 +147,13 @@ export function SectionEditorRenderer({
         
       case 'soil_guide':
         return <SoilGuideEditor {...commonProps} />
-        
+
+      case 'faq':
+        return <FAQEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
+
+      case 'businessInfo':
+        return <BusinessInfoEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
+
       default:
         return (
           <div className="p-4 border rounded-lg bg-muted/50">

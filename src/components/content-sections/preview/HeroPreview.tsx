@@ -1,13 +1,16 @@
 /**
- * Hero section preview component
+ * Hero section preview component with icon support
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getFeatureGridClasses } from '@/src/components/content-sections/shared'
+import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
+import { IconSelector } from '@/src/components/ui/IconSelector'
+import { Dialog, DialogContent, DialogOverlay, DialogTitle } from '@/src/components/ui/dialog'
 
 interface HeroPreviewProps {
   section: ContentSection
@@ -15,7 +18,13 @@ interface HeroPreviewProps {
   className?: string
   title?: string
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
-  onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
+  onFeatureUpdate?: (sectionKey: string, featureIndex: number, field: string, newContent: string) => void
+}
+
+interface HeroFeatureItem {
+  id: string
+  icon: string
+  text: string
 }
 
 export function HeroPreview({
@@ -29,6 +38,50 @@ export function HeroPreview({
   const { data } = section
   const isPreview = isPreviewMode(onContentUpdate, onFeatureUpdate)
   const responsive = createResponsiveClassHelper(isPreview)
+
+  // Convert old string[] format to new object[] format for backward compatibility
+  const rawFeatures = data.features as string[] | HeroFeatureItem[] | undefined
+  const features: HeroFeatureItem[] = React.useMemo(() => {
+    if (!rawFeatures || !Array.isArray(rawFeatures)) return []
+
+    // Check if it's old string[] format
+    if (typeof rawFeatures[0] === 'string') {
+      return (rawFeatures as string[]).map((text, i) => ({
+        id: `feature-${i}`,
+        icon: 'Check',
+        text
+      }))
+    }
+
+    return rawFeatures as HeroFeatureItem[]
+  }, [rawFeatures])
+
+  // State for inline icon editing
+  const [editingIconIndex, setEditingIconIndex] = useState<number | null>(null)
+
+  // Handle icon click to open selector
+  const handleIconClick = (index: number, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Only allow icon editing in preview mode
+    if (onFeatureUpdate && isPreview) {
+      setEditingIconIndex(index)
+    }
+  }
+
+  // Handle icon selection from modal
+  const handleIconSelect = (iconName: string) => {
+    if (editingIconIndex !== null && onFeatureUpdate) {
+      onFeatureUpdate(sectionKey, editingIconIndex, 'icon', iconName)
+    }
+    setEditingIconIndex(null)
+  }
+
+  // Close modal
+  const handleCloseModal = () => {
+    setEditingIconIndex(null)
+  }
 
   return (
     <section
@@ -178,55 +231,75 @@ export function HeroPreview({
             )}
           </div>
 
-          {/* Features Grid */}
-          {data.features && Array.isArray(data.features) && data.features.length > 0 && (
+          {/* Features Grid with Icon Support */}
+          {features.length > 0 && (
             <div
-              className={`grid gap-6 text-center ${getFeatureGridClasses(data.features.length, isPreview)}`}
+              className={`grid gap-6 text-center ${getFeatureGridClasses(features.length, isPreview)}`}
             >
-              {data.features.slice(0, 4).map((feature: string, index: number) => (
-                <div key={index} className="flex flex-col items-center">
-                  <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
-                    style={{ backgroundColor: 'var(--theme-primary)' }}
-                  >
-                    <svg 
-                      className="w-6 h-6 text-white" 
-                      fill="currentColor" 
-                      viewBox="0 0 20 20"
+              {features.slice(0, 4).map((feature, index) => {
+                const IconComponent = getIcon(feature.icon)
+
+                return (
+                  <div key={feature.id || index} className="flex flex-col items-center">
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 flex-shrink-0 ${
+                        isPreview && onFeatureUpdate ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''
+                      }`}
+                      style={{ backgroundColor: 'var(--theme-primary)' }}
+                      onClick={(e) => handleIconClick(index, e)}
+                      title={isPreview && onFeatureUpdate ? 'Click to change icon' : undefined}
                     >
-                      <path 
-                        fillRule="evenodd" 
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                      {IconComponent && <IconComponent className="w-6 h-6 text-white" />}
+                    </div>
+                    <InlineTextEditor
+                      content={feature.text}
+                      onUpdate={(content) => {
+                        if (onFeatureUpdate) {
+                          onFeatureUpdate(sectionKey, index, 'text', content)
+                        }
+                      }}
+                      isEnabled={Boolean(onFeatureUpdate)}
+                      fieldPath={`data.features.${index}.text`}
+                      format="plain"
+                      singleLine={true}
+                      className="text-sm font-medium [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.ProseMirror]:leading-none [&_.inline-editor-wrapper]:min-h-0"
+                      style={{
+                        color: 'var(--theme-text)',
+                        fontFamily: 'var(--theme-font-body)'
+                      }}
+                      placeholder="Add feature text..."
+                      showToolbar={false}
+                      debounceDelay={0}
+                    />
                   </div>
-                  <InlineTextEditor
-                    content={feature}
-                    onUpdate={(content) => {
-                      if (onFeatureUpdate) {
-                        onFeatureUpdate(sectionKey, index, content)
-                      }
-                    }}
-                    isEnabled={Boolean(onFeatureUpdate)}
-                    fieldPath={`data.features.${index}`}
-                    format="plain"
-                    singleLine={true}
-                    className="text-sm font-medium [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.ProseMirror]:leading-none [&_.inline-editor-wrapper]:min-h-0"
-                    style={{
-                      color: 'var(--theme-text)',
-                      fontFamily: 'var(--theme-font-body)'
-                    }}
-                    placeholder="Add feature text..."
-                    showToolbar={false}
-                    debounceDelay={0}
-                  />
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
       </div>
+
+      {/* Icon Selection Modal */}
+      <Dialog open={editingIconIndex !== null} onOpenChange={handleCloseModal}>
+        <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 z-50" />
+        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[500px] max-w-[90vw] bg-white rounded-lg shadow-xl p-0">
+          <DialogTitle className="sr-only">Select Icon</DialogTitle>
+          <div className="p-6 border-b">
+            <h3 className="text-lg font-semibold">Choose an Icon</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {editingIconIndex !== null ? `Editing icon for feature "${features[editingIconIndex]?.text || 'feature'}"` : ''}
+            </p>
+          </div>
+          <div className="p-6">
+            <IconSelector
+              value={editingIconIndex !== null ? features[editingIconIndex]?.icon || '' : ''}
+              onChange={handleIconSelect}
+              iconSize={16}
+              maxResults={60}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

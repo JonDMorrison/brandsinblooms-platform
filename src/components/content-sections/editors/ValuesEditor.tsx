@@ -1,114 +1,174 @@
-'use client'
+/**
+ * Values section editor component
+ * Handles values section configuration matching customer site structure:
+ * headline, description, and values array with icons
+ */
 
-import React, { useCallback } from 'react'
-import { ContentSection, ContentItem } from '@/src/lib/content/schema'
-import { ItemListEditor } from '../shared/ItemListEditor'
+import React from 'react'
+import { ContentSection } from '@/src/lib/content/schema'
+import { Label } from '@/src/components/ui/label'
+import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { Textarea } from '@/src/components/ui/textarea'
-import { IconPicker } from '@/src/components/content-editor'
-import { Label } from '@/src/components/ui/label'
-import { ColumnsSelector } from '../shared/ColumnsSelector'
+import { Plus, X } from 'lucide-react'
+import { IconSelector } from '@/src/components/ui/IconSelector'
+import {
+  FormField,
+  TextareaField,
+  FormSection
+} from '@/src/components/content-editor/editors/shared/form-utils'
+import { BackgroundToggle } from '@/src/components/content-editor/editors/shared/background-toggle'
 
-interface SectionEditorProps {
+interface ValuesEditorProps {
   section: ContentSection
-  onUpdate: (data: Partial<ContentSection['data']>) => void
+  sectionKey: string
+  onUpdate: (sectionKey: string, section: ContentSection) => void
 }
 
-export function ValuesEditor({ section, onUpdate }: SectionEditorProps) {
-  const items = (section.data.items as ContentItem[]) || []
-  const columns = section.data.columns || 2
+interface ValueItem {
+  id: string
+  title: string
+  description: string
+  icon: string
+}
 
-  const handleAddValue = useCallback(() => {
-    const newValue: ContentItem = {
+export function ValuesEditor({ section, sectionKey, onUpdate }: ValuesEditorProps) {
+  const { data } = section
+  const items = (data.items as ValueItem[]) || []
+
+  const handleDataChange = (newData: Partial<ContentSection['data']>) => {
+    onUpdate(sectionKey, {
+      ...section,
+      data: { ...section.data, ...newData }
+    })
+  }
+
+  const handleAddValue = () => {
+    const newValue: ValueItem = {
       id: `value-${Date.now()}`,
       title: 'New Value',
-      content: '',
-      icon: 'star',
-      order: items.length + 1
+      description: 'Describe this value...',
+      icon: 'Star'
     }
-    onUpdate({ items: [...items, newValue] })
-  }, [items, onUpdate])
+    const newItems = [...items, newValue]
+    handleDataChange({ items: newItems })
+  }
 
-  const handleUpdateValue = useCallback((index: number, updatedValue: ContentItem) => {
+  const handleUpdateValue = (index: number, field: keyof ValueItem, value: string) => {
     const newItems = [...items]
-    newItems[index] = updatedValue
-    onUpdate({ items: newItems })
-  }, [items, onUpdate])
+    newItems[index] = { ...newItems[index], [field]: value }
+    handleDataChange({ items: newItems })
+  }
 
-  const handleRemoveValue = useCallback((index: number) => {
+  const handleRemoveValue = (index: number) => {
     const newItems = items.filter((_, i) => i !== index)
-    onUpdate({ items: newItems })
-  }, [items, onUpdate])
-
-  const handleReorder = useCallback((reorderedItems: ContentItem[]) => {
-    const itemsWithOrder = reorderedItems.map((item, index) => ({
-      ...item,
-      order: index + 1
-    }))
-    onUpdate({ items: itemsWithOrder })
-  }, [onUpdate])
-
-  const renderValueItem = useCallback((value: ContentItem, index: number) => {
-    return (
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label className="text-xs">Icon</Label>
-            <IconPicker
-              value={value.icon || 'star'}
-              onChange={(icon) => {
-                handleUpdateValue(index, { ...value, icon })
-              }}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs">Value Title</Label>
-            <Input
-              value={value.title || ''}
-              onChange={(e) => {
-                handleUpdateValue(index, { ...value, title: e.target.value })
-              }}
-              placeholder="Value name"
-              className="h-8"
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label className="text-xs">Description</Label>
-          <Textarea
-            value={value.content || ''}
-            onChange={(e) => {
-              handleUpdateValue(index, { ...value, content: e.target.value })
-            }}
-            placeholder="Describe this value..."
-            rows={3}
-            className="resize-none"
-          />
-        </div>
-      </div>
-    )
-  }, [handleUpdateValue])
+    handleDataChange({ items: newItems })
+  }
 
   return (
-    <div className="space-y-4">
-      <ColumnsSelector
-        value={columns}
-        onChange={(newColumns) => onUpdate({ columns: newColumns })}
-        min={1}
-        max={4}
-        label="Display Columns"
+    <>
+      {/* Values Section Title and Description fields */}
+      <FormSection>
+        <FormField
+          id="values-headline"
+          label="Title"
+          value={data.headline || ''}
+          onChange={(value) => handleDataChange({ headline: value })}
+          placeholder="Our Core Values"
+        />
+
+        <TextareaField
+          id="values-description"
+          label="Description"
+          value={data.description || ''}
+          onChange={(value) => handleDataChange({ description: value })}
+          placeholder="The principles that guide everything we do"
+          rows={3}
+        />
+      </FormSection>
+
+      {/* Background Color Toggle */}
+      <BackgroundToggle
+        sectionKey={sectionKey}
+        section={section}
+        onUpdate={onUpdate}
+        className="mb-4"
+        availableOptions={['default', 'alternate']}
       />
-      
-      <ItemListEditor
-        items={items}
-        onAdd={handleAddValue}
-        onUpdate={handleUpdateValue}
-        onRemove={handleRemoveValue}
-        onReorder={handleReorder}
-        renderItem={renderValueItem}
-        emptyMessage="No values defined yet"
-        addButtonLabel="Add Value"
-      />
-    </div>
+
+      {/* Values List Management */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-xs font-medium">Values</Label>
+          <Button
+            onClick={handleAddValue}
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-xs"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Add Value
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          {items.map((valueItem, index) => (
+            <div key={valueItem.id || index} className="border border-input rounded-md p-3 space-y-2">
+              {/* Header with Value # and Remove button */}
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-gray-600">Value {index + 1}</Label>
+                <Button
+                  onClick={() => handleRemoveValue(index)}
+                  size="sm"
+                  variant="outline"
+                  className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+
+              {/* Vertical layout for Icon and Title */}
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">Icon</Label>
+                  <IconSelector
+                    value={valueItem.icon || 'Star'}
+                    onChange={(icon) => handleUpdateValue(index, 'icon', icon)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">Title</Label>
+                  <Input
+                    value={valueItem.title || ''}
+                    onChange={(e) => handleUpdateValue(index, 'title', e.target.value)}
+                    placeholder="Value title"
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label className="text-xs text-gray-500 mb-1 block">Description</Label>
+                <Textarea
+                  value={valueItem.description || ''}
+                  onChange={(e) => handleUpdateValue(index, 'description', e.target.value)}
+                  placeholder="Describe this value..."
+                  rows={2}
+                  className="resize-none text-sm"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {items.length === 0 && (
+          <div className="text-center py-4 text-gray-500 border border-dashed border-gray-300 rounded-lg">
+            <p className="text-sm">No values added yet</p>
+            <p className="text-xs text-gray-400 mt-1">Click "Add Value" to get started</p>
+          </div>
+        )}
+      </div>
+    </>
   )
 }

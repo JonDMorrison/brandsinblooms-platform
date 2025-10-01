@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { ThemeSettings } from '@/lib/queries/domains/theme'
 import { generatePlantThemeCSS } from '@/src/lib/theme/plant-shop-variables'
+import { debug } from '@/src/lib/utils/debug'
 
 // Font loading cache to prevent duplicate requests
 const loadedFonts = new Set<string>()
@@ -44,9 +45,12 @@ function loadGoogleFont(fontFamily: string): Promise<void> {
       loadedFonts.add(fontKey)
       resolve()
     }
-    
+
     link.onerror = () => {
-      reject(new Error(`Failed to load font: ${fontFamily}`))
+      // Silently handle font load failure - browser will use fallback fonts
+      console.warn(`Failed to load font: ${fontFamily}. Using fallback.`)
+      loadedFonts.add(fontKey) // Mark as loaded to prevent retry loops
+      resolve() // Resolve instead of reject to allow page to continue
     }
     
     document.head.appendChild(link)
@@ -61,19 +65,19 @@ function loadGoogleFont(fontFamily: string): Promise<void> {
  */
 export function useThemeCSS(theme: ThemeSettings | null, mode: 'iframe' | 'live' = 'live') {
   // Debug logging for CSS generation
-  console.log('[THEME_DEBUG] useThemeCSS - called with:', { theme: !!theme, mode });
-  console.log('[THEME_DEBUG] useThemeCSS - theme data:', theme);
+  debug.theme('useThemeCSS - called with:', { theme: !!theme, mode });
+  debug.theme('useThemeCSS - theme data:', theme);
 
   const cssVariables = useMemo(() => {
-    console.log('[THEME_DEBUG] useThemeCSS - cssVariables memo called with theme:', !!theme);
+    debug.theme('useThemeCSS - cssVariables memo called with theme:', !!theme);
 
     if (!theme) {
-      console.log('[THEME_DEBUG] useThemeCSS - No theme provided, returning empty CSS');
+      debug.theme('useThemeCSS - No theme provided, returning empty CSS');
       return '';
     }
 
     const { colors, typography, layout, logo } = theme;
-    console.log('[THEME_DEBUG] useThemeCSS - Destructured theme:', { colors, typography, layout, logo });
+    debug.theme('useThemeCSS - Destructured theme:', { colors, typography, layout, logo });
     
     // Font size mapping
     const fontSizeMap = {
@@ -87,8 +91,8 @@ export function useThemeCSS(theme: ThemeSettings | null, mode: 'iframe' | 'live'
       ? '[data-preview-mode="iframe"]'
       : '[data-theme-applied="true"]'
 
-    console.log('[THEME_DEBUG] useThemeCSS - Base selector:', baseSelector);
-    console.log('[THEME_DEBUG] useThemeCSS - Generating CSS with colors:', colors);
+    debug.theme('useThemeCSS - Base selector:', baseSelector);
+    debug.theme('useThemeCSS - Generating CSS with colors:', colors);
 
     const cssOutput = `
       /* Fonts loaded programmatically to prevent duplicate requests */
@@ -244,8 +248,8 @@ export function useThemeCSS(theme: ThemeSettings | null, mode: 'iframe' | 'live'
       }
     `;
 
-    console.log('[THEME_DEBUG] useThemeCSS - Generated CSS output (first 500 chars):', cssOutput.substring(0, 500));
-    console.log('[THEME_DEBUG] useThemeCSS - CSS contains primary color:', cssOutput.includes(colors.primary));
+    debug.theme('useThemeCSS - Generated CSS output (first 500 chars):', cssOutput.substring(0, 500));
+    debug.theme('useThemeCSS - CSS contains primary color:', cssOutput.includes(colors.primary));
 
     return cssOutput;
   }, [theme, mode])
@@ -687,7 +691,7 @@ export function useThemeCSS(theme: ThemeSettings | null, mode: 'iframe' | 'live'
 export function useApplyTheme(theme: ThemeSettings | null, enabled = true, mode: 'iframe' | 'live' = 'live') {
   const { fullCSS } = useThemeCSS(theme, mode)
 
-  console.log('[THEME_DEBUG] useApplyTheme - called with:', {
+  debug.theme('useApplyTheme - called with:', {
     hasTheme: !!theme,
     enabled,
     mode,
@@ -697,24 +701,24 @@ export function useApplyTheme(theme: ThemeSettings | null, enabled = true, mode:
 
   // Apply theme to document
   useMemo(() => {
-    console.log('[THEME_DEBUG] useApplyTheme - useMemo triggered');
+    debug.theme('useApplyTheme - useMemo triggered');
 
     if (!enabled) {
-      console.log('[THEME_DEBUG] useApplyTheme - Not enabled, skipping');
+      debug.theme('useApplyTheme - Not enabled, skipping');
       return;
     }
 
     if (typeof window === 'undefined') {
-      console.log('[THEME_DEBUG] useApplyTheme - Server-side, skipping');
+      debug.theme('useApplyTheme - Server-side, skipping');
       return;
     }
 
     if (!theme) {
-      console.log('[THEME_DEBUG] useApplyTheme - No theme provided, skipping');
+      debug.theme('useApplyTheme - No theme provided, skipping');
       return;
     }
 
-    console.log('[THEME_DEBUG] useApplyTheme - Proceeding with theme application');
+    debug.theme('useApplyTheme - Proceeding with theme application');
     
     // Load required fonts programmatically
     const fontsToLoad = []
@@ -725,51 +729,53 @@ export function useApplyTheme(theme: ThemeSettings | null, enabled = true, mode:
       fontsToLoad.push(loadGoogleFont(theme.typography.bodyFont))
     }
     
-    // Load fonts and then apply styles
-    Promise.all(fontsToLoad).catch(console.error)
+    // Load fonts and then apply styles (errors are handled in loadGoogleFont)
+    Promise.all(fontsToLoad).catch((err) => {
+      console.warn('Some fonts failed to load, using fallbacks:', err)
+    })
     
     // Check if styles have changed before updating
     const existingStyle = document.getElementById('site-theme-styles')
-    console.log('[THEME_DEBUG] useApplyTheme - Existing style element:', !!existingStyle);
+    debug.theme('useApplyTheme - Existing style element:', !!existingStyle);
 
     if (existingStyle && existingStyle.textContent === fullCSS) {
-      console.log('[THEME_DEBUG] useApplyTheme - CSS unchanged, skipping injection');
+      debug.theme('useApplyTheme - CSS unchanged, skipping injection');
       return // No change needed
     }
 
     // Remove existing theme styles
     if (existingStyle) {
-      console.log('[THEME_DEBUG] useApplyTheme - Removing existing style element');
+      debug.theme('useApplyTheme - Removing existing style element');
       existingStyle.remove()
     }
 
     // Create and inject new theme styles
-    console.log('[THEME_DEBUG] useApplyTheme - Creating new style element');
+    debug.theme('useApplyTheme - Creating new style element');
     const styleElement = document.createElement('style')
     styleElement.id = 'site-theme-styles'
     styleElement.textContent = fullCSS
     document.head.appendChild(styleElement)
 
-    console.log('[THEME_DEBUG] useApplyTheme - Style element injected into head');
-    console.log('[THEME_DEBUG] useApplyTheme - Style element content length:', styleElement.textContent.length);
-    console.log('[THEME_DEBUG] useApplyTheme - First 200 chars of injected CSS:', styleElement.textContent.substring(0, 200));
+    debug.theme('useApplyTheme - Style element injected into head');
+    debug.theme('useApplyTheme - Style element content length:', styleElement.textContent.length);
+    debug.theme('useApplyTheme - First 200 chars of injected CSS:', styleElement.textContent.substring(0, 200));
     
     // Apply theme data attributes based on mode
-    console.log('[THEME_DEBUG] useApplyTheme - Setting data attributes on body');
+    debug.theme('useApplyTheme - Setting data attributes on body');
 
     if (mode === 'iframe') {
       document.body.setAttribute('data-preview-mode', 'iframe')
-      console.log('[THEME_DEBUG] useApplyTheme - Set data-preview-mode="iframe"');
+      debug.theme('useApplyTheme - Set data-preview-mode="iframe"');
     } else {
       document.body.setAttribute('data-theme-applied', 'true')
-      console.log('[THEME_DEBUG] useApplyTheme - Set data-theme-applied="true"');
+      debug.theme('useApplyTheme - Set data-theme-applied="true"');
     }
 
     document.body.setAttribute('data-header-style', theme.layout.headerStyle)
     document.body.setAttribute('data-footer-style', theme.layout.footerStyle)
     document.body.setAttribute('data-menu-style', theme.layout.menuStyle)
 
-    console.log('[THEME_DEBUG] useApplyTheme - Set layout attributes:', {
+    debug.theme('useApplyTheme - Set layout attributes:', {
       headerStyle: theme.layout.headerStyle,
       footerStyle: theme.layout.footerStyle,
       menuStyle: theme.layout.menuStyle
@@ -778,7 +784,7 @@ export function useApplyTheme(theme: ThemeSettings | null, enabled = true, mode:
     if (theme.logo) {
       document.body.setAttribute('data-logo-position', theme.logo.position)
       document.body.setAttribute('data-logo-size', theme.logo.size)
-      console.log('[THEME_DEBUG] useApplyTheme - Set logo attributes:', {
+      debug.theme('useApplyTheme - Set logo attributes:', {
         position: theme.logo.position,
         size: theme.logo.size
       });
@@ -787,8 +793,8 @@ export function useApplyTheme(theme: ThemeSettings | null, enabled = true, mode:
     // Final validation - check if CSS variables are actually applied
     const computedStyles = getComputedStyle(document.body)
     const primaryColor = computedStyles.getPropertyValue('--theme-primary')
-    console.log('[THEME_DEBUG] useApplyTheme - Computed --theme-primary value:', primaryColor);
-    console.log('[THEME_DEBUG] useApplyTheme - Expected primary color:', theme.colors.primary);
+    debug.theme('useApplyTheme - Computed --theme-primary value:', primaryColor);
+    debug.theme('useApplyTheme - Expected primary color:', theme.colors.primary);
     
     return () => {
       // Cleanup function

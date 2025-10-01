@@ -10,21 +10,23 @@ import {
   ReactNode 
 } from 'react'
 import { useAuth } from './AuthContext'
-import { 
+import { supabase } from '@/src/lib/supabase/client'
+import {
   Site
 } from '@/src/lib/database/aliases'
-import { 
-  getSite, 
+import {
+  getSite,
   getUserSites,
   checkUserSiteAccess,
   UserSiteAccess,
-  SiteQueryError 
+  SiteQueryError
 } from '@/src/lib/site/queries'
-import { 
-  resolveSiteFromHost, 
+import {
+  resolveSiteFromHost,
   extractHostname,
-  SiteResolution 
+  SiteResolution
 } from '@/src/lib/site/resolution'
+import { debug } from '@/src/lib/utils/debug'
 
 export interface SiteContextType {
   // Current site state
@@ -94,7 +96,7 @@ export function SiteProvider({
   const clearAllSiteCaches = useCallback((siteId: string) => {
     if (typeof window === 'undefined') return
 
-    console.log('[SITE_DEBUG] clearAllSiteCaches - Clearing caches for siteId:', siteId)
+    debug.site('clearAllSiteCaches - Clearing caches for siteId:', siteId)
 
     try {
       const keys = Object.keys(localStorage)
@@ -119,19 +121,19 @@ export function SiteProvider({
         )
       })
 
-      console.log('[SITE_DEBUG] clearAllSiteCaches - Found cache keys to clear:', siteKeys)
+      debug.site('clearAllSiteCaches - Found cache keys to clear:', siteKeys)
 
       siteKeys.forEach(key => {
         try {
           localStorage.removeItem(key)
         } catch (error) {
-          console.warn('[SITE_DEBUG] Failed to clear cache key:', key, error)
+          debug.site('Failed to clear cache key:', key, error)
         }
       })
 
-      console.log('[SITE_DEBUG] clearAllSiteCaches - Cleared', siteKeys.length, 'cache keys')
+      debug.site('clearAllSiteCaches - Cleared', siteKeys.length, 'cache keys')
     } catch (error) {
-      console.error('[SITE_DEBUG] clearAllSiteCaches - Error during cache clearing:', error)
+      debug.site('clearAllSiteCaches - Error during cache clearing:', error)
     }
   }, [])
 
@@ -141,7 +143,7 @@ export function SiteProvider({
   const resetAllQueries = useCallback(() => {
     if (typeof window === 'undefined') return
 
-    console.log('[SITE_DEBUG] resetAllQueries - Dispatching cache reset event')
+    debug.site('resetAllQueries - Dispatching cache reset event')
 
     // Dispatch a custom event that query hooks can listen to for cache invalidation
     window.dispatchEvent(new CustomEvent('siteSwitch', {
@@ -153,14 +155,14 @@ export function SiteProvider({
    * Resolves and loads a site from hostname
    */
   const resolveSiteFromUrl = useCallback(async (url: string) => {
-    console.log('[SITE_DEBUG] resolveSiteFromUrl - Starting resolution for URL:', url);
+    debug.site('resolveSiteFromUrl - Starting resolution for URL:', url);
 
     try {
       setLoading(true)
       setError(null)
 
       const hostname = extractHostname(url)
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Extracted hostname:', hostname);
+      debug.site('resolveSiteFromUrl - Extracted hostname:', hostname);
       
       // Check if this is the main app domain - if so, don't try to resolve it as a site
       const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
@@ -169,7 +171,7 @@ export function SiteProvider({
                           hostname.endsWith('.railway.app') ||
                           hostname === 'localhost'
 
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Domain check:', {
+      debug.site('resolveSiteFromUrl - Domain check:', {
         hostname,
         appDomain,
         isMainDomain,
@@ -177,7 +179,7 @@ export function SiteProvider({
       });
 
       if (isMainDomain) {
-        console.log('[SITE_DEBUG] resolveSiteFromUrl - Main domain detected, skipping site resolution');
+        debug.site('resolveSiteFromUrl - Main domain detected, skipping site resolution');
         setSiteResolution(null)
         // Don't set currentSite to null - let the URL/localStorage logic handle it
         setLoading(false)
@@ -187,14 +189,14 @@ export function SiteProvider({
       const resolution = resolveSiteFromHost(hostname)
       setSiteResolution(resolution)
 
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Site resolution result:', {
+      debug.site('resolveSiteFromUrl - Site resolution result:', {
         isValid: resolution.isValid,
         type: resolution.type,
         value: resolution.value
       });
 
       if (!resolution.isValid) {
-        console.log('[SITE_DEBUG] resolveSiteFromUrl - Invalid hostname format');
+        debug.site('resolveSiteFromUrl - Invalid hostname format');
         setError({
           code: 'INVALID_HOSTNAME',
           message: 'Invalid hostname format'
@@ -205,13 +207,13 @@ export function SiteProvider({
       }
 
       // Try to get the site
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Querying site with:', {
+      debug.site('resolveSiteFromUrl - Querying site with:', {
         value: resolution.value,
         type: resolution.type
       });
       const siteResult = await getSite(resolution.value, resolution.type)
 
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Site query result:', {
+      debug.site('resolveSiteFromUrl - Site query result:', {
         hasData: !!siteResult.data,
         hasError: !!siteResult.error,
         error: siteResult.error,
@@ -220,7 +222,7 @@ export function SiteProvider({
       });
 
       if (siteResult.error) {
-        console.log('[SITE_DEBUG] resolveSiteFromUrl - Site query error:', siteResult.error);
+        debug.site('resolveSiteFromUrl - Site query error:', siteResult.error);
         setError(siteResult.error)
         setCurrentSite(null)
         setUserAccess(null)
@@ -228,7 +230,7 @@ export function SiteProvider({
       }
 
       if (!siteResult.data) {
-        console.log('[SITE_DEBUG] resolveSiteFromUrl - Site not found');
+        debug.site('resolveSiteFromUrl - Site not found');
         setError({
           code: 'SITE_NOT_FOUND',
           message: `Site not found for ${resolution.type}: ${resolution.value}`
@@ -238,17 +240,19 @@ export function SiteProvider({
         return
       }
 
-      console.log('[SITE_DEBUG] resolveSiteFromUrl - Setting current site:', {
+      debug.site('resolveSiteFromUrl - Setting current site:', {
         id: siteResult.data.id,
         name: siteResult.data.name,
         subdomain: siteResult.data.subdomain
       });
       setCurrentSite(siteResult.data)
 
-      // If user is authenticated, check their access to this site
-      if (user?.id) {
-        const accessResult = await checkUserSiteAccess(user.id, siteResult.data.id)
-        
+      // Fetch fresh user from Supabase and check their access to this site
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+
+      if (currentUser?.id) {
+        const accessResult = await checkUserSiteAccess(currentUser.id, siteResult.data.id)
+
         if (accessResult.data) {
           setUserAccess(accessResult.data)
           setCanEdit(accessResult.data.canEdit)
@@ -272,23 +276,27 @@ export function SiteProvider({
     } finally {
       setLoading(false)
     }
-  }, [user?.id])
+  }, [])
 
   /**
    * Loads a site by ID and sets it as current
+   * Fetches fresh user from Supabase to avoid race conditions with React state
    */
   const loadSiteById = useCallback(async (siteId: string) => {
     // Cancel any previous load operation
     siteLoadAbortRef.current?.abort()
     siteLoadAbortRef.current = new AbortController()
     const abortSignal = siteLoadAbortRef.current.signal
-    
+
     try {
       setLoading(true)
       setError(null)
 
+      // Fetch fresh user from Supabase to avoid race conditions with React state
+      const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
+
       // Check if user has access to this site
-      if (!user?.id) {
+      if (authError || !currentUser?.id) {
         setError({
           code: 'UNAUTHORIZED',
           message: 'User not authenticated'
@@ -296,7 +304,7 @@ export function SiteProvider({
         return
       }
 
-      const accessResult = await checkUserSiteAccess(user.id, siteId)
+      const accessResult = await checkUserSiteAccess(currentUser.id, siteId)
       
       // Check if request was aborted
       if (abortSignal.aborted) return
@@ -349,32 +357,51 @@ export function SiteProvider({
     } finally {
       setLoading(false)
     }
-  }, [user?.id])
+  }, [])
 
   /**
    * Loads all sites the user has access to
+   * Fetches fresh user from Supabase to avoid race conditions with React state
    */
   const refreshUserSites = useCallback(async () => {
-    if (!user?.id) {
-      setUserSites([])
-      return
-    }
-
     // Cancel any previous user sites load operation
     userSitesAbortRef.current?.abort()
     userSitesAbortRef.current = new AbortController()
     const abortSignal = userSitesAbortRef.current.signal
 
     try {
+      // Fetch fresh user from Supabase to avoid race conditions with React state
+      const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
+
+      console.log('[REFRESH_SITES] Starting refresh for user:', currentUser?.id)
+
+      if (authError || !currentUser?.id) {
+        console.log('[REFRESH_SITES] No user ID or auth error, clearing sites', authError?.message)
+        setUserSites([])
+        return
+      }
+
+      console.log('[REFRESH_SITES] Setting loading state')
       setUserSitesLoading(true)
       setUserSitesError(null)
 
-      const result = await getUserSites(user.id)
-      
+      console.log('[REFRESH_SITES] Calling getUserSites')
+      const result = await getUserSites(currentUser.id)
+
+      console.log('[REFRESH_SITES] Got result:', {
+        hasError: !!result.error,
+        dataLength: result.data?.length || 0,
+        wasAborted: abortSignal.aborted
+      })
+
       // Check if request was aborted
-      if (abortSignal.aborted) return
-      
+      if (abortSignal.aborted) {
+        console.log('[REFRESH_SITES] Request was aborted, exiting')
+        return
+      }
+
       if (result.error) {
+        console.log('[REFRESH_SITES] Error:', result.error)
         if (!abortSignal.aborted) {
           setUserSitesError(result.error)
           setUserSites([])
@@ -384,9 +411,11 @@ export function SiteProvider({
 
       // Final check before updating state
       if (!abortSignal.aborted) {
+        console.log('[REFRESH_SITES] Setting user sites:', result.data?.length || 0, 'sites')
         setUserSites(result.data || [])
       }
     } catch (err) {
+      console.log('[REFRESH_SITES] Exception caught:', err)
       setUserSitesError({
         code: 'LOAD_FAILED',
         message: 'Failed to load user sites',
@@ -394,15 +423,16 @@ export function SiteProvider({
       })
       setUserSites([])
     } finally {
+      console.log('[REFRESH_SITES] Finished, setting loading false')
       setUserSitesLoading(false)
     }
-  }, [user?.id])
+  }, [])
 
   /**
    * Switches to a different site with comprehensive cache clearing
    */
   const switchSite = useCallback(async (siteId: string | null) => {
-    console.log('[SITE_DEBUG] switchSite - Starting site switch:', {
+    debug.site('switchSite - Starting site switch:', {
       fromSiteId: currentSite?.id,
       toSiteId: siteId,
       timestamp: Date.now()
@@ -419,7 +449,7 @@ export function SiteProvider({
 
       // Clear caches for the current site before switching
       if (currentSite?.id && currentSite.id !== siteId) {
-        console.log('[SITE_DEBUG] switchSite - Clearing caches for previous site:', currentSite.id)
+        debug.site('switchSite - Clearing caches for previous site:', currentSite.id)
         clearAllSiteCaches(currentSite.id)
       }
 
@@ -430,11 +460,11 @@ export function SiteProvider({
         // Clear any caches for the target site too (in case of stale data)
         clearAllSiteCaches(siteId)
 
-        console.log('[SITE_DEBUG] switchSite - Loading new site:', siteId)
+        debug.site('switchSite - Loading new site:', siteId)
         await loadSiteById(siteId)
       } else {
         // Clear site selection completely
-        console.log('[SITE_DEBUG] switchSite - Clearing site selection')
+        debug.site('switchSite - Clearing site selection')
 
         setCurrentSite(null)
         setUserAccess(null)
@@ -450,7 +480,7 @@ export function SiteProvider({
         setLoading(false)
       }
 
-      console.log('[SITE_DEBUG] switchSite - Site switch completed successfully')
+      debug.site('switchSite - Site switch completed successfully')
     } catch (error) {
       console.error('[SITE_DEBUG] switchSite - Error during site switch:', error)
       setError({
@@ -475,7 +505,7 @@ export function SiteProvider({
 
   // Initialize site resolution on mount
   useEffect(() => {
-    console.log('[SITE_DEBUG] SiteProvider - Initial effect triggered:', {
+    debug.site('SiteProvider - Initial effect triggered:', {
       authLoading,
       hasInitialSiteData: !!initialSiteData,
       initialSiteId,
@@ -484,13 +514,13 @@ export function SiteProvider({
     });
 
     if (authLoading) {
-      console.log('[SITE_DEBUG] SiteProvider - Auth still loading, waiting');
+      debug.site('SiteProvider - Auth still loading, waiting');
       return
     }
 
     // If we already have initial site data, don't reload
     if (initialSiteData) {
-      console.log('[SITE_DEBUG] SiteProvider - Using initial site data:', {
+      debug.site('SiteProvider - Using initial site data:', {
         id: initialSiteData.id,
         name: initialSiteData.name,
         subdomain: initialSiteData.subdomain
@@ -501,12 +531,12 @@ export function SiteProvider({
 
     // Priority: initialSiteId > initialHostname > current URL
     if (initialSiteId) {
-      console.log('[SITE_DEBUG] SiteProvider - Loading by initial siteId:', initialSiteId);
+      debug.site('SiteProvider - Loading by initial siteId:', initialSiteId);
       setTimeout(() => {
         loadSiteById(initialSiteId)
       }, 0)
     } else if (initialHostname) {
-      console.log('[SITE_DEBUG] SiteProvider - Resolving by initial hostname:', initialHostname);
+      debug.site('SiteProvider - Resolving by initial hostname:', initialHostname);
       setTimeout(() => {
         resolveSiteFromUrl(`https://${initialHostname}`)
       }, 0)
@@ -520,7 +550,7 @@ export function SiteProvider({
                           hostname.endsWith('.vercel.app') ||
                           hostname.endsWith('.railway.app')
 
-      console.log('[SITE_DEBUG] SiteProvider - Browser environment detected:', {
+      debug.site('SiteProvider - Browser environment detected:', {
         hostname,
         appDomain,
         isMainDomain,
@@ -529,17 +559,17 @@ export function SiteProvider({
 
       if (!isMainDomain) {
         // Only try to resolve from URL if we're on a site-specific domain
-        console.log('[SITE_DEBUG] SiteProvider - Site-specific domain detected, resolving from URL');
+        debug.site('SiteProvider - Site-specific domain detected, resolving from URL');
         setTimeout(() => {
           resolveSiteFromUrl(window.location.href)
         }, 0)
       } else {
         // On main domain, let the URL/localStorage effect handle site selection
-        console.log('[SITE_DEBUG] SiteProvider - Main domain detected, skipping URL resolution');
+        debug.site('SiteProvider - Main domain detected, skipping URL resolution');
         setLoading(false)
       }
     } else {
-      console.log('[SITE_DEBUG] SiteProvider - Server-side, setting loading false');
+      debug.site('SiteProvider - Server-side, setting loading false');
       setLoading(false)
     }
   }, [authLoading, initialSiteId, initialHostname, initialSiteData]) // Remove function dependencies to prevent infinite loops
@@ -756,7 +786,7 @@ export const useSiteId = () => {
   const { currentSite } = useSiteContext()
   const siteId = currentSite?.id || null
 
-  console.log('[SITE_DEBUG] useSiteId - Returning siteId:', {
+  debug.site('useSiteId - Returning siteId:', {
     siteId,
     siteName: currentSite?.name,
     hasCurrentSite: !!currentSite

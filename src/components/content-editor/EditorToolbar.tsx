@@ -10,16 +10,10 @@ import { Separator } from '@/components/ui/separator';
 import {
   Bold,
   Italic,
-  Strikethrough,
-  List,
-  ListOrdered,
   Link,
-  Unlink,
-  Heading1,
-  Heading2,
-  Heading3,
-  Undo,
-  Redo,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import {
@@ -112,146 +106,111 @@ export function EditorToolbar({ editor, disabled = false }: EditorToolbarProps) 
     return null;
   }
 
-  const canUndo = editor.can().undo();
-  const canRedo = editor.can().redo();
-
   return (
     <div className="border-b border-border p-2 flex items-center gap-1 flex-wrap">
-      {/* History controls */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().undo().run()}
-          disabled={!canUndo || disabled}
-          title="Undo"
-        >
-          <Undo className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().redo().run()}
-          disabled={!canRedo || disabled}
-          title="Redo"
-        >
-          <Redo className="h-4 w-4" />
-        </Button>
-      </div>
+      {/* Basic Formatting: Bold, Italic */}
+      <Button
+        variant={isActive('bold') ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        disabled={disabled}
+        title="Bold (Ctrl+B)"
+        className="h-7 w-7 p-0"
+      >
+        <Bold className="h-3.5 w-3.5" />
+      </Button>
+      <Button
+        variant={isActive('italic') ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        disabled={disabled}
+        title="Italic (Ctrl+I)"
+        className="h-7 w-7 p-0"
+      >
+        <Italic className="h-3.5 w-3.5" />
+      </Button>
 
       <Separator orientation="vertical" className="h-6" />
 
-      {/* Text formatting */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant={isActive('bold') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          disabled={disabled}
-          title="Bold"
-        >
-          <Bold className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={isActive('italic') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          disabled={disabled}
-          title="Italic"
-        >
-          <Italic className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={isActive('strike') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          disabled={disabled}
-          title="Strikethrough"
-        >
-          <Strikethrough className="h-4 w-4" />
-        </Button>
-      </div>
+      {/* Heading Controls: Paragraph, H1, H2 */}
+      <Button
+        variant={!isActive('heading') ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => editor.chain().focus().setParagraph().run()}
+        disabled={disabled}
+        title="Paragraph"
+        className="h-7 w-7 p-0 text-xs font-medium"
+      >
+        P
+      </Button>
+      <Button
+        variant={isActive('heading', { level: 1 }) ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        disabled={disabled}
+        title="Heading 1"
+        className="h-7 w-8 p-0 text-xs font-medium"
+      >
+        H1
+      </Button>
+      <Button
+        variant={isActive('heading', { level: 2 }) ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        disabled={disabled}
+        title="Heading 2"
+        className="h-7 w-8 p-0 text-xs font-medium"
+      >
+        H2
+      </Button>
 
       <Separator orientation="vertical" className="h-6" />
 
-      {/* Headings */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant={isActive('heading', { level: 1 }) ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          disabled={disabled}
-          title="Heading 1"
-        >
-          <Heading1 className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={isActive('heading', { level: 2 }) ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          disabled={disabled}
-          title="Heading 2"
-        >
-          <Heading2 className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={isActive('heading', { level: 3 }) ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          disabled={disabled}
-          title="Heading 3"
-        >
-          <Heading3 className="h-4 w-4" />
-        </Button>
-      </div>
+      {/* Alignment Controls */}
+      <Button
+        variant={isActive({ textAlign: 'left' }) || (!isActive({ textAlign: 'center' }) && !isActive({ textAlign: 'right' })) ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => editor.chain().focus().setTextAlign('left').run()}
+        disabled={disabled}
+        title="Align Left"
+        className="h-7 w-7 p-0"
+      >
+        <AlignLeft className="h-3.5 w-3.5" />
+      </Button>
+      <Button
+        variant={isActive({ textAlign: 'center' }) ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => editor.chain().focus().setTextAlign('center').run()}
+        disabled={disabled}
+        title="Align Center"
+        className="h-7 w-7 p-0"
+      >
+        <AlignCenter className="h-3.5 w-3.5" />
+      </Button>
+      <Button
+        variant={isActive({ textAlign: 'right' }) ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => editor.chain().focus().setTextAlign('right').run()}
+        disabled={disabled}
+        title="Align Right"
+        className="h-7 w-7 p-0"
+      >
+        <AlignRight className="h-3.5 w-3.5" />
+      </Button>
 
       <Separator orientation="vertical" className="h-6" />
 
-      {/* Lists */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant={isActive('bulletList') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          disabled={disabled}
-          title="Bullet List"
-        >
-          <List className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={isActive('orderedList') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          disabled={disabled}
-          title="Ordered List"
-        >
-          <ListOrdered className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <Separator orientation="vertical" className="h-6" />
-
-      {/* Links */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant={isActive('link') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setLinkDialogOpen(true)}
-          disabled={disabled}
-          title="Add Link"
-        >
-          <Link className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleLinkRemove}
-          disabled={!isActive('link') || disabled}
-          title="Remove Link"
-        >
-          <Unlink className="h-4 w-4" />
-        </Button>
-      </div>
+      {/* Link Control */}
+      <Button
+        variant={isActive('link') ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setLinkDialogOpen(true)}
+        disabled={disabled}
+        title="Link (Ctrl+K)"
+        className="h-7 w-7 p-0"
+      >
+        <Link className="h-3.5 w-3.5" />
+      </Button>
 
       <LinkDialog
         isOpen={linkDialogOpen}

@@ -44,6 +44,7 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [content, setContentState] = useState<EditorContent>({
     html: '',
     json: {},
@@ -58,30 +59,44 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
     immediatelyRender: false, // Prevent SSR hydration mismatches
     onCreate: ({ editor }) => {
       setIsLoading(false);
-      updateContent(editor);
+      // Skip onChange during creation to prevent false dirty state
+      updateContent(editor, true);
+      // Mark initialization as complete after a brief delay
+      setTimeout(() => setIsInitializing(false), 100);
     },
     onUpdate: ({ editor }) => {
-      setIsDirty(true);
-      updateContent(editor);
-      debouncedSave();
+      // Only mark as dirty and trigger onChange if not initializing
+      if (!isInitializing) {
+        setIsDirty(true);
+        updateContent(editor);
+        debouncedSave();
+      }
     },
   });
 
-  // Update content state from editor
-  const updateContent = useCallback((editorInstance: Editor) => {
+  // Update content state from editor with safety checks
+  const updateContent = useCallback((editorInstance: Editor, skipOnChange = false) => {
     try {
       const newContent = exportEditorContent(editorInstance);
       setContentState(newContent);
       setError(null);
-      // Call onChange with HTML content if provided
-      if (onChange) {
-        onChange(newContent.html);
+
+      // Only call onChange if:
+      // 1. onChange callback exists
+      // 2. Not initializing (prevent false triggers during setup)
+      // 3. Content actually changed (like InlineTextEditor safety check)
+      // 4. Not explicitly skipping onChange
+      if (onChange && !isInitializing && !skipOnChange) {
+        const currentHtml = typeof initialContent === 'string' ? initialContent : '';
+        if (newContent.html !== currentHtml) {
+          onChange(newContent.html);
+        }
       }
     } catch (error: unknown) {
       const errorDetails = handleError(error);
       setError(errorDetails.message);
     }
-  }, [onChange]);
+  }, [onChange, isInitializing, initialContent]);
 
   // Save function
   const save = useCallback(async (): Promise<void> => {
@@ -116,13 +131,16 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
     if (!editor) return;
 
     try {
+      setIsInitializing(true);
       editor.commands.setContent(initialContent);
       setIsDirty(false);
       setError(null);
-      updateContent(editor);
+      updateContent(editor, true); // Skip onChange during reset
+      setTimeout(() => setIsInitializing(false), 100);
     } catch (error: unknown) {
       const errorDetails = handleError(error);
       setError(errorDetails.message);
+      setIsInitializing(false);
     }
   }, [editor, initialContent, updateContent]);
 
@@ -135,12 +153,15 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
         throw new Error('Invalid content format');
       }
 
+      setIsInitializing(true);
       editor.commands.setContent(newContent);
       setIsDirty(true);
       updateContent(editor);
+      setTimeout(() => setIsInitializing(false), 100);
     } catch (error: unknown) {
       const errorDetails = handleError(error);
       setError(errorDetails.message);
+      setIsInitializing(false);
     }
   }, [editor, updateContent]);
 
@@ -155,8 +176,11 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
   // Update content when initial content changes
   useEffect(() => {
     if (editor && initialContent !== editor.getHTML()) {
+      setIsInitializing(true);
       editor.commands.setContent(initialContent);
       setIsDirty(false);
+      // Reset initialization flag after content is set
+      setTimeout(() => setIsInitializing(false), 100);
     }
   }, [editor, initialContent]);
 
@@ -164,7 +188,8 @@ export function useRichTextEditor(options: UseRichTextEditorOptions = {}): UseRi
   useEffect(() => {
     if (editor && !isLoading) {
       try {
-        updateContent(editor);
+        // Skip onChange during initial content load to prevent false dirty state
+        updateContent(editor, true);
       } catch (error: unknown) {
         const errorDetails = handleError(error);
         setError(errorDetails.message);

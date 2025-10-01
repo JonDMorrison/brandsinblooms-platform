@@ -5,17 +5,19 @@
 
 // New extracted inline editor components
 export { HeroEditor } from './HeroEditor'
+export { HeaderEditor } from './HeaderEditor'
 export { FeaturedEditor } from './FeaturedEditor'
 export { CategoriesEditor } from './CategoriesEditor'
 export { RichTextSectionEditor } from './RichTextSectionEditor'
 export { TextSectionEditor } from './TextSectionEditor'
 export { ImageSectionEditor } from './ImageSectionEditor'
 export { IconSectionEditor } from './IconSectionEditor'
+export { FAQEditor } from './FAQEditor'
+export { BusinessInfoEditor } from './BusinessInfoEditor'
 
 // Existing modular editor components
 export { FeaturesEditor } from '@/src/components/content-sections/editors/FeaturesEditor'
 export { TestimonialsEditor } from '@/src/components/content-sections/editors/TestimonialsEditor'
-export { TeamEditor } from '@/src/components/content-sections/editors/TeamEditor'
 export { ValuesEditor } from '@/src/components/content-sections/editors/ValuesEditor'
 export { GalleryEditor } from '@/src/components/content-sections/editors/GalleryEditor'
 export { PricingEditor } from '@/src/components/content-sections/editors/PricingEditor'

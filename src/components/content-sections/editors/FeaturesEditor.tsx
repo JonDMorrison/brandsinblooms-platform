@@ -1,18 +1,20 @@
 /**
  * Features section editor component
- * Handles features section configuration matching customer site structure:
- * headline, description, and simple features array
+ * Handles features section configuration with icons matching customer site structure:
+ * headline, description, and features array with icons
  */
 
 import React from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { Label } from '@/src/components/ui/label'
 import { Button } from '@/src/components/ui/button'
+import { Input } from '@/src/components/ui/input'
 import { Plus, X } from 'lucide-react'
-import { 
-  FormField, 
-  TextareaField, 
-  FormSection 
+import { IconSelector } from '@/src/components/ui/IconSelector'
+import {
+  FormField,
+  TextareaField,
+  FormSection
 } from '@/src/components/content-editor/editors/shared/form-utils'
 import { BackgroundToggle } from '@/src/components/content-editor/editors/shared/background-toggle'
 
@@ -22,9 +24,31 @@ interface FeaturesEditorProps {
   onUpdate: (sectionKey: string, section: ContentSection) => void
 }
 
+interface FeatureItem {
+  id: string
+  icon: string
+  title: string
+}
+
 export function FeaturesEditor({ section, sectionKey, onUpdate }: FeaturesEditorProps) {
   const { data } = section
-  const features = (data.features as string[]) || []
+
+  // Convert old string[] format to new object[] format for backward compatibility
+  const rawFeatures = data.features as string[] | FeatureItem[] | undefined
+  const features: FeatureItem[] = React.useMemo(() => {
+    if (!rawFeatures || !Array.isArray(rawFeatures)) return []
+
+    // Check if it's old string[] format
+    if (typeof rawFeatures[0] === 'string') {
+      return (rawFeatures as string[]).map((title, i) => ({
+        id: `feature-${Date.now()}-${i}`,
+        icon: 'Check',
+        title
+      }))
+    }
+
+    return rawFeatures as FeatureItem[]
+  }, [rawFeatures])
 
   const handleDataChange = (newData: Partial<ContentSection['data']>) => {
     onUpdate(sectionKey, {
@@ -34,13 +58,18 @@ export function FeaturesEditor({ section, sectionKey, onUpdate }: FeaturesEditor
   }
 
   const handleAddFeature = () => {
-    const newFeatures = [...features, 'New feature description']
+    const newFeature: FeatureItem = {
+      id: `feature-${Date.now()}`,
+      icon: 'Check',
+      title: 'New feature'
+    }
+    const newFeatures = [...features, newFeature]
     handleDataChange({ features: newFeatures })
   }
 
-  const handleUpdateFeature = (index: number, newText: string) => {
+  const handleUpdateFeature = (index: number, field: keyof FeatureItem, value: string) => {
     const newFeatures = [...features]
-    newFeatures[index] = newText
+    newFeatures[index] = { ...newFeatures[index], [field]: value }
     handleDataChange({ features: newFeatures })
   }
 
@@ -77,9 +106,10 @@ export function FeaturesEditor({ section, sectionKey, onUpdate }: FeaturesEditor
         section={section}
         onUpdate={onUpdate}
         className="mb-4"
+        availableOptions={['default', 'alternate']}
       />
 
-      {/* Features List Management */}
+      {/* Features List Management with Icons */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-xs font-medium">Features</Label>
@@ -95,25 +125,42 @@ export function FeaturesEditor({ section, sectionKey, onUpdate }: FeaturesEditor
         </div>
 
         <div className="space-y-2">
-          {features.map((feature, index) => (
-            <div key={index} className="flex gap-2 items-start">
-              <div className="flex-1">
-                <textarea
-                  value={feature}
-                  onChange={(e) => handleUpdateFeature(index, e.target.value)}
-                  placeholder="Feature description..."
-                  className="w-full px-3 py-2 text-sm border border-input bg-background rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-h-[60px]"
-                  rows={2}
-                />
+          {features.map((featureItem, index) => (
+            <div key={featureItem.id || index} className="border border-input rounded-md p-3 space-y-2">
+              {/* Header with Feature # and Remove button */}
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-gray-600">Feature {index + 1}</Label>
+                <Button
+                  onClick={() => handleRemoveFeature(index)}
+                  size="sm"
+                  variant="outline"
+                  className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </div>
-              <Button
-                onClick={() => handleRemoveFeature(index)}
-                size="sm"
-                variant="outline"
-                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <X className="h-3 w-3" />
-              </Button>
+
+              {/* Vertical layout for Icon and Title */}
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">Icon</Label>
+                  <IconSelector
+                    value={featureItem.icon || 'Check'}
+                    onChange={(icon) => handleUpdateFeature(index, 'icon', icon)}
+                    iconSize={16}
+                    maxResults={60}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">Title</Label>
+                  <Input
+                    value={featureItem.title || ''}
+                    onChange={(e) => handleUpdateFeature(index, 'title', e.target.value)}
+                    placeholder="Feature title"
+                    className="h-8"
+                  />
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -121,7 +168,7 @@ export function FeaturesEditor({ section, sectionKey, onUpdate }: FeaturesEditor
         {features.length === 0 && (
           <div className="text-center py-6 text-gray-500 border border-dashed border-gray-300 rounded-lg">
             <p className="text-sm">No features added yet</p>
-            <p className="text-xs text-gray-400 mt-1">Click "Add Feature" to get started</p>
+            <p className="text-xs text-gray-400 mt-1">Click &ldquo;Add Feature&rdquo; to get started</p>
           </div>
         )}
       </div>

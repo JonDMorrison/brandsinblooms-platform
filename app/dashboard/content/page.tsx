@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/ca
 import { Button } from '@/src/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { createContentColumns, type ContentItem } from '@/src/components/content/content-columns'
-import { 
-  FileText, 
-  Plus, 
+import {
+  FileText,
+  Plus,
   Activity,
   Files,
 } from 'lucide-react'
@@ -17,6 +17,7 @@ import { DataTable } from '@/src/components/ui/data-table'
 import { useSiteId, useSiteContext } from '@/src/contexts/SiteContext'
 import { DashboardStats, type DashboardStat } from '@/src/components/DashboardStats'
 import { CreateContentModal } from '@/src/components/content/CreateContentModal'
+import { debug } from '@/src/lib/utils/debug'
 
 
 
@@ -26,7 +27,7 @@ export default function ContentPage() {
   const siteId = useSiteId()
   const { loading: siteLoading, currentSite } = useSiteContext()
 
-  console.log('[CONTENT_DEBUG] Content page render:', {
+  debug.content('Content page render:', {
     siteId,
     siteLoading,
     currentSite: !!currentSite,
@@ -37,7 +38,7 @@ export default function ContentPage() {
   const { data: contentResponse, loading: isLoading, error, refresh: refetch } = useContent()
   const { data: contentStats, loading: statsLoading, refresh: refetchStats } = useContentStats()
 
-  console.log('[CONTENT_PAGE_DEBUG] Hook states:', {
+  debug.content('Hook states:', {
     siteId,
     siteName: currentSite?.name,
     isLoading,
@@ -170,7 +171,7 @@ export default function ContentPage() {
             <TabsContent value={activeTab} className="mt-6">
               {(() => {
                 const shouldShowLoading = isLoading || siteLoading || !siteId || !currentSite;
-                console.log('[CONTENT_DEBUG] Loading decision:', {
+                debug.content('Loading decision:', {
                   shouldShowLoading,
                   isLoading,
                   siteLoading,

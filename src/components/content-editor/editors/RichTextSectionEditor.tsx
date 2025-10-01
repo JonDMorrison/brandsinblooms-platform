@@ -6,20 +6,40 @@
 import React from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { RichTextEditor } from '@/src/components/content-editor'
+import { BackgroundToggle } from '@/src/components/content-editor/editors/shared/background-toggle'
 
 interface RichTextSectionEditorProps {
   section: ContentSection
-  onUpdate: (newData: Partial<ContentSection['data']>) => void
+  sectionKey: string
+  onUpdate: (sectionKey: string, section: ContentSection) => void
 }
 
-export function RichTextSectionEditor({ section, onUpdate }: RichTextSectionEditorProps) {
+export function RichTextSectionEditor({ section, sectionKey, onUpdate }: RichTextSectionEditorProps) {
   const { data, type } = section
 
+  const handleDataChange = (newData: Partial<ContentSection['data']>) => {
+    onUpdate(sectionKey, {
+      ...section,
+      data: { ...section.data, ...newData }
+    })
+  }
+
   return (
-    <RichTextEditor
-      initialContent={data.content || ''}
-      onChange={(content) => onUpdate({ content })}
-      placeholder={`Enter ${type} content...`}
-    />
+    <>
+      {/* Background Color Toggle */}
+      <BackgroundToggle
+        sectionKey={sectionKey}
+        section={section}
+        onUpdate={onUpdate}
+        className="mb-4"
+        availableOptions={['default', 'alternate']}
+      />
+
+      <RichTextEditor
+        initialContent={data.content || ''}
+        onChange={(content) => handleDataChange({ content })}
+        placeholder={`Enter ${type} content...`}
+      />
+    </>
   )
 }

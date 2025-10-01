@@ -59,6 +59,10 @@ export function PageTab({
   const [slugMessage, setSlugMessage] = useState('')
   const [slugSuggestions, setSlugSuggestions] = useState<string[]>([])
   const [showHomePageDialog, setShowHomePageDialog] = useState(false)
+  const [showPublishDialog, setShowPublishDialog] = useState(false)
+  const [pendingPublishState, setPendingPublishState] = useState(false)
+  const [showPrivacyPageDialog, setShowPrivacyPageDialog] = useState(false)
+  const [showTermsPageDialog, setShowTermsPageDialog] = useState(false)
   
   const slugValidator = useSlugValidator(siteId || '', contentId)
   
@@ -114,7 +118,25 @@ export function PageTab({
   }
 
   const handlePublishedToggle = (published: boolean) => {
-    onPublishedChange(published)
+    // For about/contact pages, show confirmation dialog when publishing
+    if (published && (layout === 'about' || layout === 'contact')) {
+      setPendingPublishState(true)
+      setShowPublishDialog(true)
+    } else {
+      // Regular pages or unpublishing - no confirmation needed
+      onPublishedChange(published)
+    }
+  }
+
+  const confirmPublish = () => {
+    onPublishedChange(true)
+    setShowPublishDialog(false)
+    setPendingPublishState(false)
+  }
+
+  const cancelPublish = () => {
+    setShowPublishDialog(false)
+    setPendingPublishState(false)
   }
 
   const handleHomePageToggle = (isHome: boolean) => {
@@ -133,6 +155,42 @@ export function PageTab({
     onSlugChange('home')
     onPublishedChange(true)
     setShowHomePageDialog(false)
+  }
+
+  const handlePrivacyPageToggle = (isPrivacy: boolean) => {
+    if (isPrivacy && slugInput !== 'privacy') {
+      setShowPrivacyPageDialog(true)
+    } else if (isPrivacy) {
+      // Already has privacy slug, just publish it
+      onPublishedChange(true)
+    }
+    // If setting to false, do nothing special - user can manually unpublish
+  }
+
+  const confirmPrivacyPageChange = () => {
+    // Set slug to 'privacy' and publish the page
+    setSlugInput('privacy')
+    onSlugChange('privacy')
+    onPublishedChange(true)
+    setShowPrivacyPageDialog(false)
+  }
+
+  const handleTermsPageToggle = (isTerms: boolean) => {
+    if (isTerms && slugInput !== 'terms') {
+      setShowTermsPageDialog(true)
+    } else if (isTerms) {
+      // Already has terms slug, just publish it
+      onPublishedChange(true)
+    }
+    // If setting to false, do nothing special - user can manually unpublish
+  }
+
+  const confirmTermsPageChange = () => {
+    // Set slug to 'terms' and publish the page
+    setSlugInput('terms')
+    onSlugChange('terms')
+    onPublishedChange(true)
+    setShowTermsPageDialog(false)
   }
 
   const getSlugStatusIcon = () => {
@@ -178,80 +236,82 @@ export function PageTab({
           </p>
         </div>
 
-        {/* Page URL/Slug */}
-        <div className="space-y-2">
-          <Label htmlFor="page-slug" className="text-xs font-medium">
-            Page URL
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              id="page-slug"
-              type="text"
-              value={slugInput}
-              onChange={(e) => setSlugInput(e.target.value.toLowerCase())}
-              className="h-8 flex-1"
-              placeholder="page-url"
-            />
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={generateSlugFromTitle}
-              disabled={!pageTitle}
-              className="h-8"
-            >
-              Auto
-            </Button>
-          </div>
-          
-          {/* URL Preview */}
-          <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
-            <Globe className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-600">
-              {siteUrl}/{slugInput || 'page-url'}
-            </span>
-            <ExternalLink className="h-3 w-3 text-gray-400" />
-          </div>
-
-          {/* Slug Status */}
-          {slugInput && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                {getSlugStatusIcon()}
-                <span className={`text-xs ${
-                  slugStatus === 'available' ? 'text-green-600' :
-                  slugStatus === 'taken' || slugStatus === 'invalid' ? 'text-red-600' :
-                  'text-gray-500'
-                }`}>
-                  {getSlugStatusMessage()}
-                </span>
-              </div>
-              
-              {/* Suggestions */}
-              {slugStatus === 'taken' && slugSuggestions.length > 0 && (
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-600">Try these alternatives:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {slugSuggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => applySuggestion(suggestion)}
-                        className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+        {/* Page URL/Slug - Hidden for About and Contact pages */}
+        {layout !== 'about' && layout !== 'contact' && (
+          <div className="space-y-2">
+            <Label htmlFor="page-slug" className="text-xs font-medium">
+              Page URL
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                id="page-slug"
+                type="text"
+                value={slugInput}
+                onChange={(e) => setSlugInput(e.target.value.toLowerCase())}
+                className="h-8 flex-1"
+                placeholder="page-url"
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={generateSlugFromTitle}
+                disabled={!pageTitle}
+                className="h-8"
+              >
+                Auto
+              </Button>
             </div>
-          )}
-          
-          <p className="text-xs text-gray-500">
-            URL-friendly version of your page title (lowercase, hyphens only)
-          </p>
-        </div>
+
+            {/* URL Preview */}
+            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
+              <Globe className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-600">
+                {siteUrl}/{slugInput || 'page-url'}
+              </span>
+              <ExternalLink className="h-3 w-3 text-gray-400" />
+            </div>
+
+            {/* Slug Status */}
+            {slugInput && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  {getSlugStatusIcon()}
+                  <span className={`text-xs ${
+                    slugStatus === 'available' ? 'text-green-600' :
+                    slugStatus === 'taken' || slugStatus === 'invalid' ? 'text-red-600' :
+                    'text-gray-500'
+                  }`}>
+                    {getSlugStatusMessage()}
+                  </span>
+                </div>
+
+                {/* Suggestions */}
+                {slugStatus === 'taken' && slugSuggestions.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-600">Try these alternatives:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {slugSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => applySuggestion(suggestion)}
+                          className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <p className="text-xs text-gray-500">
+              URL-friendly version of your page title (lowercase, hyphens only)
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Publication Settings */}
@@ -291,7 +351,7 @@ export function PageTab({
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-md ${
                 slug === 'home' && isPublished
-                  ? 'bg-blue-100 text-blue-600' 
+                  ? 'bg-blue-100 text-blue-600'
                   : 'bg-gray-100 text-gray-500'
               }`}>
                 <Home className="h-4 w-4" />
@@ -300,7 +360,7 @@ export function PageTab({
                 <p className="text-sm font-medium">Set as Home Page</p>
                 <p className="text-xs text-gray-500">
                   {slug === 'home' && isPublished
-                    ? 'This is your site\'s home page' 
+                    ? 'This is your site\'s home page'
                     : 'Make this your site\'s home page'
                   }
                 </p>
@@ -309,6 +369,62 @@ export function PageTab({
             <Switch
               checked={slug === 'home' && isPublished}
               onCheckedChange={handleHomePageToggle}
+            />
+          </div>
+        )}
+
+        {/* Privacy Policy Setting (Other Layout Pages Only) */}
+        {layout === 'other' && (
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-md ${
+                slug === 'privacy' && isPublished
+                  ? 'bg-purple-100 text-purple-600'
+                  : 'bg-gray-100 text-gray-500'
+              }`}>
+                <Globe className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Set as Privacy Policy</p>
+                <p className="text-xs text-gray-500">
+                  {slug === 'privacy' && isPublished
+                    ? 'This is your site\'s privacy policy'
+                    : 'Make this your site\'s privacy policy'
+                  }
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={slug === 'privacy' && isPublished}
+              onCheckedChange={handlePrivacyPageToggle}
+            />
+          </div>
+        )}
+
+        {/* Terms of Service Setting (Other Layout Pages Only) */}
+        {layout === 'other' && (
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-md ${
+                slug === 'terms' && isPublished
+                  ? 'bg-indigo-100 text-indigo-600'
+                  : 'bg-gray-100 text-gray-500'
+              }`}>
+                <Globe className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Set as Terms of Service</p>
+                <p className="text-xs text-gray-500">
+                  {slug === 'terms' && isPublished
+                    ? 'This is your site\'s terms of service'
+                    : 'Make this your site\'s terms of service'
+                  }
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={slug === 'terms' && isPublished}
+              onCheckedChange={handleTermsPageToggle}
             />
           </div>
         )}
@@ -348,8 +464,8 @@ export function PageTab({
               </p>
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
                 <p className="text-sm text-amber-800">
-                  <strong>Note:</strong> Only one home page is allowed per site. 
-                  If another page is currently set as home, it will be automatically 
+                  <strong>Note:</strong> Only one home page is allowed per site.
+                  If another page is currently set as home, it will be automatically
                   renamed and this page will become the new home page.
                 </p>
               </div>
@@ -365,11 +481,136 @@ export function PageTab({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmHomePageChange}
               className="bg-blue-600 hover:bg-blue-700"
             >
               Make Home Page
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Publish Confirmation Dialog (About/Contact Pages) */}
+      <AlertDialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              Publish {layout === 'about' ? 'About' : 'Contact'} Page
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to publish this {layout} page?
+            </p>
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <p className="text-sm text-amber-800">
+                <strong>Note:</strong> Only one {layout} page can be published at a time.
+                If another {layout} page is currently published, it will be automatically
+                unpublished and archived.
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-2">
+                This action will:
+              </p>
+              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                <li>Set this page's URL to /{layout}</li>
+                <li>Publish this page</li>
+                <li>Unpublish and archive any existing {layout} page</li>
+              </ul>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelPublish}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmPublish}
+              className="bg-gradient-primary hover:opacity-90"
+            >
+              Publish Page
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Privacy Policy Confirmation Dialog */}
+      <AlertDialog open={showPrivacyPageDialog} onOpenChange={setShowPrivacyPageDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              Set as Privacy Policy
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Are you sure you want to make this page your site's privacy policy?
+              </p>
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                <p className="text-sm text-amber-800">
+                  <strong>Note:</strong> Only one privacy policy page is allowed per site.
+                  If another page is currently set as privacy policy, it will be automatically
+                  renamed and this page will become the new privacy policy.
+                </p>
+              </div>
+              <p className="text-sm text-gray-600">
+                This action will:
+              </p>
+              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                <li>Set this page's URL to /privacy</li>
+                <li>Automatically publish this page</li>
+                <li>Rename any existing privacy policy page</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmPrivacyPageChange}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              Make Privacy Policy
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Terms of Service Confirmation Dialog */}
+      <AlertDialog open={showTermsPageDialog} onOpenChange={setShowTermsPageDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              Set as Terms of Service
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Are you sure you want to make this page your site's terms of service?
+              </p>
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                <p className="text-sm text-amber-800">
+                  <strong>Note:</strong> Only one terms of service page is allowed per site.
+                  If another page is currently set as terms of service, it will be automatically
+                  renamed and this page will become the new terms of service.
+                </p>
+              </div>
+              <p className="text-sm text-gray-600">
+                This action will:
+              </p>
+              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                <li>Set this page's URL to /terms</li>
+                <li>Automatically publish this page</li>
+                <li>Rename any existing terms of service page</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmTermsPageChange}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              Make Terms of Service
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

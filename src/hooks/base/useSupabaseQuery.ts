@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { handleError } from '@/lib/types/error-handling'
+import { debug } from '@/src/lib/utils/debug'
 
 export interface UseSupabaseQueryOptions<T> {
   enabled?: boolean
@@ -63,7 +64,7 @@ export function useSupabaseQuery<T>(
         if (stored) {
           const parsed = JSON.parse(stored)
           const cachedData = parsed.data || initialData
-          console.log('[CACHE_DEBUG] Initializing with cached data:', {
+          debug.cache('Initializing with cached data:', {
             persistKey,
             hasCachedData: !!cachedData,
             cacheTimestamp: parsed.timestamp,
@@ -73,7 +74,7 @@ export function useSupabaseQuery<T>(
           return cachedData
         }
       } catch (error) {
-        console.warn('[CACHE_DEBUG] Failed to parse cached data:', { persistKey, error })
+        debug.cache('Failed to parse cached data:', { persistKey, error })
         // Ignore parse errors and clear invalid cache
         try {
           localStorage.removeItem(persistKey)
@@ -82,7 +83,7 @@ export function useSupabaseQuery<T>(
         }
       }
     }
-    console.log('[CACHE_DEBUG] No cached data, using initialData:', { persistKey, hasInitialData: !!initialData })
+    debug.cache('No cached data, using initialData:', { persistKey, hasInitialData: !!initialData })
     return initialData
   })
 
@@ -90,7 +91,7 @@ export function useSupabaseQuery<T>(
   const [loading, setLoading] = useState(() => {
     const hasData = data !== null && data !== undefined
     const shouldShowLoading = !hasData // Only show loading skeleton when no cached data
-    console.log('[LOADING_DEBUG] Initial loading state (fixed):', {
+    debug.loading('Initial loading state (fixed):', {
       persistKey,
       hasData,
       enabled,
@@ -113,7 +114,7 @@ export function useSupabaseQuery<T>(
   const execute = useCallback(async (isBackgroundRefresh = false) => {
     const hasCurrentData = data !== null && data !== undefined
 
-    console.log('[LOADING_DEBUG] execute() called:', {
+    debug.loading('execute() called:', {
       persistKey,
       currentLoading: loading,
       hasCurrentData,
@@ -130,10 +131,10 @@ export function useSupabaseQuery<T>(
     try {
       // STALE-WHILE-REVALIDATE: Only show loading for fresh fetches (no cache)
       if (!hasCurrentData && !isBackgroundRefresh) {
-        console.log('[LOADING_DEBUG] Setting loading = true (fresh fetch):', { persistKey })
+        debug.loading('Setting loading = true (fresh fetch):', { persistKey })
         setLoading(true)
       } else {
-        console.log('[LOADING_DEBUG] Background refresh - keeping loading = false:', { persistKey })
+        debug.loading('Background refresh - keeping loading = false:', { persistKey })
       }
       setError(null)
 
@@ -141,11 +142,11 @@ export function useSupabaseQuery<T>(
 
       // Check if request was aborted
       if (signal.aborted) {
-        console.log('[LOADING_DEBUG] Request was aborted:', { persistKey })
+        debug.loading('Request was aborted:', { persistKey })
         return
       }
 
-      console.log('[LOADING_DEBUG] Query completed successfully:', {
+      debug.loading('Query completed successfully:', {
         persistKey,
         hasResult: !!result,
         resultType: typeof result
@@ -163,7 +164,7 @@ export function useSupabaseQuery<T>(
             timestamp: new Date().toISOString()
           }
           localStorage.setItem(persistKey, JSON.stringify(toStore))
-          console.log('[CACHE_DEBUG] Data cached successfully:', { persistKey })
+          debug.cache('Data cached successfully:', { persistKey })
         } catch (e) {
           console.error('[CACHE_DEBUG] Failed to persist data:', { persistKey, error: e })
         }
@@ -175,17 +176,17 @@ export function useSupabaseQuery<T>(
     } catch (err) {
       // Don't set error if request was aborted
       if (!signal.aborted) {
-        console.log('[LOADING_DEBUG] Query failed:', { persistKey, error: err })
+        debug.loading('Query failed:', { persistKey, error: err })
         const handledError = handleError(err)
         setError(handledError)
         onError?.(handledError)
       }
     } finally {
       if (!signal.aborted && !hasCurrentData && !isBackgroundRefresh) {
-        console.log('[LOADING_DEBUG] Setting loading = false (fresh fetch complete):', { persistKey })
+        debug.loading('Setting loading = false (fresh fetch complete):', { persistKey })
         setLoading(false)
       } else if (!signal.aborted) {
-        console.log('[LOADING_DEBUG] Background refresh complete, loading state unchanged:', { persistKey })
+        debug.loading('Background refresh complete, loading state unchanged:', { persistKey })
       }
     }
   }, [queryFn, persistKey, onSuccess, onError, data])
@@ -209,7 +210,7 @@ export function useSupabaseQuery<T>(
     if (typeof window === 'undefined' || !persistKey) return
 
     const handleSiteSwitch = (event: CustomEvent) => {
-      console.log('[CACHE_DEBUG] Received siteSwitch event, clearing cache for:', persistKey)
+      debug.cache('Received siteSwitch event, clearing cache for:', persistKey)
 
       try {
         localStorage.removeItem(persistKey)
@@ -218,7 +219,7 @@ export function useSupabaseQuery<T>(
         setIsStale(true)
         setLastFetch(null)
       } catch (error) {
-        console.warn('[CACHE_DEBUG] Failed to clear cache on site switch:', error)
+        debug.cache('Failed to clear cache on site switch:', error)
       }
     }
 
@@ -234,7 +235,7 @@ export function useSupabaseQuery<T>(
   // STALE-WHILE-REVALIDATE: Smart fetch logic based on cache state
   useEffect(() => {
     if (!enabled) {
-      console.log('[LOADING_DEBUG] Query disabled, skipping fetch:', { persistKey })
+      debug.loading('Query disabled, skipping fetch:', { persistKey })
       return
     }
 
@@ -244,7 +245,7 @@ export function useSupabaseQuery<T>(
     const shouldFetch = isFirstRender ? (!hasData || refetchOnMount) : true // Always refetch on dependency changes
     const isBackgroundRefresh = hasData && (refetchOnMount || !isFirstRender)
 
-    console.log('[LOADING_DEBUG] Fetch decision (stale-while-revalidate):', {
+    debug.loading('Fetch decision (stale-while-revalidate):', {
       persistKey,
       enabled,
       isFirstRender,

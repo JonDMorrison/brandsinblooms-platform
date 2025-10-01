@@ -29,9 +29,24 @@ interface SectionDeleteDialogProps {
 }
 
 /**
- * Get human-readable section type name
+ * Get human-readable section name with proper Rich Text numbering
  */
-function getSectionTypeName(type: ContentSectionType): string {
+function getSectionDisplayName(sectionKey: string, type: ContentSectionType): string {
+  // Special handling for Rich Text sections with numbering
+  if (sectionKey.startsWith('richText')) {
+    if (sectionKey === 'richText') {
+      return 'Rich Text'
+    } else {
+      // Handle richText_1, richText_2, etc. -> Rich Text 02, Rich Text 03, etc.
+      const match = sectionKey.match(/^richText_(\d+)$/)
+      if (match) {
+        const number = parseInt(match[1], 10) + 1 // Start from 02 (1+1)
+        return `Rich Text ${number.toString().padStart(2, '0')}`
+      }
+    }
+  }
+
+  // Default type names for other sections
   const typeNames: Record<ContentSectionType, string> = {
     text: 'Text Block',
     richText: 'Rich Text',
@@ -45,7 +60,7 @@ function getSectionTypeName(type: ContentSectionType): string {
     form: 'Form',
     pricing: 'Pricing',
     team: 'Team',
-    mission: 'Mission',
+    mission: 'Our Mission',
     values: 'Values',
     specifications: 'Specifications',
     plant_showcase: 'Plant Showcase',
@@ -59,7 +74,7 @@ function getSectionTypeName(type: ContentSectionType): string {
     plant_benefits: 'Plant Benefits',
     soil_guide: 'Soil Guide'
   }
-  
+
   return typeNames[type] || type
 }
 
@@ -102,7 +117,7 @@ export function SectionDeleteDialog({
   onConfirm,
   onCancel
 }: SectionDeleteDialogProps) {
-  const sectionTypeName = section ? getSectionTypeName(section.type) : 'Section'
+  const sectionTypeName = section ? getSectionDisplayName(sectionKey, section.type) : 'Section'
   const hasContent = hasImportantContent(section)
   
   const handleConfirm = () => {

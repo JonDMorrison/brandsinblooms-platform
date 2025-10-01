@@ -24,22 +24,25 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const { user } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
-  
+
+  // E-commerce feature flag
+  const ecommerceEnabled = process.env.NEXT_PUBLIC_ENABLE_ECOMMERCE !== 'false'
+
   // Get navigation configuration from theme settings
   const theme = designSettings
   const menuStyle = theme?.layout?.menuStyle || 'horizontal'
   const headerHeight = theme?.layout?.headerHeight || 'normal'
   const stickyHeader = theme?.layout?.stickyHeader !== false
   const headerStyle = theme?.layout?.headerStyle || 'modern'
-  
+
   // Build navigation items in proper order: Home, Products, About, Contact
   const configuredNavItems = theme?.navigation?.items || []
-  
+
   // Create navigation in desired order
   const navItems = [
     { label: 'Home', href: '/home' },
-    { label: 'Products', href: '/products' },
-    ...configuredNavItems.filter(item => 
+    ...(ecommerceEnabled ? [{ label: 'Products', href: '/products' }] : []),
+    ...configuredNavItems.filter(item =>
       ['About', 'Contact', 'Blog'].includes(item.label)
     )
   ]
@@ -132,18 +135,22 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
             <div className="flex items-center gap-3">
               {/* Desktop Icons */}
               <div className="hidden lg:flex items-center gap-3">
-                <Search 
-                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
-                  style={{ color: 'var(--theme-text)' }}
-                  onClick={() => setSearchOpen(true)}
-                />
-                <ShoppingCart 
-                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
-                  style={{ color: 'var(--theme-text)' }}
-                />
+                {ecommerceEnabled && (
+                  <>
+                    <Search
+                      className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                      style={{ color: 'var(--theme-text)' }}
+                      onClick={() => setSearchOpen(true)}
+                    />
+                    <ShoppingCart
+                      className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                      style={{ color: 'var(--theme-text)' }}
+                    />
+                  </>
+                )}
                 {ctaButton?.text && (
                   <Link href={ctaButton.href || '#'}>
-                    <button 
+                    <button
                       className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-pointer"
                       style={{ backgroundColor: 'var(--theme-primary)', color: '#fff' }}
                     >
@@ -154,16 +161,20 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
               </div>
               {/* Mobile Icons - Only on Mobile/Tablet */}
               <div className="flex lg:hidden items-center gap-2">
-                <Search 
-                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
-                  style={{ color: 'var(--theme-text)' }}
-                  onClick={() => setSearchOpen(true)}
-                />
-                <ShoppingCart 
-                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
-                  style={{ color: 'var(--theme-text)' }}
-                />
-                <div 
+                {ecommerceEnabled && (
+                  <>
+                    <Search
+                      className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                      style={{ color: 'var(--theme-text)' }}
+                      onClick={() => setSearchOpen(true)}
+                    />
+                    <ShoppingCart
+                      className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                      style={{ color: 'var(--theme-text)' }}
+                    />
+                  </>
+                )}
+                <div
                   className="w-6 h-5 flex flex-col gap-1 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity"
                   onClick={() => setMobileMenuOpen(true)}
                 >
@@ -210,15 +221,19 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                     </Link>
                   ))}
                   {/* Search and Cart Icons inline with navigation */}
-                  <Search 
-                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
-                    style={{ color: 'var(--theme-text)' }}
-                    onClick={() => setSearchOpen(true)}
-                  />
-                  <ShoppingCart 
-                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
-                    style={{ color: 'var(--theme-text)' }}
-                  />
+                  {ecommerceEnabled && (
+                    <>
+                      <Search
+                        className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                        style={{ color: 'var(--theme-text)' }}
+                        onClick={() => setSearchOpen(true)}
+                      />
+                      <ShoppingCart
+                        className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                        style={{ color: 'var(--theme-text)' }}
+                      />
+                    </>
+                  )}
                 </nav>
               </div>
               {/* CTA Button below navigation */}
@@ -239,7 +254,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
             {/* Mobile Layout */}
             <div className="md:hidden">
               <div className="flex items-center justify-between">
-                <BrandLogo 
+                <BrandLogo
                   brandingType={brandingType}
                   logoUrl={logoUrl}
                   brandText={brandText}
@@ -247,16 +262,20 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                   className="hover:opacity-80 transition-opacity cursor-pointer"
                 />
                 <div className="flex items-center gap-2">
-                  <Search 
-                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
-                    style={{ color: 'var(--theme-text)' }}
-                    onClick={() => setSearchOpen(true)}
-                  />
-                  <ShoppingCart 
-                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
-                    style={{ color: 'var(--theme-text)' }}
-                  />
-                  <div 
+                  {ecommerceEnabled && (
+                    <>
+                      <Search
+                        className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                        style={{ color: 'var(--theme-text)' }}
+                        onClick={() => setSearchOpen(true)}
+                      />
+                      <ShoppingCart
+                        className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                        style={{ color: 'var(--theme-text)' }}
+                      />
+                    </>
+                  )}
+                  <div
                     className="w-6 h-5 flex flex-col gap-1 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity"
                     onClick={() => setMobileMenuOpen(true)}
                   >
@@ -281,7 +300,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
         {/* Minimal Header Style - Hamburger menu at all screen sizes */}
         {headerStyle === 'minimal' && (
           <div className="flex items-center justify-between">
-            <BrandLogo 
+            <BrandLogo
               brandingType={brandingType}
               logoUrl={logoUrl}
               brandText={brandText}
@@ -289,16 +308,20 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
               className="hover:opacity-80 transition-opacity cursor-pointer"
             />
             <div className="flex items-center gap-3">
-              <Search 
-                className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
-                style={{ color: 'var(--theme-text)' }}
-                onClick={() => setSearchOpen(true)}
-              />
-              <ShoppingCart 
-                className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer" 
-                style={{ color: 'var(--theme-text)' }}
-              />
-              <div 
+              {ecommerceEnabled && (
+                <>
+                  <Search
+                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                    style={{ color: 'var(--theme-text)' }}
+                    onClick={() => setSearchOpen(true)}
+                  />
+                  <ShoppingCart
+                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                    style={{ color: 'var(--theme-text)' }}
+                  />
+                </>
+              )}
+              <div
                 className="w-6 h-5 flex flex-col gap-1 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity"
                 onClick={() => setMobileMenuOpen(true)}
               >

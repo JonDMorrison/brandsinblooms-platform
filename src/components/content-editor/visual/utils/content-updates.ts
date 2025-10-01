@@ -41,26 +41,39 @@ export function updateContentByPath(
 
 /**
  * Helper to update feature arrays in sections
+ * Supports both object-based features with fields (icon, text, title) and legacy string arrays
  */
 export function updateSectionFeature(
   content: PageContent,
-  sectionKey: string, 
-  featureIndex: number, 
+  sectionKey: string,
+  featureIndex: number,
+  field: string,
   newContent: string
 ): PageContent {
   if (!content || !content.sections[sectionKey]) {
     return content
   }
-  
+
   const section = content.sections[sectionKey]
   if (!section || !section.data.features || !Array.isArray(section.data.features)) {
     return content
   }
-  
+
   // Create updated features array
   const updatedFeatures = [...section.data.features]
-  updatedFeatures[featureIndex] = newContent
-  
+  const currentFeature = updatedFeatures[featureIndex]
+
+  // Handle object-based features (with icon, text/title fields)
+  if (currentFeature && typeof currentFeature === 'object') {
+    updatedFeatures[featureIndex] = {
+      ...currentFeature,
+      [field]: newContent
+    }
+  } else {
+    // Legacy support: if it's a string array, just replace the string
+    updatedFeatures[featureIndex] = newContent
+  }
+
   // Create updated content with new features array
   return {
     ...content,
@@ -71,6 +84,50 @@ export function updateSectionFeature(
         data: {
           ...section.data,
           features: updatedFeatures
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Helper to update value item fields in sections
+ */
+export function updateSectionValue(
+  content: PageContent,
+  sectionKey: string,
+  valueIndex: number,
+  fieldPath: string,
+  newContent: string
+): PageContent {
+  if (!content || !content.sections[sectionKey]) {
+    return content
+  }
+
+  const section = content.sections[sectionKey]
+  if (!section || !section.data.items || !Array.isArray(section.data.items)) {
+    return content
+  }
+
+  // Create updated items array
+  const updatedItems = [...section.data.items]
+  if (updatedItems[valueIndex]) {
+    updatedItems[valueIndex] = {
+      ...updatedItems[valueIndex],
+      [fieldPath]: newContent
+    }
+  }
+
+  // Create updated content with new items array
+  return {
+    ...content,
+    sections: {
+      ...content.sections,
+      [sectionKey]: {
+        ...section,
+        data: {
+          ...section.data,
+          items: updatedItems
         }
       }
     }
@@ -103,9 +160,18 @@ export function createContentUpdateHandlers(
   
   /**
    * Handle feature array updates
+   * Supports field-specific updates for object-based features (icon, text, title)
    */
-  const handleFeatureUpdate = (sectionKey: string, featureIndex: number, newContent: string) => {
-    const updatedContent = updateSectionFeature(content, sectionKey, featureIndex, newContent)
+  const handleFeatureUpdate = (sectionKey: string, featureIndex: number, field: string, newContent: string) => {
+    const updatedContent = updateSectionFeature(content, sectionKey, featureIndex, field, newContent)
+    onContentChange(updatedContent)
+  }
+
+  /**
+   * Handle value item field updates
+   */
+  const handleValueUpdate = (sectionKey: string, valueIndex: number, fieldPath: string, newContent: string) => {
+    const updatedContent = updateSectionValue(content, sectionKey, valueIndex, fieldPath, newContent)
     onContentChange(updatedContent)
   }
   
@@ -141,6 +207,7 @@ export function createContentUpdateHandlers(
     handleInlineContentUpdate,
     handleSectionContentUpdate,
     handleFeatureUpdate,
+    handleValueUpdate,
     handleTitleUpdate,
     handleSubtitleUpdate
   }

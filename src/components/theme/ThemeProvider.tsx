@@ -5,6 +5,7 @@ import { useSiteTheme } from '@/hooks/useSiteTheme'
 import { useApplyTheme, useThemeCSS } from '@/hooks/useThemeCSS'
 import { usePreviewModeOptional } from '@/src/components/preview/PreviewModeProvider'
 import { ThemeSettings } from '@/lib/queries/domains/theme'
+import { debug } from '@/src/lib/utils/debug'
 
 interface SiteThemeContextType {
   theme: ThemeSettings | null
@@ -29,7 +30,7 @@ export function SiteThemeProvider({ children, applyToDocument = false }: SiteThe
   const { cssVariables, themeStyles, fullCSS } = useThemeCSS(theme, mode)
 
   // Debug logging for SiteThemeProvider
-  console.log('[THEME_DEBUG] SiteThemeProvider - Provider state:', {
+  debug.theme('SiteThemeProvider - Provider state:', {
     hasTheme: !!theme,
     isLoading,
     error: error?.message,
@@ -39,7 +40,7 @@ export function SiteThemeProvider({ children, applyToDocument = false }: SiteThe
   });
 
   if (theme) {
-    console.log('[THEME_DEBUG] SiteThemeProvider - Theme colors:', theme.colors);
+    debug.theme('SiteThemeProvider - Theme colors:', theme.colors);
   }
 
   // Apply theme to document if requested

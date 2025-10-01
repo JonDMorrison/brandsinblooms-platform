@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/lib/database/types';
 import { Site } from '@/lib/database/aliases';
+import { debug } from '@/src/lib/utils/debug';
 // No longer need executeQuery imports - using direct Supabase queries
 
 // Navigation item interface - compatible with Json type
@@ -74,11 +75,15 @@ export interface ThemeSettings {
   };
   footer?: {
     style: 'minimal' | 'comprehensive' | 'centered' | 'newsletter';
-    columns: FooterColumn[];
-    newsletter: boolean;
-    socialLinks: SocialLink[];
-    copyright: string;
-    paymentBadges: string[];
+    columns?: FooterColumn[];
+    newsletter?: boolean;
+    socialLinks?: SocialLink[];
+    copyright?: string;
+    paymentBadges?: string[];
+    navigationItems?: Array<{
+      label: string;
+      href: string;
+    }>;
     trustBadges?: {
       secure?: boolean;
       shipping?: boolean;
@@ -91,7 +96,7 @@ export async function getSiteTheme(
   client: SupabaseClient<Database>,
   siteId: string
 ): Promise<ThemeSettings> {
-  console.log('[THEME_DEBUG] getSiteTheme - Query started for siteId:', siteId);
+  debug.theme('getSiteTheme - Query started for siteId:', siteId);
 
   const { data, error } = await client
     .from('sites')
@@ -99,7 +104,7 @@ export async function getSiteTheme(
     .eq('id', siteId)
     .single();
 
-  console.log('[THEME_DEBUG] getSiteTheme - Query result:', { data: !!data, error: error?.message });
+  debug.theme('getSiteTheme - Query result:', { data: !!data, error: error?.message });
 
   if (error) {
     console.error('[THEME_DEBUG] getSiteTheme - Database error:', error);
@@ -107,7 +112,7 @@ export async function getSiteTheme(
   }
 
   if (data) {
-    console.log('[THEME_DEBUG] getSiteTheme - Raw data:', {
+    debug.theme('getSiteTheme - Raw data:', {
       hasThemeSettings: !!data.theme_settings,
       logoUrl: data.logo_url,
       primaryColor: data.primary_color
@@ -116,10 +121,10 @@ export async function getSiteTheme(
   
   // Return theme_settings if it exists, otherwise default
   if (data?.theme_settings) {
-    console.log('[THEME_DEBUG] getSiteTheme - Found theme_settings, parsing...');
+    debug.theme('getSiteTheme - Found theme_settings, parsing...');
     const theme = data.theme_settings as unknown as ThemeSettings;
 
-    console.log('[THEME_DEBUG] getSiteTheme - Parsed theme:', {
+    debug.theme('getSiteTheme - Parsed theme:', {
       colors: theme.colors,
       typography: theme.typography,
       layout: theme.layout,
@@ -143,13 +148,13 @@ export async function getSiteTheme(
       };
     }
 
-    console.log('[THEME_DEBUG] getSiteTheme - Returning theme with colors:', theme.colors);
+    debug.theme('getSiteTheme - Returning theme with colors:', theme.colors);
     return theme;
   }
 
-  console.log('[THEME_DEBUG] getSiteTheme - No theme_settings found, returning default theme');
+  debug.theme('getSiteTheme - No theme_settings found, returning default theme');
   const defaultTheme = getDefaultTheme();
-  console.log('[THEME_DEBUG] getSiteTheme - Default theme colors:', defaultTheme.colors);
+  debug.theme('getSiteTheme - Default theme colors:', defaultTheme.colors);
   return defaultTheme;
 }
 

@@ -21,6 +21,7 @@ import {
 } from '@/src/lib/content/migration'
 
 import { handleError } from '@/src/lib/types/error-handling'
+import { createRichTextTemplate } from '@/src/components/content-editor/CombinedSectionManager'
 
 interface UseContentEditorProps {
   contentId: string
@@ -43,7 +44,7 @@ interface UseContentEditorReturn {
   moveSectionUp: (sectionKey: string) => void
   moveSectionDown: (sectionKey: string) => void
   reorderSections: (sections: Array<{ key: string; section: ContentSection }>) => void
-  addSection: (sectionType: ContentSectionType) => void
+  addSection: (sectionType: ContentSectionType, variant?: string) => void
   removeSection: (sectionKey: string) => void
   saveContent: () => Promise<void>
   resetContent: () => void
@@ -357,31 +358,87 @@ export function useContentEditor({
   }, [])
 
   // Add section
-  const addSection = useCallback((sectionType: ContentSectionType) => {
+  const addSection = useCallback((sectionType: ContentSectionType, variant?: string) => {
     setContent(prev => {
       const layoutConfig = LAYOUT_SECTIONS[layout]
       const defaultSection = layoutConfig.defaultSections[sectionType]
-      
+
       if (!defaultSection) {
         console.warn(`No default section found for type: ${sectionType}`)
         return prev
       }
 
-      // Don't add if section already exists
-      if (prev.sections[sectionType]) {
-        return prev
-      }
-
-      // Calculate next order
+      // Calculate next order first
       const existingOrders = Object.values(prev.sections).map(s => s.order || 0)
       const nextOrder = Math.max(0, ...existingOrders) + 1
+
+      // Apply variant template for Rich Text sections and handle variant-aware key generation
+      let sectionData = { ...defaultSection.data }
+      let sectionKey = sectionType
+
+      if (sectionType === 'richText' && variant) {
+        const template = createRichTextTemplate(variant as 'mission' | 'story' | 'contact' | 'other')
+
+        // Find existing Rich Text sections of the same variant type
+        const sameVariantSections = Object.entries(prev.sections).filter(([key, section]) => {
+          if (!key.startsWith('richText') || section.type !== 'richText') return false
+
+          // Check if this section has the same variant by analyzing its content
+          const content = section.data.content || ''
+
+          // Look for any H2 that starts with our variant headline
+          // This catches both "Our Mission" and "Our Mission 02", "Our Mission 03", etc.
+          const h2Regex = new RegExp(`<h2[^>]*>\\s*${template.headline.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\s+\\d+)?\\s*</h2>`, 'i')
+
+          return h2Regex.test(content)
+        })
+
+
+        // Generate display name based on count of same variant sections
+        let displayName = template.headline
+        if (sameVariantSections.length > 0) {
+          // This is not the first instance of this variant type
+          const number = sameVariantSections.length + 1
+          const paddedNumber = number.toString().padStart(2, '0')
+          displayName = `${template.headline} ${paddedNumber}`
+        }
+
+        // Generate unique section key (this is separate from display naming)
+        if (!prev.sections['richText']) {
+          sectionKey = 'richText'
+        } else {
+          // Find next available richText_N key
+          let counter = 1
+          while (prev.sections[`richText_${counter}`]) {
+            counter++
+          }
+          sectionKey = `richText_${counter}`
+        }
+
+        // Create content with centered H2 and template content
+        const contentWithH2 = `<h2 style="text-align: center;">${displayName}</h2>\n\n${template.content}`
+
+        sectionData = {
+          content: contentWithH2,
+          // Remove headline since we're putting it in the content
+          headline: undefined
+        }
+      } else {
+        // Non-Rich Text sections use original key generation logic
+        let counter = 1
+        while (prev.sections[sectionKey]) {
+          sectionKey = `${sectionType}_${counter}`
+          counter++
+        }
+      }
 
       return {
         ...prev,
         sections: {
           ...prev.sections,
-          [sectionType]: {
+          [sectionKey]: {
             ...defaultSection,
+            data: sectionData,
             order: nextOrder,
             visible: true
           }

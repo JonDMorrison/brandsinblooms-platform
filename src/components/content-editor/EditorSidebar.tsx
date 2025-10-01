@@ -108,39 +108,20 @@ export function EditorSidebar({
 
   return (
     <div className="w-96 border-r bg-muted/30 flex flex-col overflow-hidden">
-      <Tabs defaultValue="page" className="w-full h-full flex flex-col">
+      <Tabs defaultValue="sections" className="w-full h-full flex flex-col">
         <div className="p-4 border-b flex-shrink-0">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="page">Page</TabsTrigger>
-            <TabsTrigger value="seo">SEO</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="sections">Sections</TabsTrigger>
+            <TabsTrigger value="page">Page</TabsTrigger>
+            {/*
+            TODO: SEO Tab temporarily hidden - will be restored when SEO settings are needed
+            Includes: SEO title, meta description, keywords, and search preview functionality
+            Component: SEOTab with full SEO management capabilities
+            Restore by uncommenting this section and updating grid-cols-2 to grid-cols-3
+            <TabsTrigger value="seo">SEO</TabsTrigger>
+            */}
           </TabsList>
         </div>
-        
-        <TabsContent value="page" className="mt-0 flex-1 overflow-y-auto">
-          <PageTab
-            slug={pageSettingsHook.slug}
-            isPublished={pageSettingsHook.isPublished}
-            onSlugChange={pageSettingsHook.handleSlugChange}
-            onPublishedChange={pageSettingsHook.handlePublishedChange}
-            pageTitle={pageData.title || ''}
-            onPageTitleChange={onPageTitleChange}
-            layout={validLayout as ContentLayoutType}
-            siteUrl={siteUrl}
-            siteId={siteId}
-            contentId={contentId}
-          />
-        </TabsContent>
-
-        <TabsContent value="seo" className="mt-0 flex-1 overflow-y-auto">
-          <SEOTab
-            seoSettings={seoSettings || { title: '', description: '', keywords: [] }}
-            onSEOChange={onSEOChange || (() => {})}
-            pageTitle={pageData.title}
-            slug={pageSettingsHook.slug}
-            siteUrl={siteUrl}
-          />
-        </TabsContent>
         
         <TabsContent value="sections" className="mt-0 flex-1 overflow-hidden flex flex-col">
           {(pageContent || contentEditorHook.content) && (
@@ -162,6 +143,46 @@ export function EditorSidebar({
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="page" className="mt-0 flex-1 overflow-y-auto">
+          <PageTab
+            slug={pageSettingsHook.slug}
+            isPublished={pageSettingsHook.isPublished}
+            onSlugChange={pageSettingsHook.handleSlugChange}
+            onPublishedChange={pageSettingsHook.handlePublishedChange}
+            pageTitle={pageData.title || ''}
+            onPageTitleChange={onPageTitleChange}
+            layout={validLayout as ContentLayoutType}
+            siteUrl={siteUrl}
+            siteId={siteId}
+            contentId={contentId}
+          />
+        </TabsContent>
+
+        {/*
+        TODO: SEO Tab temporarily hidden - will be restored when SEO settings are needed
+        This tab includes comprehensive SEO management:
+        - SEO title with character count (60 char limit)
+        - Meta description with character count (160 char limit)
+        - Keywords management with add/remove functionality
+        - Live search preview showing how the page appears in search results
+        - Auto-population of SEO title from page title
+
+        To restore:
+        1. Uncomment this TabsContent block
+        2. Uncomment the TabsTrigger above
+        3. Update grid-cols-2 to grid-cols-3 in TabsList
+
+        <TabsContent value="seo" className="mt-0 flex-1 overflow-y-auto">
+          <SEOTab
+            seoSettings={seoSettings || { title: '', description: '', keywords: [] }}
+            onSEOChange={onSEOChange || (() => {})}
+            pageTitle={pageData.title}
+            slug={pageSettingsHook.slug}
+            siteUrl={siteUrl}
+          />
+        </TabsContent>
+        */}
       </Tabs>
     </div>
   )

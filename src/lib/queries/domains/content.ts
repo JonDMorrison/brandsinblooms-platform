@@ -164,14 +164,41 @@ export async function getContentBySlug(
   siteId: string,
   slug: string
 ): Promise<ContentWithTags> {
-  const response = await supabase
+  // First try to get the most recent published version
+  let response = await supabase
     .from('content')
     .select('*')
     .eq('site_id', siteId)
     .eq('slug', slug)
-    .single();
+    .eq('is_published', true)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  const data = await handleSingleResponse(response);
+  let data = response.data;
+
+  // If no published version found, get the most recent version regardless of publish status
+  if (!data && !response.error) {
+    response = await supabase
+      .from('content')
+      .select('*')
+      .eq('site_id', siteId)
+      .eq('slug', slug)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    data = response.data;
+  }
+
+  // Handle the response
+  if (response.error) {
+    throw new SupabaseError(response.error.message, response.error.code);
+  }
+
+  if (!data) {
+    return null as any; // Return null when content is not found instead of throwing error
+  }
   
   // Transform tags (empty for now)
   return {
@@ -592,4 +619,98 @@ export async function checkSlugAvailability(
   }
 
   return response.data === null;
+}
+
+/**
+ * Handle publishing a special page (home, about, contact)
+ * - Finds any existing published page with the canonical slug
+ * - Renames and unpublishes the existing page
+ * - Sets the new page's slug to canonical and publishes it
+ */
+export async function handleSpecialPagePublish(
+  supabase: SupabaseClient<Database>,
+  siteId: string,
+  contentId: string,
+  pageType: 'home' | 'about' | 'contact'
+): Promise<Content> {
+  const canonicalSlug = pageType
+
+  // Find any existing content with the canonical slug
+  const existingResponse = await supabase
+    .from('content')
+    .select('*')
+    .eq('site_id', siteId)
+    .eq('slug', canonicalSlug)
+    .neq('id', contentId)
+    .maybeSingle()
+
+  // If there's an existing page with this slug, rename it and unpublish it
+  if (existingResponse.data) {
+    const timestamp = Date.now()
+    const archivedSlug = `${canonicalSlug}-archived-${timestamp}`
+
+    await supabase
+      .from('content')
+      .update({
+        slug: archivedSlug,
+        is_published: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', existingResponse.data.id)
+  }
+
+  // Update the new page: set canonical slug and publish
+  const updateData: UpdateContent = {
+    slug: canonicalSlug,
+    is_published: true,
+    published_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+
+  const response = await supabase
+    .from('content')
+    .update(updateData)
+    .eq('site_id', siteId)
+    .eq('id', contentId)
+    .select()
+    .single()
+
+  return handleSingleResponse(response)
+}
+
+/**
+ * Handle unpublishing a special page (about, contact)
+ * - If the page has a canonical slug (about/contact), rename it to free up the slug
+ * - Unpublish the page
+ */
+export async function handleSpecialPageUnpublish(
+  supabase: SupabaseClient<Database>,
+  siteId: string,
+  contentId: string,
+  currentSlug: string
+): Promise<Content> {
+  const specialSlugs = ['about', 'contact']
+  let newSlug = currentSlug
+
+  // If current slug is a special/canonical slug, rename it
+  if (specialSlugs.includes(currentSlug)) {
+    const timestamp = Date.now()
+    newSlug = `${currentSlug}-draft-${timestamp}`
+  }
+
+  const updateData: UpdateContent = {
+    slug: newSlug,
+    is_published: false,
+    updated_at: new Date().toISOString()
+  }
+
+  const response = await supabase
+    .from('content')
+    .update(updateData)
+    .eq('site_id', siteId)
+    .eq('id', contentId)
+    .select()
+    .single()
+
+  return handleSingleResponse(response)
 }

@@ -63,6 +63,9 @@ export async function HomePage() {
   let databaseCtaData = null
   let ctaStatus = 'not_found' // 'not_found', 'available'
   let ctaBackgroundSetting = 'default' // Store the background setting
+  let databaseRichTextSections: Record<string, any> = {}
+  let richTextStatuses: Record<string, string> = {}
+  let richTextBackgroundSettings: Record<string, string> = {}
   let contentResult = null
   
   try {
@@ -111,6 +114,17 @@ export async function HomePage() {
           ctaStatus = 'available'
           // Store the background setting
           ctaBackgroundSetting = String(pageContent.sections.cta.settings?.backgroundColor || 'default')
+        }
+
+        // Check for richText sections (richText, richText_1, richText_2, etc.)
+        if (pageContent?.sections) {
+          Object.entries(pageContent.sections).forEach(([sectionKey, section]) => {
+            if (sectionKey.startsWith('richText') && section?.data && section.visible) {
+              databaseRichTextSections[sectionKey] = section.data
+              richTextStatuses[sectionKey] = 'available'
+              richTextBackgroundSettings[sectionKey] = String(section.settings?.backgroundColor || 'default')
+            }
+          })
         }
       }
     }
@@ -204,6 +218,15 @@ export async function HomePage() {
       backgroundSetting: ctaBackgroundSetting
     }
   }
+
+  // Add all found Rich Text sections to the sectionDataMap
+  Object.entries(databaseRichTextSections).forEach(([sectionKey, sectionData]) => {
+    sectionDataMap[sectionKey as keyof typeof sectionDataMap] = {
+      data: sectionData,
+      status: richTextStatuses[sectionKey],
+      backgroundSetting: richTextBackgroundSettings[sectionKey]
+    }
+  })
   
   return (
     <SiteRenderer 
