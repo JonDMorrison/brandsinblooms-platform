@@ -10,15 +10,16 @@ import {
   ReactNode 
 } from 'react'
 import { useAuth } from './AuthContext'
-import { 
+import { supabase } from '@/src/lib/supabase/client'
+import {
   Site
 } from '@/src/lib/database/aliases'
-import { 
-  getSite, 
+import {
+  getSite,
   getUserSites,
   checkUserSiteAccess,
   UserSiteAccess,
-  SiteQueryError 
+  SiteQueryError
 } from '@/src/lib/site/queries'
 import {
   resolveSiteFromHost,
@@ -246,10 +247,12 @@ export function SiteProvider({
       });
       setCurrentSite(siteResult.data)
 
-      // If user is authenticated, check their access to this site
-      if (user?.id) {
-        const accessResult = await checkUserSiteAccess(user.id, siteResult.data.id)
-        
+      // Fetch fresh user from Supabase and check their access to this site
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+
+      if (currentUser?.id) {
+        const accessResult = await checkUserSiteAccess(currentUser.id, siteResult.data.id)
+
         if (accessResult.data) {
           setUserAccess(accessResult.data)
           setCanEdit(accessResult.data.canEdit)
@@ -273,23 +276,27 @@ export function SiteProvider({
     } finally {
       setLoading(false)
     }
-  }, [user?.id])
+  }, [])
 
   /**
    * Loads a site by ID and sets it as current
+   * Fetches fresh user from Supabase to avoid race conditions with React state
    */
   const loadSiteById = useCallback(async (siteId: string) => {
     // Cancel any previous load operation
     siteLoadAbortRef.current?.abort()
     siteLoadAbortRef.current = new AbortController()
     const abortSignal = siteLoadAbortRef.current.signal
-    
+
     try {
       setLoading(true)
       setError(null)
 
+      // Fetch fresh user from Supabase to avoid race conditions with React state
+      const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
+
       // Check if user has access to this site
-      if (!user?.id) {
+      if (authError || !currentUser?.id) {
         setError({
           code: 'UNAUTHORIZED',
           message: 'User not authenticated'
@@ -297,7 +304,7 @@ export function SiteProvider({
         return
       }
 
-      const accessResult = await checkUserSiteAccess(user.id, siteId)
+      const accessResult = await checkUserSiteAccess(currentUser.id, siteId)
       
       // Check if request was aborted
       if (abortSignal.aborted) return
@@ -350,32 +357,36 @@ export function SiteProvider({
     } finally {
       setLoading(false)
     }
-  }, [user?.id])
+  }, [])
 
   /**
    * Loads all sites the user has access to
+   * Fetches fresh user from Supabase to avoid race conditions with React state
    */
   const refreshUserSites = useCallback(async () => {
-    console.log('[REFRESH_SITES] Starting refresh for user:', user?.id)
-
-    if (!user?.id) {
-      console.log('[REFRESH_SITES] No user ID, clearing sites')
-      setUserSites([])
-      return
-    }
-
     // Cancel any previous user sites load operation
     userSitesAbortRef.current?.abort()
     userSitesAbortRef.current = new AbortController()
     const abortSignal = userSitesAbortRef.current.signal
 
     try {
+      // Fetch fresh user from Supabase to avoid race conditions with React state
+      const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
+
+      console.log('[REFRESH_SITES] Starting refresh for user:', currentUser?.id)
+
+      if (authError || !currentUser?.id) {
+        console.log('[REFRESH_SITES] No user ID or auth error, clearing sites', authError?.message)
+        setUserSites([])
+        return
+      }
+
       console.log('[REFRESH_SITES] Setting loading state')
       setUserSitesLoading(true)
       setUserSitesError(null)
 
       console.log('[REFRESH_SITES] Calling getUserSites')
-      const result = await getUserSites(user.id)
+      const result = await getUserSites(currentUser.id)
 
       console.log('[REFRESH_SITES] Got result:', {
         hasError: !!result.error,
@@ -415,7 +426,7 @@ export function SiteProvider({
       console.log('[REFRESH_SITES] Finished, setting loading false')
       setUserSitesLoading(false)
     }
-  }, [user?.id])
+  }, [])
 
   /**
    * Switches to a different site with comprehensive cache clearing
