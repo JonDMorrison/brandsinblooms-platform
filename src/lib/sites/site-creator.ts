@@ -380,7 +380,8 @@ function createContactPageContent(data: GeneratedSiteData) {
  */
 export async function createSiteFromGenerated(
   data: GeneratedSiteData,
-  userId: string
+  userId: string,
+  logoUrl?: string
 ): Promise<SiteCreationResult> {
   const supabase = await createClient();
   let siteId: string | null = null;
@@ -423,9 +424,12 @@ export async function createSiteFromGenerated(
         menuStyle: 'horizontal'
       },
       logo: {
-        url: null,
+        url: logoUrl || null,
+        text: data.site_name,
         position: 'left',
         size: 'medium',
+        pixelSize: logoUrl ? 80 : undefined,
+        displayType: logoUrl ? 'both' : undefined,
         description: data.branding?.logo_description || null
       },
       navigation: {
@@ -458,6 +462,7 @@ export async function createSiteFromGenerated(
       .insert({
         name: data.site_name,
         subdomain: finalSubdomain,
+        logo_url: logoUrl || null,
         business_name: data.site_name,
         description: data.description || data.tagline,
         business_email: data.contact?.email,

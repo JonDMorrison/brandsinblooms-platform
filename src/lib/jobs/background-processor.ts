@@ -176,7 +176,11 @@ export async function processGenerationJob(jobId: string): Promise<ProcessingRes
     let siteResult;
 
     try {
-      siteResult = await createSiteFromGenerated(generationResult.data, job.user_id);
+      siteResult = await createSiteFromGenerated(
+        generationResult.data,
+        job.user_id,
+        job.business_info.logoUrl
+      );
       console.log(
         `[Job ${jobId}] Site created: ${siteResult.siteId} (${siteResult.pageIds.length} pages)`
       );

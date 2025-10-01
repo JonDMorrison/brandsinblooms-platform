@@ -55,6 +55,10 @@ export interface BusinessInfo {
   phone?: string;
   /** Website URL (if exists) */
   website?: string;
+  /** Uploaded logo URL */
+  logoUrl?: string;
+  /** Brand colors/theme preferences */
+  brandColors?: string;
   /** Additional business details */
   additionalDetails?: Record<string, unknown>;
 }

@@ -251,6 +251,35 @@ export function sanitizePhone(phone: string | undefined): string {
 }
 
 /**
+ * Sanitizes logo URL
+ *
+ * Ensures the logo URL is from our domain and properly formatted.
+ *
+ * @param logoUrl - Raw logo URL from user
+ * @returns Sanitized logo URL or undefined if invalid
+ */
+function sanitizeLogoUrl(logoUrl: string | undefined): string | undefined {
+  if (!logoUrl) return undefined;
+
+  // Trim and remove control characters
+  const trimmed = logoUrl.trim().replace(CONTROL_CHARS_REGEX, '');
+
+  // Ensure it starts with /api/images/ (our internal API route)
+  if (!trimmed.startsWith('/api/images/')) {
+    console.warn('Invalid logo URL - must start with /api/images/:', trimmed);
+    return undefined;
+  }
+
+  // Ensure it doesn't contain any suspicious patterns
+  if (trimmed.includes('..') || trimmed.includes('//')) {
+    console.warn('Invalid logo URL - contains suspicious patterns:', trimmed);
+    return undefined;
+  }
+
+  return trimmed;
+}
+
+/**
  * Sanitizes the entire BusinessInfo object
  *
  * Applies appropriate sanitization to each field based on its type and purpose.
@@ -275,6 +304,8 @@ export function sanitizeBusinessInfo(info: BusinessInfo): BusinessInfo {
     email: sanitizeEmail(info.email),
     phone: sanitizePhone(info.phone),
     website: sanitizeUrl(info.website),
+    logoUrl: info.logoUrl ? sanitizeLogoUrl(info.logoUrl) : undefined,
+    brandColors: sanitizeTextField(info.brandColors, MAX_TEXT_FIELD_LENGTH),
     additionalDetails: info.additionalDetails
       ? sanitizeAdditionalDetails(info.additionalDetails)
       : undefined,

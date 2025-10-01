@@ -141,6 +141,8 @@ export async function POST(request: NextRequest) {
       email: requestBody.email,
       phone: requestBody.phone,
       website: requestBody.website,
+      logoUrl: requestBody.logoUrl,
+      brandColors: requestBody.brandColors,
       additionalDetails: requestBody.additionalDetails,
     });
 
