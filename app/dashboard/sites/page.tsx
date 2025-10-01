@@ -181,8 +181,7 @@ export default function DashboardSitesPage() {
         setIsCreateModalOpen(false)
         resetForm()
         await refreshSites()
-        await switchSite(siteId)
-        router.push('/dashboard')
+        setIsGenerating(false)
         return
       }
 
@@ -253,12 +252,10 @@ export default function DashboardSitesPage() {
       setIsCreateModalOpen(false)
       resetForm()
 
-      // Refresh sites list
+      // Refresh sites list - stay at /dashboard/sites
+      console.log('[SITE CREATION] Before refreshSites, current sites count:', sites.length)
       await refreshSites()
-
-      // Switch to new site and redirect
-      await switchSite(siteId)
-      router.push('/dashboard')
+      console.log('[SITE CREATION] After refreshSites, current sites count:', sites.length)
 
     } catch (error) {
       console.error('Error creating additional pages:', error)

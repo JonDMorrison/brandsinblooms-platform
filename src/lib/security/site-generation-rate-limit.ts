@@ -171,7 +171,19 @@ export async function checkGenerationRateLimit(
     };
   }
 
-  // Check budget constraints
+  // Check budget constraints (skip in development)
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
+  // In development, skip budget check
+  if (isDevelopment) {
+    return {
+      ...hourlyResult,
+      withinBudget: true,
+      remainingBudget: USER_HOURLY_BUDGET_CENTS,
+    };
+  }
+
+  // Production: check budget
   const budgetStatus = await checkUserGenerationBudget(userId);
 
   if (!budgetStatus.allowed || !budgetStatus.withinBudget) {

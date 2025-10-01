@@ -440,7 +440,7 @@ export async function createSiteFromGenerated(
         primary_color: data.branding?.primary_color || '#3B82F6',
         theme_settings: JSON.parse(JSON.stringify(themeSettings)),
         is_active: true,
-        is_published: false, // Requires manual review before publishing
+        is_published: true,
         created_by: userId,
       })
       .select('id')
