@@ -35,17 +35,17 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const stickyHeader = theme?.layout?.stickyHeader !== false
   const headerStyle = theme?.layout?.headerStyle || 'modern'
 
-  // Build navigation items in proper order: Home, Products, About, Contact
+  // Build navigation items from theme settings
   const configuredNavItems = theme?.navigation?.items || []
 
-  // Create navigation in desired order
-  const navItems = [
-    { label: 'Home', href: '/home' },
-    ...(ecommerceEnabled ? [{ label: 'Products', href: '/products' }] : []),
-    ...configuredNavItems.filter(item =>
-      ['About', 'Contact', 'Blog'].includes(item.label)
-    )
-  ]
+  // Use all configured navigation items from theme settings
+  const navItems = configuredNavItems.length > 0
+    ? configuredNavItems
+    : [
+        { label: 'Home', href: '/home' },
+        { label: 'About', href: '/about' },
+        { label: 'Contact', href: '/contact' }
+      ]
   
   // Get branding configuration
   const brandingType = theme?.logo?.displayType || 'text'
