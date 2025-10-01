@@ -56,9 +56,9 @@ function createHomePageContent(data: GeneratedSiteData) {
           headline: data.hero.headline,
           subheadline: data.hero.subheadline,
           ctaText: data.hero.cta_text,
-          ctaLink: '/plants',
+          ctaLink: '/contact',
           secondaryCtaText: 'Care Guides',
-          secondaryCtaLink: '/care-guides',
+          secondaryCtaLink: '/watering',
           backgroundImage: data.hero.background_image || '/images/hero-greenhouse.jpg',
           features: data.features?.features?.map(f => f.title).slice(0, 4) || [
             'Expert horticultural guidance',
@@ -75,7 +75,7 @@ function createHomePageContent(data: GeneratedSiteData) {
         data: {
           headline: 'Featured Plants This Season',
           subheadline: 'Handpicked selections from our master horticulturists, perfect for current growing conditions',
-          viewAllLink: '/plants',
+          viewAllLink: '/home',
           viewAllText: 'View All Plants'
         },
         settings: {
@@ -114,10 +114,10 @@ function createHomePageContent(data: GeneratedSiteData) {
         data: {
           headline: 'Growing Together, Sustainably',
           description: data.description || data.tagline,
-          ctaText: 'Shop Plants',
-          ctaLink: '/',
-          secondaryCtaText: 'Browse Plants',
-          secondaryCtaLink: '/'
+          ctaText: 'Get Started',
+          ctaLink: '/contact',
+          secondaryCtaText: 'Learn More',
+          secondaryCtaLink: '/about'
         },
         settings: {
           backgroundColor: 'primary'
@@ -145,8 +145,8 @@ function createAboutPageContent(data: GeneratedSiteData) {
           subheadline: data.tagline || data.description,
           ctaText: 'Contact Us',
           ctaLink: '/contact',
-          secondaryCtaText: 'View Our Services',
-          secondaryCtaLink: '/services',
+          secondaryCtaText: 'Our Company',
+          secondaryCtaLink: '/company',
           features: [
             'Professional Horticulturists',
             'Expert Plant Care Guidance',
@@ -219,10 +219,10 @@ function createAboutPageContent(data: GeneratedSiteData) {
         data: {
           headline: 'Ready to Start Your Plant Journey?',
           description: 'Let our experts help you create the perfect green sanctuary for your space.',
-          ctaText: 'Schedule Consultation',
-          ctaLink: '/consultation',
-          secondaryCtaText: 'Browse Plants',
-          secondaryCtaLink: '/plants'
+          ctaText: 'Contact Us',
+          ctaLink: '/contact',
+          secondaryCtaText: 'Learn More',
+          secondaryCtaLink: '/about'
         },
         settings: {
           backgroundColor: 'primary'

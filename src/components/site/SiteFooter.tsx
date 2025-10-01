@@ -57,19 +57,19 @@ function getDefaultFooterColumns(): FooterColumn[] {
     {
       title: 'Quick Links',
       links: [
-        { label: 'About Us', href: '/about' },
+        { label: 'Home', href: '/home' },
+        { label: 'About', href: '/about' },
         { label: 'Contact', href: '/contact' },
-        { label: 'Blog', href: '/blog' },
-        { label: 'FAQs', href: '/faqs' },
+        { label: 'Company', href: '/company' },
       ]
     },
     {
-      title: 'Customer Service',
+      title: 'Care Guides',
       links: [
-        { label: 'Track Order', href: '/track-order' },
-        { label: 'Returns', href: '/returns' },
-        { label: 'Shipping Info', href: '/shipping' },
-        { label: 'Size Guide', href: '/size-guide' },
+        { label: 'Watering', href: '/watering' },
+        { label: 'Lighting', href: '/lighting' },
+        { label: 'Soil', href: '/soil' },
+        { label: 'Pests', href: '/pests' },
       ]
     },
     {
@@ -77,8 +77,7 @@ function getDefaultFooterColumns(): FooterColumn[] {
       links: [
         { label: 'Privacy Policy', href: '/privacy' },
         { label: 'Terms of Service', href: '/terms' },
-        { label: 'Cookie Policy', href: '/cookies' },
-        { label: 'Refund Policy', href: '/refunds' },
+        { label: 'Seasonal Guide', href: '/seasonal-guide' },
       ]
     }
   ]

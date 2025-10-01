@@ -560,14 +560,14 @@ function getHomePageTemplate(
             subheadline: subtitle || 'Discover premium plants and expert horticultural guidance for thriving indoor and outdoor gardens',
             features: [
               'Expert horticultural guidance',
-              'Premium plant selection', 
+              'Premium plant selection',
               'Comprehensive care resources',
               'Local hardiness zone expertise'
             ],
-            ctaText: 'Shop Plants',
-            ctaLink: '/plants',
-            secondaryCtaText: 'Care Guides!',
-            secondaryCtaLink: '/care-guides',
+            ctaText: 'Get Started',
+            ctaLink: '/contact',
+            secondaryCtaText: 'Care Guides',
+            secondaryCtaLink: '/watering',
             backgroundImage: '/images/hero-greenhouse.jpg'
           }
         },
@@ -579,7 +579,7 @@ function getHomePageTemplate(
             headline: 'Featured Plants This Season',
             subheadline: 'Handpicked selections from our master horticulturists, perfect for current growing conditions',
             viewAllText: 'View All Plants',
-            viewAllLink: '/plants'
+            viewAllLink: '/home'
           },
           settings: {
             backgroundColor: 'default'
@@ -621,10 +621,10 @@ function getHomePageTemplate(
           data: {
             headline: 'Growing Together, Sustainably',
             description: 'Our mission is to help you create thriving plant sanctuaries while protecting our planet. Every plant comes with expert care guidance, sustainable growing practices, and our commitment to your plant parenthood success.',
-            ctaText: 'Shop Plants',
-            ctaLink: '/',
-            secondaryCtaText: 'Browse Plants',
-            secondaryCtaLink: '/'
+            ctaText: 'Get Started',
+            ctaLink: '/contact',
+            secondaryCtaText: 'Learn More',
+            secondaryCtaLink: '/about'
           },
           settings: {
             backgroundColor: 'primary'
@@ -736,14 +736,14 @@ function getMinimalLandingTemplate(
             subheadline: subtitle || 'Discover premium plants and expert horticultural guidance for thriving indoor and outdoor gardens',
             features: [
               'Expert horticultural guidance',
-              'Premium plant selection', 
+              'Premium plant selection',
               'Comprehensive care resources',
               'Local hardiness zone expertise'
             ],
-            ctaText: 'Shop Plants',
-            ctaLink: '/plants',
-            secondaryCtaText: 'Care Guides!',
-            secondaryCtaLink: '/care-guides',
+            ctaText: 'Get Started',
+            ctaLink: '/contact',
+            secondaryCtaText: 'Care Guides',
+            secondaryCtaLink: '/watering',
             backgroundImage: '/images/hero-greenhouse.jpg'
           }
         },
@@ -754,10 +754,10 @@ function getMinimalLandingTemplate(
           data: {
             headline: 'Growing Together, Sustainably',
             description: 'Our mission is to help you create thriving plant sanctuaries while protecting our planet. Every plant comes with expert care guidance, sustainable growing practices, and our commitment to your plant parenthood success.',
-            ctaText: 'Shop Plants',
-            ctaLink: '/',
-            secondaryCtaText: 'Browse Plants',
-            secondaryCtaLink: '/'
+            ctaText: 'Get Started',
+            ctaLink: '/contact',
+            secondaryCtaText: 'Learn More',
+            secondaryCtaLink: '/about'
           },
           settings: {
             backgroundColor: 'primary'
@@ -836,8 +836,8 @@ function getFullAboutPageTemplate(
             ],
             ctaText: 'Contact Us',
             ctaLink: '/contact',
-            secondaryCtaText: 'View Our Services',
-            secondaryCtaLink: '/services'
+            secondaryCtaText: 'Our Company',
+            secondaryCtaLink: '/company'
           }
         },
         mission: {
@@ -926,10 +926,10 @@ function getFullAboutPageTemplate(
           data: {
             headline: 'Ready to Start Your Plant Journey?',
             description: 'Let our experts help you create the perfect green sanctuary for your space.',
-            ctaText: 'Schedule Consultation',
-            ctaLink: '/consultation',
-            secondaryCtaText: 'Browse Plants',
-            secondaryCtaLink: '/plants'
+            ctaText: 'Contact Us',
+            ctaLink: '/contact',
+            secondaryCtaText: 'Learn More',
+            secondaryCtaLink: '/about'
           },
           settings: {
             backgroundColor: 'primary'
@@ -1051,8 +1051,8 @@ function getMinimalAboutPageTemplate(
             ],
             ctaText: 'Contact Us',
             ctaLink: '/contact',
-            secondaryCtaText: 'View Our Services',
-            secondaryCtaLink: '/services'
+            secondaryCtaText: 'Our Company',
+            secondaryCtaLink: '/company'
           }
         },
         mission: {
@@ -1071,10 +1071,10 @@ function getMinimalAboutPageTemplate(
           data: {
             headline: 'Ready to Start Your Plant Journey?',
             description: 'Let our experts help you create the perfect green sanctuary for your space.',
-            ctaText: 'Schedule Consultation',
-            ctaLink: '/consultation',
-            secondaryCtaText: 'Browse Plants',
-            secondaryCtaLink: '/plants'
+            ctaText: 'Contact Us',
+            ctaLink: '/contact',
+            secondaryCtaText: 'Learn More',
+            secondaryCtaLink: '/about'
           },
           settings: {
             backgroundColor: 'primary'
