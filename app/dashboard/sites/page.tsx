@@ -55,7 +55,6 @@ export default function DashboardSitesPage() {
     email: '',
     phone: '',
     address: '',
-    subdomain: '',
     brandColors: '',
     logoUrl: null as string | null
   })
@@ -79,18 +78,6 @@ export default function DashboardSitesPage() {
     is_active: access.site.is_active ?? true,
     role: access.role
   }))
-
-  // Auto-generate subdomain from name
-  useEffect(() => {
-    if (newSite.name && !newSite.subdomain) {
-      const generatedSubdomain = newSite.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .substring(0, 50)
-      setNewSite(prev => ({ ...prev, subdomain: generatedSubdomain }))
-    }
-  }, [newSite.name, newSite.subdomain])
 
   // Update status message based on progress
   useEffect(() => {
@@ -394,7 +381,6 @@ export default function DashboardSitesPage() {
       email: '',
       phone: '',
       address: '',
-      subdomain: '',
       brandColors: '',
       logoUrl: null
     })
@@ -418,7 +404,7 @@ export default function DashboardSitesPage() {
   const nextStep = () => {
     if (step === 1) {
       // Validate required fields
-      if (!newSite.name || !newSite.description || !newSite.subdomain) {
+      if (!newSite.name || !newSite.description) {
         toast.error('Please fill in all required fields')
         return
       }
@@ -778,24 +764,6 @@ export default function DashboardSitesPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="subdomain">Website Address (Slug) *</Label>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        id="subdomain"
-                        placeholder="soul-bloom"
-                        value={newSite.subdomain}
-                        onChange={(e) => setNewSite({ ...newSite, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                      />
-                      <span className="text-sm text-gray-500 whitespace-nowrap">
-                        .{typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Letters, numbers, and hyphens only
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
                     <Label htmlFor="description">Brief Description *</Label>
                     <Textarea
                       id="description"
@@ -954,10 +922,6 @@ export default function DashboardSitesPage() {
                         <div className="flex justify-between">
                           <span className="text-gray-600">Name:</span>
                           <span className="font-medium">{newSite.name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">URL:</span>
-                          <span className="font-medium">{newSite.subdomain}.{typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Description:</span>
