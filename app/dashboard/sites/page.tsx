@@ -172,8 +172,18 @@ export default function DashboardSitesPage() {
     try {
       setStatusMessage('Adding Privacy Policy, Terms, and Seasonal Guide pages...')
 
-      if (!user) {
-        throw new Error('User not authenticated')
+      // Get current user from Supabase session (fresh, not from hook)
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser()
+
+      if (userError || !currentUser) {
+        console.warn('User not authenticated, skipping additional pages:', userError)
+        toast.warning('Site created successfully! You can add Privacy/Terms pages manually.')
+        setIsCreateModalOpen(false)
+        resetForm()
+        await refreshSites()
+        await switchSite(siteId)
+        router.push('/dashboard')
+        return
       }
 
       // Get templates
@@ -204,7 +214,7 @@ export default function DashboardSitesPage() {
           content: privacyContent,
           is_published: true,
           sort_order: 90,
-          author_id: user.id
+          author_id: currentUser.id
         },
         {
           site_id: siteId,
@@ -214,7 +224,7 @@ export default function DashboardSitesPage() {
           content: termsContent,
           is_published: true,
           sort_order: 100,
-          author_id: user.id
+          author_id: currentUser.id
         },
         {
           site_id: siteId,
@@ -224,7 +234,7 @@ export default function DashboardSitesPage() {
           content: seasonalGuideContent,
           is_published: true,
           sort_order: 110,
-          author_id: user.id
+          author_id: currentUser.id
         }
       ]
 
