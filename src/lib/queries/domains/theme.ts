@@ -75,11 +75,15 @@ export interface ThemeSettings {
   };
   footer?: {
     style: 'minimal' | 'comprehensive' | 'centered' | 'newsletter';
-    columns: FooterColumn[];
-    newsletter: boolean;
-    socialLinks: SocialLink[];
-    copyright: string;
-    paymentBadges: string[];
+    columns?: FooterColumn[];
+    newsletter?: boolean;
+    socialLinks?: SocialLink[];
+    copyright?: string;
+    paymentBadges?: string[];
+    navigationItems?: Array<{
+      label: string;
+      href: string;
+    }>;
     trustBadges?: {
       secure?: boolean;
       shipping?: boolean;

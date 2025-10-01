@@ -379,6 +379,54 @@ export async function createSiteFromGenerated(
       : subdomain;
 
     // Create site record
+    const themeSettings = {
+      colors: {
+        primary: data.branding?.primary_color || '#8B5CF6',
+        secondary: data.branding?.secondary_color || '#06B6D4',
+        accent: data.branding?.accent_color || '#F59E0B',
+        background: '#FFFFFF'
+      },
+      typography: {
+        headingFont: data.branding?.font_family?.split(',')[0]?.trim() || 'Inter',
+        bodyFont: data.branding?.font_family?.split(',')[1]?.trim() || 'Inter',
+        fontSize: 'medium'
+      },
+      layout: {
+        headerStyle: 'modern',
+        footerStyle: 'centered',
+        menuStyle: 'horizontal'
+      },
+      logo: {
+        url: null,
+        position: 'left',
+        size: 'medium',
+        description: data.branding?.logo_description || null
+      },
+      navigation: {
+        items: [
+          { label: 'Home', href: '/home' },
+          { label: 'About', href: '/about' },
+          { label: 'Contact', href: '/contact' }
+        ],
+        style: 'horizontal'
+      },
+      footer: {
+        style: 'centered',
+        navigationItems: [
+          { label: 'Home', href: '/home' },
+          { label: 'About', href: '/about' },
+          { label: 'Contact', href: '/contact' }
+        ],
+        socialLinks: [],
+        copyright: `© ${new Date().getFullYear()} ${data.site_name}. All rights reserved.`
+      },
+      // Store original branding and SEO for reference
+      _generated: {
+        branding: data.branding,
+        seo: data.seo
+      }
+    };
+
     const { data: site, error: siteError } = await supabase
       .from('sites')
       .insert({
@@ -390,35 +438,7 @@ export async function createSiteFromGenerated(
         business_phone: data.contact?.phone,
         business_address: data.contact?.address,
         primary_color: data.branding?.primary_color || '#3B82F6',
-        theme_settings: {
-          colors: {
-            primary: data.branding?.primary_color || '#8B5CF6',
-            secondary: data.branding?.secondary_color || '#06B6D4',
-            accent: data.branding?.accent_color || '#F59E0B',
-            background: '#FFFFFF'
-          },
-          typography: {
-            headingFont: data.branding?.font_family?.split(',')[0]?.trim() || 'Inter',
-            bodyFont: data.branding?.font_family?.split(',')[1]?.trim() || 'Inter',
-            fontSize: 'medium'
-          },
-          layout: {
-            headerStyle: 'modern',
-            footerStyle: 'minimal',
-            menuStyle: 'horizontal'
-          },
-          logo: {
-            url: null,
-            position: 'left',
-            size: 'medium',
-            description: data.branding?.logo_description || null
-          },
-          // Store original branding and SEO for reference
-          _generated: {
-            branding: data.branding,
-            seo: data.seo
-          }
-        },
+        theme_settings: JSON.parse(JSON.stringify(themeSettings)),
         is_active: true,
         is_published: false, // Requires manual review before publishing
         created_by: userId,
