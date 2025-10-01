@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Globe, Calendar, Settings, ExternalLink, Loader2, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Plus, Globe, Calendar, Settings, ExternalLink, Loader2, Sparkles, CheckCircle2, AlertCircle, Upload, ArrowRight, ArrowLeft, Check, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
 import { Textarea } from '@/src/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
 import { Progress } from '@/src/components/ui/progress'
 import { toast } from 'sonner'
 import { supabase } from '@/src/lib/supabase/client'
@@ -47,6 +46,7 @@ export default function DashboardSitesPage() {
   const { sites: userSites, loading: sitesLoading, error: sitesError, refresh: refreshSites } = useUserSites()
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [step, setStep] = useState(1)
   const [newSite, setNewSite] = useState({
     name: '',
     description: '',
@@ -54,11 +54,18 @@ export default function DashboardSitesPage() {
     location: '',
     email: '',
     phone: '',
-    subdomain: ''
+    subdomain: '',
+    brandColors: '',
+    logoUrl: null as string | null
   })
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationStatus, setGenerationStatus] = useState<GenerationStatus | null>(null)
   const [statusMessage, setStatusMessage] = useState('')
+
+  // Logo upload states
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Transform sites data to match the interface
   const sites: Site[] = (userSites || []).map(access => ({
@@ -185,6 +192,51 @@ export default function DashboardSitesPage() {
         return
       }
 
+      // Update site with logo and theme settings if logo was uploaded
+      if (newSite.logoUrl) {
+        setStatusMessage('Updating logo and theme settings...')
+
+        // First, get current theme settings
+        const { data: siteData, error: fetchError } = await supabase
+          .from('sites')
+          .select('theme_settings')
+          .eq('id', siteId)
+          .single()
+
+        if (fetchError) {
+          console.error('Error fetching theme settings:', fetchError)
+        } else {
+          const currentThemeSettings = (siteData?.theme_settings as Record<string, unknown>) || {}
+          const logoConfig = {
+            url: newSite.logoUrl,
+            text: newSite.name,
+            size: 'medium',
+            position: 'left',
+            pixelSize: 80,
+            displayType: 'both'
+          }
+
+          // Merge logo config into theme settings
+          const updatedThemeSettings = {
+            ...currentThemeSettings,
+            logo: logoConfig
+          }
+
+          const { error: updateError } = await supabase
+            .from('sites')
+            .update({
+              logo_url: newSite.logoUrl,
+              theme_settings: updatedThemeSettings
+            })
+            .eq('id', siteId)
+
+          if (updateError) {
+            console.error('Error updating logo:', updateError)
+            toast.warning('Site created, but logo update failed')
+          }
+        }
+      }
+
       // Get templates
       const privacyContent = getPrivacyPolicyTemplate(
         'Privacy Policy',
@@ -282,15 +334,23 @@ export default function DashboardSitesPage() {
     setGenerationStatus(null)
 
     try {
+      // Build enhanced AI prompt with brand colors
+      let enhancedPrompt = `Create a website for ${newSite.name}. ${newSite.description}`
+      if (newSite.brandColors) {
+        enhancedPrompt += `. Brand colors/theme: ${newSite.brandColors}`
+      }
+
       // Build API request
       const requestBody = {
-        prompt: `Create a website for ${newSite.name}. ${newSite.description}`,
+        prompt: enhancedPrompt,
         name: newSite.name,
         industry: newSite.industry || undefined,
         location: newSite.location || undefined,
         email: newSite.email || undefined,
         phone: newSite.phone || undefined,
-        description: newSite.description
+        description: newSite.description,
+        brandColors: newSite.brandColors || undefined,
+        logoUrl: newSite.logoUrl || undefined
       }
 
       // Call AI generation API
@@ -331,10 +391,15 @@ export default function DashboardSitesPage() {
       location: '',
       email: '',
       phone: '',
-      subdomain: ''
+      subdomain: '',
+      brandColors: '',
+      logoUrl: null
     })
+    setStep(1)
     setGenerationStatus(null)
     setStatusMessage('')
+    setIsUploading(false)
+    setUploadProgress(0)
   }
 
   const handleModalClose = (open: boolean) => {
@@ -343,6 +408,113 @@ export default function DashboardSitesPage() {
       if (!open) {
         resetForm()
       }
+    }
+  }
+
+  // Step navigation
+  const nextStep = () => {
+    if (step === 1) {
+      // Validate required fields
+      if (!newSite.name || !newSite.description || !newSite.subdomain) {
+        toast.error('Please fill in all required fields')
+        return
+      }
+      setStep(2)
+    } else if (step === 2) {
+      setStep(3)
+    }
+  }
+
+  const prevStep = () => {
+    if (step > 1) {
+      setStep(step - 1)
+    }
+  }
+
+  // Logo upload handler
+  const handleLogoUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB')
+      return
+    }
+
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval)
+          return 90
+        }
+        return prev + 10
+      })
+    }, 100)
+
+    try {
+      // For now, use a placeholder site ID. In production, we'd create the site first
+      const tempSiteId = crypto.randomUUID()
+
+      const response = await fetch('/api/upload/presigned', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          fileSize: file.size,
+          siteId: tempSiteId,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to get upload URL')
+      }
+
+      const result = await response.json()
+
+      if (!result.success || !result.data) {
+        throw new Error('Invalid presigned URL response')
+      }
+
+      const { uploadUrl, publicUrl } = result.data
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+          'Content-Length': file.size.toString(),
+        },
+        body: file,
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Failed to upload file: ${uploadResponse.status}`)
+      }
+
+      setUploadProgress(100)
+      setNewSite(prev => ({ ...prev, logoUrl: publicUrl }))
+      toast.success('Logo uploaded successfully')
+    } catch (error) {
+      console.error('Logo upload error:', error)
+      toast.error('Failed to upload logo')
+    } finally {
+      setIsUploading(false)
+      clearInterval(progressInterval)
+      setUploadProgress(0)
+    }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      handleLogoUpload(files[0])
     }
   }
 
@@ -514,9 +686,34 @@ export default function DashboardSitesPage() {
             <DialogDescription>
               {isGenerating
                 ? 'Our AI is creating your professional website with all the pages you need'
-                : 'Tell us about your business and we\'ll generate a complete website with content, design, and essential pages'}
+                : `Step ${step} of 3: ${step === 1 ? 'Company Information' : step === 2 ? 'Design Settings' : 'Review & Create'}`}
             </DialogDescription>
           </DialogHeader>
+
+          {/* Progress Indicator */}
+          {!isGenerating && (
+            <div className="flex items-center justify-center space-x-4 py-4">
+              {[1, 2, 3].map((stepNumber) => (
+                <div key={stepNumber} className="flex items-center">
+                  <div className={`
+                    w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
+                    ${step >= stepNumber
+                      ? 'bg-green-600 text-white shadow-lg'
+                      : 'bg-gray-200 text-gray-600'
+                    }
+                  `}>
+                    {step > stepNumber ? <Check className="h-4 w-4" /> : stepNumber}
+                  </div>
+                  {stepNumber < 3 && (
+                    <div className={`
+                      w-12 h-1 mx-2 rounded-full transition-all
+                      ${step > stepNumber ? 'bg-green-600' : 'bg-gray-200'}
+                    `} />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {isGenerating ? (
             // Generation Progress View
@@ -549,7 +746,7 @@ export default function DashboardSitesPage() {
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                <h4 className="font-semibold text-gray-900">What we're creating:</h4>
+                <h4 className="font-semibold text-gray-900">What we&apos;re creating:</h4>
                 <ul className="space-y-1 text-gray-600">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -583,137 +780,297 @@ export default function DashboardSitesPage() {
               </div>
             </div>
           ) : (
-            // Input Form View
-            <div className="space-y-4 py-4">
-              {/* Required Fields */}
-              <div className="space-y-4 pb-4 border-b">
-                <h4 className="font-semibold text-sm text-gray-700">Required Information</h4>
-
-                <div className="space-y-2">
-                  <Label htmlFor="name">Business Name *</Label>
-                  <Input
-                    id="name"
-                    placeholder="Green Thumb Gardens"
-                    value={newSite.name}
-                    onChange={(e) => setNewSite({ ...newSite, name: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Business Description *</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Tell us about your business, what you offer, and what makes you unique..."
-                    value={newSite.description}
-                    onChange={(e) => setNewSite({ ...newSite, description: e.target.value })}
-                    rows={4}
-                  />
-                  <p className="text-xs text-gray-500">
-                    The more details you provide, the better your AI-generated content will be
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="subdomain">Website Address *</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      id="subdomain"
-                      placeholder="greenthumb"
-                      value={newSite.subdomain}
-                      onChange={(e) => setNewSite({ ...newSite, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                    />
-                    <span className="text-sm text-gray-500 whitespace-nowrap">
-                      .{typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    This will be your website URL (letters, numbers, and hyphens only)
-                  </p>
-                </div>
-              </div>
-
-              {/* Optional Fields */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm text-gray-700">Additional Details (Optional)</h4>
-                <p className="text-xs text-gray-500">
-                  These details help create more personalized content
-                </p>
-
-                <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6 py-4">
+              {/* Step 1: Company Information */}
+              {step === 1 && (
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="industry">Industry</Label>
-                    <Select value={newSite.industry} onValueChange={(value) => setNewSite({ ...newSite, industry: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select industry" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="garden-center">Garden Center</SelectItem>
-                        <SelectItem value="plant-nursery">Plant Nursery</SelectItem>
-                        <SelectItem value="florist">Florist</SelectItem>
-                        <SelectItem value="landscaping">Landscaping</SelectItem>
-                        <SelectItem value="farm">Farm / Market</SelectItem>
-                        <SelectItem value="greenhouse">Greenhouse</SelectItem>
-                        <SelectItem value="botanicals">Botanicals / Herbs</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
+                    <Label htmlFor="name">Company Name *</Label>
                     <Input
-                      id="location"
-                      placeholder="Portland, OR"
-                      value={newSite.location}
-                      onChange={(e) => setNewSite({ ...newSite, location: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Contact Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="hello@example.com"
-                      value={newSite.email}
-                      onChange={(e) => setNewSite({ ...newSite, email: e.target.value })}
+                      id="name"
+                      placeholder="Soul Bloom Sanctuary"
+                      value={newSite.name}
+                      onChange={(e) => setNewSite({ ...newSite, name: e.target.value })}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="(555) 123-4567"
-                      value={newSite.phone}
-                      onChange={(e) => setNewSite({ ...newSite, phone: e.target.value })}
+                    <Label htmlFor="subdomain">Website Address (Slug) *</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="subdomain"
+                        placeholder="soul-bloom"
+                        value={newSite.subdomain}
+                        onChange={(e) => setNewSite({ ...newSite, subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                      />
+                      <span className="text-sm text-gray-500 whitespace-nowrap">
+                        .{typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Letters, numbers, and hyphens only
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Brief Description *</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Describe your company and what makes it unique..."
+                      value={newSite.description}
+                      onChange={(e) => setNewSite({ ...newSite, description: e.target.value })}
+                      rows={4}
                     />
+                    <p className="text-xs text-gray-500">
+                      This helps our AI create better content for your site
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Contact Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="hello@example.com"
+                        value={newSite.email}
+                        onChange={(e) => setNewSite({ ...newSite, email: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Contact Phone</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="(555) 123-4567"
+                        value={newSite.phone}
+                        onChange={(e) => setNewSite({ ...newSite, phone: e.target.value })}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Step 2: Design Settings */}
+              {step === 2 && (
+                <div className="space-y-6">
+                  {/* Logo Upload Section */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-semibold">Logo Upload</Label>
+                      <Badge variant="secondary" className="text-xs">Optional, but encouraged</Badge>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Upload your company logo to enhance your brand identity
+                    </p>
+
+                    {newSite.logoUrl ? (
+                      <Card className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="relative w-20 h-20 border rounded-lg overflow-hidden bg-gray-50">
+                              <img
+                                src={newSite.logoUrl}
+                                alt="Logo preview"
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Logo uploaded successfully</p>
+                              <p className="text-xs text-gray-500">Your logo will appear on all pages</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setNewSite({ ...newSite, logoUrl: null })}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </Card>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <ImageIcon className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+                        <p className="text-sm font-medium mb-2">Upload your logo</p>
+                        <p className="text-xs text-gray-500 mb-4">PNG, JPG, or SVG (max 5MB)</p>
+                        {isUploading ? (
+                          <div className="space-y-2">
+                            <Loader2 className="h-6 w-6 text-primary mx-auto animate-spin" />
+                            <p className="text-sm">Uploading... {uploadProgress}%</p>
+                            <Progress value={uploadProgress} className="h-1" />
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Choose File
+                          </Button>
+                        )}
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Brand Colors Section */}
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">Brand Colors & Theme</Label>
+                    <p className="text-xs text-gray-500">
+                      Enter hex codes or describe your color theme. Our AI will use this to style your site.
+                    </p>
+                    <Textarea
+                      placeholder="e.g., #2E7D32, #FFD700 or 'earthy greens and warm golds'"
+                      value={newSite.brandColors}
+                      onChange={(e) => setNewSite({ ...newSite, brandColors: e.target.value })}
+                      rows={3}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Examples: "#FF5733, #3498DB" or "modern purple and teal" or "vintage earth tones"
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Review */}
+              {step === 3 && (
+                <div className="space-y-4">
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold">Review Your Information</h3>
+                    <p className="text-sm text-gray-500">
+                      Double-check everything before we create your site
+                    </p>
+                  </div>
+
+                  <Card className="p-4 space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-700 mb-3">Company Information</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Name:</span>
+                          <span className="font-medium">{newSite.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">URL:</span>
+                          <span className="font-medium">{newSite.subdomain}.{typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Description:</span>
+                          <span className="font-medium text-right max-w-xs truncate">{newSite.description}</span>
+                        </div>
+                        {newSite.email && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Email:</span>
+                            <span className="font-medium">{newSite.email}</span>
+                          </div>
+                        )}
+                        {newSite.phone && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Phone:</span>
+                            <span className="font-medium">{newSite.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <h4 className="font-semibold text-sm text-gray-700 mb-3">Design Settings</h4>
+                      <div className="space-y-3">
+                        {newSite.logoUrl ? (
+                          <div className="flex items-center gap-3">
+                            <div className="relative w-16 h-16 border rounded-lg overflow-hidden bg-gray-50">
+                              <img
+                                src={newSite.logoUrl}
+                                alt="Logo"
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Logo uploaded ✓</p>
+                              <p className="text-xs text-gray-500">Will display with company name</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">No logo uploaded</p>
+                        )}
+                        {newSite.brandColors && (
+                          <div>
+                            <p className="text-sm font-medium">Brand Colors:</p>
+                            <p className="text-sm text-gray-600">{newSite.brandColors}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <Sparkles className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-blue-900">Ready to create your site!</p>
+                        <p className="text-xs text-blue-700 mt-1">
+                          Our AI will generate a complete website with home, about, contact pages, and more.
+                          This usually takes 30-60 seconds.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex justify-between">
             {!isGenerating && (
               <>
-                <Button
-                  variant="outline"
-                  onClick={() => handleModalClose(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="btn-gradient-primary"
-                  onClick={generateSiteWithAI}
-                  disabled={!newSite.name || !newSite.description || !newSite.subdomain}
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Generate Website with AI
-                </Button>
+                <div className="flex gap-2">
+                  {step > 1 && (
+                    <Button
+                      variant="outline"
+                      onClick={prevStep}
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back
+                    </Button>
+                  )}
+                  {step === 1 && (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleModalClose(false)}
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
+
+                <div>
+                  {step < 3 ? (
+                    <Button
+                      className="btn-gradient-primary"
+                      onClick={nextStep}
+                    >
+                      Continue
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button
+                      className="btn-gradient-primary"
+                      onClick={generateSiteWithAI}
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate Website with AI
+                    </Button>
+                  )}
+                </div>
               </>
             )}
           </DialogFooter>
