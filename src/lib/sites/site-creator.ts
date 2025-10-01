@@ -2,7 +2,9 @@
  * Site Creator Module
  *
  * Creates sites and pages in the database from LLM-generated content.
- * Handles site creation, page creation, and error cleanup.
+ * Handles site creation, page creation with proper PageContent structure.
+ *
+ * AI-First Approach: Maximizes use of AI-generated data with minimal hardcoded defaults.
  */
 
 import { createClient } from '@/lib/supabase/server';
@@ -28,9 +30,6 @@ export interface SiteCreationResult {
 
 /**
  * Generates a URL-safe subdomain from site name
- *
- * @param siteName - Site name to convert
- * @returns URL-safe subdomain
  */
 function generateSubdomain(siteName: string): string {
   return siteName
@@ -41,25 +40,317 @@ function generateSubdomain(siteName: string): string {
 }
 
 /**
+ * Helper: Create Home page content from AI-generated data
+ * Uses: hero, features, description, tagline
+ */
+function createHomePageContent(data: GeneratedSiteData) {
+  return {
+    version: '1.0',
+    layout: 'landing',
+    sections: {
+      hero: {
+        type: 'hero',
+        order: 1,
+        visible: true,
+        data: {
+          headline: data.hero.headline,
+          subheadline: data.hero.subheadline,
+          ctaText: data.hero.cta_text,
+          ctaLink: '/plants',
+          secondaryCtaText: 'Care Guides',
+          secondaryCtaLink: '/care-guides',
+          backgroundImage: data.hero.background_image || '/images/hero-greenhouse.jpg',
+          features: data.features?.features?.map(f => f.title).slice(0, 4) || [
+            'Expert horticultural guidance',
+            'Premium plant selection',
+            'Comprehensive care resources',
+            'Local hardiness zone expertise'
+          ]
+        }
+      },
+      featured: {
+        type: 'featured',
+        order: 2,
+        visible: true,
+        data: {
+          headline: 'Featured Plants This Season',
+          subheadline: 'Handpicked selections from our master horticulturists, perfect for current growing conditions',
+          viewAllLink: '/plants',
+          viewAllText: 'View All Plants'
+        },
+        settings: {
+          backgroundColor: 'default'
+        }
+      },
+      features: {
+        type: 'features',
+        order: 3,
+        visible: true,
+        data: {
+          headline: data.features?.title || 'Essential Plant Care Features',
+          description: data.features?.subtitle || 'Master these key practices for healthy, thriving plants year-round',
+          features: data.features?.features?.map(f => f.description || f.title).slice(0, 3) || []
+        },
+        settings: {
+          backgroundColor: 'alternate'
+        }
+      },
+      categories: {
+        type: 'categories',
+        order: 4,
+        visible: true,
+        data: {
+          headline: 'Find Your Perfect Plant Match',
+          description: 'Browse our expertly curated collections organized by care complexity and plant type'
+        },
+        settings: {
+          backgroundColor: 'default'
+        }
+      },
+      cta: {
+        type: 'cta',
+        order: 5,
+        visible: true,
+        data: {
+          headline: 'Growing Together, Sustainably',
+          description: data.description || data.tagline,
+          ctaText: 'Shop Plants',
+          ctaLink: '/',
+          secondaryCtaText: 'Browse Plants',
+          secondaryCtaLink: '/'
+        },
+        settings: {
+          backgroundColor: 'primary'
+        }
+      }
+    }
+  };
+}
+
+/**
+ * Helper: Create About page content from AI-generated data
+ * Uses: about, values, features, tagline, description
+ */
+function createAboutPageContent(data: GeneratedSiteData) {
+  return {
+    version: '1.0',
+    layout: 'about',
+    sections: {
+      hero: {
+        type: 'hero',
+        order: 1,
+        visible: true,
+        data: {
+          headline: data.about.title || 'About',
+          subheadline: data.tagline || data.description,
+          ctaText: 'Contact Us',
+          ctaLink: '/contact',
+          secondaryCtaText: 'View Our Services',
+          secondaryCtaLink: '/services',
+          features: [
+            'Professional Horticulturists',
+            'Expert Plant Care Guidance',
+            'Sustainable Growing Practices',
+            'Local Plant Sourcing'
+          ]
+        }
+      },
+      mission: {
+        type: 'mission',
+        order: 2,
+        visible: true,
+        data: {
+          headline: 'Our Mission',
+          content: data.about.mission || data.about.content?.[0] || data.description
+        }
+      },
+      ...(data.values && data.values.values.length > 0 ? {
+        values: {
+          type: 'values',
+          order: 3,
+          visible: true,
+          data: {
+            headline: data.values.title,
+            description: data.values.subtitle || 'The principles that guide everything we do',
+            items: data.values.values.map((v, i) => ({
+              id: v.title.toLowerCase().replace(/\s+/g, '-'),
+              title: v.title,
+              content: v.description,
+              description: v.description,
+              icon: v.icon || 'Leaf',
+              order: i
+            }))
+          },
+          settings: {
+            backgroundColor: 'alternate'
+          }
+        }
+      } : {}),
+      ...(data.features && data.features.features.length > 0 ? {
+        features: {
+          type: 'features',
+          order: 5,
+          visible: true,
+          data: {
+            headline: 'Professional Certifications',
+            description: 'Our credentials and expertise you can trust',
+            features: data.features.features.map(f => f.title).slice(0, 5)
+          },
+          settings: {
+            backgroundColor: 'alternate'
+          }
+        }
+      } : {}),
+      richText: {
+        type: 'richText',
+        order: 6,
+        visible: true,
+        data: {
+          headline: 'Our Story',
+          content: `<p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">${
+            data.about.vision || data.about.content?.[1] || data.about.content?.[0] || data.description
+          }</p>`
+        }
+      },
+      cta: {
+        type: 'cta',
+        order: 7,
+        visible: true,
+        data: {
+          headline: 'Ready to Start Your Plant Journey?',
+          description: 'Let our experts help you create the perfect green sanctuary for your space.',
+          ctaText: 'Schedule Consultation',
+          ctaLink: '/consultation',
+          secondaryCtaText: 'Browse Plants',
+          secondaryCtaLink: '/plants'
+        },
+        settings: {
+          backgroundColor: 'primary'
+        }
+      }
+    }
+  };
+}
+
+/**
+ * Helper: Create Contact page content from AI-generated data
+ * Uses: contact, testimonials (as FAQs)
+ */
+function createContactPageContent(data: GeneratedSiteData) {
+  const contact = data.contact;
+
+  return {
+    version: '1.0',
+    layout: 'contact',
+    sections: {
+      header: {
+        type: 'header',
+        order: 1,
+        visible: true,
+        data: {
+          headline: contact.title || 'Contact',
+          subheadline: 'We\'d love to hear from you. Reach out to us for questions, support, or just to say hello.'
+        },
+        settings: {
+          backgroundColor: 'gradient'
+        }
+      },
+      businessInfo: {
+        type: 'businessInfo',
+        order: 2,
+        visible: true,
+        data: {
+          headline: 'Contact Information',
+          email: contact.email,
+          phone: contact.phone || '',
+          address: contact.address ? {
+            street: contact.address,
+            city: '',
+            state: '',
+            zip: ''
+          } : undefined,
+          hours: contact.hours ? [
+            { days: 'Monday - Friday', time: contact.hours }
+          ] : [
+            { days: 'Monday - Friday', time: '9:00 AM - 6:00 PM' },
+            { days: 'Saturday', time: '10:00 AM - 4:00 PM' },
+            { days: 'Sunday', time: 'Closed' }
+          ],
+          socials: {
+            facebook: '',
+            instagram: '',
+            twitter: '',
+            linkedin: ''
+          }
+        }
+      },
+      richText: {
+        type: 'richText',
+        order: 3,
+        visible: true,
+        data: {
+          content: 'Whether you have questions about our products, need support, or want to learn more about what we offer, our team is ready to assist you. We strive to respond to all inquiries within 24 hours during business days.<br><br>For urgent matters, please call us directly. For general inquiries, feel free to email us or visit our location during business hours.',
+          headline: 'We\'re Here to Help'
+        }
+      },
+      faq: {
+        type: 'faq',
+        order: 4,
+        visible: true,
+        data: {
+          headline: 'Frequently Asked Questions',
+          description: '',
+          faqs: [
+            {
+              id: 'faq-1',
+              order: 0,
+              question: 'What are your business hours?',
+              answer: contact.hours
+                ? `We are open ${contact.hours}.`
+                : 'We are open Monday through Friday from 9:00 AM to 6:00 PM, and Saturdays from 10:00 AM to 4:00 PM. We are closed on Sundays.'
+            },
+            {
+              id: 'faq-2',
+              order: 1,
+              question: 'How can I reach customer support?',
+              answer: `You can reach our customer support team by phone at ${contact.phone || '(555) 123-4567'}, by email at ${contact.email}, or by visiting our location during business hours.`
+            },
+            {
+              id: 'faq-3',
+              order: 2,
+              question: 'Do you offer consultations?',
+              answer: 'Yes! We offer free consultations to help you choose the right solutions for your needs. Contact us to schedule an appointment.'
+            },
+            {
+              id: 'faq-4',
+              order: 3,
+              question: 'Where are you located?',
+              answer: contact.address
+                ? `We are located at ${contact.address}. Parking is available on-site.`
+                : 'We are located at 123 Plant Avenue. Parking is available on-site.'
+            }
+          ]
+        },
+        settings: {
+          backgroundColor: 'alternate'
+        }
+      }
+    }
+  };
+}
+
+/**
  * Creates a site and pages from generated content
  *
- * This function:
- * 1. Creates the site record with branding
- * 2. Creates page records for each section (hero, about, values, etc.)
- * 3. Returns site ID and metadata
- * 4. Cleans up on error
+ * AI-First Strategy:
+ * - Generates 3 pages: Home (landing), About, Contact
+ * - Uses AI data for all content, headings, features, values
+ * - Minimal hardcoded defaults (only structural/UI elements)
  *
  * @param data - Generated site data from LLM
  * @param userId - Owner user ID
  * @returns Site creation result
  * @throws Error if creation fails
- *
- * @example
- * ```ts
- * const result = await createSiteFromGenerated(generatedData, userId);
- * console.log('Created site:', result.siteId);
- * console.log('Created pages:', result.pageIds.length);
- * ```
  */
 export async function createSiteFromGenerated(
   data: GeneratedSiteData,
@@ -142,16 +433,35 @@ export async function createSiteFromGenerated(
     siteId = site.id;
     console.log('Site created:', siteId);
 
-    // Create page for hero section
+    // Create site membership for the owner
+    const { error: membershipError } = await supabase
+      .from('site_memberships')
+      .insert({
+        user_id: userId,
+        site_id: siteId,
+        role: 'owner',
+        is_active: true
+      })
+      .select('id')
+      .single();
+
+    if (membershipError) {
+      console.error('Failed to create site membership:', handleError(membershipError).message);
+      throw new Error(`Failed to create site membership: ${handleError(membershipError).message}`);
+    }
+
+    console.log('Site membership created for user:', userId);
+
+    // Create Home page (from hero + features)
     if (data.hero) {
-      const { data: heroPage, error: heroError } = await supabase
+      const { data: homePage, error: homeError } = await supabase
         .from('content')
         .insert({
           site_id: siteId,
-          title: 'Home - Hero',
-          slug: 'hero',
-          content_type: 'hero',
-          content: data.hero,
+          title: 'Home',
+          slug: 'home',
+          content_type: 'page',
+          content: createHomePageContent(data),
           is_published: true,
           sort_order: 10,
           author_id: userId,
@@ -159,23 +469,24 @@ export async function createSiteFromGenerated(
         .select('id')
         .single();
 
-      if (heroError) {
-        console.error('Failed to create hero page:', handleError(heroError).message);
-      } else if (heroPage) {
-        createdPageIds.push(heroPage.id);
+      if (homeError) {
+        console.error('Failed to create home page:', handleError(homeError).message);
+      } else if (homePage) {
+        createdPageIds.push(homePage.id);
+        console.log('Home page created');
       }
     }
 
-    // Create About page
+    // Create About page (from about + values + features)
     if (data.about) {
       const { data: aboutPage, error: aboutError } = await supabase
         .from('content')
         .insert({
           site_id: siteId,
-          title: data.about.title || 'About Us',
+          title: 'About',
           slug: 'about',
-          content_type: 'about',
-          content: data.about,
+          content_type: 'page',
+          content: createAboutPageContent(data),
           is_published: true,
           sort_order: 20,
           author_id: userId,
@@ -187,139 +498,20 @@ export async function createSiteFromGenerated(
         console.error('Failed to create about page:', handleError(aboutError).message);
       } else if (aboutPage) {
         createdPageIds.push(aboutPage.id);
+        console.log('About page created');
       }
     }
 
-    // Create Values page (optional)
-    if (data.values) {
-      const { data: valuesPage, error: valuesError } = await supabase
-        .from('content')
-        .insert({
-          site_id: siteId,
-          title: data.values.title || 'Our Values',
-          slug: 'values',
-          content_type: 'values',
-          content: data.values,
-          is_published: true,
-          sort_order: 30,
-          author_id: userId,
-        } as ContentInsert)
-        .select('id')
-        .single();
-
-      if (valuesError) {
-        console.error('Failed to create values page:', handleError(valuesError).message);
-      } else if (valuesPage) {
-        createdPageIds.push(valuesPage.id);
-      }
-    }
-
-    // Create Features page (optional)
-    if (data.features) {
-      const { data: featuresPage, error: featuresError } = await supabase
-        .from('content')
-        .insert({
-          site_id: siteId,
-          title: data.features.title || 'Features',
-          slug: 'features',
-          content_type: 'features',
-          content: data.features,
-          is_published: true,
-          sort_order: 40,
-          author_id: userId,
-        } as ContentInsert)
-        .select('id')
-        .single();
-
-      if (featuresError) {
-        console.error('Failed to create features page:', handleError(featuresError).message);
-      } else if (featuresPage) {
-        createdPageIds.push(featuresPage.id);
-      }
-    }
-
-    // Create Services page (optional)
-    if (data.services) {
-      const { data: servicesPage, error: servicesError } = await supabase
-        .from('content')
-        .insert({
-          site_id: siteId,
-          title: data.services.title || 'Our Services',
-          slug: 'services',
-          content_type: 'services',
-          content: data.services,
-          is_published: true,
-          sort_order: 50,
-          author_id: userId,
-        } as ContentInsert)
-        .select('id')
-        .single();
-
-      if (servicesError) {
-        console.error('Failed to create services page:', handleError(servicesError).message);
-      } else if (servicesPage) {
-        createdPageIds.push(servicesPage.id);
-      }
-    }
-
-    // Create Team page (optional)
-    if (data.team) {
-      const { data: teamPage, error: teamError } = await supabase
-        .from('content')
-        .insert({
-          site_id: siteId,
-          title: data.team.title || 'Our Team',
-          slug: 'team',
-          content_type: 'team',
-          content: data.team,
-          is_published: true,
-          sort_order: 60,
-          author_id: userId,
-        } as ContentInsert)
-        .select('id')
-        .single();
-
-      if (teamError) {
-        console.error('Failed to create team page:', handleError(teamError).message);
-      } else if (teamPage) {
-        createdPageIds.push(teamPage.id);
-      }
-    }
-
-    // Create Testimonials page (optional)
-    if (data.testimonials) {
-      const { data: testimonialsPage, error: testimonialsError } = await supabase
-        .from('content')
-        .insert({
-          site_id: siteId,
-          title: data.testimonials.title || 'Testimonials',
-          slug: 'testimonials',
-          content_type: 'testimonials',
-          content: data.testimonials,
-          is_published: true,
-          sort_order: 70,
-          author_id: userId,
-        } as ContentInsert)
-        .select('id')
-        .single();
-
-      if (testimonialsError) {
-        console.error('Failed to create testimonials page:', handleError(testimonialsError).message);
-      } else if (testimonialsPage) {
-        createdPageIds.push(testimonialsPage.id);
-      }
-    }
-
-    // Create Contact page
+    // Create Contact page (from contact + testimonials)
     if (data.contact) {
       const { data: contactPage, error: contactError } = await supabase
         .from('content')
         .insert({
           site_id: siteId,
-          title: data.contact.title || 'Contact Us',
+          title: 'Contact',
           slug: 'contact',
-          content_type: 'contact',
-          content: data.contact,
+          content_type: 'page',
+          content: createContactPageContent(data),
           is_published: true,
           sort_order: 80,
           author_id: userId,
@@ -331,6 +523,7 @@ export async function createSiteFromGenerated(
         console.error('Failed to create contact page:', handleError(contactError).message);
       } else if (contactPage) {
         createdPageIds.push(contactPage.id);
+        console.log('Contact page created');
       }
     }
 
