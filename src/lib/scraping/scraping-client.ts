@@ -74,8 +74,9 @@ export async function scrapeUrl(
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
+      console.log(`Scraping URL: ${url}${attempt > 0 ? ` (retry ${attempt})` : ''}`);
+
       const hash = generateScrapingHash(url);
-      const requestBody: ScrapingRequest = { url, timeout };
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout + 5000); // 5s buffer
@@ -133,6 +134,7 @@ export async function scrapeUrl(
         throw new Error(data.error || 'Scraping failed without error message');
       }
 
+      console.log(`Successfully scraped: ${url}`);
       return data;
     } catch (error: unknown) {
       lastError = error instanceof Error ? error : new Error(String(error));

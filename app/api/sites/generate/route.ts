@@ -278,36 +278,11 @@ export async function POST(request: NextRequest) {
             `[${requestId}] Website analysis complete. Recommended pages: ${analyzed.recommendedPages.join(', ')}`
           );
 
-          // DETAILED SCRAPED DATA LOGGING
-          console.log(`\n${'='.repeat(80)}`);
-          console.log(`[${requestId}] 📊 SCRAPED DATA SUMMARY`);
-          console.log(`${'='.repeat(80)}`);
-          console.log(`\n🌐 Base URL: ${analyzed.baseUrl}`);
-          console.log(`\n📧 Contact Information:`);
-          console.log(`   Emails: ${analyzed.businessInfo.emails?.length ? analyzed.businessInfo.emails.join(', ') : 'None found'}`);
-          console.log(`   Phones: ${analyzed.businessInfo.phones?.length ? analyzed.businessInfo.phones.join(', ') : 'None found'}`);
-          console.log(`   Addresses: ${analyzed.businessInfo.addresses?.length ? analyzed.businessInfo.addresses.join('; ') : 'None found'}`);
-          console.log(`\n🎨 Branding:`);
-          console.log(`   Logo URL: ${analyzed.businessInfo.logoUrl || 'None found'}`);
-          console.log(`   Brand Colors: ${analyzed.businessInfo.brandColors?.length ? analyzed.businessInfo.brandColors.join(', ') : 'None found'}`);
-          console.log(`\n🔗 Social Links:`);
-          if (analyzed.businessInfo.socialLinks?.length) {
-            analyzed.businessInfo.socialLinks.forEach(link => {
-              console.log(`   ${link.platform}: ${link.url}`);
-            });
-          } else {
-            console.log(`   None found`);
-          }
-          console.log(`\n📄 Pages Discovered:`);
-          console.log(`   Total Found: ${discoveryResult.totalPagesFound}`);
-          console.log(`   Total Scraped: ${discoveryResult.totalPagesScraped}`);
-          console.log(`   Recommended: ${analyzed.recommendedPages.join(', ')}`);
-          console.log(`\n📝 Content Summary:`);
-          console.log(`   ${analyzed.contentSummary || 'No summary available'}`);
-          console.log(`\n${'-'.repeat(80)}`);
-          console.log(`Full scraped context object:`);
-          console.log(JSON.stringify(scrapedContext, null, 2));
-          console.log(`${'='.repeat(80)}\n`);
+          // Summary of scraped data
+          console.log(`[${requestId}] Scraped ${discoveryResult.totalPagesScraped} pages successfully`);
+          console.log(`[${requestId}] Extracted contact info: ${analyzed.businessInfo.emails?.length || 0} emails, ${analyzed.businessInfo.phones?.length || 0} phones`);
+          console.log(`[${requestId}] Branding: ${analyzed.businessInfo.brandColors?.length || 0} colors, ${analyzed.businessInfo.logoUrl ? 'logo found' : 'no logo'}`);
+          console.log(`[${requestId}] Social links: ${analyzed.businessInfo.socialLinks?.length || 0} platforms`);
         } else {
           console.warn(`[${requestId}] No pages scraped, continuing without context`);
         }

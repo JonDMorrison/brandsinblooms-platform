@@ -31,6 +31,7 @@ export async function discoverAndScrapePages(
   const pages: DiscoveredPage[] = [];
 
   // Step 1: Scrape homepage
+  console.log(`Starting page discovery for: ${websiteUrl}`);
   let homepageResponse;
   try {
     homepageResponse = await scrapeUrl(websiteUrl);
@@ -62,12 +63,15 @@ export async function discoverAndScrapePages(
 
   // Step 2: Extract navigation links from homepage
   const navLinks = extractNavigationLinks(homepageResponse.html!, websiteUrl);
+  console.log(`Discovered ${navLinks.length} navigation links from homepage`);
 
   // Step 3: Prioritize links for scraping
   const prioritized = prioritizeLinksForScraping(navLinks, scrapingConfig.maxPagesPerSite - 1); // -1 for homepage
+  console.log(`Prioritized ${prioritized.length} pages for scraping:`, prioritized.map(p => `${p.pageType}: ${p.href}`).join(', '));
 
   // Step 4: Scrape prioritized pages in parallel
   if (prioritized.length > 0) {
+    console.log(`Scraping ${prioritized.length} additional pages...`);
     const urlsToScrape = prioritized.map(link => link.href);
     const responses = await scrapeMultipleUrls(urlsToScrape, { concurrency: 3 });
 
@@ -88,11 +92,18 @@ export async function discoverAndScrapePages(
     });
   }
 
-  return {
+  const result = {
     baseUrl: websiteUrl,
     pages,
     errors,
     totalPagesFound: navLinks.length + 1, // +1 for homepage
     totalPagesScraped: pages.length,
   };
+
+  console.log(`Page discovery complete: ${result.totalPagesScraped}/${result.totalPagesFound} pages scraped successfully`);
+  if (errors.length > 0) {
+    console.log(`Failed to scrape ${errors.length} pages:`, errors.map(e => e.url).join(', '));
+  }
+
+  return result;
 }
