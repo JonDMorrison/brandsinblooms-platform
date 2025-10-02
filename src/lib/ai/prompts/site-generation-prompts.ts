@@ -114,6 +114,14 @@ export const PAGE_GENERATION_SYSTEM_PROMPT = `You are an expert web copywriter s
 
 Your task is to generate compelling, authentic content for a specific section of a website. The content should align with the site's branding and theme, and be tailored to the garden/plant industry.
 
+**CRITICAL: If existing website content is provided:**
+- Use it as the foundation for your content generation
+- Preserve accurate business information (contact details, addresses, hours)
+- Improve and modernize the language while maintaining the business's unique voice
+- Fix any grammar, spelling, or clarity issues
+- Make the content more engaging and compelling
+- Do NOT ignore the existing content - it should directly influence your output
+
 IMPORTANT GUIDELINES:
 
 **Content Style:**
@@ -394,6 +402,7 @@ export function buildFoundationPromptWithContext(
  * @param sectionType - Type of section to generate
  * @param businessInfo - Business information
  * @param siteTheme - Site branding/theme from Phase 1
+ * @param scrapedContext - Optional scraped website data for enhanced context
  * @returns Formatted user prompt for section generation
  *
  * @example
@@ -408,7 +417,8 @@ export function buildFoundationPromptWithContext(
 export function buildPagePrompt(
   sectionType: 'about' | 'values' | 'features' | 'services' | 'team' | 'testimonials' | 'contact',
   businessInfo: BusinessInfo,
-  siteTheme: SiteBranding
+  siteTheme: SiteBranding,
+  scrapedContext?: ScrapedWebsiteContext
 ): string {
   const parts: string[] = [];
 
@@ -443,20 +453,96 @@ export function buildPagePrompt(
     parts.push(`- Description: ${businessInfo.description}`);
   }
 
-  // Add contact info for contact section
+  // Add contact info for contact section - prioritize scraped data
   if (sectionType === 'contact') {
-    if (businessInfo.email) {
+    // Use scraped contact info if available, otherwise use provided
+    if (scrapedContext?.businessInfo.emails?.length) {
+      parts.push(`- Email: ${scrapedContext.businessInfo.emails.join(', ')}`);
+    } else if (businessInfo.email) {
       parts.push(`- Email: ${businessInfo.email}`);
     }
-    if (businessInfo.phone) {
+
+    if (scrapedContext?.businessInfo.phones?.length) {
+      parts.push(`- Phone: ${scrapedContext.businessInfo.phones.join(', ')}`);
+    } else if (businessInfo.phone) {
       parts.push(`- Phone: ${businessInfo.phone}`);
     }
-    if (businessInfo.additionalDetails?.address) {
+
+    if (scrapedContext?.businessInfo.addresses?.length) {
+      parts.push(`- Address: ${scrapedContext.businessInfo.addresses.join('; ')}`);
+    } else if (businessInfo.additionalDetails?.address) {
       parts.push(`- Address: ${String(businessInfo.additionalDetails.address)}`);
     }
   }
 
   parts.push('');
+
+  // Add scraped content context for the specific section
+  if (scrapedContext) {
+    parts.push('=== EXISTING WEBSITE CONTENT ===');
+    parts.push('The user has an existing website. Use the following content as inspiration, but improve and modernize it:');
+    parts.push('');
+
+    // Map section types to potential page content keys
+    const sectionToPageMapping: Record<typeof sectionType, string[]> = {
+      about: ['about', 'story', 'history', 'mission', 'who-we-are'],
+      values: ['values', 'philosophy', 'beliefs', 'principles'],
+      features: ['features', 'benefits', 'why-us', 'what-we-offer'],
+      services: ['services', 'offerings', 'what-we-do', 'programs'],
+      team: ['team', 'staff', 'about', 'people', 'our-team'],
+      testimonials: ['testimonials', 'reviews', 'feedback', 'stories'],
+      contact: ['contact', 'location', 'hours', 'visit']
+    };
+
+    // Find relevant scraped content for this section
+    if (scrapedContext.pageContents) {
+      const relevantKeys = sectionToPageMapping[sectionType];
+      let foundContent = false;
+
+      for (const key of relevantKeys) {
+        if (scrapedContext.pageContents[key]) {
+          parts.push(`Content from existing "${key}" page:`);
+          // Limit content length to avoid token overflow
+          const content = scrapedContext.pageContents[key];
+          if (content.length > 2000) {
+            parts.push(content.substring(0, 2000) + '...');
+            parts.push('(Content truncated for length)');
+          } else {
+            parts.push(content);
+          }
+          parts.push('');
+          foundContent = true;
+          break; // Use the first matching content
+        }
+      }
+
+      // If no specific content found but we have a content summary, use it
+      if (!foundContent && scrapedContext.contentSummary) {
+        parts.push('Website Overview:');
+        parts.push(scrapedContext.contentSummary);
+        parts.push('');
+      }
+    } else if (scrapedContext.contentSummary) {
+      // Fallback to content summary if no page-specific content
+      parts.push('Website Overview:');
+      parts.push(scrapedContext.contentSummary);
+      parts.push('');
+    }
+
+    // Add specific business info for contact section
+    if (sectionType === 'contact' && scrapedContext.businessInfo) {
+      if (scrapedContext.businessInfo.socialLinks?.length) {
+        parts.push('Social Media Links (preserve these):');
+        scrapedContext.businessInfo.socialLinks.forEach(({ platform, url }) => {
+          parts.push(`- ${platform}: ${url}`);
+        });
+        parts.push('');
+      }
+    }
+
+    parts.push('IMPORTANT: Use the above content as inspiration to create better, more engaging copy. Do not copy verbatim - improve the language, fix any issues, and make it more compelling while preserving accurate business information.');
+    parts.push('');
+  }
 
   // Site theme context
   parts.push('Site Theme:');

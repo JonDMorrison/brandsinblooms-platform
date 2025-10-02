@@ -534,48 +534,48 @@ export async function generateSiteContent(
     // PHASE 2: Generate page sections in parallel
     console.log('\n=== PHASE 2: Generating Page Sections (Parallel) ===');
 
-    // Create all section generation promises
+    // Create all section generation promises - pass scraped context to all sections
     const sectionPromises = [
       // Required sections
       generateWithOpenRouter<string>(
-        buildPagePrompt('about', businessInfo, foundation.branding),
+        buildPagePrompt('about', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.7, maxTokens: 1500, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'about', response: res })),
 
       generateWithOpenRouter<string>(
-        buildPagePrompt('contact', businessInfo, foundation.branding),
+        buildPagePrompt('contact', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.5, maxTokens: 1000, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'contact', response: res })),
 
       generateWithOpenRouter<string>(
-        buildPagePrompt('testimonials', businessInfo, foundation.branding),
+        buildPagePrompt('testimonials', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.8, maxTokens: 2000, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'testimonials', response: res })),
 
       // Optional sections
       generateWithOpenRouter<string>(
-        buildPagePrompt('values', businessInfo, foundation.branding),
+        buildPagePrompt('values', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.7, maxTokens: 1500, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'values', response: res })),
 
       generateWithOpenRouter<string>(
-        buildPagePrompt('features', businessInfo, foundation.branding),
+        buildPagePrompt('features', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.7, maxTokens: 1500, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'features', response: res })),
 
       generateWithOpenRouter<string>(
-        buildPagePrompt('services', businessInfo, foundation.branding),
+        buildPagePrompt('services', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.7, maxTokens: 1500, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'services', response: res })),
 
       generateWithOpenRouter<string>(
-        buildPagePrompt('team', businessInfo, foundation.branding),
+        buildPagePrompt('team', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.7, maxTokens: 1500, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'team', response: res }))
