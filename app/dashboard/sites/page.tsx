@@ -49,7 +49,7 @@ export default function DashboardSitesPage() {
   const [step, setStep] = useState(0)
 
   // Step 0: Website source selection
-  const [sourceMode, setSourceMode] = useState<'scrape' | 'manual'>('manual')
+  const [sourceMode, setSourceMode] = useState<'scrape' | 'manual'>('scrape')
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [urlError, setUrlError] = useState<string | null>(null)
 
@@ -530,7 +530,7 @@ export default function DashboardSitesPage() {
       basedOnWebsite: undefined
     })
     setStep(0)
-    setSourceMode('manual')
+    setSourceMode('scrape')
     setWebsiteUrl('')
     setUrlError(null)
     setGenerationStatus(null)
