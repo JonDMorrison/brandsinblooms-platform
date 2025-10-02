@@ -1042,25 +1042,24 @@ export default function DashboardSitesPage() {
                     <Card
                       className={`cursor-pointer transition-all ${
                         sourceMode === 'scrape'
-                          ? 'ring-2 ring-primary border-primary'
+                          ? 'ring-2 ring-primary border-primary bg-primary/5'
                           : 'hover:border-gray-400'
                       }`}
                       onClick={() => setSourceMode('scrape')}
                     >
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <div className={`p-3 rounded-full ${
-                            sourceMode === 'scrape' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${
+                            sourceMode === 'scrape' ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-600'
                           }`}>
-                            <Sparkles className="h-6 w-6" />
+                            <Globe className="h-5 w-5" />
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-semibold mb-2">
+                            <h4 className="font-semibold text-sm mb-1">
                               Import from Website
                             </h4>
-                            <p className="text-sm text-gray-600">
-                              Let AI analyze your existing site and use it as a foundation.
-                              We&apos;ll extract branding, content, and contact information.
+                            <p className="text-xs text-gray-600 leading-snug">
+                              Let AI analyze your site and extract branding, content, and contact info.
                             </p>
                           </div>
                         </div>
@@ -1071,25 +1070,24 @@ export default function DashboardSitesPage() {
                     <Card
                       className={`cursor-pointer transition-all ${
                         sourceMode === 'manual'
-                          ? 'ring-2 ring-primary border-primary'
+                          ? 'ring-2 ring-primary border-primary bg-primary/5'
                           : 'hover:border-gray-400'
                       }`}
                       onClick={() => setSourceMode('manual')}
                     >
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <div className={`p-3 rounded-full ${
-                            sourceMode === 'manual' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${
+                            sourceMode === 'manual' ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-600'
                           }`}>
-                            <Edit3 className="h-6 w-6" />
+                            <Sparkles className="h-5 w-5" />
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-semibold mb-2">
-                              Design Your Own
+                            <h4 className="font-semibold text-sm mb-1">
+                              Start from Scratch
                             </h4>
-                            <p className="text-sm text-gray-600">
-                              Provide business details manually and let AI generate
-                              a completely custom website.
+                            <p className="text-xs text-gray-600 leading-snug">
+                              Provide business details manually and let AI generate a custom website.
                             </p>
                           </div>
                         </div>
