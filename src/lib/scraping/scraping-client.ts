@@ -2,11 +2,6 @@ import { createHash } from 'crypto';
 import { scrapingConfig } from '@/lib/config/scraping';
 import { handleError } from '@/lib/types/error-handling';
 
-interface ScrapingRequest {
-  url: string;
-  timeout?: number;
-}
-
 interface ScrapingResponse {
   success: boolean;
   url: string;
