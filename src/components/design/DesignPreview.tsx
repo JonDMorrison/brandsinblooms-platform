@@ -207,6 +207,9 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
 
   // Get dynamic preview URL based on current site and environment
   const previewUrl = getPreviewUrl(site)
+
+  // Detect if component should fill full height (used in modal)
+  const isFullHeight = className.includes('h-full')
   
   // Inject styles into iframe
   useEffect(() => {
@@ -299,13 +302,13 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
   }
   
   return (
-    <Card className={className}>
+    <Card className={`${className} ${isFullHeight ? 'flex flex-col' : ''}`}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Live Preview</CardTitle>
           <div className="flex items-center gap-2">
-            <ToggleGroup 
-              value={device} 
+            <ToggleGroup
+              value={device}
               onValueChange={(value) => value && setDevice(value as DeviceType)}
               type="single"
             >
@@ -337,8 +340,11 @@ export function DesignPreview({ settings, className = '' }: DesignPreviewProps) 
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="relative bg-gray-100 overflow-hidden" style={{ height: '600px' }}>
+      <CardContent className={`p-0 ${isFullHeight ? 'flex-1 overflow-hidden' : ''}`}>
+        <div
+          className={`relative bg-gray-100 overflow-hidden ${isFullHeight ? 'h-full' : ''}`}
+          style={isFullHeight ? undefined : { height: '600px' }}
+        >
           <div 
             className={`
               mx-auto transition-all duration-300 bg-white shadow-xl

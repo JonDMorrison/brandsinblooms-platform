@@ -227,23 +227,25 @@ export default function DesignPage() {
 
       {/* Live Preview Modal/Panel */}
       {previewMode && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-white rounded-lg w-full max-w-7xl h-[95vh] sm:h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-3 sm:p-4 border-b">
-              <h2 className="text-base sm:text-lg font-semibold">Design Preview</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setPreviewMode(false)}
-                className="h-8 w-8 sm:h-10 sm:w-10"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <Suspense fallback={<Skeleton className="h-full w-full" />}>
-                <DesignPreview settings={localSettings} className="h-full border-0 shadow-none" />
-              </Suspense>
+        <div className="fixed inset-0 z-50 bg-black/50 overflow-auto">
+          <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
+            <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] flex flex-col my-2 sm:my-4">
+              <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
+                <h2 className="text-base sm:text-lg font-semibold">Design Preview</h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setPreviewMode(false)}
+                  className="h-8 w-8 sm:h-10 sm:w-10"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <Suspense fallback={<Skeleton className="h-full w-full" />}>
+                  <DesignPreview settings={localSettings} className="h-full border-0 shadow-none" />
+                </Suspense>
+              </div>
             </div>
           </div>
         </div>
