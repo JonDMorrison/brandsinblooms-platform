@@ -288,13 +288,16 @@ export async function POST(request: NextRequest) {
 
         if (discoveryResult.pages.length > 0) {
           // Analyze scraped content
+          console.log(`[${requestId}] [LOGO EXTRACTION] Starting content analysis...`);
           const analyzed = analyzeScrapedWebsite(discoveryResult.pages);
 
           // Process logo if found in scraped data
           let processedLogoUrl: string | undefined = undefined;
 
+          console.log(`[${requestId}] [LOGO EXTRACTION] Analysis complete. Logo found: ${analyzed.businessInfo.logoUrl ? 'YES' : 'NO'}`);
+
           if (analyzed.businessInfo.logoUrl) {
-            console.log(`[${requestId}] Processing scraped logo: ${analyzed.businessInfo.logoUrl}`);
+            console.log(`[${requestId}] [LOGO EXTRACTION] Processing scraped logo: ${analyzed.businessInfo.logoUrl}`);
 
             // Generate a temporary site ID for logo upload (will be updated once site is created)
             const tempSiteId = `temp-${job.id}`;
@@ -308,20 +311,28 @@ export async function POST(request: NextRequest) {
 
               if (uploadedLogoUrl) {
                 processedLogoUrl = uploadedLogoUrl;
-                console.log(`[${requestId}] Logo successfully uploaded to: ${uploadedLogoUrl}`);
+                console.log(`[${requestId}] [LOGO EXTRACTION] ✅ Logo successfully uploaded to: ${uploadedLogoUrl}`);
 
                 // Update businessInfo with the processed logo URL
                 businessInfo.logoUrl = uploadedLogoUrl;
               } else {
-                console.warn(`[${requestId}] Logo download/upload failed, using original URL`);
+                console.warn(`[${requestId}] [LOGO EXTRACTION] ⚠️  Logo download/upload failed, using original URL`);
                 // Keep the original URL as fallback
                 processedLogoUrl = analyzed.businessInfo.logoUrl;
               }
             } catch (logoError: unknown) {
               const errorInfo = handleError(logoError);
-              console.error(`[${requestId}] Logo processing error: ${errorInfo.message}`);
+              console.error(`[${requestId}] [LOGO EXTRACTION] ❌ Logo processing error: ${errorInfo.message}`);
               // Keep the original URL as fallback
               processedLogoUrl = analyzed.businessInfo.logoUrl;
+            }
+          } else {
+            console.log(`[${requestId}] [LOGO EXTRACTION] ℹ️  No logo found in scraped data`);
+            console.log(`[${requestId}] [LOGO EXTRACTION] Checking if favicon can be used as fallback...`);
+            if (analyzed.businessInfo.favicon) {
+              console.log(`[${requestId}] [LOGO EXTRACTION] Favicon found: ${analyzed.businessInfo.favicon}`);
+            } else {
+              console.log(`[${requestId}] [LOGO EXTRACTION] No favicon found either`);
             }
           }
 

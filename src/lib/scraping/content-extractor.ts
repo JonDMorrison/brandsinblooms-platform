@@ -225,6 +225,52 @@ function extractSocialLinks($: CheerioAPI): Array<{ platform: string; url: strin
  * Extracts logo URL from page
  */
 function extractLogo($: CheerioAPI, baseUrl: string): string | undefined {
+  console.log('[LOGO EXTRACTION] Starting logo extraction process...');
+  console.log(`[LOGO EXTRACTION] Base URL: ${baseUrl}`);
+
+  // Debug: Log all images found in the page (first 10)
+  console.log('[LOGO EXTRACTION] === DEBUG: First 10 images found in page ===');
+  const allImages = $('img');
+  console.log(`[LOGO EXTRACTION] Total images in page: ${allImages.length}`);
+
+  allImages.slice(0, 10).each((index, element) => {
+    const img = $(element);
+    const src = img.attr('src');
+    const alt = img.attr('alt');
+    const className = img.attr('class');
+    const parent = img.parent().prop('tagName')?.toLowerCase();
+    const parentClass = img.parent().attr('class');
+
+    console.log(`[LOGO EXTRACTION] Image ${index + 1}:`);
+    console.log(`[LOGO EXTRACTION]   src: ${src || '(missing)'}`);
+    console.log(`[LOGO EXTRACTION]   alt: ${alt || '(none)'}`);
+    console.log(`[LOGO EXTRACTION]   class: ${className || '(none)'}`);
+    console.log(`[LOGO EXTRACTION]   parent: <${parent}${parentClass ? ` class="${parentClass}"` : ''}>`);
+  });
+  console.log('[LOGO EXTRACTION] === END DEBUG ===');
+
+  // Debug: Check for images in header specifically
+  console.log('[LOGO EXTRACTION] === DEBUG: Checking header area ===');
+  const headerSelectors = ['header', 'nav', '.header', '.navigation', '.navbar', '#header', '#navigation'];
+
+  for (const selector of headerSelectors) {
+    const headerElement = $(selector).first();
+    if (headerElement.length > 0) {
+      console.log(`[LOGO EXTRACTION] Found <${selector}> element`);
+      const headerImages = headerElement.find('img');
+      console.log(`[LOGO EXTRACTION]   Contains ${headerImages.length} images`);
+
+      if (headerImages.length > 0) {
+        headerImages.slice(0, 3).each((idx, img) => {
+          const src = $(img).attr('src');
+          const alt = $(img).attr('alt');
+          console.log(`[LOGO EXTRACTION]     Image ${idx + 1}: src="${src || '(missing)'}", alt="${alt || '(none)'}"`);
+        });
+      }
+    }
+  }
+  console.log('[LOGO EXTRACTION] === END HEADER DEBUG ===');
+
   // Try common logo selectors
   const logoSelectors = [
     'img[class*="logo"]',
@@ -234,20 +280,120 @@ function extractLogo($: CheerioAPI, baseUrl: string): string | undefined {
     'header img:first',
     '.site-logo img',
     '[class*="brand"] img',
+    'a[class*="logo"] img',
+    'a[id*="logo"] img',
+    '.navbar-brand img',
+    '.site-header img',
+    '[class*="header"] img[class*="logo"]',
+    'h1 img',
+    '.brand img',
+    'img[alt*="logo" i]',
+    'img[title*="logo" i]',
+    '[class*="masthead"] img',
+    '.site-title img',
+    '.company-logo img'
   ];
 
+  const allCandidates: Array<{ selector: string; src: string; reason?: string }> = [];
+
   for (const selector of logoSelectors) {
-    const img = $(selector).first();
-    if (img.length) {
-      const src = img.attr('src');
-      if (src) {
-        try {
-          return new URL(src, baseUrl).href;
-        } catch {
-          return undefined;
+    console.log(`[LOGO EXTRACTION] Trying selector: "${selector}"`);
+    const images = $(selector);
+    console.log(`[LOGO EXTRACTION]   Found ${images.length} image(s) matching selector`);
+
+    if (images.length > 0) {
+      images.each((index, element) => {
+        const img = $(element);
+        const src = img.attr('src');
+        const alt = img.attr('alt');
+        const className = img.attr('class');
+        const id = img.attr('id');
+
+        console.log(`[LOGO EXTRACTION]   Image ${index + 1}:`);
+        console.log(`[LOGO EXTRACTION]     - src: ${src || '(missing)'}`);
+        console.log(`[LOGO EXTRACTION]     - alt: ${alt || '(none)'}`);
+        console.log(`[LOGO EXTRACTION]     - class: ${className || '(none)'}`);
+        console.log(`[LOGO EXTRACTION]     - id: ${id || '(none)'}`);
+
+        if (!src) {
+          console.log(`[LOGO EXTRACTION]     ❌ Rejected: No src attribute`);
+          allCandidates.push({ selector, src: '(missing)', reason: 'No src attribute' });
+          return; // Continue to next image
         }
-      }
+
+        // Check if it's a data URL (base64 or SVG)
+        if (src.startsWith('data:')) {
+          const dataType = src.substring(5, src.indexOf(';') > 0 ? src.indexOf(';') : src.indexOf(','));
+          console.log(`[LOGO EXTRACTION]     ❌ Rejected: Data URL (${dataType})`);
+          allCandidates.push({ selector, src: src.substring(0, 100) + '...', reason: `Data URL (${dataType})` });
+          return; // Continue to next image
+        }
+
+        // Check if it's an SVG file
+        if (src.endsWith('.svg') || src.includes('.svg?') || src.includes('.svg#')) {
+          console.log(`[LOGO EXTRACTION]     ⚠️  Warning: SVG file (may not be supported by all processors)`);
+        }
+
+        // Try to resolve the URL
+        try {
+          const resolvedUrl = new URL(src, baseUrl).href;
+          console.log(`[LOGO EXTRACTION]     ✅ URL resolved to: ${resolvedUrl}`);
+
+          // Additional validation
+          if (resolvedUrl.includes('placeholder') ||
+              resolvedUrl.includes('loading') ||
+              resolvedUrl.includes('spinner') ||
+              resolvedUrl.includes('blank') ||
+              resolvedUrl.includes('transparent')) {
+            console.log(`[LOGO EXTRACTION]     ⚠️  Warning: URL might be a placeholder`);
+            allCandidates.push({ selector, src: resolvedUrl, reason: 'Possible placeholder' });
+          } else {
+            console.log(`[LOGO EXTRACTION]     🎯 Found valid logo candidate!`);
+            allCandidates.push({ selector, src: resolvedUrl });
+
+            // Return the first valid logo found
+            console.log(`[LOGO EXTRACTION] ✅ Selected logo: ${resolvedUrl}`);
+            console.log(`[LOGO EXTRACTION] Total candidates evaluated: ${allCandidates.length}`);
+            return resolvedUrl;
+          }
+        } catch (urlError) {
+          console.log(`[LOGO EXTRACTION]     ❌ Failed to resolve URL: ${urlError instanceof Error ? urlError.message : String(urlError)}`);
+          allCandidates.push({ selector, src, reason: 'URL resolution failed' });
+        }
+      });
     }
+  }
+
+  // If no logo found, try looking for SVG elements
+  console.log(`[LOGO EXTRACTION] No img logo found, checking for SVG logos...`);
+  const svgSelectors = [
+    'svg[class*="logo"]',
+    '.logo svg',
+    '#logo svg',
+    'a[class*="logo"] svg',
+    'header svg'
+  ];
+
+  for (const selector of svgSelectors) {
+    const svgs = $(selector);
+    if (svgs.length > 0) {
+      console.log(`[LOGO EXTRACTION] Found ${svgs.length} SVG(s) matching "${selector}" - but SVG extraction not implemented`);
+      allCandidates.push({ selector, src: '(inline SVG)', reason: 'Inline SVG not supported' });
+    }
+  }
+
+  // Log summary
+  console.log(`[LOGO EXTRACTION] ❌ No logo found after checking all selectors`);
+  console.log(`[LOGO EXTRACTION] Total candidates examined: ${allCandidates.length}`);
+  if (allCandidates.length > 0) {
+    console.log(`[LOGO EXTRACTION] Candidates summary:`);
+    allCandidates.forEach((candidate, index) => {
+      console.log(`[LOGO EXTRACTION]   ${index + 1}. Selector: "${candidate.selector}"`);
+      console.log(`[LOGO EXTRACTION]      URL: ${candidate.src}`);
+      if (candidate.reason) {
+        console.log(`[LOGO EXTRACTION]      Reason rejected: ${candidate.reason}`);
+      }
+    });
   }
 
   return undefined;

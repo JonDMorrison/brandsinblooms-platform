@@ -149,7 +149,22 @@ export function analyzeScrapedWebsite(pages: DiscoveredPage[]): AnalyzedWebsite 
   }
 
   // Extract business info from homepage
+  console.log('[LOGO EXTRACTION] Starting business info extraction from homepage...');
   const businessInfo = extractBusinessInfo(homepage.html, homepage.url);
+
+  // Log logo extraction result
+  if (businessInfo.logoUrl) {
+    console.log(`[LOGO EXTRACTION] ✅ Logo found in extracted business info: ${businessInfo.logoUrl}`);
+  } else {
+    console.log('[LOGO EXTRACTION] ❌ No logo found in extracted business info');
+    console.log('[LOGO EXTRACTION] Checking for fallback methods...');
+
+    // Log other extracted info for context
+    console.log(`[LOGO EXTRACTION] Other extracted data:`);
+    console.log(`[LOGO EXTRACTION]   - Site title: ${businessInfo.siteTitle || '(none)'}`);
+    console.log(`[LOGO EXTRACTION]   - Brand colors: ${businessInfo.brandColors?.length || 0} found`);
+    console.log(`[LOGO EXTRACTION]   - Favicon: ${businessInfo.favicon || '(none)'}`);
+  }
 
   // Extract clean text from each page
   const pageContents = new Map<string, string>();
