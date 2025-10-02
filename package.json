@@ -102,6 +102,7 @@
     "@tiptap/react": "^3.2.0",
     "@tiptap/starter-kit": "^3.2.0",
     "better-upload": "^1.1.1",
+    "cheerio": "^1.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

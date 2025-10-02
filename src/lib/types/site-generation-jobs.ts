@@ -61,6 +61,37 @@ export interface BusinessInfo {
   brandColors?: string;
   /** Additional business details */
   additionalDetails?: Record<string, unknown>;
+  /** Optional URL to scrape and base the site generation on */
+  basedOnWebsite?: string;
+}
+
+/**
+ * Scraped website data for LLM context
+ */
+export interface ScrapedWebsiteContext {
+  /** Base URL of the scraped website */
+  baseUrl: string;
+  /** Extracted business information from the website */
+  businessInfo: {
+    /** Email addresses found on the site */
+    emails?: string[];
+    /** Phone numbers found on the site */
+    phones?: string[];
+    /** Physical addresses found on the site */
+    addresses?: string[];
+    /** Social media links found on the site */
+    socialLinks?: Array<{ platform: string; url: string }>;
+    /** Logo URL found on the site */
+    logoUrl?: string;
+    /** Brand colors extracted from the site */
+    brandColors?: string[];
+  };
+  /** Clean text content from each scraped page, keyed by page type */
+  pageContents?: Record<string, string>;
+  /** Recommended page types to generate based on discovered content */
+  recommendedPages?: string[];
+  /** High-level summary of the website content for LLM context */
+  contentSummary?: string;
 }
 
 /**
@@ -278,6 +309,40 @@ export interface SeoMetadata {
 }
 
 /**
+ * Custom page section for flexible page generation
+ */
+export interface CustomPageSection {
+  /** Page type identifier (e.g., 'services', 'team', 'faq') */
+  pageType: string;
+  /** Page title */
+  title: string;
+  /** URL slug for the page */
+  slug: string;
+  /** Page content structure */
+  content: {
+    /** Main headline for the page */
+    headline?: string;
+    /** Supporting description */
+    description?: string;
+    /** List of items/sections on the page */
+    items?: Array<{
+      /** Item title */
+      title: string;
+      /** Item description */
+      description?: string;
+      /** Detailed content for the item */
+      content?: string;
+      /** Image URL or description */
+      image?: string;
+      /** Icon identifier (lucide icon name) */
+      icon?: string;
+    }>;
+    /** Rich text content for the page */
+    richText?: string;
+  };
+}
+
+/**
  * Complete generated site data structure from LLM
  */
 export interface GeneratedSiteData {
@@ -309,6 +374,8 @@ export interface GeneratedSiteData {
   seo: SeoMetadata;
   /** Additional metadata */
   metadata?: Record<string, unknown>;
+  /** Custom pages based on scraped content */
+  customPages?: CustomPageSection[];
 }
 
 /**

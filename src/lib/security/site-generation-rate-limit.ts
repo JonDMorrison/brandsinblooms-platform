@@ -22,6 +22,14 @@ import { createClient } from '@/lib/supabase/server';
 import { handleError } from '@/lib/types/error-handling';
 
 /**
+ * Rate limit entry structure (internal)
+ */
+interface RateLimitEntry {
+  requests: number[];
+  windowStart: number;
+}
+
+/**
  * Rate limit configuration for site generation
  * As per plan: 3 generations per hour per user
  */
@@ -438,4 +446,134 @@ export async function getTimeUntilNextGeneration(userId: string): Promise<number
   const dailyReset = budget.dailyResetIn || Number.MAX_SAFE_INTEGER;
 
   return Math.min(hourlyReset, dailyReset);
+}
+
+/**
+ * Scraping-specific rate limits
+ *
+ * These limits are separate from site generation limits to prevent abuse
+ * of the scraping feature which can be resource-intensive.
+ */
+export const SCRAPING_RATE_LIMITS = {
+  /** Maximum number of website scraping requests per hour per user */
+  maxScrapingRequestsPerHour: 5,
+  /** Maximum number of pages scraped per site */
+  maxPagesPerSite: 5,
+  /** Timeout per page in milliseconds */
+  scrapingTimeout: 30000, // 30 seconds
+} as const;
+
+/**
+ * Scraping rate limit result
+ */
+export interface ScrapingRateLimitResult {
+  /** Whether scraping is allowed */
+  allowed: boolean;
+  /** Number of scraping requests remaining this hour */
+  remaining?: number;
+  /** When the rate limit will reset */
+  resetAt?: Date;
+  /** Error message if not allowed */
+  error?: string;
+}
+
+/**
+ * Gets the current count of scraping requests for a user in the time window
+ *
+ * @param key - Rate limit key
+ * @param window - Time window in milliseconds
+ * @returns Number of requests in the current window
+ */
+function getRequestCount(key: string, window: number): number {
+  const entry = rateLimitStore.get(key);
+  if (!entry) {
+    return 0;
+  }
+
+  const now = Date.now();
+  const windowStart = now - window;
+  const activeRequests = entry.requests.filter(timestamp => timestamp > windowStart);
+
+  return activeRequests.length;
+}
+
+/**
+ * Increments the request count for a user
+ *
+ * @param key - Rate limit key
+ * @param window - Time window in milliseconds
+ */
+function incrementRequestCount(key: string, window: number): void {
+  const now = Date.now();
+  let entry = rateLimitStore.get(key);
+
+  if (!entry) {
+    entry = {
+      requests: [],
+      windowStart: now,
+    };
+  }
+
+  // Clean up old requests outside the current window
+  const windowStart = now - window;
+  entry.requests = entry.requests.filter(timestamp => timestamp > windowStart);
+
+  // Add new request
+  entry.requests.push(now);
+
+  // Update store
+  rateLimitStore.set(key, entry);
+}
+
+/**
+ * Checks rate limit for website scraping operations
+ *
+ * Enforces a limit of 5 scraping requests per hour per user to prevent
+ * abuse and excessive resource consumption.
+ *
+ * @param userId - User ID to check limits for
+ * @returns Scraping rate limit result
+ *
+ * @example
+ * ```ts
+ * const rateLimitResult = await checkScrapingRateLimit(userId);
+ *
+ * if (!rateLimitResult.allowed) {
+ *   return apiError(
+ *     rateLimitResult.error || 'Scraping rate limit exceeded',
+ *     'SCRAPING_RATE_LIMIT_EXCEEDED',
+ *     429
+ *   );
+ * }
+ * ```
+ */
+export async function checkScrapingRateLimit(
+  userId: string
+): Promise<ScrapingRateLimitResult> {
+  const key = `scraping:${userId}`;
+  const window = 60 * 60 * 1000; // 1 hour
+
+  const count = getRequestCount(key, window);
+
+  if (count >= SCRAPING_RATE_LIMITS.maxScrapingRequestsPerHour) {
+    // Calculate reset time based on oldest request
+    const entry = rateLimitStore.get(key);
+    const oldestRequest = entry?.requests[0] || Date.now();
+    const resetAt = new Date(oldestRequest + window);
+
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt,
+      error: `Scraping rate limit exceeded. Maximum ${SCRAPING_RATE_LIMITS.maxScrapingRequestsPerHour} requests per hour. Try again after ${resetAt.toISOString()}`,
+    };
+  }
+
+  // Increment count
+  incrementRequestCount(key, window);
+
+  return {
+    allowed: true,
+    remaining: SCRAPING_RATE_LIMITS.maxScrapingRequestsPerHour - count - 1,
+  };
 }

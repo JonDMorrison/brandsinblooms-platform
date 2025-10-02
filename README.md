@@ -188,6 +188,7 @@ brands-in-blooms/
 - **Testing**: Jest + React Testing Library
 - **Package Manager**: pnpm
 - **State Management**: React Query + React Context
+- **AI Features**: OpenAI GPT-4 for site generation + Website scraping via Puppeteer service
 
 ## Production Deployment
 
@@ -213,11 +214,21 @@ The deployment process:
 
 Set these in your Railway dashboard:
 ```bash
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 DATABASE_URL=postgresql://your-cloud-database-url
+
+# AI & Scraping Services
+OPENAI_API_KEY=your-openai-api-key
+SCRAPING_SERVICE_URL=https://puppeteer-api-production-7bea.up.railway.app
+SCRAPING_SERVICE_SALT=your-secret-salt
+SCRAPING_SERVICE_TIMEOUT=30000
+SCRAPING_SERVICE_MAX_RETRIES=2
 ```
+
+See [docs/SCRAPING_DEPLOYMENT.md](./docs/SCRAPING_DEPLOYMENT.md) for detailed deployment instructions.
 
 ## Troubleshooting
 
@@ -314,9 +325,44 @@ For new developers joining the project:
 - [ ] Access Supabase Studio at http://localhost:54323
 - [ ] Run `pnpm test` to ensure tests pass
 
+## Key Features
+
+### AI-Powered Site Generation
+
+The platform includes an AI-powered site generator that can create complete websites based on:
+
+- **Prompt-based generation**: Describe your business and let AI create your site
+- **Website-based generation**: Provide an existing website URL to analyze and modernize
+
+When you provide a website URL via the `basedOnWebsite` parameter, the system:
+
+1. Intelligently scrapes the homepage and key pages (About, Contact, Services, etc.)
+2. Extracts business information (contact details, hours, location)
+3. Analyzes brand identity (colors, logo, tone)
+4. Identifies content structure and key messaging
+5. Uses AI to generate an enhanced, modernized version
+
+See [docs/SCRAPING_SETUP.md](./docs/SCRAPING_SETUP.md) for configuration and usage details.
+
+#### API Example
+
+```json
+POST /api/sites/generate
+{
+  "businessInfo": {
+    "prompt": "Modernize my garden center website",
+    "name": "Green Thumb Gardens",
+    "basedOnWebsite": "https://oldgardensite.com"
+  }
+}
+```
+
 ## Additional Resources
 
 - **Documentation**: Check the `/docs` folder for detailed guides
+  - [SCRAPING_SETUP.md](./docs/SCRAPING_SETUP.md) - Website scraping configuration
+  - [SCRAPING_DEPLOYMENT.md](./docs/SCRAPING_DEPLOYMENT.md) - Production deployment guide
+  - [SCRAPING_IMPLEMENTATION.md](./docs/SCRAPING_IMPLEMENTATION.md) - Implementation details
 - **Supabase Docs**: https://supabase.com/docs
 - **Next.js Docs**: https://nextjs.org/docs
 - **shadcn/ui**: https://ui.shadcn.com

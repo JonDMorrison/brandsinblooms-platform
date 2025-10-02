@@ -36,7 +36,8 @@ export type SecurityEventType =
   | 'generation_failed'
   | 'site_generated'
   | 'site_creation_failed'
-  | 'generation_error';
+  | 'generation_error'
+  | 'website_scraping_failed';
 
 /**
  * Security event details

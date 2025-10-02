@@ -24,7 +24,7 @@ import type {
   GenerateSiteResponse,
   GenerationErrorCode,
 } from '@/lib/types/api-types';
-import type { SiteGenerationJob } from '@/lib/types/site-generation-jobs';
+import type { SiteGenerationJob, ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
 import { handleError } from '@/lib/types/error-handling';
 import {
   sanitizeBusinessInfo,
@@ -38,10 +38,12 @@ import {
   checkBudgetLimit,
   estimateGenerationCost,
 } from '@/lib/jobs/cost-management';
-import { createJob } from '@/lib/jobs/site-generation-jobs';
+import { createJob, updateJobStatus } from '@/lib/jobs/site-generation-jobs';
 import { processGenerationJob } from '@/lib/jobs/background-processor';
 import { logSecurityEvent } from '@/lib/security/security-utils';
 import type { BusinessInfo } from '@/lib/types/site-generation-jobs';
+import { discoverAndScrapePages } from '@/lib/scraping/page-discovery';
+import { analyzeScrapedWebsite } from '@/lib/scraping/content-analyzer';
 
 /**
  * POST /api/sites/generate
@@ -222,13 +224,90 @@ export async function POST(request: NextRequest) {
 
     console.log(`[${requestId}] Job created: ${job.id}`);
 
-    // 9. Trigger background processing (fire and forget)
+    // 9. Scrape website if basedOnWebsite is provided (run before background processing)
+    let scrapedContext: ScrapedWebsiteContext | undefined = undefined;
+
+    if (businessInfo.basedOnWebsite) {
+      console.log(`[${requestId}] Scraping website: ${businessInfo.basedOnWebsite}`);
+
+      try {
+        // Update job status to indicate scraping
+        await updateJobStatus({
+          jobId: job.id,
+          status: 'processing',
+          progress: 5,
+        });
+
+        // Discover and scrape pages
+        const discoveryResult = await discoverAndScrapePages(businessInfo.basedOnWebsite);
+
+        console.log(
+          `[${requestId}] Scraped ${discoveryResult.totalPagesScraped} of ${discoveryResult.totalPagesFound} pages`
+        );
+
+        if (discoveryResult.pages.length > 0) {
+          // Analyze scraped content
+          const analyzed = analyzeScrapedWebsite(discoveryResult.pages);
+
+          // Build scraped context for LLM
+          scrapedContext = {
+            baseUrl: analyzed.baseUrl,
+            businessInfo: {
+              emails: analyzed.businessInfo.emails,
+              phones: analyzed.businessInfo.phones,
+              addresses: analyzed.businessInfo.addresses,
+              socialLinks: analyzed.businessInfo.socialLinks,
+              logoUrl: analyzed.businessInfo.logoUrl,
+              brandColors: analyzed.businessInfo.brandColors,
+            },
+            pageContents: Object.fromEntries(analyzed.pageContents),
+            recommendedPages: analyzed.recommendedPages,
+            contentSummary: analyzed.contentSummary,
+          };
+
+          console.log(
+            `[${requestId}] Website analysis complete. Recommended pages: ${analyzed.recommendedPages.join(', ')}`
+          );
+        } else {
+          console.warn(`[${requestId}] No pages scraped, continuing without context`);
+        }
+
+        // Reset job to pending for background processing
+        await updateJobStatus({
+          jobId: job.id,
+          status: 'pending',
+          progress: 0,
+        });
+      } catch (error: unknown) {
+        const errorInfo = handleError(error);
+        console.error(`[${requestId}] Scraping failed:`, errorInfo.message);
+        console.log(`[${requestId}] Continuing generation without scraped context`);
+
+        // Log scraping failure but don't fail the entire job
+        logSecurityEvent('website_scraping_failed', {
+          userId: user.id,
+          requestId,
+          jobId: job.id,
+          websiteUrl: businessInfo.basedOnWebsite,
+          error: errorInfo.message,
+        });
+
+        // Reset job to pending for background processing
+        await updateJobStatus({
+          jobId: job.id,
+          status: 'pending',
+          progress: 0,
+        });
+      }
+    }
+
+    // 10. Trigger background processing (fire and forget)
     // Don't await - return immediately with job ID
-    processGenerationJob(job.id).catch((error: unknown) => {
+    processGenerationJob(job.id, scrapedContext).catch((error: unknown) => {
       console.error(`[${requestId}] Background processing error:`, handleError(error).message);
     });
 
-    // 10. Log successful job creation
+    // 11. Log successful job creation
     logSecurityEvent('generation_job_created', {
       userId: user.id,
       requestId,
@@ -237,7 +316,7 @@ export async function POST(request: NextRequest) {
       estimatedCost,
     });
 
-    // 11. Build response
+    // 12. Build response
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
     const statusUrl = `${baseUrl}/api/sites/generate/${job.id}`;
 

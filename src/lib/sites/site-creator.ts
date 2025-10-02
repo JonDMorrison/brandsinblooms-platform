@@ -9,7 +9,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { handleError } from '@/lib/types/error-handling';
-import type { GeneratedSiteData } from '@/lib/types/site-generation-jobs';
+import type { GeneratedSiteData, CustomPageSection } from '@/lib/types/site-generation-jobs';
 import type { Database } from '@/lib/database/types';
 
 type ContentInsert = Database['public']['Tables']['content']['Insert'];
@@ -366,6 +366,83 @@ function createContactPageContent(data: GeneratedSiteData) {
 }
 
 /**
+ * Helper: Create custom page content from CustomPageSection
+ * Converts LLM-generated custom pages to PageContent structure
+ */
+function createCustomPageContent(customPage: CustomPageSection) {
+  const sections: Record<string, unknown> = {
+    header: {
+      type: 'header',
+      order: 1,
+      visible: true,
+      data: {
+        headline: customPage.content.headline || customPage.title,
+        subheadline: customPage.content.description || ''
+      },
+      settings: {
+        backgroundColor: 'gradient'
+      }
+    }
+  };
+
+  // Add items section if items are provided
+  if (customPage.content.items && customPage.content.items.length > 0) {
+    // Determine section type based on pageType
+    let sectionType = 'features';
+    if (customPage.pageType === 'services') {
+      sectionType = 'features';
+    } else if (customPage.pageType === 'team') {
+      sectionType = 'team';
+    } else if (customPage.pageType === 'faq') {
+      sectionType = 'faq';
+    }
+
+    sections.items = {
+      type: sectionType,
+      order: 2,
+      visible: true,
+      data: {
+        headline: customPage.content.headline || customPage.title,
+        description: customPage.content.description || '',
+        items: customPage.content.items.map((item, index) => ({
+          id: `${customPage.slug}-item-${index}`,
+          title: item.title,
+          description: item.description || '',
+          content: item.content || item.description || '',
+          icon: item.icon || 'Circle',
+          order: index
+        }))
+      },
+      settings: {
+        backgroundColor: 'default'
+      }
+    };
+  }
+
+  // Add rich text section if richText is provided
+  if (customPage.content.richText) {
+    sections.richText = {
+      type: 'richText',
+      order: 3,
+      visible: true,
+      data: {
+        headline: customPage.content.headline || customPage.title,
+        content: customPage.content.richText
+      },
+      settings: {
+        backgroundColor: 'alternate'
+      }
+    };
+  }
+
+  return {
+    version: '1.0',
+    layout: 'other',
+    sections
+  };
+}
+
+/**
  * Creates a site and pages from generated content
  *
  * AI-First Strategy:
@@ -405,6 +482,25 @@ export async function createSiteFromGenerated(
       ? `${subdomain}-${Math.random().toString(36).substring(2, 8)}`
       : subdomain;
 
+    // Build navigation items including custom pages
+    const navigationItems = [
+      { label: 'Home', href: '/home' },
+      { label: 'About', href: '/about' }
+    ];
+
+    // Add custom page links in the middle
+    if (data.customPages && data.customPages.length > 0) {
+      data.customPages.forEach(page => {
+        navigationItems.push({
+          label: page.title,
+          href: `/${page.slug}`
+        });
+      });
+    }
+
+    // Add Contact at the end
+    navigationItems.push({ label: 'Contact', href: '/contact' });
+
     // Create site record
     const themeSettings = {
       colors: {
@@ -433,20 +529,12 @@ export async function createSiteFromGenerated(
         description: data.branding?.logo_description || null
       },
       navigation: {
-        items: [
-          { label: 'Home', href: '/home' },
-          { label: 'About', href: '/about' },
-          { label: 'Contact', href: '/contact' }
-        ],
+        items: navigationItems,
         style: 'horizontal'
       },
       footer: {
         style: 'centered',
-        navigationItems: [
-          { label: 'Home', href: '/home' },
-          { label: 'About', href: '/about' },
-          { label: 'Contact', href: '/contact' }
-        ],
+        navigationItems: navigationItems, // Use same navigation items in footer
         socialLinks: [],
         copyright: `© ${new Date().getFullYear()} ${data.site_name}. All rights reserved.`
       },
@@ -550,6 +638,42 @@ export async function createSiteFromGenerated(
       } else if (aboutPage) {
         createdPageIds.push(aboutPage.id);
         console.log('About page created');
+      }
+    }
+
+    // Create custom pages (if provided) - insert between About and Contact
+    if (data.customPages && data.customPages.length > 0) {
+      let sortOrder = 30; // Start after About (20), before Contact (80)
+
+      for (const customPage of data.customPages) {
+        try {
+          const { data: customPageData, error: customPageError } = await supabase
+            .from('content')
+            .insert({
+              site_id: siteId,
+              title: customPage.title,
+              slug: customPage.slug,
+              content_type: 'page',
+              content: createCustomPageContent(customPage),
+              is_published: true,
+              sort_order: sortOrder,
+              author_id: userId,
+            } as ContentInsert)
+            .select('id')
+            .single();
+
+          if (customPageError) {
+            console.error(`Failed to create custom page ${customPage.slug}:`, handleError(customPageError).message);
+          } else if (customPageData) {
+            createdPageIds.push(customPageData.id);
+            console.log(`Custom page created: ${customPage.title} (${customPage.slug})`);
+          }
+
+          sortOrder += 10; // Increment for next custom page
+        } catch (error: unknown) {
+          console.error(`Error creating custom page ${customPage.slug}:`, handleError(error).message);
+          // Continue with other pages
+        }
       }
     }
 

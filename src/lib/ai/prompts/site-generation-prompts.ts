@@ -12,7 +12,7 @@
  * - Content is tailored for garden centers, plant shops, and floral businesses
  */
 
-import { type BusinessInfo, type SiteBranding } from '@/lib/types/site-generation-jobs';
+import { type BusinessInfo, type SiteBranding, type ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
 
 /**
  * System prompt for generating site foundation (metadata + theme + hero)
@@ -27,6 +27,19 @@ Your task is to generate the foundational elements for a website including:
 2. Branding and theme (colors, fonts, logo description)
 3. SEO metadata (title, description, keywords)
 4. Hero section (headline, subheadline, CTA)
+
+**IMPORTANT: If the user provided an existing website URL, you will receive analysis of that site. Use this information to:**
+1. Preserve accurate business information (contact details, hours, location)
+2. Draw inspiration from the existing brand colors and visual identity
+3. Improve and modernize the content and messaging
+4. Maintain consistency with their established brand while enhancing it
+5. Use the existing logo URL if provided
+
+**Dynamic Page Generation:**
+- Based on the user's request and any existing website analysis, you may generate between 3 and 8 pages
+- Required pages: Home, About, Contact (always generate these)
+- Optional pages: Services, Team, FAQ, Testimonials, Blog, Products (generate if relevant)
+- If an existing website had specific pages (e.g., "Plant Care Guide", "Our Process"), consider generating equivalent pages
 
 IMPORTANT GUIDELINES:
 
@@ -244,6 +257,135 @@ export function buildFoundationPrompt(businessInfo: BusinessInfo): string {
   parts.push('Generate the site foundation (metadata, branding, SEO, hero) as structured JSON.');
 
   return parts.join('\n');
+}
+
+/**
+ * Build enhanced user prompt for foundation generation with scraped website context (Phase 1)
+ *
+ * @param businessInfo - Business information from user input
+ * @param scrapedContext - Optional scraped website data for enhanced context
+ * @returns Formatted user prompt for foundation generation with website context
+ *
+ * @example
+ * ```typescript
+ * const prompt = buildFoundationPromptWithContext(
+ *   {
+ *     prompt: "Modernize my garden center website",
+ *     name: "Green Thumb Gardens",
+ *     location: "Portland, OR"
+ *   },
+ *   {
+ *     baseUrl: "https://oldsite.com",
+ *     businessInfo: {
+ *       emails: ["contact@oldsite.com"],
+ *       brandColors: ["#2D5F3F", "#8B4513"]
+ *     },
+ *     contentSummary: "Garden center with 30 years experience..."
+ *   }
+ * );
+ * ```
+ */
+export function buildFoundationPromptWithContext(
+  businessInfo: BusinessInfo,
+  scrapedContext?: ScrapedWebsiteContext
+): string {
+  const sections: string[] = [];
+
+  // User's original request
+  sections.push(`User Request: ${businessInfo.prompt}`);
+  sections.push('');
+
+  // Basic business information
+  sections.push('Business Information:');
+  sections.push(`- Name: ${businessInfo.name}`);
+  if (businessInfo.industry) sections.push(`- Industry: ${businessInfo.industry}`);
+  if (businessInfo.location) sections.push(`- Location: ${businessInfo.location}`);
+  if (businessInfo.description) sections.push(`- Description: ${businessInfo.description}`);
+
+  // Use scraped contact info if available, otherwise use provided
+  if (scrapedContext?.businessInfo.emails?.length) {
+    sections.push(`- Email: ${scrapedContext.businessInfo.emails[0]}`);
+  } else if (businessInfo.email) {
+    sections.push(`- Email: ${businessInfo.email}`);
+  }
+
+  if (scrapedContext?.businessInfo.phones?.length) {
+    sections.push(`- Phone: ${scrapedContext.businessInfo.phones[0]}`);
+  } else if (businessInfo.phone) {
+    sections.push(`- Phone: ${businessInfo.phone}`);
+  }
+
+  if (businessInfo.website) sections.push(`- Existing Website: ${businessInfo.website}`);
+  sections.push('');
+
+  // Scraped website context (if available)
+  if (scrapedContext) {
+    sections.push('=== EXISTING WEBSITE ANALYSIS ===');
+    sections.push('The user has an existing website that we analyzed. Use this information to create a better, modernized version of their site.');
+    sections.push('');
+
+    // Branding from existing site
+    if (scrapedContext.businessInfo.brandColors?.length) {
+      sections.push('Existing Brand Colors (use as inspiration):');
+      scrapedContext.businessInfo.brandColors.forEach(color => {
+        sections.push(`- ${color}`);
+      });
+      sections.push('');
+    }
+
+    if (scrapedContext.businessInfo.logoUrl) {
+      sections.push(`Existing Logo: ${scrapedContext.businessInfo.logoUrl}`);
+      sections.push('(You can reference this logo URL in your output)');
+      sections.push('');
+    }
+
+    // Social media presence
+    if (scrapedContext.businessInfo.socialLinks?.length) {
+      sections.push('Social Media Links:');
+      scrapedContext.businessInfo.socialLinks.forEach(({ platform, url }) => {
+        sections.push(`- ${platform}: ${url}`);
+      });
+      sections.push('');
+    }
+
+    // Additional contact info
+    if (scrapedContext.businessInfo.addresses?.length) {
+      sections.push('Business Address:');
+      scrapedContext.businessInfo.addresses.forEach(addr => {
+        sections.push(`- ${addr}`);
+      });
+      sections.push('');
+    }
+
+    // Content summary
+    if (scrapedContext.contentSummary) {
+      sections.push('Content from Existing Website:');
+      sections.push(scrapedContext.contentSummary);
+      sections.push('');
+      sections.push('Use this content as inspiration, but improve the copy, modernize the language, and make it more engaging. Do not copy verbatim.');
+      sections.push('');
+    }
+
+    // Recommended pages
+    if (scrapedContext.recommendedPages?.length) {
+      sections.push('Recommended Pages to Generate:');
+      sections.push(scrapedContext.recommendedPages.join(', '));
+      sections.push('');
+    }
+  }
+
+  // Additional details
+  if (businessInfo.additionalDetails && Object.keys(businessInfo.additionalDetails).length > 0) {
+    sections.push('Additional Details:');
+    Object.entries(businessInfo.additionalDetails).forEach(([key, value]) => {
+      sections.push(`- ${key}: ${JSON.stringify(value)}`);
+    });
+    sections.push('');
+  }
+
+  sections.push('Generate the site foundation (metadata, branding, theme, hero section) as a structured JSON object matching the schema provided in the system prompt.');
+
+  return sections.join('\n');
 }
 
 /**
