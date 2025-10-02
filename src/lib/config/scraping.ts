@@ -6,6 +6,12 @@ export const scrapingConfig = {
   maxPagesPerSite: 5, // Limit pages to scrape
 } as const;
 
-if (!scrapingConfig.serviceUrl || !scrapingConfig.salt) {
-  throw new Error('Missing required scraping service configuration');
+/**
+ * Validates scraping configuration at runtime
+ * Call this before using the scraping service
+ */
+export function validateScrapingConfig(): void {
+  if (!scrapingConfig.serviceUrl || !scrapingConfig.salt) {
+    throw new Error('Missing required scraping service configuration');
+  }
 }

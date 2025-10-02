@@ -1,6 +1,6 @@
 import { scrapeUrl, scrapeMultipleUrls } from './scraping-client';
 import { extractNavigationLinks, prioritizeLinksForScraping } from './link-extractor';
-import { scrapingConfig } from '@/lib/config/scraping';
+import { scrapingConfig, validateScrapingConfig } from '@/lib/config/scraping';
 
 export interface DiscoveredPage {
   url: string;
@@ -27,6 +27,7 @@ export interface PageDiscoveryResult {
 export async function discoverAndScrapePages(
   websiteUrl: string
 ): Promise<PageDiscoveryResult> {
+  validateScrapingConfig();
   const errors: Array<{ url: string; error: string }> = [];
   const pages: DiscoveredPage[] = [];
 

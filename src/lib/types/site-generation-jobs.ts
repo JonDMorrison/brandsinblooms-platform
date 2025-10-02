@@ -85,6 +85,43 @@ export interface ScrapedWebsiteContext {
     logoUrl?: string;
     /** Brand colors extracted from the site */
     brandColors?: string[];
+    /** Hero section content from the site */
+    heroSection?: {
+      headline?: string;
+      subheadline?: string;
+      ctaText?: string;
+      ctaLink?: string;
+      backgroundImage?: string;
+    };
+    /** Business description from meta or content */
+    businessDescription?: string;
+    /** Site tagline */
+    tagline?: string;
+    /** Key features or selling points */
+    keyFeatures?: string[];
+    /** Structured content extracted for exact preservation */
+    structuredContent?: {
+      /** Business hours - MUST be preserved exactly as found */
+      businessHours?: Array<{
+        day: string;
+        hours: string;
+        closed: boolean;
+      }>;
+      /** Services with pricing - MUST preserve names and prices exactly */
+      services?: Array<{
+        name: string;
+        description?: string;
+        price?: string;
+        duration?: string;
+      }>;
+      /** Customer testimonials - MUST use verbatim, never create fake ones */
+      testimonials?: Array<{
+        name?: string;
+        role?: string;
+        content: string;
+        rating?: number;
+      }>;
+    };
   };
   /** Clean text content from each scraped page, keyed by page type */
   pageContents?: Record<string, string>;

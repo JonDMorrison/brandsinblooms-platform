@@ -325,7 +325,7 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          // Build scraped context for LLM
+          // Build scraped context for LLM - include all extracted fields
           scrapedContext = {
             baseUrl: analyzed.baseUrl,
             businessInfo: {
@@ -335,6 +335,11 @@ export async function POST(request: NextRequest) {
               socialLinks: analyzed.businessInfo.socialLinks,
               logoUrl: processedLogoUrl || analyzed.businessInfo.logoUrl, // Use processed or original
               brandColors: analyzed.businessInfo.brandColors,
+              heroSection: analyzed.businessInfo.heroSection, // Include hero section
+              businessDescription: analyzed.businessInfo.businessDescription,
+              tagline: analyzed.businessInfo.tagline,
+              keyFeatures: analyzed.businessInfo.keyFeatures,
+              structuredContent: analyzed.businessInfo.structuredContent, // Include structured content for preservation
             },
             pageContents: Object.fromEntries(analyzed.pageContents),
             recommendedPages: analyzed.recommendedPages,
@@ -350,6 +355,35 @@ export async function POST(request: NextRequest) {
           console.log(`[${requestId}] Extracted contact info: ${analyzed.businessInfo.emails?.length || 0} emails, ${analyzed.businessInfo.phones?.length || 0} phones`);
           console.log(`[${requestId}] Branding: ${analyzed.businessInfo.brandColors?.length || 0} colors, ${processedLogoUrl ? 'logo processed and uploaded' : analyzed.businessInfo.logoUrl ? 'logo found' : 'no logo'}`);
           console.log(`[${requestId}] Social links: ${analyzed.businessInfo.socialLinks?.length || 0} platforms`);
+
+          // Log structured content extraction
+          if (analyzed.businessInfo.structuredContent) {
+            const sc = analyzed.businessInfo.structuredContent;
+            console.log(`[${requestId}] Structured content extracted:`);
+            if (sc.businessHours?.length) {
+              console.log(`[${requestId}]   - Business hours: ${sc.businessHours.length} entries`);
+            }
+            if (sc.services?.length) {
+              console.log(`[${requestId}]   - Services: ${sc.services.length} items with pricing`);
+            }
+            if (sc.testimonials?.length) {
+              console.log(`[${requestId}]   - Testimonials: ${sc.testimonials.length} customer reviews`);
+            }
+          }
+
+          // Log hero section extraction
+          if (analyzed.businessInfo.heroSection) {
+            console.log(`[${requestId}] Hero section extracted:`);
+            if (analyzed.businessInfo.heroSection.headline) {
+              console.log(`[${requestId}]   - Headline: "${analyzed.businessInfo.heroSection.headline.substring(0, 50)}..."`);
+            }
+            if (analyzed.businessInfo.heroSection.subheadline) {
+              console.log(`[${requestId}]   - Subheadline: "${analyzed.businessInfo.heroSection.subheadline.substring(0, 50)}..."`);
+            }
+            if (analyzed.businessInfo.heroSection.ctaText) {
+              console.log(`[${requestId}]   - CTA: "${analyzed.businessInfo.heroSection.ctaText}"`);
+            }
+          }
         } else {
           console.warn(`[${requestId}] No pages scraped, continuing without context`);
         }

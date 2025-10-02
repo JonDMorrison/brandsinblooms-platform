@@ -29,11 +29,13 @@ Your task is to generate the foundational elements for a website including:
 4. Hero section (headline, subheadline, CTA)
 
 **IMPORTANT: If the user provided an existing website URL, you will receive analysis of that site. Use this information to:**
-1. Preserve accurate business information (contact details, hours, location)
-2. Draw inspiration from the existing brand colors and visual identity
-3. Improve and modernize the content and messaging
-4. Maintain consistency with their established brand while enhancing it
-5. Use the existing logo URL if provided
+1. PRESERVE the core messaging - if hero headline and subheadline are provided, use them as the foundation
+2. Only make minor improvements to existing headlines for clarity or impact (do NOT rewrite from scratch)
+3. Maintain the authentic voice and tone of the business - this is their established brand
+4. Keep all accurate business information exactly as provided (contact details, hours, location)
+5. Use the existing brand colors and visual identity as provided
+6. Use the existing logo URL if provided
+7. For hero CTA text, preserve the original if provided, only improving for clarity if needed
 
 **Dynamic Page Generation:**
 - Based on the user's request and any existing website analysis, you may generate between 3 and 8 pages
@@ -115,12 +117,13 @@ export const PAGE_GENERATION_SYSTEM_PROMPT = `You are an expert web copywriter s
 Your task is to generate compelling, authentic content for a specific section of a website. The content should align with the site's branding and theme, and be tailored to the garden/plant industry.
 
 **CRITICAL: If existing website content is provided:**
-- Use it as the foundation for your content generation
-- Preserve accurate business information (contact details, addresses, hours)
-- Improve and modernize the language while maintaining the business's unique voice
-- Fix any grammar, spelling, or clarity issues
-- Make the content more engaging and compelling
-- Do NOT ignore the existing content - it should directly influence your output
+- PRESERVE the core message and key phrases - this is the business's authentic voice
+- Keep the original tone and style while only fixing obvious errors
+- Maintain all factual information exactly as provided (contact details, addresses, hours, prices)
+- You may improve flow and readability, but DO NOT completely rewrite
+- Fix grammar, spelling, or clarity issues without changing the meaning
+- The existing content should be clearly recognizable in your output
+- Think of yourself as an editor improving existing copy, NOT a writer creating new copy
 
 IMPORTANT GUIDELINES:
 
@@ -329,12 +332,33 @@ export function buildFoundationPromptWithContext(
   // Scraped website context (if available)
   if (scrapedContext) {
     sections.push('=== EXISTING WEBSITE ANALYSIS ===');
-    sections.push('The user has an existing website that we analyzed. Use this information to create a better, modernized version of their site.');
+    sections.push('The user has an existing website that we analyzed. PRESERVE the core messaging while improving presentation.');
     sections.push('');
+
+    // Hero section - MOST IMPORTANT TO PRESERVE
+    if (scrapedContext.businessInfo.heroSection) {
+      sections.push('*** HERO SECTION FROM EXISTING SITE (PRESERVE THIS) ***');
+      if (scrapedContext.businessInfo.heroSection.headline) {
+        sections.push(`Existing Hero Headline: "${scrapedContext.businessInfo.heroSection.headline}"`);
+        sections.push('^ Use this as your hero headline, only making minor improvements if needed');
+      }
+      if (scrapedContext.businessInfo.heroSection.subheadline) {
+        sections.push(`Existing Hero Subheadline: "${scrapedContext.businessInfo.heroSection.subheadline}"`);
+        sections.push('^ Use this as your hero subheadline, preserving the message');
+      }
+      if (scrapedContext.businessInfo.heroSection.ctaText) {
+        sections.push(`Existing Hero CTA: "${scrapedContext.businessInfo.heroSection.ctaText}"`);
+        sections.push('^ Keep this CTA text or make only minor improvements');
+      }
+      if (scrapedContext.businessInfo.heroSection.backgroundImage) {
+        sections.push(`Existing Hero Background Image: ${scrapedContext.businessInfo.heroSection.backgroundImage}`);
+      }
+      sections.push('');
+    }
 
     // Branding from existing site
     if (scrapedContext.businessInfo.brandColors?.length) {
-      sections.push('Existing Brand Colors (use as inspiration):');
+      sections.push('Existing Brand Colors (use these):');
       scrapedContext.businessInfo.brandColors.forEach(color => {
         sections.push(`- ${color}`);
       });
@@ -343,7 +367,7 @@ export function buildFoundationPromptWithContext(
 
     if (scrapedContext.businessInfo.logoUrl) {
       sections.push(`Existing Logo: ${scrapedContext.businessInfo.logoUrl}`);
-      sections.push('(You can reference this logo URL in your output)');
+      sections.push('(Reference this logo URL in your output)');
       sections.push('');
     }
 
@@ -365,11 +389,60 @@ export function buildFoundationPromptWithContext(
       sections.push('');
     }
 
-    // Content summary - limit to prevent token overflow
+    // STRUCTURED CONTENT - MUST BE PRESERVED EXACTLY
+    if (scrapedContext.businessInfo.structuredContent) {
+      sections.push('*** STRUCTURED CONTENT FROM EXISTING SITE (PRESERVE EXACTLY) ***');
+      sections.push('WARNING: The following content MUST be preserved exactly as provided. DO NOT modify, enhance, or create new content.');
+      sections.push('');
+
+      // Business Hours
+      if (scrapedContext.businessInfo.structuredContent.businessHours) {
+        sections.push('BUSINESS HOURS (USE EXACTLY AS PROVIDED):');
+        scrapedContext.businessInfo.structuredContent.businessHours.forEach(({ day, hours, closed }) => {
+          sections.push(`- ${day}: ${closed ? 'Closed' : hours}`);
+        });
+        sections.push('^ DO NOT change these hours or create different hours');
+        sections.push('');
+      }
+
+      // Services with Pricing
+      if (scrapedContext.businessInfo.structuredContent.services) {
+        sections.push(`SERVICES WITH PRICING (Found ${scrapedContext.businessInfo.structuredContent.services.length} services - PRESERVE NAMES AND PRICES EXACTLY):`);
+        scrapedContext.businessInfo.structuredContent.services.slice(0, 10).forEach(service => {
+          sections.push(`- "${service.name}"${service.price ? ` - Price: ${service.price}` : ''}${service.duration ? ` (${service.duration})` : ''}`);
+          if (service.description) {
+            sections.push(`  Description: ${service.description.substring(0, 100)}...`);
+          }
+        });
+        if (scrapedContext.businessInfo.structuredContent.services.length > 10) {
+          sections.push(`... and ${scrapedContext.businessInfo.structuredContent.services.length - 10} more services`);
+        }
+        sections.push('^ Service names and prices MUST be used exactly as shown');
+        sections.push('');
+      }
+
+      // Testimonials
+      if (scrapedContext.businessInfo.structuredContent.testimonials) {
+        sections.push(`REAL TESTIMONIALS (Found ${scrapedContext.businessInfo.structuredContent.testimonials.length} testimonials - USE VERBATIM):`);
+        scrapedContext.businessInfo.structuredContent.testimonials.slice(0, 3).forEach(testimonial => {
+          sections.push(`- "${testimonial.content.substring(0, 150)}${testimonial.content.length > 150 ? '...' : ''}"`);
+          if (testimonial.name) {
+            sections.push(`  -- ${testimonial.name}${testimonial.role ? `, ${testimonial.role}` : ''}${testimonial.rating ? ` (${testimonial.rating} stars)` : ''}`);
+          }
+        });
+        if (scrapedContext.businessInfo.structuredContent.testimonials.length > 3) {
+          sections.push(`... and ${scrapedContext.businessInfo.structuredContent.testimonials.length - 3} more testimonials`);
+        }
+        sections.push('^ NEVER create fake testimonials. Use these real ones exactly as provided.');
+        sections.push('');
+      }
+    }
+
+    // Content summary - increased limit for better preservation
     if (scrapedContext.contentSummary) {
       sections.push('Content from Existing Website:');
-      // Cap content summary at 1500 characters to leave room for response
-      const maxContentLength = 1500;
+      // Increased content summary to 3000 characters for better context preservation
+      const maxContentLength = 3000;
       if (scrapedContext.contentSummary.length > maxContentLength) {
         sections.push(scrapedContext.contentSummary.substring(0, maxContentLength) + '...[truncated for brevity]');
         console.log(`Truncated content summary from ${scrapedContext.contentSummary.length} to ${maxContentLength} characters`);
@@ -377,7 +450,7 @@ export function buildFoundationPromptWithContext(
         sections.push(scrapedContext.contentSummary);
       }
       sections.push('');
-      sections.push('Use this content as inspiration, but improve the copy, modernize the language, and make it more engaging. Do not copy verbatim.');
+      sections.push('IMPORTANT: Preserve the core messaging and key phrases from this content. Improve presentation and fix errors, but maintain the authentic voice.');
       sections.push('');
     }
 
@@ -480,9 +553,56 @@ export function buildPagePrompt(
     } else if (businessInfo.additionalDetails?.address) {
       parts.push(`- Address: ${String(businessInfo.additionalDetails.address)}`);
     }
+
+    // Add structured business hours if available
+    if (scrapedContext?.businessInfo.structuredContent?.businessHours) {
+      parts.push('');
+      parts.push('*** ACTUAL BUSINESS HOURS (USE EXACTLY AS PROVIDED) ***');
+      scrapedContext.businessInfo.structuredContent.businessHours.forEach(({ day, hours, closed }) => {
+        parts.push(`- ${day}: ${closed ? 'Closed' : hours}`);
+      });
+      parts.push('^ These are the REAL business hours. DO NOT create different hours.');
+    }
   }
 
   parts.push('');
+
+  // Add structured content for services section
+  if (sectionType === 'services' && scrapedContext?.businessInfo.structuredContent?.services) {
+    parts.push('');
+    parts.push('*** ACTUAL SERVICES WITH PRICING (USE EXACTLY) ***');
+    parts.push(`Found ${scrapedContext.businessInfo.structuredContent.services.length} services on the existing website.`);
+    parts.push('YOU MUST USE THESE EXACT SERVICE NAMES AND PRICES:');
+    parts.push('');
+    scrapedContext.businessInfo.structuredContent.services.forEach(service => {
+      parts.push(`Service: "${service.name}"`);
+      if (service.price) parts.push(`  Price: ${service.price}`);
+      if (service.duration) parts.push(`  Duration: ${service.duration}`);
+      if (service.description) parts.push(`  Description: ${service.description}`);
+      parts.push('');
+    });
+    parts.push('^ DO NOT create new services or change prices. Use exactly what was found.');
+    parts.push('');
+  }
+
+  // Add structured content for testimonials section
+  if (sectionType === 'testimonials' && scrapedContext?.businessInfo.structuredContent?.testimonials) {
+    parts.push('');
+    parts.push('*** REAL CUSTOMER TESTIMONIALS (USE VERBATIM) ***');
+    parts.push(`Found ${scrapedContext.businessInfo.structuredContent.testimonials.length} real testimonials on the existing website.`);
+    parts.push('YOU MUST USE THESE EXACT TESTIMONIALS - NEVER CREATE FAKE ONES:');
+    parts.push('');
+    scrapedContext.businessInfo.structuredContent.testimonials.forEach((testimonial, index) => {
+      parts.push(`Testimonial ${index + 1}:`);
+      parts.push(`  Content: "${testimonial.content}"`);
+      if (testimonial.name) parts.push(`  Customer: ${testimonial.name}`);
+      if (testimonial.role) parts.push(`  Role/Company: ${testimonial.role}`);
+      if (testimonial.rating) parts.push(`  Rating: ${testimonial.rating} stars`);
+      parts.push('');
+    });
+    parts.push('^ These are REAL customer reviews. Use them exactly as provided. NEVER invent testimonials.');
+    parts.push('');
+  }
 
   // Add scraped content context for the specific section
   if (scrapedContext) {
@@ -509,9 +629,9 @@ export function buildPagePrompt(
       for (const key of relevantKeys) {
         if (scrapedContext.pageContents[key]) {
           parts.push(`Content from existing "${key}" page:`);
-          // Limit content length to avoid token overflow
+          // Increased limit for better content preservation
           const content = scrapedContext.pageContents[key];
-          const maxPageContentLength = 1000; // Reduced from 2000 to prevent token overflow
+          const maxPageContentLength = 2500; // Increased from 1000 to better preserve content
           if (content.length > maxPageContentLength) {
             parts.push(content.substring(0, maxPageContentLength) + '...');
             parts.push('(Content truncated for length)');
@@ -558,7 +678,13 @@ export function buildPagePrompt(
       }
     }
 
-    parts.push('IMPORTANT: Use the above content as inspiration to create better, more engaging copy. Do not copy verbatim - improve the language, fix any issues, and make it more compelling while preserving accurate business information.');
+    parts.push('IMPORTANT: The above content is from the actual business website. Preserve the key messages and authentic voice.');
+    parts.push('You should:');
+    parts.push('- Keep core phrases and messaging intact');
+    parts.push('- Fix grammar/spelling errors');
+    parts.push('- Improve flow and readability');
+    parts.push('- Maintain all factual information exactly as provided');
+    parts.push('The original content should be clearly recognizable in your output.');
     parts.push('');
   }
 

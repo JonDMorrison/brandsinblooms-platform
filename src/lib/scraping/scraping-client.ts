@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { scrapingConfig } from '@/lib/config/scraping';
+import { scrapingConfig, validateScrapingConfig } from '@/lib/config/scraping';
 import { handleError } from '@/lib/types/error-handling';
 
 interface ScrapingResponse {
@@ -60,6 +60,7 @@ export async function scrapeUrl(
   url: string,
   options: { timeout?: number; retries?: number } = {}
 ): Promise<ScrapingResponse> {
+  validateScrapingConfig();
   validateScrapingUrl(url);
 
   const timeout = options.timeout || scrapingConfig.timeout;

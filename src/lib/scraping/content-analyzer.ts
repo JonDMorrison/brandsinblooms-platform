@@ -1,6 +1,7 @@
 import type { DiscoveredPage } from './page-discovery';
 import { extractBusinessInfo, type ExtractedBusinessInfo } from './content-extractor';
 import { load } from 'cheerio';
+import type { ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
 
 export interface AnalyzedWebsite {
   baseUrl: string;
@@ -99,6 +100,23 @@ function createContentSummary(
 
   if (businessInfo.siteTitle) {
     parts.push(`Site Title: ${businessInfo.siteTitle}`);
+  }
+
+  // Include hero section details if available
+  if (businessInfo.heroSection) {
+    if (businessInfo.heroSection.headline) {
+      parts.push(`Hero Headline: ${businessInfo.heroSection.headline}`);
+    }
+    if (businessInfo.heroSection.subheadline) {
+      parts.push(`Hero Subheadline: ${businessInfo.heroSection.subheadline}`);
+    }
+    if (businessInfo.heroSection.ctaText) {
+      parts.push(`Hero CTA: ${businessInfo.heroSection.ctaText}`);
+    }
+  }
+
+  if (businessInfo.tagline) {
+    parts.push(`Tagline: ${businessInfo.tagline}`);
   }
 
   if (businessInfo.businessDescription) {
