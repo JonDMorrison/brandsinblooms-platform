@@ -306,6 +306,7 @@ export function sanitizeBusinessInfo(info: BusinessInfo): BusinessInfo {
     website: sanitizeUrl(info.website),
     logoUrl: info.logoUrl ? sanitizeLogoUrl(info.logoUrl) : undefined,
     brandColors: sanitizeTextField(info.brandColors, MAX_TEXT_FIELD_LENGTH),
+    basedOnWebsite: info.basedOnWebsite ? sanitizeUrl(info.basedOnWebsite) : undefined,
     additionalDetails: info.additionalDetails
       ? sanitizeAdditionalDetails(info.additionalDetails)
       : undefined,

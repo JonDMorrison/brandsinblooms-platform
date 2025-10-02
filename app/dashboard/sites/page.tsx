@@ -46,7 +46,13 @@ export default function DashboardSitesPage() {
   const { sites: userSites, loading: sitesLoading, error: sitesError, refresh: refreshSites } = useUserSites()
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(0)
+
+  // Step 0: Website source selection
+  const [sourceMode, setSourceMode] = useState<'scrape' | 'manual'>('manual')
+  const [websiteUrl, setWebsiteUrl] = useState('')
+  const [urlError, setUrlError] = useState<string | null>(null)
+
   const [newSite, setNewSite] = useState({
     name: '',
     description: '',
@@ -56,7 +62,8 @@ export default function DashboardSitesPage() {
     phone: '',
     address: '',
     brandColors: '',
-    logoUrl: null as string | null
+    logoUrl: null as string | null,
+    basedOnWebsite: undefined as string | undefined
   })
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationStatus, setGenerationStatus] = useState<GenerationStatus | null>(null)
@@ -66,6 +73,51 @@ export default function DashboardSitesPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // URL validation function
+  const validateWebsiteUrl = (url: string): string | null => {
+    // Empty is ok (user can skip)
+    if (!url) return null
+
+    // Basic URL format
+    try {
+      const parsed = new URL(url)
+
+      // Must be HTTP/HTTPS
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        return 'URL must use HTTP or HTTPS protocol'
+      }
+
+      // Block localhost
+      if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1' || parsed.hostname === '0.0.0.0') {
+        return 'Cannot scrape localhost URLs'
+      }
+
+      // Block private IPs (10.x.x.x, 172.16-31.x.x, 192.168.x.x)
+      if (/^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/.test(parsed.hostname)) {
+        return 'Cannot scrape private network addresses'
+      }
+
+      return null // Valid!
+    } catch {
+      return 'Please enter a valid URL (e.g., https://example.com)'
+    }
+  }
+
+  // Debounced URL validation
+  useEffect(() => {
+    if (!websiteUrl) {
+      setUrlError(null)
+      return
+    }
+
+    const timer = setTimeout(() => {
+      const error = validateWebsiteUrl(websiteUrl)
+      setUrlError(error)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [websiteUrl])
 
   // Transform sites data to match the interface
   const sites: Site[] = (userSites || []).map(access => ({
@@ -368,35 +420,65 @@ export default function DashboardSitesPage() {
       return
     }
 
-    // Validate required fields
-    if (!newSite.name || !newSite.description) {
-      toast.error('Please provide at least a site name and description')
-      return
+    // Validate required fields (skip validation for scraping mode)
+    if (sourceMode === 'manual') {
+      if (!newSite.name || !newSite.description) {
+        toast.error('Please provide at least a site name and description')
+        return
+      }
     }
 
     setIsGenerating(true)
     setGenerationStatus(null)
 
     try {
-      // Build enhanced AI prompt with brand colors
-      let enhancedPrompt = `Create a website for ${newSite.name}. ${newSite.description}`
-      if (newSite.brandColors) {
-        enhancedPrompt += `. Brand colors/theme: ${newSite.brandColors}`
+      // Build enhanced AI prompt
+      let enhancedPrompt: string
+
+      if (sourceMode === 'scrape' && newSite.basedOnWebsite) {
+        // For scraping mode, create a minimal prompt - the scraper will provide details
+        enhancedPrompt = `Create a professional website based on ${newSite.basedOnWebsite}`
+      } else {
+        // For manual mode, build detailed prompt
+        enhancedPrompt = `Create a website for ${newSite.name}. ${newSite.description}`
+        if (newSite.brandColors) {
+          enhancedPrompt += `. Brand colors/theme: ${newSite.brandColors}`
+        }
       }
 
       // Build API request
       const requestBody = {
         prompt: enhancedPrompt,
-        name: newSite.name,
+        name: newSite.name || 'Generated Site', // Fallback name for scraping mode
         industry: newSite.industry || undefined,
         location: newSite.location || undefined,
         email: newSite.email || undefined,
         phone: newSite.phone || undefined,
-        description: newSite.description,
+        description: newSite.description || 'AI-generated website', // Fallback description
         brandColors: newSite.brandColors || undefined,
         logoUrl: newSite.logoUrl || undefined,
+        basedOnWebsite: newSite.basedOnWebsite || undefined,
         additionalDetails: newSite.address ? { address: newSite.address } : undefined
       }
+
+      // LOG: Show request data in console
+      console.log('\n' + '='.repeat(80))
+      console.log('🚀 SITE GENERATION REQUEST')
+      console.log('='.repeat(80))
+      console.log('📝 Request Body:', JSON.stringify(requestBody, null, 2))
+      if (newSite.basedOnWebsite) {
+        console.log('\n🌐 Website Scraping Enabled!')
+        console.log(`   URL to scrape: ${newSite.basedOnWebsite}`)
+        console.log('   → Backend will scrape this URL and extract:')
+        console.log('      - Contact info (email, phone, address)')
+        console.log('      - Brand colors')
+        console.log('      - Logo')
+        console.log('      - Social media links')
+        console.log('      - Page structure')
+      } else {
+        console.log('\n📝 Manual Mode - No scraping')
+      }
+      console.log('='.repeat(80) + '\n')
 
       // Call AI generation API
       const response = await fetch('/api/sites/generate', {
@@ -409,11 +491,17 @@ export default function DashboardSitesPage() {
 
       if (!response.ok) {
         const error = await response.json()
+        console.error('❌ Generation request failed:', error)
         throw new Error(error.error || 'Failed to start site generation')
       }
 
       const result = await response.json()
       const { jobId, statusUrl } = result.data
+
+      console.log('✅ Generation job created successfully!')
+      console.log(`   Job ID: ${jobId}`)
+      console.log(`   Status URL: ${statusUrl}`)
+      console.log('\n💡 Check your server logs for detailed scraping results!\n')
 
       toast.success('Site generation started!')
 
@@ -438,9 +526,13 @@ export default function DashboardSitesPage() {
       phone: '',
       address: '',
       brandColors: '',
-      logoUrl: null
+      logoUrl: null,
+      basedOnWebsite: undefined
     })
-    setStep(1)
+    setStep(0)
+    setSourceMode('manual')
+    setWebsiteUrl('')
+    setUrlError(null)
     setGenerationStatus(null)
     setStatusMessage('')
     setIsUploading(false)
@@ -458,7 +550,32 @@ export default function DashboardSitesPage() {
 
   // Step navigation
   const nextStep = () => {
-    if (step === 1) {
+    if (step === 0) {
+      // Step 0: Validate URL if scraping mode selected
+      if (sourceMode === 'scrape') {
+        if (!websiteUrl) {
+          toast.error('Please enter a website URL or choose "Start from Scratch"')
+          return
+        }
+        const error = validateWebsiteUrl(websiteUrl)
+        if (error) {
+          setUrlError(error)
+          toast.error(error)
+          return
+        }
+        // Store the URL and jump directly to review (Step 3)
+        setNewSite(prev => ({
+          ...prev,
+          basedOnWebsite: websiteUrl,
+          name: websiteUrl.replace(/^https?:\/\/(www\.)?/, '').split('/')[0].split('.')[0] // Extract domain name as placeholder
+        }))
+        setStep(3) // Skip Steps 1 & 2 - scraping will provide the data
+      } else {
+        // Clear URL if manual mode and go to Step 1
+        setNewSite(prev => ({ ...prev, basedOnWebsite: undefined }))
+        setStep(1)
+      }
+    } else if (step === 1) {
       // Validate required fields
       if (!newSite.name || !newSite.description) {
         toast.error('Please fill in all required fields')
@@ -471,8 +588,13 @@ export default function DashboardSitesPage() {
   }
 
   const prevStep = () => {
-    if (step > 1) {
-      setStep(step - 1)
+    if (step > 0) {
+      // If in scraping mode and on step 3, go back to step 0
+      if (sourceMode === 'scrape' && step === 3) {
+        setStep(0)
+      } else {
+        setStep(step - 1)
+      }
     }
   }
 
@@ -731,32 +853,67 @@ export default function DashboardSitesPage() {
             <DialogDescription>
               {isGenerating
                 ? 'Our AI is creating your professional website with all the pages you need'
-                : `Step ${step} of 3: ${step === 1 ? 'Company Information' : step === 2 ? 'Design Settings' : 'Review & Create'}`}
+                : sourceMode === 'scrape'
+                  ? `Step ${step === 0 ? 1 : 2} of 2: ${step === 0 ? 'Choose Website' : 'Review & Generate'}`
+                  : `Step ${step + 1} of 4: ${step === 0 ? 'Choose Source' : step === 1 ? 'Company Information' : step === 2 ? 'Design Settings' : 'Review & Create'}`}
             </DialogDescription>
           </DialogHeader>
 
           {/* Progress Indicator */}
           {!isGenerating && (
             <div className="flex items-center justify-center space-x-4 py-4">
-              {[1, 2, 3].map((stepNumber) => (
-                <div key={stepNumber} className="flex items-center">
-                  <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
-                    ${step >= stepNumber
-                      ? 'bg-green-600 text-white shadow-lg'
-                      : 'bg-gray-200 text-gray-600'
-                    }
-                  `}>
-                    {step > stepNumber ? <Check className="h-4 w-4" /> : stepNumber}
-                  </div>
-                  {stepNumber < 3 && (
+              {sourceMode === 'scrape' ? (
+                /* Scraping Mode: 2 steps (0 and 3) */
+                <>
+                  <div className="flex items-center">
                     <div className={`
-                      w-12 h-1 mx-2 rounded-full transition-all
-                      ${step > stepNumber ? 'bg-green-600' : 'bg-gray-200'}
-                    `} />
-                  )}
-                </div>
-              ))}
+                      w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
+                      ${step >= 0
+                        ? 'bg-green-600 text-white shadow-lg'
+                        : 'bg-gray-200 text-gray-600'
+                      }
+                    `}>
+                      {step > 0 ? <Check className="h-4 w-4" /> : 1}
+                    </div>
+                  </div>
+                  <div className={`
+                    w-12 h-1 mx-2 rounded-full transition-all
+                    ${step > 0 ? 'bg-green-600' : 'bg-gray-200'}
+                  `} />
+                  <div className="flex items-center">
+                    <div className={`
+                      w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
+                      ${step >= 3
+                        ? 'bg-green-600 text-white shadow-lg'
+                        : 'bg-gray-200 text-gray-600'
+                      }
+                    `}>
+                      2
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* Manual Mode: 4 steps (0, 1, 2, 3) */
+                [0, 1, 2, 3].map((stepNumber) => (
+                  <div key={stepNumber} className="flex items-center">
+                    <div className={`
+                      w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
+                      ${step >= stepNumber
+                        ? 'bg-green-600 text-white shadow-lg'
+                        : 'bg-gray-200 text-gray-600'
+                      }
+                    `}>
+                      {step > stepNumber ? <Check className="h-4 w-4" /> : stepNumber + 1}
+                    </div>
+                    {stepNumber < 3 && (
+                      <div className={`
+                        w-12 h-1 mx-2 rounded-full transition-all
+                        ${step > stepNumber ? 'bg-green-600' : 'bg-gray-200'}
+                      `} />
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           )}
 
@@ -806,6 +963,134 @@ export default function DashboardSitesPage() {
             </div>
           ) : (
             <div className="space-y-6 py-4">
+              {/* Step 0: Website Source Selection */}
+              {step === 0 && (
+                <div className="space-y-6">
+                  <div className="text-center mb-6">
+                    <h3 className="text-lg font-semibold mb-2">
+                      How would you like to create your site?
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Import from an existing website or start fresh
+                    </p>
+                  </div>
+
+                  {/* Option Cards */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Import from Website Card */}
+                    <Card
+                      className={`cursor-pointer transition-all ${
+                        sourceMode === 'scrape'
+                          ? 'ring-2 ring-primary border-primary'
+                          : 'hover:border-gray-400'
+                      }`}
+                      onClick={() => setSourceMode('scrape')}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className={`p-3 rounded-full ${
+                            sourceMode === 'scrape' ? 'bg-primary text-white' : 'bg-gray-100'
+                          }`}>
+                            <Globe className="h-6 w-6" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold mb-2">
+                              Import from Website
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              Let AI analyze your existing site and use it as a foundation.
+                              We&apos;ll extract branding, content, and contact information.
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Start from Scratch Card */}
+                    <Card
+                      className={`cursor-pointer transition-all ${
+                        sourceMode === 'manual'
+                          ? 'ring-2 ring-primary border-primary'
+                          : 'hover:border-gray-400'
+                      }`}
+                      onClick={() => setSourceMode('manual')}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className={`p-3 rounded-full ${
+                            sourceMode === 'manual' ? 'bg-primary text-white' : 'bg-gray-100'
+                          }`}>
+                            <Sparkles className="h-6 w-6" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold mb-2">
+                              Start from Scratch
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              Provide business details manually and let AI generate
+                              a completely custom website.
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Website URL Input (conditional) */}
+                  {sourceMode === 'scrape' && (
+                    <div className="space-y-3 mt-6 p-4 border rounded-lg bg-blue-50">
+                      <Label htmlFor="websiteUrl" className="text-base font-semibold">
+                        Your Website URL
+                      </Label>
+                      <Input
+                        id="websiteUrl"
+                        type="url"
+                        placeholder="https://your-website.com"
+                        value={websiteUrl}
+                        onChange={(e) => setWebsiteUrl(e.target.value)}
+                        className={urlError ? 'border-red-500' : ''}
+                      />
+                      {urlError && (
+                        <div className="flex items-center gap-2 text-sm text-red-600">
+                          <AlertCircle className="h-4 w-4" />
+                          {urlError}
+                        </div>
+                      )}
+                      {!urlError && websiteUrl && (
+                        <div className="flex items-center gap-2 text-sm text-green-600">
+                          <CheckCircle2 className="h-4 w-4" />
+                          URL looks good!
+                        </div>
+                      )}
+
+                      <div className="bg-white border border-blue-200 rounded p-3 mt-3">
+                        <h5 className="text-sm font-semibold text-blue-900 mb-2">
+                          What we&apos;ll extract:
+                        </h5>
+                        <ul className="text-xs text-blue-700 space-y-1">
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Business contact information (email, phone, address)
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Brand colors and logo
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Page structure and content themes
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Social media links
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Step 1: Company Information */}
               {step === 1 && (
                 <div className="space-y-4">
@@ -955,7 +1240,7 @@ export default function DashboardSitesPage() {
                       rows={3}
                     />
                     <p className="text-xs text-gray-500">
-                      Examples: "#FF5733, #3498DB" or "modern purple and teal" or "vintage earth tones"
+                      Examples: &quot;#FF5733, #3498DB&quot; or &quot;modern purple and teal&quot; or &quot;vintage earth tones&quot;
                     </p>
                   </div>
                 </div>
@@ -964,88 +1249,169 @@ export default function DashboardSitesPage() {
               {/* Step 3: Review */}
               {step === 3 && (
                 <div className="space-y-4">
-                  <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold">Review Your Information</h3>
-                    <p className="text-sm text-gray-500">
-                      Double-check everything before we create your site
-                    </p>
-                  </div>
-
-                  <Card className="p-4 space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-sm text-gray-700 mb-3">Company Information</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Name:</span>
-                          <span className="font-medium">{newSite.name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Description:</span>
-                          <span className="font-medium text-right max-w-xs truncate">{newSite.description}</span>
-                        </div>
-                        {newSite.email && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Email:</span>
-                            <span className="font-medium">{newSite.email}</span>
-                          </div>
-                        )}
-                        {newSite.phone && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Phone:</span>
-                            <span className="font-medium">{newSite.phone}</span>
-                          </div>
-                        )}
-                        {newSite.address && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Address:</span>
-                            <span className="font-medium">{newSite.address}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-4">
-                      <h4 className="font-semibold text-sm text-gray-700 mb-3">Design Settings</h4>
-                      <div className="space-y-3">
-                        {newSite.logoUrl ? (
-                          <div className="flex items-center gap-3">
-                            <div className="relative w-16 h-16 border rounded-lg overflow-hidden bg-gray-50">
-                              <img
-                                src={newSite.logoUrl}
-                                alt="Logo"
-                                className="w-full h-full object-contain"
-                              />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">Logo uploaded ✓</p>
-                              <p className="text-xs text-gray-500">Will display with company name</p>
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500">No logo uploaded</p>
-                        )}
-                        {newSite.brandColors && (
-                          <div>
-                            <p className="text-sm font-medium">Brand Colors:</p>
-                            <p className="text-sm text-gray-600">{newSite.brandColors}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <Sparkles className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-blue-900">Ready to create your site!</p>
-                        <p className="text-xs text-blue-700 mt-1">
-                          Our AI will generate a complete website with home, about, contact pages, and more.
-                          This usually takes 30-60 seconds.
+                  {sourceMode === 'scrape' ? (
+                    /* Scraping Mode Review */
+                    <>
+                      <div className="text-center mb-4">
+                        <h3 className="text-lg font-semibold">Ready to Generate!</h3>
+                        <p className="text-sm text-gray-500">
+                          We&apos;ll analyze your website and create a new site based on it
                         </p>
                       </div>
-                    </div>
-                  </div>
+
+                      <Card className="p-6 space-y-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 bg-blue-500 rounded-full">
+                            <Globe className="h-6 w-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-blue-900 mb-2">Website Analysis Mode</h4>
+                            <p className="text-sm text-blue-700 mb-3">
+                              Our AI will scrape and analyze your existing website to automatically extract:
+                            </p>
+                            <div className="space-y-2 text-sm text-blue-800">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                                <span>Business name and description</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                                <span>Contact information (email, phone, address)</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                                <span>Brand colors and logo</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                                <span>Page structure and content themes</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                                <span>Social media links</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-blue-200">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-blue-700 font-medium">Source Website:</span>
+                            <a
+                              href={newSite.basedOnWebsite}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+                            >
+                              {newSite.basedOnWebsite}
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
+                        </div>
+                      </Card>
+
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm text-amber-900 font-medium mb-1">
+                              Note: Manual edits available after generation
+                            </p>
+                            <p className="text-xs text-amber-700">
+                              The AI will use scraped data as a foundation. You can edit all content,
+                              pages, and settings after your site is created.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    /* Manual Mode Review */
+                    <>
+                      <div className="text-center mb-4">
+                        <h3 className="text-lg font-semibold">Review Your Information</h3>
+                        <p className="text-sm text-gray-500">
+                          Double-check everything before we create your site
+                        </p>
+                      </div>
+
+                      <Card className="p-4 space-y-4">
+                        <div>
+                          <h4 className="font-semibold text-sm text-gray-700 mb-3">Company Information</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Name:</span>
+                              <span className="font-medium">{newSite.name}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Description:</span>
+                              <span className="font-medium text-right max-w-xs truncate">{newSite.description}</span>
+                            </div>
+                            {newSite.email && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Email:</span>
+                                <span className="font-medium">{newSite.email}</span>
+                              </div>
+                            )}
+                            {newSite.phone && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Phone:</span>
+                                <span className="font-medium">{newSite.phone}</span>
+                              </div>
+                            )}
+                            {newSite.address && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Address:</span>
+                                <span className="font-medium">{newSite.address}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="border-t pt-4">
+                          <h4 className="font-semibold text-sm text-gray-700 mb-3">Design Settings</h4>
+                          <div className="space-y-3">
+                            {newSite.logoUrl ? (
+                              <div className="flex items-center gap-3">
+                                <div className="relative w-16 h-16 border rounded-lg overflow-hidden bg-gray-50">
+                                  <img
+                                    src={newSite.logoUrl}
+                                    alt="Logo"
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">Logo uploaded ✓</p>
+                                  <p className="text-xs text-gray-500">Will display with company name</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-500">No logo uploaded</p>
+                            )}
+                            {newSite.brandColors && (
+                              <div>
+                                <p className="text-sm font-medium">Brand Colors:</p>
+                                <p className="text-sm text-gray-600">{newSite.brandColors}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <Sparkles className="h-5 w-5 text-blue-600 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-blue-900">Ready to create your site!</p>
+                            <p className="text-xs text-blue-700 mt-1">
+                              Our AI will generate a complete website with home, about, contact pages, and more.
+                              This usually takes 30-60 seconds.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -1055,7 +1421,7 @@ export default function DashboardSitesPage() {
             {!isGenerating && (
               <>
                 <div className="flex gap-2">
-                  {step > 1 && (
+                  {step > 0 && (
                     <Button
                       variant="outline"
                       onClick={prevStep}
@@ -1064,7 +1430,7 @@ export default function DashboardSitesPage() {
                       Back
                     </Button>
                   )}
-                  {step === 1 && (
+                  {step === 0 && (
                     <Button
                       variant="outline"
                       onClick={() => handleModalClose(false)}
