@@ -395,19 +395,84 @@ export default function DashboardSitesPage() {
         toast.warning('Site created, but some pages may need manual setup')
       }
 
-      // Success!
-      toast.success('Site created successfully with all pages!')
+      // Success! Now redirect to the homepage editor
+      console.log('[SITE CREATION] Site and pages created successfully. Querying for homepage...')
+
+      // Query for the home page of the new site
+      try {
+        const { data: homePage, error: homePageError } = await supabase
+          .from('content')
+          .select('id, title, slug')
+          .eq('site_id', siteId)
+          .eq('slug', 'home')
+          .eq('content_type', 'homepage')
+          .single()
+
+        if (homePageError) {
+          console.error('[SITE CREATION] Error querying home page:', homePageError)
+          // Fallback: Just close modal and refresh
+          toast.success('Site created successfully with all pages!')
+          setIsCreateModalOpen(false)
+          resetForm()
+          await refreshSites()
+        } else if (!homePage) {
+          console.warn('[SITE CREATION] Home page not found for site:', siteId)
+          // Fallback: Just close modal and refresh
+          toast.success('Site created successfully!')
+          setIsCreateModalOpen(false)
+          resetForm()
+          await refreshSites()
+        } else {
+          // Home page found - prepare for navigation
+          console.log('[SITE CREATION] Home page found:', homePage.id)
+
+          // Show navigation message
+          toast.success('Site created! Opening homepage editor...')
+
+          // Close modal and reset form first
+          setIsCreateModalOpen(false)
+          resetForm()
+
+          // Refresh sites list to ensure consistency
+          console.log('[SITE CREATION] Refreshing sites before navigation...')
+          await refreshSites()
+
+          // Navigate to the editor with the home page ID
+          const editorUrl = `/dashboard/content/editor?id=${homePage.id}`
+          console.log('[SITE CREATION] Navigating to:', editorUrl)
+
+          // Use router.push for navigation
+          router.push(editorUrl)
+        }
+      } catch (queryError: unknown) {
+        // Handle any unexpected errors during home page query
+        console.error('[SITE CREATION] Unexpected error querying home page:', queryError)
+
+        // Fallback: Close modal, show success, and refresh
+        toast.success('Site created successfully!')
+        setIsCreateModalOpen(false)
+        resetForm()
+
+        try {
+          await refreshSites()
+        } catch (refreshError: unknown) {
+          console.error('[SITE CREATION] Error refreshing sites:', refreshError)
+        }
+      }
+
+    } catch (error: unknown) {
+      console.error('Error creating additional pages:', error)
+      toast.error('Site created, but some pages failed to generate')
+
+      // Even on error, try to close modal and refresh
       setIsCreateModalOpen(false)
       resetForm()
 
-      // Refresh sites list - stay at /dashboard/sites
-      console.log('[SITE CREATION] Before refreshSites, current sites count:', sites.length)
-      await refreshSites()
-      console.log('[SITE CREATION] After refreshSites, current sites count:', sites.length)
-
-    } catch (error) {
-      console.error('Error creating additional pages:', error)
-      toast.error('Site created, but some pages failed to generate')
+      try {
+        await refreshSites()
+      } catch (refreshError: unknown) {
+        console.error('[SITE CREATION] Error refreshing sites after page creation error:', refreshError)
+      }
     } finally {
       setIsGenerating(false)
     }
@@ -940,10 +1005,6 @@ export default function DashboardSitesPage() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Progress</span>
-                  <span>{generationStatus?.progress || 0}%</span>
-                </div>
                 <Progress value={generationStatus?.progress || 0} className="h-2" />
               </div>
 
