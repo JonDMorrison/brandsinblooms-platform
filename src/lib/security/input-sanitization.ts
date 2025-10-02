@@ -306,6 +306,7 @@ export function sanitizeBusinessInfo(info: BusinessInfo): BusinessInfo {
     website: sanitizeUrl(info.website),
     logoUrl: info.logoUrl ? sanitizeLogoUrl(info.logoUrl) : undefined,
     brandColors: sanitizeTextField(info.brandColors, MAX_TEXT_FIELD_LENGTH),
+    basedOnWebsite: info.basedOnWebsite ? sanitizeUrl(info.basedOnWebsite) : undefined,
     additionalDetails: info.additionalDetails
       ? sanitizeAdditionalDetails(info.additionalDetails)
       : undefined,
@@ -457,4 +458,113 @@ export function validateBusinessInfo(info: BusinessInfo): ValidationResult {
     valid: errors.length === 0,
     errors,
   };
+}
+
+/**
+ * Validates website URL for scraping
+ *
+ * Security measures:
+ * - Only allow HTTP/HTTPS protocols
+ * - Block localhost and all private IP ranges (RFC 1918)
+ * - Require valid TLD (domain must contain a dot)
+ * - Prevent SSRF attacks by blocking internal network access
+ *
+ * @param url - URL to validate for scraping
+ * @returns Validation result with specific error message if invalid
+ *
+ * @example
+ * ```ts
+ * const validation = validateWebsiteUrl(userProvidedUrl);
+ * if (!validation.valid) {
+ *   return apiError(validation.error, 'INVALID_URL', 400);
+ * }
+ * ```
+ */
+export function validateWebsiteUrl(url: string): { valid: boolean; error?: string } {
+  try {
+    const parsed = new URL(url);
+
+    // Only HTTP/HTTPS
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return { valid: false, error: 'Only HTTP/HTTPS URLs are allowed' };
+    }
+
+    // Block localhost and private IPs
+    const hostname = parsed.hostname.toLowerCase();
+    const blockedHosts = [
+      'localhost',
+      '127.0.0.1',
+      '0.0.0.0',
+      '[::1]',
+    ];
+
+    if (blockedHosts.includes(hostname)) {
+      return { valid: false, error: 'Cannot scrape localhost' };
+    }
+
+    // Block private IP ranges (RFC 1918)
+    if (hostname.startsWith('192.168.') ||
+        hostname.startsWith('10.') ||
+        hostname.startsWith('172.16.') ||
+        hostname.startsWith('172.17.') ||
+        hostname.startsWith('172.18.') ||
+        hostname.startsWith('172.19.') ||
+        hostname.startsWith('172.20.') ||
+        hostname.startsWith('172.21.') ||
+        hostname.startsWith('172.22.') ||
+        hostname.startsWith('172.23.') ||
+        hostname.startsWith('172.24.') ||
+        hostname.startsWith('172.25.') ||
+        hostname.startsWith('172.26.') ||
+        hostname.startsWith('172.27.') ||
+        hostname.startsWith('172.28.') ||
+        hostname.startsWith('172.29.') ||
+        hostname.startsWith('172.30.') ||
+        hostname.startsWith('172.31.')) {
+      return { valid: false, error: 'Cannot scrape private network IPs' };
+    }
+
+    // Must have valid TLD
+    if (!hostname.includes('.')) {
+      return { valid: false, error: 'URL must have a valid domain' };
+    }
+
+    return { valid: true };
+  } catch {
+    return { valid: false, error: 'Invalid URL format' };
+  }
+}
+
+/**
+ * Sanitizes scraped HTML content to prevent XSS and limit size
+ *
+ * Security measures:
+ * - Remove all script tags (including their content)
+ * - Remove all event handlers (onclick, onerror, etc.)
+ * - Remove javascript: protocol from URLs
+ * - Limit size to 1MB to prevent DoS attacks
+ *
+ * @param html - Raw HTML from scraped website
+ * @returns Sanitized HTML safe for processing
+ *
+ * @example
+ * ```ts
+ * const rawHtml = await fetchWebsite(url);
+ * const safeHtml = sanitizeScrapedHtml(rawHtml);
+ * // Now safe to parse and extract content
+ * ```
+ */
+export function sanitizeScrapedHtml(html: string): string {
+  // Remove script tags and event handlers
+  let sanitized = html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript:/gi, '');
+
+  // Limit size to prevent DoS (1MB max)
+  if (sanitized.length > 1_000_000) {
+    sanitized = sanitized.slice(0, 1_000_000);
+  }
+
+  return sanitized;
 }

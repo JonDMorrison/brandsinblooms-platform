@@ -222,9 +222,7 @@ async function handleAdminRoute(request: NextRequest): Promise<NextResponse> {
 function shouldSkipMiddleware(pathname: string): boolean {
   const skipPaths = [
     '/_next',           // Next.js internal paths
-    '/api/auth',        // Auth API routes
-    '/api/images',      // Image serving API
-    '/api/upload',      // File upload API
+    '/api',             // All API routes handle their own authentication
     '/favicon.ico',     // Favicon
     '/robots.txt',      // SEO files
     '/sitemap.xml',     // SEO files
@@ -232,7 +230,7 @@ function shouldSkipMiddleware(pathname: string): boolean {
     '/health',          // Health check endpoints
     '/monitoring',      // Monitoring endpoints
   ]
-  
+
   return skipPaths.some(path => pathname.startsWith(path))
 }
 

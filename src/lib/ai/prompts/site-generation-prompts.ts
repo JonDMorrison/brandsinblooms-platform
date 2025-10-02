@@ -12,7 +12,7 @@
  * - Content is tailored for garden centers, plant shops, and floral businesses
  */
 
-import { type BusinessInfo, type SiteBranding } from '@/lib/types/site-generation-jobs';
+import { type BusinessInfo, type SiteBranding, type ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
 
 /**
  * System prompt for generating site foundation (metadata + theme + hero)
@@ -27,6 +27,19 @@ Your task is to generate the foundational elements for a website including:
 2. Branding and theme (colors, fonts, logo description)
 3. SEO metadata (title, description, keywords)
 4. Hero section (headline, subheadline, CTA)
+
+**IMPORTANT: If the user provided an existing website URL, you will receive analysis of that site. Use this information to:**
+1. Preserve accurate business information (contact details, hours, location)
+2. Draw inspiration from the existing brand colors and visual identity
+3. Improve and modernize the content and messaging
+4. Maintain consistency with their established brand while enhancing it
+5. Use the existing logo URL if provided
+
+**Dynamic Page Generation:**
+- Based on the user's request and any existing website analysis, you may generate between 3 and 8 pages
+- Required pages: Home, About, Contact (always generate these)
+- Optional pages: Services, Team, FAQ, Testimonials, Blog, Products (generate if relevant)
+- If an existing website had specific pages (e.g., "Plant Care Guide", "Our Process"), consider generating equivalent pages
 
 IMPORTANT GUIDELINES:
 
@@ -100,6 +113,14 @@ RESPOND ONLY WITH VALID JSON. Do not include any other text, explanations, or ma
 export const PAGE_GENERATION_SYSTEM_PROMPT = `You are an expert web copywriter specializing in garden centers, plant shops, nurseries, and floral businesses.
 
 Your task is to generate compelling, authentic content for a specific section of a website. The content should align with the site's branding and theme, and be tailored to the garden/plant industry.
+
+**CRITICAL: If existing website content is provided:**
+- Use it as the foundation for your content generation
+- Preserve accurate business information (contact details, addresses, hours)
+- Improve and modernize the language while maintaining the business's unique voice
+- Fix any grammar, spelling, or clarity issues
+- Make the content more engaging and compelling
+- Do NOT ignore the existing content - it should directly influence your output
 
 IMPORTANT GUIDELINES:
 
@@ -247,11 +268,148 @@ export function buildFoundationPrompt(businessInfo: BusinessInfo): string {
 }
 
 /**
+ * Build enhanced user prompt for foundation generation with scraped website context (Phase 1)
+ *
+ * @param businessInfo - Business information from user input
+ * @param scrapedContext - Optional scraped website data for enhanced context
+ * @returns Formatted user prompt for foundation generation with website context
+ *
+ * @example
+ * ```typescript
+ * const prompt = buildFoundationPromptWithContext(
+ *   {
+ *     prompt: "Modernize my garden center website",
+ *     name: "Green Thumb Gardens",
+ *     location: "Portland, OR"
+ *   },
+ *   {
+ *     baseUrl: "https://oldsite.com",
+ *     businessInfo: {
+ *       emails: ["contact@oldsite.com"],
+ *       brandColors: ["#2D5F3F", "#8B4513"]
+ *     },
+ *     contentSummary: "Garden center with 30 years experience..."
+ *   }
+ * );
+ * ```
+ */
+export function buildFoundationPromptWithContext(
+  businessInfo: BusinessInfo,
+  scrapedContext?: ScrapedWebsiteContext
+): string {
+  const sections: string[] = [];
+
+  // User's original request
+  sections.push(`User Request: ${businessInfo.prompt}`);
+  sections.push('');
+
+  // Basic business information
+  sections.push('Business Information:');
+  sections.push(`- Name: ${businessInfo.name}`);
+  if (businessInfo.industry) sections.push(`- Industry: ${businessInfo.industry}`);
+  if (businessInfo.location) sections.push(`- Location: ${businessInfo.location}`);
+  if (businessInfo.description) sections.push(`- Description: ${businessInfo.description}`);
+
+  // Use scraped contact info if available, otherwise use provided
+  if (scrapedContext?.businessInfo.emails?.length) {
+    sections.push(`- Email: ${scrapedContext.businessInfo.emails[0]}`);
+  } else if (businessInfo.email) {
+    sections.push(`- Email: ${businessInfo.email}`);
+  }
+
+  if (scrapedContext?.businessInfo.phones?.length) {
+    sections.push(`- Phone: ${scrapedContext.businessInfo.phones[0]}`);
+  } else if (businessInfo.phone) {
+    sections.push(`- Phone: ${businessInfo.phone}`);
+  }
+
+  if (businessInfo.website) sections.push(`- Existing Website: ${businessInfo.website}`);
+  sections.push('');
+
+  // Scraped website context (if available)
+  if (scrapedContext) {
+    sections.push('=== EXISTING WEBSITE ANALYSIS ===');
+    sections.push('The user has an existing website that we analyzed. Use this information to create a better, modernized version of their site.');
+    sections.push('');
+
+    // Branding from existing site
+    if (scrapedContext.businessInfo.brandColors?.length) {
+      sections.push('Existing Brand Colors (use as inspiration):');
+      scrapedContext.businessInfo.brandColors.forEach(color => {
+        sections.push(`- ${color}`);
+      });
+      sections.push('');
+    }
+
+    if (scrapedContext.businessInfo.logoUrl) {
+      sections.push(`Existing Logo: ${scrapedContext.businessInfo.logoUrl}`);
+      sections.push('(You can reference this logo URL in your output)');
+      sections.push('');
+    }
+
+    // Social media presence
+    if (scrapedContext.businessInfo.socialLinks?.length) {
+      sections.push('Social Media Links:');
+      scrapedContext.businessInfo.socialLinks.forEach(({ platform, url }) => {
+        sections.push(`- ${platform}: ${url}`);
+      });
+      sections.push('');
+    }
+
+    // Additional contact info
+    if (scrapedContext.businessInfo.addresses?.length) {
+      sections.push('Business Address:');
+      scrapedContext.businessInfo.addresses.forEach(addr => {
+        sections.push(`- ${addr}`);
+      });
+      sections.push('');
+    }
+
+    // Content summary - limit to prevent token overflow
+    if (scrapedContext.contentSummary) {
+      sections.push('Content from Existing Website:');
+      // Cap content summary at 1500 characters to leave room for response
+      const maxContentLength = 1500;
+      if (scrapedContext.contentSummary.length > maxContentLength) {
+        sections.push(scrapedContext.contentSummary.substring(0, maxContentLength) + '...[truncated for brevity]');
+        console.log(`Truncated content summary from ${scrapedContext.contentSummary.length} to ${maxContentLength} characters`);
+      } else {
+        sections.push(scrapedContext.contentSummary);
+      }
+      sections.push('');
+      sections.push('Use this content as inspiration, but improve the copy, modernize the language, and make it more engaging. Do not copy verbatim.');
+      sections.push('');
+    }
+
+    // Recommended pages
+    if (scrapedContext.recommendedPages?.length) {
+      sections.push('Recommended Pages to Generate:');
+      sections.push(scrapedContext.recommendedPages.join(', '));
+      sections.push('');
+    }
+  }
+
+  // Additional details
+  if (businessInfo.additionalDetails && Object.keys(businessInfo.additionalDetails).length > 0) {
+    sections.push('Additional Details:');
+    Object.entries(businessInfo.additionalDetails).forEach(([key, value]) => {
+      sections.push(`- ${key}: ${JSON.stringify(value)}`);
+    });
+    sections.push('');
+  }
+
+  sections.push('Generate the site foundation (metadata, branding, theme, hero section) as a structured JSON object matching the schema provided in the system prompt.');
+
+  return sections.join('\n');
+}
+
+/**
  * Build user prompt for page section generation (Phase 2)
  *
  * @param sectionType - Type of section to generate
  * @param businessInfo - Business information
  * @param siteTheme - Site branding/theme from Phase 1
+ * @param scrapedContext - Optional scraped website data for enhanced context
  * @returns Formatted user prompt for section generation
  *
  * @example
@@ -266,7 +424,8 @@ export function buildFoundationPrompt(businessInfo: BusinessInfo): string {
 export function buildPagePrompt(
   sectionType: 'about' | 'values' | 'features' | 'services' | 'team' | 'testimonials' | 'contact',
   businessInfo: BusinessInfo,
-  siteTheme: SiteBranding
+  siteTheme: SiteBranding,
+  scrapedContext?: ScrapedWebsiteContext
 ): string {
   const parts: string[] = [];
 
@@ -301,20 +460,107 @@ export function buildPagePrompt(
     parts.push(`- Description: ${businessInfo.description}`);
   }
 
-  // Add contact info for contact section
+  // Add contact info for contact section - prioritize scraped data
   if (sectionType === 'contact') {
-    if (businessInfo.email) {
+    // Use scraped contact info if available, otherwise use provided
+    if (scrapedContext?.businessInfo.emails?.length) {
+      parts.push(`- Email: ${scrapedContext.businessInfo.emails.join(', ')}`);
+    } else if (businessInfo.email) {
       parts.push(`- Email: ${businessInfo.email}`);
     }
-    if (businessInfo.phone) {
+
+    if (scrapedContext?.businessInfo.phones?.length) {
+      parts.push(`- Phone: ${scrapedContext.businessInfo.phones.join(', ')}`);
+    } else if (businessInfo.phone) {
       parts.push(`- Phone: ${businessInfo.phone}`);
     }
-    if (businessInfo.additionalDetails?.address) {
+
+    if (scrapedContext?.businessInfo.addresses?.length) {
+      parts.push(`- Address: ${scrapedContext.businessInfo.addresses.join('; ')}`);
+    } else if (businessInfo.additionalDetails?.address) {
       parts.push(`- Address: ${String(businessInfo.additionalDetails.address)}`);
     }
   }
 
   parts.push('');
+
+  // Add scraped content context for the specific section
+  if (scrapedContext) {
+    parts.push('=== EXISTING WEBSITE CONTENT ===');
+    parts.push('The user has an existing website. Use the following content as inspiration, but improve and modernize it:');
+    parts.push('');
+
+    // Map section types to potential page content keys
+    const sectionToPageMapping: Record<typeof sectionType, string[]> = {
+      about: ['about', 'story', 'history', 'mission', 'who-we-are'],
+      values: ['values', 'philosophy', 'beliefs', 'principles'],
+      features: ['features', 'benefits', 'why-us', 'what-we-offer'],
+      services: ['services', 'offerings', 'what-we-do', 'programs'],
+      team: ['team', 'staff', 'about', 'people', 'our-team'],
+      testimonials: ['testimonials', 'reviews', 'feedback', 'stories'],
+      contact: ['contact', 'location', 'hours', 'visit']
+    };
+
+    // Find relevant scraped content for this section
+    if (scrapedContext.pageContents) {
+      const relevantKeys = sectionToPageMapping[sectionType];
+      let foundContent = false;
+
+      for (const key of relevantKeys) {
+        if (scrapedContext.pageContents[key]) {
+          parts.push(`Content from existing "${key}" page:`);
+          // Limit content length to avoid token overflow
+          const content = scrapedContext.pageContents[key];
+          const maxPageContentLength = 1000; // Reduced from 2000 to prevent token overflow
+          if (content.length > maxPageContentLength) {
+            parts.push(content.substring(0, maxPageContentLength) + '...');
+            parts.push('(Content truncated for length)');
+          } else {
+            parts.push(content);
+          }
+          parts.push('');
+          foundContent = true;
+          break; // Use the first matching content
+        }
+      }
+
+      // If no specific content found but we have a content summary, use it (limited)
+      if (!foundContent && scrapedContext.contentSummary) {
+        parts.push('Website Overview:');
+        const maxSummaryLength = 800; // Limit summary length in page prompts
+        if (scrapedContext.contentSummary.length > maxSummaryLength) {
+          parts.push(scrapedContext.contentSummary.substring(0, maxSummaryLength) + '...');
+        } else {
+          parts.push(scrapedContext.contentSummary);
+        }
+        parts.push('');
+      }
+    } else if (scrapedContext.contentSummary) {
+      // Fallback to content summary if no page-specific content (limited)
+      parts.push('Website Overview:');
+      const maxSummaryLength = 800; // Limit summary length in page prompts
+      if (scrapedContext.contentSummary.length > maxSummaryLength) {
+        parts.push(scrapedContext.contentSummary.substring(0, maxSummaryLength) + '...');
+      } else {
+        parts.push(scrapedContext.contentSummary);
+      }
+      parts.push('');
+    }
+
+    // Add specific business info for contact section
+    if (sectionType === 'contact' && scrapedContext.businessInfo) {
+      if (scrapedContext.businessInfo.socialLinks?.length) {
+        parts.push('Social Media Links (preserve these):');
+        scrapedContext.businessInfo.socialLinks.forEach(({ platform, url }) => {
+          parts.push(`- ${platform}: ${url}`);
+        });
+        parts.push('');
+      }
+    }
+
+    parts.push('IMPORTANT: Use the above content as inspiration to create better, more engaging copy. Do not copy verbatim - improve the language, fix any issues, and make it more compelling while preserving accurate business information.');
+    parts.push('');
+  }
 
   // Site theme context
   parts.push('Site Theme:');

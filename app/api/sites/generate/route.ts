@@ -16,15 +16,14 @@
  */
 
 import { NextRequest } from 'next/server';
-import { getUser, getUserProfile } from '@/lib/auth/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClientFromRequest } from '@/src/lib/supabase/api-server';
 import { apiSuccess, apiError } from '@/lib/types/api';
 import type {
   GenerateSiteRequest,
   GenerateSiteResponse,
   GenerationErrorCode,
 } from '@/lib/types/api-types';
-import type { SiteGenerationJob } from '@/lib/types/site-generation-jobs';
+import type { SiteGenerationJob, ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
 import { handleError } from '@/lib/types/error-handling';
 import {
   sanitizeBusinessInfo,
@@ -38,10 +37,12 @@ import {
   checkBudgetLimit,
   estimateGenerationCost,
 } from '@/lib/jobs/cost-management';
-import { createJob } from '@/lib/jobs/site-generation-jobs';
+import { createJob, updateJobStatus } from '@/lib/jobs/site-generation-jobs';
 import { processGenerationJob } from '@/lib/jobs/background-processor';
 import { logSecurityEvent } from '@/lib/security/security-utils';
 import type { BusinessInfo } from '@/lib/types/site-generation-jobs';
+import { discoverAndScrapePages } from '@/lib/scraping/page-discovery';
+import { analyzeScrapedWebsite } from '@/lib/scraping/content-analyzer';
 
 /**
  * POST /api/sites/generate
@@ -54,10 +55,13 @@ export async function POST(request: NextRequest) {
   console.log(`[${requestId}] POST /api/sites/generate - Request received`);
 
   try {
-    // 1. Authentication check
-    const user = await getUser();
+    // 1. Create Supabase client (supports both Bearer token and cookies)
+    const supabase = await createClientFromRequest(request);
 
-    if (!user) {
+    // 2. Authentication check
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (!user || authError) {
       console.log(`[${requestId}] Authentication failed - no user`);
       logSecurityEvent('generation_unauthorized_attempt', {
         userId: 'anonymous',
@@ -73,8 +77,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[${requestId}] User authenticated: ${user.id}`);
 
-    // 2. Authorization check (admin-only initially)
-    const supabase = await createClient();
+    // 3. Authorization check (admin-only initially)
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -143,8 +146,16 @@ export async function POST(request: NextRequest) {
       website: requestBody.website,
       logoUrl: requestBody.logoUrl,
       brandColors: requestBody.brandColors,
+      basedOnWebsite: requestBody.basedOnWebsite,
       additionalDetails: requestBody.additionalDetails,
     });
+
+    // Debug: Log if scraping URL was provided
+    if (businessInfo.basedOnWebsite) {
+      console.log(`[${requestId}] ✅ basedOnWebsite field received: ${businessInfo.basedOnWebsite}`);
+    } else {
+      console.log(`[${requestId}] ℹ️  No basedOnWebsite field provided (manual mode)`);
+    }
 
     // 6. Validate input
     console.log(`[${requestId}] Validating input...`);
@@ -222,13 +233,121 @@ export async function POST(request: NextRequest) {
 
     console.log(`[${requestId}] Job created: ${job.id}`);
 
-    // 9. Trigger background processing (fire and forget)
+    // 9. Scrape website if basedOnWebsite is provided (run before background processing)
+    let scrapedContext: ScrapedWebsiteContext | undefined = undefined;
+
+    if (businessInfo.basedOnWebsite) {
+      console.log(`[${requestId}] Scraping website: ${businessInfo.basedOnWebsite}`);
+
+      try {
+        // Update job status to indicate scraping
+        await updateJobStatus({
+          jobId: job.id,
+          status: 'processing',
+          progress: 5,
+        });
+
+        // Discover and scrape pages
+        const discoveryResult = await discoverAndScrapePages(businessInfo.basedOnWebsite);
+
+        console.log(
+          `[${requestId}] Scraped ${discoveryResult.totalPagesScraped} of ${discoveryResult.totalPagesFound} pages`
+        );
+
+        if (discoveryResult.pages.length > 0) {
+          // Analyze scraped content
+          const analyzed = analyzeScrapedWebsite(discoveryResult.pages);
+
+          // Build scraped context for LLM
+          scrapedContext = {
+            baseUrl: analyzed.baseUrl,
+            businessInfo: {
+              emails: analyzed.businessInfo.emails,
+              phones: analyzed.businessInfo.phones,
+              addresses: analyzed.businessInfo.addresses,
+              socialLinks: analyzed.businessInfo.socialLinks,
+              logoUrl: analyzed.businessInfo.logoUrl,
+              brandColors: analyzed.businessInfo.brandColors,
+            },
+            pageContents: Object.fromEntries(analyzed.pageContents),
+            recommendedPages: analyzed.recommendedPages,
+            contentSummary: analyzed.contentSummary,
+          };
+
+          console.log(
+            `[${requestId}] Website analysis complete. Recommended pages: ${analyzed.recommendedPages.join(', ')}`
+          );
+
+          // DETAILED SCRAPED DATA LOGGING
+          console.log(`\n${'='.repeat(80)}`);
+          console.log(`[${requestId}] 📊 SCRAPED DATA SUMMARY`);
+          console.log(`${'='.repeat(80)}`);
+          console.log(`\n🌐 Base URL: ${analyzed.baseUrl}`);
+          console.log(`\n📧 Contact Information:`);
+          console.log(`   Emails: ${analyzed.businessInfo.emails?.length ? analyzed.businessInfo.emails.join(', ') : 'None found'}`);
+          console.log(`   Phones: ${analyzed.businessInfo.phones?.length ? analyzed.businessInfo.phones.join(', ') : 'None found'}`);
+          console.log(`   Addresses: ${analyzed.businessInfo.addresses?.length ? analyzed.businessInfo.addresses.join('; ') : 'None found'}`);
+          console.log(`\n🎨 Branding:`);
+          console.log(`   Logo URL: ${analyzed.businessInfo.logoUrl || 'None found'}`);
+          console.log(`   Brand Colors: ${analyzed.businessInfo.brandColors?.length ? analyzed.businessInfo.brandColors.join(', ') : 'None found'}`);
+          console.log(`\n🔗 Social Links:`);
+          if (analyzed.businessInfo.socialLinks?.length) {
+            analyzed.businessInfo.socialLinks.forEach(link => {
+              console.log(`   ${link.platform}: ${link.url}`);
+            });
+          } else {
+            console.log(`   None found`);
+          }
+          console.log(`\n📄 Pages Discovered:`);
+          console.log(`   Total Found: ${discoveryResult.totalPagesFound}`);
+          console.log(`   Total Scraped: ${discoveryResult.totalPagesScraped}`);
+          console.log(`   Recommended: ${analyzed.recommendedPages.join(', ')}`);
+          console.log(`\n📝 Content Summary:`);
+          console.log(`   ${analyzed.contentSummary || 'No summary available'}`);
+          console.log(`\n${'-'.repeat(80)}`);
+          console.log(`Full scraped context object:`);
+          console.log(JSON.stringify(scrapedContext, null, 2));
+          console.log(`${'='.repeat(80)}\n`);
+        } else {
+          console.warn(`[${requestId}] No pages scraped, continuing without context`);
+        }
+
+        // Reset job to pending for background processing
+        await updateJobStatus({
+          jobId: job.id,
+          status: 'pending',
+          progress: 0,
+        });
+      } catch (error: unknown) {
+        const errorInfo = handleError(error);
+        console.error(`[${requestId}] Scraping failed:`, errorInfo.message);
+        console.log(`[${requestId}] Continuing generation without scraped context`);
+
+        // Log scraping failure but don't fail the entire job
+        logSecurityEvent('website_scraping_failed', {
+          userId: user.id,
+          requestId,
+          jobId: job.id,
+          websiteUrl: businessInfo.basedOnWebsite,
+          error: errorInfo.message,
+        });
+
+        // Reset job to pending for background processing
+        await updateJobStatus({
+          jobId: job.id,
+          status: 'pending',
+          progress: 0,
+        });
+      }
+    }
+
+    // 10. Trigger background processing (fire and forget)
     // Don't await - return immediately with job ID
-    processGenerationJob(job.id).catch((error: unknown) => {
+    processGenerationJob(job.id, scrapedContext).catch((error: unknown) => {
       console.error(`[${requestId}] Background processing error:`, handleError(error).message);
     });
 
-    // 10. Log successful job creation
+    // 11. Log successful job creation
     logSecurityEvent('generation_job_created', {
       userId: user.id,
       requestId,
@@ -237,7 +356,7 @@ export async function POST(request: NextRequest) {
       estimatedCost,
     });
 
-    // 11. Build response
+    // 12. Build response
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
     const statusUrl = `${baseUrl}/api/sites/generate/${job.id}`;
 
@@ -270,7 +389,8 @@ export async function POST(request: NextRequest) {
 
     // Log error
     try {
-      const user = await getUser();
+      const supabase = await createClientFromRequest(request);
+      const { data: { user } } = await supabase.auth.getUser();
       logSecurityEvent('generation_error', {
         userId: user?.id || 'unknown',
         requestId,

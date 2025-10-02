@@ -33,6 +33,7 @@ import {
   SITE_FOUNDATION_SYSTEM_PROMPT,
   PAGE_GENERATION_SYSTEM_PROMPT,
   buildFoundationPrompt,
+  buildFoundationPromptWithContext,
   buildPagePrompt
 } from '@/lib/ai/prompts/site-generation-prompts';
 import {
@@ -57,7 +58,9 @@ import {
   type TeamSection,
   type TestimonialsSection,
   type ContactSection,
-  type SiteBranding
+  type SiteBranding,
+  type ScrapedWebsiteContext,
+  type CustomPageSection
 } from '@/lib/types/site-generation-jobs';
 import { handleError } from '@/lib/types/error-handling';
 import { isOpenRouterError } from '@/lib/types/openrouter';
@@ -450,11 +453,13 @@ export async function generateContactSection(
  * This function coordinates the entire site generation process:
  * 1. Phase 1: Generate foundation (metadata, theme, hero)
  * 2. Phase 2: Generate all page sections in parallel
- * 3. Combine results into complete GeneratedSiteData
- * 4. Track token usage and calculate costs
- * 5. Handle partial failures gracefully
+ * 3. Phase 3: Generate custom pages based on scraped context (if available)
+ * 4. Combine results into complete GeneratedSiteData
+ * 5. Track token usage and calculate costs
+ * 6. Handle partial failures gracefully
  *
  * @param businessInfo - Business information from user input
+ * @param scrapedContext - Optional scraped website context for enhanced generation
  * @returns Complete site generation result with data, usage, and cost
  * @throws Error if foundation generation fails (Phase 1 is critical)
  *
@@ -478,7 +483,8 @@ export async function generateContactSection(
  * ```
  */
 export async function generateSiteContent(
-  businessInfo: BusinessInfo
+  businessInfo: BusinessInfo,
+  scrapedContext?: ScrapedWebsiteContext
 ): Promise<SiteGenerationResult> {
   console.log('Starting site generation for:', businessInfo.name);
 
@@ -491,12 +497,19 @@ export async function generateSiteContent(
   try {
     // PHASE 1: Generate foundation (critical - must succeed)
     console.log('\n=== PHASE 1: Generating Foundation ===');
-    const foundationResponse = await generateWithOpenRouter<string>(
-      buildFoundationPrompt(businessInfo),
+
+    // Use enhanced prompt if we have scraped context
+    const foundationPrompt = scrapedContext
+      ? buildFoundationPromptWithContext(businessInfo, scrapedContext)
+      : buildFoundationPrompt(businessInfo);
+
+    // Initial foundation generation with increased token limit
+    let foundationResponse = await generateWithOpenRouter<string>(
+      foundationPrompt,
       SITE_FOUNDATION_SYSTEM_PROMPT,
       {
         temperature: 0.8,
-        maxTokens: 2000,
+        maxTokens: 3000, // Increased from 2000 to 3000
         timeout: 45000
       }
     );
@@ -507,6 +520,40 @@ export async function generateSiteContent(
       totalCompletionTokens += foundationResponse.usage.completionTokens;
     }
 
+    // Check if response was truncated
+    if (foundationResponse.finishReason === 'length') {
+      console.log('Foundation response was truncated due to token limit, retrying with higher limit...');
+      console.log('Initial response tokens:', foundationResponse.usage?.completionTokens);
+
+      // Retry with increased token limit
+      foundationResponse = await generateWithOpenRouter<string>(
+        foundationPrompt,
+        SITE_FOUNDATION_SYSTEM_PROMPT,
+        {
+          temperature: 0.8,
+          maxTokens: 4000, // Retry with even higher limit
+          timeout: 45000
+        }
+      );
+
+      totalCalls++;
+      if (foundationResponse.usage) {
+        totalPromptTokens += foundationResponse.usage.promptTokens;
+        totalCompletionTokens += foundationResponse.usage.completionTokens;
+      }
+
+      console.log('Retry response tokens:', foundationResponse.usage?.completionTokens);
+      console.log('Retry finish reason:', foundationResponse.finishReason);
+    }
+
+    // Enhanced logging for debugging
+    console.log('Foundation generation complete:');
+    console.log('- Finish reason:', foundationResponse.finishReason);
+    console.log('- Token usage:', foundationResponse.usage);
+    console.log('- Response length:', typeof foundationResponse.content === 'string'
+      ? foundationResponse.content.length
+      : JSON.stringify(foundationResponse.content).length);
+
     const foundation = parseFoundationResponse(
       typeof foundationResponse.content === 'string'
         ? foundationResponse.content
@@ -514,6 +561,14 @@ export async function generateSiteContent(
     );
 
     if (!foundation) {
+      // Log the full response for debugging
+      console.error('Failed to parse foundation response');
+      console.error('Raw response (first 500 chars):',
+        typeof foundationResponse.content === 'string'
+          ? foundationResponse.content.substring(0, 500)
+          : JSON.stringify(foundationResponse.content).substring(0, 500)
+      );
+      console.error('Finish reason:', foundationResponse.finishReason);
       throw new Error('Failed to parse foundation response - cannot continue');
     }
 
@@ -522,48 +577,48 @@ export async function generateSiteContent(
     // PHASE 2: Generate page sections in parallel
     console.log('\n=== PHASE 2: Generating Page Sections (Parallel) ===');
 
-    // Create all section generation promises
+    // Create all section generation promises - pass scraped context to all sections
     const sectionPromises = [
       // Required sections
       generateWithOpenRouter<string>(
-        buildPagePrompt('about', businessInfo, foundation.branding),
+        buildPagePrompt('about', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.7, maxTokens: 1500, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'about', response: res })),
 
       generateWithOpenRouter<string>(
-        buildPagePrompt('contact', businessInfo, foundation.branding),
+        buildPagePrompt('contact', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.5, maxTokens: 1000, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'contact', response: res })),
 
       generateWithOpenRouter<string>(
-        buildPagePrompt('testimonials', businessInfo, foundation.branding),
+        buildPagePrompt('testimonials', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.8, maxTokens: 2000, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'testimonials', response: res })),
 
       // Optional sections
       generateWithOpenRouter<string>(
-        buildPagePrompt('values', businessInfo, foundation.branding),
+        buildPagePrompt('values', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.7, maxTokens: 1500, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'values', response: res })),
 
       generateWithOpenRouter<string>(
-        buildPagePrompt('features', businessInfo, foundation.branding),
+        buildPagePrompt('features', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.7, maxTokens: 1500, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'features', response: res })),
 
       generateWithOpenRouter<string>(
-        buildPagePrompt('services', businessInfo, foundation.branding),
+        buildPagePrompt('services', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.7, maxTokens: 1500, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'services', response: res })),
 
       generateWithOpenRouter<string>(
-        buildPagePrompt('team', businessInfo, foundation.branding),
+        buildPagePrompt('team', businessInfo, foundation.branding, scrapedContext),
         PAGE_GENERATION_SYSTEM_PROMPT,
         { temperature: 0.7, maxTokens: 1500, timeout: 30000, retries: 2 }
       ).then(res => ({ type: 'team', response: res }))
@@ -655,6 +710,103 @@ export async function generateSiteContent(
       failedSections.push('contact-fallback-used');
     }
 
+    // PHASE 3: Generate custom pages from scraped context (if available)
+    const customPages: CustomPageSection[] = [];
+
+    if (scrapedContext?.recommendedPages && scrapedContext.recommendedPages.length > 0) {
+      console.log('\n=== PHASE 3: Generating Custom Pages ===');
+      console.log('Recommended pages:', scrapedContext.recommendedPages.join(', '));
+
+      // Filter out standard pages we already generated
+      const standardPages = ['home', 'about', 'contact', 'services', 'team', 'testimonials', 'values', 'features'];
+      const customPageTypes = scrapedContext.recommendedPages.filter(
+        pageType => !standardPages.includes(pageType.toLowerCase())
+      );
+
+      if (customPageTypes.length > 0) {
+        console.log('Generating custom pages:', customPageTypes.join(', '));
+
+        // Generate custom pages (limit to avoid excessive API calls)
+        const pagesToGenerate = customPageTypes.slice(0, 3);
+
+        for (const pageType of pagesToGenerate) {
+          try {
+            // Get page content from scraped context if available
+            const pageContent = scrapedContext.pageContents?.[pageType] || '';
+
+            // Build prompt for custom page
+            const customPagePrompt = `Generate a custom page for a ${businessInfo.industry || 'business'} website.
+
+Page Type: ${pageType}
+Business: ${businessInfo.name}
+
+${pageContent ? `Content from existing page:\n${pageContent.slice(0, 1000)}\n\nUse this as inspiration but improve and modernize the content.` : 'Create relevant content for this page type.'}
+
+Generate JSON in this format:
+{
+  "title": "Page title",
+  "slug": "url-slug",
+  "headline": "Main headline",
+  "description": "Supporting description",
+  "items": [
+    {
+      "title": "Item title",
+      "description": "Item description",
+      "content": "Detailed content with **markdown**",
+      "icon": "lucide-icon-name"
+    }
+  ]
+}`;
+
+            const customPageResponse = await generateWithOpenRouter<string>(
+              customPagePrompt,
+              PAGE_GENERATION_SYSTEM_PROMPT,
+              {
+                temperature: 0.7,
+                maxTokens: 1500,
+                timeout: 30000,
+                retries: 1
+              }
+            );
+
+            totalCalls++;
+            if (customPageResponse.usage) {
+              totalPromptTokens += customPageResponse.usage.promptTokens;
+              totalCompletionTokens += customPageResponse.usage.completionTokens;
+            }
+
+            // Parse the response
+            const content = typeof customPageResponse.content === 'string'
+              ? customPageResponse.content
+              : JSON.stringify(customPageResponse.content);
+
+            try {
+              const parsed = JSON.parse(content);
+              customPages.push({
+                pageType,
+                title: parsed.title || pageType,
+                slug: parsed.slug || pageType.toLowerCase().replace(/\s+/g, '-'),
+                content: {
+                  headline: parsed.headline,
+                  description: parsed.description,
+                  items: parsed.items || [],
+                  richText: parsed.richText
+                }
+              });
+              console.log(`Custom page generated: ${pageType}`);
+            } catch {
+              console.warn(`Failed to parse custom page: ${pageType}`);
+              failedSections.push(`custom-page-${pageType}`);
+            }
+          } catch (error: unknown) {
+            const errorInfo = handleError(error);
+            console.error(`Failed to generate custom page ${pageType}:`, errorInfo.message);
+            failedSections.push(`custom-page-${pageType}`);
+          }
+        }
+      }
+    }
+
     // Build complete site data
     const siteData: GeneratedSiteData = {
       site_name: foundation.site_name,
@@ -671,6 +823,8 @@ export async function generateSiteContent(
       services: services || undefined,
       team: team || undefined,
       testimonials: testimonials || undefined,
+      // Custom pages from scraped context
+      customPages: customPages.length > 0 ? customPages : undefined,
       // Metadata
       metadata: {
         generatedAt: new Date().toISOString(),

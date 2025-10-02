@@ -17,6 +17,7 @@ import { calculateActualCost } from './cost-management';
 import { createSiteFromGenerated, getSiteUrl } from '@/lib/sites/site-creator';
 import { handleError } from '@/lib/types/error-handling';
 import { logSecurityEvent } from '@/lib/security/security-utils';
+import type { ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
 
 /**
  * Processing result
@@ -38,13 +39,14 @@ export interface ProcessingResult {
  * This function runs the complete generation workflow:
  * 1. Fetch job details
  * 2. Update status to 'processing'
- * 3. Generate site content with LLM
+ * 3. Generate site content with LLM (with optional scraped context)
  * 4. Moderate generated content
  * 5. Calculate actual cost
  * 6. Create site and pages in database
  * 7. Update job with result or error
  *
  * @param jobId - Job ID to process
+ * @param scrapedContext - Optional scraped website context for enhanced generation
  * @returns Processing result
  *
  * @example
@@ -52,11 +54,14 @@ export interface ProcessingResult {
  * // Trigger from API route (don't await)
  * processGenerationJob(jobId).catch(console.error);
  *
- * // Or use in a worker/queue
- * await processGenerationJob(jobId);
+ * // Or use in a worker/queue with scraped context
+ * await processGenerationJob(jobId, scrapedContext);
  * ```
  */
-export async function processGenerationJob(jobId: string): Promise<ProcessingResult> {
+export async function processGenerationJob(
+  jobId: string,
+  scrapedContext?: ScrapedWebsiteContext
+): Promise<ProcessingResult> {
   console.log(`[Job ${jobId}] Starting background processing`);
   const startTime = Date.now();
 
@@ -94,10 +99,15 @@ export async function processGenerationJob(jobId: string): Promise<ProcessingRes
 
     // 3. Generate site content with LLM
     console.log(`[Job ${jobId}] Generating site content...`);
+    if (scrapedContext) {
+      console.log(`[Job ${jobId}] Using scraped website context from: ${scrapedContext.baseUrl}`);
+    }
     let generationResult;
 
     try {
-      generationResult = await generateSiteContent(job.business_info);
+      // Parse business_info from JSON
+      const businessInfo = job.business_info as unknown as import('@/lib/types/site-generation-jobs').BusinessInfo;
+      generationResult = await generateSiteContent(businessInfo, scrapedContext);
       console.log(
         `[Job ${jobId}] Content generated. Cost: ${generationResult.totalCostCents} cents, Tokens: ${generationResult.tokenUsage.total_tokens}`
       );
@@ -176,10 +186,12 @@ export async function processGenerationJob(jobId: string): Promise<ProcessingRes
     let siteResult;
 
     try {
+      // Parse business_info for logoUrl
+      const businessInfo = job.business_info as unknown as import('@/lib/types/site-generation-jobs').BusinessInfo;
       siteResult = await createSiteFromGenerated(
         generationResult.data,
         job.user_id,
-        job.business_info.logoUrl
+        businessInfo.logoUrl
       );
       console.log(
         `[Job ${jobId}] Site created: ${siteResult.siteId} (${siteResult.pageIds.length} pages)`

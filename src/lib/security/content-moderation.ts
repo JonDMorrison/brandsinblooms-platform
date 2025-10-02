@@ -11,7 +11,7 @@
  * This module validates content AFTER generation and BEFORE storing in the database.
  */
 
-import type { GeneratedSiteData } from '@/lib/types/site-generation-jobs';
+import type { GeneratedSiteData, ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
 
 /**
  * Content validation result
@@ -550,4 +550,109 @@ export function sanitizeGeneratedSiteData(data: GeneratedSiteData): GeneratedSit
   }
 
   return data;
+}
+
+/**
+ * Checks if a URL is safe (HTTP/HTTPS only)
+ *
+ * @param url - URL to validate
+ * @returns true if URL is safe, false otherwise
+ *
+ * @example
+ * ```ts
+ * if (isSafeUrl(logoUrl)) {
+ *   // Safe to use
+ * }
+ * ```
+ */
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return ['http:', 'https:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Validates scraped website content for malicious patterns
+ *
+ * Performs comprehensive validation of all fields in the scraped context:
+ * - Validates all text content for XSS and injection patterns
+ * - Validates URLs (logo, social links) for safe protocols
+ * - Checks email, phone, and address fields
+ * - Ensures all content meets security standards
+ *
+ * @param data - Scraped website context to validate
+ * @returns true if content is safe, false if malicious patterns detected
+ *
+ * @example
+ * ```ts
+ * const scrapedData = await scrapeWebsite(url);
+ * const isSafe = moderateScrapedContent(scrapedData);
+ *
+ * if (!isSafe) {
+ *   throw new Error('Scraped content contains malicious patterns');
+ * }
+ * ```
+ */
+export function moderateScrapedContent(data: ScrapedWebsiteContext): boolean {
+  // Check all text fields
+  const textFields: string[] = [];
+
+  // Add content summary
+  if (data.contentSummary) {
+    textFields.push(data.contentSummary);
+  }
+
+  // Add page contents
+  if (data.pageContents) {
+    const pageContentValues = Object.values(data.pageContents).filter(
+      (value): value is string => typeof value === 'string'
+    );
+    textFields.push(...pageContentValues);
+  }
+
+  // Add business info text fields
+  if (data.businessInfo.emails) {
+    textFields.push(...data.businessInfo.emails);
+  }
+
+  if (data.businessInfo.phones) {
+    textFields.push(...data.businessInfo.phones);
+  }
+
+  if (data.businessInfo.addresses) {
+    textFields.push(...data.businessInfo.addresses);
+  }
+
+  if (data.businessInfo.brandColors) {
+    textFields.push(...data.businessInfo.brandColors);
+  }
+
+  // Validate all text fields
+  for (const text of textFields) {
+    if (text) {
+      const validation = validateGeneratedContent(text);
+      if (!validation.safe) {
+        return false;
+      }
+    }
+  }
+
+  // Validate URLs
+  if (data.businessInfo.logoUrl && !isSafeUrl(data.businessInfo.logoUrl)) {
+    return false;
+  }
+
+  // Validate social links
+  if (data.businessInfo.socialLinks) {
+    for (const social of data.businessInfo.socialLinks) {
+      if (!isSafeUrl(social.url)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
