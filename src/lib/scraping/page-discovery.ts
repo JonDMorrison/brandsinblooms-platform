@@ -70,11 +70,13 @@ export async function discoverAndScrapePages(
   const prioritized = prioritizeLinksForScraping(navLinks, scrapingConfig.maxPagesPerSite - 1); // -1 for homepage
   console.log(`Prioritized ${prioritized.length} pages for scraping:`, prioritized.map(p => `${p.pageType}: ${p.href}`).join(', '));
 
-  // Step 4: Scrape prioritized pages in parallel
+  // Step 4: Scrape prioritized pages in parallel (with smart concurrency)
   if (prioritized.length > 0) {
     console.log(`Scraping ${prioritized.length} additional pages...`);
     const urlsToScrape = prioritized.map(link => link.href);
-    const responses = await scrapeMultipleUrls(urlsToScrape, { concurrency: 3 });
+    // Increase concurrency for larger scraping jobs
+    const concurrency = prioritized.length > 6 ? 4 : 3;
+    const responses = await scrapeMultipleUrls(urlsToScrape, { concurrency });
 
     responses.forEach((response, url) => {
       const link = prioritized.find(l => l.href === url);

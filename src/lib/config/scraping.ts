@@ -3,7 +3,7 @@ export const scrapingConfig = {
   salt: process.env.SCRAPING_SERVICE_SALT,
   timeout: parseInt(process.env.SCRAPING_SERVICE_TIMEOUT || '30000'),
   maxRetries: parseInt(process.env.SCRAPING_SERVICE_MAX_RETRIES || '2'),
-  maxPagesPerSite: 5, // Limit pages to scrape
+  maxPagesPerSite: 12, // Increased from 5 to 12 for better content coverage
 } as const;
 
 /**

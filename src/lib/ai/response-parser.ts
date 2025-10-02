@@ -527,6 +527,7 @@ export function parseFeaturesSectionResponse(response: string): FeaturesSection 
  * Parse Services section response
  *
  * Now uses Zod validation with automatic error recovery.
+ * Enhanced to handle optional price/duration fields properly.
  *
  * @param response - Raw response from LLM
  * @returns Parsed and validated ServicesSection or null
@@ -543,6 +544,31 @@ export function parseServicesSectionResponse(response: string): ServicesSection 
     if (!json) {
       console.error('Failed to extract JSON from Services section response');
       return null;
+    }
+
+    // Pre-process services to handle null values in optional fields
+    if (isPlainObject(json) && Array.isArray(json.services)) {
+      json.services = json.services.map((service: unknown) => {
+        if (isPlainObject(service)) {
+          const cleaned: Record<string, unknown> = {
+            name: service.name,
+            description: service.description
+          };
+
+          // Only include price if it's a non-null, non-empty string
+          if (service.price && typeof service.price === 'string' && service.price.trim()) {
+            cleaned.price = service.price;
+          }
+
+          // Only include duration if it's a non-null, non-empty string
+          if (service.duration && typeof service.duration === 'string' && service.duration.trim()) {
+            cleaned.duration = service.duration;
+          }
+
+          return cleaned;
+        }
+        return service;
+      });
     }
 
     if (!validateJsonStructure(json, 'ServicesSection')) {
@@ -645,6 +671,7 @@ export function parseTeamSectionResponse(response: string): TeamSection | null {
  * Parse Testimonials section response
  *
  * Now uses Zod validation with automatic error recovery.
+ * Enhanced to handle optional role/rating fields properly.
  *
  * @param response - Raw response from LLM
  * @returns Parsed and validated TestimonialsSection or null
@@ -655,6 +682,36 @@ export function parseTestimonialsSectionResponse(response: string): Testimonials
     if (!json) {
       console.error('Failed to extract JSON from Testimonials section response');
       return null;
+    }
+
+    // Pre-process testimonials to handle null values and defaults
+    if (isPlainObject(json) && Array.isArray(json.testimonials)) {
+      json.testimonials = json.testimonials.map((testimonial: unknown) => {
+        if (isPlainObject(testimonial)) {
+          const cleaned: Record<string, unknown> = {
+            name: testimonial.name || 'Anonymous Customer',  // Default name if missing
+            content: testimonial.content
+          };
+
+          // Only include role if it's a non-null, non-empty string
+          if (testimonial.role && typeof testimonial.role === 'string' && testimonial.role.trim()) {
+            cleaned.role = testimonial.role;
+          }
+
+          // Handle rating - default to 5 if null or missing, validate range
+          if (testimonial.rating !== undefined && testimonial.rating !== null) {
+            const rating = Number(testimonial.rating);
+            if (!isNaN(rating) && rating >= 1 && rating <= 5) {
+              cleaned.rating = Math.round(rating);  // Ensure it's an integer
+            } else {
+              cleaned.rating = 5;  // Default to 5 for invalid ratings
+            }
+          }
+
+          return cleaned;
+        }
+        return testimonial;
+      });
     }
 
     if (!validateJsonStructure(json, 'TestimonialsSection')) {

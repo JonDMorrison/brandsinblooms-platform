@@ -178,8 +178,12 @@ IMPORTANT GUIDELINES:
 
 *Services Section:*
 - Generate 3-6 key services offered
-- Each service needs: name, description, optional price/duration
+- Each service needs: name (required), description (required)
+- Price and duration are OPTIONAL - only include if naturally relevant
+- IMPORTANT: If price is unknown or not applicable, DO NOT include the price field
+- IMPORTANT: If duration is unknown or not applicable, DO NOT include the duration field
 - Be specific to garden centers (plant care, landscaping, workshops, delivery, etc.)
+- Use null or omit fields rather than making up values
 
 *Team Section:*
 - Generate 3-6 team members
@@ -189,9 +193,14 @@ IMPORTANT GUIDELINES:
 
 *Testimonials Section:*
 - Generate 4-8 customer testimonials
-- Each needs: name, optional role/company, content (2-3 sentences), optional rating
+- Each needs: name (required), content (required, 2-3 sentences)
+- Role/company is OPTIONAL - only include if it adds value
+- Rating is OPTIONAL - default to 5 if not specified, or omit entirely
+- IMPORTANT: If role is unknown, DO NOT include the role field
+- IMPORTANT: If rating is not relevant, DO NOT include the rating field
 - Sound like real people, not marketing copy
 - Include specific details about products or services
+- For anonymous reviews, you can use generic names like "Garden Enthusiast" or "Local Customer"
 
 *Contact Section:*
 - ALWAYS generate a contact section with at least a title field
@@ -738,13 +747,14 @@ export function buildPagePrompt(
   "subtitle": "Optional subtitle",
   "services": [
     {
-      "name": "Service name",
-      "description": "Service description with **markdown**",
-      "price": "Optional price like '$50' or 'Starting at $50'",
-      "duration": "Optional duration like '1 hour' or '2-3 weeks'"
+      "name": "Service name (required)",
+      "description": "Service description with **markdown** (required)",
+      "price": "Optional - only include if known, e.g. '$50' or 'Starting at $50'",
+      "duration": "Optional - only include if relevant, e.g. '1 hour' or '2-3 weeks'"
     }
   ]
-}`,
+}
+Note: Omit price and duration fields entirely if not applicable. Do not use null values.`,
     team: `{
   "title": "Section title",
   "subtitle": "Optional subtitle",
@@ -762,13 +772,14 @@ export function buildPagePrompt(
   "subtitle": "Optional subtitle",
   "testimonials": [
     {
-      "name": "Customer name",
-      "role": "Optional role or company",
-      "content": "Testimonial text (2-3 sentences)",
-      "rating": 5
+      "name": "Customer name (required)",
+      "content": "Testimonial text (required, 2-3 sentences)",
+      "role": "Optional - only include if adds value",
+      "rating": "Optional - number 1-5, omit if not relevant"
     }
   ]
-}`,
+}
+Note: Omit role and rating fields entirely if not applicable. Do not use null values.`,
     contact: `{
   "title": "Contact Us (ALWAYS required)",
   "email": "contact@example.com (optional - omit if not provided)",

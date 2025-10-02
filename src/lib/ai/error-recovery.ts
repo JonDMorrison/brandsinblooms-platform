@@ -275,6 +275,42 @@ export function sanitizeArrayLengths(
 }
 
 /**
+ * Clean null values from objects and arrays
+ * Removes null, undefined, and empty string values from optional fields
+ */
+export function cleanNullValues(data: unknown): unknown {
+  if (!isPlainObject(data)) {
+    return data;
+  }
+
+  const cleaned: Record<string, unknown> = {};
+
+  for (const key in data as Record<string, unknown>) {
+    const value = (data as Record<string, unknown>)[key];
+
+    // Skip null, undefined, and empty strings for optional fields
+    if (value === null || value === undefined || value === '') {
+      continue;
+    }
+
+    // Recursively clean nested objects
+    if (isPlainObject(value)) {
+      cleaned[key] = cleanNullValues(value);
+    }
+    // Recursively clean arrays
+    else if (Array.isArray(value)) {
+      cleaned[key] = value.map(item => cleanNullValues(item));
+    }
+    // Keep other values as-is
+    else {
+      cleaned[key] = value;
+    }
+  }
+
+  return cleaned;
+}
+
+/**
  * Comprehensive error recovery for validation failures
  *
  * Attempts multiple recovery strategies in sequence to fix common LLM
@@ -282,10 +318,11 @@ export function sanitizeArrayLengths(
  * or null if recovery fails.
  *
  * Recovery strategies applied:
- * 1. Fix hex color codes
- * 2. Truncate excessive text
- * 3. Sanitize array lengths
- * 4. Fill missing required fields (if defaults provided)
+ * 1. Clean null values from optional fields
+ * 2. Fix hex color codes
+ * 3. Truncate excessive text
+ * 4. Sanitize array lengths
+ * 5. Fill missing required fields (if defaults provided)
  *
  * @param data - Invalid data from LLM
  * @param schema - Zod schema to validate against
@@ -324,20 +361,23 @@ export function recoverFromValidationError<T>(
 
     let recovered = data;
 
-    // Step 1: Fix hex colors
+    // Step 1: Clean null values from optional fields
+    recovered = cleanNullValues(recovered);
+
+    // Step 2: Fix hex colors
     recovered = fixHexColors(recovered);
 
-    // Step 2: Truncate excessive text
+    // Step 3: Truncate excessive text
     if (options?.maxLengths) {
       recovered = truncateExcessiveText(recovered, options.maxLengths);
     }
 
-    // Step 3: Sanitize array lengths
+    // Step 4: Sanitize array lengths
     if (options?.arrayConstraints) {
       recovered = sanitizeArrayLengths(recovered, options.arrayConstraints);
     }
 
-    // Step 4: Fill missing fields with defaults
+    // Step 5: Fill missing fields with defaults
     if (options?.defaults && isPlainObject(recovered) && isPlainObject(options.defaults)) {
       recovered = fillMissingRequiredFields(
         recovered as Partial<Record<string, unknown>>,

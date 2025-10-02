@@ -39,7 +39,7 @@ export interface ExtractedBusinessInfo {
   siteDescription?: string;
   favicon?: string;
 
-  // Structured Content (preserved from scraped site)
+  // Enhanced Structured Content (IMPROVED)
   structuredContent?: {
     businessHours?: Array<{
       day: string;
@@ -58,6 +58,27 @@ export interface ExtractedBusinessInfo {
       content: string;
       rating?: number;
     }>;
+    faq?: Array<{
+      question: string;
+      answer: string;
+    }>;
+    productCategories?: Array<{
+      name: string;
+      description?: string;
+      itemCount?: number;
+    }>;
+    footerContent?: {
+      copyrightText?: string;
+      importantLinks?: Array<{ text: string; url: string }>;
+      additionalInfo?: string;
+    };
+  };
+
+  // Additional extracted text for context
+  pageContent?: {
+    mainContent: string;
+    footerText: string;
+    sidebarContent?: string;
   };
 }
 
@@ -121,13 +142,13 @@ function extractPhones($: CheerioAPI): string[] {
 }
 
 /**
- * Extracts physical addresses using common patterns
+ * Extracts physical addresses using common patterns (ENHANCED)
  */
 function extractAddresses($: CheerioAPI): string[] {
   const addresses = new Set<string>();
 
   // Look for structured data (schema.org)
-  $('[itemtype*="schema.org/PostalAddress"]').each((_, element) => {
+  $('[itemtype*="schema.org/PostalAddress"], [itemtype*="schema.org/LocalBusiness"]').each((_, element) => {
     const street = $(element).find('[itemprop="streetAddress"]').text().trim();
     const city = $(element).find('[itemprop="addressLocality"]').text().trim();
     const state = $(element).find('[itemprop="addressRegion"]').text().trim();
@@ -138,25 +159,30 @@ function extractAddresses($: CheerioAPI): string[] {
     }
   });
 
-  // Look for address-related elements
+  // Look for address-related elements (ENHANCED)
   const addressSelectors = [
     '[class*="address"]',
     '[id*="address"]',
     'address',
+    '[class*="location"]',
+    '[id*="location"]',
+    'footer [class*="contact"]',
+    '.footer-info',
+    '.store-location'
   ];
 
   addressSelectors.forEach(selector => {
     $(selector).each((_, element) => {
       const text = $(element).text().trim();
-      // Simple heuristic: contains digits and common address words
-      if (text.length > 10 && text.length < 200 && /\d/.test(text) &&
-          (/street|st\b|avenue|ave\b|road|rd\b|boulevard|blvd|drive|dr\b/i.test(text))) {
+      // Enhanced heuristic: contains digits and common address words
+      if (text.length > 10 && text.length < 300 && /\d/.test(text) &&
+          (/street|st\b|avenue|ave\b|road|rd\b|boulevard|blvd|drive|dr\b|lane|ln\b|way|circle|court|place|plaza/i.test(text))) {
         addresses.add(text);
       }
     });
   });
 
-  return Array.from(addresses).slice(0, 2); // Limit to 2
+  return Array.from(addresses).slice(0, 3); // Increased to 3 addresses
 }
 
 /**
@@ -264,33 +290,38 @@ function extractBrandColors(html: string): string[] {
 }
 
 /**
- * Extracts key features or selling points
+ * Extracts key features or selling points (ENHANCED)
  */
 function extractKeyFeatures($: CheerioAPI): string[] {
   const features: string[] = [];
 
-  // Look for feature lists
+  // Enhanced feature selectors
   const featureSelectors = [
     '[class*="feature"] li',
     '[class*="benefit"] li',
     '[class*="service"] li',
     '[class*="highlight"] li',
+    '[class*="offer"] li',
+    '.why-us li',
+    '.reasons li',
+    '[class*="advantage"] li',
+    '[class*="specialt"] li'
   ];
 
   featureSelectors.forEach(selector => {
     $(selector).each((_, element) => {
       const text = $(element).text().trim();
-      if (text.length > 5 && text.length < 200) {
+      if (text.length > 5 && text.length < 300) {
         features.push(text);
       }
     });
   });
 
-  return features.slice(0, 10); // Top 10 features
+  return features.slice(0, 15); // Increased to 15 features
 }
 
 /**
- * Extracts business description from common locations
+ * Extracts business description from common locations (ENHANCED)
  */
 function extractBusinessDescription($: CheerioAPI): string | undefined {
   // Try meta description first
@@ -300,21 +331,25 @@ function extractBusinessDescription($: CheerioAPI): string | undefined {
   }
 
   // Try structured data
-  const schemaDescription = $('[itemtype*="schema.org/Organization"] [itemprop="description"]').text().trim();
+  const schemaDescription = $('[itemtype*="schema.org/Organization"] [itemprop="description"], [itemtype*="schema.org/LocalBusiness"] [itemprop="description"]').text().trim();
   if (schemaDescription && schemaDescription.length > 20) {
     return schemaDescription;
   }
 
-  // Try common description elements
+  // Enhanced description selectors
   const descriptionSelectors = [
     '[class*="description"]:first',
     '[class*="about"]:first p:first',
     '[class*="intro"]:first p:first',
+    '[class*="welcome"]:first p:first',
+    '.about-us p:first',
+    '#about p:first',
+    'main p:first'
   ];
 
   for (const selector of descriptionSelectors) {
     const text = $(selector).text().trim();
-    if (text.length > 20 && text.length < 500) {
+    if (text.length > 20 && text.length < 1000) {
       return text;
     }
   }
@@ -471,7 +506,7 @@ function extractHeroSection($: CheerioAPI, baseUrl: string): ExtractedBusinessIn
 }
 
 /**
- * Extracts business hours from HTML
+ * Extracts business hours from HTML (ENHANCED)
  */
 function extractBusinessHours($: CheerioAPI): ExtractedBusinessInfo['structuredContent']['businessHours'] {
   const businessHours: Array<{ day: string; hours: string; closed: boolean }> = [];
@@ -497,7 +532,7 @@ function extractBusinessHours($: CheerioAPI): ExtractedBusinessInfo['structuredC
     });
   }
 
-  // If no schema.org data, look for common hour patterns
+  // If no schema.org data, look for common hour patterns (ENHANCED)
   if (businessHours.length === 0) {
     const hoursSelectors = [
       '.hours',
@@ -506,8 +541,12 @@ function extractBusinessHours($: CheerioAPI): ExtractedBusinessInfo['structuredC
       '[id*="hours"]',
       '.opening-hours',
       '.store-hours',
+      '.operation-hours',
+      '.open-hours',
       'footer [class*="hour"]',
-      'aside [class*="hour"]'
+      'aside [class*="hour"]',
+      '[class*="schedule"]',
+      '[class*="timing"]'
     ];
 
     for (const selector of hoursSelectors) {
@@ -515,22 +554,30 @@ function extractBusinessHours($: CheerioAPI): ExtractedBusinessInfo['structuredC
       if ($hoursContainer.length) {
         const hoursText = $hoursContainer.text();
 
-        // Look for day-time patterns
+        // Enhanced day-time pattern matching
         dayNames.forEach((day, index) => {
-          const dayRegex = new RegExp(`(${day}|${shortDayNames[index]})\\s*:?\\s*([\\d:\\s-]+(?:am|pm)?|closed)`, 'gi');
-          const match = dayRegex.exec(hoursText);
-          if (match) {
-            const hours = match[2].trim();
-            businessHours.push({
-              day: day.charAt(0).toUpperCase() + day.slice(1),
-              hours: hours.toLowerCase() === 'closed' ? 'Closed' : hours,
-              closed: hours.toLowerCase() === 'closed'
-            });
+          // Try multiple patterns
+          const patterns = [
+            new RegExp(`(${day}|${shortDayNames[index]})\\s*:?\\s*([\\d:\\s-]+(?:am|pm)?|closed)`, 'gi'),
+            new RegExp(`(${day}|${shortDayNames[index]})\\s*[-–]?\\s*([\\d:\\s-]+(?:am|pm)?|closed)`, 'gi')
+          ];
+
+          for (const dayRegex of patterns) {
+            const match = dayRegex.exec(hoursText);
+            if (match) {
+              const hours = match[2].trim();
+              businessHours.push({
+                day: day.charAt(0).toUpperCase() + day.slice(1),
+                hours: hours.toLowerCase() === 'closed' ? 'Closed' : hours,
+                closed: hours.toLowerCase() === 'closed'
+              });
+              break;
+            }
           }
         });
 
-        // Also try to find table structures
-        const $rows = $hoursContainer.find('tr, li');
+        // Also try to find table/list structures
+        const $rows = $hoursContainer.find('tr, li, div[class*="day"], div[class*="hour-item"]');
         if ($rows.length) {
           $rows.each((_, row) => {
             const text = $(row).text().trim();
@@ -538,17 +585,23 @@ function extractBusinessHours($: CheerioAPI): ExtractedBusinessInfo['structuredC
               if (text.toLowerCase().includes(day) || text.toLowerCase().includes(shortDayNames[index])) {
                 const timeMatch = text.match(/(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*[-–]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
                 if (timeMatch) {
-                  businessHours.push({
-                    day: day.charAt(0).toUpperCase() + day.slice(1),
-                    hours: `${timeMatch[1]} - ${timeMatch[2]}`,
-                    closed: false
-                  });
+                  const existingDay = businessHours.find(h => h.day.toLowerCase() === day);
+                  if (!existingDay) {
+                    businessHours.push({
+                      day: day.charAt(0).toUpperCase() + day.slice(1),
+                      hours: `${timeMatch[1]} - ${timeMatch[2]}`,
+                      closed: false
+                    });
+                  }
                 } else if (text.toLowerCase().includes('closed')) {
-                  businessHours.push({
-                    day: day.charAt(0).toUpperCase() + day.slice(1),
-                    hours: 'Closed',
-                    closed: true
-                  });
+                  const existingDay = businessHours.find(h => h.day.toLowerCase() === day);
+                  if (!existingDay) {
+                    businessHours.push({
+                      day: day.charAt(0).toUpperCase() + day.slice(1),
+                      hours: 'Closed',
+                      closed: true
+                    });
+                  }
                 }
               }
             });
@@ -559,24 +612,42 @@ function extractBusinessHours($: CheerioAPI): ExtractedBusinessInfo['structuredC
       }
     }
 
-    // Look for a general hours pattern (e.g., "Mon-Fri: 9am-5pm")
+    // Enhanced: Look for general hours patterns in full body text
     if (businessHours.length === 0) {
-      const generalHoursRegex = /(mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday|sun|sunday)[\s-]*(mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday|sun|sunday)?:?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*[-–]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/gi;
       const bodyText = $('body').text();
+
+      // Pattern for day ranges (e.g., "Mon-Fri: 9am-5pm")
+      const rangePattern = /(mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday|sun|sunday)[\s-]*(through|thru|to|-)[\s-]*(mon|monday|tue|tuesday|wed|wednesday|thu|thursday|fri|friday|sat|saturday|sun|sunday):?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*[-–]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/gi;
       let match;
-
-      while ((match = generalHoursRegex.exec(bodyText)) !== null) {
+      while ((match = rangePattern.exec(bodyText)) !== null) {
         const startDay = match[1];
-        const endDay = match[2] || startDay;
-        const openTime = match[3];
-        const closeTime = match[4];
+        const endDay = match[3];
+        const openTime = match[4];
+        const closeTime = match[5];
 
-        // For simplicity, just record the range as a single entry
         businessHours.push({
-          day: `${startDay}${endDay ? `-${endDay}` : ''}`,
+          day: `${startDay}-${endDay}`,
           hours: `${openTime} - ${closeTime}`,
           closed: false
         });
+      }
+
+      // Pattern for individual days
+      const individualPattern = /(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun):?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*[-–]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/gi;
+      while ((match = individualPattern.exec(bodyText)) !== null) {
+        const day = match[1];
+        const openTime = match[2];
+        const closeTime = match[3];
+
+        const fullDay = dayNames.find(d => d.startsWith(day.toLowerCase().substring(0, 3))) || day;
+        const existingDay = businessHours.find(h => h.day.toLowerCase().includes(fullDay.toLowerCase()));
+        if (!existingDay) {
+          businessHours.push({
+            day: fullDay.charAt(0).toUpperCase() + fullDay.slice(1),
+            hours: `${openTime} - ${closeTime}`,
+            closed: false
+          });
+        }
       }
     }
   }
@@ -584,25 +655,26 @@ function extractBusinessHours($: CheerioAPI): ExtractedBusinessInfo['structuredC
   // Remove duplicates and limit to reasonable number
   const uniqueHours = Array.from(new Map(
     businessHours.map(h => [`${h.day}-${h.hours}`, h])
-  ).values()).slice(0, 7);
+  ).values()).slice(0, 10); // Increased to 10 for better coverage
 
   return uniqueHours.length > 0 ? uniqueHours : undefined;
 }
 
 /**
- * Extracts services with pricing from HTML
+ * Extracts services with pricing from HTML (ENHANCED)
  */
 function extractServices($: CheerioAPI): ExtractedBusinessInfo['structuredContent']['services'] {
   const services: Array<{ name: string; description?: string; price?: string; duration?: string }> = [];
 
   // Look for schema.org Service or Product markup
-  const schemaServices = $('[itemtype*="schema.org/Service"], [itemtype*="schema.org/Product"]');
+  const schemaServices = $('[itemtype*="schema.org/Service"], [itemtype*="schema.org/Product"], [itemtype*="schema.org/Offer"]');
   schemaServices.each((_, element) => {
     const $el = $(element);
     const name = $el.find('[itemprop="name"]').text().trim();
     const description = $el.find('[itemprop="description"]').text().trim();
     const price = $el.find('[itemprop="price"]').text().trim() ||
-                  $el.find('[itemprop="offers"] [itemprop="price"]').text().trim();
+                  $el.find('[itemprop="offers"] [itemprop="price"]').text().trim() ||
+                  $el.find('[itemprop="priceCurrency"]').parent().text().trim();
 
     if (name) {
       services.push({
@@ -613,7 +685,7 @@ function extractServices($: CheerioAPI): ExtractedBusinessInfo['structuredConten
     }
   });
 
-  // Look for common service/pricing patterns
+  // Enhanced service/pricing pattern detection
   if (services.length === 0) {
     const serviceSelectors = [
       '.service-item',
@@ -621,91 +693,108 @@ function extractServices($: CheerioAPI): ExtractedBusinessInfo['structuredConten
       '.pricing-item',
       '[class*="service"]',
       '[class*="pricing"]',
+      '[class*="package"]',
+      '[class*="plan"]',
+      '[class*="product-item"]',
+      '[class*="offering"]',
       '.menu-item',
-      '.package',
-      '.treatment'
+      '.treatment',
+      '.program-item',
+      '.course-item'
     ];
 
     for (const selector of serviceSelectors) {
       $(selector).each((_, element) => {
         const $item = $(element);
 
-        // Look for title/name
-        const nameSelectors = ['h3', 'h4', 'h5', '.title', '.name', '.service-name', '.item-title'];
+        // Enhanced name extraction
+        const nameSelectors = ['h2', 'h3', 'h4', 'h5', '.title', '.name', '.service-name', '.item-title', '.product-name', '.heading'];
         let name = '';
         for (const nameSelector of nameSelectors) {
           const found = $item.find(nameSelector).first().text().trim();
-          if (found) {
+          if (found && found.length < 200) {
             name = found;
             break;
           }
         }
 
-        // Look for price
-        const priceSelectors = ['.price', '.cost', '[class*="price"]', '.rate', '.fee'];
+        // Enhanced price extraction
+        const priceSelectors = ['.price', '.cost', '[class*="price"]', '.rate', '.fee', '.amount', '[class*="pricing"]'];
         let price = '';
         for (const priceSelector of priceSelectors) {
           const found = $item.find(priceSelector).first().text().trim();
-          if (found && (found.includes('$') || found.match(/\d/))) {
+          if (found && (found.includes('$') || found.includes('€') || found.includes('£') || found.match(/\d/))) {
             price = found;
             break;
           }
         }
 
-        // Look for description
-        const descSelectors = ['p', '.description', '.desc', '.details', '.info'];
+        // Enhanced description extraction
+        const descSelectors = ['p', '.description', '.desc', '.details', '.info', '.summary', '.content'];
         let description = '';
         for (const descSelector of descSelectors) {
           const found = $item.find(descSelector).first().text().trim();
-          if (found && found.length > 10 && found.length < 300) {
+          if (found && found.length > 10 && found.length < 500 && found !== name && found !== price) {
             description = found;
             break;
           }
         }
 
-        // Look for duration
-        const durationRegex = /(\d+\s*(?:hour|hr|minute|min|day|week|month)s?)/i;
+        // Enhanced duration extraction
+        const durationRegex = /(\d+\s*(?:hour|hr|minute|min|day|week|month|session|class|visit)s?)/i;
         const itemText = $item.text();
         const durationMatch = itemText.match(durationRegex);
         const duration = durationMatch ? durationMatch[1] : undefined;
 
         if (name && (price || description)) {
-          services.push({
-            name,
-            description: description || undefined,
-            price: price || undefined,
-            duration
-          });
+          // Check if this service already exists
+          const exists = services.some(s => s.name === name);
+          if (!exists) {
+            services.push({
+              name,
+              description: description || undefined,
+              price: price || undefined,
+              duration
+            });
+          }
         }
       });
 
-      if (services.length > 0) break;
+      if (services.length >= 5) break; // Stop if we have enough services
     }
   }
 
-  // Look for pricing tables
+  // Enhanced: Look for pricing tables
   if (services.length === 0) {
     $('table').each((_, table) => {
       const $table = $(table);
       const text = $table.text().toLowerCase();
 
-      // Check if this looks like a pricing table
-      if (text.includes('price') || text.includes('cost') || text.includes('service') || text.includes('$')) {
-        $table.find('tr').each((index, row) => {
-          if (index === 0) return; // Skip header row
+      // Check if this looks like a pricing/service table
+      if (text.includes('price') || text.includes('cost') || text.includes('service') || text.includes('package') || text.includes('$')) {
+        const headers: string[] = [];
+        $table.find('thead th, tr:first th, tr:first td').each((_, cell) => {
+          headers.push($(cell).text().trim().toLowerCase());
+        });
+
+        $table.find('tbody tr, tr').each((index, row) => {
+          if (index === 0 && (headers.length > 0 || $(row).find('th').length > 0)) return; // Skip header row
 
           const $cells = $(row).find('td, th');
           if ($cells.length >= 2) {
-            const name = $cells.eq(0).text().trim();
+            const nameCell = $cells.eq(0).text().trim();
             const priceCell = $cells.eq($cells.length - 1).text().trim();
             const descCell = $cells.length > 2 ? $cells.eq(1).text().trim() : '';
 
-            if (name && priceCell && (priceCell.includes('$') || priceCell.match(/\d/))) {
-              services.push({
-                name,
-                description: descCell || undefined,
-                price: priceCell
-              });
+            if (nameCell && nameCell.length < 200 && !nameCell.toLowerCase().includes('total')) {
+              const hasPrice = priceCell && (priceCell.includes('$') || priceCell.match(/\d/));
+              if (hasPrice || descCell) {
+                services.push({
+                  name: nameCell,
+                  description: descCell || undefined,
+                  price: hasPrice ? priceCell : undefined
+                });
+              }
             }
           }
         });
@@ -713,39 +802,68 @@ function extractServices($: CheerioAPI): ExtractedBusinessInfo['structuredConten
     });
   }
 
+  // Enhanced: Look for list-based services
+  if (services.length === 0) {
+    const listSelectors = [
+      'ul.services li',
+      'ul.pricing li',
+      '[class*="service-list"] li',
+      '[class*="offering"] li'
+    ];
+
+    for (const selector of listSelectors) {
+      $(selector).each((_, item) => {
+        const text = $(item).text().trim();
+        // Look for service with price pattern
+        const serviceMatch = text.match(/^(.+?)\s*[-–:]\s*(\$[\d,]+(?:\.\d{2})?|\d+\s*(?:dollars?|euros?|pounds?))/i);
+        if (serviceMatch) {
+          services.push({
+            name: serviceMatch[1].trim(),
+            price: serviceMatch[2].trim()
+          });
+        } else if (text.length > 5 && text.length < 200) {
+          // Add as service name if it looks reasonable
+          services.push({
+            name: text
+          });
+        }
+      });
+    }
+  }
+
   // Remove duplicates and limit
   const uniqueServices = Array.from(new Map(
     services.map(s => [s.name, s])
-  ).values()).slice(0, 20); // Limit to 20 services
+  ).values()).slice(0, 30); // Increased to 30 services for better coverage
 
   return uniqueServices.length > 0 ? uniqueServices : undefined;
 }
 
 /**
- * Extracts testimonials from HTML
+ * Extracts testimonials from HTML (ENHANCED with better null handling)
  */
 function extractTestimonials($: CheerioAPI): ExtractedBusinessInfo['structuredContent']['testimonials'] {
   const testimonials: Array<{ name?: string; role?: string; content: string; rating?: number }> = [];
 
   // Look for schema.org Review markup
-  const schemaReviews = $('[itemtype*="schema.org/Review"]');
+  const schemaReviews = $('[itemtype*="schema.org/Review"], [itemtype*="schema.org/UserReview"]');
   schemaReviews.each((_, element) => {
     const $el = $(element);
-    const content = $el.find('[itemprop="reviewBody"], [itemprop="description"]').text().trim();
-    const author = $el.find('[itemprop="author"]').text().trim();
+    const content = $el.find('[itemprop="reviewBody"], [itemprop="description"], [itemprop="text"]').text().trim();
+    const author = $el.find('[itemprop="author"], [itemprop="name"]').text().trim();
     const ratingValue = $el.find('[itemprop="ratingValue"]').attr('content') ||
                        $el.find('[itemprop="ratingValue"]').text().trim();
 
-    if (content) {
+    if (content && content.length > 10) {
       testimonials.push({
-        name: author || undefined,
+        name: author || undefined,  // Allow null/undefined names
         content,
         rating: ratingValue ? parseFloat(ratingValue) : undefined
       });
     }
   });
 
-  // Look for common testimonial patterns
+  // Enhanced testimonial pattern detection
   if (testimonials.length === 0) {
     const testimonialSelectors = [
       '.testimonial',
@@ -753,17 +871,21 @@ function extractTestimonials($: CheerioAPI): ExtractedBusinessInfo['structuredCo
       '.feedback',
       '[class*="testimonial"]',
       '[class*="review"]',
+      '[class*="customer-feedback"]',
+      '[class*="client-review"]',
       'blockquote',
       '.quote',
-      '.customer-review'
+      '.customer-review',
+      '.user-review',
+      '.rating-item'
     ];
 
     for (const selector of testimonialSelectors) {
       $(selector).each((_, element) => {
         const $item = $(element);
 
-        // Look for content
-        const contentSelectors = ['p', '.content', '.text', '.quote-text', '.review-text'];
+        // Enhanced content extraction
+        const contentSelectors = ['p', '.content', '.text', '.quote-text', '.review-text', '.message', '.comment'];
         let content = '';
         for (const contentSelector of contentSelectors) {
           const found = $item.find(contentSelector).first().text().trim();
@@ -775,22 +897,27 @@ function extractTestimonials($: CheerioAPI): ExtractedBusinessInfo['structuredCo
 
         // If no nested content found, try the element itself
         if (!content) {
-          content = $item.clone().children('.author, .name, .customer').remove().end().text().trim();
+          // Clone and remove author/name elements to get clean content
+          const $clone = $item.clone();
+          $clone.find('.author, .name, .customer, .reviewer, .by, cite, footer').remove();
+          content = $clone.text().trim();
         }
 
-        // Look for author name
-        const nameSelectors = ['.author', '.name', '.customer', '.reviewer', 'cite', 'footer'];
+        // Enhanced author name extraction
+        const nameSelectors = ['.author', '.name', '.customer', '.reviewer', '.client-name', '.user-name', 'cite', 'footer', '.by'];
         let name = '';
         for (const nameSelector of nameSelectors) {
-          const found = $item.find(nameSelector).first().text().trim();
+          const found = $item.find(nameSelector).first().text().trim()
+            .replace(/^[-–—]\s*/, '') // Remove leading dashes
+            .replace(/^by\s+/i, ''); // Remove "by" prefix
           if (found && found.length < 100) {
             name = found;
             break;
           }
         }
 
-        // Look for role/company
-        const roleSelectors = ['.role', '.title', '.company', '.position'];
+        // Enhanced role/company extraction
+        const roleSelectors = ['.role', '.title', '.company', '.position', '.designation', '.job-title'];
         let role = '';
         for (const roleSelector of roleSelectors) {
           const found = $item.find(roleSelector).first().text().trim();
@@ -800,52 +927,315 @@ function extractTestimonials($: CheerioAPI): ExtractedBusinessInfo['structuredCo
           }
         }
 
-        // Look for rating (stars)
+        // Enhanced rating extraction
         let rating: number | undefined;
-        const starElements = $item.find('[class*="star"]');
+
+        // Check for star ratings
+        const starElements = $item.find('[class*="star"], [class*="rating"]');
         if (starElements.length) {
           // Count filled stars
           const filledStars = starElements.filter((_, el) => {
             const className = $(el).attr('class') || '';
-            return className.includes('filled') || className.includes('active') || className.includes('full');
+            const style = $(el).attr('style') || '';
+            return className.includes('filled') ||
+                   className.includes('active') ||
+                   className.includes('full') ||
+                   className.includes('checked') ||
+                   style.includes('color');
           }).length;
-          if (filledStars > 0) {
+
+          if (filledStars > 0 && filledStars <= 5) {
             rating = filledStars;
           }
         }
 
-        // Alternative: look for rating text
+        // Alternative: look for rating text or data attributes
         if (!rating) {
-          const ratingMatch = $item.text().match(/(\d(?:\.\d)?)\s*(?:star|★|⭐)/i);
+          // Check data attributes
+          const dataRating = $item.attr('data-rating') || $item.find('[data-rating]').attr('data-rating');
+          if (dataRating) {
+            rating = parseFloat(dataRating);
+          }
+        }
+
+        if (!rating) {
+          // Check for rating in text
+          const ratingMatch = $item.text().match(/(\d(?:\.\d)?)\s*(?:star|★|⭐|\/\s*5)/i);
           if (ratingMatch) {
             rating = parseFloat(ratingMatch[1]);
           }
         }
 
-        if (content && content.length > 20 && content.length < 1000) {
+        // Only add if we have meaningful content
+        if (content && content.length > 20 && content.length < 2000) {
+          // Don't require name - allow anonymous testimonials
           testimonials.push({
-            name: name || undefined,
-            role: role || undefined,
+            name: name || undefined,  // Explicitly allow undefined
+            role: role || undefined,  // Explicitly allow undefined
             content,
-            rating
+            rating: rating && rating <= 5 ? rating : undefined  // Only include valid ratings
           });
         }
       });
 
-      if (testimonials.length > 0) break;
+      if (testimonials.length >= 5) break; // Stop if we have enough testimonials
     }
   }
 
-  // Remove duplicates and limit
+  // Remove duplicates based on content similarity and limit
   const uniqueTestimonials = Array.from(new Map(
-    testimonials.map(t => [t.content.substring(0, 50), t]) // Use first 50 chars as key
-  ).values()).slice(0, 20); // Limit to 20 testimonials
+    testimonials.map(t => [t.content.substring(0, 100), t]) // Use first 100 chars as key
+  ).values()).slice(0, 30); // Increased to 30 testimonials
 
   return uniqueTestimonials.length > 0 ? uniqueTestimonials : undefined;
 }
 
 /**
- * Main extraction function
+ * Extract FAQ section (NEW)
+ */
+function extractFAQ($: CheerioAPI): ExtractedBusinessInfo['structuredContent']['faq'] {
+  const faqs: Array<{ question: string; answer: string }> = [];
+
+  // Look for schema.org FAQ markup
+  const schemaFAQs = $('[itemtype*="schema.org/FAQPage"], [itemtype*="schema.org/Question"]');
+  schemaFAQs.each((_, element) => {
+    const $el = $(element);
+    const question = $el.find('[itemprop="name"]').text().trim();
+    const answer = $el.find('[itemprop="acceptedAnswer"] [itemprop="text"], [itemprop="text"]').text().trim();
+
+    if (question && answer) {
+      faqs.push({ question, answer });
+    }
+  });
+
+  // Look for common FAQ patterns
+  if (faqs.length === 0) {
+    const faqSelectors = [
+      '.faq-item',
+      '[class*="faq"]',
+      '[class*="question-answer"]',
+      '.accordion-item',
+      'details',
+      '[class*="qa-"]'
+    ];
+
+    for (const selector of faqSelectors) {
+      $(selector).each((_, element) => {
+        const $item = $(element);
+
+        // Look for question
+        const qSelectors = ['h3', 'h4', 'h5', '.question', 'summary', '[class*="question"]', 'dt'];
+        let question = '';
+        for (const qSelector of qSelectors) {
+          const found = $item.find(qSelector).first().text().trim();
+          if (found && found.includes('?')) {
+            question = found;
+            break;
+          }
+        }
+
+        // Look for answer
+        const aSelectors = ['p', '.answer', '[class*="answer"]', 'dd', '.content'];
+        let answer = '';
+        for (const aSelector of aSelectors) {
+          const found = $item.find(aSelector).first().text().trim();
+          if (found && found.length > 10 && found !== question) {
+            answer = found;
+            break;
+          }
+        }
+
+        if (question && answer) {
+          faqs.push({ question, answer });
+        }
+      });
+    }
+  }
+
+  // Also check for definition lists
+  $('dl').each((_, dl) => {
+    const $dl = $(dl);
+    const $dts = $dl.find('dt');
+    const $dds = $dl.find('dd');
+
+    $dts.each((index, dt) => {
+      const question = $(dt).text().trim();
+      const $dd = $dds.eq(index);
+      if ($dd.length) {
+        const answer = $dd.text().trim();
+        if (question && answer && question.length < 300 && answer.length < 1000) {
+          faqs.push({ question, answer });
+        }
+      }
+    });
+  });
+
+  return faqs.length > 0 ? faqs.slice(0, 20) : undefined;
+}
+
+/**
+ * Extract product categories (NEW)
+ */
+function extractProductCategories($: CheerioAPI): ExtractedBusinessInfo['structuredContent']['productCategories'] {
+  const categories: Array<{ name: string; description?: string; itemCount?: number }> = [];
+
+  // Look for category listings
+  const categorySelectors = [
+    '[class*="category"]',
+    '[class*="product-type"]',
+    '[class*="collection"]',
+    '.catalog-section',
+    '[class*="department"]',
+    '.product-category'
+  ];
+
+  for (const selector of categorySelectors) {
+    $(selector).each((_, element) => {
+      const $item = $(element);
+
+      // Extract category name
+      const nameSelectors = ['h2', 'h3', 'h4', '.title', '.name', 'a'];
+      let name = '';
+      for (const nameSelector of nameSelectors) {
+        const found = $item.find(nameSelector).first().text().trim();
+        if (found && found.length < 100) {
+          name = found;
+          break;
+        }
+      }
+
+      // Extract description
+      const description = $item.find('p, .description').first().text().trim();
+
+      // Try to extract item count
+      const countMatch = $item.text().match(/(\d+)\s*(?:items?|products?|plants?|varieties)/i);
+      const itemCount = countMatch ? parseInt(countMatch[1]) : undefined;
+
+      if (name && !categories.some(c => c.name === name)) {
+        categories.push({
+          name,
+          description: description || undefined,
+          itemCount
+        });
+      }
+    });
+  }
+
+  // Look in navigation for category links
+  $('nav a, .menu a').each((_, link) => {
+    const text = $(link).text().trim();
+    const href = $(link).attr('href') || '';
+
+    if (href.includes('category') || href.includes('collection') || href.includes('products')) {
+      if (!categories.some(c => c.name === text)) {
+        categories.push({ name: text });
+      }
+    }
+  });
+
+  return categories.length > 0 ? categories.slice(0, 15) : undefined;
+}
+
+/**
+ * Extract footer content (NEW)
+ */
+function extractFooterContent($: CheerioAPI, baseUrl: string): ExtractedBusinessInfo['structuredContent']['footerContent'] {
+  const footer = $('footer').first();
+  if (!footer.length) return undefined;
+
+  const footerContent: ExtractedBusinessInfo['structuredContent']['footerContent'] = {};
+
+  // Extract copyright text
+  const copyrightSelectors = ['.copyright', '[class*="copyright"]', 'footer p'];
+  for (const selector of copyrightSelectors) {
+    const text = footer.find(selector).first().text().trim();
+    if (text && (text.includes('©') || text.includes('Copyright') || text.includes(new Date().getFullYear().toString()))) {
+      footerContent.copyrightText = text;
+      break;
+    }
+  }
+
+  // Extract important links
+  const importantLinks: Array<{ text: string; url: string }> = [];
+  footer.find('a').each((_, link) => {
+    const text = $(link).text().trim();
+    const href = $(link).attr('href');
+    if (text && href && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
+      try {
+        const url = new URL(href, baseUrl).href;
+        importantLinks.push({ text, url });
+      } catch {
+        // Skip invalid URLs
+      }
+    }
+  });
+
+  if (importantLinks.length > 0) {
+    footerContent.importantLinks = importantLinks.slice(0, 10);
+  }
+
+  // Extract additional info
+  const additionalText = footer.clone()
+    .find('script, style').remove().end()
+    .text().trim()
+    .substring(0, 500);
+
+  if (additionalText && additionalText.length > 50) {
+    footerContent.additionalInfo = additionalText;
+  }
+
+  return Object.keys(footerContent).length > 0 ? footerContent : undefined;
+}
+
+/**
+ * Extract main page content for context (NEW)
+ */
+function extractPageContent($: CheerioAPI): ExtractedBusinessInfo['pageContent'] {
+  // Extract main content
+  const mainSelectors = ['main', 'article', '[role="main"]', '#content', '.content'];
+  let mainContent = '';
+  for (const selector of mainSelectors) {
+    const $main = $(selector).first();
+    if ($main.length) {
+      mainContent = $main.clone()
+        .find('script, style, nav, header, footer').remove().end()
+        .text().trim()
+        .substring(0, 8000); // Increased from 5000 to 8000
+      break;
+    }
+  }
+
+  // If no main content found, get body text
+  if (!mainContent) {
+    mainContent = $('body').clone()
+      .find('script, style, nav, header, footer').remove().end()
+      .text().trim()
+      .substring(0, 8000);
+  }
+
+  // Extract footer text
+  const footerText = $('footer').text().trim().substring(0, 2000);
+
+  // Extract sidebar content if exists
+  const sidebarSelectors = ['aside', '.sidebar', '[role="complementary"]'];
+  let sidebarContent: string | undefined;
+  for (const selector of sidebarSelectors) {
+    const $sidebar = $(selector).first();
+    if ($sidebar.length) {
+      sidebarContent = $sidebar.text().trim().substring(0, 2000);
+      break;
+    }
+  }
+
+  return {
+    mainContent,
+    footerText,
+    sidebarContent
+  };
+}
+
+/**
+ * Main extraction function (ENHANCED)
  */
 export function extractBusinessInfo(html: string, baseUrl: string): ExtractedBusinessInfo {
   const $ = load(html);
@@ -868,6 +1258,21 @@ export function extractBusinessInfo(html: string, baseUrl: string): ExtractedBus
     structuredContent.testimonials = testimonials;
   }
 
+  const faq = extractFAQ($);
+  if (faq) {
+    structuredContent.faq = faq;
+  }
+
+  const productCategories = extractProductCategories($);
+  if (productCategories) {
+    structuredContent.productCategories = productCategories;
+  }
+
+  const footerContent = extractFooterContent($, baseUrl);
+  if (footerContent) {
+    structuredContent.footerContent = footerContent;
+  }
+
   return {
     emails: extractEmails($),
     phones: extractPhones($),
@@ -882,5 +1287,6 @@ export function extractBusinessInfo(html: string, baseUrl: string): ExtractedBus
     siteDescription: $('meta[name="description"]').attr('content')?.trim() || undefined,
     favicon: $('link[rel*="icon"]').attr('href') || undefined,
     structuredContent: Object.keys(structuredContent).length > 0 ? structuredContent : undefined,
+    pageContent: extractPageContent($)
   };
 }
