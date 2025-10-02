@@ -989,7 +989,7 @@ export default function DashboardSitesPage() {
                       <CardContent className="p-6">
                         <div className="flex items-start gap-4">
                           <div className={`p-3 rounded-full ${
-                            sourceMode === 'scrape' ? 'bg-primary text-white' : 'bg-gray-100'
+                            sourceMode === 'scrape' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
                           }`}>
                             <Sparkles className="h-6 w-6" />
                           </div>
@@ -1018,7 +1018,7 @@ export default function DashboardSitesPage() {
                       <CardContent className="p-6">
                         <div className="flex items-start gap-4">
                           <div className={`p-3 rounded-full ${
-                            sourceMode === 'manual' ? 'bg-primary text-white' : 'bg-gray-100'
+                            sourceMode === 'manual' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
                           }`}>
                             <Edit3 className="h-6 w-6" />
                           </div>
