@@ -365,10 +365,17 @@ export function buildFoundationPromptWithContext(
       sections.push('');
     }
 
-    // Content summary
+    // Content summary - limit to prevent token overflow
     if (scrapedContext.contentSummary) {
       sections.push('Content from Existing Website:');
-      sections.push(scrapedContext.contentSummary);
+      // Cap content summary at 1500 characters to leave room for response
+      const maxContentLength = 1500;
+      if (scrapedContext.contentSummary.length > maxContentLength) {
+        sections.push(scrapedContext.contentSummary.substring(0, maxContentLength) + '...[truncated for brevity]');
+        console.log(`Truncated content summary from ${scrapedContext.contentSummary.length} to ${maxContentLength} characters`);
+      } else {
+        sections.push(scrapedContext.contentSummary);
+      }
       sections.push('');
       sections.push('Use this content as inspiration, but improve the copy, modernize the language, and make it more engaging. Do not copy verbatim.');
       sections.push('');
@@ -504,8 +511,9 @@ export function buildPagePrompt(
           parts.push(`Content from existing "${key}" page:`);
           // Limit content length to avoid token overflow
           const content = scrapedContext.pageContents[key];
-          if (content.length > 2000) {
-            parts.push(content.substring(0, 2000) + '...');
+          const maxPageContentLength = 1000; // Reduced from 2000 to prevent token overflow
+          if (content.length > maxPageContentLength) {
+            parts.push(content.substring(0, maxPageContentLength) + '...');
             parts.push('(Content truncated for length)');
           } else {
             parts.push(content);
@@ -516,16 +524,26 @@ export function buildPagePrompt(
         }
       }
 
-      // If no specific content found but we have a content summary, use it
+      // If no specific content found but we have a content summary, use it (limited)
       if (!foundContent && scrapedContext.contentSummary) {
         parts.push('Website Overview:');
-        parts.push(scrapedContext.contentSummary);
+        const maxSummaryLength = 800; // Limit summary length in page prompts
+        if (scrapedContext.contentSummary.length > maxSummaryLength) {
+          parts.push(scrapedContext.contentSummary.substring(0, maxSummaryLength) + '...');
+        } else {
+          parts.push(scrapedContext.contentSummary);
+        }
         parts.push('');
       }
     } else if (scrapedContext.contentSummary) {
-      // Fallback to content summary if no page-specific content
+      // Fallback to content summary if no page-specific content (limited)
       parts.push('Website Overview:');
-      parts.push(scrapedContext.contentSummary);
+      const maxSummaryLength = 800; // Limit summary length in page prompts
+      if (scrapedContext.contentSummary.length > maxSummaryLength) {
+        parts.push(scrapedContext.contentSummary.substring(0, maxSummaryLength) + '...');
+      } else {
+        parts.push(scrapedContext.contentSummary);
+      }
       parts.push('');
     }
 

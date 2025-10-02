@@ -503,12 +503,13 @@ export async function generateSiteContent(
       ? buildFoundationPromptWithContext(businessInfo, scrapedContext)
       : buildFoundationPrompt(businessInfo);
 
-    const foundationResponse = await generateWithOpenRouter<string>(
+    // Initial foundation generation with increased token limit
+    let foundationResponse = await generateWithOpenRouter<string>(
       foundationPrompt,
       SITE_FOUNDATION_SYSTEM_PROMPT,
       {
         temperature: 0.8,
-        maxTokens: 2000,
+        maxTokens: 3000, // Increased from 2000 to 3000
         timeout: 45000
       }
     );
@@ -519,6 +520,40 @@ export async function generateSiteContent(
       totalCompletionTokens += foundationResponse.usage.completionTokens;
     }
 
+    // Check if response was truncated
+    if (foundationResponse.finishReason === 'length') {
+      console.log('Foundation response was truncated due to token limit, retrying with higher limit...');
+      console.log('Initial response tokens:', foundationResponse.usage?.completionTokens);
+
+      // Retry with increased token limit
+      foundationResponse = await generateWithOpenRouter<string>(
+        foundationPrompt,
+        SITE_FOUNDATION_SYSTEM_PROMPT,
+        {
+          temperature: 0.8,
+          maxTokens: 4000, // Retry with even higher limit
+          timeout: 45000
+        }
+      );
+
+      totalCalls++;
+      if (foundationResponse.usage) {
+        totalPromptTokens += foundationResponse.usage.promptTokens;
+        totalCompletionTokens += foundationResponse.usage.completionTokens;
+      }
+
+      console.log('Retry response tokens:', foundationResponse.usage?.completionTokens);
+      console.log('Retry finish reason:', foundationResponse.finishReason);
+    }
+
+    // Enhanced logging for debugging
+    console.log('Foundation generation complete:');
+    console.log('- Finish reason:', foundationResponse.finishReason);
+    console.log('- Token usage:', foundationResponse.usage);
+    console.log('- Response length:', typeof foundationResponse.content === 'string'
+      ? foundationResponse.content.length
+      : JSON.stringify(foundationResponse.content).length);
+
     const foundation = parseFoundationResponse(
       typeof foundationResponse.content === 'string'
         ? foundationResponse.content
@@ -526,6 +561,14 @@ export async function generateSiteContent(
     );
 
     if (!foundation) {
+      // Log the full response for debugging
+      console.error('Failed to parse foundation response');
+      console.error('Raw response (first 500 chars):',
+        typeof foundationResponse.content === 'string'
+          ? foundationResponse.content.substring(0, 500)
+          : JSON.stringify(foundationResponse.content).substring(0, 500)
+      );
+      console.error('Finish reason:', foundationResponse.finishReason);
       throw new Error('Failed to parse foundation response - cannot continue');
     }
 

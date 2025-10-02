@@ -105,19 +105,25 @@ export function extractJsonFromResponse(response: string): Record<string, unknow
     const codeBlockMatch = response.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
     if (codeBlockMatch) {
       const jsonContent = codeBlockMatch[1].trim();
-      return JSON.parse(jsonContent) as Record<string, unknown>;
+      return tryParseJsonWithRecovery(jsonContent);
     }
 
     // Try to find JSON between curly braces (most common pattern)
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]) as Record<string, unknown>;
+      return tryParseJsonWithRecovery(jsonMatch[0]);
     }
 
     // Try to parse the entire response as JSON (in case it's clean)
     const trimmedResponse = response.trim();
     if (trimmedResponse.startsWith('{') && trimmedResponse.endsWith('}')) {
-      return JSON.parse(trimmedResponse) as Record<string, unknown>;
+      return tryParseJsonWithRecovery(trimmedResponse);
+    }
+
+    // If no complete JSON found, check if response looks truncated
+    if (trimmedResponse.startsWith('{') && !trimmedResponse.endsWith('}')) {
+      console.log('Response appears to be truncated, attempting recovery...');
+      return tryParseJsonWithRecovery(trimmedResponse);
     }
 
     // No JSON found
@@ -128,6 +134,92 @@ export function extractJsonFromResponse(response: string): Record<string, unknow
     console.error('Failed to extract JSON from response:', errorInfo.message);
     console.error('Response preview:', response.substring(0, 200));
     return null;
+  }
+}
+
+/**
+ * Try to parse JSON with automatic recovery for truncated/malformed JSON
+ *
+ * This function attempts to fix common JSON issues caused by truncation:
+ * - Unclosed strings
+ * - Missing closing braces/brackets
+ * - Incomplete key-value pairs
+ *
+ * @param jsonString - Potentially malformed JSON string
+ * @returns Parsed JSON object or null if recovery fails
+ */
+function tryParseJsonWithRecovery(jsonString: string): Record<string, unknown> | null {
+  try {
+    // First try normal parsing
+    return JSON.parse(jsonString) as Record<string, unknown>;
+  } catch (parseError: unknown) {
+    console.log('Initial JSON parse failed, attempting recovery...');
+
+    // Attempt to repair truncated JSON
+    let repairedJson = jsonString.trim();
+
+    // Count open/close braces and brackets
+    const openBraces = (repairedJson.match(/\{/g) || []).length;
+    const closeBraces = (repairedJson.match(/\}/g) || []).length;
+    const openBrackets = (repairedJson.match(/\[/g) || []).length;
+    const closeBrackets = (repairedJson.match(/\]/g) || []).length;
+
+    // Check for unclosed string at the end
+    const lastQuoteIndex = repairedJson.lastIndexOf('"');
+    if (lastQuoteIndex > -1) {
+      const afterLastQuote = repairedJson.substring(lastQuoteIndex + 1);
+      // Check if there's an odd number of quotes after the last complete pair
+      const quotesAfter = (afterLastQuote.match(/"/g) || []).length;
+      if (quotesAfter % 2 !== 0) {
+        // Add closing quote
+        repairedJson += '"';
+        console.log('Added missing closing quote');
+      }
+    }
+
+    // Remove incomplete key-value pairs at the end
+    // Look for patterns like `,"key":` or `,"key":"incomplete
+    const incompletePattern = /,\s*"[^"]*"\s*:\s*(?:"[^"]*)?$/;
+    if (incompletePattern.test(repairedJson)) {
+      repairedJson = repairedJson.replace(incompletePattern, '');
+      console.log('Removed incomplete key-value pair');
+    }
+
+    // Add missing closing brackets
+    const missingBrackets = openBrackets - closeBrackets;
+    for (let i = 0; i < missingBrackets; i++) {
+      repairedJson += ']';
+      console.log('Added missing closing bracket');
+    }
+
+    // Add missing closing braces
+    const missingBraces = openBraces - closeBraces;
+    for (let i = 0; i < missingBraces; i++) {
+      repairedJson += '}';
+      console.log('Added missing closing brace');
+    }
+
+    try {
+      // Try parsing the repaired JSON
+      const result = JSON.parse(repairedJson) as Record<string, unknown>;
+      console.log('JSON recovery successful');
+      return result;
+    } catch (secondError: unknown) {
+      // If still failing, try more aggressive recovery
+      // Remove any trailing comma before closing brace/bracket
+      repairedJson = repairedJson.replace(/,\s*([}\]])/g, '$1');
+
+      try {
+        const result = JSON.parse(repairedJson) as Record<string, unknown>;
+        console.log('JSON recovery successful after removing trailing commas');
+        return result;
+      } catch (finalError: unknown) {
+        const errorInfo = handleError(finalError);
+        console.error('JSON recovery failed:', errorInfo.message);
+        console.error('Attempted repair (first 500 chars):', repairedJson.substring(0, 500));
+        return null;
+      }
+    }
   }
 }
 
@@ -179,33 +271,55 @@ export function validateJsonStructure(data: unknown, expectedType: string): bool
  */
 export function parseFoundationResponse(response: string): FoundationData | null {
   try {
+    // Check if response looks truncated first
+    if (response.length > 0 && !response.trim().endsWith('}') && !response.includes('```')) {
+      console.warn('Warning: Response may be truncated (does not end with })');
+      console.warn('Response length:', response.length);
+      console.warn('Last 100 chars:', response.slice(-100));
+    }
+
     // Extract JSON from response
     const json = extractJsonFromResponse(response);
     if (!json) {
       console.error('Failed to extract JSON from foundation response');
+      console.error('Full response (first 1000 chars):', response.substring(0, 1000));
       return null;
     }
 
+    // Log extracted JSON for debugging
+    console.log('Extracted JSON keys:', Object.keys(json));
+
     // Validate structure (basic check before Zod)
     if (!validateJsonStructure(json, 'foundation')) {
+      console.error('JSON structure validation failed');
       return null;
     }
 
     // Validate with type guard (backward compatibility)
     if (!isFoundationData(json)) {
       console.error('Foundation data failed type guard validation');
-      console.error('Received data:', JSON.stringify(json, null, 2));
+      console.error('Received data structure:', JSON.stringify(json, null, 2).substring(0, 500));
+
+      // Provide detailed error information about what's missing
+      const requiredFields = ['site_name', 'tagline', 'description', 'hero', 'branding', 'seo'];
+      const missingFields = requiredFields.filter(field => !(field in json));
+      if (missingFields.length > 0) {
+        console.error('Missing required fields:', missingFields);
+      }
+
       return null;
     }
 
     // Validate with Zod schema
     const zodResult = validateFoundationData(json);
     if (zodResult.success) {
+      console.log('Foundation data validated successfully');
       return zodResult.data;
     }
 
     // Attempt error recovery
     console.log('Zod validation failed, attempting recovery...');
+    console.log('Validation errors:', zodResult.errors);
 
     // Truncate SEO description if needed (before validation)
     if (isPlainObject(json) && isPlainObject(json.seo)) {
@@ -237,12 +351,15 @@ export function parseFoundationResponse(response: string): FoundationData | null
       return recovered;
     }
 
-    // Log failure
-    console.error('Validation failed:', zodResult.errors);
+    // Log detailed failure information
+    console.error('All validation attempts failed');
+    console.error('Validation errors:', zodResult.errors);
+    console.error('Raw JSON (first 500 chars):', JSON.stringify(json, null, 2).substring(0, 500));
     return null;
   } catch (error: unknown) {
     const errorInfo = handleError(error);
     console.error('Error parsing foundation response:', errorInfo.message);
+    console.error('Stack trace:', errorInfo.stack);
     return null;
   }
 }
