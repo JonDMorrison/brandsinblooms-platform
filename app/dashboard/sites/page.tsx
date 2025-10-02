@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Globe, Calendar, Settings, ExternalLink, Loader2, Sparkles, CheckCircle2, AlertCircle, Upload, ArrowRight, ArrowLeft, Check, Image as ImageIcon } from 'lucide-react'
+import { Plus, Globe, Calendar, Settings, ExternalLink, Loader2, Sparkles, CheckCircle2, AlertCircle, Upload, ArrowRight, ArrowLeft, Check, Image as ImageIcon, Edit3 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
@@ -554,7 +554,7 @@ export default function DashboardSitesPage() {
       // Step 0: Validate URL if scraping mode selected
       if (sourceMode === 'scrape') {
         if (!websiteUrl) {
-          toast.error('Please enter a website URL or choose "Start from Scratch"')
+          toast.error('Please enter a website URL or choose "Design Your Own"')
           return
         }
         const error = validateWebsiteUrl(websiteUrl)
@@ -991,7 +991,7 @@ export default function DashboardSitesPage() {
                           <div className={`p-3 rounded-full ${
                             sourceMode === 'scrape' ? 'bg-primary text-white' : 'bg-gray-100'
                           }`}>
-                            <Globe className="h-6 w-6" />
+                            <Sparkles className="h-6 w-6" />
                           </div>
                           <div className="flex-1">
                             <h4 className="font-semibold mb-2">
@@ -1006,7 +1006,7 @@ export default function DashboardSitesPage() {
                       </CardContent>
                     </Card>
 
-                    {/* Start from Scratch Card */}
+                    {/* Design Your Own Card */}
                     <Card
                       className={`cursor-pointer transition-all ${
                         sourceMode === 'manual'
@@ -1020,11 +1020,11 @@ export default function DashboardSitesPage() {
                           <div className={`p-3 rounded-full ${
                             sourceMode === 'manual' ? 'bg-primary text-white' : 'bg-gray-100'
                           }`}>
-                            <Sparkles className="h-6 w-6" />
+                            <Edit3 className="h-6 w-6" />
                           </div>
                           <div className="flex-1">
                             <h4 className="font-semibold mb-2">
-                              Start from Scratch
+                              Design Your Own
                             </h4>
                             <p className="text-sm text-gray-600">
                               Provide business details manually and let AI generate
