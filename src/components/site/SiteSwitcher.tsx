@@ -155,7 +155,7 @@ export function SiteSwitcher() {
         )}
 
         {/* View All Sites option */}
-        {availableSites.length > 1 && (
+        {availableSites.length >= 1 && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -211,16 +211,7 @@ export function CompactSiteSwitcher() {
     return null
   }
 
-  // If only one site available and it's the current site, just show the name
-  if (availableSites.length === 1 && currentSite) {
-    return (
-      <div className="flex items-center space-x-2 text-sm">
-        <Globe className="h-4 w-4" />
-        <span className="truncate">{currentSite.name}</span>
-      </div>
-    )
-  }
-
+  // Always show dropdown to allow access to "View All Sites" option
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -252,7 +243,7 @@ export function CompactSiteSwitcher() {
         ))}
 
         {/* Optional: Add "View All Sites" option */}
-        {currentSite && availableSites.length > 1 && (
+        {currentSite && availableSites.length >= 1 && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem
