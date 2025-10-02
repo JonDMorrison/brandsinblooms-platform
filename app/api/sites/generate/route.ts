@@ -16,8 +16,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { getUser, getUserProfile } from '@/lib/auth/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClientFromRequest } from '@/src/lib/supabase/api-server';
 import { apiSuccess, apiError } from '@/lib/types/api';
 import type {
   GenerateSiteRequest,
@@ -56,10 +55,13 @@ export async function POST(request: NextRequest) {
   console.log(`[${requestId}] POST /api/sites/generate - Request received`);
 
   try {
-    // 1. Authentication check
-    const user = await getUser();
+    // 1. Create Supabase client (supports both Bearer token and cookies)
+    const supabase = await createClientFromRequest(request);
 
-    if (!user) {
+    // 2. Authentication check
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (!user || authError) {
       console.log(`[${requestId}] Authentication failed - no user`);
       logSecurityEvent('generation_unauthorized_attempt', {
         userId: 'anonymous',
@@ -75,8 +77,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[${requestId}] User authenticated: ${user.id}`);
 
-    // 2. Authorization check (admin-only initially)
-    const supabase = await createClient();
+    // 3. Authorization check (admin-only initially)
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -145,8 +146,16 @@ export async function POST(request: NextRequest) {
       website: requestBody.website,
       logoUrl: requestBody.logoUrl,
       brandColors: requestBody.brandColors,
+      basedOnWebsite: requestBody.basedOnWebsite,
       additionalDetails: requestBody.additionalDetails,
     });
+
+    // Debug: Log if scraping URL was provided
+    if (businessInfo.basedOnWebsite) {
+      console.log(`[${requestId}] ✅ basedOnWebsite field received: ${businessInfo.basedOnWebsite}`);
+    } else {
+      console.log(`[${requestId}] ℹ️  No basedOnWebsite field provided (manual mode)`);
+    }
 
     // 6. Validate input
     console.log(`[${requestId}] Validating input...`);
@@ -268,6 +277,37 @@ export async function POST(request: NextRequest) {
           console.log(
             `[${requestId}] Website analysis complete. Recommended pages: ${analyzed.recommendedPages.join(', ')}`
           );
+
+          // DETAILED SCRAPED DATA LOGGING
+          console.log(`\n${'='.repeat(80)}`);
+          console.log(`[${requestId}] 📊 SCRAPED DATA SUMMARY`);
+          console.log(`${'='.repeat(80)}`);
+          console.log(`\n🌐 Base URL: ${analyzed.baseUrl}`);
+          console.log(`\n📧 Contact Information:`);
+          console.log(`   Emails: ${analyzed.businessInfo.emails?.length ? analyzed.businessInfo.emails.join(', ') : 'None found'}`);
+          console.log(`   Phones: ${analyzed.businessInfo.phones?.length ? analyzed.businessInfo.phones.join(', ') : 'None found'}`);
+          console.log(`   Addresses: ${analyzed.businessInfo.addresses?.length ? analyzed.businessInfo.addresses.join('; ') : 'None found'}`);
+          console.log(`\n🎨 Branding:`);
+          console.log(`   Logo URL: ${analyzed.businessInfo.logoUrl || 'None found'}`);
+          console.log(`   Brand Colors: ${analyzed.businessInfo.brandColors?.length ? analyzed.businessInfo.brandColors.join(', ') : 'None found'}`);
+          console.log(`\n🔗 Social Links:`);
+          if (analyzed.businessInfo.socialLinks?.length) {
+            analyzed.businessInfo.socialLinks.forEach(link => {
+              console.log(`   ${link.platform}: ${link.url}`);
+            });
+          } else {
+            console.log(`   None found`);
+          }
+          console.log(`\n📄 Pages Discovered:`);
+          console.log(`   Total Found: ${discoveryResult.totalPagesFound}`);
+          console.log(`   Total Scraped: ${discoveryResult.totalPagesScraped}`);
+          console.log(`   Recommended: ${analyzed.recommendedPages.join(', ')}`);
+          console.log(`\n📝 Content Summary:`);
+          console.log(`   ${analyzed.contentSummary || 'No summary available'}`);
+          console.log(`\n${'-'.repeat(80)}`);
+          console.log(`Full scraped context object:`);
+          console.log(JSON.stringify(scrapedContext, null, 2));
+          console.log(`${'='.repeat(80)}\n`);
         } else {
           console.warn(`[${requestId}] No pages scraped, continuing without context`);
         }
@@ -349,7 +389,8 @@ export async function POST(request: NextRequest) {
 
     // Log error
     try {
-      const user = await getUser();
+      const supabase = await createClientFromRequest(request);
+      const { data: { user } } = await supabase.auth.getUser();
       logSecurityEvent('generation_error', {
         userId: user?.id || 'unknown',
         requestId,
