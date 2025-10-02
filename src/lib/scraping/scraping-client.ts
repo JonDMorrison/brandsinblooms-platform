@@ -99,7 +99,35 @@ export async function scrapeUrl(
         throw new Error(`Scraping service returned ${response.status}: ${errorText}`);
       }
 
-      const data = await response.json() as ScrapingResponse;
+      // Check content-type to determine how to parse the response
+      const contentType = response.headers.get('content-type') || '';
+      let data: ScrapingResponse;
+
+      if (contentType.includes('text/html')) {
+        // Handle raw HTML response - wrap it in ScrapingResponse format
+        const html = await response.text();
+        data = {
+          success: true,
+          url,
+          html,
+        };
+      } else if (contentType.includes('application/json')) {
+        // Handle JSON response as before
+        data = await response.json() as ScrapingResponse;
+      } else {
+        // Fallback: try to parse as JSON, if that fails, treat as HTML
+        const responseText = await response.text();
+        try {
+          data = JSON.parse(responseText) as ScrapingResponse;
+        } catch {
+          // If JSON parsing fails, assume it's HTML
+          data = {
+            success: true,
+            url,
+            html: responseText,
+          };
+        }
+      }
 
       if (!data.success) {
         throw new Error(data.error || 'Scraping failed without error message');
