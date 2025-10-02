@@ -188,10 +188,14 @@ export async function processGenerationJob(
     try {
       // Parse business_info for logoUrl
       const businessInfo = job.business_info as unknown as import('@/lib/types/site-generation-jobs').BusinessInfo;
+
+      // Use the logoUrl from scraped context if available, otherwise from businessInfo
+      const logoUrl = scrapedContext?.businessInfo?.logoUrl || businessInfo.logoUrl;
+
       siteResult = await createSiteFromGenerated(
         generationResult.data,
         job.user_id,
-        businessInfo.logoUrl
+        logoUrl
       );
       console.log(
         `[Job ${jobId}] Site created: ${siteResult.siteId} (${siteResult.pageIds.length} pages)`

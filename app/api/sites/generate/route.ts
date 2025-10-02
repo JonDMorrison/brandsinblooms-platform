@@ -43,6 +43,7 @@ import { logSecurityEvent } from '@/lib/security/security-utils';
 import type { BusinessInfo } from '@/lib/types/site-generation-jobs';
 import { discoverAndScrapePages } from '@/lib/scraping/page-discovery';
 import { analyzeScrapedWebsite } from '@/lib/scraping/content-analyzer';
+import { downloadAndUploadLogo } from '@/lib/storage/logo-processor';
 
 /**
  * POST /api/sites/generate
@@ -213,7 +214,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 8. Create job
+    // 8. Create job (note: businessInfo may have been updated with processed logo URL)
     console.log(`[${requestId}] Creating job...`);
     const jobResult = await createJob({
       userId: user.id,
@@ -233,7 +234,38 @@ export async function POST(request: NextRequest) {
 
     console.log(`[${requestId}] Job created: ${job.id}`);
 
-    // 9. Scrape website if basedOnWebsite is provided (run before background processing)
+    // 9. Process manually provided logo URL if it's external (before scraping)
+    if (!businessInfo.basedOnWebsite && businessInfo.logoUrl) {
+      // Check if the logo URL is external (not already our storage URL)
+      const isExternalUrl = businessInfo.logoUrl.startsWith('http://') || businessInfo.logoUrl.startsWith('https://');
+      const isOurStorage = businessInfo.logoUrl.includes('/api/images/') || businessInfo.logoUrl.includes('.s3.');
+
+      if (isExternalUrl && !isOurStorage) {
+        console.log(`[${requestId}] Processing manually provided external logo: ${businessInfo.logoUrl}`);
+
+        const tempSiteId = `temp-${job.id}`;
+        try {
+          const uploadedLogoUrl = await downloadAndUploadLogo(
+            businessInfo.logoUrl,
+            tempSiteId,
+            user.id
+          );
+
+          if (uploadedLogoUrl) {
+            businessInfo.logoUrl = uploadedLogoUrl;
+            console.log(`[${requestId}] Manual logo successfully uploaded to: ${uploadedLogoUrl}`);
+          } else {
+            console.warn(`[${requestId}] Manual logo upload failed, keeping original URL`);
+          }
+        } catch (logoError: unknown) {
+          const errorInfo = handleError(logoError);
+          console.error(`[${requestId}] Manual logo processing error: ${errorInfo.message}`);
+          // Keep the original URL
+        }
+      }
+    }
+
+    // 10. Scrape website if basedOnWebsite is provided (run before background processing)
     let scrapedContext: ScrapedWebsiteContext | undefined = undefined;
 
     if (businessInfo.basedOnWebsite) {
@@ -258,6 +290,41 @@ export async function POST(request: NextRequest) {
           // Analyze scraped content
           const analyzed = analyzeScrapedWebsite(discoveryResult.pages);
 
+          // Process logo if found in scraped data
+          let processedLogoUrl: string | undefined = undefined;
+
+          if (analyzed.businessInfo.logoUrl) {
+            console.log(`[${requestId}] Processing scraped logo: ${analyzed.businessInfo.logoUrl}`);
+
+            // Generate a temporary site ID for logo upload (will be updated once site is created)
+            const tempSiteId = `temp-${job.id}`;
+
+            try {
+              const uploadedLogoUrl = await downloadAndUploadLogo(
+                analyzed.businessInfo.logoUrl,
+                tempSiteId,
+                user.id
+              );
+
+              if (uploadedLogoUrl) {
+                processedLogoUrl = uploadedLogoUrl;
+                console.log(`[${requestId}] Logo successfully uploaded to: ${uploadedLogoUrl}`);
+
+                // Update businessInfo with the processed logo URL
+                businessInfo.logoUrl = uploadedLogoUrl;
+              } else {
+                console.warn(`[${requestId}] Logo download/upload failed, using original URL`);
+                // Keep the original URL as fallback
+                processedLogoUrl = analyzed.businessInfo.logoUrl;
+              }
+            } catch (logoError: unknown) {
+              const errorInfo = handleError(logoError);
+              console.error(`[${requestId}] Logo processing error: ${errorInfo.message}`);
+              // Keep the original URL as fallback
+              processedLogoUrl = analyzed.businessInfo.logoUrl;
+            }
+          }
+
           // Build scraped context for LLM
           scrapedContext = {
             baseUrl: analyzed.baseUrl,
@@ -266,7 +333,7 @@ export async function POST(request: NextRequest) {
               phones: analyzed.businessInfo.phones,
               addresses: analyzed.businessInfo.addresses,
               socialLinks: analyzed.businessInfo.socialLinks,
-              logoUrl: analyzed.businessInfo.logoUrl,
+              logoUrl: processedLogoUrl || analyzed.businessInfo.logoUrl, // Use processed or original
               brandColors: analyzed.businessInfo.brandColors,
             },
             pageContents: Object.fromEntries(analyzed.pageContents),
@@ -281,7 +348,7 @@ export async function POST(request: NextRequest) {
           // Summary of scraped data
           console.log(`[${requestId}] Scraped ${discoveryResult.totalPagesScraped} pages successfully`);
           console.log(`[${requestId}] Extracted contact info: ${analyzed.businessInfo.emails?.length || 0} emails, ${analyzed.businessInfo.phones?.length || 0} phones`);
-          console.log(`[${requestId}] Branding: ${analyzed.businessInfo.brandColors?.length || 0} colors, ${analyzed.businessInfo.logoUrl ? 'logo found' : 'no logo'}`);
+          console.log(`[${requestId}] Branding: ${analyzed.businessInfo.brandColors?.length || 0} colors, ${processedLogoUrl ? 'logo processed and uploaded' : analyzed.businessInfo.logoUrl ? 'logo found' : 'no logo'}`);
           console.log(`[${requestId}] Social links: ${analyzed.businessInfo.socialLinks?.length || 0} platforms`);
         } else {
           console.warn(`[${requestId}] No pages scraped, continuing without context`);
