@@ -18,12 +18,15 @@ import { useSiteId, useSiteContext } from '@/src/contexts/SiteContext'
 import { DashboardStats, type DashboardStat } from '@/src/components/DashboardStats'
 import { CreateContentModal } from '@/src/components/content/CreateContentModal'
 import { debug } from '@/src/lib/utils/debug'
+import type { PaginationState } from '@tanstack/react-table'
 
 
 
 export default function ContentPage() {
   const [activeTab, setActiveTab] = useState('all')
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const siteId = useSiteId()
   const { loading: siteLoading, currentSite } = useSiteContext()
 
@@ -34,8 +37,13 @@ export default function ContentPage() {
     siteName: currentSite?.name
   })
 
-  // Fetch real content data with detailed logging
-  const { data: contentResponse, loading: isLoading, error, refresh: refetch } = useContent()
+  // Fetch real content data with pagination and type filters
+  const contentTypeFilter = activeTab === 'pages' ? 'page' : activeTab === 'blog' ? 'blog_post' : undefined
+  const { data: contentResponse, loading: isLoading, error, refresh: refetch } = useContent({
+    page,
+    limit: pageSize,
+    type: contentTypeFilter,
+  })
   const { data: contentStats, loading: statsLoading, refresh: refetchStats } = useContentStats()
 
   debug.content('Hook states:', {
@@ -48,9 +56,15 @@ export default function ContentPage() {
     hasContentStats: !!contentStats,
     contentError: !!error
   })
-  
-  // Extract content array from response
+
+  // Extract content array and pagination metadata from response
   const content = Array.isArray(contentResponse) ? contentResponse : contentResponse?.data || []
+  const paginationMeta = !Array.isArray(contentResponse) && contentResponse ? {
+    count: contentResponse.count,
+    page: contentResponse.page,
+    pageSize: contentResponse.pageSize,
+    totalPages: contentResponse.totalPages,
+  } : null
   
   // Transform content data to match ContentItem interface
   const contentItems: ContentItem[] = useMemo(() => {
@@ -74,19 +88,51 @@ export default function ContentPage() {
     })
   }, [content])
 
-  const filteredContent = contentItems.filter(item => {
-    const matchesTab = activeTab === 'all' || 
-                      (activeTab === 'pages' && item.type === 'page') ||
-                      (activeTab === 'blog' && item.type === 'blog')
-    return matchesTab
-  })
+  // Handle pagination changes - TanStack Table passes an updater function
+  const handlePaginationChange = (updaterOrValue: PaginationState | ((old: PaginationState) => PaginationState)) => {
+    // Handle both direct value and updater function patterns
+    const newPagination = typeof updaterOrValue === 'function'
+      ? updaterOrValue({ pageIndex: page - 1, pageSize })
+      : updaterOrValue
 
+    debug.content('Pagination change:', {
+      isFunction: typeof updaterOrValue === 'function',
+      newPageIndex: newPagination.pageIndex,
+      newPageSize: newPagination.pageSize,
+      convertedPage: newPagination.pageIndex + 1
+    })
+
+    setPage(newPagination.pageIndex + 1) // Convert 0-based to 1-based
+    setPageSize(newPagination.pageSize)
+  }
+
+  // Handle tab changes - reset to page 1 when switching tabs
+  const handleTabChange = (value: string) => {
+    setActiveTab(value)
+    setPage(1)
+  }
+
+  // Use stats from the hook and paginationMeta, with proper fallbacks
   const stats = useMemo(() => {
-    const all = contentItems.length
-    const pages = contentItems.filter(item => item.type === 'page').length
-    const blog = contentItems.filter(item => item.type === 'blog').length
+    // Use server-side stats when available, otherwise fall back to pagination count or current page data
+    const all = contentStats?.pages !== undefined && contentStats?.blogPosts !== undefined
+      ? contentStats.pages + contentStats.blogPosts
+      : paginationMeta?.count ?? contentItems.length
+
+    const pages = contentStats?.pages ?? contentItems.filter(item => item.type === 'page').length
+    const blog = contentStats?.blogPosts ?? contentItems.filter(item => item.type === 'blog').length
+
+    debug.content('Stats calculated:', {
+      all,
+      pages,
+      blog,
+      hasContentStats: !!contentStats,
+      hasPaginationMeta: !!paginationMeta,
+      paginationCount: paginationMeta?.count
+    })
+
     return { all, pages, blog }
-  }, [contentItems])
+  }, [contentStats, contentItems, paginationMeta])
 
   // Dashboard stats for the DashboardStats component
   const dashboardStats: DashboardStat[] = useMemo(() => [
@@ -161,7 +207,7 @@ export default function ContentPage() {
           <CardTitle>Content Library</CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList>
               <TabsTrigger value="all">All ({stats.all})</TabsTrigger>
               <TabsTrigger value="pages">Pages ({stats.pages})</TabsTrigger>
@@ -210,9 +256,16 @@ export default function ContentPage() {
                 return (
                   <DataTable
                     columns={createContentColumns(refetch, refetchStats)}
-                    data={filteredContent}
+                    data={contentItems}
                     searchKey="title"
                     searchPlaceholder="Search content..."
+                    manualPagination={true}
+                    pageCount={paginationMeta?.totalPages || 0}
+                    pageIndex={page - 1}
+                    pageSize={pageSize}
+                    totalCount={paginationMeta?.count || 0}
+                    onPaginationChange={handlePaginationChange}
+                    pageSizeOptions={[10, 25, 50, 100]}
                   />
                 );
               })()}

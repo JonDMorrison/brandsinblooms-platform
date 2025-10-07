@@ -4,6 +4,8 @@ import { useState } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
+  OnChangeFn,
+  PaginationState,
   SortingState,
   VisibilityState,
   flexRender,
@@ -22,6 +24,13 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/src/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/src/components/ui/select'
 import { Input } from '@/src/components/ui/input'
 import {
   Table,
@@ -37,6 +46,14 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   searchKey?: string
   searchPlaceholder?: string
+  // Server-side pagination props
+  manualPagination?: boolean
+  pageCount?: number
+  pageIndex?: number
+  pageSize?: number
+  totalCount?: number
+  onPaginationChange?: OnChangeFn<PaginationState>
+  pageSizeOptions?: number[]
 }
 
 export function DataTable<TData, TValue>({
@@ -44,15 +61,34 @@ export function DataTable<TData, TValue>({
   data,
   searchKey,
   searchPlaceholder = "Search...",
+  manualPagination = false,
+  pageCount: controlledPageCount,
+  pageIndex: controlledPageIndex = 0,
+  pageSize: controlledPageSize = 10,
+  totalCount = 0,
+  onPaginationChange,
+  pageSizeOptions = [10, 25, 50, 100],
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
 
+  // Local pagination state for client-side pagination
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: controlledPageIndex,
+    pageSize: controlledPageSize,
+  })
+
+  // Use controlled pagination if manual, otherwise use local state
+  const paginationState = manualPagination
+    ? { pageIndex: controlledPageIndex, pageSize: controlledPageSize }
+    : pagination
+
   const table = useReactTable({
     data,
     columns,
+    pageCount: controlledPageCount,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -61,11 +97,14 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onPaginationChange: manualPagination ? onPaginationChange : setPagination,
+    manualPagination,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination: paginationState,
     },
   })
 
@@ -164,11 +203,54 @@ export function DataTable<TData, TValue>({
       </div>
       
       <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-sm text-gray-500 order-2 sm:order-1">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4 order-2 sm:order-1">
+          {manualPagination ? (
+            <>
+              <div className="text-sm text-gray-500">
+                Showing {paginationState.pageIndex * paginationState.pageSize + 1} to{" "}
+                {Math.min(
+                  (paginationState.pageIndex + 1) * paginationState.pageSize,
+                  totalCount
+                )}{" "}
+                of {totalCount} results
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">Rows per page:</span>
+                <Select
+                  value={paginationState.pageSize.toString()}
+                  onValueChange={(value) => {
+                    onPaginationChange?.({
+                      pageIndex: 0,
+                      pageSize: Number(value),
+                    })
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-[70px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pageSizeOptions.map((size) => (
+                      <SelectItem key={size} value={size.toString()}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-gray-500">
+              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {table.getFilteredRowModel().rows.length} row(s) selected.
+            </div>
+          )}
         </div>
-        <div className="flex justify-center gap-2 order-1 sm:order-2">
+        <div className="flex items-center justify-center gap-2 order-1 sm:order-2">
+          {manualPagination && (
+            <div className="text-sm text-gray-500 mr-2">
+              Page {paginationState.pageIndex + 1} of {controlledPageCount || 1}
+            </div>
+          )}
           <Button
             variant="outline"
             size="sm"
