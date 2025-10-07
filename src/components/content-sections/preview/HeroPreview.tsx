@@ -40,20 +40,38 @@ export function HeroPreview({
   const responsive = createResponsiveClassHelper(isPreview)
 
   // Convert old string[] format to new object[] format for backward compatibility
+  // Also handles mixed arrays (some strings, some objects) that may exist from partial migrations
   const rawFeatures = data.features as string[] | HeroFeatureItem[] | undefined
   const features: HeroFeatureItem[] = React.useMemo(() => {
     if (!rawFeatures || !Array.isArray(rawFeatures)) return []
 
-    // Check if it's old string[] format
-    if (typeof rawFeatures[0] === 'string') {
-      return (rawFeatures as string[]).map((text, i) => ({
+    // Handle each item individually to support mixed arrays
+    return rawFeatures.map((item, i) => {
+      // If already an object with required fields, return as-is
+      if (item && typeof item === 'object' && 'text' in item) {
+        return {
+          id: item.id || `feature-${i}`,
+          icon: item.icon || 'Check',
+          text: item.text
+        }
+      }
+
+      // Convert string to object
+      if (typeof item === 'string') {
+        return {
+          id: `feature-${i}`,
+          icon: 'Check',
+          text: item
+        }
+      }
+
+      // Fallback for invalid items
+      return {
         id: `feature-${i}`,
         icon: 'Check',
-        text
-      }))
-    }
-
-    return rawFeatures as HeroFeatureItem[]
+        text: ''
+      }
+    })
   }, [rawFeatures])
 
   // State for inline icon editing

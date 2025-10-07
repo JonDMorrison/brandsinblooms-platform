@@ -6,6 +6,25 @@
 import { PageContent } from '@/lib/content/schema'
 
 /**
+ * Feature item structure for hero and other sections
+ */
+export interface FeatureItem {
+  id: string
+  icon: string
+  text: string
+}
+
+/**
+ * Legacy feature type (backwards compatibility)
+ */
+export type LegacyFeature = string
+
+/**
+ * Union type for features (supports both legacy and modern)
+ */
+export type Feature = FeatureItem | LegacyFeature
+
+/**
  * Helper to create section-based field path for content updates
  */
 export function createSectionFieldPath(sectionKey: string, fieldPath: string): string {
@@ -42,6 +61,7 @@ export function updateContentByPath(
 /**
  * Helper to update feature arrays in sections
  * Supports both object-based features with fields (icon, text, title) and legacy string arrays
+ * Auto-migrates legacy string features to object format when non-text fields are updated
  */
 export function updateSectionFeature(
   content: PageContent,
@@ -60,7 +80,7 @@ export function updateSectionFeature(
   }
 
   // Create updated features array
-  const updatedFeatures = [...section.data.features]
+  let updatedFeatures = [...section.data.features]
   const currentFeature = updatedFeatures[featureIndex]
 
   // Handle object-based features (with icon, text/title fields)
@@ -69,9 +89,42 @@ export function updateSectionFeature(
       ...currentFeature,
       [field]: newContent
     }
-  } else {
-    // Legacy support: if it's a string array, just replace the string
-    updatedFeatures[featureIndex] = newContent
+  } else if (typeof currentFeature === 'string') {
+    // Legacy string feature detected - migrate ALL features to prevent mixed arrays
+
+    if (field === 'text') {
+      // Text-only update on legacy array - keep as string
+      updatedFeatures[featureIndex] = newContent
+    } else {
+      // Non-text field update (icon, etc.) - migrate ENTIRE array to objects
+      // This prevents mixed arrays where some items are strings and others are objects
+      const migratedFeatures: FeatureItem[] = updatedFeatures.map((feat, idx) => {
+        // If already an object, keep it as-is
+        if (typeof feat === 'object' && feat !== null && 'text' in feat) {
+          return {
+            id: (feat as any).id || `feature-${idx}`,
+            icon: (feat as any).icon || 'Check',
+            text: (feat as any).text || ''
+          }
+        }
+
+        // Convert string to object with defaults
+        return {
+          id: `feature-${idx}`,
+          icon: 'Check',  // Default icon for non-updated features
+          text: String(feat)  // Preserve original text
+        }
+      })
+
+      // Now update the specific feature with the new field value
+      migratedFeatures[featureIndex] = {
+        ...migratedFeatures[featureIndex],
+        [field]: newContent
+      }
+
+      // Cast back to the section's data type
+      updatedFeatures = migratedFeatures as any
+    }
   }
 
   // Create updated content with new features array
