@@ -7,11 +7,13 @@ import { PageContent } from '@/lib/content/schema'
 
 /**
  * Feature item structure for hero and other sections
+ * Supports both 'text' (for Hero) and 'title' (for Features) for compatibility
  */
 export interface FeatureItem {
   id: string
   icon: string
   text: string
+  title?: string  // Alias for compatibility with Features section
 }
 
 /**
@@ -85,41 +87,63 @@ export function updateSectionFeature(
 
   // Handle object-based features (with icon, text/title fields)
   if (currentFeature && typeof currentFeature === 'object') {
-    updatedFeatures[featureIndex] = {
-      ...currentFeature,
-      [field]: newContent
+    // If updating text or title, update both to keep them in sync
+    if (field === 'text' || field === 'title') {
+      updatedFeatures[featureIndex] = {
+        ...currentFeature,
+        text: newContent,
+        title: newContent
+      }
+    } else {
+      updatedFeatures[featureIndex] = {
+        ...currentFeature,
+        [field]: newContent
+      }
     }
   } else if (typeof currentFeature === 'string') {
     // Legacy string feature detected - migrate ALL features to prevent mixed arrays
 
-    if (field === 'text') {
-      // Text-only update on legacy array - keep as string
+    if (field === 'text' || field === 'title') {
+      // Text/title update on legacy array - keep as string
       updatedFeatures[featureIndex] = newContent
     } else {
       // Non-text field update (icon, etc.) - migrate ENTIRE array to objects
       // This prevents mixed arrays where some items are strings and others are objects
       const migratedFeatures: FeatureItem[] = updatedFeatures.map((feat, idx) => {
-        // If already an object, keep it as-is
-        if (typeof feat === 'object' && feat !== null && 'text' in feat) {
+        // If already an object, keep it as-is with both text and title
+        if (typeof feat === 'object' && feat !== null) {
+          const existingText = (feat as any).text || (feat as any).title || ''
           return {
             id: (feat as any).id || `feature-${idx}`,
             icon: (feat as any).icon || 'Check',
-            text: (feat as any).text || ''
+            text: existingText,
+            title: existingText  // Create both properties for compatibility
           }
         }
 
-        // Convert string to object with defaults
+        // Convert string to object with defaults, creating both text and title
+        const featureText = String(feat)
         return {
           id: `feature-${idx}`,
           icon: 'Check',  // Default icon for non-updated features
-          text: String(feat)  // Preserve original text
+          text: featureText,   // For Hero sections
+          title: featureText   // For Features sections
         }
       })
 
       // Now update the specific feature with the new field value
-      migratedFeatures[featureIndex] = {
-        ...migratedFeatures[featureIndex],
-        [field]: newContent
+      // If updating text or title, update both to keep them in sync
+      if (field === 'text' || field === 'title') {
+        migratedFeatures[featureIndex] = {
+          ...migratedFeatures[featureIndex],
+          text: newContent,
+          title: newContent
+        }
+      } else {
+        migratedFeatures[featureIndex] = {
+          ...migratedFeatures[featureIndex],
+          [field]: newContent
+        }
       }
 
       // Cast back to the section's data type

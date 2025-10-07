@@ -84,35 +84,35 @@ export function CustomerSiteSection({
                   <div
                     className={`grid gap-6 text-center ${getFeatureGridClasses(sectionData.features.length, false)}`}
                   >
-                    {sectionData.features.slice(0, 4).map((feature: string, index: number) => (
-                      <div key={index} className="flex flex-col items-center">
-                        <div 
-                          className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
-                          style={{ backgroundColor: 'var(--theme-primary)' }}
-                        >
-                          <svg 
-                            className="w-6 h-6 text-white" 
-                            fill="currentColor" 
-                            viewBox="0 0 20 20"
+                    {sectionData.features.slice(0, 4).map((feature: any, index: number) => {
+                      // Support both string features (legacy) and object features with icons
+                      const isObject = typeof feature === 'object' && feature !== null
+                      const featureText = isObject
+                        ? (feature.text || feature.title || '')
+                        : String(feature)
+                      const iconName = isObject && feature.icon ? feature.icon : 'Check'
+                      const IconComponent = getIcon(iconName)
+
+                      return (
+                        <div key={index} className="flex flex-col items-center">
+                          <div
+                            className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
+                            style={{ backgroundColor: 'var(--theme-primary)' }}
                           >
-                            <path 
-                              fillRule="evenodd" 
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                              clipRule="evenodd"
-                            />
-                          </svg>
+                            {IconComponent && <IconComponent className="w-6 h-6 text-white" />}
+                          </div>
+                          <span
+                            className="text-sm font-medium"
+                            style={{
+                              color: 'var(--theme-text)',
+                              fontFamily: 'var(--theme-font-body)'
+                            }}
+                          >
+                            {featureText}
+                          </span>
                         </div>
-                        <span
-                          className="text-sm font-medium"
-                          style={{
-                            color: 'var(--theme-text)',
-                            fontFamily: 'var(--theme-font-body)'
-                          }}
-                        >
-                          {String(feature)}
-                        </span>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -331,19 +331,21 @@ export function CustomerSiteSection({
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {((sectionData.features as Array<string | { icon?: string; title: string }>) || []).map((feature, index) => {
+              {((sectionData.features as Array<string | { icon?: string; title?: string; text?: string }>) || []).map((feature, index) => {
                 // Support both string features (legacy) and object features with icons
-                const isObject = typeof feature === 'object' && feature !== null;
-                const title = isObject ? feature.title : String(feature);
-                const iconName = isObject && feature.icon ? feature.icon : 'Check';
-                const IconComponent = getIcon(iconName);
+                const isObject = typeof feature === 'object' && feature !== null
+                const featureText = isObject
+                  ? (feature.title || feature.text || '')
+                  : String(feature)
+                const iconName = isObject && feature.icon ? feature.icon : 'Check'
+                const IconComponent = getIcon(iconName)
 
                 return (
                   <div key={`feature-${index}`} className="p-6 rounded-lg border text-center" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.05)', borderColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
                     <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto" style={{backgroundColor: 'var(--theme-primary)'}}>
-                      <IconComponent className="w-6 h-6 text-white" />
+                      {IconComponent && <IconComponent className="w-6 h-6 text-white" />}
                     </div>
-                    <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{title}</p>
+                    <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{featureText}</p>
                   </div>
                 );
               })}

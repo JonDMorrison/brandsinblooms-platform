@@ -25,6 +25,7 @@ interface HeroFeatureItem {
   id: string
   icon: string
   text: string
+  title?: string  // Alias for compatibility with Features section
 }
 
 export function HeroPreview({
@@ -48,11 +49,13 @@ export function HeroPreview({
     // Handle each item individually to support mixed arrays
     return rawFeatures.map((item, i) => {
       // If already an object with required fields, return as-is
-      if (item && typeof item === 'object' && 'text' in item) {
+      if (item && typeof item === 'object' && ('text' in item || 'title' in item)) {
+        const displayText = (item as any).text || (item as any).title || ''
         return {
-          id: item.id || `feature-${i}`,
-          icon: item.icon || 'Check',
-          text: item.text
+          id: (item as any).id || `feature-${i}`,
+          icon: (item as any).icon || 'Check',
+          text: displayText,
+          title: displayText
         }
       }
 
@@ -61,7 +64,8 @@ export function HeroPreview({
         return {
           id: `feature-${i}`,
           icon: 'Check',
-          text: item
+          text: item,
+          title: item
         }
       }
 
@@ -69,7 +73,8 @@ export function HeroPreview({
       return {
         id: `feature-${i}`,
         icon: 'Check',
-        text: ''
+        text: '',
+        title: ''
       }
     })
   }, [rawFeatures])
