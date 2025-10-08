@@ -14,14 +14,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Separator } from '@/components/ui/separator'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { signInWithProvider, signInWithMagicLink, handleAuthError } from '@/lib/auth/client'
 import { AuthError } from '@supabase/supabase-js'
 import { handleError } from '@/lib/types/error-handling'
+import { AlertCircle } from 'lucide-react'
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoadingProvider, setIsLoadingProvider] = useState<string | null>(null)
   const [isLoadingMagicLink, setIsLoadingMagicLink] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
   const { signIn } = useAuth()
   const router = useRouter()
 
@@ -39,12 +42,13 @@ export default function SignIn() {
 
   const onSubmit = async (data: SignInData) => {
     try {
+      setAuthError(null) // Clear any previous errors
       await signIn(data.email, data.password)
       toast.success('Successfully signed in!')
       router.push('/')
     } catch (error: unknown) {
       const message = handleAuthError(error as AuthError)
-      toast.error(message)
+      setAuthError(message)
     }
   }
 
@@ -109,6 +113,10 @@ export default function SignIn() {
                           autoComplete="email"
                           className="fade-in-up"
                           style={{ animationDelay: '0.1s' }}
+                          onChange={(e) => {
+                            field.onChange(e)
+                            if (authError) setAuthError(null)
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -133,6 +141,10 @@ export default function SignIn() {
                             autoComplete="current-password"
                             className="pr-10 fade-in-up"
                             style={{ animationDelay: '0.2s' }}
+                            onChange={(e) => {
+                              field.onChange(e)
+                              if (authError) setAuthError(null)
+                            }}
                           />
                         <Button
                           type="button"
@@ -162,6 +174,12 @@ export default function SignIn() {
                   Forgot password?
                 </Link>
               </div>
+              {authError && (
+                <Alert variant="destructive" className="animate-in fade-in-50 duration-300">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{authError}</AlertDescription>
+                </Alert>
+              )}
               <Button
                 type="submit"
                 className="w-full btn-gradient-primary fade-in-up cursor-pointer"

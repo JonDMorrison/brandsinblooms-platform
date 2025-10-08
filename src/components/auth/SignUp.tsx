@@ -15,13 +15,16 @@ import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { signInWithProvider, handleAuthError } from '@/lib/auth/client'
 import { AuthError } from '@supabase/supabase-js'
+import { AlertCircle } from 'lucide-react'
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoadingProvider, setIsLoadingProvider] = useState<string | null>(null)
+  const [authError, setAuthError] = useState<string | null>(null)
   const { signUp } = useAuth()
   const router = useRouter()
 
@@ -43,12 +46,13 @@ export default function SignUp() {
 
   const onSubmit = async (data: SignUpData) => {
     try {
+      setAuthError(null) // Clear any previous errors
       await signUp(data.email, data.password)
       toast.success('Account created! Please check your email to verify your account.')
       router.push('/auth/verify-email')
     } catch (error) {
       const message = handleAuthError(error as AuthError)
-      toast.error(message)
+      setAuthError(message)
     }
   }
 
@@ -106,6 +110,10 @@ export default function SignUp() {
                           autoComplete="email"
                           className="fade-in-up"
                           style={{ animationDelay: '0.1s' }}
+                          onChange={(e) => {
+                            field.onChange(e)
+                            if (authError) setAuthError(null)
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -130,6 +138,10 @@ export default function SignUp() {
                             autoComplete="new-password"
                             className="pr-10 fade-in-up"
                             style={{ animationDelay: '0.2s' }}
+                            onChange={(e) => {
+                              field.onChange(e)
+                              if (authError) setAuthError(null)
+                            }}
                           />
                         <Button
                           type="button"
@@ -193,6 +205,10 @@ export default function SignUp() {
                             autoComplete="new-password"
                             className="pr-10 fade-in-up"
                             style={{ animationDelay: '0.3s' }}
+                            onChange={(e) => {
+                              field.onChange(e)
+                              if (authError) setAuthError(null)
+                            }}
                           />
                         <Button
                           type="button"
@@ -259,6 +275,12 @@ export default function SignUp() {
                   )
                 }}
               />
+              {authError && (
+                <Alert variant="destructive" className="animate-in fade-in-50 duration-300">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{authError}</AlertDescription>
+                </Alert>
+              )}
               <Button
                 type="submit"
                 className="w-full btn-gradient-primary fade-in-up cursor-pointer"
