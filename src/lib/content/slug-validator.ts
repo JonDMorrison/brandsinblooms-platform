@@ -1,5 +1,9 @@
 'use client'
 
+import { checkSlugAvailability } from '@/src/lib/queries/domains/content'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/database/types'
+
 export interface SlugValidationResult {
   isValid: boolean
   isAvailable: boolean
@@ -62,42 +66,36 @@ export class SlugValidator {
    * Checks slug availability in the database
    */
   static async checkAvailability(
-    slug: string, 
-    siteId: string, 
+    supabase: SupabaseClient<Database>,
+    slug: string,
+    siteId: string,
     excludeContentId?: string
   ): Promise<{ available: boolean; message: string }> {
     try {
-      // TODO: Implement actual database check with Supabase
-      // This would query the content table to check if slug exists for the site
-      // SELECT id FROM content 
-      // WHERE site_id = siteId 
-      // AND page_settings->>'slug' = slug 
-      // AND id != excludeContentId (if provided)
-      
-      // Simulate database check with random delay
-      await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 500))
-      
-      // Simulate some slugs being taken
-      const takenSlugs = ['home', 'about', 'contact', 'services', 'products']
-      const isTaken = takenSlugs.includes(slug) || Math.random() < 0.3
-      
-      if (isTaken) {
-        return { 
-          available: false, 
-          message: 'This URL is already in use' 
+      const isAvailable = await checkSlugAvailability(
+        supabase,
+        siteId,
+        slug,
+        excludeContentId
+      )
+
+      if (!isAvailable) {
+        return {
+          available: false,
+          message: 'A page with this name already exists'
         }
       }
-      
-      return { 
-        available: true, 
-        message: 'URL is available' 
+
+      return {
+        available: true,
+        message: 'Page name is available'
       }
-      
+
     } catch (error) {
       console.error('Error checking slug availability:', error)
-      return { 
-        available: false, 
-        message: 'Unable to check availability. Please try again.' 
+      return {
+        available: false,
+        message: 'Unable to check availability. Please try again.'
       }
     }
   }
@@ -106,13 +104,14 @@ export class SlugValidator {
    * Performs complete slug validation (format + availability)
    */
   static async validateSlug(
-    slug: string, 
-    siteId: string, 
+    supabase: SupabaseClient<Database>,
+    slug: string,
+    siteId: string,
     excludeContentId?: string
   ): Promise<SlugValidationResult> {
     // First check format
     const formatValidation = this.validateFormat(slug)
-    
+
     if (!formatValidation.valid) {
       return {
         isValid: false,
@@ -123,8 +122,8 @@ export class SlugValidator {
     }
 
     // Then check availability
-    const availabilityCheck = await this.checkAvailability(slug, siteId, excludeContentId)
-    
+    const availabilityCheck = await this.checkAvailability(supabase, slug, siteId, excludeContentId)
+
     if (!availabilityCheck.available) {
       const suggestions = this.generateSuggestions(slug)
       return {
@@ -140,7 +139,7 @@ export class SlugValidator {
       isValid: true,
       isAvailable: true,
       status: 'available',
-      message: 'URL is available and valid'
+      message: 'Page name is available and valid'
     }
   }
 
@@ -187,9 +186,9 @@ export class SlugValidator {
 /**
  * Hook for using slug validation in React components
  */
-export function useSlugValidator(siteId: string, contentId?: string) {
+export function useSlugValidator(supabase: SupabaseClient<Database>, siteId: string, contentId?: string) {
   const validateSlug = async (slug: string): Promise<SlugValidationResult> => {
-    return SlugValidator.validateSlug(slug, siteId, contentId)
+    return SlugValidator.validateSlug(supabase, slug, siteId, contentId)
   }
 
   const validateFormat = (slug: string) => {

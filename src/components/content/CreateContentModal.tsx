@@ -1,16 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { createContent } from '@/src/lib/queries/domains/content'
+import { createContent, generateUniqueContentSlug } from '@/src/lib/queries/domains/content'
 import { supabase } from '@/src/lib/supabase/client'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { getTemplateContent } from '@/src/lib/content/templates'
 import { MOCK_DATA_PRESETS } from '@/src/lib/content/mock-data'
 import { serializePageContent } from '@/src/lib/content'
+import { SlugValidator } from '@/src/lib/content/slug-validator'
+import { getDisplayErrorMessage } from '@/src/lib/queries/errors'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
@@ -33,13 +35,15 @@ import {
 import { Badge } from '@/src/components/ui/badge'
 import { Switch } from '@/src/components/ui/switch'
 import { toast } from 'sonner'
-import { 
-  ArrowRight, 
+import {
+  ArrowRight,
   Check,
   Layout,
   Sparkles,
   Wand2,
-  ArrowLeft
+  ArrowLeft,
+  AlertCircle,
+  Loader2
 } from 'lucide-react'
 
 const createContentSchema = z.object({
@@ -194,6 +198,12 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
   const [isCreating, setIsCreating] = useState(false)
   const [useMockData, setUseMockData] = useState(true)
 
+  // Slug validation state
+  const [isValidatingSlug, setIsValidatingSlug] = useState(false)
+  const [slugValidationMessage, setSlugValidationMessage] = useState<string>('')
+  const [slugValidationStatus, setSlugValidationStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle')
+  const [generatedSlug, setGeneratedSlug] = useState<string>('')
+
   const form = useForm<CreateContentForm>({
     resolver: zodResolver(createContentSchema),
     defaultValues: {
@@ -229,9 +239,60 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
     form.setValue('template', templateId, { shouldValidate: true })
   }
 
+  // Debounced slug validation - generates unique slug preview
+  const validateSlugAvailability = useCallback(async (title: string) => {
+    if (!title || !currentSite?.id) {
+      setSlugValidationStatus('idle')
+      setSlugValidationMessage('')
+      setGeneratedSlug('')
+      return
+    }
+
+    setIsValidatingSlug(true)
+    setSlugValidationStatus('checking')
+    setSlugValidationMessage('Checking availability...')
+
+    try {
+      // Generate unique slug (auto-appends -1, -2, etc. if needed)
+      const uniqueSlug = await generateUniqueContentSlug(supabase, title, currentSite.id)
+
+      // Generate base slug to compare
+      const baseSlug = SlugValidator.generateFromTitle(title)
+
+      setGeneratedSlug(uniqueSlug)
+
+      // If unique slug is different from base, it means we added a suffix
+      if (uniqueSlug !== baseSlug) {
+        setSlugValidationStatus('taken')
+        setSlugValidationMessage(`Will be saved as: ${uniqueSlug}`)
+      } else {
+        setSlugValidationStatus('available')
+        setSlugValidationMessage(`✓ Will be saved as: ${uniqueSlug}`)
+      }
+    } catch (error) {
+      console.error('Error generating slug:', error)
+      setSlugValidationStatus('error')
+      setSlugValidationMessage('Unable to generate slug')
+      setGeneratedSlug('')
+    } finally {
+      setIsValidatingSlug(false)
+    }
+  }, [currentSite?.id])
+
+  // Debounced title change handler
+  useEffect(() => {
+    const title = form.watch('title')
+    const timeoutId = setTimeout(() => {
+      validateSlugAvailability(title)
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [form.watch('title'), validateSlugAvailability])
+
   const nextStep = () => {
     if (step === 1) {
       form.trigger(['title']).then((isValid) => {
+        // Just validate the title field, don't block on slug
         if (isValid) {
           setStep(2)
         }
@@ -252,6 +313,10 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
     setSelectedPageType('landing')
     setSelectedTemplate('home-page')
     setUseMockData(true)
+    setSlugValidationStatus('idle')
+    setSlugValidationMessage('')
+    setIsValidatingSlug(false)
+    setGeneratedSlug('')
     form.reset()
   }
 
@@ -275,14 +340,11 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
     
     setIsCreating(true)
     const toastId = toast.loading('Creating page...')
-    
+
     try {
-      // Generate slug from title
-      const slug = data.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-      
+      // Use pre-generated unique slug, or generate it now
+      const slug = generatedSlug || await generateUniqueContentSlug(supabase, data.title, currentSite.id)
+
       // Get template content based on selected template and settings
       const selectedTemplateName = form.getValues('template') || selectedTemplate
       const templateContent = useMockData 
@@ -320,7 +382,19 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
       
     } catch (error) {
       console.error('Error creating content:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create page. Please try again.'
+
+      // Check if it's a duplicate key constraint error
+      let errorMessage = 'Failed to create page. Please try again.'
+
+      if (error instanceof Error) {
+        // Check for duplicate slug error
+        if (error.message.includes('duplicate key') || error.message.includes('content_site_id_slug_key')) {
+          errorMessage = 'A page with this name already exists. Please choose a different name.'
+        } else {
+          errorMessage = getDisplayErrorMessage(error)
+        }
+      }
+
       toast.error(errorMessage, { id: toastId })
     } finally {
       setIsCreating(false)
@@ -376,13 +450,35 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
                     <FormItem>
                       <FormLabel className="text-base font-semibold">Page Title *</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Enter a descriptive title for your page"
-                          className="h-12 text-lg"
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Input
+                            placeholder="Enter a descriptive title for your page"
+                            className="h-12 text-lg pr-10"
+                            {...field}
+                          />
+                          {/* Validation status icon */}
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            {isValidatingSlug && (
+                              <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
+                            )}
+                            {!isValidatingSlug && (slugValidationStatus === 'available' || slugValidationStatus === 'taken') && field.value && (
+                              <Check className="h-5 w-5 text-green-600" />
+                            )}
+                          </div>
+                        </div>
                       </FormControl>
                       <FormMessage />
+                      {/* Validation feedback message */}
+                      {slugValidationMessage && field.value && (
+                        <p className={`text-sm mt-1 flex items-center gap-1 ${
+                          slugValidationStatus === 'available' ? 'text-green-600' :
+                          slugValidationStatus === 'taken' ? 'text-blue-600' :
+                          slugValidationStatus === 'checking' ? 'text-gray-500' :
+                          'text-yellow-600'
+                        }`}>
+                          {slugValidationMessage}
+                        </p>
+                      )}
                     </FormItem>
                   )}
                 />

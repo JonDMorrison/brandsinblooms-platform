@@ -622,6 +622,82 @@ export async function checkSlugAvailability(
 }
 
 /**
+ * Generate a unique slug for content within a site
+ * Automatically appends -1, -2, etc. if the base slug is taken
+ */
+export async function generateUniqueContentSlug(
+  supabase: SupabaseClient<Database>,
+  title: string,
+  siteId: string,
+  excludeId?: string
+): Promise<string> {
+  // Generate base slug from title
+  const baseSlug = title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+    .substring(0, 100); // Limit length
+
+  // If empty after processing, use a fallback
+  if (!baseSlug) {
+    return `page-${Date.now()}`;
+  }
+
+  // Build query to find existing slugs with this base
+  let query = supabase
+    .from('content')
+    .select('slug')
+    .eq('site_id', siteId)
+    .or(`slug.eq.${baseSlug},slug.like.${baseSlug}-%`);
+
+  // Exclude current content if editing
+  if (excludeId) {
+    query = query.neq('id', excludeId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error checking slug uniqueness:', error);
+    // In case of error, append timestamp to ensure uniqueness
+    return `${baseSlug}-${Date.now()}`;
+  }
+
+  // If no conflicts, return the base slug
+  if (!data || data.length === 0) {
+    return baseSlug;
+  }
+
+  // Create a Set for O(1) conflict checking
+  const existingSlugs = new Set(data.map(item => item.slug));
+
+  // If base slug doesn't exist, use it
+  if (!existingSlugs.has(baseSlug)) {
+    return baseSlug;
+  }
+
+  // Find the next available number suffix
+  let counter = 1;
+  let uniqueSlug = `${baseSlug}-${counter}`;
+
+  while (existingSlugs.has(uniqueSlug)) {
+    counter++;
+    uniqueSlug = `${baseSlug}-${counter}`;
+
+    // Safety check to prevent infinite loops
+    if (counter > 1000) {
+      // Fallback to timestamp if too many iterations
+      return `${baseSlug}-${Date.now()}`;
+    }
+  }
+
+  return uniqueSlug;
+}
+
+/**
  * Handle publishing a special page (home, about, contact)
  * - Finds any existing published page with the canonical slug
  * - Renames and unpublishes the existing page
