@@ -241,9 +241,16 @@ export default function DesignPage() {
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="flex-1 overflow-hidden">
-                <Suspense fallback={<Skeleton className="h-full w-full" />}>
-                  <DesignPreview settings={localSettings} className="h-full border-0 shadow-none" />
+              <div className="flex-1 overflow-hidden relative bg-white flex items-center justify-center">
+                <Suspense fallback={
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <Eye className="h-8 w-8 animate-pulse text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">Loading preview...</p>
+                    </div>
+                  </div>
+                }>
+                  <DesignPreview settings={localSettings} className="h-full w-full border-0 shadow-none" />
                 </Suspense>
               </div>
             </div>
