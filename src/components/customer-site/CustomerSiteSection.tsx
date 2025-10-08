@@ -176,7 +176,10 @@ export function CustomerSiteSection({
                           loading="eager"
                         />
                         <div className="absolute top-3 right-3">
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <span
+                            className="px-2 py-1 rounded-full text-xs font-medium"
+                            style={{ backgroundColor: 'var(--theme-accent)', color: '#fff' }}
+                          >
                             {plant.category || 'Houseplants'}
                           </span>
                         </div>

@@ -211,19 +211,13 @@ export function ColorCustomization({ colors, typography, onColorsChange }: Color
                   <h2 className="text-lg font-semibold" style={{ color: colors.primary, fontFamily: `${typography?.headingFont || 'Inter'}, system-ui, sans-serif` }}>Section Heading</h2>
                   <p className="text-sm" style={{ color: textColor, fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif` }}>This is how your regular text content will appear with the selected color scheme.</p>
                   <div className="flex items-center gap-2">
-                    <span 
+                    <span
                       className="px-2 py-1 text-xs rounded-full"
                       style={{ backgroundColor: colors.accent, color: '#fff' }}
                     >
-                      Accent Badge
-                    </span>
-                    <span 
-                      className="px-2 py-1 text-xs rounded-full border"
-                      style={{ borderColor: colors.primary, color: colors.primary, backgroundColor: 'transparent' }}
-                    >
                       Primary Badge
                     </span>
-                    <span 
+                    <span
                       className="px-2 py-1 text-xs rounded-full"
                       style={{ backgroundColor: colors.secondary + '20', color: colors.secondary }}
                     >
