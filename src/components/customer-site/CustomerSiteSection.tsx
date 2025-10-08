@@ -69,10 +69,10 @@ export function CustomerSiteSection({
                     {String(sectionData.ctaText || 'Shop Plants')}
                   </Link>
                   {sectionData.secondaryCtaText && (
-                    <Link 
+                    <Link
                       href={String(sectionData.secondaryCtaLink || '/about')}
-                      className="px-8 py-4 border-2 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
-                      style={{borderColor: 'var(--theme-primary)', color: 'var(--theme-primary)', fontFamily: 'var(--theme-font-body)'}}
+                      className="px-8 py-4 border rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
+                      style={{borderColor: 'var(--theme-secondary)', color: 'var(--theme-secondary)', fontFamily: 'var(--theme-font-body)'}}
                     >
                       {String(sectionData.secondaryCtaText)}
                     </Link>
