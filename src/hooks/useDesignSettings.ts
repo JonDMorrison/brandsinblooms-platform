@@ -21,7 +21,7 @@ export function useDesignSettings() {
       if (!siteId) {
         return getDefaultTheme();
       }
-      
+
       try {
         return await getSiteTheme(supabase, siteId);
       } catch (error) {
@@ -32,7 +32,7 @@ export function useDesignSettings() {
     {
       enabled: !!siteId,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      persistKey: `design-settings-${siteId}`,
+      persistKey: `site-theme-${siteId}`,
     },
     [siteId] // Re-fetch when siteId changes
   );
@@ -47,14 +47,14 @@ export function useUpdateDesignSettings() {
       if (!siteId) {
         throw new Error('No site ID available');
       }
-      
+
       return await updateSiteTheme(supabase, siteId, settings);
     },
     {
       onSuccess: () => {
-        // Clear localStorage cache for design settings
+        // Clear localStorage cache for theme settings (shared with useSiteTheme)
         if (typeof window !== 'undefined' && siteId) {
-          localStorage.removeItem(`design-settings-${siteId}`);
+          localStorage.removeItem(`site-theme-${siteId}`);
         }
       }
     }
