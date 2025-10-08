@@ -156,9 +156,9 @@ export function ColorCustomization({ colors, typography, onColorsChange }: Color
                   <div className="flex items-center justify-between p-3 rounded border" style={{ borderColor: colors.primary + '20' }}>
                     <h1 className="text-xl font-bold" style={{ color: colors.primary, fontFamily: `${typography?.headingFont || 'Inter'}, system-ui, sans-serif` }}>Your Brand</h1>
                     <div className="flex gap-2">
-                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif` }}>Home</span>
-                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif` }}>About</span>
-                      <span className="text-sm cursor-pointer transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif` }}>Contact</span>
+                      <span className="text-sm cursor-default transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif` }}>Home</span>
+                      <span className="text-sm cursor-default transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif` }}>About</span>
+                      <span className="text-sm cursor-default transition-colors hover:opacity-80" style={{ color: colors.secondary, fontFamily: `${typography?.bodyFont || 'Inter'}, system-ui, sans-serif` }}>Contact</span>
                     </div>
                   </div>
                 </div>
@@ -168,29 +168,29 @@ export function ColorCustomization({ colors, typography, onColorsChange }: Color
               <div className="space-y-2">
                 <div className="text-xs" style={{ color: textColor + '80' }}>Button Elements</div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <button 
-                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-all hover:opacity-90 hover:shadow-sm cursor-pointer"
-                    style={{ 
-                      backgroundColor: colors.primary, 
+                  <button
+                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-all hover:opacity-90 hover:shadow-sm cursor-default"
+                    style={{
+                      backgroundColor: colors.primary,
                       color: '#fff',
                       border: 'none'
                     }}
                   >
                     Primary Button
                   </button>
-                  <button 
-                    className="px-3 py-1.5 text-sm font-medium rounded-md border transition-all hover:opacity-80 cursor-pointer"
-                    style={{ 
-                      borderColor: colors.secondary, 
+                  <button
+                    className="px-3 py-1.5 text-sm font-medium rounded-md border transition-all hover:opacity-80 cursor-default"
+                    style={{
+                      borderColor: colors.secondary,
                       color: colors.secondary,
                       backgroundColor: 'transparent'
                     }}
                   >
                     Secondary Button
                   </button>
-                  <button 
-                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-all hover:opacity-80 cursor-pointer"
-                    style={{ 
+                  <button
+                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-all hover:opacity-80 cursor-default"
+                    style={{
                       color: colors.accent,
                       backgroundColor: 'transparent',
                       border: 'none'

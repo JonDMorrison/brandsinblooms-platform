@@ -387,7 +387,7 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
                           <ul className="space-y-1">
                             {column.links.slice(0, 3).map((link, linkIndex) => (
                               <li key={linkIndex}>
-                                <span className="text-xs hover:opacity-70 cursor-pointer transition-opacity" 
+                                <span className="text-xs hover:opacity-70 cursor-default transition-opacity"
                                       style={{ color: colors?.secondary || '#6b7280' }}>
                                   {link.label}
                                 </span>
@@ -407,7 +407,7 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
                           const platform = SOCIAL_PLATFORMS.find(p => p.value === social.platform)
                           const IconComponent = platform?.icon || Globe
                           return (
-                            <IconComponent key={index} className="w-5 h-5 hover:opacity-70 cursor-pointer transition-opacity" 
+                            <IconComponent key={index} className="w-5 h-5 hover:opacity-70 cursor-default transition-opacity"
                                          style={{ color: colors?.secondary || '#d97706' }} />
                           )
                         })}
@@ -426,7 +426,7 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
                         const platform = SOCIAL_PLATFORMS.find(p => p.value === social.platform)
                         const IconComponent = platform?.icon || Globe
                         return (
-                          <IconComponent key={index} className="w-5 h-5 hover:opacity-70 cursor-pointer transition-opacity" 
+                          <IconComponent key={index} className="w-5 h-5 hover:opacity-70 cursor-default transition-opacity"
                                        style={{ color: colors?.secondary || '#d97706' }} />
                         )
                       })}
@@ -439,23 +439,23 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
                     <div className="space-y-2">
                       <div className="flex justify-center gap-6 text-sm">
                         {selectedFooterNavItems.includes('home') && (
-                          <span className="hover:opacity-70 cursor-pointer transition-opacity" 
+                          <span className="hover:opacity-70 cursor-default transition-opacity"
                                 style={{ color: colors?.secondary || '#6b7280' }}>Home</span>
                         )}
                         {selectedFooterNavItems.includes('products') && (
-                          <span className="hover:opacity-70 cursor-pointer transition-opacity" 
+                          <span className="hover:opacity-70 cursor-default transition-opacity"
                                 style={{ color: colors?.secondary || '#6b7280' }}>Products</span>
                         )}
                         {selectedFooterNavItems.includes('about') && (
-                          <span className="hover:opacity-70 cursor-pointer transition-opacity" 
+                          <span className="hover:opacity-70 cursor-default transition-opacity"
                                 style={{ color: colors?.secondary || '#6b7280' }}>About</span>
                         )}
                         {selectedFooterNavItems.includes('contact') && (
-                          <span className="hover:opacity-70 cursor-pointer transition-opacity" 
+                          <span className="hover:opacity-70 cursor-default transition-opacity"
                                 style={{ color: colors?.secondary || '#6b7280' }}>Contact</span>
                         )}
                         {selectedFooterNavItems.includes('blog') && (
-                          <span className="hover:opacity-70 cursor-pointer transition-opacity" 
+                          <span className="hover:opacity-70 cursor-default transition-opacity"
                                 style={{ color: colors?.secondary || '#6b7280' }}>Blog</span>
                         )}
                       </div>
@@ -464,7 +464,7 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
                           const platform = SOCIAL_PLATFORMS.find(p => p.value === social.platform)
                           const IconComponent = platform?.icon || Globe
                           return (
-                            <IconComponent key={index} className="h-4 w-4 hover:opacity-70 cursor-pointer transition-opacity" 
+                            <IconComponent key={index} className="h-4 w-4 hover:opacity-70 cursor-default transition-opacity"
                                          style={{ color: colors?.primary || '#2563eb' }} />
                           )
                         })}
