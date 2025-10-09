@@ -12,6 +12,7 @@ import {
   Files,
 } from 'lucide-react'
 import { useContent, useContentStats } from '@/src/hooks/useContent'
+import type { ContentType } from '@/src/lib/queries/domains/content'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { DataTable } from '@/src/components/ui/data-table'
 import { useSiteId, useSiteContext } from '@/src/contexts/SiteContext'
@@ -39,7 +40,12 @@ export default function ContentPage() {
   })
 
   // Fetch real content data with pagination and type filters
-  const contentTypeFilter = activeTab === 'pages' ? 'page' : activeTab === 'blog' ? 'blog_post' : undefined
+  // Pages tab should include all page layout types: landing, about, contact, other
+  const contentTypeFilter: ContentType | ContentType[] | undefined = activeTab === 'pages'
+    ? ['landing', 'about', 'contact', 'other']
+    : activeTab === 'blog'
+    ? 'blog_post'
+    : undefined
   const { data: contentResponse, loading: isLoading, error, refresh: refetch } = useContent({
     page,
     limit: pageSize,

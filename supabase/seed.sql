@@ -123,9 +123,9 @@ VALUES
 
 -- Create content
 INSERT INTO content (site_id, title, content, slug, is_published, content_type)
-VALUES 
-    ('00000000-0000-0000-0000-000000000001', 'Welcome to Dev Site', '{"blocks": [{"type": "paragraph", "content": "This is the development site content."}]}', 'welcome', true, 'page'),
-    ('00000000-0000-0000-0000-000000000001', 'About Us', '{"blocks": [{"type": "paragraph", "content": "Learn more about our development team."}]}', 'about', true, 'page'),
+VALUES
+    ('00000000-0000-0000-0000-000000000001', 'Welcome to Dev Site', '{"blocks": [{"type": "paragraph", "content": "This is the development site content."}]}', 'welcome', true, 'landing'),
+    ('00000000-0000-0000-0000-000000000001', 'About Us', '{"blocks": [{"type": "paragraph", "content": "Learn more about our development team."}]}', 'about', true, 'about'),
     ('14a3a999-b698-437f-90a8-f89842f10d08', 'Spring Gardening Tips', '{"blocks": [{"type": "paragraph", "content": "Get your garden ready for spring!"}]}', 'spring-tips', true, 'blog_post'),
     ('55555555-5555-5555-5555-555555555555', 'Latest Tech Deals', '{"blocks": [{"type": "paragraph", "content": "Check out our amazing deals!"}]}', 'deals', true, 'blog_post');
 

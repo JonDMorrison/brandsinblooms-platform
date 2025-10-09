@@ -307,7 +307,7 @@ export default function DashboardSitesPage() {
           site_id: siteId,
           title: 'Privacy Policy',
           slug: 'privacy',
-          content_type: 'privacy_page',
+          content_type: 'other',
           content: privacyContent,
           is_published: true,
           sort_order: 90,
@@ -317,7 +317,7 @@ export default function DashboardSitesPage() {
           site_id: siteId,
           title: 'Terms of Service',
           slug: 'terms',
-          content_type: 'terms_page',
+          content_type: 'other',
           content: termsContent,
           is_published: true,
           sort_order: 100,
@@ -327,7 +327,7 @@ export default function DashboardSitesPage() {
           site_id: siteId,
           title: 'Seasonal Plant Care Guide',
           slug: 'seasonal-guide',
-          content_type: 'seasonal_guide',
+          content_type: 'other',
           content: seasonalGuideContent,
           is_published: true,
           sort_order: 110,
@@ -337,7 +337,7 @@ export default function DashboardSitesPage() {
           site_id: siteId,
           title: 'About Our Company',
           slug: 'company',
-          content_type: 'page',
+          content_type: 'other',
           content: companyContent,
           is_published: true,
           sort_order: 120,
@@ -347,7 +347,7 @@ export default function DashboardSitesPage() {
           site_id: siteId,
           title: 'Watering 101',
           slug: 'watering',
-          content_type: 'plant_care_guide',
+          content_type: 'other',
           content: wateringGuideContent,
           is_published: true,
           sort_order: 130,
@@ -357,7 +357,7 @@ export default function DashboardSitesPage() {
           site_id: siteId,
           title: 'Light Requirements Explained',
           slug: 'lighting',
-          content_type: 'plant_care_guide',
+          content_type: 'other',
           content: lightingGuideContent,
           is_published: true,
           sort_order: 140,
@@ -367,7 +367,7 @@ export default function DashboardSitesPage() {
           site_id: siteId,
           title: 'Soil & Repotting Guide',
           slug: 'soil',
-          content_type: 'plant_care_guide',
+          content_type: 'other',
           content: soilGuideContent,
           is_published: true,
           sort_order: 150,
@@ -377,7 +377,7 @@ export default function DashboardSitesPage() {
           site_id: siteId,
           title: 'Common Pests & Problems',
           slug: 'pests',
-          content_type: 'plant_care_guide',
+          content_type: 'other',
           content: pestsGuideContent,
           is_published: true,
           sort_order: 160,
@@ -405,7 +405,7 @@ export default function DashboardSitesPage() {
           .select('id, title, slug')
           .eq('site_id', siteId)
           .eq('slug', 'home')
-          .eq('content_type', 'homepage')
+          .eq('content_type', 'landing')
           .single()
 
         if (homePageError) {

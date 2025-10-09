@@ -26,7 +26,7 @@ type Content = RowType<'content'>;
 type InsertContent = InsertType<'content'>;
 type UpdateContent = UpdateType<'content'>;
 
-export type ContentType = 'page' | 'blog_post' | 'event';
+export type ContentType = 'landing' | 'about' | 'contact' | 'other' | 'blog_post' | 'event';
 
 export interface ContentSortOptions {
   field: 'title' | 'created_at' | 'updated_at';
@@ -34,7 +34,7 @@ export interface ContentSortOptions {
 }
 
 export interface ContentFilters extends QueryParams<Content> {
-  type?: ContentType;
+  type?: ContentType | ContentType[];
   published?: boolean;
   featured?: boolean;
   authorId?: string;
@@ -81,8 +81,13 @@ export async function getContent(
 
   // Apply filters
   if (type) {
-    countQuery = countQuery.eq('content_type', type);
-    dataQuery = dataQuery.eq('content_type', type);
+    if (Array.isArray(type)) {
+      countQuery = countQuery.in('content_type', type);
+      dataQuery = dataQuery.in('content_type', type);
+    } else {
+      countQuery = countQuery.eq('content_type', type);
+      dataQuery = dataQuery.eq('content_type', type);
+    }
   }
 
   if (published !== undefined) {
@@ -401,7 +406,7 @@ export async function reorderContent(
 export async function getContentByType(
   supabase: SupabaseClient<Database>,
   siteId: string,
-  contentType: 'page' | 'blog_post' | 'event'
+  contentType: ContentType
 ): Promise<ContentWithTags[]> {
   const query = supabase
     .from('content')
@@ -426,7 +431,7 @@ export async function getContentByType(
 export async function getPublishedContent(
   supabase: SupabaseClient<Database>,
   siteId: string,
-  contentType?: 'page' | 'blog_post' | 'event'
+  contentType?: ContentType
 ): Promise<ContentWithTags[]> {
   let query = supabase
     .from('content')
@@ -567,7 +572,7 @@ export async function getContentStats(
       .from('content')
       .select('id', { count: 'exact', head: true })
       .eq('site_id', siteId)
-      .eq('content_type', 'page'),
+      .in('content_type', ['landing', 'about', 'contact', 'other']),
     supabase
       .from('content')
       .select('id', { count: 'exact', head: true })

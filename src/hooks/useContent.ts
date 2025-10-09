@@ -194,9 +194,9 @@ export function useContentItem(contentId: string) {
 }
 
 // Get content by type
-export function useContentByType(contentType: 'page' | 'blog_post' | 'event') {
+export function useContentByType(contentType: 'landing' | 'about' | 'contact' | 'other' | 'blog_post' | 'event') {
   const siteId = useSiteId();
-  
+
   return useSupabaseQuery(
     (signal) => getContentByType(supabase, siteId!, contentType),
     {
@@ -209,9 +209,9 @@ export function useContentByType(contentType: 'page' | 'blog_post' | 'event') {
 }
 
 // Get published content
-export function usePublishedContent(contentType?: 'page' | 'blog_post' | 'event') {
+export function usePublishedContent(contentType?: 'landing' | 'about' | 'contact' | 'other' | 'blog_post' | 'event') {
   const siteId = useSiteId();
-  
+
   return useSupabaseQuery(
     (signal) => getPublishedContent(supabase, siteId!, contentType),
     {
