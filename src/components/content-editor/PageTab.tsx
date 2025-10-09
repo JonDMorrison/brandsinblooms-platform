@@ -6,6 +6,11 @@ import { Label } from '@/src/components/ui/label'
 import { Switch } from '@/src/components/ui/switch'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/src/components/ui/tooltip'
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -212,6 +217,13 @@ export function PageTab({
     return slugMessage || 'Enter a URL slug'
   }
 
+  const handleOpenPreview = () => {
+    if (!isPublished) return
+
+    const previewUrl = `http://${siteUrl}/${slugInput || slug}`
+    window.open(previewUrl, '_blank', 'noopener,noreferrer')
+  }
+
   return (
     <div className="p-4 space-y-6">
       {/* Page Identity Section */}
@@ -266,11 +278,44 @@ export function PageTab({
             {/* URL Preview */}
             <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
               <Globe className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 flex-1">
                 {siteUrl}/{slugInput || 'page-url'}
               </span>
-              <ExternalLink className="h-3 w-3 text-gray-400" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleOpenPreview}
+                    disabled={!isPublished}
+                    className={`h-6 w-6 p-0 ${
+                      isPublished
+                        ? 'hover:bg-accent text-blue-600 hover:text-blue-700'
+                        : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  {isPublished
+                    ? 'Open live page in new window'
+                    : 'Publish page to enable preview'
+                  }
+                </TooltipContent>
+              </Tooltip>
             </div>
+
+            {/* Publish Status Info */}
+            {!isPublished && (
+              <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-md">
+                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-800">
+                  This page URL will only be accessible to visitors after you publish it.
+                </p>
+              </div>
+            )}
 
             {/* Slug Status */}
             {slugInput && (

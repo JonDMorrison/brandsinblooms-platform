@@ -3,26 +3,37 @@ import { Site } from '@/src/lib/database/aliases'
 /**
  * Builds the customer-facing site URL from site data
  * Uses custom_domain if available, otherwise falls back to subdomain.localhost:port
+ * Only includes port for localhost development - staging/production domains are clean
  */
 export function buildCustomerSiteUrl(site: Site): string {
   const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'
-  
+  const isLocalhost = appDomain.includes('localhost')
+
   // If site has a custom domain, use that
   if (site.custom_domain) {
     // Check if custom domain already includes port
     if (site.custom_domain.includes(':')) {
       return site.custom_domain
     }
-    // Add port if we're in development
-    const port = appDomain.includes(':') ? appDomain.split(':')[1] : '3001'
-    return `${site.custom_domain}:${port}`
+    // Only add port if we're in localhost development
+    if (isLocalhost && appDomain.includes(':')) {
+      const port = appDomain.split(':')[1]
+      return `${site.custom_domain}:${port}`
+    }
+    // For staging/production custom domains, return clean URL without port
+    return site.custom_domain
   }
-  
-  // Use subdomain.localhost:port format
+
+  // Use subdomain.localhost:port format (only add port for localhost)
   const baseDomain = appDomain.split(':')[0] // Get 'localhost' from 'localhost:3001'
-  const port = appDomain.includes(':') ? appDomain.split(':')[1] : '3001'
-  
-  return `${site.subdomain}.${baseDomain}:${port}`
+
+  if (isLocalhost && appDomain.includes(':')) {
+    const port = appDomain.split(':')[1]
+    return `${site.subdomain}.${baseDomain}:${port}`
+  }
+
+  // For non-localhost environments, return clean subdomain URL
+  return `${site.subdomain}.${baseDomain}`
 }
 
 /**
