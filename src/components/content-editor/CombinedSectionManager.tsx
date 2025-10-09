@@ -359,7 +359,7 @@ function ExpandableSectionCard({
           )}
 
           {/* Visibility Toggle */}
-          <div 
+          <div
             className={`
               flex items-center p-3 rounded-r-lg transition-all duration-200
               hover:bg-muted/50 active:bg-muted/70
@@ -367,8 +367,8 @@ function ExpandableSectionCard({
               ${isRequired ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}
             `}
             onClick={handleToggleAreaClick}
-            title={isRequired 
-              ? 'Required sections cannot be hidden' 
+            title={isRequired
+              ? 'Required sections cannot be hidden'
               : (section.visible ? 'Hide section from preview' : 'Show section in preview')
             }
             role="button"
@@ -385,7 +385,11 @@ function ExpandableSectionCard({
           >
             <Switch
               checked={section.visible}
-              onCheckedChange={() => onToggleVisibility(sectionKey)}
+              onCheckedChange={() => {
+                if (!isRequired) {
+                  onToggleVisibility(sectionKey)
+                }
+              }}
               disabled={isRequired}
               size="sm"
             />

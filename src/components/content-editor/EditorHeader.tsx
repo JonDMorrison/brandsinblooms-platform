@@ -16,10 +16,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from '@/src/components/ui/dropdown-menu'
-import { 
-  ArrowLeft, 
-  Save, 
-  Eye, 
+import {
+  ArrowLeft,
+  Save,
+  Eye,
   EyeOff,
   Smartphone,
   Tablet,
@@ -27,9 +27,10 @@ import {
   Layers,
   MousePointer,
   PanelLeftOpen,
-  PanelLeftClose
+  PanelLeftClose,
+  Lock
 } from 'lucide-react'
-import { PageContent } from '@/src/lib/content'
+import { PageContent, LAYOUT_SECTIONS } from '@/src/lib/content'
 
 type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact' | 'other'
 type ViewportSize = 'mobile' | 'tablet' | 'desktop'
@@ -211,25 +212,39 @@ export function EditorHeader({
                   </Badge>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                
-                {Object.entries(pageContent.sections).map(([key, section]) => (
-                  <DropdownMenuItem
-                    key={key}
-                    className="flex items-center justify-between cursor-pointer"
-                    onClick={() => onSectionVisibilityToggle(key)}
-                  >
-                    <div className="flex items-center gap-2">
-                      {section.visible !== false ? (
-                        <Eye className="w-3 h-3 text-green-600" />
-                      ) : (
-                        <EyeOff className="w-3 h-3 text-gray-400" />
-                      )}
-                      <span className="capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </span>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
+
+                {Object.entries(pageContent.sections)
+                  .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
+                  .map(([key, section]) => {
+                    const layoutConfig = LAYOUT_SECTIONS[validLayout as keyof typeof LAYOUT_SECTIONS]
+                    const isRequired = layoutConfig?.required.includes(key)
+
+                    return (
+                      <DropdownMenuItem
+                        key={key}
+                        className={`flex items-center justify-between ${
+                          isRequired ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                        }`}
+                        onClick={() => !isRequired && onSectionVisibilityToggle(key)}
+                      >
+                        <div className="flex items-center gap-2">
+                          {section.visible !== false ? (
+                            <Eye className={`w-3 h-3 ${
+                              isRequired ? 'text-gray-400' : 'text-green-600'
+                            }`} />
+                          ) : (
+                            <EyeOff className="w-3 h-3 text-gray-400" />
+                          )}
+                          <span className="capitalize">
+                            {key.replace(/([A-Z])/g, ' $1').trim()}
+                          </span>
+                        </div>
+                        {isRequired && (
+                          <Lock className="w-3 h-3 text-amber-600" />
+                        )}
+                      </DropdownMenuItem>
+                    )
+                  })}
                 
                 {Object.keys(pageContent.sections).length === 0 && (
                   <DropdownMenuItem disabled>

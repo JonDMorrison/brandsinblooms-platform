@@ -4,21 +4,23 @@ import React, { useState, useCallback } from 'react'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Separator } from '@/src/components/ui/separator'
-import { 
-  Eye, 
-  EyeOff, 
-  Layers, 
-  Settings, 
-  Undo, 
-  Redo, 
+import {
+  Eye,
+  EyeOff,
+  Layers,
+  Settings,
+  Undo,
+  Redo,
   Save,
   Grid3X3,
   Move,
   MousePointer,
   Plus,
-  Package
+  Package,
+  Lock
 } from 'lucide-react'
-import { PageContent, LayoutType } from '@/src/lib/content/schema'
+import { PageContent, LayoutType, LAYOUT_SECTIONS } from '@/src/lib/content/schema'
+import { toast } from 'sonner'
 import { useVisualEditor } from '@/src/contexts/VisualEditorContext'
 import { useEditMode } from '@/src/contexts/EditModeContext'
 import { 
@@ -79,7 +81,15 @@ export function VisualEditorToolbar({
   const toggleSectionVisibility = useCallback((sectionKey: string) => {
     const currentSection = content.sections[sectionKey]
     if (!currentSection) return
-    
+
+    // Check if this is a required section - don't allow hiding required sections
+    const layoutConfig = LAYOUT_SECTIONS[layout]
+    if (layoutConfig?.required.includes(sectionKey) && currentSection.visible) {
+      // Show a toast notification that required sections can't be hidden
+      toast.info('Required sections cannot be hidden')
+      return
+    }
+
     const updatedContent: PageContent = {
       ...content,
       sections: {
@@ -90,16 +100,18 @@ export function VisualEditorToolbar({
         }
       }
     }
-    
+
     onContentChange(updatedContent)
-  }, [content, onContentChange])
+  }, [content, onContentChange, layout])
   
-  // Get sections for dropdown
-  const sections = Object.entries(content.sections).map(([key, section]) => ({
-    key,
-    section,
-    elementCount: getElementsInSection(key).length
-  }))
+  // Get sections for dropdown (sorted by order)
+  const sections = Object.entries(content.sections)
+    .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
+    .map(([key, section]) => ({
+      key,
+      section,
+      elementCount: getElementsInSection(key).length
+    }))
   
   if (editMode !== 'inline') return null
   
@@ -168,30 +180,44 @@ export function VisualEditorToolbar({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             
-            {sections.map(({ key, section, elementCount }) => (
-              <DropdownMenuItem
-                key={key}
-                className="flex items-center justify-between cursor-pointer"
-                onClick={() => toggleSectionVisibility(key)}
-              >
-                <div className="flex items-center gap-2">
-                  {section.visible !== false ? (
-                    <Eye className="w-3 h-3 text-green-600" />
-                  ) : (
-                    <EyeOff className="w-3 h-3 text-gray-400" />
-                  )}
-                  <span className="capitalize">
-                    {key.replace(/([A-Z])/g, ' $1').trim()}
-                  </span>
-                </div>
-                
-                {elementCount > 0 && (
-                  <Badge variant="outline" className="text-xs h-4 px-1">
-                    {elementCount}
-                  </Badge>
-                )}
-              </DropdownMenuItem>
-            ))}
+            {sections.map(({ key, section, elementCount }) => {
+              const layoutConfig = LAYOUT_SECTIONS[layout]
+              const isRequired = layoutConfig?.required.includes(key)
+
+              return (
+                <DropdownMenuItem
+                  key={key}
+                  className={`flex items-center justify-between ${
+                    isRequired ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                  }`}
+                  onClick={() => !isRequired && toggleSectionVisibility(key)}
+                >
+                  <div className="flex items-center gap-2">
+                    {section.visible !== false ? (
+                      <Eye className={`w-3 h-3 ${
+                        isRequired ? 'text-gray-400' : 'text-green-600'
+                      }`} />
+                    ) : (
+                      <EyeOff className="w-3 h-3 text-gray-400" />
+                    )}
+                    <span className="capitalize">
+                      {key.replace(/([A-Z])/g, ' $1').trim()}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    {isRequired && (
+                      <Lock className="w-3 h-3 text-amber-600" />
+                    )}
+                    {elementCount > 0 && (
+                      <Badge variant="outline" className="text-xs h-4 px-1">
+                        {elementCount}
+                      </Badge>
+                    )}
+                  </div>
+                </DropdownMenuItem>
+              )
+            })}
             
             {sections.length === 0 && (
               <DropdownMenuItem disabled>

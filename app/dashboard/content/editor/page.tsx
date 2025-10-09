@@ -19,6 +19,7 @@ import {
   PageContent,
   LayoutType as ContentLayoutType,
   serializePageContent,
+  LAYOUT_SECTIONS,
 } from '@/src/lib/content';
 import { handleError } from '@/src/lib/types/error-handling';
 
@@ -111,6 +112,14 @@ function PageEditorContent() {
       const currentSection = pageContent.sections[sectionKey];
       if (!currentSection) return;
 
+      // Check if this is a required section - don't allow hiding required sections
+      const layoutConfig = LAYOUT_SECTIONS[pageData?.layout as ContentLayoutType];
+      if (layoutConfig?.required.includes(sectionKey) && currentSection.visible) {
+        // Show a toast notification that required sections can't be hidden
+        toast.info('Required sections cannot be hidden');
+        return;
+      }
+
       const updatedContent: PageContent = {
         ...pageContent,
         sections: {
@@ -124,7 +133,7 @@ function PageEditorContent() {
 
       handleContentChange(updatedContent, true);
     },
-    [pageContent, handleContentChange]
+    [pageContent, handleContentChange, pageData?.layout]
   );
 
   const handleLayoutChange = (newLayout: LayoutType) => {
