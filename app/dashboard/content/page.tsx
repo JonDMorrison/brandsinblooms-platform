@@ -19,6 +19,7 @@ import { DashboardStats, type DashboardStat } from '@/src/components/DashboardSt
 import { CreateContentModal } from '@/src/components/content/CreateContentModal'
 import { debug } from '@/src/lib/utils/debug'
 import type { PaginationState } from '@tanstack/react-table'
+import { useContentChangeListener } from '@/src/lib/events/content-events'
 
 
 
@@ -45,6 +46,13 @@ export default function ContentPage() {
     type: contentTypeFilter,
   })
   const { data: contentStats, loading: statsLoading, refresh: refetchStats } = useContentStats()
+
+  // Listen for content changes and automatically refetch data
+  useContentChangeListener(() => {
+    debug.content('Content change event received, refreshing data')
+    refetch()
+    refetchStats()
+  }, siteId || '')
 
   debug.content('Hook states:', {
     siteId,

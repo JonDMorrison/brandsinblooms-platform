@@ -6,11 +6,11 @@ import { supabase } from '@/lib/supabase/client';
 import { debug } from '@/src/lib/utils/debug';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
-import { 
-  getContent, 
-  getContentById, 
-  createContent, 
-  updateContent, 
+import {
+  getContent,
+  getContentById,
+  createContent,
+  updateContent,
   deleteContent,
   getContentByType,
   getPublishedContent,
@@ -22,6 +22,7 @@ import {
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { Content, InsertContent, ContentUpdate } from '@/lib/database/aliases';
 import { handleError } from '@/lib/types/error-handling';
+import { emitContentChange } from '@/src/lib/events/content-events';
 
 // Cache management utilities
 const clearContentCaches = (siteId: string) => {
@@ -281,6 +282,11 @@ export function useCreateContent() {
       onSuccess: () => {
         setOptimisticContent(null);
         clearContentCaches(siteId!);
+
+        // Emit event to notify all components of the new content
+        emitContentChange('content:created', {
+          siteId: siteId!
+        });
       },
       onError: () => {
         setOptimisticContent(null);
@@ -321,6 +327,12 @@ export function useUpdateContent() {
           return rest;
         });
         clearSpecificContentCache(siteId!, variables.id);
+
+        // Emit event to notify all components of the update
+        emitContentChange('content:updated', {
+          siteId: siteId!,
+          contentId: variables.id
+        });
       },
       onError: (error, variables) => {
         setOptimisticUpdates(prev => {
@@ -359,6 +371,12 @@ export function useDeleteContent() {
           return updated;
         });
         clearSpecificContentCache(siteId!, contentId);
+
+        // Emit event to notify all components of the deletion
+        emitContentChange('content:deleted', {
+          siteId: siteId!,
+          contentId
+        });
       },
       onError: (error, contentId) => {
         setDeletingIds(prev => {
@@ -397,11 +415,20 @@ export function useContentRealtime() {
           // Clear relevant caches when data changes
           if (payload.eventType === 'INSERT') {
             clearContentCaches(siteId);
+            emitContentChange('content:created', { siteId });
             toast.info('New content added');
           } else if (payload.eventType === 'UPDATE') {
             clearSpecificContentCache(siteId, payload.new?.id);
+            emitContentChange('content:updated', {
+              siteId,
+              contentId: payload.new?.id
+            });
           } else if (payload.eventType === 'DELETE') {
             clearSpecificContentCache(siteId, payload.old?.id);
+            emitContentChange('content:deleted', {
+              siteId,
+              contentId: payload.old?.id
+            });
           }
         }
       )
