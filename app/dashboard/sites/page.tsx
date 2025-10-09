@@ -1528,7 +1528,7 @@ export default function DashboardSitesPage() {
 }
 
 // Helper function to create seasonal guide template
-function getSeasonalGuideTemplate(businessName: string, location: string) {
+export function getSeasonalGuideTemplate(businessName: string, location: string) {
   return {
     version: '1.0',
     layout: 'other',
@@ -1646,7 +1646,7 @@ function getSeasonalGuideTemplate(businessName: string, location: string) {
   }
 }
 
-function getCompanyTemplate(businessName: string) {
+export function getCompanyTemplate(businessName: string) {
   return {
     version: '1.0',
     layout: 'other',
@@ -1743,7 +1743,7 @@ function getCompanyTemplate(businessName: string) {
   }
 }
 
-function getWateringGuideTemplate(businessName: string) {
+export function getWateringGuideTemplate(businessName: string) {
   return {
     version: '1.0',
     layout: 'other',
@@ -1885,7 +1885,7 @@ function getWateringGuideTemplate(businessName: string) {
   }
 }
 
-function getLightingGuideTemplate(businessName: string) {
+export function getLightingGuideTemplate(businessName: string) {
   return {
     version: '1.0',
     layout: 'other',
@@ -2060,7 +2060,7 @@ function getLightingGuideTemplate(businessName: string) {
   }
 }
 
-function getSoilGuideTemplate(businessName: string) {
+export function getSoilGuideTemplate(businessName: string) {
   return {
     version: '1.0',
     layout: 'other',
@@ -2247,7 +2247,7 @@ function getSoilGuideTemplate(businessName: string) {
   }
 }
 
-function getPestsGuideTemplate(businessName: string) {
+export function getPestsGuideTemplate(businessName: string) {
   return {
     version: '1.0',
     layout: 'other',
