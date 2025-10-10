@@ -3,7 +3,7 @@
  * Allows switching between internal page selection and external URL input
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
 import { Button } from '@/src/components/ui/button'
@@ -39,22 +39,11 @@ export function ButtonLinkField({
   placeholder = 'Select page or enter URL',
   className = ''
 }: ButtonLinkFieldProps) {
-  // Determine initial mode based on current value
+  // Determine initial mode based on current value (only on mount)
   const [linkMode, setLinkMode] = useState<'internal' | 'external'>(() => {
     if (!value) return 'internal'
     return isExternalUrl(value) ? 'external' : 'internal'
   })
-
-  // Update mode when value changes externally
-  useEffect(() => {
-    if (!value) {
-      setLinkMode('internal')
-    } else if (isExternalUrl(value)) {
-      setLinkMode('external')
-    } else if (isInternalUrl(value)) {
-      setLinkMode('internal')
-    }
-  }, [value])
 
   const handleModeSwitch = (mode: 'internal' | 'external') => {
     setLinkMode(mode)
