@@ -98,6 +98,7 @@ function PageEditorContent() {
     handleSlugChange,
     handlePublishedChange,
     handleSEOChange,
+    handleSetAsHomePage,
   } = useContentEditorData({
     contentId,
     siteId: currentSite?.id,
@@ -255,6 +256,7 @@ function PageEditorContent() {
             initialIsPublished={isPublished}
             onSlugChange={handleSlugChange}
             onPublishedChange={handlePublishedChange}
+            onSetAsHomePage={handleSetAsHomePage}
             seoSettings={seoSettings}
             onSEOChange={handleSEOChange}
           />

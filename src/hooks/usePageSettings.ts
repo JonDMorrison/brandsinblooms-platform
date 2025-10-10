@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { PageContent, SEOSettings, LayoutType } from '@/src/lib/content'
 
 interface UsePageSettingsOptions {
@@ -38,6 +38,15 @@ export function usePageSettings({
   // State for database columns
   const [slug, setSlug] = useState(initialSlug)
   const [isPublished, setIsPublished] = useState(initialIsPublished)
+
+  // Sync internal state with parent state changes
+  useEffect(() => {
+    setSlug(initialSlug)
+  }, [initialSlug])
+
+  useEffect(() => {
+    setIsPublished(initialIsPublished)
+  }, [initialIsPublished])
 
   // Memoized SEO settings from content
   const defaultSeoSettings: SEOSettings = useMemo(() => ({

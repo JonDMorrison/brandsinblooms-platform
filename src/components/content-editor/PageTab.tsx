@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger
 } from '@/src/components/ui/tooltip'
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/src/components/ui/alert-dialog'
-import { 
+import {
   Eye,
   EyeOff,
   Globe,
@@ -33,12 +33,14 @@ import {
 } from 'lucide-react'
 import { LayoutType } from '@/src/lib/content/schema'
 import { useSlugValidator } from '@/src/lib/content/slug-validator'
+import { supabase } from '@/src/lib/supabase/client'
 
 interface PageTabProps {
   slug: string
   isPublished: boolean
   onSlugChange: (slug: string) => void
   onPublishedChange: (published: boolean) => void
+  onSetAsHomePage?: () => Promise<void>
   pageTitle: string
   onPageTitleChange: (title: string) => void
   layout: LayoutType
@@ -47,12 +49,13 @@ interface PageTabProps {
   contentId?: string
 }
 
-export function PageTab({ 
+export function PageTab({
   slug,
   isPublished,
   onSlugChange,
   onPublishedChange,
-  pageTitle, 
+  onSetAsHomePage,
+  pageTitle,
   onPageTitleChange,
   layout,
   siteUrl = 'example.com',
@@ -68,9 +71,14 @@ export function PageTab({
   const [pendingPublishState, setPendingPublishState] = useState(false)
   const [showPrivacyPageDialog, setShowPrivacyPageDialog] = useState(false)
   const [showTermsPageDialog, setShowTermsPageDialog] = useState(false)
-  
-  const slugValidator = useSlugValidator(siteId || '', contentId)
-  
+
+  const slugValidator = useSlugValidator(supabase, siteId || '', contentId)
+
+  // Sync local slugInput with parent slug prop
+  useEffect(() => {
+    setSlugInput(slug || '')
+  }, [slug])
+
   // Handle slug changes with validation
   useEffect(() => {
     if (slugInput !== slug) {
@@ -154,12 +162,23 @@ export function PageTab({
     // If setting to false, do nothing special - user can manually unpublish
   }
 
-  const confirmHomePageChange = () => {
-    // Set slug to 'home' and publish the page
-    setSlugInput('home')
-    onSlugChange('home')
-    onPublishedChange(true)
-    setShowHomePageDialog(false)
+  const confirmHomePageChange = async () => {
+    try {
+      if (onSetAsHomePage) {
+        // Use the atomic handler to set as home page
+        // The useEffect will sync slugInput when parent state updates
+        await onSetAsHomePage()
+      } else {
+        // Fallback to old behavior if handler not provided
+        onSlugChange('home')
+        onPublishedChange(true)
+      }
+      setShowHomePageDialog(false)
+    } catch (error) {
+      // Error is already handled in the handler with toast
+      // Just keep the dialog open so user can try again or cancel
+      console.error('Failed to set as home page:', error)
+    }
   }
 
   const handlePrivacyPageToggle = (isPrivacy: boolean) => {
@@ -174,7 +193,7 @@ export function PageTab({
 
   const confirmPrivacyPageChange = () => {
     // Set slug to 'privacy' and publish the page
-    setSlugInput('privacy')
+    // The useEffect will sync slugInput when parent state updates
     onSlugChange('privacy')
     onPublishedChange(true)
     setShowPrivacyPageDialog(false)
@@ -192,7 +211,7 @@ export function PageTab({
 
   const confirmTermsPageChange = () => {
     // Set slug to 'terms' and publish the page
-    setSlugInput('terms')
+    // The useEffect will sync slugInput when parent state updates
     onSlugChange('terms')
     onPublishedChange(true)
     setShowTermsPageDialog(false)
@@ -503,10 +522,10 @@ export function PageTab({
               <AlertTriangle className="h-5 w-5 text-amber-600" />
               Set as Home Page
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p>
-                Are you sure you want to make this page your site's home page?
-              </p>
+            <AlertDialogDescription>
+              Are you sure you want to make this page your site's home page?
+            </AlertDialogDescription>
+            <div className="space-y-3 pt-2">
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
                 <p className="text-sm text-amber-800">
                   <strong>Note:</strong> Only one home page is allowed per site.
@@ -514,21 +533,23 @@ export function PageTab({
                   renamed and this page will become the new home page.
                 </p>
               </div>
-              <p className="text-sm text-gray-600">
-                This action will:
-              </p>
-              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
-                <li>Set this page's URL to your site's root URL</li>
-                <li>Automatically publish this page</li>
-                <li>Rename any existing home page</li>
-              </ul>
-            </AlertDialogDescription>
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  This action will:
+                </p>
+                <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                  <li>Set this page's URL (slug) to /home</li>
+                  <li>Automatically publish this page</li>
+                  <li>Rename any existing home page slug if it exists</li>
+                </ul>
+              </div>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmHomePageChange}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-gradient-primary hover:opacity-90"
             >
               Make Home Page
             </AlertDialogAction>
@@ -587,10 +608,10 @@ export function PageTab({
               <AlertTriangle className="h-5 w-5 text-amber-600" />
               Set as Privacy Policy
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p>
-                Are you sure you want to make this page your site's privacy policy?
-              </p>
+            <AlertDialogDescription>
+              Are you sure you want to make this page your site's privacy policy?
+            </AlertDialogDescription>
+            <div className="space-y-3 pt-2">
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
                 <p className="text-sm text-amber-800">
                   <strong>Note:</strong> Only one privacy policy page is allowed per site.
@@ -598,21 +619,23 @@ export function PageTab({
                   renamed and this page will become the new privacy policy.
                 </p>
               </div>
-              <p className="text-sm text-gray-600">
-                This action will:
-              </p>
-              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
-                <li>Set this page's URL to /privacy</li>
-                <li>Automatically publish this page</li>
-                <li>Rename any existing privacy policy page</li>
-              </ul>
-            </AlertDialogDescription>
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  This action will:
+                </p>
+                <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                  <li>Set this page's URL to /privacy</li>
+                  <li>Automatically publish this page</li>
+                  <li>Rename any existing privacy policy page slug if it exists</li>
+                </ul>
+              </div>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmPrivacyPageChange}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-gradient-primary hover:opacity-90"
             >
               Make Privacy Policy
             </AlertDialogAction>
@@ -628,10 +651,10 @@ export function PageTab({
               <AlertTriangle className="h-5 w-5 text-amber-600" />
               Set as Terms of Service
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p>
-                Are you sure you want to make this page your site's terms of service?
-              </p>
+            <AlertDialogDescription>
+              Are you sure you want to make this page your site's terms of service?
+            </AlertDialogDescription>
+            <div className="space-y-3 pt-2">
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
                 <p className="text-sm text-amber-800">
                   <strong>Note:</strong> Only one terms of service page is allowed per site.
@@ -639,21 +662,23 @@ export function PageTab({
                   renamed and this page will become the new terms of service.
                 </p>
               </div>
-              <p className="text-sm text-gray-600">
-                This action will:
-              </p>
-              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
-                <li>Set this page's URL to /terms</li>
-                <li>Automatically publish this page</li>
-                <li>Rename any existing terms of service page</li>
-              </ul>
-            </AlertDialogDescription>
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  This action will:
+                </p>
+                <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                  <li>Set this page's URL to /terms</li>
+                  <li>Automatically publish this page</li>
+                  <li>Rename any existing terms of service page slug if it exists</li>
+                </ul>
+              </div>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmTermsPageChange}
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className="bg-gradient-primary hover:opacity-90"
             >
               Make Terms of Service
             </AlertDialogAction>

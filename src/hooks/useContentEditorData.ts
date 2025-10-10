@@ -263,6 +263,29 @@ export function useContentEditorData({
     }
   }, [contentId, siteId, pageData, slug])
 
+  // Handler for setting page as home page
+  const handleSetAsHomePage = useCallback(async () => {
+    if (!contentId || !siteId) {
+      throw new Error('Missing required information to set as home page')
+    }
+
+    try {
+      // Use the special page publish handler to atomically:
+      // 1. Rename any existing home page
+      // 2. Set this page's slug to 'home'
+      // 3. Publish this page
+      const result = await handleSpecialPagePublish(supabase, siteId, contentId, 'home')
+      setSlug(result.slug)
+      setIsPublished(true)
+      setHasUnsavedChanges(false)
+      toast.success('Page set as home page successfully!')
+    } catch (error) {
+      handleError(error)
+      toast.error('Failed to set as home page')
+      throw error
+    }
+  }, [contentId, siteId])
+
   // Handler for SEO changes
   const handleSEOChange = useCallback(async (newSeoSettings: SEOSettings) => {
     if (!contentId || !siteId) {
@@ -349,6 +372,7 @@ export function useContentEditorData({
     handleContentSave,
     handleSlugChange,
     handlePublishedChange,
-    handleSEOChange
+    handleSEOChange,
+    handleSetAsHomePage
   }
 }

@@ -59,6 +59,7 @@ interface EditorSidebarProps {
   initialIsPublished?: boolean
   onSlugChange?: (slug: string) => void
   onPublishedChange?: (published: boolean) => void
+  onSetAsHomePage?: () => Promise<void>
   seoSettings?: SEOSettings
   onSEOChange?: (settings: SEOSettings) => void
 }
@@ -81,6 +82,7 @@ export function EditorSidebar({
   initialIsPublished = false,
   onSlugChange,
   onPublishedChange,
+  onSetAsHomePage,
   seoSettings,
   onSEOChange
 }: EditorSidebarProps) {
@@ -150,6 +152,7 @@ export function EditorSidebar({
             isPublished={pageSettingsHook.isPublished}
             onSlugChange={pageSettingsHook.handleSlugChange}
             onPublishedChange={pageSettingsHook.handlePublishedChange}
+            onSetAsHomePage={onSetAsHomePage}
             pageTitle={pageData.title || ''}
             onPageTitleChange={onPageTitleChange}
             layout={validLayout as ContentLayoutType}
