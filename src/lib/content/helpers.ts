@@ -573,10 +573,10 @@ export function compareContent(
     if (keysB.has(key)) {
       const sectionA = contentA.sections[key]
       const sectionB = contentB.sections[key]
-      
+
       if (JSON.stringify(sectionA) !== JSON.stringify(sectionB)) {
-        changes.push({ 
-          type: 'modified', 
+        changes.push({
+          type: 'modified',
           sectionKey: key,
           details: `Type: ${sectionA.type}, Visible: ${sectionA.visible} -> ${sectionB.visible}`
         })
@@ -587,5 +587,48 @@ export function compareContent(
   return {
     isDifferent: changes.length > 0,
     changes
+  }
+}
+
+/**
+ * Database content_type values (constrained by schema)
+ * Migration 20251009000000 aligned content_type with layout field
+ */
+export type DatabaseContentType = 'landing' | 'about' | 'contact' | 'other' | 'blog_post' | 'event'
+
+/**
+ * Map LayoutType to database content_type value
+ * Aligns frontend layout types with database constraint
+ *
+ * Mapping:
+ * - landing -> landing
+ * - blog -> blog_post
+ * - about -> about
+ * - contact -> contact
+ * - portfolio, product, plant_shop, plant_care, plant_catalog, other -> other
+ *
+ * @param layout - The layout type from PageContent
+ * @returns Valid database content_type value
+ */
+export function mapLayoutToContentType(layout: LayoutType): DatabaseContentType {
+  switch (layout) {
+    case 'landing':
+      return 'landing'
+    case 'blog':
+      return 'blog_post'
+    case 'about':
+      return 'about'
+    case 'contact':
+      return 'contact'
+    case 'portfolio':
+    case 'product':
+    case 'plant_shop':
+    case 'plant_care':
+    case 'plant_catalog':
+    case 'other':
+      return 'other'
+    default:
+      // Fallback for any unhandled layout types
+      return 'other'
   }
 }

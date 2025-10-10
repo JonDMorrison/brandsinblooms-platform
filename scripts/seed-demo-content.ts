@@ -6,7 +6,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { getEnhancedLayoutTemplate } from '../src/lib/content/templates.js'
 import { MOCK_DATA_PRESETS } from '../src/lib/content/mock-data/index.js'
-import { serializePageContent } from '../src/lib/content/index.js'
+import { serializePageContent, mapLayoutToContentType } from '../src/lib/content/index.js'
 import type { Database } from '../src/lib/database/types.js'
 import * as dotenv from 'dotenv'
 import { resolve } from 'path'
@@ -140,7 +140,7 @@ async function seedDemoContent() {
         site_id: siteId,
         title: page.title,
         slug: page.slug,
-        content_type: page.layout === 'blog' ? 'blog_post' as const : 'page' as const,
+        content_type: mapLayoutToContentType(page.layout),
         content: serializedContent,
         is_published: true, // Publish by default for demo
         is_featured: page.layout === 'landing', // Feature the landing page

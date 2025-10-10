@@ -20,6 +20,7 @@ import {
   LayoutType as ContentLayoutType,
   serializePageContent,
   LAYOUT_SECTIONS,
+  mapLayoutToContentType,
 } from '@/src/lib/content';
 import { handleError } from '@/src/lib/types/error-handling';
 
@@ -162,7 +163,7 @@ function PageEditorContent() {
   };
 
   const handleSave = async () => {
-    if (!contentId || !currentSite?.id || !unifiedContent) {
+    if (!contentId || !currentSite?.id || !unifiedContent || !pageData) {
       toast.error('Missing required information to save');
       return;
     }
@@ -185,9 +186,9 @@ function PageEditorContent() {
 
       await updateContent(supabase, currentSite.id, contentId, {
         title: pageData.title || '',
-        meta_data: metaData,
+        meta_data: JSON.parse(JSON.stringify(metaData)),
         content: contentData,
-        content_type: pageContent?.layout === 'blog' ? 'blog_post' : 'page',
+        content_type: mapLayoutToContentType(unifiedContent.layout),
       });
 
       setHasUnsavedChanges(false);
