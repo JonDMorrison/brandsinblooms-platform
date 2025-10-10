@@ -301,6 +301,13 @@ export function useContentEditorData({
       ...content.settings
     }
 
+    // Map layout to content_type according to database schema
+    const layoutToContentType = (layout: string): string => {
+      if (layout === 'blog') return 'blog_post'
+      if (['landing', 'about', 'contact'].includes(layout)) return layout
+      return 'other'
+    }
+
     await updateContent(
       supabase,
       siteId,
@@ -309,7 +316,7 @@ export function useContentEditorData({
         title: pageData?.title || '',
         meta_data: metaData as any,
         content: serializePageContent(content),
-        content_type: content.layout === 'blog' ? 'blog_post' : 'page'
+        content_type: layoutToContentType(content.layout)
       }
     )
     

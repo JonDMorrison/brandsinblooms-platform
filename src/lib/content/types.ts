@@ -144,7 +144,7 @@ export interface CreateContentInput {
   layout: LayoutType
   content?: PageContent
   meta_data?: ContentMetadata
-  content_type: 'page' | 'blog_post' | 'event'
+  content_type: 'landing' | 'about' | 'contact' | 'other' | 'blog_post' | 'event'
   is_published?: boolean
   is_featured?: boolean
   author_id?: string
@@ -159,7 +159,7 @@ export interface UpdateContentInput {
   slug?: string
   content?: PageContent
   meta_data?: ContentMetadata
-  content_type?: 'page' | 'blog_post' | 'event'
+  content_type?: 'landing' | 'about' | 'contact' | 'other' | 'blog_post' | 'event'
   is_published?: boolean
   is_featured?: boolean
   published_at?: string
@@ -254,7 +254,7 @@ export interface ContentValidationResult {
 export interface ContentSearchFilters {
   query?: string
   layout?: LayoutType[]
-  contentType?: Array<'page' | 'blog_post' | 'event'>
+  contentType?: Array<'landing' | 'about' | 'contact' | 'other' | 'blog_post' | 'event'>
   status?: Array<'published' | 'draft' | 'archived'>
   featured?: boolean
   tags?: string[]

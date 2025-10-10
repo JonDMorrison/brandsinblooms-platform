@@ -230,7 +230,7 @@ export const CreateContentInputSchema = z.object({
     layout: LayoutTypeSchema,
     settings: z.record(z.string(), z.unknown()).optional()
   }).optional(),
-  content_type: z.enum(['page', 'blog_post', 'event']).default('page'),
+  content_type: z.enum(['landing', 'about', 'contact', 'other', 'blog_post', 'event']),
   is_published: z.boolean().default(false),
   is_featured: z.boolean().default(false)
 })

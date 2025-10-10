@@ -356,7 +356,7 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
         site_id: currentSite.id,
         title: data.title,
         slug,
-        content_type: 'page',
+        content_type: data.layout,
         content: serializedContent,
         is_published: false,
         is_featured: false,
