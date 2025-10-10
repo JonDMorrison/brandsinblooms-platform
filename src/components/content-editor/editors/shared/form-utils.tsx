@@ -6,6 +6,7 @@
 import React from 'react'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
+import { ButtonLinkField } from './ButtonLinkField'
 
 interface FormFieldProps {
   id?: string
@@ -132,16 +133,56 @@ export function ButtonConfigField({
 /**
  * Form section wrapper with consistent styling
  */
-export function FormSection({ 
-  children, 
-  className = '' 
-}: { 
+export function FormSection({
+  children,
+  className = ''
+}: {
   children: React.ReactNode
-  className?: string 
+  className?: string
 }) {
   return (
     <div className={`space-y-3 mb-4 ${className}`}>
       {children}
+    </div>
+  )
+}
+
+/**
+ * Enhanced button configuration field with page selector (text + link with page selection)
+ */
+export function ButtonConfigFieldWithPageSelector({
+  label,
+  textValue,
+  linkValue,
+  onTextChange,
+  onLinkChange,
+  textPlaceholder = 'Button text',
+  linkPlaceholder = 'Select page or enter URL',
+  className = ''
+}: ButtonFieldProps) {
+  return (
+    <div className={`p-3 border rounded-lg bg-muted/30 space-y-3 ${className}`}>
+      <Label className="text-xs text-gray-500">{label}</Label>
+
+      {/* Button Text Input */}
+      <div>
+        <Label className="text-xs text-gray-400 mb-1 block">Button Text</Label>
+        <Input
+          type="text"
+          value={textValue}
+          onChange={(e) => onTextChange(e.target.value)}
+          className="h-8"
+          placeholder={textPlaceholder}
+        />
+      </div>
+
+      {/* Button Link with Page Selector */}
+      <ButtonLinkField
+        value={linkValue}
+        onChange={onLinkChange}
+        label="Button Link"
+        placeholder={linkPlaceholder}
+      />
     </div>
   )
 }

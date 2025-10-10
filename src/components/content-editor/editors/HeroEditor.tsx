@@ -13,7 +13,7 @@ import { IconSelector } from '@/src/components/ui/IconSelector'
 import {
   FormField,
   TextareaField,
-  ButtonConfigField,
+  ButtonConfigFieldWithPageSelector,
   FormSection
 } from './shared/form-utils'
 
@@ -100,25 +100,25 @@ export function HeroEditor({ section, onUpdate }: HeroEditorProps) {
         <Label className="text-xs font-medium">Action Buttons (Optional)</Label>
         <div className="space-y-3">
           {/* Primary Button */}
-          <ButtonConfigField
+          <ButtonConfigFieldWithPageSelector
             label="Primary Button"
             textValue={data.ctaText || ''}
             linkValue={data.ctaLink || ''}
             onTextChange={(value) => handleDataChange({ ctaText: value })}
             onLinkChange={(value) => handleDataChange({ ctaLink: value })}
             textPlaceholder="Button text (optional)"
-            linkPlaceholder="Link/Route (e.g., /plants)"
+            linkPlaceholder="Select page or enter URL"
           />
-          
+
           {/* Secondary Button */}
-          <ButtonConfigField
+          <ButtonConfigFieldWithPageSelector
             label="Secondary Button"
             textValue={data.secondaryCtaText || ''}
             linkValue={data.secondaryCtaLink || ''}
             onTextChange={(value) => handleDataChange({ secondaryCtaText: value })}
             onLinkChange={(value) => handleDataChange({ secondaryCtaLink: value })}
             textPlaceholder="Button text (optional)"
-            linkPlaceholder="Link/Route (e.g., /care-guides)"
+            linkPlaceholder="Select page or enter URL"
           />
         </div>
       </FormSection>
