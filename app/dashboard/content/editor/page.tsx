@@ -93,6 +93,8 @@ function PageEditorContent() {
     slug,
     isPublished,
     seoSettings,
+    lastSaved,
+    setLastSaved,
     handleTitleChange,
     handleContentChange,
     handleContentSave,
@@ -184,12 +186,17 @@ function PageEditorContent() {
         }
       );
 
-      await updateContent(supabase, currentSite.id, contentId, {
+      const result = await updateContent(supabase, currentSite.id, contentId, {
         title: pageData.title || '',
         meta_data: JSON.parse(JSON.stringify(metaData)),
         content: contentData,
         content_type: mapLayoutToContentType(unifiedContent.layout),
       });
+
+      // Update last saved timestamp from database response
+      if (result.updated_at) {
+        setLastSaved(new Date(result.updated_at));
+      }
 
       setHasUnsavedChanges(false);
       contentEditorRef.current?.resetDirtyState?.();
@@ -302,6 +309,7 @@ function PageEditorContent() {
         layout={validLayout}
         activeViewport={activeViewport}
         hasUnsavedChanges={hasUnsavedChanges}
+        lastSaved={lastSaved}
       />
     </div>
   );

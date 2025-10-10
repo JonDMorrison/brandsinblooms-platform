@@ -49,7 +49,7 @@ export function useContentEditorData({
   const [pageContent, setPageContent] = useState<PageContent | null>(null)
   const [unifiedContent, setUnifiedContent] = useState<UnifiedPageContent | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  
+
   // Database column states
   const [slug, setSlug] = useState<string>('')
   const [isPublished, setIsPublished] = useState<boolean>(false)
@@ -58,6 +58,7 @@ export function useContentEditorData({
     description: '',
     keywords: []
   })
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
   // Load content from database
   useEffect(() => {
@@ -90,7 +91,12 @@ export function useContentEditorData({
           // Extract database column values
           setSlug(content.slug || '')
           setIsPublished(content.is_published || false)
-          
+
+          // Extract and parse last saved timestamp
+          if (content.updated_at) {
+            setLastSaved(new Date(content.updated_at))
+          }
+
           // Extract SEO settings from meta_data
           const extractedSeoSettings: SEOSettings = {
             title: (metaData?.seo as any)?.title || '',
@@ -331,7 +337,7 @@ export function useContentEditorData({
       return 'other'
     }
 
-    await updateContent(
+    const result = await updateContent(
       supabase,
       siteId,
       contentId,
@@ -342,13 +348,18 @@ export function useContentEditorData({
         content_type: layoutToContentType(content.layout)
       }
     )
-    
+
+    // Update last saved timestamp from database response
+    if (result.updated_at) {
+      setLastSaved(new Date(result.updated_at))
+    }
+
     setUnifiedContent({
       ...content,
       title: unifiedContent.title,
       subtitle: unifiedContent.subtitle
     })
-    
+
     setHasUnsavedChanges(false)
   }, [contentId, siteId, unifiedContent, pageData?.title])
 
@@ -366,6 +377,8 @@ export function useContentEditorData({
     slug,
     isPublished,
     seoSettings,
+    lastSaved,
+    setLastSaved,
     // Handlers
     handleTitleChange,
     handleContentChange,

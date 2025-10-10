@@ -25,7 +25,6 @@ import {
   Tablet,
   Monitor,
   Layers,
-  MousePointer,
   PanelLeftOpen,
   PanelLeftClose,
   Lock
@@ -185,14 +184,6 @@ export function EditorHeader({
               )}
               Settings Panel
             </Button>
-            
-            <Separator orientation="vertical" className="h-4" />
-            
-            {/* Element count */}
-            <div className="flex items-center gap-2 text-gray-600">
-              <MousePointer className="w-3.5 h-3.5" />
-              <span>0 elements</span>
-            </div>
           </div>
           
           <div className="flex items-center gap-2">
