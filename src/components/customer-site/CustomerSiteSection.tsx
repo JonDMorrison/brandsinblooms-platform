@@ -360,7 +360,11 @@ export function CustomerSiteSection({
     case 'cta':
       return (
         <ViewportLazyLoad fallback={<MissionStatementSkeleton />} delay={400}>
-          <section className="py-16" style={backgroundStyle}>
+          <section
+            className="py-16"
+            style={backgroundStyle}
+            data-bg-mode={backgroundSetting === 'primary' ? 'primary' : 'default'}
+          >
             <div className="brand-container">
               <div className="max-w-4xl mx-auto text-center">
                 <h2 className={`text-4xl md:text-5xl font-bold mb-6 leading-tight ${

@@ -40,9 +40,10 @@ export function CtaPreview({
   const descriptionColor = isPrimaryBackground ? 'rgba(255,255,255,0.9)' : 'var(--theme-text)'
 
   return (
-    <section 
+    <section
       className={`py-16 ${className}`}
       style={backgroundStyle}
+      data-bg-mode={isPrimaryBackground ? 'primary' : 'default'}
     >
       <div className="brand-container">
         <div className="max-w-4xl mx-auto text-center">
