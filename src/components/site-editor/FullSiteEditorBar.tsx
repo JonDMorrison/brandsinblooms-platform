@@ -7,7 +7,17 @@
 
 import React from 'react'
 import { useFullSiteEditor } from '@/src/contexts/FullSiteEditorContext'
+import { useAuth } from '@/src/contexts/AuthContext'
 import { Button } from '@/src/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/src/components/ui/dropdown-menu'
 import {
   Monitor,
   Tablet,
@@ -15,14 +25,16 @@ import {
   Edit3,
   MousePointer,
   Save,
-  X,
   Clock,
   FileText,
   Plus,
-  Home
+  Home,
+  LogOut,
+  ChevronDown
 } from 'lucide-react'
 import { cn } from '@/src/lib/utils'
 import { format } from 'date-fns'
+import { toast } from 'sonner'
 
 export function FullSiteEditorBar() {
   const {
@@ -39,6 +51,8 @@ export function FullSiteEditorBar() {
     exitEditor
   } = useFullSiteEditor()
 
+  const { user, signOut } = useAuth()
+
   // Don't render if not in edit mode
   if (!isEditMode) {
     return null
@@ -53,6 +67,32 @@ export function FullSiteEditorBar() {
         ?.replace(/-/g, ' ')
         .replace(/^\w/, c => c.toUpperCase()) || 'Home'
     : 'Home'
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name
+        .split(' ')
+        .map((name: string) => name[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    }
+    return user?.email?.slice(0, 2).toUpperCase() || 'U'
+  }
+
+  // Handle sign out
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      toast.success('Successfully signed out!')
+      // Stay on current page, just logged out
+      window.location.reload()
+    } catch (error) {
+      console.error('Sign out error:', error)
+      toast.error('Failed to sign out')
+    }
+  }
 
   return (
     <div
@@ -207,16 +247,44 @@ export function FullSiteEditorBar() {
             New Page
           </Button>
 
-          {/* Exit Button */}
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={exitEditor}
-            className="gap-1.5 text-gray-600 hover:text-gray-900"
-          >
-            <X className="w-4 h-4" />
-            Exit
-          </Button>
+          {/* Profile Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 cursor-pointer"
+              >
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <ChevronDown className="h-3 w-3 text-gray-500" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48" align="end">
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium">
+                    {user?.user_metadata?.full_name || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {user?.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                onClick={handleSignOut}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
