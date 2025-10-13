@@ -34,12 +34,12 @@ export function FullSiteEditorWrapper({
   pageId,
   onSave
 }: FullSiteEditorWrapperProps) {
-  // If not in edit mode, just render children
+  // If not in edit mode, just render children without padding
   if (!isEditMode) {
     return <>{children}</>
   }
 
-  // In edit mode - wrap with all necessary contexts
+  // In edit mode - wrap with all necessary contexts and add top padding for fixed bar
   return (
     <EditModeProvider defaultMode='inline'>
       <VisualEditorProvider>
@@ -50,7 +50,10 @@ export function FullSiteEditorWrapper({
           initialPageId={pageId ?? null}
           onSave={onSave}
         >
-          {children}
+          {/* Add padding-top to prevent content from being hidden under fixed bar (h-14 = 56px) */}
+          <div className="pt-14">
+            {children}
+          </div>
         </FullSiteEditorProvider>
       </VisualEditorProvider>
     </EditModeProvider>
