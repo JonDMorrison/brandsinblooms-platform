@@ -84,6 +84,9 @@ export function FullSiteEditorBar() {
   // Handle sign out
   const handleSignOut = async () => {
     try {
+      // First clear edit mode session cookie
+      await fetch('/api/site-editor/exit', { method: 'POST' })
+      // Then sign out the user
       await signOut()
       toast.success('Successfully signed out!')
       // Stay on current page, just logged out

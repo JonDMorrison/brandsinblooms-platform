@@ -13,6 +13,31 @@ import { toast } from 'sonner'
 export type EditorMode = 'edit' | 'navigate'
 export type ViewportSize = 'mobile' | 'tablet' | 'desktop'
 
+// Cookie name for editor mode persistence
+const EDITOR_MODE_COOKIE = 'site_editor_mode'
+
+/**
+ * Read editor mode from cookie
+ * Persists across page navigation during edit session
+ */
+function getEditorModeFromCookie(): EditorMode {
+  if (typeof document === 'undefined') return 'edit'
+  const value = document.cookie
+    .split('; ')
+    .find(row => row.startsWith(`${EDITOR_MODE_COOKIE}=`))
+    ?.split('=')[1]
+  return (value === 'navigate' ? 'navigate' : 'edit') as EditorMode
+}
+
+/**
+ * Write editor mode to cookie
+ * Persists for 24 hours (same as edit session)
+ */
+function setEditorModeCookie(mode: EditorMode) {
+  if (typeof document === 'undefined') return
+  document.cookie = `${EDITOR_MODE_COOKIE}=${mode}; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`
+}
+
 export interface EditPermissions {
   canEdit: boolean
   canManage: boolean
@@ -55,6 +80,8 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   setPageContent: (content: PageContent | null) => void
   setCurrentPageId: (id: string | null) => void
   updateSectionContent: (sectionKey: string, data: unknown) => void
+  updateFieldContent: (sectionKey: string, fieldPath: string, content: string) => void
+  updateFeatureContent: (sectionKey: string, featureIndex: number, field: string, value: string) => void
   markAsChanged: () => void
 
   // Section management
@@ -79,7 +106,7 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   exitEditor: () => Promise<void>
 }
 
-const FullSiteEditorContext = createContext<FullSiteEditorContextValue | undefined>(undefined)
+export const FullSiteEditorContext = createContext<FullSiteEditorContextValue | undefined>(undefined)
 
 interface FullSiteEditorProviderProps {
   children: ReactNode
@@ -107,10 +134,10 @@ export function FullSiteEditorProvider({
 }: FullSiteEditorProviderProps) {
   const pathname = usePathname()
 
-  // Initialize state
+  // Initialize state with editor mode from cookie (persists across navigation)
   const [state, setState] = useState<FullSiteEditorState>({
     isEditMode,
-    editorMode: 'edit',
+    editorMode: getEditorModeFromCookie(),
     viewportSize: 'desktop',
     currentPageId: initialPageId,
     currentPageSlug: pathname || '',
@@ -134,14 +161,19 @@ export function FullSiteEditorProvider({
 
   // Mode management
   const setEditorMode = useCallback((mode: EditorMode) => {
+    setEditorModeCookie(mode) // Persist mode across page navigation
     setState(prev => ({ ...prev, editorMode: mode }))
   }, [])
 
   const toggleEditorMode = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      editorMode: prev.editorMode === 'edit' ? 'navigate' : 'edit'
-    }))
+    setState(prev => {
+      const newMode = prev.editorMode === 'edit' ? 'navigate' : 'edit'
+      setEditorModeCookie(newMode) // Persist mode across page navigation
+      return {
+        ...prev,
+        editorMode: newMode
+      }
+    })
   }, [])
 
   const setViewportSize = useCallback((size: ViewportSize) => {
@@ -161,13 +193,99 @@ export function FullSiteEditorProvider({
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const updatedContent = {
+      const updatedContent: PageContent = {
         ...prev.pageContent,
         sections: {
           ...prev.pageContent.sections,
           [sectionKey]: {
             ...prev.pageContent.sections[sectionKey],
             data
+          }
+        }
+      }
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  const updateFieldContent = useCallback((sectionKey: string, fieldPath: string, content: string) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section) return prev
+
+      // Parse field path (e.g., "data.headline" -> ["data", "headline"])
+      const pathParts = fieldPath.split('.')
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data || {}))
+
+      // Navigate to the nested field and update it
+      let current = updatedData
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        if (!current[pathParts[i]]) {
+          current[pathParts[i]] = {}
+        }
+        current = current[pathParts[i]]
+      }
+      current[pathParts[pathParts.length - 1]] = content
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  const updateFeatureContent = useCallback((sectionKey: string, featureIndex: number, field: string, value: string) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Ensure features array exists
+      if (!Array.isArray(updatedData.features)) {
+        updatedData.features = []
+      }
+
+      // Ensure feature at index exists
+      if (!updatedData.features[featureIndex]) {
+        updatedData.features[featureIndex] = {}
+      }
+
+      // Update the specific field
+      updatedData.features[featureIndex][field] = value
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
           }
         }
       }
@@ -194,7 +312,7 @@ export function FullSiteEditorProvider({
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const updatedContent = {
+      const updatedContent: PageContent = {
         ...prev.pageContent,
         sections: {
           ...prev.pageContent.sections,
@@ -262,12 +380,12 @@ export function FullSiteEditorProvider({
       ]
 
       // Rebuild sections object in new order
-      const reorderedSections: Record<string, unknown> = {}
+      const reorderedSections = {} as typeof sections
       newSectionKeys.forEach(key => {
         reorderedSections[key] = sections[key]
       })
 
-      const updatedContent = {
+      const updatedContent: PageContent = {
         ...prev.pageContent,
         sections: reorderedSections
       }
@@ -408,6 +526,8 @@ export function FullSiteEditorProvider({
     setPageContent,
     setCurrentPageId,
     updateSectionContent,
+    updateFieldContent,
+    updateFeatureContent,
     markAsChanged,
     setActiveSection,
     hideSection,
