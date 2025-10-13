@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -9,6 +9,7 @@ import { Loader2, Eye, EyeOff, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { useSiteContext } from '@/src/contexts/SiteContext'
 import { signInSchema, type SignInData } from '@/lib/validations/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,7 +27,13 @@ export default function SignIn() {
   const [isLoadingMagicLink, setIsLoadingMagicLink] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const { signIn } = useAuth()
+  const { currentSite } = useSiteContext()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Get edit mode parameters from URL
+  const enableEdit = searchParams.get('enableEdit') === 'true'
+  const returnUrl = searchParams.get('returnUrl') || '/'
 
   // Generate unique IDs at the top level
   const emailId = React.useId()
@@ -45,7 +52,39 @@ export default function SignIn() {
       setAuthError(null) // Clear any previous errors
       await signIn(data.email, data.password)
       toast.success('Successfully signed in!')
-      router.push('/')
+
+      // If enableEdit is true, activate edit mode
+      if (enableEdit) {
+        // Check if we have a site context
+        if (!currentSite?.id) {
+          console.error('Cannot enable edit mode: Site context not available')
+          toast.error('Unable to enable edit mode. Please try again.')
+        } else {
+          try {
+            const response = await fetch('/api/site-editor/enable', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ siteId: currentSite.id }),
+            })
+
+            if (!response.ok) {
+              const errorData = await response.json()
+              toast.error(errorData.error || 'Failed to enable edit mode')
+            } else {
+              toast.success('Edit mode enabled!')
+            }
+          } catch (error) {
+            console.error('Error enabling edit mode:', error)
+            toast.error('Failed to enable edit mode')
+          }
+        }
+      }
+
+      // Redirect to returnUrl or home with full page reload
+      // Use window.location.href to ensure cookies are set and middleware runs
+      window.location.href = returnUrl
     } catch (error: unknown) {
       const message = handleAuthError(error as AuthError)
       setAuthError(message)

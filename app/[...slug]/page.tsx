@@ -3,6 +3,9 @@ import { Metadata } from 'next'
 import { generatePageMetadata } from './utils/metadata'
 import { isProductRoute, isCategoryRoute, extractSlugFromPath } from './utils/routing'
 import { SitePageProps } from './types'
+import { getEditModeStatus } from '@/src/lib/site-editor/server-utils'
+import { FullSiteEditorWrapper } from '@/src/components/site-editor/FullSiteEditorWrapper'
+import { FullSiteEditorBar } from '@/src/components/site-editor/FullSiteEditorBar'
 
 // Page Components
 import { HomePage } from './components/HomePage'
@@ -28,53 +31,82 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
 export default async function SitePage({ params }: SitePageProps) {
   const { slug } = await params
   const path = slug?.join('/') || ''
-  
-  // Route to appropriate component based on path
+
+  // Check if edit mode is active
+  const editModeStatus = await getEditModeStatus()
+
+  // Determine which page component to render based on path
+  let pageComponent: React.ReactNode
+
   switch (path) {
     case '':
     case 'home':
-      return <HomePage />
-      
+      pageComponent = <HomePage />
+      break
+
     case 'about':
-      return <AboutPage />
-      
+      pageComponent = <AboutPage />
+      break
+
     case 'contact':
-      return <ContactPage />
-      
+      pageComponent = <ContactPage />
+      break
+
     case 'privacy':
-      return <PrivacyPage />
-      
+      pageComponent = <PrivacyPage />
+      break
+
     case 'terms':
-      return <TermsPage />
-      
+      pageComponent = <TermsPage />
+      break
+
     case 'products':
-      return <ProductsPage />
-      
+      pageComponent = <ProductsPage />
+      break
+
     case 'cart':
-      return <CartPage />
-      
+      pageComponent = <CartPage />
+      break
+
     case 'checkout':
-      return <CheckoutPage />
-      
+      pageComponent = <CheckoutPage />
+      break
+
     case 'account':
-      return <AccountPage />
-      
+      pageComponent = <AccountPage />
+      break
+
     case 'account/orders':
-      return <OrdersPage />
-      
+      pageComponent = <OrdersPage />
+      break
+
     default:
       // Handle dynamic routes
       if (isProductRoute(path)) {
         const productSlug = extractSlugFromPath(path, 'products')
-        return <ProductDetailPage slug={productSlug} />
-      }
-      
-      if (isCategoryRoute(path)) {
+        pageComponent = <ProductDetailPage slug={productSlug} />
+      } else if (isCategoryRoute(path)) {
         const categorySlug = extractSlugFromPath(path, 'category')
-        return <CategoryPage slug={categorySlug} />
+        pageComponent = <CategoryPage slug={categorySlug} />
+      } else {
+        // Try to find content in database with this slug
+        pageComponent = <DynamicContentPage slug={path} />
       }
-      
-      // Try to find content in database with this slug
-      return <DynamicContentPage slug={path} />
   }
+
+  // Wrap all pages with edit mode functionality
+  return (
+    <FullSiteEditorWrapper
+      isEditMode={editModeStatus.isEditMode}
+      permissions={editModeStatus.permissions}
+      pageContent={null}
+      pageId={null}
+    >
+      {/* Editor Bar - shows on ALL pages when in edit mode */}
+      {editModeStatus.isEditMode && <FullSiteEditorBar />}
+
+      {/* Page content */}
+      {pageComponent}
+    </FullSiteEditorWrapper>
+  )
 }

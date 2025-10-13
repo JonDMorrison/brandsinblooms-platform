@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useCurrentSite, useSitePermissions } from '@/src/contexts/SiteContext'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { CartProvider } from '@/src/contexts/CartContext'
@@ -10,6 +11,7 @@ import { useThemeCSS } from '@/src/hooks/useThemeCSS'
 import { Flower, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
+import AuthModal from '@/src/components/auth/AuthModal'
 import Link from 'next/link'
 
 interface SiteLayoutProps {
@@ -19,15 +21,19 @@ interface SiteLayoutProps {
   requireSiteAccess?: boolean
 }
 
-export function SiteLayout({ 
-  children, 
+export function SiteLayout({
+  children,
   showNavigation = true,
   requireAuth = false,
-  requireSiteAccess = false 
+  requireSiteAccess = false
 }: SiteLayoutProps) {
   const { site, loading, error } = useCurrentSite()
   const { user, loading: authLoading, signOut } = useAuth()
   const { hasAccess, canEdit, canManage } = useSitePermissions()
+
+  // Auth modal state
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
 
   // Show loading state
   if (loading || authLoading) {
@@ -61,9 +67,16 @@ export function SiteLayout({
             {children}
           </main>
 
-
           {/* Site Footer */}
           {showNavigation && <SiteFooter />}
+
+          {/* Auth Modal */}
+          <AuthModal
+            open={authModalOpen}
+            onOpenChange={setAuthModalOpen}
+            mode={authMode}
+            onModeChange={setAuthMode}
+          />
         </ThemeWrapper>
       </CartProvider>
     </SiteThemeProvider>

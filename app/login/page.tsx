@@ -6,17 +6,19 @@ import { useRouter, useSearchParams } from 'next/navigation'
 function LoginRedirect() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get('redirectTo')
 
   useEffect(() => {
-    // Redirect to homepage with signin parameter
+    // Redirect to homepage with signin parameter, preserving ALL query params
     const url = new URL('/', window.location.origin)
     url.searchParams.set('signin', 'true')
-    if (redirectTo) {
-      url.searchParams.set('redirectTo', redirectTo)
-    }
+
+    // Preserve all existing query parameters
+    searchParams.forEach((value, key) => {
+      url.searchParams.set(key, value)
+    })
+
     router.replace(url.toString())
-  }, [router, redirectTo])
+  }, [router, searchParams])
 
   // Return a loading state to avoid flashing
   return (

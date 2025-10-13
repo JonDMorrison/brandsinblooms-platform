@@ -1,0 +1,52 @@
+/**
+ * Edit Session Client Utilities
+ * CLIENT-SIDE ONLY - Safe to import in client components
+ * Uses browser APIs only (document.cookie, window.location, fetch)
+ */
+
+// Cookie names (shared constants)
+export const EDIT_MODE_COOKIE = 'x-site-edit-mode'
+export const EDIT_SESSION_COOKIE = 'x-site-edit-session'
+
+/**
+ * Client-side utilities for edit mode
+ * Safe to use in 'use client' components
+ */
+export const editSessionUtils = {
+  EDIT_MODE_COOKIE,
+  EDIT_SESSION_COOKIE,
+
+  /**
+   * Check if edit mode is enabled (client-side cookie check)
+   */
+  isEditModeEnabled: (): boolean => {
+    if (typeof document === 'undefined') return false
+    return document.cookie.includes(`${EDIT_MODE_COOKIE}=true`)
+  },
+
+  /**
+   * Enable edit mode (redirect to login)
+   * @param returnUrl - URL to return to after login
+   */
+  enableEditMode: (returnUrl?: string): void => {
+    const url = new URL('/login', window.location.origin)
+    if (returnUrl) {
+      url.searchParams.set('returnUrl', returnUrl)
+    }
+    url.searchParams.set('enableEdit', 'true')
+    window.location.href = url.toString()
+  },
+
+  /**
+   * Disable edit mode (client-side)
+   * Calls API endpoint to clear session
+   */
+  disableEditMode: async (): Promise<void> => {
+    try {
+      await fetch('/api/site-editor/exit', { method: 'POST' })
+      window.location.reload()
+    } catch (error) {
+      console.error('Error disabling edit mode:', error)
+    }
+  }
+}

@@ -3,6 +3,7 @@
 import React from 'react'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { useDesignSettings } from '@/src/hooks/useDesignSettings'
+import { useAuth } from '@/src/contexts/AuthContext'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { Separator } from '@/src/components/ui/separator'
@@ -21,10 +22,13 @@ import {
   Shield,
   Truck,
   RefreshCw,
-  Globe
+  Globe,
+  LogIn,
+  Edit3
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { editSessionUtils } from '@/src/lib/site-editor/edit-session-client'
 
 interface FooterColumn {
   title: string
@@ -94,8 +98,15 @@ function getDefaultSocialLinks(): SocialLink[] {
 export function SiteFooter({ className }: SiteFooterProps) {
   const { currentSite: site } = useSiteContext()
   const { data: designSettings } = useDesignSettings()
+  const { user } = useAuth()
   const [email, setEmail] = useState('')
   const [subscribing, setSubscribing] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+
+  // Check if we're in edit mode
+  React.useEffect(() => {
+    setIsEditMode(editSessionUtils.isEditModeEnabled())
+  }, [])
   
   // Get footer configuration from theme settings
   const theme = designSettings
@@ -144,6 +155,28 @@ export function SiteFooter({ className }: SiteFooterProps) {
               ))}
             </div>
           </div>
+
+          {/* Site Editor Login/Access Link */}
+          {!isEditMode && (
+            <div className="mt-4 pt-4 border-t text-center">
+              <button
+                onClick={() => editSessionUtils.enableEditMode(window.location.pathname)}
+                className="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                {user ? (
+                  <>
+                    <Edit3 className="w-3 h-3" />
+                    Edit this site
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="w-3 h-3" />
+                    Site owner? Log in
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </footer>
     )
@@ -152,7 +185,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
   if (footerStyle === 'centered') {
     // Get navigation items from footer settings
     const footerNavItems = theme?.footer?.navigationItems || []
-    
+
     return (
       <footer className={cn('w-full border-t bg-white', className)}>
         <div className="brand-container mx-auto px-4 py-6">
@@ -177,7 +210,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
                 {/* Social Links */}
                 <div className="flex justify-center gap-4">
                   {socialLinks.map((link) => {
-                    const IconComponent = socialIcons[link.platform] ? 
+                    const IconComponent = socialIcons[link.platform] ?
                       React.cloneElement(socialIcons[link.platform] as React.ReactElement, {
                         className: 'h-4 w-4 hover:opacity-70 cursor-pointer transition-opacity',
                         style: { color: 'var(--theme-primary)' }
@@ -199,6 +232,28 @@ export function SiteFooter({ className }: SiteFooterProps) {
             <div className="border-t pt-3 text-center text-xs" style={{ borderColor: 'rgba(var(--theme-primary-rgb), 0.125)', color: 'rgba(31, 41, 55, 0.5)' }}>
               {copyright}
             </div>
+
+            {/* Site Editor Login/Access Link */}
+            {!isEditMode && (
+              <div className="text-center">
+                <button
+                  onClick={() => editSessionUtils.enableEditMode(window.location.pathname)}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  {user ? (
+                    <>
+                      <Edit3 className="w-3 h-3" />
+                      Edit this site
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="w-3 h-3" />
+                      Site owner? Log in
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </footer>
@@ -234,7 +289,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
                 </div>
               ))}
             </div>
-            
+
             {/* Bottom section with copyright and social icons */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t" style={{ borderColor: 'rgba(var(--theme-primary-rgb), 0.125)' }}>
               <p className="text-xs" style={{ color: '#6b7280' }}>
@@ -256,6 +311,28 @@ export function SiteFooter({ className }: SiteFooterProps) {
               </div>
             </div>
           </div>
+
+          {/* Site Editor Login/Access Link */}
+          {!isEditMode && (
+            <div className="pt-4 border-t text-center" style={{ borderColor: 'rgba(var(--theme-primary-rgb), 0.125)' }}>
+              <button
+                onClick={() => editSessionUtils.enableEditMode(window.location.pathname)}
+                className="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                {user ? (
+                  <>
+                    <Edit3 className="w-3 h-3" />
+                    Edit this site
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="w-3 h-3" />
+                    Site owner? Log in
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </footer>

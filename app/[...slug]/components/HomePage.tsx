@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { SiteRenderer } from '@/src/components/site/SiteRenderer'
 import { ContentSection } from '@/src/lib/content/schema'
 import { plantShopContent, getFeaturedPlants, getPlantsByCareLevel, getPlantsByCategory } from '@/src/data/plant-shop-content'
-import { 
+import {
   HeroSectionErrorBoundary,
   FeaturedPlantsErrorBoundary,
   CategoriesSectionErrorBoundary,
@@ -47,7 +47,7 @@ const getFeatureGridClasses = (featureCount: number): string => {
 
 export async function HomePage() {
   const { siteId } = await getSiteHeaders()
-  
+
   // Fetch database content for hero, featured, and categories sections
   let databaseHeroData = null
   let heroStatus = 'not_found' // 'not_found', 'unpublished', 'missing_hero', 'available'
@@ -227,7 +227,7 @@ export async function HomePage() {
       backgroundSetting: richTextBackgroundSettings[sectionKey]
     }
   })
-  
+
   return (
     <SiteRenderer 
       siteId={siteId}

@@ -13,6 +13,13 @@ import { logDomainResolution } from '@/lib/site/middleware-utils'
 import { applyMultiDomainSecurity } from '@/lib/security/multi-domain-security'
 import { trackDomainResolution, trackPerformance } from '@/lib/monitoring/site-analytics'
 import { debug } from '@/src/lib/utils/debug'
+import {
+  isEditModeEnabled,
+  getEditSession,
+  setEditModeHeaders,
+  clearEditModeCookies,
+  validateEditSessionForSite
+} from '@/src/lib/site-editor/middleware-helpers'
 
 // Environment configuration
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
@@ -656,6 +663,22 @@ async function handleSiteDomain(
     var response = NextResponse.next({ request })
   }
   
+  // Check for edit mode session
+  const editModeActive = isEditModeEnabled(request)
+  if (editModeActive) {
+    const editValidation = validateEditSessionForSite(request, site.id)
+
+    if (editValidation.valid && editValidation.session) {
+      // Set edit mode headers for downstream components
+      setEditModeHeaders(response, editValidation.session)
+      debug.middleware(`Edit mode active for site ${site.id} by user ${editValidation.session.userId}`)
+    } else {
+      // Invalid or expired edit session - clear cookies
+      clearEditModeCookies(response)
+      debug.middleware('Edit mode session invalid or expired, clearing cookies')
+    }
+  }
+
   // Set site context in cookies and headers for downstream use
   response.cookies.set('x-site-id', site.id, {
     httpOnly: true,
@@ -663,14 +686,14 @@ async function handleSiteDomain(
     sameSite: 'lax',
     maxAge: 60 * 60 * 24, // 1 day
   })
-  
+
   response.cookies.set('x-site-subdomain', site.subdomain, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 60 * 60 * 24, // 1 day
   })
-  
+
   if (site.custom_domain) {
     response.cookies.set('x-site-custom-domain', site.custom_domain, {
       httpOnly: true,
@@ -685,7 +708,7 @@ async function handleSiteDomain(
   response.headers.set('x-site-subdomain', site.subdomain)
   response.headers.set('x-site-name', site.name)
   response.headers.set('x-hostname', hostname)
-  
+
   if (site.custom_domain) {
     response.headers.set('x-site-custom-domain', site.custom_domain)
   }
