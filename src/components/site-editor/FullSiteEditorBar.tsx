@@ -264,7 +264,7 @@ export function FullSiteEditorBar() {
                 <ChevronDown className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48" align="end">
+            <DropdownMenuContent className="w-48 z-[10000]" align="end">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">
