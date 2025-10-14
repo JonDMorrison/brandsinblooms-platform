@@ -256,7 +256,7 @@ const InlineTextEditorComponent = ({
       ref={elementRef}
       className={cn(
         'inline-editor-wrapper relative',
-        isEnabled && !isEditing && 'cursor-text hover:bg-gradient-primary-50/50 transition-colors',
+        isEnabled && !isEditing && 'cursor-text hover:bg-violet-500/5 transition-colors',
         isEditing && 'ring-2 ring-primary/50 ring-offset-1 bg-white rounded',
         className
       )}

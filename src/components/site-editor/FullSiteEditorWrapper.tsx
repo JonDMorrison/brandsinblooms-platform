@@ -14,6 +14,7 @@ import { PageContent } from '@/src/lib/content/schema'
 import { EditModeProvider } from '@/src/contexts/EditModeContext'
 import { VisualEditorProvider } from '@/src/contexts/VisualEditorContext'
 import { ViewportManager } from './ViewportManager'
+import { getVisualFeedbackStyles } from '@/src/components/content-editor/visual/styles/visual-feedback'
 
 interface FullSiteEditorWrapperProps {
   children: ReactNode
@@ -52,10 +53,12 @@ export function FullSiteEditorWrapper({
           onSave={onSave}
         >
           {/* Add padding-top to prevent content from being hidden under fixed bar (h-14 = 56px) */}
-          <div className="pt-14">
+          <div className="pt-14 visual-editor-preview">
             <ViewportManager>
               {children}
             </ViewportManager>
+            {/* Inject visual feedback styles for editable elements */}
+            <style jsx global>{`${getVisualFeedbackStyles()}`}</style>
           </div>
         </FullSiteEditorProvider>
       </VisualEditorProvider>
