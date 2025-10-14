@@ -53,7 +53,7 @@ export function CustomerSiteSection({
                 <h1 className="text-4xl md:text-6xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
                   {String(sectionData.headline || 'Welcome to our site')}
                 </h1>
-                <div 
+                <div
                   className="text-xl md:text-2xl mb-8 leading-relaxed [&_p:not(:first-child)]:mt-2"
                   style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}
                   dangerouslySetInnerHTML={{

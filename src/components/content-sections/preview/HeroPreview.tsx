@@ -166,9 +166,9 @@ export function HeroPreview({
           {/* CTA Buttons */}
           <div className={`${responsive.flex.heroLayout} gap-4 justify-center mb-12`}>
             {(data.ctaText || onContentUpdate) && (
-              <a 
+              <a
                 href={data.ctaLink || '#'}
-                className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90 inline-flex items-center justify-center"
+                className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
                 style={{
                   backgroundColor: 'var(--theme-primary)',
                   color: 'rgb(255, 255, 255)',
@@ -197,7 +197,7 @@ export function HeroPreview({
                   fieldPath="data.ctaText"
                   format="plain"
                   singleLine={true}
-                  className="font-semibold leading-none [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.ProseMirror]:leading-none [&_.inline-editor-wrapper]:min-h-0 [&_.inline-editor-wrapper]:leading-none"
+                  className="font-semibold [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.inline-editor-wrapper]:min-h-0"
                   style={{
                     color: 'inherit',
                     fontFamily: 'inherit'
@@ -209,13 +209,12 @@ export function HeroPreview({
               </a>
             )}
             {(data.secondaryCtaText || onContentUpdate) && (
-              <a 
+              <a
                 href={data.secondaryCtaLink || '#'}
-                className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80 inline-flex items-center justify-center"
+                className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
                 style={{
                   borderColor: 'var(--theme-secondary)',
                   color: 'var(--theme-secondary)',
-                  backgroundColor: 'transparent',
                   fontFamily: 'var(--theme-font-body)'
                 }}
                 onClick={(e) => {
@@ -241,7 +240,7 @@ export function HeroPreview({
                   fieldPath="data.secondaryCtaText"
                   format="plain"
                   singleLine={true}
-                  className="font-semibold leading-none [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.ProseMirror]:leading-none [&_.inline-editor-wrapper]:min-h-0 [&_.inline-editor-wrapper]:leading-none"
+                  className="font-semibold [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.inline-editor-wrapper]:min-h-0"
                   style={{
                     color: 'inherit',
                     fontFamily: 'inherit'
@@ -285,7 +284,7 @@ export function HeroPreview({
                       fieldPath={`data.features.${index}.text`}
                       format="plain"
                       singleLine={true}
-                      className="text-sm font-medium [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.ProseMirror]:leading-none [&_.inline-editor-wrapper]:min-h-0"
+                      className="text-sm font-medium [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.inline-editor-wrapper]:min-h-0"
                       style={{
                         color: 'var(--theme-text)',
                         fontFamily: 'var(--theme-font-body)'

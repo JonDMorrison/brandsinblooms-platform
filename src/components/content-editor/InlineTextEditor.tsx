@@ -266,23 +266,26 @@ const InlineTextEditorComponent = ({
       data-field={fieldPath}
       data-editing={isEditing}
     >
-      <EditorContent 
-        editor={editor} 
+      <EditorContent
+        editor={editor}
         className={cn(
-          'outline-none',
+          'outline-none p-0',
           isEditing && 'p-1',
           // Inline editor specific styles
           '[&_.ProseMirror]:outline-none',
           '[&_.ProseMirror]:min-h-[1.5em]',
+          '[&_.ProseMirror]:p-0', // Remove ProseMirror padding
+          '[&_.tiptap]:p-0', // Explicitly target .tiptap class
+          '[&>*]:p-0', // Target direct child wrapper
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]',
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:text-gray-500',
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none',
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:absolute',
           '[&_.ProseMirror_p]:m-0', // Remove default margins for inline editing
+          '[&_.ProseMirror_p]:p-0', // Remove default padding for inline editing
+          '[&_.ProseMirror]:whitespace-normal', // Override Tiptap's break-spaces default
+          '[&_.ProseMirror_p]:whitespace-normal', // Override Tiptap's break-spaces default
           // Single-line specific styles
-          singleLine && '[&_.ProseMirror_.single-line-paragraph]:inline',
-          singleLine && '[&_.ProseMirror]:whitespace-nowrap',
-          singleLine && '[&_.ProseMirror]:overflow-hidden',
           // Format-specific styles
           format === 'rich' && [
             '[&_.ProseMirror_h2]:text-2xl',
