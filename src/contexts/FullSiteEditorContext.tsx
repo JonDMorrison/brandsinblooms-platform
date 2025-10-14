@@ -220,8 +220,15 @@ export function FullSiteEditorProvider({
       const section = prev.pageContent.sections[sectionKey]
       if (!section) return prev
 
-      // Parse field path (e.g., "data.headline" -> ["data", "headline"])
-      const pathParts = fieldPath.split('.')
+      // Strip "data." prefix since we're already working with section.data
+      // fieldPath comes as "data.headline" but we're working with section.data already
+      let processedPath = fieldPath
+      if (processedPath.startsWith('data.')) {
+        processedPath = processedPath.substring(5) // Remove "data." prefix
+      }
+
+      // Parse field path (e.g., "headline" -> ["headline"])
+      const pathParts = processedPath.split('.')
 
       // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data || {}))
@@ -453,7 +460,7 @@ export function FullSiteEditorProvider({
         isSaving: false,
         lastSaved: new Date()
       }))
-      toast.success('Changes saved')
+      // Toast notification is shown by the onSave handler (ClientSiteEditorWrapper)
     } catch (error) {
       setState(prev => ({ ...prev, isSaving: false }))
       console.error('Error saving page:', error)

@@ -4,8 +4,9 @@ import { generatePageMetadata } from './utils/metadata'
 import { isProductRoute, isCategoryRoute, extractSlugFromPath } from './utils/routing'
 import { SitePageProps } from './types'
 import { getEditModeStatus } from '@/src/lib/site-editor/server-utils'
-import { FullSiteEditorWrapper } from '@/src/components/site-editor/FullSiteEditorWrapper'
+import { ClientSiteEditorWrapper } from '@/src/components/site-editor/ClientSiteEditorWrapper'
 import { FullSiteEditorBar } from '@/src/components/site-editor/FullSiteEditorBar'
+import { getSiteHeaders } from './utils/routing'
 
 // Page Components
 import { HomePage } from './components/HomePage'
@@ -31,6 +32,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
 export default async function SitePage({ params }: SitePageProps) {
   const { slug } = await params
   const path = slug?.join('/') || ''
+
+  // Get site headers for siteId
+  const { siteId } = await getSiteHeaders()
 
   // Check if edit mode is active
   const editModeStatus = await getEditModeStatus()
@@ -96,17 +100,17 @@ export default async function SitePage({ params }: SitePageProps) {
 
   // Wrap all pages with edit mode functionality
   return (
-    <FullSiteEditorWrapper
+    <ClientSiteEditorWrapper
       isEditMode={editModeStatus.isEditMode}
       permissions={editModeStatus.permissions}
-      pageContent={null}
-      pageId={null}
+      slug={path}
+      siteId={siteId}
     >
       {/* Editor Bar - shows on ALL pages when in edit mode */}
       {editModeStatus.isEditMode && <FullSiteEditorBar />}
 
       {/* Page content */}
       {pageComponent}
-    </FullSiteEditorWrapper>
+    </ClientSiteEditorWrapper>
   )
 }

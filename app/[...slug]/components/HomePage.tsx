@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { SiteRenderer } from '@/src/components/site/SiteRenderer'
 import { ContentSection } from '@/src/lib/content/schema'
 import { plantShopContent, getFeaturedPlants, getPlantsByCareLevel, getPlantsByCategory } from '@/src/data/plant-shop-content'
+
+// Disable caching to ensure fresh data after saves in edit mode
+export const dynamic = 'force-dynamic'
 import {
   HeroSectionErrorBoundary,
   FeaturedPlantsErrorBoundary,

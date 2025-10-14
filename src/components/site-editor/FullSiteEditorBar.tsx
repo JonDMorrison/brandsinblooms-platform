@@ -214,8 +214,8 @@ export function FullSiteEditorBar() {
 
           {/* Saving indicator */}
           {isSaving && (
-            <div className="text-xs text-blue-600 font-medium flex items-center gap-1.5">
-              <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <div className="text-xs font-medium flex items-center gap-1.5" style={{ color: 'var(--theme-primary)' }}>
+              <div className="w-3 h-3 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--theme-primary)' }} />
               Saving...
             </div>
           )}
@@ -228,7 +228,7 @@ export function FullSiteEditorBar() {
             className={cn(
               'gap-1.5',
               hasUnsavedChanges
-                ? 'bg-blue-600 hover:bg-blue-700'
+                ? 'bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white'
                 : 'bg-gray-300 cursor-not-allowed'
             )}
           >
