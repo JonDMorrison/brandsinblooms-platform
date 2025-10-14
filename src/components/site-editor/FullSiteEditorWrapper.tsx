@@ -13,6 +13,7 @@ import {
 import { PageContent } from '@/src/lib/content/schema'
 import { EditModeProvider } from '@/src/contexts/EditModeContext'
 import { VisualEditorProvider } from '@/src/contexts/VisualEditorContext'
+import { ViewportManager } from './ViewportManager'
 
 interface FullSiteEditorWrapperProps {
   children: ReactNode
@@ -52,7 +53,9 @@ export function FullSiteEditorWrapper({
         >
           {/* Add padding-top to prevent content from being hidden under fixed bar (h-14 = 56px) */}
           <div className="pt-14">
-            {children}
+            <ViewportManager>
+              {children}
+            </ViewportManager>
           </div>
         </FullSiteEditorProvider>
       </VisualEditorProvider>
