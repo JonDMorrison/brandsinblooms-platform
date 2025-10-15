@@ -44,6 +44,7 @@ import {
 import { cn } from '@/src/lib/utils'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
+import { QuickPageSwitcher } from './QuickPageSwitcher'
 
 export function FullSiteEditorBar() {
   const {
@@ -70,16 +71,6 @@ export function FullSiteEditorBar() {
   if (!isEditMode) {
     return null
   }
-
-  // Get page name from slug
-  const pageName = currentPageSlug
-    ? currentPageSlug
-        .split('/')
-        .filter(Boolean)
-        .pop()
-        ?.replace(/-/g, ' ')
-        .replace(/^\w/, c => c.toUpperCase()) || 'Home'
-    : 'Home'
 
   // Get user initials for avatar
   const getUserInitials = () => {
@@ -130,12 +121,13 @@ export function FullSiteEditorBar() {
       )}
     >
       <div className="h-14 px-4 flex items-center justify-between gap-4">
-        {/* Left: Page Info */}
+        {/* Left: Page Switcher */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium">{pageName}</span>
-          </div>
+          <QuickPageSwitcher
+            currentSlug={currentPageSlug}
+            hasUnsavedChanges={hasUnsavedChanges}
+            onSavePage={savePage}
+          />
           {currentPageSlug === '' && (
             <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">
               <Home className="w-3 h-3" />
