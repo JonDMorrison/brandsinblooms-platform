@@ -34,15 +34,22 @@ export function useVisualEventHandling({
     const target = event.target as HTMLElement
     const inlineEditor = target.closest('.inline-editor-wrapper')
     const clickableElement = target.closest('a, button')
-    
+
     // Prevent navigation for links and buttons in preview mode
+    // EXCEPT for editor control buttons (gear icons, etc.)
     if (clickableElement && !inlineEditor) {
-      event.preventDefault()
-      event.stopPropagation()
-      
-      // Add visual feedback for preview mode
-      addVisualFeedbackClass(clickableElement as HTMLElement, 'preview-clicked')
-      return
+      const isEditorControl = clickableElement.hasAttribute('data-editor-control')
+
+      // Only prevent default behavior for content buttons, not editor controls
+      if (!isEditorControl) {
+        event.preventDefault()
+        event.stopPropagation()
+
+        // Add visual feedback for preview mode
+        addVisualFeedbackClass(clickableElement as HTMLElement, 'preview-clicked')
+        return
+      }
+      // For editor controls, allow the click to proceed normally
     }
 
     // Handle clicks on editable elements

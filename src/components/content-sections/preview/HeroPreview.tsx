@@ -10,7 +10,7 @@ import { getFeatureGridClasses } from '@/src/components/content-sections/shared'
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
 import { IconSelector } from '@/src/components/ui/IconSelector'
-import { Dialog, DialogContent, DialogOverlay, DialogTitle } from '@/src/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/src/components/ui/dialog'
 import { SmartLink } from '@/src/components/ui/smart-link'
 import { LinkEditModal } from '@/src/components/site-editor/modals/LinkEditModal'
 import { Settings } from 'lucide-react'
@@ -88,6 +88,19 @@ export function HeroPreview({
   const [linkEditModalOpen, setLinkEditModalOpen] = useState(false)
   const [editingLinkField, setEditingLinkField] = useState<'cta' | 'secondaryCta' | null>(null)
 
+  // Debug: Track modal state changes
+  React.useEffect(() => {
+    console.log('[HeroPreview] linkEditModalOpen changed:', linkEditModalOpen)
+  }, [linkEditModalOpen])
+
+  // Debug: Log rendering conditions
+  console.log('[HeroPreview] Render -', {
+    isPreview,
+    hasOnContentUpdate: !!onContentUpdate,
+    linkEditModalOpen,
+    editingLinkField
+  })
+
   // Handle icon click to open selector
   const handleIconClick = (index: number, e: React.MouseEvent) => {
     e.preventDefault()
@@ -114,10 +127,12 @@ export function HeroPreview({
 
   // Handle link editing
   const handleOpenLinkModal = (linkType: 'cta' | 'secondaryCta', e: React.MouseEvent) => {
+    console.log('[HeroPreview] handleOpenLinkModal called', { linkType, isPreview, onContentUpdate: !!onContentUpdate })
     e.preventDefault()
     e.stopPropagation()
     setEditingLinkField(linkType)
     setLinkEditModalOpen(true)
+    console.log('[HeroPreview] State updated - linkEditModalOpen should be true')
   }
 
   const handleLinkSave = (url: string) => {
@@ -235,6 +250,7 @@ export function HeroPreview({
                     className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
                     onClick={(e) => handleOpenLinkModal('cta', e)}
                     title="Edit link URL"
+                    data-editor-control="true"
                   >
                     <Settings className="w-3 h-3 text-gray-700" />
                   </Button>
@@ -290,6 +306,7 @@ export function HeroPreview({
                     className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
                     onClick={(e) => handleOpenLinkModal('secondaryCta', e)}
                     title="Edit link URL"
+                    data-editor-control="true"
                   >
                     <Settings className="w-3 h-3 text-gray-700" />
                   </Button>
@@ -348,8 +365,7 @@ export function HeroPreview({
 
       {/* Icon Selection Modal */}
       <Dialog open={editingIconIndex !== null} onOpenChange={handleCloseModal}>
-        <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 z-50" />
-        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-2rem)] sm:w-[500px] max-w-[500px] bg-white rounded-lg shadow-xl p-0">
+        <DialogContent className="sm:max-w-[500px] p-0">
           <DialogTitle className="sr-only">Select Icon</DialogTitle>
           <div className="p-4 sm:p-6 border-b">
             <h3 className="text-base sm:text-lg font-semibold">Choose an Icon</h3>

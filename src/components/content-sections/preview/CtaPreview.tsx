@@ -178,6 +178,7 @@ export function CtaPreview({
                     className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
                     onClick={(e) => handleOpenLinkModal('cta', e)}
                     title="Edit link URL"
+                    data-editor-control="true"
                   >
                     <Settings className="w-3 h-3 text-gray-700" />
                   </Button>
@@ -238,6 +239,7 @@ export function CtaPreview({
                     className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
                     onClick={(e) => handleOpenLinkModal('secondaryCta', e)}
                     title="Edit link URL"
+                    data-editor-control="true"
                   >
                     <Settings className="w-3 h-3 text-gray-700" />
                   </Button>

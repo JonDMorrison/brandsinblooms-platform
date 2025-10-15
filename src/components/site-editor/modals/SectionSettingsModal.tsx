@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogOverlay, DialogTitle, DialogFooter } from '@/src/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogFooter } from '@/src/components/ui/dialog'
 import { Button } from '@/src/components/ui/button'
 import { Label } from '@/src/components/ui/label'
 import { ContentSection } from '@/src/lib/content/schema'
@@ -110,8 +110,7 @@ export function SectionSettingsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogOverlay className="fixed inset-0 bg-black/50 z-50" />
-      <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-2rem)] sm:w-[500px] max-w-[500px] bg-white rounded-lg shadow-xl p-0">
+      <DialogContent className="sm:max-w-[500px] p-0">
         <div className="p-4 sm:p-6 border-b">
           <DialogTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
             <Settings className="w-4 h-4 sm:w-5 sm:h-5" />

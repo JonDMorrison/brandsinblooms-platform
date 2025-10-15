@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogOverlay, DialogTitle, DialogDescription, DialogFooter } from '@/src/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter } from '@/src/components/ui/dialog'
 import { Button } from '@/src/components/ui/button'
 import { Link as LinkIcon } from 'lucide-react'
 import { ButtonLinkField } from '@/src/components/content-editor/editors/shared/ButtonLinkField'
@@ -30,12 +30,16 @@ export function LinkEditModal({
   fieldLabel = 'Link',
   sectionType
 }: LinkEditModalProps) {
+  console.log('[LinkEditModal] Render -', { isOpen, currentUrl, fieldLabel, sectionType })
+
   const [url, setUrl] = useState(currentUrl)
 
   // Reset URL when modal opens
   useEffect(() => {
+    console.log('[LinkEditModal] isOpen effect triggered -', { isOpen, currentUrl })
     if (isOpen) {
       setUrl(currentUrl || '/')
+      console.log('[LinkEditModal] Modal should now be visible')
     }
   }, [isOpen, currentUrl])
 
@@ -58,10 +62,14 @@ export function LinkEditModal({
     onClose()
   }
 
+  console.log('[LinkEditModal] About to render Dialog with open=', isOpen)
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogOverlay className="fixed inset-0 bg-black/50 z-50" />
-      <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-2rem)] sm:w-[500px] max-w-[500px] bg-white rounded-lg shadow-xl p-0">
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      console.log('[LinkEditModal] onOpenChange triggered -', { open })
+      if (!open) handleCancel()
+    }}>
+      <DialogContent className="sm:max-w-[500px] p-0">
         <div className="p-4 sm:p-6 border-b">
           <DialogTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
             <LinkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
