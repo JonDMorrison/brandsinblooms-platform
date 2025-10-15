@@ -152,45 +152,47 @@ export function FullSiteEditorBar() {
             </button>
           </div>
 
-          {/* Viewport Selector */}
-          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
-            <button
-              onClick={() => setViewportSize('desktop')}
-              className={cn(
-                'p-2 rounded-md transition-colors',
-                viewportSize === 'desktop'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              )}
-              title="Desktop view"
-            >
-              <Monitor className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewportSize('tablet')}
-              className={cn(
-                'p-2 rounded-md transition-colors',
-                viewportSize === 'tablet'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              )}
-              title="Tablet view"
-            >
-              <Tablet className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewportSize('mobile')}
-              className={cn(
-                'p-2 rounded-md transition-colors',
-                viewportSize === 'mobile'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              )}
-              title="Mobile view"
-            >
-              <Smartphone className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Viewport Selector - Only visible in Edit mode */}
+          {editorMode === 'edit' && (
+            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg animate-in fade-in slide-in-from-left-2 duration-200">
+              <button
+                onClick={() => setViewportSize('desktop')}
+                className={cn(
+                  'p-2 rounded-md transition-colors',
+                  viewportSize === 'desktop'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                )}
+                title="Desktop view"
+              >
+                <Monitor className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewportSize('tablet')}
+                className={cn(
+                  'p-2 rounded-md transition-colors',
+                  viewportSize === 'tablet'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                )}
+                title="Tablet view"
+              >
+                <Tablet className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewportSize('mobile')}
+                className={cn(
+                  'p-2 rounded-md transition-colors',
+                  viewportSize === 'mobile'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                )}
+                title="Mobile view"
+              >
+                <Smartphone className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right: Save & Exit */}
