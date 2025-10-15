@@ -82,6 +82,9 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   updateSectionContent: (sectionKey: string, data: unknown) => void
   updateFieldContent: (sectionKey: string, fieldPath: string, content: string) => void
   updateFeatureContent: (sectionKey: string, featureIndex: number, field: string, value: string) => void
+  updateCategoryContent: (sectionKey: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => void
+  deleteCategoryContent: (sectionKey: string, categoryIndex: number) => void
+  updateSectionSettings: (sectionKey: string, settings: Record<string, unknown>) => void
   markAsChanged: () => void
 
   // Section management
@@ -331,6 +334,122 @@ export function FullSiteEditorProvider({
     setState(prev => ({ ...prev, hasUnsavedChanges: true }))
   }, [])
 
+  // Category management
+  const updateCategoryContent = useCallback((sectionKey: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Ensure categories array exists
+      if (!Array.isArray(updatedData.categories)) {
+        updatedData.categories = []
+      }
+
+      // Update the specific category
+      if (updatedData.categories[categoryIndex]) {
+        updatedData.categories[categoryIndex] = {
+          ...updatedData.categories[categoryIndex],
+          ...updatedCategory
+        }
+      }
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  const deleteCategoryContent = useCallback((sectionKey: string, categoryIndex: number) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Ensure categories array exists
+      if (!Array.isArray(updatedData.categories)) {
+        return prev
+      }
+
+      // Remove category at index
+      updatedData.categories.splice(categoryIndex, 1)
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      toast.success('Category deleted')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  // Section settings management
+  const updateSectionSettings = useCallback((sectionKey: string, settings: Record<string, unknown>) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section) return prev
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            settings: {
+              ...section.settings,
+              ...settings
+            }
+          }
+        }
+      }
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+    toast.success('Section settings updated')
+  }, [])
+
   // Section management
   const setActiveSection = useCallback((sectionKey: string | null) => {
     setState(prev => ({ ...prev, activeSection: sectionKey }))
@@ -556,6 +675,9 @@ export function FullSiteEditorProvider({
     updateSectionContent,
     updateFieldContent,
     updateFeatureContent,
+    updateCategoryContent,
+    deleteCategoryContent,
+    updateSectionSettings,
     markAsChanged,
     setActiveSection,
     hideSection,

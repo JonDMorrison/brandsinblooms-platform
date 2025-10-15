@@ -3,7 +3,7 @@
  * Features container query responsive design for accurate mobile/tablet preview behavior
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
@@ -11,6 +11,9 @@ import { getSectionBackgroundStyle } from '@/src/components/content-sections/sha
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
 import { ImageIcon } from 'lucide-react'
 import { SmartLink } from '@/src/components/ui/smart-link'
+import { CategoryEditModal } from '@/src/components/site-editor/modals/CategoryEditModal'
+import { useFullSiteEditor } from '@/src/contexts/FullSiteEditorContext'
+import { useSiteContext } from '@/src/contexts/SiteContext'
 
 interface CategoriesPreviewProps {
   section: ContentSection
@@ -122,10 +125,12 @@ export function CategoriesPreview({
         
         {/* Categories Grid */}
         <div className={`grid ${getCategoriesGridClasses(displayedCategories.length, isPreview)} gap-8`}>
-          {displayedCategories.map((category: any) => (
-            <CategoryCard 
-              key={category.id} 
-              category={category} 
+          {displayedCategories.map((category: any, index: number) => (
+            <CategoryCard
+              key={category.id}
+              category={category}
+              categoryIndex={index}
+              sectionKey={sectionKey}
               isPreview={isPreview}
               onContentUpdate={onContentUpdate}
             />
@@ -141,15 +146,36 @@ export function CategoriesPreview({
  */
 interface CategoryCardProps {
   category: any
+  categoryIndex: number
+  sectionKey: string
   isPreview: boolean
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
 }
 
-function CategoryCard({ category, isPreview, onContentUpdate }: CategoryCardProps) {
+function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onContentUpdate }: CategoryCardProps) {
   const hasImage = category.image && category.image.trim() !== ''
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const { updateCategoryContent, deleteCategoryContent } = useFullSiteEditor()
+  const { currentSite } = useSiteContext()
+
+  const handleCategorySave = (updatedCategory: Record<string, unknown>) => {
+    updateCategoryContent(sectionKey, categoryIndex, updatedCategory)
+  }
+
+  const handleCategoryDelete = () => {
+    deleteCategoryContent(sectionKey, categoryIndex)
+  }
+
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (isPreview && onContentUpdate) {
+      setEditModalOpen(true)
+    }
+  }
 
   const CardContent = (
-    <div className="group cursor-pointer h-full">
+    <div className="group cursor-pointer h-full" onClick={handleImageClick}>
       <div className="relative overflow-hidden rounded-lg hover:shadow-xl transition-all duration-300 h-64">
         {hasImage ? (
           <>
@@ -169,28 +195,71 @@ function CategoryCard({ category, isPreview, onContentUpdate }: CategoryCardProp
             {/* Placeholder when no image */}
             <div className="w-full h-full bg-muted flex flex-col items-center justify-center">
               <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">Upload Image</p>
+              <p className="text-sm text-muted-foreground">Click to Add Image</p>
             </div>
           </>
         )}
 
-        {/* Badge at bottom center */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+        {/* Badge at bottom center with inline editing */}
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2"
+          onClick={(e) => {
+            // Stop propagation so badge click doesn't trigger image modal
+            e.stopPropagation()
+          }}
+        >
           <div className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
-            <span
-              className="text-sm font-semibold whitespace-nowrap"
-              style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
-            >
-              {category.name}
-            </span>
+            {isPreview && onContentUpdate ? (
+              <InlineTextEditor
+                content={category.name}
+                onUpdate={(content) => {
+                  updateCategoryContent(sectionKey, categoryIndex, { name: content })
+                }}
+                isEnabled={true}
+                fieldPath={`data.categories.${categoryIndex}.name`}
+                format="plain"
+                singleLine={true}
+                className="text-sm font-semibold whitespace-nowrap [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0"
+                style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+                placeholder="Category name..."
+                showToolbar={false}
+                debounceDelay={0}
+              />
+            ) : (
+              <span
+                className="text-sm font-semibold whitespace-nowrap"
+                style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+              >
+                {category.name}
+              </span>
+            )}
           </div>
         </div>
       </div>
     </div>
   )
 
-  if (category.link && !onContentUpdate) {
-    // Only make it a link on customer site (not in preview mode)
+  // In preview mode, show editable card with modal
+  if (isPreview && onContentUpdate) {
+    return (
+      <>
+        <div className="block h-full">
+          {CardContent}
+        </div>
+        <CategoryEditModal
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          category={category}
+          onSave={handleCategorySave}
+          onDelete={handleCategoryDelete}
+          siteId={currentSite?.id || ''}
+        />
+      </>
+    )
+  }
+
+  // Customer site - clickable link
+  if (category.link) {
     return (
       <SmartLink href={category.link} className="block h-full">
         {CardContent}
@@ -198,22 +267,9 @@ function CategoryCard({ category, isPreview, onContentUpdate }: CategoryCardProp
     )
   }
 
-  // In preview mode, prevent navigation and handle clicks
+  // No link, just display
   return (
-    <div 
-      className="block h-full"
-      onClick={(e) => {
-        // Check if inline editor is currently active/editing
-        const isEditing = e.target.closest('[data-editing="true"]') || 
-                         e.target.closest('.ProseMirror') ||
-                         e.target.closest('.inline-editor-wrapper')
-        if (isEditing) {
-          e.preventDefault()
-          e.stopPropagation()
-          // Let the editor handle the click
-        }
-      }}
-    >
+    <div className="block h-full">
       {CardContent}
     </div>
   )

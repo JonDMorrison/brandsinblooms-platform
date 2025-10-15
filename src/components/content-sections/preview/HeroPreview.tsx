@@ -12,6 +12,9 @@ import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/resp
 import { IconSelector } from '@/src/components/ui/IconSelector'
 import { Dialog, DialogContent, DialogOverlay, DialogTitle } from '@/src/components/ui/dialog'
 import { SmartLink } from '@/src/components/ui/smart-link'
+import { LinkEditModal } from '@/src/components/site-editor/modals/LinkEditModal'
+import { Settings } from 'lucide-react'
+import { Button } from '@/src/components/ui/button'
 
 interface HeroPreviewProps {
   section: ContentSection
@@ -82,6 +85,8 @@ export function HeroPreview({
 
   // State for inline icon editing
   const [editingIconIndex, setEditingIconIndex] = useState<number | null>(null)
+  const [linkEditModalOpen, setLinkEditModalOpen] = useState(false)
+  const [editingLinkField, setEditingLinkField] = useState<'cta' | 'secondaryCta' | null>(null)
 
   // Handle icon click to open selector
   const handleIconClick = (index: number, e: React.MouseEvent) => {
@@ -105,6 +110,21 @@ export function HeroPreview({
   // Close modal
   const handleCloseModal = () => {
     setEditingIconIndex(null)
+  }
+
+  // Handle link editing
+  const handleOpenLinkModal = (linkType: 'cta' | 'secondaryCta', e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setEditingLinkField(linkType)
+    setLinkEditModalOpen(true)
+  }
+
+  const handleLinkSave = (url: string) => {
+    if (editingLinkField && onContentUpdate) {
+      const fieldPath = editingLinkField === 'cta' ? 'data.ctaLink' : 'data.secondaryCtaLink'
+      onContentUpdate(sectionKey, fieldPath, url)
+    }
   }
 
   return (
@@ -169,7 +189,7 @@ export function HeroPreview({
             {(data.ctaText || onContentUpdate) && (
               <SmartLink
                 href={data.ctaLink || '#'}
-                className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
+                className="group relative inline-block px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
                 style={{
                   backgroundColor: 'var(--theme-primary)',
                   color: 'rgb(255, 255, 255)',
@@ -207,12 +227,24 @@ export function HeroPreview({
                   showToolbar={false}
                   debounceDelay={0}
                 />
+                {/* Link Settings Icon */}
+                {isPreview && onContentUpdate && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
+                    onClick={(e) => handleOpenLinkModal('cta', e)}
+                    title="Edit link URL"
+                  >
+                    <Settings className="w-3 h-3 text-gray-700" />
+                  </Button>
+                )}
               </SmartLink>
             )}
             {(data.secondaryCtaText || onContentUpdate) && (
               <SmartLink
                 href={data.secondaryCtaLink || '#'}
-                className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
+                className="group relative inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
                 style={{
                   borderColor: 'var(--theme-secondary)',
                   color: 'var(--theme-secondary)',
@@ -250,6 +282,18 @@ export function HeroPreview({
                   showToolbar={false}
                   debounceDelay={0}
                 />
+                {/* Link Settings Icon */}
+                {isPreview && onContentUpdate && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
+                    onClick={(e) => handleOpenLinkModal('secondaryCta', e)}
+                    title="Edit link URL"
+                  >
+                    <Settings className="w-3 h-3 text-gray-700" />
+                  </Button>
+                )}
               </SmartLink>
             )}
           </div>
@@ -305,15 +349,15 @@ export function HeroPreview({
       {/* Icon Selection Modal */}
       <Dialog open={editingIconIndex !== null} onOpenChange={handleCloseModal}>
         <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 z-50" />
-        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[500px] max-w-[90vw] bg-white rounded-lg shadow-xl p-0">
+        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-2rem)] sm:w-[500px] max-w-[500px] bg-white rounded-lg shadow-xl p-0">
           <DialogTitle className="sr-only">Select Icon</DialogTitle>
-          <div className="p-6 border-b">
-            <h3 className="text-lg font-semibold">Choose an Icon</h3>
-            <p className="text-sm text-gray-600 mt-1">
+          <div className="p-4 sm:p-6 border-b">
+            <h3 className="text-base sm:text-lg font-semibold">Choose an Icon</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">
               {editingIconIndex !== null ? `Editing icon for feature "${features[editingIconIndex]?.text || 'feature'}"` : ''}
             </p>
           </div>
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <IconSelector
               value={editingIconIndex !== null ? features[editingIconIndex]?.icon || '' : ''}
               onChange={handleIconSelect}
@@ -323,6 +367,19 @@ export function HeroPreview({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Link Edit Modal */}
+      <LinkEditModal
+        isOpen={linkEditModalOpen}
+        onClose={() => {
+          setLinkEditModalOpen(false)
+          setEditingLinkField(null)
+        }}
+        currentUrl={editingLinkField === 'cta' ? (data.ctaLink || '') : (data.secondaryCtaLink || '')}
+        onSave={handleLinkSave}
+        fieldLabel={editingLinkField === 'cta' ? 'Primary CTA Button' : 'Secondary CTA Button'}
+        sectionType="Hero"
+      />
     </section>
   )
 }

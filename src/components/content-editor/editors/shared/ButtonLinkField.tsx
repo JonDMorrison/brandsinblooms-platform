@@ -57,16 +57,19 @@ export function ButtonLinkField({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      {/* Label and mode toggle */}
-      <div className="flex items-center justify-between">
-        {label && <Label className="text-xs font-medium">{label}</Label>}
-        <div className="flex gap-1">
+      {/* Label */}
+      {label && <Label className="text-xs font-medium">{label}</Label>}
+
+      {/* Mode toggle and input - stacked on mobile, inline on desktop */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+        {/* Mode toggle buttons */}
+        <div className="flex gap-1 flex-shrink-0">
           <Button
             type="button"
             size="sm"
             variant={linkMode === 'internal' ? 'default' : 'outline'}
             onClick={() => handleModeSwitch('internal')}
-            className="h-6 px-2 text-xs"
+            className="h-8 px-2 text-xs"
           >
             <FileText className="h-3 w-3 mr-1" />
             Page
@@ -76,30 +79,32 @@ export function ButtonLinkField({
             size="sm"
             variant={linkMode === 'external' ? 'default' : 'outline'}
             onClick={() => handleModeSwitch('external')}
-            className="h-6 px-2 text-xs"
+            className="h-8 px-2 text-xs"
           >
             <ExternalLink className="h-3 w-3 mr-1" />
             URL
           </Button>
         </div>
-      </div>
 
-      {/* Input based on mode */}
-      {linkMode === 'internal' ? (
-        <PageSelector
-          value={value}
-          onChange={onChange}
-          placeholder="Select a page"
-        />
-      ) : (
-        <Input
-          type="url"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-8"
-          placeholder="https://example.com"
-        />
-      )}
+        {/* Input based on mode */}
+        <div className="flex-1 w-full">
+          {linkMode === 'internal' ? (
+            <PageSelector
+              value={value}
+              onChange={onChange}
+              placeholder="Select a page"
+            />
+          ) : (
+            <Input
+              type="url"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              className="h-8"
+              placeholder="https://example.com"
+            />
+          )}
+        </div>
+      </div>
 
       {/* Helper text */}
       <p className="text-xs text-muted-foreground">

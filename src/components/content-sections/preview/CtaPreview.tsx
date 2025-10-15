@@ -4,13 +4,16 @@
  * Implements proper container query responsive design and visual editing
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { textToHtml, htmlToText } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
 import { isPreviewMode, createResponsiveClassHelper } from '@/src/lib/utils/responsive-classes'
 import { SmartLink } from '@/src/components/ui/smart-link'
+import { LinkEditModal } from '@/src/components/site-editor/modals/LinkEditModal'
+import { Settings } from 'lucide-react'
+import { Button } from '@/src/components/ui/button'
 
 interface CtaPreviewProps {
   section: ContentSection
@@ -21,24 +24,43 @@ interface CtaPreviewProps {
   onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
 }
 
-export function CtaPreview({ 
-  section, 
-  sectionKey, 
-  className = '', 
-  title, 
-  onContentUpdate, 
-  onFeatureUpdate 
+export function CtaPreview({
+  section,
+  sectionKey,
+  className = '',
+  title,
+  onContentUpdate,
+  onFeatureUpdate
 }: CtaPreviewProps) {
   const { data, settings } = section
   const isPreview = isPreviewMode(onContentUpdate, onFeatureUpdate)
   const responsive = createResponsiveClassHelper(isPreview)
   const backgroundStyle = getSectionBackgroundStyle(settings)
   const isPrimaryBackground = settings?.backgroundColor === 'primary'
-  
+
   // Dynamic styling based on background mode
   const textColor = isPrimaryBackground ? 'white' : 'var(--theme-text)'
   const descriptionOpacity = isPrimaryBackground ? 1 : 0.7
   const descriptionColor = isPrimaryBackground ? 'rgba(255,255,255,0.9)' : 'var(--theme-text)'
+
+  // State for link editing
+  const [linkEditModalOpen, setLinkEditModalOpen] = useState(false)
+  const [editingLinkField, setEditingLinkField] = useState<'cta' | 'secondaryCta' | null>(null)
+
+  // Handle link editing
+  const handleOpenLinkModal = (linkType: 'cta' | 'secondaryCta', e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setEditingLinkField(linkType)
+    setLinkEditModalOpen(true)
+  }
+
+  const handleLinkSave = (url: string) => {
+    if (editingLinkField && onContentUpdate) {
+      const fieldPath = editingLinkField === 'cta' ? 'data.ctaLink' : 'data.secondaryCtaLink'
+      onContentUpdate(sectionKey, fieldPath, url)
+    }
+  }
 
   return (
     <section
@@ -91,11 +113,11 @@ export function CtaPreview({
           />
 
           {/* CTA Buttons with responsive layout */}
-          <div 
+          <div
             className={`${responsive.flex.heroLayout} gap-4 justify-center`}
             onClick={(e) => {
               // Prevent navigation during inline editing
-              const isEditing = e.target.closest('[data-editing="true"]') || 
+              const isEditing = e.target.closest('[data-editing="true"]') ||
                                e.target.closest('.ProseMirror') ||
                                e.target.closest('.inline-editor-wrapper')
               if (isEditing) {
@@ -108,7 +130,7 @@ export function CtaPreview({
             {(data.ctaText || data.ctaLink) && (
               <SmartLink
                 href={String(data.ctaLink || '/plants')}
-                className={`px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 hover:opacity-90 ${
+                className={`group relative inline-block px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 hover:opacity-90 ${
                   isPrimaryBackground
                     ? 'bg-white hover:bg-gray-100'
                     : 'hover:bg-theme-primary/90'
@@ -148,6 +170,18 @@ export function CtaPreview({
                   placeholder="Button text..."
                   showToolbar={false}
                 />
+                {/* Link Settings Icon */}
+                {isPreview && onContentUpdate && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
+                    onClick={(e) => handleOpenLinkModal('cta', e)}
+                    title="Edit link URL"
+                  >
+                    <Settings className="w-3 h-3 text-gray-700" />
+                  </Button>
+                )}
               </SmartLink>
             )}
 
@@ -155,7 +189,7 @@ export function CtaPreview({
             {(data.secondaryCtaText || data.secondaryCtaLink) && (
               <SmartLink
                 href={String(data.secondaryCtaLink || '/products')}
-                className={`px-8 py-3 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:opacity-80 ${
+                className={`group relative inline-block px-8 py-3 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:opacity-80 ${
                   isPrimaryBackground
                     ? 'border-white text-white hover:bg-white hover:text-theme-primary'
                     : 'hover:bg-theme-primary hover:text-white'
@@ -196,11 +230,36 @@ export function CtaPreview({
                   placeholder="Button text..."
                   showToolbar={false}
                 />
+                {/* Link Settings Icon */}
+                {isPreview && onContentUpdate && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
+                    onClick={(e) => handleOpenLinkModal('secondaryCta', e)}
+                    title="Edit link URL"
+                  >
+                    <Settings className="w-3 h-3 text-gray-700" />
+                  </Button>
+                )}
               </SmartLink>
             )}
           </div>
         </div>
       </div>
+
+      {/* Link Edit Modal */}
+      <LinkEditModal
+        isOpen={linkEditModalOpen}
+        onClose={() => {
+          setLinkEditModalOpen(false)
+          setEditingLinkField(null)
+        }}
+        currentUrl={editingLinkField === 'cta' ? (data.ctaLink || '') : (data.secondaryCtaLink || '')}
+        onSave={handleLinkSave}
+        fieldLabel={editingLinkField === 'cta' ? 'Primary CTA Button' : 'Secondary CTA Button'}
+        sectionType="CTA"
+      />
     </section>
   )
 }
