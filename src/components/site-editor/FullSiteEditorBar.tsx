@@ -5,7 +5,7 @@
  * Fixed navigation bar that appears when editing customer sites
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useFullSiteEditor } from '@/src/contexts/FullSiteEditorContext'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { Button } from '@/src/components/ui/button'
@@ -19,6 +19,14 @@ import {
   DropdownMenuTrigger,
 } from '@/src/components/ui/dropdown-menu'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/src/components/ui/dialog'
+import {
   Monitor,
   Tablet,
   Smartphone,
@@ -30,7 +38,8 @@ import {
   Plus,
   Home,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  RotateCcw
 } from 'lucide-react'
 import { cn } from '@/src/lib/utils'
 import { format } from 'date-fns'
@@ -48,10 +57,14 @@ export function FullSiteEditorBar() {
     toggleEditorMode,
     setViewportSize,
     savePage,
+    discardChanges,
     exitEditor
   } = useFullSiteEditor()
 
   const { user, signOut } = useAuth()
+
+  // State for discard confirmation modal
+  const [showDiscardModal, setShowDiscardModal] = useState(false)
 
   // Don't render if not in edit mode
   if (!isEditMode) {
@@ -95,6 +108,17 @@ export function FullSiteEditorBar() {
       console.error('Sign out error:', error)
       toast.error('Failed to sign out')
     }
+  }
+
+  // Handle discard changes - opens confirmation modal
+  const handleDiscard = () => {
+    setShowDiscardModal(true)
+  }
+
+  // Confirm and execute discard
+  const confirmDiscard = () => {
+    discardChanges()
+    setShowDiscardModal(false)
   }
 
   return (
@@ -222,6 +246,25 @@ export function FullSiteEditorBar() {
             </div>
           )}
 
+          {/* Discard Button - Only when unsaved changes exist */}
+          {hasUnsavedChanges && !isSaving && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleDiscard}
+              className={cn(
+                'gap-1.5',
+                'border-gray-300 text-gray-600',
+                'hover:border-red-500 hover:text-red-600 hover:bg-red-50',
+                'transition-colors'
+              )}
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Discard Changes</span>
+              <span className="sm:hidden">Discard</span>
+            </Button>
+          )}
+
           {/* Save Button */}
           <Button
             size="sm"
@@ -301,6 +344,35 @@ export function FullSiteEditorBar() {
           }
         }
       `}</style>
+
+      {/* Discard Changes Confirmation Modal */}
+      <Dialog open={showDiscardModal} onOpenChange={setShowDiscardModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Discard Changes?</DialogTitle>
+            <DialogDescription>
+              This will revert all changes since your last save. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-3 sm:gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowDiscardModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={confirmDiscard}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              Discard Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
