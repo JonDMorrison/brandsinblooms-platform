@@ -17,7 +17,13 @@ export const getSectionBackgroundStyle = (settings?: ContentSection['settings'])
   if (backgroundType === 'primary') {
     return { backgroundColor: 'var(--theme-primary)' }
   }
-  
+
+  if (backgroundType === 'gradient') {
+    return {
+      background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))'
+    }
+  }
+
   // Default background
   return { backgroundColor: 'var(--theme-background)' }
 }

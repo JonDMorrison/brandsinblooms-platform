@@ -12,6 +12,7 @@ import { Button } from '@/src/components/ui/button'
 import { Label } from '@/src/components/ui/label'
 import { ContentSection } from '@/src/lib/content/schema'
 import { Settings } from 'lucide-react'
+import { getAvailableBackgrounds } from '@/src/lib/content/section-backgrounds'
 
 interface SectionSettingsModalProps {
   isOpen: boolean
@@ -67,37 +68,45 @@ export function SectionSettingsModal({
   }
 
   // Background color options with descriptions
-  const backgroundOptions: Array<{
+  const allBackgroundOptions: Array<{
     value: BackgroundColor
     label: string
     description: string
-    preview: string
+    previewStyle: React.CSSProperties
   }> = [
     {
       value: 'default',
       label: 'Default',
-      description: 'Standard white/transparent background',
-      preview: 'bg-white'
+      description: 'Standard background',
+      previewStyle: { backgroundColor: 'var(--theme-background)' }
     },
     {
       value: 'alternate',
       label: 'Alternate',
-      description: 'Light gray background for contrast',
-      preview: 'bg-gray-50'
+      description: 'Subtle contrast',
+      previewStyle: { backgroundColor: 'rgba(var(--theme-primary-rgb), 0.03)' }
     },
     {
       value: 'primary',
-      label: 'Primary',
-      description: 'Brand primary color background',
-      preview: 'bg-blue-600'
+      label: 'Bold',
+      description: 'Primary color',
+      previewStyle: { backgroundColor: 'var(--theme-primary)' }
     },
     {
       value: 'gradient',
       label: 'Gradient',
-      description: 'Subtle gradient background',
-      preview: 'bg-gradient-to-br from-blue-50 to-purple-50'
+      description: 'Subtle gradient',
+      previewStyle: {
+        background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))'
+      }
     }
   ]
+
+  // Filter options based on section type
+  const availableBackgroundTypes = getAvailableBackgrounds(section.type)
+  const backgroundOptions = allBackgroundOptions.filter(option =>
+    availableBackgroundTypes.includes(option.value)
+  )
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
@@ -117,14 +126,14 @@ export function SectionSettingsModal({
           {/* Background Color Selection */}
           <div className="space-y-3">
             <Label className="text-xs sm:text-sm font-medium">Background Color</Label>
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {backgroundOptions.map((option) => (
                 <label
                   key={option.value}
-                  className={`flex items-start gap-2 sm:gap-3 p-2.5 sm:p-3 border rounded-lg cursor-pointer transition-all ${
+                  className={`flex items-center gap-3 p-2 border-2 rounded-md cursor-pointer transition-all ${
                     backgroundColor === option.value
-                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <input
@@ -133,14 +142,15 @@ export function SectionSettingsModal({
                     value={option.value}
                     checked={backgroundColor === option.value}
                     onChange={() => setBackgroundColor(option.value)}
-                    className="mt-1 w-4 h-4"
+                    className="sr-only"
                   />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded border ${option.preview}`} />
-                      <span className="font-medium text-xs sm:text-sm">{option.label}</span>
-                    </div>
-                    <p className="text-xs text-gray-600">{option.description}</p>
+                  <div
+                    className="w-8 h-8 rounded border border-gray-300 flex-shrink-0"
+                    style={option.previewStyle}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium">{option.label}</div>
+                    <div className="text-xs text-gray-500">{option.description}</div>
                   </div>
                 </label>
               ))}

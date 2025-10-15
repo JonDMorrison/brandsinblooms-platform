@@ -15,6 +15,42 @@ interface BackgroundToggleProps {
   availableOptions?: Array<'default' | 'alternate' | 'primary' | 'gradient'>
 }
 
+type BackgroundOption = {
+  value: 'default' | 'alternate' | 'primary' | 'gradient'
+  label: string
+  description: string
+  previewStyle: React.CSSProperties
+}
+
+const backgroundOptions: BackgroundOption[] = [
+  {
+    value: 'default',
+    label: 'Default',
+    description: 'Standard background',
+    previewStyle: { backgroundColor: 'var(--theme-background)' }
+  },
+  {
+    value: 'alternate',
+    label: 'Alternate',
+    description: 'Subtle contrast',
+    previewStyle: { backgroundColor: 'rgba(var(--theme-primary-rgb), 0.03)' }
+  },
+  {
+    value: 'primary',
+    label: 'Bold',
+    description: 'Primary color',
+    previewStyle: { backgroundColor: 'var(--theme-primary)' }
+  },
+  {
+    value: 'gradient',
+    label: 'Gradient',
+    description: 'Subtle gradient',
+    previewStyle: {
+      background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))'
+    }
+  }
+]
+
 export function BackgroundToggle({
   sectionKey,
   section,
@@ -29,62 +65,43 @@ export function BackgroundToggle({
     onUpdate(sectionKey, { ...section, settings: newSettings })
   }
 
+  const filteredOptions = backgroundOptions.filter(option =>
+    availableOptions.includes(option.value)
+  )
+
   return (
-    <div className={`p-3 border rounded-lg bg-muted/30 space-y-2 ${className}`}>
-      <Label className="text-xs text-gray-500">Background Color</Label>
-      <div className="flex gap-2 flex-wrap">
-        {availableOptions.includes('default') && (
-          <label className="flex items-center gap-2 cursor-pointer">
+    <div className={`space-y-2 ${className}`}>
+      <Label className="text-sm font-medium">Background Color</Label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {filteredOptions.map((option) => (
+          <label
+            key={option.value}
+            className={`
+              flex items-center gap-3 p-2 rounded-md border-2 cursor-pointer transition-all
+              ${currentBackground === option.value
+                ? 'border-primary bg-primary/5'
+                : 'border-gray-200 hover:border-gray-300'
+              }
+            `}
+          >
             <input
               type="radio"
               name={`${sectionKey}-background`}
-              value="default"
-              checked={currentBackground === 'default'}
-              onChange={() => handleBackgroundChange('default')}
-              className="w-3 h-3"
+              value={option.value}
+              checked={currentBackground === option.value}
+              onChange={() => handleBackgroundChange(option.value)}
+              className="sr-only"
             />
-            <span className="text-xs">Default</span>
-          </label>
-        )}
-        {availableOptions.includes('alternate') && (
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name={`${sectionKey}-background`}
-              value="alternate"
-              checked={currentBackground === 'alternate'}
-              onChange={() => handleBackgroundChange('alternate')}
-              className="w-3 h-3"
+            <div
+              className="w-8 h-8 rounded border border-gray-300 flex-shrink-0"
+              style={option.previewStyle}
             />
-            <span className="text-xs">Alternate</span>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium">{option.label}</div>
+              <div className="text-xs text-gray-500">{option.description}</div>
+            </div>
           </label>
-        )}
-        {availableOptions.includes('primary') && (
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name={`${sectionKey}-background`}
-              value="primary"
-              checked={currentBackground === 'primary'}
-              onChange={() => handleBackgroundChange('primary')}
-              className="w-3 h-3"
-            />
-            <span className="text-xs">Primary</span>
-          </label>
-        )}
-        {availableOptions.includes('gradient') && (
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name={`${sectionKey}-background`}
-              value="gradient"
-              checked={currentBackground === 'gradient'}
-              onChange={() => handleBackgroundChange('gradient')}
-              className="w-3 h-3"
-            />
-            <span className="text-xs">Gradient</span>
-          </label>
-        )}
+        ))}
       </div>
     </div>
   )

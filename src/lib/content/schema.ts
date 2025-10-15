@@ -224,6 +224,9 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           content: '',
           alignment: 'center'
         },
+        settings: {
+          backgroundColor: 'gradient'
+        },
         visible: true,
         order: 1
       },
@@ -311,7 +314,7 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         visible: true,
         order: 5,
         settings: {
-          backgroundColor: 'default'
+          backgroundColor: 'primary'
         }
       },
       richText: {
@@ -334,6 +337,9 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         data: {
           content: '',
           alignment: 'left'
+        },
+        settings: {
+          backgroundColor: 'gradient'
         },
         visible: true,
         order: 1
@@ -367,6 +373,9 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         data: {
           content: '',
           alignment: 'center'
+        },
+        settings: {
+          backgroundColor: 'gradient'
         },
         visible: true,
         order: 1
@@ -507,6 +516,9 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           content: '',
           alignment: 'center'
         },
+        settings: {
+          backgroundColor: 'gradient'
+        },
         visible: true,
         order: 1
       },
@@ -644,6 +656,9 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           content: '',
           alignment: 'center'
         },
+        settings: {
+          backgroundColor: 'gradient'
+        },
         visible: false,
         order: 1
       },
@@ -706,6 +721,9 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         data: {
           content: '',
           alignment: 'center'
+        },
+        settings: {
+          backgroundColor: 'primary'
         },
         visible: false,
         order: 8
@@ -787,6 +805,9 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           content: '',
           alignment: 'center'
         },
+        settings: {
+          backgroundColor: 'gradient'
+        },
         visible: true,
         order: 1
       },
@@ -848,6 +869,9 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           content: '',
           alignment: 'left'
         },
+        settings: {
+          backgroundColor: 'gradient'
+        },
         visible: true,
         order: 1
       },
@@ -899,6 +923,9 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
         data: {
           content: '',
           alignment: 'center'
+        },
+        settings: {
+          backgroundColor: 'gradient'
         },
         visible: true,
         order: 1
