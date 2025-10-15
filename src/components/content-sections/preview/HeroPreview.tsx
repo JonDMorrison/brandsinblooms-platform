@@ -88,19 +88,6 @@ export function HeroPreview({
   const [linkEditModalOpen, setLinkEditModalOpen] = useState(false)
   const [editingLinkField, setEditingLinkField] = useState<'cta' | 'secondaryCta' | null>(null)
 
-  // Debug: Track modal state changes
-  React.useEffect(() => {
-    console.log('[HeroPreview] linkEditModalOpen changed:', linkEditModalOpen)
-  }, [linkEditModalOpen])
-
-  // Debug: Log rendering conditions
-  console.log('[HeroPreview] Render -', {
-    isPreview,
-    hasOnContentUpdate: !!onContentUpdate,
-    linkEditModalOpen,
-    editingLinkField
-  })
-
   // Handle icon click to open selector
   const handleIconClick = (index: number, e: React.MouseEvent) => {
     e.preventDefault()
@@ -127,12 +114,10 @@ export function HeroPreview({
 
   // Handle link editing
   const handleOpenLinkModal = (linkType: 'cta' | 'secondaryCta', e: React.MouseEvent) => {
-    console.log('[HeroPreview] handleOpenLinkModal called', { linkType, isPreview, onContentUpdate: !!onContentUpdate })
     e.preventDefault()
     e.stopPropagation()
     setEditingLinkField(linkType)
     setLinkEditModalOpen(true)
-    console.log('[HeroPreview] State updated - linkEditModalOpen should be true')
   }
 
   const handleLinkSave = (url: string) => {

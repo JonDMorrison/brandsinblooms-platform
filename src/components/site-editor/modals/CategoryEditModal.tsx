@@ -139,6 +139,13 @@ export function CategoryEditModal({
             </p>
           </div>
 
+          {/* Save Reminder */}
+          <div className="p-2.5 sm:p-3 bg-amber-50 rounded-md border border-amber-200">
+            <p className="text-xs text-amber-800">
+              <strong>Note:</strong> Changes are applied to the preview but not saved. Click "Save Page" in the top bar to persist your changes.
+            </p>
+          </div>
+
           {/* Delete Section */}
           {onDelete && (
             <div className="pt-4 border-t">
@@ -190,7 +197,7 @@ export function CategoryEditModal({
             onClick={handleSave}
             className="text-sm"
           >
-            Save Changes
+            Apply Changes
           </Button>
         </DialogFooter>
       </DialogContent>

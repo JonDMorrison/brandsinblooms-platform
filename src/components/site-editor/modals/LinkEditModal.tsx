@@ -30,16 +30,12 @@ export function LinkEditModal({
   fieldLabel = 'Link',
   sectionType
 }: LinkEditModalProps) {
-  console.log('[LinkEditModal] Render -', { isOpen, currentUrl, fieldLabel, sectionType })
-
   const [url, setUrl] = useState(currentUrl)
 
   // Reset URL when modal opens
   useEffect(() => {
-    console.log('[LinkEditModal] isOpen effect triggered -', { isOpen, currentUrl })
     if (isOpen) {
       setUrl(currentUrl || '/')
-      console.log('[LinkEditModal] Modal should now be visible')
     }
   }, [isOpen, currentUrl])
 
@@ -62,11 +58,8 @@ export function LinkEditModal({
     onClose()
   }
 
-  console.log('[LinkEditModal] About to render Dialog with open=', isOpen)
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
-      console.log('[LinkEditModal] onOpenChange triggered -', { open })
       if (!open) handleCancel()
     }}>
       <DialogContent className="sm:max-w-[500px] p-0">
@@ -95,6 +88,13 @@ export function LinkEditModal({
               <strong>Tip:</strong> Internal pages use fast client-side navigation. External URLs open in a new tab automatically.
             </p>
           </div>
+
+          {/* Save Reminder */}
+          <div className="p-2.5 sm:p-3 bg-amber-50 rounded-md border border-amber-200">
+            <p className="text-xs text-amber-800">
+              <strong>Note:</strong> Changes are applied to the preview but not saved. Click "Save Page" in the top bar to persist your changes.
+            </p>
+          </div>
         </div>
 
         <DialogFooter className="p-4 sm:p-6 border-t bg-gray-50 flex justify-end gap-2 sm:gap-3">
@@ -109,7 +109,7 @@ export function LinkEditModal({
             onClick={handleSave}
             className="text-sm"
           >
-            Save Changes
+            Apply Changes
           </Button>
         </DialogFooter>
       </DialogContent>
