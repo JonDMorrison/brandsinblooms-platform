@@ -134,10 +134,11 @@ export function FullSiteEditorProvider({
 }: FullSiteEditorProviderProps) {
   const pathname = usePathname()
 
-  // Initialize state with editor mode from cookie (persists across navigation)
+  // Initialize state with default 'edit' mode to ensure consistent SSR/client hydration
+  // Cookie will be read after mount to restore user's preferred mode
   const [state, setState] = useState<FullSiteEditorState>({
     isEditMode,
-    editorMode: getEditorModeFromCookie(),
+    editorMode: 'edit', // Always start with 'edit' for consistent hydration
     viewportSize: 'desktop',
     currentPageId: initialPageId,
     currentPageSlug: pathname || '',
@@ -150,6 +151,17 @@ export function FullSiteEditorProvider({
     isSaving: false,
     lastSaved: null
   })
+
+  // Read editor mode from cookie after component mounts (client-only)
+  // This prevents hydration mismatch while still persisting user's mode preference
+  useEffect(() => {
+    if (!isEditMode) return // Only read cookie if in edit mode
+
+    const cookieMode = getEditorModeFromCookie()
+    if (cookieMode !== state.editorMode) {
+      setState(prev => ({ ...prev, editorMode: cookieMode }))
+    }
+  }, [isEditMode]) // Only run once when component mounts
 
   // Update page slug when pathname changes
   useEffect(() => {
