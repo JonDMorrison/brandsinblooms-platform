@@ -264,46 +264,27 @@ export function CustomerSiteSection({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                   {((sectionData.categories as any[]) || []).map((category: any) => (
-                    <Link key={category.id} href={category.link} className="group cursor-pointer h-full block">
-                      <div className="relative overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-                        {/* Category Image Area */}
-                        <div className="aspect-w-4 aspect-h-3 h-48 relative overflow-hidden">
-                          <img
-                            src={category.image}
-                            alt={category.name}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                          <div className="absolute inset-0 bg-black/20"></div>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-center p-4">
-                              <p className="text-sm font-medium text-white bg-black/50 px-3 py-1 rounded-full">
-                                {category.name}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
+                    <Link key={category.id} href={category.link || '#'} className="group cursor-pointer h-full block">
+                      <div className="relative overflow-hidden rounded-lg hover:shadow-xl transition-all duration-300 h-64">
+                        {/* Full image */}
+                        <img
+                          src={category.image}
+                          alt={category.name}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
+                        />
 
-                        {/* Category Info */}
-                        <div className="p-6 flex flex-col flex-1">
-                          <h3 className="text-xl font-semibold mb-2"
-                              style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                            {category.name}
-                          </h3>
+                        {/* Gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
-                          <p className="text-sm mb-3 flex-1"
-                             style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}>
-                            {category.description}
-                          </p>
-
-                          {/* Bottom Row with Plant Count and View All */}
-                          <div className="flex items-center justify-between mt-auto">
-                            <span className="text-sm font-medium" style={{color: 'var(--theme-primary)'}}>
-                              {category.plantCount} plants
-                            </span>
-                            <span className="text-sm font-medium group-hover:translate-x-1 transition-transform"
-                                  style={{color: 'var(--theme-primary)'}}>
-                              View all →
+                        {/* Badge at bottom center */}
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+                          <div className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
+                            <span
+                              className="text-sm font-semibold whitespace-nowrap"
+                              style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+                            >
+                              {category.name}
                             </span>
                           </div>
                         </div>
