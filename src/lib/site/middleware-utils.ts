@@ -50,20 +50,11 @@ export function logDomainResolution(
     referer: request?.headers.get('referer') || undefined,
   }
 
-  // In development, log to console
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[Domain Resolution] ${hostname} -> ${status} (${duration}ms)`, {
-      siteId,
-      userAgent: logEntry.userAgent,
-      ip: logEntry.ip,
-    })
-  }
-
   // In production, you might want to send to a logging service
   if (process.env.NODE_ENV === 'production') {
     // Example: Send to external logging service
     // sendToLoggingService(logEntry)
-    
+
     // For now, log critical errors to console
     if (['DATABASE_ERROR', 'MIDDLEWARE_ERROR'].includes(status)) {
       console.error('[Domain Resolution Error]', logEntry)

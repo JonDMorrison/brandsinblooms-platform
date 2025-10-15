@@ -90,8 +90,9 @@ const InlineTextEditorComponent = ({
         ]
       : format === 'simple-toolbar'
       ? [
-          StarterKit.configure({ 
-            heading: false, 
+          StarterKit.configure({
+            heading: false,
+            link: false, // Disable StarterKit's Link to use custom Link extension below
             codeBlock: false,
             blockquote: false,
             horizontalRule: false,
@@ -114,6 +115,7 @@ const InlineTextEditorComponent = ({
       : [
           StarterKit.configure({
             heading: false, // Disable StarterKit's heading to use custom one
+            link: false, // Disable StarterKit's Link to use custom Link extension below
             paragraph: {
               HTMLAttributes: {
                 style: 'color: var(--theme-text); font-family: var(--theme-font-body);'
@@ -145,7 +147,7 @@ const InlineTextEditorComponent = ({
     editable: isEditing && isEnabled,
     immediatelyRender: false,
     editorProps: {
-      handleKeyDown: (view, event) => {
+      handleKeyDown: (_view, event) => {
         // Prevent Enter key in single-line mode
         if (singleLine && event.key === 'Enter') {
           event.preventDefault()

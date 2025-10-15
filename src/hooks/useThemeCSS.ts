@@ -14,8 +14,10 @@ const fontLoadPromises = new Map<string, Promise<void>>()
  */
 function loadGoogleFont(fontFamily: string): Promise<void> {
   if (typeof window === 'undefined') return Promise.resolve()
-  
-  const fontKey = fontFamily.replace(/\s+/g, '+')
+
+  // Remove descriptive suffixes like "(Sans-serif Body)" that cause 400 errors from Google Fonts API
+  const cleanFontName = fontFamily.replace(/\s*\([^)]*\)\s*/g, '').trim()
+  const fontKey = cleanFontName.replace(/\s+/g, '+')
   
   // Return existing promise if font is already being loaded
   if (fontLoadPromises.has(fontKey)) {

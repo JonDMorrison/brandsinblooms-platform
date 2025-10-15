@@ -373,35 +373,22 @@ export function SiteProvider({
       // Fetch fresh user from Supabase to avoid race conditions with React state
       const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
 
-      console.log('[REFRESH_SITES] Starting refresh for user:', currentUser?.id)
-
       if (authError || !currentUser?.id) {
-        console.log('[REFRESH_SITES] No user ID or auth error, clearing sites', authError?.message)
         setUserSites([])
         return
       }
 
-      console.log('[REFRESH_SITES] Setting loading state')
       setUserSitesLoading(true)
       setUserSitesError(null)
 
-      console.log('[REFRESH_SITES] Calling getUserSites')
       const result = await getUserSites(currentUser.id)
-
-      console.log('[REFRESH_SITES] Got result:', {
-        hasError: !!result.error,
-        dataLength: result.data?.length || 0,
-        wasAborted: abortSignal.aborted
-      })
 
       // Check if request was aborted
       if (abortSignal.aborted) {
-        console.log('[REFRESH_SITES] Request was aborted, exiting')
         return
       }
 
       if (result.error) {
-        console.log('[REFRESH_SITES] Error:', result.error)
         if (!abortSignal.aborted) {
           setUserSitesError(result.error)
           setUserSites([])
@@ -411,11 +398,9 @@ export function SiteProvider({
 
       // Final check before updating state
       if (!abortSignal.aborted) {
-        console.log('[REFRESH_SITES] Setting user sites:', result.data?.length || 0, 'sites')
         setUserSites(result.data || [])
       }
     } catch (err) {
-      console.log('[REFRESH_SITES] Exception caught:', err)
       setUserSitesError({
         code: 'LOAD_FAILED',
         message: 'Failed to load user sites',
@@ -423,7 +408,6 @@ export function SiteProvider({
       })
       setUserSites([])
     } finally {
-      console.log('[REFRESH_SITES] Finished, setting loading false')
       setUserSitesLoading(false)
     }
   }, [])
