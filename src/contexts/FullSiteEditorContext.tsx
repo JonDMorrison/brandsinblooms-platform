@@ -713,6 +713,15 @@ export function useFullSiteEditor() {
 }
 
 /**
+ * Hook to optionally access full site editor context
+ * Returns undefined if not within FullSiteEditorProvider (e.g., in Content Editor)
+ * Use this in shared components that work in both Full Site Editor and Content Editor
+ */
+export function useFullSiteEditorOptional() {
+  return useContext(FullSiteEditorContext)
+}
+
+/**
  * Hook to check if edit mode is active
  */
 export function useIsEditModeActive() {

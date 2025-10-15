@@ -12,7 +12,7 @@ import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/resp
 import { ImageIcon } from 'lucide-react'
 import { SmartLink } from '@/src/components/ui/smart-link'
 import { CategoryEditModal } from '@/src/components/site-editor/modals/CategoryEditModal'
-import { useFullSiteEditor } from '@/src/contexts/FullSiteEditorContext'
+import { useFullSiteEditorOptional } from '@/src/contexts/FullSiteEditorContext'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 
 interface CategoriesPreviewProps {
@@ -155,21 +155,32 @@ interface CategoryCardProps {
 function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onContentUpdate }: CategoryCardProps) {
   const hasImage = category.image && category.image.trim() !== ''
   const [editModalOpen, setEditModalOpen] = useState(false)
-  const { updateCategoryContent, deleteCategoryContent } = useFullSiteEditor()
+  // Use optional hook - may be undefined in Content Editor context
+  const editorContext = useFullSiteEditorOptional()
   const { currentSite } = useSiteContext()
 
   const handleCategorySave = (updatedCategory: Record<string, unknown>) => {
-    updateCategoryContent(sectionKey, categoryIndex, updatedCategory)
+    // Prefer context method if available (Full Site Editor)
+    if (editorContext) {
+      editorContext.updateCategoryContent(sectionKey, categoryIndex, updatedCategory)
+    }
+    // Note: Content Editor doesn't support modal-based category editing yet
+    // It uses the CategoriesEditor component instead
   }
 
   const handleCategoryDelete = () => {
-    deleteCategoryContent(sectionKey, categoryIndex)
+    // Prefer context method if available (Full Site Editor)
+    if (editorContext) {
+      editorContext.deleteCategoryContent(sectionKey, categoryIndex)
+    }
+    // Note: Content Editor doesn't support modal-based category deletion yet
   }
 
   const handleImageClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (isPreview && onContentUpdate) {
+    // Only open modal in Full Site Editor context (not in Content Editor)
+    if (isPreview && onContentUpdate && editorContext) {
       setEditModalOpen(true)
     }
   }
@@ -209,11 +220,13 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
           }}
         >
           <div className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
-            {isPreview && onContentUpdate ? (
+            {isPreview && onContentUpdate && editorContext ? (
               <InlineTextEditor
                 content={category.name}
                 onUpdate={(content) => {
-                  updateCategoryContent(sectionKey, categoryIndex, { name: content })
+                  if (editorContext) {
+                    editorContext.updateCategoryContent(sectionKey, categoryIndex, { name: content })
+                  }
                 }}
                 isEnabled={true}
                 fieldPath={`data.categories.${categoryIndex}.name`}
@@ -239,8 +252,8 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
     </div>
   )
 
-  // In preview mode, show editable card with modal
-  if (isPreview && onContentUpdate) {
+  // In preview mode with Full Site Editor context, show editable card with modal
+  if (isPreview && onContentUpdate && editorContext) {
     return (
       <>
         <div className="block h-full">
@@ -255,6 +268,15 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
           siteId={currentSite?.id || ''}
         />
       </>
+    )
+  }
+
+  // In Content Editor (preview mode but no Full Site Editor context), show card without modal
+  if (isPreview && onContentUpdate) {
+    return (
+      <div className="block h-full">
+        {CardContent}
+      </div>
     )
   }
 
