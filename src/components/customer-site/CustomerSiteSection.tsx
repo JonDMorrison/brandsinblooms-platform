@@ -5,7 +5,6 @@
  */
 
 import React from 'react'
-import Link from 'next/link'
 import { ContentSection } from '@/src/lib/content/schema'
 import { ViewportLazyLoad } from '@/src/components/ui/lazy-loading'
 import {
@@ -19,6 +18,8 @@ import { ContentRenderer } from '@/src/components/preview/ContentRenderer'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
 import { getFeatureGridClasses } from '@/src/components/content-sections/shared/grid-utils'
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
+import { ImageIcon } from 'lucide-react'
+import { SmartLink } from '@/src/components/ui/smart-link'
 
 interface CustomerSiteSectionProps {
   section: ContentSection
@@ -61,21 +62,21 @@ export function CustomerSiteSection({
                   }}
                 />
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                  <Link 
+                  <SmartLink
                     href={String(sectionData.ctaLink || '/plants')}
                     className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
                     style={{backgroundColor: 'var(--theme-primary)', color: '#fff', fontFamily: 'var(--theme-font-body)'}}
                   >
                     {String(sectionData.ctaText || 'Shop Plants')}
-                  </Link>
+                  </SmartLink>
                   {sectionData.secondaryCtaText && (
-                    <Link
+                    <SmartLink
                       href={String(sectionData.secondaryCtaLink || '/about')}
                       className="px-8 py-4 border rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
                       style={{borderColor: 'var(--theme-secondary)', color: 'var(--theme-secondary)', fontFamily: 'var(--theme-font-body)'}}
                     >
                       {String(sectionData.secondaryCtaText)}
-                    </Link>
+                    </SmartLink>
                   )}
                 </div>
 
@@ -226,7 +227,7 @@ export function CustomerSiteSection({
                   ))}
                 </div>
                 <div className="text-center">
-                  <Link
+                  <SmartLink
                     href={String(sectionData.viewAllLink || '/plants')}
                     className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
                     style={{
@@ -236,7 +237,7 @@ export function CustomerSiteSection({
                     }}
                   >
                     {String(sectionData.viewAllText || 'View All Plants')}
-                  </Link>
+                  </SmartLink>
                 </div>
               </div>
             </section>
@@ -263,34 +264,50 @@ export function CustomerSiteSection({
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {((sectionData.categories as any[]) || []).map((category: any) => (
-                    <Link key={category.id} href={category.link || '#'} className="group cursor-pointer h-full block">
-                      <div className="relative overflow-hidden rounded-lg hover:shadow-xl transition-all duration-300 h-64">
-                        {/* Full image */}
-                        <img
-                          src={category.image}
-                          alt={category.name}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          loading="lazy"
-                        />
+                  {((sectionData.categories as any[]) || []).map((category: any) => {
+                    const hasImage = category.image && category.image.trim() !== ''
 
-                        {/* Gradient overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    return (
+                      <SmartLink key={category.id} href={category.link || '#'} className="group cursor-pointer h-full block">
+                        <div className="relative overflow-hidden rounded-lg hover:shadow-xl transition-all duration-300 h-64">
+                          {hasImage ? (
+                            <>
+                              {/* Full image */}
+                              <img
+                                src={category.image}
+                                alt={category.name}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                loading="lazy"
+                              />
 
-                        {/* Badge at bottom center */}
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-                          <div className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
-                            <span
-                              className="text-sm font-semibold whitespace-nowrap"
-                              style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
-                            >
-                              {category.name}
-                            </span>
+                              {/* Gradient overlay */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                            </>
+                          ) : (
+                            <>
+                              {/* Placeholder when no image */}
+                              <div className="w-full h-full bg-muted flex flex-col items-center justify-center">
+                                <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
+                                <p className="text-sm text-muted-foreground">Upload Image</p>
+                              </div>
+                            </>
+                          )}
+
+                          {/* Badge at bottom center */}
+                          <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+                            <div className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
+                              <span
+                                className="text-sm font-semibold whitespace-nowrap"
+                                style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+                              >
+                                {category.name}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Link>
-                  ))}
+                      </SmartLink>
+                    )
+                  })}
                 </div>
               </div>
             </section>
@@ -372,11 +389,11 @@ export function CustomerSiteSection({
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   {/* Primary CTA */}
                   {(sectionData.ctaText || sectionData.ctaLink) && (
-                    <Link 
+                    <SmartLink
                       href={String(sectionData.ctaLink || '/plants')}
                       className={`px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 hover:opacity-90 ${
-                        backgroundSetting === 'primary' 
-                          ? 'bg-white hover:bg-gray-100' 
+                        backgroundSetting === 'primary'
+                          ? 'bg-white hover:bg-gray-100'
                           : 'hover:bg-theme-primary/90'
                       }`}
                       style={{
@@ -386,16 +403,16 @@ export function CustomerSiteSection({
                       }}
                     >
                       {String(sectionData.ctaText || 'Shop Plants')}
-                    </Link>
+                    </SmartLink>
                   )}
-                  
+
                   {/* Secondary CTA */}
                   {(sectionData.secondaryCtaText || sectionData.secondaryCtaLink) && (
-                    <Link 
+                    <SmartLink
                       href={String(sectionData.secondaryCtaLink || '/products')}
                       className={`px-8 py-3 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:opacity-80 ${
-                        backgroundSetting === 'primary' 
-                          ? 'border-white text-white hover:bg-white hover:text-theme-primary' 
+                        backgroundSetting === 'primary'
+                          ? 'border-white text-white hover:bg-white hover:text-theme-primary'
                           : 'hover:bg-theme-primary hover:text-white'
                       }`}
                       style={{
@@ -406,7 +423,7 @@ export function CustomerSiteSection({
                       }}
                     >
                       {String(sectionData.secondaryCtaText || 'Browse Plants')}
-                    </Link>
+                    </SmartLink>
                   )}
                 </div>
               </div>

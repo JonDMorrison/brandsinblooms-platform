@@ -11,6 +11,7 @@ import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
 import { IconSelector } from '@/src/components/ui/IconSelector'
 import { Dialog, DialogContent, DialogOverlay, DialogTitle } from '@/src/components/ui/dialog'
+import { SmartLink } from '@/src/components/ui/smart-link'
 
 interface HeroPreviewProps {
   section: ContentSection
@@ -166,7 +167,7 @@ export function HeroPreview({
           {/* CTA Buttons */}
           <div className={`${responsive.flex.heroLayout} gap-4 justify-center mb-12`}>
             {(data.ctaText || onContentUpdate) && (
-              <a
+              <SmartLink
                 href={data.ctaLink || '#'}
                 className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
                 style={{
@@ -176,7 +177,7 @@ export function HeroPreview({
                 }}
                 onClick={(e) => {
                   // Check if inline editor is currently active/editing
-                  const isEditing = e.target.closest('[data-editing="true"]') || 
+                  const isEditing = e.target.closest('[data-editing="true"]') ||
                                    e.target.closest('.ProseMirror') ||
                                    e.target.closest('.inline-editor-wrapper')
                   if (isEditing) {
@@ -206,10 +207,10 @@ export function HeroPreview({
                   showToolbar={false}
                   debounceDelay={0}
                 />
-              </a>
+              </SmartLink>
             )}
             {(data.secondaryCtaText || onContentUpdate) && (
-              <a
+              <SmartLink
                 href={data.secondaryCtaLink || '#'}
                 className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
                 style={{
@@ -219,7 +220,7 @@ export function HeroPreview({
                 }}
                 onClick={(e) => {
                   // Check if inline editor is currently active/editing
-                  const isEditing = e.target.closest('[data-editing="true"]') || 
+                  const isEditing = e.target.closest('[data-editing="true"]') ||
                                    e.target.closest('.ProseMirror') ||
                                    e.target.closest('.inline-editor-wrapper')
                   if (isEditing) {
@@ -249,7 +250,7 @@ export function HeroPreview({
                   showToolbar={false}
                   debounceDelay={0}
                 />
-              </a>
+              </SmartLink>
             )}
           </div>
 

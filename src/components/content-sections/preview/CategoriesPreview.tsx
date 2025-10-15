@@ -9,6 +9,8 @@ import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEdit
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared'
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
+import { ImageIcon } from 'lucide-react'
+import { SmartLink } from '@/src/components/ui/smart-link'
 
 interface CategoriesPreviewProps {
   section: ContentSection
@@ -144,19 +146,33 @@ interface CategoryCardProps {
 }
 
 function CategoryCard({ category, isPreview, onContentUpdate }: CategoryCardProps) {
+  const hasImage = category.image && category.image.trim() !== ''
+
   const CardContent = (
     <div className="group cursor-pointer h-full">
       <div className="relative overflow-hidden rounded-lg hover:shadow-xl transition-all duration-300 h-64">
-        {/* Full image */}
-        <img
-          src={category.image}
-          alt={category.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          loading="lazy"
-        />
+        {hasImage ? (
+          <>
+            {/* Full image */}
+            <img
+              src={category.image}
+              alt={category.name}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+            />
 
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          </>
+        ) : (
+          <>
+            {/* Placeholder when no image */}
+            <div className="w-full h-full bg-muted flex flex-col items-center justify-center">
+              <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">Upload Image</p>
+            </div>
+          </>
+        )}
 
         {/* Badge at bottom center */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
@@ -176,9 +192,9 @@ function CategoryCard({ category, isPreview, onContentUpdate }: CategoryCardProp
   if (category.link && !onContentUpdate) {
     // Only make it a link on customer site (not in preview mode)
     return (
-      <a href={category.link} className="block h-full">
+      <SmartLink href={category.link} className="block h-full">
         {CardContent}
-      </a>
+      </SmartLink>
     )
   }
 

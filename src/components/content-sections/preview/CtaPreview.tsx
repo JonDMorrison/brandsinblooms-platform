@@ -10,6 +10,7 @@ import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEdit
 import { textToHtml, htmlToText } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
 import { isPreviewMode, createResponsiveClassHelper } from '@/src/lib/utils/responsive-classes'
+import { SmartLink } from '@/src/components/ui/smart-link'
 
 interface CtaPreviewProps {
   section: ContentSection
@@ -105,11 +106,11 @@ export function CtaPreview({
           >
             {/* Primary CTA Button */}
             {(data.ctaText || data.ctaLink) && (
-              <a 
+              <SmartLink
                 href={String(data.ctaLink || '/plants')}
                 className={`px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 hover:opacity-90 ${
-                  isPrimaryBackground 
-                    ? 'bg-white hover:bg-gray-100' 
+                  isPrimaryBackground
+                    ? 'bg-white hover:bg-gray-100'
                     : 'hover:bg-theme-primary/90'
                 }`}
                 style={{
@@ -119,7 +120,7 @@ export function CtaPreview({
                 }}
                 onClick={(e) => {
                   // Check if inline editor is currently active/editing
-                  const isEditing = e.target.closest('[data-editing="true"]') || 
+                  const isEditing = e.target.closest('[data-editing="true"]') ||
                                    e.target.closest('.ProseMirror') ||
                                    e.target.closest('.inline-editor-wrapper')
                   if (isEditing) {
@@ -147,16 +148,16 @@ export function CtaPreview({
                   placeholder="Button text..."
                   showToolbar={false}
                 />
-              </a>
+              </SmartLink>
             )}
-            
+
             {/* Secondary CTA Button */}
             {(data.secondaryCtaText || data.secondaryCtaLink) && (
-              <a 
+              <SmartLink
                 href={String(data.secondaryCtaLink || '/products')}
                 className={`px-8 py-3 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:opacity-80 ${
-                  isPrimaryBackground 
-                    ? 'border-white text-white hover:bg-white hover:text-theme-primary' 
+                  isPrimaryBackground
+                    ? 'border-white text-white hover:bg-white hover:text-theme-primary'
                     : 'hover:bg-theme-primary hover:text-white'
                 }`}
                 style={{
@@ -167,7 +168,7 @@ export function CtaPreview({
                 }}
                 onClick={(e) => {
                   // Check if inline editor is currently active/editing
-                  const isEditing = e.target.closest('[data-editing="true"]') || 
+                  const isEditing = e.target.closest('[data-editing="true"]') ||
                                    e.target.closest('.ProseMirror') ||
                                    e.target.closest('.inline-editor-wrapper')
                   if (isEditing) {
@@ -195,7 +196,7 @@ export function CtaPreview({
                   placeholder="Button text..."
                   showToolbar={false}
                 />
-              </a>
+              </SmartLink>
             )}
           </div>
         </div>
