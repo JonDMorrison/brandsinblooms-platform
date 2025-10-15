@@ -29,20 +29,22 @@ interface DynamicSectionProps {
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
   onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
   onValueUpdate?: (sectionKey: string, valueIndex: number, fieldPath: string, newContent: string) => void
+  onCategoryUpdate?: (sectionKey: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => void
+  onCategoryDelete?: (sectionKey: string, categoryIndex: number) => void
 }
 
-function DynamicSectionComponent({ section, sectionKey, className = '', title, onContentUpdate, onFeatureUpdate, onValueUpdate }: DynamicSectionProps) {
+function DynamicSectionComponent({ section, sectionKey, className = '', title, onContentUpdate, onFeatureUpdate, onValueUpdate, onCategoryUpdate, onCategoryDelete }: DynamicSectionProps) {
   const { theme } = useSiteTheme()
-  
+
   // Don't render if section is not visible or has no data
   if (!section.visible) {
     return null
   }
 
   const { type, data, settings } = section
-  
+
   // Common props for all preview components
-  const commonProps = { section, sectionKey, className, title, onContentUpdate, onFeatureUpdate, onValueUpdate }
+  const commonProps = { section, sectionKey, className, title, onContentUpdate, onFeatureUpdate, onValueUpdate, onCategoryUpdate, onCategoryDelete }
 
   // Section-specific rendering logic
   switch (type) {

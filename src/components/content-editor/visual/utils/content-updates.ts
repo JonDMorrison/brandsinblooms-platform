@@ -212,6 +212,88 @@ export function updateSectionValue(
 }
 
 /**
+ * Helper to update category items in sections
+ * Supports partial updates - merges updatedCategory object into existing category
+ */
+export function updateSectionCategory(
+  content: PageContent,
+  sectionKey: string,
+  categoryIndex: number,
+  updatedCategory: Record<string, unknown>
+): PageContent {
+  if (!content || !content.sections[sectionKey]) {
+    return content
+  }
+
+  const section = content.sections[sectionKey]
+  if (!section || !section.data.categories || !Array.isArray(section.data.categories)) {
+    return content
+  }
+
+  // Create updated categories array
+  const updatedCategories = [...section.data.categories]
+  if (updatedCategories[categoryIndex]) {
+    // Merge updated fields into existing category
+    updatedCategories[categoryIndex] = {
+      ...updatedCategories[categoryIndex],
+      ...updatedCategory
+    }
+  }
+
+  // Create updated content with new categories array
+  return {
+    ...content,
+    sections: {
+      ...content.sections,
+      [sectionKey]: {
+        ...section,
+        data: {
+          ...section.data,
+          categories: updatedCategories
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Helper to delete a category from a section
+ */
+export function deleteSectionCategory(
+  content: PageContent,
+  sectionKey: string,
+  categoryIndex: number
+): PageContent {
+  if (!content || !content.sections[sectionKey]) {
+    return content
+  }
+
+  const section = content.sections[sectionKey]
+  if (!section || !section.data.categories || !Array.isArray(section.data.categories)) {
+    return content
+  }
+
+  // Create updated categories array with item removed
+  const updatedCategories = [...section.data.categories]
+  updatedCategories.splice(categoryIndex, 1)
+
+  // Create updated content with new categories array
+  return {
+    ...content,
+    sections: {
+      ...content.sections,
+      [sectionKey]: {
+        ...section,
+        data: {
+          ...section.data,
+          categories: updatedCategories
+        }
+      }
+    }
+  }
+}
+
+/**
  * Type-safe content update factory
  */
 export function createContentUpdateHandlers(
@@ -251,7 +333,24 @@ export function createContentUpdateHandlers(
     const updatedContent = updateSectionValue(content, sectionKey, valueIndex, fieldPath, newContent)
     onContentChange(updatedContent)
   }
-  
+
+  /**
+   * Handle category updates
+   * Supports partial updates - merges updatedCategory into existing category
+   */
+  const handleCategoryUpdate = (sectionKey: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => {
+    const updatedContent = updateSectionCategory(content, sectionKey, categoryIndex, updatedCategory)
+    onContentChange(updatedContent)
+  }
+
+  /**
+   * Handle category deletion
+   */
+  const handleCategoryDelete = (sectionKey: string, categoryIndex: number) => {
+    const updatedContent = deleteSectionCategory(content, sectionKey, categoryIndex)
+    onContentChange(updatedContent)
+  }
+
   /**
    * Handle title updates (with fallback support)
    */
@@ -265,7 +364,7 @@ export function createContentUpdateHandlers(
       updateContent('title', newTitle)
     }
   }
-  
+
   /**
    * Handle subtitle updates (with fallback support)
    */
@@ -279,12 +378,14 @@ export function createContentUpdateHandlers(
       updateContent('subtitle', newSubtitle)
     }
   }
-  
+
   return {
     handleInlineContentUpdate,
     handleSectionContentUpdate,
     handleFeatureUpdate,
     handleValueUpdate,
+    handleCategoryUpdate,
+    handleCategoryDelete,
     handleTitleUpdate,
     handleSubtitleUpdate
   }

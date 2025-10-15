@@ -22,6 +22,8 @@ interface CategoriesPreviewProps {
   title?: string
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
   onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
+  onCategoryUpdate?: (sectionKey: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => void
+  onCategoryDelete?: (sectionKey: string, categoryIndex: number) => void
 }
 
 // Default categories that match the schema definition
@@ -60,13 +62,15 @@ const DEFAULT_CATEGORIES = [
   }
 ]
 
-export function CategoriesPreview({ 
-  section, 
-  sectionKey, 
-  className = '', 
-  title, 
-  onContentUpdate, 
-  onFeatureUpdate 
+export function CategoriesPreview({
+  section,
+  sectionKey,
+  className = '',
+  title,
+  onContentUpdate,
+  onFeatureUpdate,
+  onCategoryUpdate,
+  onCategoryDelete
 }: CategoriesPreviewProps) {
   const { data, settings } = section
   const isPreview = isPreviewMode(onContentUpdate, onFeatureUpdate)
@@ -133,6 +137,8 @@ export function CategoriesPreview({
               sectionKey={sectionKey}
               isPreview={isPreview}
               onContentUpdate={onContentUpdate}
+              onCategoryUpdate={onCategoryUpdate}
+              onCategoryDelete={onCategoryDelete}
             />
           ))}
         </div>
@@ -150,9 +156,11 @@ interface CategoryCardProps {
   sectionKey: string
   isPreview: boolean
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
+  onCategoryUpdate?: (sectionKey: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => void
+  onCategoryDelete?: (sectionKey: string, categoryIndex: number) => void
 }
 
-function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onContentUpdate }: CategoryCardProps) {
+function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onContentUpdate, onCategoryUpdate, onCategoryDelete }: CategoryCardProps) {
   const hasImage = category.image && category.image.trim() !== ''
   const [editModalOpen, setEditModalOpen] = useState(false)
   // Use optional hook - may be undefined in Content Editor context
@@ -160,27 +168,32 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
   const { currentSite } = useSiteContext()
 
   const handleCategorySave = (updatedCategory: Record<string, unknown>) => {
-    // Prefer context method if available (Full Site Editor)
-    if (editorContext) {
+    // Try Content Editor handler first (from VisualEditor)
+    if (onCategoryUpdate) {
+      onCategoryUpdate(sectionKey, categoryIndex, updatedCategory)
+    }
+    // Fallback to Full Site Editor context method
+    else if (editorContext) {
       editorContext.updateCategoryContent(sectionKey, categoryIndex, updatedCategory)
     }
-    // Note: Content Editor doesn't support modal-based category editing yet
-    // It uses the CategoriesEditor component instead
   }
 
   const handleCategoryDelete = () => {
-    // Prefer context method if available (Full Site Editor)
-    if (editorContext) {
+    // Try Content Editor handler first (from VisualEditor)
+    if (onCategoryDelete) {
+      onCategoryDelete(sectionKey, categoryIndex)
+    }
+    // Fallback to Full Site Editor context method
+    else if (editorContext) {
       editorContext.deleteCategoryContent(sectionKey, categoryIndex)
     }
-    // Note: Content Editor doesn't support modal-based category deletion yet
   }
 
   const handleImageClick = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    // Only open modal in Full Site Editor context (not in Content Editor)
-    if (isPreview && onContentUpdate && editorContext) {
+    // Open modal in both Content Editor (onCategoryUpdate) and Full Site Editor (editorContext)
+    if (isPreview && (onCategoryUpdate || editorContext)) {
       setEditModalOpen(true)
     }
   }
@@ -220,11 +233,16 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
           }}
         >
           <div className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
-            {isPreview && onContentUpdate && editorContext ? (
+            {isPreview && (onCategoryUpdate || editorContext) ? (
               <InlineTextEditor
                 content={category.name}
                 onUpdate={(content) => {
-                  if (editorContext) {
+                  // Try Content Editor handler first
+                  if (onCategoryUpdate) {
+                    onCategoryUpdate(sectionKey, categoryIndex, { name: content })
+                  }
+                  // Fallback to Full Site Editor context method
+                  else if (editorContext) {
                     editorContext.updateCategoryContent(sectionKey, categoryIndex, { name: content })
                   }
                 }}
@@ -252,8 +270,8 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
     </div>
   )
 
-  // In preview mode with Full Site Editor context, show editable card with modal
-  if (isPreview && onContentUpdate && editorContext) {
+  // In any editor mode (Content Editor OR Full Site Editor), show editable card with modal
+  if (isPreview && (onCategoryUpdate || editorContext)) {
     return (
       <>
         <div className="block h-full">
@@ -268,15 +286,6 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
           siteId={currentSite?.id || ''}
         />
       </>
-    )
-  }
-
-  // In Content Editor (preview mode but no Full Site Editor context), show card without modal
-  if (isPreview && onContentUpdate) {
-    return (
-      <div className="block h-full">
-        {CardContent}
-      </div>
     )
   }
 
