@@ -178,6 +178,9 @@ export function FullSiteEditorProvider({
   }, [])
 
   const toggleEditorMode = useCallback(() => {
+    // Save current scroll position before DOM changes
+    const scrollY = window.scrollY
+
     setState(prev => {
       const newMode = prev.editorMode === 'edit' ? 'navigate' : 'edit'
       setEditorModeCookie(newMode) // Persist mode across page navigation
@@ -185,6 +188,12 @@ export function FullSiteEditorProvider({
         ...prev,
         editorMode: newMode
       }
+    })
+
+    // Restore scroll position after React reconciliation completes
+    // requestAnimationFrame ensures this runs after the browser has painted the new DOM
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollY)
     })
   }, [])
 
