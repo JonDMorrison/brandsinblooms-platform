@@ -43,19 +43,52 @@ export function EditableCustomerSiteSection({
     activeSection,
     setActiveSection,
     updateFieldContent,
-    updateFeatureContent
+    updateFeatureContent,
+    pageContent
   } = context
 
-  // If in navigate mode, render children without editing
-  if (editorMode === 'navigate') {
-    return <>{children}</>
-  }
+  // Get fresh section data from context (includes staged/unsaved changes)
+  // This ensures both Edit and Navigate modes show the same staged content
+  const contextSectionData = pageContent?.sections?.[sectionKey]
 
-  // In edit mode: render preview component with inline editing
+  // Merge context data with prop data (context takes precedence for staged changes)
+  const mergedSection: ContentSection = contextSectionData
+    ? {
+        ...section,
+        data: contextSectionData.data,
+        visible: contextSectionData.visible ?? section.visible,
+        settings: contextSectionData.settings ?? section.settings
+      }
+    : section
+
+  // Use context data if available, otherwise fall back to prop data
+  const activeSectionData = contextSectionData?.data ?? sectionData
+
+  // Try to get PreviewComponent for this section type
   const PreviewComponent = getPreviewComponent(section.type)
 
-  if (PreviewComponent && sectionData) {
-    // Render preview component with inline editing capabilities
+  // If we have a PreviewComponent and section data, use it for both Edit and Navigate modes
+  // This ensures staged changes are visible in both modes
+  if (PreviewComponent && activeSectionData) {
+    // In Navigate mode: render PreviewComponent WITHOUT edit callbacks (preview only)
+    if (editorMode === 'navigate') {
+      return (
+        <div
+          className={`relative ${className}`}
+          data-section-key={sectionKey}
+          data-edit-mode="navigate"
+        >
+          {/* Preview Component in Navigate Mode - No editing, just preview of staged changes */}
+          <PreviewComponent
+            section={mergedSection}
+            sectionKey={sectionKey}
+            // No onContentUpdate or onFeatureUpdate = no inline editing
+          />
+        </div>
+      )
+    }
+
+    // In Edit mode: render PreviewComponent WITH edit callbacks (editing enabled)
     return (
       <div
         className={`relative ${className}`}
@@ -63,7 +96,7 @@ export function EditableCustomerSiteSection({
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => setActiveSection(sectionKey)}
         data-section-key={sectionKey}
-        data-edit-mode="true"
+        data-edit-mode="edit"
         style={{
           outline: isHovered ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
           outlineOffset: '4px',
@@ -74,13 +107,13 @@ export function EditableCustomerSiteSection({
         {isHovered && (
           <SectionControls
             sectionKey={sectionKey}
-            section={section}
+            section={mergedSection}
           />
         )}
 
         {/* Preview Component with Inline Editing */}
         <PreviewComponent
-          section={section}
+          section={mergedSection}
           sectionKey={sectionKey}
           onContentUpdate={(key, fieldPath, content) => {
             updateFieldContent(key, fieldPath, content)
@@ -91,6 +124,12 @@ export function EditableCustomerSiteSection({
         />
       </div>
     )
+  }
+
+  // Fallback: No PreviewComponent available
+  // In Navigate mode, render children without editing UI
+  if (editorMode === 'navigate') {
+    return <>{children}</>
   }
 
   // Fallback: render children with controls (no preview component available)
