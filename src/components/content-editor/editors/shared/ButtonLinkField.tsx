@@ -60,8 +60,8 @@ export function ButtonLinkField({
       {/* Label */}
       {label && <Label className="text-xs font-medium">{label}</Label>}
 
-      {/* Mode toggle and input - stacked on mobile, inline on desktop */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+      {/* Mode toggle and input - stacked vertically for sidebar */}
+      <div className="flex flex-col gap-2">
         {/* Mode toggle buttons */}
         <div className="flex gap-1 flex-shrink-0">
           <Button
