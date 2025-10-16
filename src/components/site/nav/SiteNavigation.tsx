@@ -7,6 +7,7 @@ import { useSiteContext } from '@/src/contexts/SiteContext'
 import { useCartContext } from '@/src/contexts/CartContext'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useDesignSettings } from '@/src/hooks/useDesignSettings'
+import { useIsEditModeActive } from '@/src/contexts/FullSiteEditorContext'
 import { Button } from '@/src/components/ui/button'
 import { cn } from '@/src/lib/utils'
 import { BrandLogo } from './BrandLogo'
@@ -22,6 +23,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const { data: designSettings } = useDesignSettings()
   const { itemCount } = useCartContext()
   const { user } = useAuth()
+  const isEditMode = useIsEditModeActive()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -92,10 +94,10 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   )
 
   return (
-    <header 
+    <header
       className={cn(
         'w-full bg-white border-b transition-all duration-200',
-        stickyHeader && 'sticky top-0 z-50',
+        stickyHeader && (isEditMode ? 'sticky top-14 z-50' : 'sticky top-0 z-50'),
         headerStyle === 'classic' ? '' : headerStyle === 'modern' || headerStyle === 'minimal' ? 'py-3' : heightClass,
         className
       )}

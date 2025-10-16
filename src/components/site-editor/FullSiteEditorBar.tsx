@@ -122,7 +122,7 @@ export function FullSiteEditorBar() {
   return (
     <div
       className={cn(
-        'fixed top-0 left-0 right-0 z-[9999]',
+        'fixed top-0 left-0 right-0 z-40',
         'bg-white border-b shadow-sm',
         'transition-all duration-300'
       )}
@@ -329,7 +329,7 @@ export function FullSiteEditorBar() {
                 <ChevronDown className="h-3 w-3 text-gray-500" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48 z-[10000]" align="end">
+            <DropdownMenuContent className="w-48 z-[110]" align="end">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">
