@@ -187,11 +187,22 @@ interface CreateContentModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onContentCreated?: () => void
+  siteIdOverride?: string
+  onNavigateAfterCreate?: (newContent: { id: string; slug: string; title: string }) => void
 }
 
-export function CreateContentModal({ open, onOpenChange, onContentCreated }: CreateContentModalProps) {
+export function CreateContentModal({
+  open,
+  onOpenChange,
+  onContentCreated,
+  siteIdOverride,
+  onNavigateAfterCreate
+}: CreateContentModalProps) {
   const router = useRouter()
   const { currentSite } = useSiteContext()
+
+  // Use override site ID if provided, otherwise use site context
+  const activeSiteId = siteIdOverride || currentSite?.id
   const [step, setStep] = useState(1)
   const [selectedPageType, setSelectedPageType] = useState<'landing' | 'about' | 'contact' | 'other'>('landing')
   const [selectedTemplate, setSelectedTemplate] = useState<string>('home-page')
@@ -241,7 +252,7 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
 
   // Debounced slug validation - generates unique slug preview
   const validateSlugAvailability = useCallback(async (title: string) => {
-    if (!title || !currentSite?.id) {
+    if (!title || !activeSiteId) {
       setSlugValidationStatus('idle')
       setSlugValidationMessage('')
       setGeneratedSlug('')
@@ -254,7 +265,7 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
 
     try {
       // Generate unique slug (auto-appends -1, -2, etc. if needed)
-      const uniqueSlug = await generateUniqueContentSlug(supabase, title, currentSite.id)
+      const uniqueSlug = await generateUniqueContentSlug(supabase, title, activeSiteId)
 
       // Generate base slug to compare
       const baseSlug = SlugValidator.generateFromTitle(title)
@@ -277,7 +288,7 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
     } finally {
       setIsValidatingSlug(false)
     }
-  }, [currentSite?.id])
+  }, [activeSiteId])
 
   // Debounced title change handler
   useEffect(() => {
@@ -333,17 +344,17 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
       return
     }
 
-    if (!currentSite?.id) {
+    if (!activeSiteId) {
       toast.error('No site selected. Please select a site first.')
       return
     }
-    
+
     setIsCreating(true)
     const toastId = toast.loading('Creating page...')
 
     try {
       // Use pre-generated unique slug, or generate it now
-      const slug = generatedSlug || await generateUniqueContentSlug(supabase, data.title, currentSite.id)
+      const slug = generatedSlug || await generateUniqueContentSlug(supabase, data.title, activeSiteId)
 
       // Get template content based on selected template and settings
       const selectedTemplateName = form.getValues('template') || selectedTemplate
@@ -351,9 +362,9 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
         ? getTemplateContent(selectedTemplateName, data.title, undefined, MOCK_DATA_PRESETS.technology)
         : getTemplateContent(selectedTemplateName, data.title, undefined, { ...MOCK_DATA_PRESETS.technology, complexity: 'simple' })
       const serializedContent = serializePageContent(templateContent)
-      
+
       const contentData = {
-        site_id: currentSite.id,
+        site_id: activeSiteId,
         title: data.title,
         slug,
         content_type: data.layout,
@@ -365,20 +376,30 @@ export function CreateContentModal({ open, onOpenChange, onContentCreated }: Cre
           template: selectedTemplateName
         }
       }
-      
+
       // Create the content in the database
       const newContent = await createContent(supabase, contentData)
-      
+
       toast.success('Page created successfully!', { id: toastId })
-      
+
       // Close modal and refresh content list
       handleModalClose(false)
       onContentCreated?.()
-      
-      // Navigate to the editor with the created content ID
-      setTimeout(() => {
-        router.push(`/dashboard/content/editor?id=${newContent.id}`)
-      }, 100)
+
+      // Handle navigation - use custom handler if provided, otherwise default behavior
+      if (onNavigateAfterCreate) {
+        // Custom navigation (e.g., for Full Site Editor)
+        onNavigateAfterCreate({
+          id: newContent.id,
+          slug: newContent.slug,
+          title: newContent.title
+        })
+      } else {
+        // Default navigation to dashboard editor
+        setTimeout(() => {
+          router.push(`/dashboard/content/editor?id=${newContent.id}`)
+        }, 100)
+      }
       
     } catch (error) {
       console.error('Error creating content:', error)

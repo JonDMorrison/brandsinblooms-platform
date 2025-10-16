@@ -48,6 +48,7 @@ import { format } from 'date-fns'
 import { toast } from 'sonner'
 import { QuickPageSwitcher } from './QuickPageSwitcher'
 import { PageSettingsModal } from './modals/PageSettingsModal'
+import { CreateContentModal } from '@/src/components/content/CreateContentModal'
 
 export function FullSiteEditorBar() {
   const {
@@ -59,6 +60,8 @@ export function FullSiteEditorBar() {
     lastSaved,
     currentPageSlug,
     isPublished,
+    siteId,
+    siteUrl,
     toggleEditorMode,
     setViewportSize,
     savePage,
@@ -73,6 +76,9 @@ export function FullSiteEditorBar() {
 
   // State for page settings modal
   const [showPageSettingsModal, setShowPageSettingsModal] = useState(false)
+
+  // State for create page modal
+  const [showCreatePageModal, setShowCreatePageModal] = useState(false)
 
   // Don't render if not in edit mode
   if (!isEditMode) {
@@ -117,6 +123,14 @@ export function FullSiteEditorBar() {
   const confirmDiscard = () => {
     discardChanges()
     setShowDiscardModal(false)
+  }
+
+  // Handle navigation after creating new page - stay on customer site in edit mode
+  const handleNavigateToNewPage = (newContent: { id: string; slug: string; title: string }) => {
+    // Navigate to the newly created page on the customer site
+    // Edit mode session is already active, so it will persist
+    const newPagePath = newContent.slug === 'home' ? '/' : `/${newContent.slug}`
+    window.location.href = newPagePath
   }
 
   return (
@@ -298,15 +312,12 @@ export function FullSiteEditorBar() {
             <span className="sm:hidden">Settings</span>
           </Button>
 
-          {/* Create Page Button (optional - for future) */}
+          {/* Create Page Button */}
           <Button
             size="sm"
             variant="outline"
             className="gap-1.5 hidden md:flex"
-            onClick={() => {
-              // TODO: Open create page modal
-              console.log('Create page clicked')
-            }}
+            onClick={() => setShowCreatePageModal(true)}
           >
             <Plus className="w-3.5 h-3.5" />
             New Page
@@ -395,6 +406,14 @@ export function FullSiteEditorBar() {
       <PageSettingsModal
         isOpen={showPageSettingsModal}
         onClose={() => setShowPageSettingsModal(false)}
+      />
+
+      {/* Create Page Modal */}
+      <CreateContentModal
+        open={showCreatePageModal}
+        onOpenChange={setShowCreatePageModal}
+        siteIdOverride={siteId}
+        onNavigateAfterCreate={handleNavigateToNewPage}
       />
     </div>
   )
