@@ -22,6 +22,7 @@ interface FullSiteEditorWrapperProps {
   permissions?: EditPermissions
   pageContent?: PageContent | null
   pageId?: string | null
+  isPublished?: boolean
   onSave?: (content: PageContent) => Promise<void>
 }
 
@@ -34,6 +35,7 @@ export function FullSiteEditorWrapper({
   permissions,
   pageContent,
   pageId,
+  isPublished,
   onSave
 }: FullSiteEditorWrapperProps) {
   // If not in edit mode, just render children without padding
@@ -50,6 +52,7 @@ export function FullSiteEditorWrapper({
           initialPermissions={permissions}
           initialPageContent={pageContent ?? null}
           initialPageId={pageId ?? null}
+          initialIsPublished={isPublished}
           onSave={onSave}
         >
           {/* Add padding-top to prevent content from being hidden under fixed bar (h-14 = 56px) */}

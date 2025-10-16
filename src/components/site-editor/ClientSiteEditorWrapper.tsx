@@ -35,6 +35,7 @@ export function ClientSiteEditorWrapper({
 }: ClientSiteEditorWrapperProps) {
   const [pageContent, setPageContent] = useState<PageContent | null>(null)
   const [pageId, setPageId] = useState<string | null>(null)
+  const [isPublished, setIsPublished] = useState<boolean>(true)
   const [isLoading, setIsLoading] = useState(false)
 
   // Load page content when in edit mode
@@ -57,10 +58,12 @@ export function ClientSiteEditorWrapper({
           const deserializedContent = deserializePageContent(contentResult.content)
           setPageContent(deserializedContent)
           setPageId(contentResult.id)
+          setIsPublished(contentResult.is_published ?? true)
         } else {
           // No content found - this is okay, we'll create it on first save
           setPageContent(null)
           setPageId(null)
+          setIsPublished(true)
         }
       } catch (error) {
         console.error('Error loading page content:', error)
@@ -128,6 +131,7 @@ export function ClientSiteEditorWrapper({
       permissions={permissions}
       pageContent={pageContent}
       pageId={pageId}
+      isPublished={isPublished}
       onSave={handleSave}
     >
       {children}

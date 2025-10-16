@@ -10,9 +10,10 @@ import { ContentSection } from '@/src/lib/content/schema'
 
 interface DynamicContentPageProps {
   slug: string
+  isEditMode?: boolean
 }
 
-export async function DynamicContentPage({ slug }: DynamicContentPageProps) {
+export async function DynamicContentPage({ slug, isEditMode = false }: DynamicContentPageProps) {
   const { siteId } = await getSiteHeaders()
   
   // Query database for content with this slug
@@ -23,9 +24,15 @@ export async function DynamicContentPage({ slug }: DynamicContentPageProps) {
   try {
     const supabase = await createClient()
     contentResult = await getContentBySlug(supabase, siteId, slug)
-    
-    // Only render if content exists and is published
-    if (!contentResult || !contentResult.is_published) {
+
+    // Content must exist
+    if (!contentResult) {
+      return notFound()
+    }
+
+    // Reject unpublished pages for public visitors (not in edit mode)
+    // Allow unpublished pages when logged-in editor is viewing
+    if (!isEditMode && !contentResult.is_published) {
       return notFound()
     }
     

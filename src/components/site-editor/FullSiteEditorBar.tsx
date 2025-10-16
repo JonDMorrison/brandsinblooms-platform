@@ -39,7 +39,8 @@ import {
   Home,
   LogOut,
   ChevronDown,
-  RotateCcw
+  RotateCcw,
+  AlertCircle
 } from 'lucide-react'
 import { cn } from '@/src/lib/utils'
 import { format } from 'date-fns'
@@ -55,6 +56,7 @@ export function FullSiteEditorBar() {
     isSaving,
     lastSaved,
     currentPageSlug,
+    isPublished,
     toggleEditorMode,
     setViewportSize,
     savePage,
@@ -132,6 +134,12 @@ export function FullSiteEditorBar() {
             <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">
               <Home className="w-3 h-3" />
               Homepage
+            </div>
+          )}
+          {!isPublished && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium border border-amber-200">
+              <AlertCircle className="w-3 h-3" />
+              <span>Draft - Not Published</span>
             </div>
           )}
         </div>

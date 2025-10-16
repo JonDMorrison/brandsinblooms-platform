@@ -55,6 +55,7 @@ export interface FullSiteEditorState {
   currentPageId: string | null
   currentPageSlug: string
   pageContent: PageContent | null
+  isPublished: boolean
   hasUnsavedChanges: boolean
 
   // Section management
@@ -117,6 +118,7 @@ interface FullSiteEditorProviderProps {
   initialPermissions?: EditPermissions
   initialPageContent?: PageContent | null
   initialPageId?: string | null
+  initialIsPublished?: boolean
   onSave?: (content: PageContent) => Promise<void>
 }
 
@@ -133,6 +135,7 @@ export function FullSiteEditorProvider({
   initialPermissions = defaultPermissions,
   initialPageContent = null,
   initialPageId = null,
+  initialIsPublished = true,
   onSave
 }: FullSiteEditorProviderProps) {
   const pathname = usePathname()
@@ -146,6 +149,7 @@ export function FullSiteEditorProvider({
     currentPageId: initialPageId,
     currentPageSlug: pathname || '',
     pageContent: initialPageContent,
+    isPublished: initialIsPublished,
     hasUnsavedChanges: false,
     activeSection: null,
     sectionsChanged: false,

@@ -94,7 +94,7 @@ export default async function SitePage({ params }: SitePageProps) {
         pageComponent = <CategoryPage slug={categorySlug} />
       } else {
         // Try to find content in database with this slug
-        pageComponent = <DynamicContentPage slug={path} />
+        pageComponent = <DynamicContentPage slug={path} isEditMode={editModeStatus.isEditMode} />
       }
   }
 

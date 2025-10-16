@@ -1,6 +1,7 @@
 /**
  * QuickPageSwitcher Component
- * Allows quick navigation between published pages in Full Site Editor
+ * Allows quick navigation between all pages (published and drafts) in Full Site Editor
+ * Shows draft badges for unpublished pages
  * Shows confirmation dialog when switching with unsaved changes
  */
 
@@ -43,8 +44,8 @@ export function QuickPageSwitcher({
   const [pendingPageSlug, setPendingPageSlug] = useState<string | null>(null)
   const [isSwitching, setIsSwitching] = useState(false)
 
-  // Fetch only published pages
-  const { data: pages, loading, error } = usePages({ includeUnpublished: false })
+  // Fetch all pages including drafts (logged-in users need to see unpublished pages)
+  const { data: pages, loading, error } = usePages({ includeUnpublished: true })
 
   // Special value for home page (Radix UI Select doesn't allow empty string values)
   const HOME_VALUE = '__home__'
@@ -160,7 +161,6 @@ export function QuickPageSwitcher({
             <span className="text-sm font-medium truncate max-w-[150px]">
               {currentPageName}
             </span>
-            <ChevronDown className="w-3 h-3 text-gray-400 flex-shrink-0" />
           </div>
         </SelectTrigger>
         <SelectContent align="start" className="min-w-[300px] max-w-[400px]">
@@ -177,7 +177,7 @@ export function QuickPageSwitcher({
             </div>
           </SelectItem>
 
-          {/* All other published pages */}
+          {/* All pages (published and drafts) */}
           {pages && pages.length > 0 && pages.map((page) => (
             <SelectItem
               key={page.id}
@@ -190,6 +190,11 @@ export function QuickPageSwitcher({
                   <span className="text-xs text-muted-foreground shrink-0">
                     /{page.slug}
                   </span>
+                  {!page.isPublished && (
+                    <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded shrink-0">
+                      Draft
+                    </span>
+                  )}
                 </div>
                 {page.slug === currentSlug && (
                   <Check className="w-4 h-4 text-primary shrink-0" />
@@ -198,10 +203,10 @@ export function QuickPageSwitcher({
             </SelectItem>
           ))}
 
-          {/* Empty state - no published pages */}
+          {/* Empty state - no pages */}
           {(!pages || pages.length === 0) && (
             <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-              No published pages found
+              No pages found
             </div>
           )}
         </SelectContent>
