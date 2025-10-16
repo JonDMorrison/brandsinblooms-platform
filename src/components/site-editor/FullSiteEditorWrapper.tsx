@@ -10,7 +10,7 @@ import {
   FullSiteEditorProvider,
   EditPermissions
 } from '@/src/contexts/FullSiteEditorContext'
-import { PageContent } from '@/src/lib/content/schema'
+import { PageContent, LayoutType } from '@/src/lib/content/schema'
 import { EditModeProvider } from '@/src/contexts/EditModeContext'
 import { VisualEditorProvider } from '@/src/contexts/VisualEditorContext'
 import { ViewportManager } from './ViewportManager'
@@ -23,6 +23,11 @@ interface FullSiteEditorWrapperProps {
   pageContent?: PageContent | null
   pageId?: string | null
   isPublished?: boolean
+  pageTitle?: string
+  pageSlug?: string
+  layout?: LayoutType
+  siteUrl?: string
+  siteId?: string
   onSave?: (content: PageContent) => Promise<void>
 }
 
@@ -36,6 +41,11 @@ export function FullSiteEditorWrapper({
   pageContent,
   pageId,
   isPublished,
+  pageTitle,
+  pageSlug,
+  layout,
+  siteUrl,
+  siteId,
   onSave
 }: FullSiteEditorWrapperProps) {
   // If not in edit mode, just render children without padding
@@ -53,6 +63,11 @@ export function FullSiteEditorWrapper({
           initialPageContent={pageContent ?? null}
           initialPageId={pageId ?? null}
           initialIsPublished={isPublished}
+          initialPageTitle={pageTitle}
+          initialPageSlug={pageSlug}
+          initialLayout={layout}
+          initialSiteUrl={siteUrl}
+          initialSiteId={siteId}
           onSave={onSave}
         >
           {/* Add padding-top to prevent content from being hidden under fixed bar (h-14 = 56px) */}

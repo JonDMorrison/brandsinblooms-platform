@@ -40,12 +40,14 @@ import {
   LogOut,
   ChevronDown,
   RotateCcw,
-  AlertCircle
+  AlertCircle,
+  Settings
 } from 'lucide-react'
 import { cn } from '@/src/lib/utils'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 import { QuickPageSwitcher } from './QuickPageSwitcher'
+import { PageSettingsModal } from './modals/PageSettingsModal'
 
 export function FullSiteEditorBar() {
   const {
@@ -68,6 +70,9 @@ export function FullSiteEditorBar() {
 
   // State for discard confirmation modal
   const [showDiscardModal, setShowDiscardModal] = useState(false)
+
+  // State for page settings modal
+  const [showPageSettingsModal, setShowPageSettingsModal] = useState(false)
 
   // Don't render if not in edit mode
   if (!isEditMode) {
@@ -281,6 +286,18 @@ export function FullSiteEditorBar() {
             Save
           </Button>
 
+          {/* Page Settings Button */}
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={() => setShowPageSettingsModal(true)}
+          >
+            <Settings className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Page Settings</span>
+            <span className="sm:hidden">Settings</span>
+          </Button>
+
           {/* Create Page Button (optional - for future) */}
           <Button
             size="sm"
@@ -373,6 +390,12 @@ export function FullSiteEditorBar() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Page Settings Modal */}
+      <PageSettingsModal
+        isOpen={showPageSettingsModal}
+        onClose={() => setShowPageSettingsModal(false)}
+      />
     </div>
   )
 }

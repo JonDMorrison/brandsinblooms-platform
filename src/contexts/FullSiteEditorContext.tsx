@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
-import { PageContent } from '@/src/lib/content/schema'
+import { PageContent, LayoutType } from '@/src/lib/content/schema'
 import { usePathname } from 'next/navigation'
 import { toast } from 'sonner'
 
@@ -58,6 +58,13 @@ export interface FullSiteEditorState {
   isPublished: boolean
   hasUnsavedChanges: boolean
 
+  // Page metadata
+  pageTitle: string
+  pageSlug: string
+  layout: LayoutType
+  siteUrl: string
+  siteId: string
+
   // Section management
   activeSection: string | null
   sectionsChanged: boolean
@@ -88,6 +95,11 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   updateSectionSettings: (sectionKey: string, settings: Record<string, unknown>) => void
   markAsChanged: () => void
 
+  // Page metadata management
+  updatePageTitle: (title: string) => void
+  updatePageSlug: (slug: string) => void
+  updatePagePublished: (published: boolean) => void
+
   // Section management
   setActiveSection: (sectionKey: string | null) => void
   hideSection: (sectionKey: string) => void
@@ -112,6 +124,12 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
 
 export const FullSiteEditorContext = createContext<FullSiteEditorContextValue | undefined>(undefined)
 
+export interface PageMetadata {
+  title: string
+  slug: string
+  isPublished: boolean
+}
+
 interface FullSiteEditorProviderProps {
   children: ReactNode
   isEditMode?: boolean
@@ -119,7 +137,12 @@ interface FullSiteEditorProviderProps {
   initialPageContent?: PageContent | null
   initialPageId?: string | null
   initialIsPublished?: boolean
-  onSave?: (content: PageContent) => Promise<void>
+  initialPageTitle?: string
+  initialPageSlug?: string
+  initialLayout?: LayoutType
+  initialSiteUrl?: string
+  initialSiteId?: string
+  onSave?: (content: PageContent, metadata: PageMetadata) => Promise<void>
 }
 
 const defaultPermissions: EditPermissions = {
@@ -136,6 +159,11 @@ export function FullSiteEditorProvider({
   initialPageContent = null,
   initialPageId = null,
   initialIsPublished = true,
+  initialPageTitle = '',
+  initialPageSlug = '',
+  initialLayout = 'landing',
+  initialSiteUrl = '',
+  initialSiteId = '',
   onSave
 }: FullSiteEditorProviderProps) {
   const pathname = usePathname()
@@ -151,6 +179,11 @@ export function FullSiteEditorProvider({
     pageContent: initialPageContent,
     isPublished: initialIsPublished,
     hasUnsavedChanges: false,
+    pageTitle: initialPageTitle,
+    pageSlug: initialPageSlug,
+    layout: initialLayout,
+    siteUrl: initialSiteUrl,
+    siteId: initialSiteId,
     activeSection: null,
     sectionsChanged: false,
     permissions: initialPermissions,
@@ -336,6 +369,31 @@ export function FullSiteEditorProvider({
 
   const markAsChanged = useCallback(() => {
     setState(prev => ({ ...prev, hasUnsavedChanges: true }))
+  }, [])
+
+  // Page metadata management
+  const updatePageTitle = useCallback((title: string) => {
+    setState(prev => ({
+      ...prev,
+      pageTitle: title,
+      hasUnsavedChanges: true
+    }))
+  }, [])
+
+  const updatePageSlug = useCallback((slug: string) => {
+    setState(prev => ({
+      ...prev,
+      pageSlug: slug,
+      hasUnsavedChanges: true
+    }))
+  }, [])
+
+  const updatePagePublished = useCallback((published: boolean) => {
+    setState(prev => ({
+      ...prev,
+      isPublished: published,
+      hasUnsavedChanges: true
+    }))
   }, [])
 
   // Category management
@@ -596,7 +654,14 @@ export function FullSiteEditorProvider({
     setState(prev => ({ ...prev, isSaving: true }))
 
     try {
-      await onSave(state.pageContent)
+      // Prepare metadata to save
+      const metadata: PageMetadata = {
+        title: state.pageTitle,
+        slug: state.pageSlug,
+        isPublished: state.isPublished
+      }
+
+      await onSave(state.pageContent, metadata)
       setState(prev => ({
         ...prev,
         hasUnsavedChanges: false,
@@ -610,7 +675,7 @@ export function FullSiteEditorProvider({
       console.error('Error saving page:', error)
       toast.error('Failed to save changes')
     }
-  }, [state.pageContent, onSave])
+  }, [state.pageContent, state.pageTitle, state.pageSlug, state.isPublished, onSave])
 
   const discardChanges = useCallback(() => {
     if (initialPageContent) {
@@ -683,6 +748,9 @@ export function FullSiteEditorProvider({
     deleteCategoryContent,
     updateSectionSettings,
     markAsChanged,
+    updatePageTitle,
+    updatePageSlug,
+    updatePagePublished,
     setActiveSection,
     hideSection,
     deleteSection,
