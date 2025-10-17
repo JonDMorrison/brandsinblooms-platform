@@ -336,13 +336,21 @@ function FeaturedCard({ item, itemIndex, sectionKey, isPreview, onContentUpdate,
 /**
  * Get responsive grid classes for featured items
  * Adapts to container width using container queries in preview mode
+ *
+ * Container query breakpoints differ from media queries:
+ * - @md (448px) vs md: (768px)
+ * - @lg (512px) vs lg: (1024px)
+ * - @5xl (1024px) matches lg: (1024px) for desktop layouts
  */
 function getFeaturedGridClasses(itemCount: number, isPreviewMode: boolean = false): string {
-  const mediaPrefix = isPreviewMode ? '@' : ''
+  // Container queries use @5xl (1024px) to match lg: media query (1024px)
+  // See responsive-classes.ts line 120-121 for container query breakpoint mapping
+  const desktopBreakpoint = isPreviewMode ? '@5xl' : 'lg'
+  const tabletBreakpoint = isPreviewMode ? '@md' : 'md'
 
   if (itemCount === 1) return 'grid-cols-1'
-  if (itemCount === 2) return `grid-cols-1 ${mediaPrefix}md:grid-cols-2`
-  if (itemCount === 3) return `grid-cols-1 ${mediaPrefix}md:grid-cols-2 ${mediaPrefix}5xl:grid-cols-3`
+  if (itemCount === 2) return `grid-cols-1 ${tabletBreakpoint}:grid-cols-2`
+  if (itemCount === 3) return `grid-cols-1 ${tabletBreakpoint}:grid-cols-2 ${desktopBreakpoint}:grid-cols-3`
   // 4 items: 1 column mobile, 2 columns tablet, 4 columns desktop
-  return `grid-cols-1 ${mediaPrefix}md:grid-cols-2 ${mediaPrefix}5xl:grid-cols-4`
+  return `grid-cols-1 ${tabletBreakpoint}:grid-cols-2 ${desktopBreakpoint}:grid-cols-4`
 }
