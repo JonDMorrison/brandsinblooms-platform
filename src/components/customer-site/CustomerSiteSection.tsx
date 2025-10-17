@@ -16,7 +16,7 @@ import { MissionStatementSkeleton } from '@/src/components/ui/plant-shop-loading
 import { textToHtml } from '@/src/lib/utils/html-text'
 import { ContentRenderer } from '@/src/components/preview/ContentRenderer'
 import { getSectionBackgroundStyle, getBackgroundImageOpacity } from '@/src/components/content-sections/shared/background-utils'
-import { getFeatureGridClasses } from '@/src/components/content-sections/shared/grid-utils'
+import { getFeatureGridClasses, getCategoriesGridClasses } from '@/src/components/content-sections/shared/grid-utils'
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
 import { ImageIcon } from 'lucide-react'
 import { SmartLink } from '@/src/components/ui/smart-link'
@@ -255,7 +255,7 @@ export function CustomerSiteSection({
                     }}
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className={`grid ${getCategoriesGridClasses(((sectionData.categories as any[]) || []).length, false)} gap-8`}>
                   {((sectionData.categories as any[]) || []).map((category: any) => {
                     const hasImage = category.image && category.image.trim() !== ''
 

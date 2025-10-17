@@ -204,10 +204,7 @@ export async function HomePage() {
       backgroundSetting: featuredBackgroundSetting
     },
     categories: {
-      data: databaseCategoriesData ? {
-        ...databaseCategoriesData,
-        categories: hardcodedCategories
-      } : null,
+      data: databaseCategoriesData,
       status: categoriesStatus,
       backgroundSetting: categoriesBackgroundSetting
     },

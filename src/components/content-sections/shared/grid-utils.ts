@@ -36,6 +36,26 @@ export const getProductGridClasses = (productCount: number, isPreviewMode: boole
 }
 
 /**
+ * Get responsive grid classes for category grids
+ * Adapts to container width using container queries in preview mode
+ *
+ * Container query breakpoints differ from media queries:
+ * - @md (448px) vs md: (768px)
+ * - @lg (512px) vs lg: (1024px)
+ * - @5xl (1024px) matches lg: (1024px) for desktop layouts
+ */
+export const getCategoriesGridClasses = (categoryCount: number, isPreviewMode: boolean = false): string => {
+  const desktopBreakpoint = isPreviewMode ? '@5xl' : 'lg'
+  const tabletBreakpoint = isPreviewMode ? '@md' : 'md'
+
+  if (categoryCount === 1) return 'grid-cols-1'
+  if (categoryCount === 2) return `grid-cols-1 ${tabletBreakpoint}:grid-cols-2`
+  if (categoryCount === 3) return `grid-cols-1 ${tabletBreakpoint}:grid-cols-2 ${desktopBreakpoint}:grid-cols-3`
+  // 4 categories: 1 column mobile, 2 columns tablet, 4 columns desktop
+  return `grid-cols-1 ${tabletBreakpoint}:grid-cols-2 ${desktopBreakpoint}:grid-cols-4`
+}
+
+/**
  * Legacy versions for backward compatibility (deprecated)
  * @deprecated Use the version with isPreviewMode parameter instead
  */

@@ -8,6 +8,7 @@ import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared'
+import { getCategoriesGridClasses } from '@/src/components/content-sections/shared/grid-utils'
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
 import { ImageIcon } from 'lucide-react'
 import { SmartLink } from '@/src/components/ui/smart-link'
@@ -310,17 +311,3 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
   )
 }
 
-/**
- * Get responsive grid classes for categories
- * Adapts to container width using container queries in preview mode
- */
-function getCategoriesGridClasses(categoryCount: number, isPreviewMode: boolean = false): string {
-  const mediaPrefix = isPreviewMode ? '@' : ''
-
-  if (categoryCount === 1) return 'grid-cols-1'
-  if (categoryCount === 2) return `grid-cols-1 ${mediaPrefix}md:grid-cols-2`
-  if (categoryCount === 3) return `grid-cols-1 ${mediaPrefix}md:grid-cols-2 ${mediaPrefix}5xl:grid-cols-3`
-  // 4 categories: 1 column mobile, 2 columns tablet, 4 columns desktop
-  // Use @5xl (1024px) to match lg: media query behavior
-  return `grid-cols-1 ${mediaPrefix}md:grid-cols-2 ${mediaPrefix}5xl:grid-cols-4`
-}
