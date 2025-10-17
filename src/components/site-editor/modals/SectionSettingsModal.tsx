@@ -289,8 +289,8 @@ export function SectionSettingsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent className="sm:max-w-[500px] p-0">
-        <div className="p-4 sm:p-6 border-b">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0">
+        <div className="p-4 sm:p-6 border-b flex-shrink-0">
           <DialogTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
             <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             Section Settings
@@ -300,7 +300,7 @@ export function SectionSettingsModal({
           </p>
         </div>
 
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
           {/* Background Color Selection */}
           <div className="space-y-3">
             <Label className="text-xs sm:text-sm font-medium">Background Color</Label>
@@ -457,7 +457,7 @@ export function SectionSettingsModal({
           </div>
         </div>
 
-        <DialogFooter className="p-4 sm:p-6 border-t bg-gray-50 flex justify-end gap-2 sm:gap-3">
+        <DialogFooter className="p-4 sm:p-6 border-t bg-gray-50 flex justify-end gap-2 sm:gap-3 flex-shrink-0">
           <Button
             variant="outline"
             onClick={handleCancel}

@@ -5,7 +5,7 @@
  * Floating controls that appear on hover for section management
  */
 
-import React, { useState } from 'react'
+import React from 'react'
 import { useFullSiteEditor } from '@/src/contexts/FullSiteEditorContext'
 import { ContentSection } from '@/src/lib/content/schema'
 import {
@@ -19,32 +19,25 @@ import {
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { cn } from '@/src/lib/utils'
-import { SectionSettingsModal } from '@/src/components/site-editor/modals/SectionSettingsModal'
 
 interface SectionControlsProps {
   sectionKey: string
   section: ContentSection
+  onSettingsClick: () => void
 }
 
-export function SectionControls({ sectionKey, section }: SectionControlsProps) {
+export function SectionControls({ sectionKey, section, onSettingsClick }: SectionControlsProps) {
   const {
     hideSection,
     deleteSection,
     reorderSection,
     duplicateSection,
-    updateSectionSettings
   } = useFullSiteEditor()
-
-  const [showSettingsModal, setShowSettingsModal] = useState(false)
 
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this section?')) {
       deleteSection(sectionKey)
     }
-  }
-
-  const handleSettingsSave = (settings: Record<string, unknown>) => {
-    updateSectionSettings(sectionKey, settings)
   }
 
   return (
@@ -111,7 +104,7 @@ export function SectionControls({ sectionKey, section }: SectionControlsProps) {
           size="sm"
           variant="ghost"
           className="h-8 w-8 p-0"
-          onClick={() => setShowSettingsModal(true)}
+          onClick={onSettingsClick}
           title="Section settings"
         >
           <Settings className="w-4 h-4" />
@@ -128,15 +121,6 @@ export function SectionControls({ sectionKey, section }: SectionControlsProps) {
           <Trash2 className="w-4 h-4" />
         </Button>
       </div>
-
-      {/* Settings Modal */}
-      <SectionSettingsModal
-        isOpen={showSettingsModal}
-        onClose={() => setShowSettingsModal(false)}
-        section={section}
-        sectionKey={sectionKey}
-        onSave={handleSettingsSave}
-      />
     </>
   )
 }
