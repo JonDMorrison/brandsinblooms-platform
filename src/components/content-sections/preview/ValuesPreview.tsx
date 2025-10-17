@@ -11,7 +11,7 @@ import { getSectionBackgroundStyle } from '@/src/components/content-sections/sha
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
 import { isPreviewMode, createResponsiveClassHelper } from '@/src/lib/utils/responsive-classes'
 import { IconSelector } from '@/src/components/ui/IconSelector'
-import { Dialog, DialogContent, DialogOverlay, DialogTitle } from '@/src/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/src/components/ui/dialog'
 
 interface ValuesPreviewProps {
   section: ContentSection
@@ -209,16 +209,15 @@ export function ValuesPreview({
 
       {/* Icon Selection Modal */}
       <Dialog open={editingIconIndex !== null} onOpenChange={handleCloseModal}>
-        <DialogOverlay className="fixed inset-0 bg-black bg-opacity-50 z-50" />
-        <DialogContent className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[500px] max-w-[90vw] bg-white rounded-lg shadow-xl p-0">
+        <DialogContent className="sm:max-w-[500px] p-0">
           <DialogTitle className="sr-only">Select Icon</DialogTitle>
-          <div className="p-6 border-b">
-            <h3 className="text-lg font-semibold">Choose an Icon</h3>
-            <p className="text-sm text-gray-600 mt-1">
+          <div className="p-4 sm:p-6 border-b">
+            <h3 className="text-base sm:text-lg font-semibold">Choose an Icon</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">
               {editingIconIndex !== null ? `Editing icon for "${items[editingIconIndex]?.title || 'value'}"` : ''}
             </p>
           </div>
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <IconSelector
               value={editingIconIndex !== null ? items[editingIconIndex]?.icon || '' : ''}
               onChange={handleIconSelect}
