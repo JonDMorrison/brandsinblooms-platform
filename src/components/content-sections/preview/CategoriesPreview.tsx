@@ -167,6 +167,9 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
   const editorContext = useFullSiteEditorOptional()
   const { currentSite } = useSiteContext()
 
+  // Determine if we're in Edit mode (checking editorMode directly for Full Site Editor)
+  const isEditMode = isPreview || (editorContext?.editorMode === 'edit')
+
   const handleCategorySave = (updatedCategory: Record<string, unknown>) => {
     // Try Content Editor handler first (from VisualEditor)
     if (onCategoryUpdate) {
@@ -190,12 +193,13 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
   }
 
   const handleImageClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    // Open modal in both Content Editor (onCategoryUpdate) and Full Site Editor (editorContext)
-    if (isPreview && (onCategoryUpdate || editorContext)) {
+    // Only prevent navigation and open modal in Edit mode
+    if (isEditMode) {
+      e.preventDefault()
+      e.stopPropagation()
       setEditModalOpen(true)
     }
+    // In Navigate mode, let the SmartLink handle the click
   }
 
   const CardContent = (
@@ -233,7 +237,7 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
           }}
         >
           <div className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
-            {isPreview && (onCategoryUpdate || editorContext) ? (
+            {isEditMode ? (
               <InlineTextEditor
                 content={category.name}
                 onUpdate={(content) => {
@@ -270,8 +274,8 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
     </div>
   )
 
-  // In any editor mode (Content Editor OR Full Site Editor), show editable card with modal
-  if (isPreview && (onCategoryUpdate || editorContext)) {
+  // In Edit mode (Content Editor OR Full Site Editor Edit mode), show editable card with modal
+  if (isEditMode) {
     return (
       <>
         <div className="block h-full">
@@ -289,7 +293,7 @@ function CategoryCard({ category, categoryIndex, sectionKey, isPreview, onConten
     )
   }
 
-  // Customer site - clickable link
+  // Navigate mode or customer site - clickable link
   if (category.link) {
     return (
       <SmartLink href={category.link} className="block h-full">

@@ -187,116 +187,166 @@ export function HeroPreview({
           {/* CTA Buttons */}
           <div className={`${responsive.flex.heroLayout} gap-4 justify-center mb-12`}>
             {(data.ctaText || onContentUpdate) && (
-              <SmartLink
-                href={data.ctaLink || '#'}
-                className="group relative inline-block px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
-                style={{
-                  backgroundColor: 'var(--theme-primary)',
-                  color: 'rgb(255, 255, 255)',
-                  fontFamily: 'var(--theme-font-body)'
-                }}
-                onClick={(e) => {
-                  // Check if inline editor is currently active/editing
-                  const isEditing = e.target.closest('[data-editing="true"]') ||
-                                   e.target.closest('.ProseMirror') ||
-                                   e.target.closest('.inline-editor-wrapper')
-                  if (isEditing) {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    // Let the editor handle the click
-                  }
-                }}
-              >
-                <InlineTextEditor
-                  content={data.ctaText || ''}
-                  onUpdate={(content) => {
-                    if (onContentUpdate) {
-                      onContentUpdate(sectionKey, 'data.ctaText', content)
-                    }
-                  }}
-                  isEnabled={Boolean(onContentUpdate)}
-                  fieldPath="data.ctaText"
-                  format="plain"
-                  singleLine={true}
-                  className="font-semibold [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.inline-editor-wrapper]:min-h-0"
-                  style={{
-                    color: 'inherit',
-                    fontFamily: 'inherit'
-                  }}
-                  placeholder="Add button text..."
-                  showToolbar={false}
-                  debounceDelay={0}
-                />
-                {/* Link Settings Icon */}
-                {isPreview && onContentUpdate && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
-                    onClick={(e) => handleOpenLinkModal('cta', e)}
-                    title="Edit link URL"
-                    data-editor-control="true"
+              <>
+                {isPreview ? (
+                  // EDIT MODE: Button-styled div, no navigation
+                  <div
+                    className="group relative inline-block px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
+                    style={{
+                      backgroundColor: 'var(--theme-primary)',
+                      color: 'rgb(255, 255, 255)',
+                      fontFamily: 'var(--theme-font-body)'
+                    }}
                   >
-                    <Settings className="w-3 h-3 text-gray-700" />
-                  </Button>
+                    <InlineTextEditor
+                      content={data.ctaText || ''}
+                      onUpdate={(content) => {
+                        if (onContentUpdate) {
+                          onContentUpdate(sectionKey, 'data.ctaText', content)
+                        }
+                      }}
+                      isEnabled={Boolean(onContentUpdate)}
+                      fieldPath="data.ctaText"
+                      format="plain"
+                      singleLine={true}
+                      className="font-semibold [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.inline-editor-wrapper]:min-h-0"
+                      style={{
+                        color: 'inherit',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="Add button text..."
+                      showToolbar={false}
+                      debounceDelay={0}
+                    />
+                    {/* Link Settings Icon */}
+                    {onContentUpdate && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
+                        onClick={(e) => handleOpenLinkModal('cta', e)}
+                        title="Edit link URL"
+                        data-editor-control="true"
+                      >
+                        <Settings className="w-3 h-3 text-gray-700" />
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  // NAVIGATE MODE: SmartLink for navigation
+                  <SmartLink
+                    href={data.ctaLink || '#'}
+                    className="group relative inline-block px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
+                    style={{
+                      backgroundColor: 'var(--theme-primary)',
+                      color: 'rgb(255, 255, 255)',
+                      fontFamily: 'var(--theme-font-body)'
+                    }}
+                  >
+                    <InlineTextEditor
+                      content={data.ctaText || ''}
+                      onUpdate={(content) => {
+                        if (onContentUpdate) {
+                          onContentUpdate(sectionKey, 'data.ctaText', content)
+                        }
+                      }}
+                      isEnabled={Boolean(onContentUpdate)}
+                      fieldPath="data.ctaText"
+                      format="plain"
+                      singleLine={true}
+                      className="font-semibold [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.inline-editor-wrapper]:min-h-0"
+                      style={{
+                        color: 'inherit',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="Add button text..."
+                      showToolbar={false}
+                      debounceDelay={0}
+                    />
+                  </SmartLink>
                 )}
-              </SmartLink>
+              </>
             )}
             {(data.secondaryCtaText || onContentUpdate) && (
-              <SmartLink
-                href={data.secondaryCtaLink || '#'}
-                className="group relative inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
-                style={{
-                  borderColor: 'var(--theme-secondary)',
-                  color: 'var(--theme-secondary)',
-                  fontFamily: 'var(--theme-font-body)'
-                }}
-                onClick={(e) => {
-                  // Check if inline editor is currently active/editing
-                  const isEditing = e.target.closest('[data-editing="true"]') ||
-                                   e.target.closest('.ProseMirror') ||
-                                   e.target.closest('.inline-editor-wrapper')
-                  if (isEditing) {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    // Let the editor handle the click
-                  }
-                }}
-              >
-                <InlineTextEditor
-                  content={data.secondaryCtaText || ''}
-                  onUpdate={(content) => {
-                    if (onContentUpdate) {
-                      onContentUpdate(sectionKey, 'data.secondaryCtaText', content)
-                    }
-                  }}
-                  isEnabled={Boolean(onContentUpdate)}
-                  fieldPath="data.secondaryCtaText"
-                  format="plain"
-                  singleLine={true}
-                  className="font-semibold [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.inline-editor-wrapper]:min-h-0"
-                  style={{
-                    color: 'inherit',
-                    fontFamily: 'inherit'
-                  }}
-                  placeholder="Add secondary button text..."
-                  showToolbar={false}
-                  debounceDelay={0}
-                />
-                {/* Link Settings Icon */}
-                {isPreview && onContentUpdate && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
-                    onClick={(e) => handleOpenLinkModal('secondaryCta', e)}
-                    title="Edit link URL"
-                    data-editor-control="true"
+              <>
+                {isPreview ? (
+                  // EDIT MODE: Button-styled div, no navigation
+                  <div
+                    className="group relative inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
+                    style={{
+                      borderColor: 'var(--theme-secondary)',
+                      color: 'var(--theme-secondary)',
+                      fontFamily: 'var(--theme-font-body)'
+                    }}
                   >
-                    <Settings className="w-3 h-3 text-gray-700" />
-                  </Button>
+                    <InlineTextEditor
+                      content={data.secondaryCtaText || ''}
+                      onUpdate={(content) => {
+                        if (onContentUpdate) {
+                          onContentUpdate(sectionKey, 'data.secondaryCtaText', content)
+                        }
+                      }}
+                      isEnabled={Boolean(onContentUpdate)}
+                      fieldPath="data.secondaryCtaText"
+                      format="plain"
+                      singleLine={true}
+                      className="font-semibold [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.inline-editor-wrapper]:min-h-0"
+                      style={{
+                        color: 'inherit',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="Add secondary button text..."
+                      showToolbar={false}
+                      debounceDelay={0}
+                    />
+                    {/* Link Settings Icon */}
+                    {onContentUpdate && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
+                        onClick={(e) => handleOpenLinkModal('secondaryCta', e)}
+                        title="Edit link URL"
+                        data-editor-control="true"
+                      >
+                        <Settings className="w-3 h-3 text-gray-700" />
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  // NAVIGATE MODE: SmartLink for navigation
+                  <SmartLink
+                    href={data.secondaryCtaLink || '#'}
+                    className="group relative inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
+                    style={{
+                      borderColor: 'var(--theme-secondary)',
+                      color: 'var(--theme-secondary)',
+                      fontFamily: 'var(--theme-font-body)'
+                    }}
+                  >
+                    <InlineTextEditor
+                      content={data.secondaryCtaText || ''}
+                      onUpdate={(content) => {
+                        if (onContentUpdate) {
+                          onContentUpdate(sectionKey, 'data.secondaryCtaText', content)
+                        }
+                      }}
+                      isEnabled={Boolean(onContentUpdate)}
+                      fieldPath="data.secondaryCtaText"
+                      format="plain"
+                      singleLine={true}
+                      className="font-semibold [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.inline-editor-wrapper]:min-h-0"
+                      style={{
+                        color: 'inherit',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="Add secondary button text..."
+                      showToolbar={false}
+                      debounceDelay={0}
+                    />
+                  </SmartLink>
                 )}
-              </SmartLink>
+              </>
             )}
           </div>
 
