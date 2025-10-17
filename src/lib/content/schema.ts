@@ -177,6 +177,53 @@ export interface PlantCategory {
 }
 
 /**
+ * Featured item for featured sections
+ */
+export interface FeaturedItem {
+  id: string
+  title: string
+  tag: string
+  image: string
+  link: string
+  s3Key?: string
+}
+
+/**
+ * Default featured items for new featured sections
+ * Used as fallback when no featured items exist in database
+ */
+export const DEFAULT_FEATURED_ITEMS: FeaturedItem[] = [
+  {
+    id: 'featured-1',
+    title: 'Golden Pothos',
+    tag: 'houseplants',
+    image: '/images/golden-pothos.jpg',
+    link: '/plants/golden-pothos'
+  },
+  {
+    id: 'featured-2',
+    title: 'Snake Plant',
+    tag: 'easy care',
+    image: '/images/snake-plant.jpg',
+    link: '/plants/snake-plant'
+  },
+  {
+    id: 'featured-3',
+    title: 'Monstera Deliciosa',
+    tag: 'trending',
+    image: '/images/fiddle-leaf-fig.jpg',
+    link: '/plants/monstera'
+  },
+  {
+    id: 'featured-4',
+    title: 'Japanese Maple',
+    tag: 'outdoor',
+    image: '/images/japanese-maple.jpg',
+    link: '/plants/japanese-maple'
+  }
+]
+
+/**
  * Simplified SEO metadata for pages
  */
 export interface SEOSettings {
@@ -236,7 +283,8 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           headline: 'Featured Plants This Season',
           subheadline: 'Handpicked selections from our master horticulturists',
           viewAllText: 'View All Plants',
-          viewAllLink: '/plants'
+          viewAllLink: '/plants',
+          featuredItems: DEFAULT_FEATURED_ITEMS
         },
         visible: false,
         order: 2

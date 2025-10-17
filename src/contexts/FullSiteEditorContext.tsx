@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
-import { PageContent, LayoutType } from '@/src/lib/content/schema'
+import { PageContent, LayoutType, DEFAULT_FEATURED_ITEMS } from '@/src/lib/content/schema'
 import { usePathname } from 'next/navigation'
 import { toast } from 'sonner'
 
@@ -92,6 +92,8 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   updateFeatureContent: (sectionKey: string, featureIndex: number, field: string, value: string) => void
   updateCategoryContent: (sectionKey: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => void
   deleteCategoryContent: (sectionKey: string, categoryIndex: number) => void
+  updateFeaturedContent: (sectionKey: string, itemIndex: number, updatedItem: Record<string, unknown>) => void
+  deleteFeaturedContent: (sectionKey: string, itemIndex: number) => void
   updateSectionSettings: (sectionKey: string, settings: Record<string, unknown>, options?: { silent?: boolean }) => void
   markAsChanged: () => void
 
@@ -490,6 +492,104 @@ export function FullSiteEditorProvider({
     })
   }, [])
 
+  // Featured items management
+  const updateFeaturedContent = useCallback((sectionKey: string, itemIndex: number, updatedItem: Record<string, unknown>) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Initialize featuredItems array if it doesn't exist or is empty
+      // This "materializes" the default items into the database on first edit
+      if (!Array.isArray(updatedData.featuredItems) || updatedData.featuredItems.length === 0) {
+        console.info(`[FullSiteEditor] Initializing featuredItems with defaults for section "${sectionKey}"`)
+        updatedData.featuredItems = JSON.parse(JSON.stringify(DEFAULT_FEATURED_ITEMS))
+      }
+
+      // Validate itemIndex bounds
+      if (itemIndex < 0 || itemIndex >= updatedData.featuredItems.length) {
+        console.warn(`[FullSiteEditor] Cannot update featured item: invalid itemIndex ${itemIndex} (array length: ${updatedData.featuredItems.length})`)
+        return prev
+      }
+
+      // Update the specific featured item
+      updatedData.featuredItems[itemIndex] = {
+        ...updatedData.featuredItems[itemIndex],
+        ...updatedItem
+      }
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  const deleteFeaturedContent = useCallback((sectionKey: string, itemIndex: number) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Initialize featuredItems array if it doesn't exist or is empty
+      // This "materializes" the default items into the database before deletion
+      if (!Array.isArray(updatedData.featuredItems) || updatedData.featuredItems.length === 0) {
+        console.info(`[FullSiteEditor] Initializing featuredItems with defaults for section "${sectionKey}" before deletion`)
+        updatedData.featuredItems = JSON.parse(JSON.stringify(DEFAULT_FEATURED_ITEMS))
+      }
+
+      // Validate itemIndex bounds
+      if (itemIndex < 0 || itemIndex >= updatedData.featuredItems.length) {
+        console.warn(`[FullSiteEditor] Cannot delete featured item: invalid itemIndex ${itemIndex} (array length: ${updatedData.featuredItems.length})`)
+        return prev
+      }
+
+      // Remove item at index
+      updatedData.featuredItems.splice(itemIndex, 1)
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      toast.success('Featured item deleted')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
   // Section settings management
   const updateSectionSettings = useCallback((
     sectionKey: string,
@@ -764,6 +864,8 @@ export function FullSiteEditorProvider({
     updateFeatureContent,
     updateCategoryContent,
     deleteCategoryContent,
+    updateFeaturedContent,
+    deleteFeaturedContent,
     updateSectionSettings,
     markAsChanged,
     updatePageTitle,

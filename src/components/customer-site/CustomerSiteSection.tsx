@@ -173,74 +173,49 @@ export function CustomerSiteSection({
               <div className="brand-container">
                 <div className="text-center mb-12">
                   <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                    {String(sectionData.headline || 'Featured Plants')}
+                    {String(sectionData.headline || 'Featured Plants This Season')}
                   </h2>
-                  <div 
+                  <div
                     className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
                     style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
                     dangerouslySetInnerHTML={{
-                      __html: textToHtml(String(sectionData.description || 'Discover our carefully curated selection of premium plants'))
+                      __html: textToHtml(String(sectionData.subheadline || 'Handpicked selections from our master horticulturists'))
                     }}
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                  {((sectionData.featuredPlants || []) as any[]).slice(0, 4).map((plant) => (
-                    <div key={plant.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                      <div className="relative">
-                        <img
-                          src={plant.image}
-                          alt={plant.name}
-                          className="w-full h-48 object-cover"
-                          loading="eager"
-                        />
-                        <div className="absolute top-3 right-3">
-                          <span
-                            className="px-2 py-1 rounded-full text-xs font-medium"
-                            style={{ backgroundColor: 'var(--theme-accent)', color: '#fff' }}
-                          >
-                            {plant.category || 'Houseplants'}
-                          </span>
+                  {((sectionData.featuredItems || []) as any[]).slice(0, 4).map((item) => (
+                    <SmartLink
+                      key={item.id}
+                      href={item.link || '#'}
+                      className="block h-full"
+                    >
+                      <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full">
+                        <div className="relative">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-full h-48 object-cover"
+                            loading="lazy"
+                          />
+                          {item.tag && (
+                            <div className="absolute top-3 right-3">
+                              <span
+                                className="px-2 py-1 rounded-full text-xs font-medium"
+                                style={{ backgroundColor: 'var(--theme-accent)', color: 'rgb(255, 255, 255)' }}
+                              >
+                                {item.tag}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        {plant.originalPrice && plant.price < plant.originalPrice && (
-                          <div className="absolute top-3 left-3">
-                            <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                              SALE
-                            </span>
-                          </div>
-                        )}
+                        <div className="p-4">
+                          <h3 className="text-lg font-semibold mb-2" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+                            {item.title}
+                          </h3>
+                        </div>
                       </div>
-                      <div className="p-4">
-                        <h3 className="text-lg font-semibold mb-2" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                          {plant.name}
-                        </h3>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="text-right">
-                            <span className="text-lg font-bold" style={{color: 'var(--theme-primary)'}}>${plant.price}</span>
-                            {plant.originalPrice && plant.price < plant.originalPrice && (
-                              <span className="text-sm text-gray-500 line-through ml-2">${plant.originalPrice}</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="mb-3">
-                          <span className={`text-sm font-medium ${
-                            plant.inStock ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {plant.inStock ? '✓ In Stock' : '✗ Out of Stock'}
-                          </span>
-                        </div>
-                        <button
-                          className={`w-full py-2 px-4 rounded-lg font-medium text-sm transition-colors ${
-                            plant.inStock
-                              ? 'text-white hover:opacity-90 cursor-pointer'
-                              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                          }`}
-                          style={plant.inStock ? {backgroundColor: 'var(--theme-primary)'} : {}}
-                          disabled={!plant.inStock}
-                        >
-                          {plant.inStock ? 'Add to Cart' : 'Out of Stock'}
-                        </button>
-                      </div>
-                    </div>
+                    </SmartLink>
                   ))}
                 </div>
                 <div className="text-center">

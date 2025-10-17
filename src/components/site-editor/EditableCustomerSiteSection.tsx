@@ -46,6 +46,8 @@ export function EditableCustomerSiteSection({
     setActiveSection,
     updateFieldContent,
     updateFeatureContent,
+    updateFeaturedContent,
+    deleteFeaturedContent,
     updateSectionSettings,
     pageContent
   } = context
@@ -130,6 +132,12 @@ export function EditableCustomerSiteSection({
           }}
           onFeatureUpdate={(key, featureIndex, field, value) => {
             updateFeatureContent(key, featureIndex, field, value)
+          }}
+          onFeaturedUpdate={(key, itemIndex, updatedItem) => {
+            updateFeaturedContent(key, itemIndex, updatedItem)
+          }}
+          onFeaturedDelete={(key, itemIndex) => {
+            deleteFeaturedContent(key, itemIndex)
           }}
         />
       </div>
