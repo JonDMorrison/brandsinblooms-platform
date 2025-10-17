@@ -1,22 +1,23 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { 
-  getSiteTheme, 
-  updateSiteTheme, 
+import {
+  getSiteTheme,
+  updateSiteTheme,
   ThemeSettings,
-  getDefaultTheme 
+  getDefaultTheme
 } from '@/lib/queries/domains/theme';
 import { handleError } from '@/lib/types/error-handling';
 
 export function useDesignSettings() {
   const supabase = useSupabase();
   const siteId = useSiteId();
-  
-  return useSupabaseQuery(
+
+  const result = useSupabaseQuery(
     async (signal: AbortSignal) => {
       if (!siteId) {
         return getDefaultTheme();
@@ -36,6 +37,25 @@ export function useDesignSettings() {
     },
     [siteId] // Re-fetch when siteId changes
   );
+
+  // Listen for design settings updates from modals
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleDesignSettingsUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{ siteId: string }>;
+      if (customEvent.detail?.siteId === siteId) {
+        result.refresh(); // Refresh this instance when settings update
+      }
+    };
+
+    window.addEventListener('designSettingsUpdated', handleDesignSettingsUpdate);
+    return () => {
+      window.removeEventListener('designSettingsUpdated', handleDesignSettingsUpdate);
+    };
+  }, [siteId, result.refresh]);
+
+  return result;
 }
 
 export function useUpdateDesignSettings() {

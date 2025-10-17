@@ -72,19 +72,7 @@ export function BrandingSection({
         [key]: val
       }
     })
-    
-    if (key === 'text') {
-      toast.success(`Brand text updated to "${val}"`)
-    } else if (key === 'displayType') {
-      const typeNames = {
-        'text': 'text only',
-        'logo': 'logo only', 
-        'both': 'logo and text'
-      }
-      toast.success(`Branding display changed to ${typeNames[val] || val}`)
-    } else if (key === 'pixelSize') {
-      toast.success(`Logo size updated to ${val}px`)
-    }
+    // Toast notifications removed - let the modal handle success feedback
   }
 
   const handleFileUpload = async (file: File) => {

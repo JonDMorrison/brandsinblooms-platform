@@ -30,7 +30,7 @@ interface HeaderSettingsModalProps {
 
 export function HeaderSettingsModal({ isOpen, onClose }: HeaderSettingsModalProps) {
   const { currentSite } = useSiteContext()
-  const { data: designSettings, loading, refetch } = useDesignSettings()
+  const { data: designSettings, loading, refresh } = useDesignSettings()
   const [saving, setSaving] = useState(false)
 
   // Handle settings change with immediate save
@@ -45,8 +45,17 @@ export function HeaderSettingsModal({ isOpen, onClose }: HeaderSettingsModalProp
       const supabase = createClient()
       await updateSiteTheme(supabase, currentSite.id, updatedSettings)
 
-      // Refetch to get updated settings
-      await refetch()
+      // Clear cache and notify all instances
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(`site-theme-${currentSite.id}`)
+
+        // Dispatch event to notify other instances of useDesignSettings
+        window.dispatchEvent(new CustomEvent('designSettingsUpdated', {
+          detail: { siteId: currentSite.id }
+        }))
+      }
+
+      await refresh()
 
       toast.success('Header settings saved!')
     } catch (error) {
