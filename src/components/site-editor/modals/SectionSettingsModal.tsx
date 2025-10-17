@@ -6,13 +6,17 @@
  * Integrates with existing settings structure from ContentSection schema
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Dialog, DialogContent, DialogTitle, DialogFooter } from '@/src/components/ui/dialog'
 import { Button } from '@/src/components/ui/button'
 import { Label } from '@/src/components/ui/label'
+import { Slider } from '@/src/components/ui/slider'
 import { ContentSection } from '@/src/lib/content/schema'
-import { Settings } from 'lucide-react'
+import { Settings, Upload, X } from 'lucide-react'
 import { getAvailableBackgrounds } from '@/src/lib/content/section-backgrounds'
+import { useSiteContext } from '@/src/contexts/SiteContext'
+import { toast } from 'sonner'
+import { handleError } from '@/lib/types/error-handling'
 
 interface SectionSettingsModalProps {
   isOpen: boolean
@@ -22,7 +26,14 @@ interface SectionSettingsModalProps {
   onSave: (settings: Record<string, unknown>) => void
 }
 
-type BackgroundColor = 'default' | 'alternate' | 'primary' | 'gradient'
+type BackgroundColor = 'default' | 'alternate' | 'primary' | 'gradient' | 'image'
+
+interface BackgroundImageSettings {
+  url: string
+  position: string
+  opacity: number
+  scale: number
+}
 
 export function SectionSettingsModal({
   isOpen,
@@ -31,21 +42,55 @@ export function SectionSettingsModal({
   sectionKey,
   onSave
 }: SectionSettingsModalProps) {
+  const { currentSite } = useSiteContext()
   const [backgroundColor, setBackgroundColor] = useState<BackgroundColor>('default')
+  const [backgroundImage, setBackgroundImage] = useState<BackgroundImageSettings>({
+    url: '',
+    position: 'center',
+    opacity: 100,
+    scale: 100
+  })
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Initialize from section settings when modal opens
   useEffect(() => {
     if (isOpen) {
       const currentBg = (section.settings?.backgroundColor as BackgroundColor) || 'default'
       setBackgroundColor(currentBg)
+
+      // Initialize image settings if they exist
+      if (section.settings?.backgroundImage) {
+        const imgSettings = section.settings.backgroundImage as BackgroundImageSettings
+        setBackgroundImage({
+          url: imgSettings.url || '',
+          position: imgSettings.position || 'center',
+          opacity: imgSettings.opacity ?? 100,
+          scale: imgSettings.scale ?? 100
+        })
+      } else {
+        setBackgroundImage({
+          url: '',
+          position: 'center',
+          opacity: 100,
+          scale: 100
+        })
+      }
     }
   }, [isOpen, section.settings])
 
   const handleSave = () => {
-    const newSettings = {
+    const newSettings: Record<string, unknown> = {
       ...section.settings,
       backgroundColor
     }
+
+    // Only include backgroundImage if using image background and URL exists
+    if (backgroundColor === 'image' && backgroundImage.url) {
+      newSettings.backgroundImage = backgroundImage
+    }
+
     onSave(newSettings)
     onClose()
   }
@@ -54,7 +99,117 @@ export function SectionSettingsModal({
     // Reset to original
     const currentBg = (section.settings?.backgroundColor as BackgroundColor) || 'default'
     setBackgroundColor(currentBg)
+    if (section.settings?.backgroundImage) {
+      const imgSettings = section.settings.backgroundImage as BackgroundImageSettings
+      setBackgroundImage({
+        url: imgSettings.url || '',
+        position: imgSettings.position || 'center',
+        opacity: imgSettings.opacity ?? 100,
+        scale: imgSettings.scale ?? 100
+      })
+    }
     onClose()
+  }
+
+  const handleFileUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB')
+      return
+    }
+
+    if (!currentSite?.id) {
+      toast.error('Site not found')
+      return
+    }
+
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval)
+          return 90
+        }
+        return prev + 10
+      })
+    }, 100)
+
+    try {
+      const response = await fetch('/api/upload/presigned', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          fileSize: file.size,
+          siteId: currentSite.id,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.text()
+        console.error('Failed to get upload URL:', error)
+        throw new Error('Failed to get upload URL')
+      }
+
+      const result = await response.json()
+
+      if (!result.success || !result.data) {
+        throw new Error('Invalid presigned URL response')
+      }
+
+      const { uploadUrl, publicUrl } = result.data
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+          'Content-Length': file.size.toString(),
+        },
+        body: file,
+      })
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text()
+        console.error('Upload failed:', uploadResponse.status, errorText)
+        throw new Error(`Failed to upload file: ${uploadResponse.status}`)
+      }
+
+      setUploadProgress(100)
+      setBackgroundImage(prev => ({ ...prev, url: publicUrl }))
+      toast.success('Background image uploaded successfully')
+    } catch (error) {
+      handleError(error)
+      toast.error('Failed to upload background image')
+    } finally {
+      setIsUploading(false)
+      clearInterval(progressInterval)
+      setUploadProgress(0)
+    }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      handleFileUpload(files[0])
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setBackgroundImage({
+      url: '',
+      position: 'center',
+      opacity: 100,
+      scale: 100
+    })
   }
 
   // Get section name for display
@@ -99,7 +254,31 @@ export function SectionSettingsModal({
       previewStyle: {
         background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))'
       }
+    },
+    {
+      value: 'image',
+      label: 'Image',
+      description: 'Custom image',
+      previewStyle: {
+        backgroundColor: '#f3f4f6',
+        backgroundImage: backgroundImage.url ? `url(${backgroundImage.url})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }
     }
+  ]
+
+  // Position options for image background
+  const positionOptions = [
+    { value: 'center', label: 'Center' },
+    { value: 'top', label: 'Top' },
+    { value: 'bottom', label: 'Bottom' },
+    { value: 'left', label: 'Left' },
+    { value: 'right', label: 'Right' },
+    { value: 'top-left', label: 'Top Left' },
+    { value: 'top-right', label: 'Top Right' },
+    { value: 'bottom-left', label: 'Bottom Left' },
+    { value: 'bottom-right', label: 'Bottom Right' }
   ]
 
   // Filter options based on section type
@@ -155,6 +334,120 @@ export function SectionSettingsModal({
               ))}
             </div>
           </div>
+
+          {/* Image Background Controls - Only show when Image is selected */}
+          {backgroundColor === 'image' && (
+            <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+              <Label className="text-sm font-medium">Image Settings</Label>
+
+              {/* Image Upload/Preview */}
+              <div className="space-y-2">
+                {backgroundImage.url ? (
+                  <div className="relative">
+                    <div
+                      className="w-full h-32 rounded border bg-cover bg-center"
+                      style={{ backgroundImage: `url(${backgroundImage.url})` }}
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={handleRemoveImage}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 w-full"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Change Image
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    className="w-full h-32 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {isUploading ? (
+                      <div className="text-center">
+                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                        <p className="text-xs">Uploading... {uploadProgress}%</p>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                        <p className="text-sm font-medium">Click to upload image</p>
+                        <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                      </>
+                    )}
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Position Dropdown */}
+              {backgroundImage.url && (
+                <>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Position</Label>
+                    <select
+                      value={backgroundImage.position}
+                      onChange={(e) => setBackgroundImage(prev => ({ ...prev, position: e.target.value }))}
+                      className="w-full p-2 border rounded text-sm"
+                    >
+                      {positionOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Opacity Slider */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm">Opacity</Label>
+                      <span className="text-xs text-gray-600">{backgroundImage.opacity}%</span>
+                    </div>
+                    <Slider
+                      value={[backgroundImage.opacity]}
+                      onValueChange={(value) => setBackgroundImage(prev => ({ ...prev, opacity: value[0] }))}
+                      max={100}
+                      min={0}
+                      step={5}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Zoom/Crop Slider */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm">Zoom/Crop</Label>
+                      <span className="text-xs text-gray-600">{backgroundImage.scale}%</span>
+                    </div>
+                    <Slider
+                      value={[backgroundImage.scale]}
+                      onValueChange={(value) => setBackgroundImage(prev => ({ ...prev, scale: value[0] }))}
+                      max={200}
+                      min={100}
+                      step={10}
+                      className="w-full"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Preview Note */}
           <div className="p-2.5 sm:p-3 bg-blue-50 rounded-md border border-blue-200">

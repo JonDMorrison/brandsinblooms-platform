@@ -35,28 +35,40 @@ export function EditableFooterWrapper({ children }: EditableFooterWrapperProps) 
   }
 
   // In Edit mode: render with hover overlay and controls
+  // Use wrapper approach (footer doesn't need sticky, but needs same pattern as header):
+  // 1. Wrapper provides positioning context for controls and hover outline
+  // 2. Footer gets inline styles to disable clicks
+
   return (
     <>
+      {/* Wrapper - provides positioning context and hover outline */}
       <div
-        className="relative"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         style={{
+          position: 'relative',
           outline: isHovered ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
           outlineOffset: '4px',
           transition: 'outline 0.2s ease'
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Footer Controls Overlay */}
-        {isHovered && (
-          <HeaderFooterControls
-            type="footer"
-            onSettingsClick={() => setShowSettingsModal(true)}
-          />
-        )}
+        {/* Footer - disable all clicks */}
+        {React.cloneElement(children as React.ReactElement, {
+          style: {
+            ...((children as React.ReactElement).props.style || {}),
+            pointerEvents: 'none', // Disable all navigation
+          }
+        })}
 
-        {/* Footer Content */}
-        {children}
+        {/* Controls overlay - clickable despite parent having pointer-events: none */}
+        {isHovered && (
+          <div style={{ pointerEvents: 'auto' }}>
+            <HeaderFooterControls
+              type="footer"
+              onSettingsClick={() => setShowSettingsModal(true)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Settings Modal */}

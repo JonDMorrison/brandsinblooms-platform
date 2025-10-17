@@ -35,28 +35,51 @@ export function EditableHeaderWrapper({ children }: EditableHeaderWrapperProps) 
   }
 
   // In Edit mode: render with hover overlay and controls
+  // Use double wrapper approach:
+  // 1. Outer wrapper takes over sticky positioning from header
+  // 2. Inner wrapper provides positioning context for controls
+  // 3. Header gets inline styles to override sticky and disable clicks
+
   return (
     <>
+      {/* Outer sticky wrapper - takes over sticky positioning */}
       <div
-        className="relative"
+        style={{
+          position: 'sticky',
+          top: '3.5rem', // top-14 (56px) - matches header's edit mode sticky position
+          zIndex: 30, // z-30 - matches header's edit mode z-index
+        }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        style={{
-          outline: isHovered ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
-          outlineOffset: '4px',
-          transition: 'outline 0.2s ease'
-        }}
       >
-        {/* Header Controls Overlay */}
-        {isHovered && (
-          <HeaderFooterControls
-            type="header"
-            onSettingsClick={() => setShowSettingsModal(true)}
-          />
-        )}
+        {/* Inner wrapper - provides positioning context and hover outline */}
+        <div
+          style={{
+            position: 'relative',
+            outline: isHovered ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
+            outlineOffset: '4px',
+            transition: 'outline 0.2s ease'
+          }}
+        >
+          {/* Header - override sticky with relative, disable all clicks */}
+          {React.cloneElement(children as React.ReactElement, {
+            style: {
+              ...((children as React.ReactElement).props.style || {}),
+              position: 'relative', // Override sticky class (inline > class)
+              pointerEvents: 'none', // Disable all navigation
+            }
+          })}
 
-        {/* Header Content */}
-        {children}
+          {/* Controls overlay - clickable despite parent having pointer-events: none */}
+          {isHovered && (
+            <div style={{ pointerEvents: 'auto' }}>
+              <HeaderFooterControls
+                type="header"
+                onSettingsClick={() => setShowSettingsModal(true)}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Settings Modal */}

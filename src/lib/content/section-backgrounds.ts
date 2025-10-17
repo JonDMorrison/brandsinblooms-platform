@@ -2,15 +2,15 @@
  * Defines which background options are available for each section type
  */
 
-export type BackgroundType = 'default' | 'alternate' | 'primary' | 'gradient'
+export type BackgroundType = 'default' | 'alternate' | 'primary' | 'gradient' | 'image'
 
 /**
  * Get available background options for a section type
  */
 export function getAvailableBackgrounds(sectionType: string): BackgroundType[] {
-  // Hero sections get gradient option
+  // Hero sections get gradient and image options
   if (sectionType === 'hero') {
-    return ['default', 'alternate', 'gradient']
+    return ['default', 'alternate', 'gradient', 'image']
   }
 
   // CTA sections get primary option

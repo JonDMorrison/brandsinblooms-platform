@@ -15,7 +15,7 @@ import {
 import { MissionStatementSkeleton } from '@/src/components/ui/plant-shop-loading-states'
 import { textToHtml } from '@/src/lib/utils/html-text'
 import { ContentRenderer } from '@/src/components/preview/ContentRenderer'
-import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
+import { getSectionBackgroundStyle, getBackgroundImageOpacity } from '@/src/components/content-sections/shared/background-utils'
 import { getFeatureGridClasses } from '@/src/components/content-sections/shared/grid-utils'
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
 import { ImageIcon } from 'lucide-react'
@@ -45,11 +45,27 @@ export function CustomerSiteSection({
   const backgroundStyle = getSectionBackgroundStyle({ backgroundColor: backgroundSetting })
 
   switch (type) {
-    case 'hero':
+    case 'hero': {
+      // Get background style from section settings or use gradient as fallback
+      const heroBackgroundStyle = section.settings?.backgroundImage?.url
+        ? getSectionBackgroundStyle(section.settings)
+        : {background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))'}
+
+      // Get opacity overlay value if image background with opacity < 100
+      const imageOpacity = getBackgroundImageOpacity(section.settings)
+
       return (
         <HeroSectionErrorBoundary>
-          <section className={`relative py-20 lg:py-32 ${className}`} style={{background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))'}}>
-            <div className="brand-container">
+          <section className={`relative py-20 lg:py-32 ${className}`} style={heroBackgroundStyle}>
+            {/* Opacity overlay for image backgrounds */}
+            {imageOpacity !== undefined && (
+              <div
+                className="absolute inset-0 bg-white pointer-events-none"
+                style={{ opacity: imageOpacity, zIndex: 1 }}
+              />
+            )}
+
+            <div className="brand-container relative" style={{ zIndex: 2 }}>
               <div className="max-w-4xl mx-auto text-center">
                 <h1 className="text-4xl md:text-6xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
                   {String(sectionData.headline || 'Welcome to our site')}
@@ -121,6 +137,7 @@ export function CustomerSiteSection({
           </section>
         </HeroSectionErrorBoundary>
       )
+    }
 
     case 'header':
       return (
