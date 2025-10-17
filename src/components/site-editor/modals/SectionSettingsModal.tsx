@@ -23,7 +23,7 @@ interface SectionSettingsModalProps {
   onClose: () => void
   section: ContentSection
   sectionKey: string
-  onSave: (settings: Record<string, unknown>) => void
+  onSave: (settings: Record<string, unknown>, options?: { silent?: boolean }) => void
 }
 
 type BackgroundColor = 'default' | 'alternate' | 'primary' | 'gradient' | 'image'
@@ -53,10 +53,16 @@ export function SectionSettingsModal({
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const originalSettingsRef = useRef<Record<string, unknown> | null>(null)
 
   // Initialize from section settings when modal opens
   useEffect(() => {
     if (isOpen) {
+      // Store original settings for cancel/restore
+      if (!originalSettingsRef.current) {
+        originalSettingsRef.current = section.settings ? { ...section.settings } : {}
+      }
+
       const currentBg = (section.settings?.backgroundColor as BackgroundColor) || 'default'
       setBackgroundColor(currentBg)
 
@@ -77,37 +83,61 @@ export function SectionSettingsModal({
           scale: 100
         })
       }
+    } else {
+      // Clear original settings when modal closes
+      originalSettingsRef.current = null
     }
   }, [isOpen, section.settings])
 
-  const handleSave = () => {
+  // Apply settings immediately for live preview (silently)
+  const applySettingsPreview = (newBgColor: BackgroundColor, newBgImage: BackgroundImageSettings) => {
     const newSettings: Record<string, unknown> = {
       ...section.settings,
-      backgroundColor
+      backgroundColor: newBgColor
     }
 
     // Only include backgroundImage if using image background and URL exists
-    if (backgroundColor === 'image' && backgroundImage.url) {
-      newSettings.backgroundImage = backgroundImage
+    if (newBgColor === 'image' && newBgImage.url) {
+      newSettings.backgroundImage = newBgImage
     }
 
-    onSave(newSettings)
+    onSave(newSettings, { silent: true }) // Silent during live preview
+  }
+
+  const handleSave = () => {
+    // Changes already applied via live preview, show single confirmation toast
+    toast.success('Section settings updated')
+    originalSettingsRef.current = null
     onClose()
   }
 
   const handleCancel = () => {
-    // Reset to original
-    const currentBg = (section.settings?.backgroundColor as BackgroundColor) || 'default'
+    // Restore original settings silently
+    if (originalSettingsRef.current) {
+      onSave(originalSettingsRef.current, { silent: true })
+    }
+
+    // Reset local state to original
+    const currentBg = (originalSettingsRef.current?.backgroundColor as BackgroundColor) || 'default'
     setBackgroundColor(currentBg)
-    if (section.settings?.backgroundImage) {
-      const imgSettings = section.settings.backgroundImage as BackgroundImageSettings
+    if (originalSettingsRef.current?.backgroundImage) {
+      const imgSettings = originalSettingsRef.current.backgroundImage as BackgroundImageSettings
       setBackgroundImage({
         url: imgSettings.url || '',
         position: imgSettings.position || 'center',
         opacity: imgSettings.opacity ?? 100,
         scale: imgSettings.scale ?? 100
       })
+    } else {
+      setBackgroundImage({
+        url: '',
+        position: 'center',
+        opacity: 100,
+        scale: 100
+      })
     }
+
+    originalSettingsRef.current = null
     onClose()
   }
 
@@ -319,7 +349,10 @@ export function SectionSettingsModal({
                     name="backgroundColor"
                     value={option.value}
                     checked={backgroundColor === option.value}
-                    onChange={() => setBackgroundColor(option.value)}
+                    onChange={() => {
+                      setBackgroundColor(option.value)
+                      applySettingsPreview(option.value, backgroundImage)
+                    }}
                     className="sr-only"
                   />
                   <div
@@ -402,7 +435,11 @@ export function SectionSettingsModal({
                     <Label className="text-sm">Position</Label>
                     <select
                       value={backgroundImage.position}
-                      onChange={(e) => setBackgroundImage(prev => ({ ...prev, position: e.target.value }))}
+                      onChange={(e) => {
+                        const newImage = { ...backgroundImage, position: e.target.value }
+                        setBackgroundImage(newImage)
+                        applySettingsPreview(backgroundColor, newImage)
+                      }}
                       className="w-full p-2 border rounded text-sm"
                     >
                       {positionOptions.map(option => (
@@ -421,7 +458,11 @@ export function SectionSettingsModal({
                     </div>
                     <Slider
                       value={[backgroundImage.opacity]}
-                      onValueChange={(value) => setBackgroundImage(prev => ({ ...prev, opacity: value[0] }))}
+                      onValueChange={(value) => {
+                        const newImage = { ...backgroundImage, opacity: value[0] }
+                        setBackgroundImage(newImage)
+                        applySettingsPreview(backgroundColor, newImage)
+                      }}
                       max={100}
                       min={0}
                       step={5}
@@ -437,7 +478,11 @@ export function SectionSettingsModal({
                     </div>
                     <Slider
                       value={[backgroundImage.scale]}
-                      onValueChange={(value) => setBackgroundImage(prev => ({ ...prev, scale: value[0] }))}
+                      onValueChange={(value) => {
+                        const newImage = { ...backgroundImage, scale: value[0] }
+                        setBackgroundImage(newImage)
+                        applySettingsPreview(backgroundColor, newImage)
+                      }}
                       max={200}
                       min={100}
                       step={10}

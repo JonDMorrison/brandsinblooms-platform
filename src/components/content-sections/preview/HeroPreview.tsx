@@ -8,6 +8,7 @@ import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEdit
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getFeatureGridClasses } from '@/src/components/content-sections/shared'
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
+import { getSectionBackgroundStyle, getBackgroundImageOpacity } from '@/src/components/content-sections/shared/background-utils'
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
 import { IconSelector } from '@/src/components/ui/IconSelector'
 import { Dialog, DialogContent, DialogTitle } from '@/src/components/ui/dialog'
@@ -127,14 +128,34 @@ export function HeroPreview({
     }
   }
 
+  // Get background style from section settings or use gradient as fallback
+  // Check if backgroundImage exists and has a url (type guard for Json type)
+  const hasBackgroundImage = section.settings?.backgroundImage &&
+    typeof section.settings.backgroundImage === 'object' &&
+    'url' in section.settings.backgroundImage &&
+    section.settings.backgroundImage.url
+
+  const heroBackgroundStyle = hasBackgroundImage
+    ? getSectionBackgroundStyle(section.settings)
+    : { background: `linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))` }
+
+  // Get opacity overlay value if image background with opacity < 100
+  const imageOpacity = getBackgroundImageOpacity(section.settings)
+
   return (
     <section
       className={`relative ${responsive.spacing.heroSectionPadding} ${className}`}
-      style={{
-        background: `linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))`
-      }}
+      style={heroBackgroundStyle}
     >
-      <div className="brand-container">
+      {/* Opacity overlay for image backgrounds */}
+      {imageOpacity !== undefined && (
+        <div
+          className="absolute inset-0 bg-white pointer-events-none"
+          style={{ opacity: imageOpacity, zIndex: 1 }}
+        />
+      )}
+
+      <div className="brand-container relative" style={{ zIndex: 2 }}>
         <div className="max-w-4xl mx-auto text-center">
           {/* Main headline - use from data.headline or title */}
           {(data.headline || title) && (

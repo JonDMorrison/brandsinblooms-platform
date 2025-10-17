@@ -92,7 +92,7 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   updateFeatureContent: (sectionKey: string, featureIndex: number, field: string, value: string) => void
   updateCategoryContent: (sectionKey: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => void
   deleteCategoryContent: (sectionKey: string, categoryIndex: number) => void
-  updateSectionSettings: (sectionKey: string, settings: Record<string, unknown>) => void
+  updateSectionSettings: (sectionKey: string, settings: Record<string, unknown>, options?: { silent?: boolean }) => void
   markAsChanged: () => void
 
   // Page metadata management
@@ -491,7 +491,11 @@ export function FullSiteEditorProvider({
   }, [])
 
   // Section settings management
-  const updateSectionSettings = useCallback((sectionKey: string, settings: Record<string, unknown>) => {
+  const updateSectionSettings = useCallback((
+    sectionKey: string,
+    settings: Record<string, unknown>,
+    options?: { silent?: boolean }
+  ) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
@@ -519,7 +523,11 @@ export function FullSiteEditorProvider({
         sectionsChanged: true
       }
     })
-    toast.success('Section settings updated')
+
+    // Only show toast if not silenced
+    if (!options?.silent) {
+      toast.success('Section settings updated')
+    }
   }, [])
 
   // Section management

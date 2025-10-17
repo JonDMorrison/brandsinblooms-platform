@@ -51,8 +51,8 @@ export function EditableCustomerSiteSection({
   } = context
 
   // Handle settings save
-  const handleSettingsSave = (settings: Record<string, unknown>) => {
-    updateSectionSettings(sectionKey, settings)
+  const handleSettingsSave = (settings: Record<string, unknown>, options?: { silent?: boolean }) => {
+    updateSectionSettings(sectionKey, settings, options)
   }
 
   // Get fresh section data from context (includes staged/unsaved changes)
