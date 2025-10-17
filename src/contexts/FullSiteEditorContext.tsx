@@ -97,6 +97,14 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   updateSectionSettings: (sectionKey: string, settings: Record<string, unknown>, options?: { silent?: boolean }) => void
   markAsChanged: () => void
 
+  // Item management (Features, Values, FAQ)
+  addFeatureItem: (sectionKey: string, newItem: Record<string, unknown>) => void
+  deleteFeatureItem: (sectionKey: string, itemIndex: number) => void
+  addValueItem: (sectionKey: string, newItem: Record<string, unknown>) => void
+  deleteValueItem: (sectionKey: string, itemIndex: number) => void
+  addFAQItem: (sectionKey: string, newItem: Record<string, unknown>) => void
+  deleteFAQItem: (sectionKey: string, itemIndex: number) => void
+
   // Page metadata management
   updatePageTitle: (title: string) => void
   updatePageSlug: (slug: string) => void
@@ -590,6 +598,270 @@ export function FullSiteEditorProvider({
     })
   }, [])
 
+  // Features section item management
+  const addFeatureItem = useCallback((sectionKey: string, newItem: Record<string, unknown>) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Ensure features array exists
+      if (!Array.isArray(updatedData.features)) {
+        updatedData.features = []
+      }
+
+      // Add new item to features array
+      updatedData.features.push(newItem)
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      toast.success('Feature added')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  const deleteFeatureItem = useCallback((sectionKey: string, itemIndex: number) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Ensure features array exists
+      if (!Array.isArray(updatedData.features)) {
+        console.warn(`[FullSiteEditor] Cannot delete feature: features array not found`)
+        return prev
+      }
+
+      // Validate itemIndex bounds
+      if (itemIndex < 0 || itemIndex >= updatedData.features.length) {
+        console.warn(`[FullSiteEditor] Cannot delete feature: invalid itemIndex ${itemIndex} (array length: ${updatedData.features.length})`)
+        return prev
+      }
+
+      // Remove item at index
+      updatedData.features.splice(itemIndex, 1)
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      toast.success('Feature deleted')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  // Values section item management
+  const addValueItem = useCallback((sectionKey: string, newItem: Record<string, unknown>) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Ensure items array exists
+      if (!Array.isArray(updatedData.items)) {
+        updatedData.items = []
+      }
+
+      // Add new item to items array
+      updatedData.items.push(newItem)
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      toast.success('Value added')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  const deleteValueItem = useCallback((sectionKey: string, itemIndex: number) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Ensure items array exists
+      if (!Array.isArray(updatedData.items)) {
+        console.warn(`[FullSiteEditor] Cannot delete value: items array not found`)
+        return prev
+      }
+
+      // Validate itemIndex bounds
+      if (itemIndex < 0 || itemIndex >= updatedData.items.length) {
+        console.warn(`[FullSiteEditor] Cannot delete value: invalid itemIndex ${itemIndex} (array length: ${updatedData.items.length})`)
+        return prev
+      }
+
+      // Remove item at index
+      updatedData.items.splice(itemIndex, 1)
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      toast.success('Value deleted')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  // FAQ section item management
+  const addFAQItem = useCallback((sectionKey: string, newItem: Record<string, unknown>) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Ensure faqs array exists
+      if (!Array.isArray(updatedData.faqs)) {
+        updatedData.faqs = []
+      }
+
+      // Add new item to faqs array
+      updatedData.faqs.push(newItem)
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      toast.success('FAQ added')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  const deleteFAQItem = useCallback((sectionKey: string, itemIndex: number) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Ensure faqs array exists
+      if (!Array.isArray(updatedData.faqs)) {
+        console.warn(`[FullSiteEditor] Cannot delete FAQ: faqs array not found`)
+        return prev
+      }
+
+      // Validate itemIndex bounds
+      if (itemIndex < 0 || itemIndex >= updatedData.faqs.length) {
+        console.warn(`[FullSiteEditor] Cannot delete FAQ: invalid itemIndex ${itemIndex} (array length: ${updatedData.faqs.length})`)
+        return prev
+      }
+
+      // Remove item at index
+      updatedData.faqs.splice(itemIndex, 1)
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      toast.success('FAQ deleted')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
   // Section settings management
   const updateSectionSettings = useCallback((
     sectionKey: string,
@@ -866,6 +1138,12 @@ export function FullSiteEditorProvider({
     deleteCategoryContent,
     updateFeaturedContent,
     deleteFeaturedContent,
+    addFeatureItem,
+    deleteFeatureItem,
+    addValueItem,
+    deleteValueItem,
+    addFAQItem,
+    deleteFAQItem,
     updateSectionSettings,
     markAsChanged,
     updatePageTitle,

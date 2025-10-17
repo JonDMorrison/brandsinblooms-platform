@@ -49,12 +49,52 @@ export function EditableCustomerSiteSection({
     updateFeaturedContent,
     deleteFeaturedContent,
     updateSectionSettings,
+    addFeatureItem,
+    deleteFeatureItem,
+    addValueItem,
+    deleteValueItem,
+    addFAQItem,
+    deleteFAQItem,
     pageContent
   } = context
 
   // Handle settings save
   const handleSettingsSave = (settings: Record<string, unknown>, options?: { silent?: boolean }) => {
     updateSectionSettings(sectionKey, settings, options)
+  }
+
+  // Handle add item - dispatch to correct method based on section type
+  const handleAddItem = (sectionKey: string, newItem: Record<string, unknown>) => {
+    switch (section.type) {
+      case 'features':
+        addFeatureItem(sectionKey, newItem)
+        break
+      case 'values':
+        addValueItem(sectionKey, newItem)
+        break
+      case 'faq':
+        addFAQItem(sectionKey, newItem)
+        break
+      default:
+        console.warn(`[EditableCustomerSiteSection] Add item not supported for section type: ${section.type}`)
+    }
+  }
+
+  // Handle delete item - dispatch to correct method based on section type
+  const handleDeleteItem = (sectionKey: string, itemIndex: number) => {
+    switch (section.type) {
+      case 'features':
+        deleteFeatureItem(sectionKey, itemIndex)
+        break
+      case 'values':
+        deleteValueItem(sectionKey, itemIndex)
+        break
+      case 'faq':
+        deleteFAQItem(sectionKey, itemIndex)
+        break
+      default:
+        console.warn(`[EditableCustomerSiteSection] Delete item not supported for section type: ${section.type}`)
+    }
   }
 
   // Get fresh section data from context (includes staged/unsaved changes)
@@ -149,6 +189,8 @@ export function EditableCustomerSiteSection({
         section={mergedSection}
         sectionKey={sectionKey}
         onSave={handleSettingsSave}
+        onAddItem={handleAddItem}
+        onDeleteItem={handleDeleteItem}
       />
     </>
     )
@@ -199,6 +241,8 @@ export function EditableCustomerSiteSection({
         section={section}
         sectionKey={sectionKey}
         onSave={handleSettingsSave}
+        onAddItem={handleAddItem}
+        onDeleteItem={handleDeleteItem}
       />
     </>
   )

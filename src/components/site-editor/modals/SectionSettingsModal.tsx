@@ -2,7 +2,7 @@
 
 /**
  * Section Settings Modal
- * Modal for editing section-level settings (background color, etc.) in Full Site Editor
+ * Modal for editing section-level settings (background color, etc.) and managing items in Full Site Editor
  * Integrates with existing settings structure from ContentSection schema
  */
 
@@ -11,12 +11,16 @@ import { Dialog, DialogContent, DialogTitle, DialogFooter } from '@/src/componen
 import { Button } from '@/src/components/ui/button'
 import { Label } from '@/src/components/ui/label'
 import { Slider } from '@/src/components/ui/slider'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { ContentSection } from '@/src/lib/content/schema'
-import { Settings, Upload, X } from 'lucide-react'
+import { Settings, Upload, X, Palette, List } from 'lucide-react'
 import { getAvailableBackgrounds } from '@/src/lib/content/section-backgrounds'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { toast } from 'sonner'
 import { handleError } from '@/lib/types/error-handling'
+import { FeaturesItemManager } from './item-managers/FeaturesItemManager'
+import { ValuesItemManager } from './item-managers/ValuesItemManager'
+import { FAQItemManager } from './item-managers/FAQItemManager'
 
 interface SectionSettingsModalProps {
   isOpen: boolean
@@ -24,6 +28,8 @@ interface SectionSettingsModalProps {
   section: ContentSection
   sectionKey: string
   onSave: (settings: Record<string, unknown>, options?: { silent?: boolean }) => void
+  onAddItem?: (sectionKey: string, newItem: Record<string, unknown>) => void
+  onDeleteItem?: (sectionKey: string, itemIndex: number) => void
 }
 
 type BackgroundColor = 'default' | 'alternate' | 'primary' | 'gradient' | 'image'
@@ -40,7 +46,9 @@ export function SectionSettingsModal({
   onClose,
   section,
   sectionKey,
-  onSave
+  onSave,
+  onAddItem,
+  onDeleteItem
 }: SectionSettingsModalProps) {
   const { currentSite } = useSiteContext()
   const [backgroundColor, setBackgroundColor] = useState<BackgroundColor>('default')
@@ -54,6 +62,49 @@ export function SectionSettingsModal({
   const [uploadProgress, setUploadProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const originalSettingsRef = useRef<Record<string, unknown> | null>(null)
+
+  // Determine if section supports item management
+  const supportsItemManagement = ['features', 'values', 'faq'].includes(section.type)
+
+  // Default item templates for each section type
+  const getDefaultItem = () => {
+    switch (section.type) {
+      case 'features':
+        return {
+          id: `feature-${Date.now()}`,
+          icon: 'Check',
+          title: 'New Feature'
+        }
+      case 'values':
+        return {
+          id: `value-${Date.now()}`,
+          icon: 'Star',
+          title: 'New Value',
+          description: 'Describe this value...'
+        }
+      case 'faq':
+        return {
+          id: `faq-${Date.now()}`,
+          question: 'New Question',
+          answer: 'Answer here...'
+        }
+      default:
+        return {}
+    }
+  }
+
+  // Handle add item
+  const handleAddItem = () => {
+    if (!onAddItem) return
+    const newItem = getDefaultItem()
+    onAddItem(sectionKey, newItem)
+  }
+
+  // Handle delete item
+  const handleDeleteItem = (itemIndex: number) => {
+    if (!onDeleteItem) return
+    onDeleteItem(sectionKey, itemIndex)
+  }
 
   // Initialize from section settings when modal opens
   useEffect(() => {
@@ -330,7 +381,22 @@ export function SectionSettingsModal({
           </p>
         </div>
 
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
+        <div className="overflow-y-auto flex-1">
+          {supportsItemManagement ? (
+            <Tabs defaultValue="appearance" className="w-full">
+              <TabsList className="w-full grid grid-cols-2 rounded-none border-b bg-gray-50">
+                <TabsTrigger value="appearance" className="flex items-center gap-2">
+                  <Palette className="w-4 h-4" />
+                  <span className="hidden sm:inline">Appearance</span>
+                </TabsTrigger>
+                <TabsTrigger value="content" className="flex items-center gap-2">
+                  <List className="w-4 h-4" />
+                  <span className="hidden sm:inline">Content</span>
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Appearance Tab */}
+              <TabsContent value="appearance" className="p-4 sm:p-6 space-y-4 sm:space-y-5 m-0">
           {/* Background Color Selection */}
           <div className="space-y-3">
             <Label className="text-xs sm:text-sm font-medium">Background Color</Label>
@@ -494,12 +560,98 @@ export function SectionSettingsModal({
             </div>
           )}
 
-          {/* Preview Note */}
-          <div className="p-2.5 sm:p-3 bg-blue-50 rounded-md border border-blue-200">
-            <p className="text-xs text-blue-800">
-              <strong>Tip:</strong> Changes will be applied immediately when you save. Use Navigate mode to preview the section without editing controls.
-            </p>
-          </div>
+                {/* Preview Note */}
+                <div className="p-2.5 sm:p-3 bg-blue-50 rounded-md border border-blue-200">
+                  <p className="text-xs text-blue-800">
+                    <strong>Tip:</strong> Changes will be applied immediately when you save. Use Navigate mode to preview the section without editing controls.
+                  </p>
+                </div>
+              </TabsContent>
+
+              {/* Content Tab - Item Management */}
+              <TabsContent value="content" className="p-4 sm:p-6 m-0">
+                {section.type === 'features' && (
+                  <FeaturesItemManager
+                    section={section}
+                    sectionKey={sectionKey}
+                    onAdd={handleAddItem}
+                    onDelete={handleDeleteItem}
+                  />
+                )}
+                {section.type === 'values' && (
+                  <ValuesItemManager
+                    section={section}
+                    sectionKey={sectionKey}
+                    onAdd={handleAddItem}
+                    onDelete={handleDeleteItem}
+                  />
+                )}
+                {section.type === 'faq' && (
+                  <FAQItemManager
+                    section={section}
+                    sectionKey={sectionKey}
+                    onAdd={handleAddItem}
+                    onDelete={handleDeleteItem}
+                  />
+                )}
+              </TabsContent>
+            </Tabs>
+          ) : (
+            /* No tabs - just appearance settings for sections without item management */
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+              {/* Background Color Selection */}
+              <div className="space-y-3">
+                <Label className="text-xs sm:text-sm font-medium">Background Color</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {backgroundOptions.map((option) => (
+                    <label
+                      key={option.value}
+                      className={`flex items-center gap-3 p-2 border-2 rounded-md cursor-pointer transition-all ${
+                        backgroundColor === option.value
+                          ? 'border-primary bg-primary/5'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="backgroundColor"
+                        value={option.value}
+                        checked={backgroundColor === option.value}
+                        onChange={() => {
+                          setBackgroundColor(option.value)
+                          applySettingsPreview(option.value, backgroundImage)
+                        }}
+                        className="sr-only"
+                      />
+                      <div
+                        className="w-8 h-8 rounded border border-gray-300 flex-shrink-0"
+                        style={option.previewStyle}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium">{option.label}</div>
+                        <div className="text-xs text-gray-500">{option.description}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Duplicate image background controls if needed */}
+              {backgroundColor === 'image' && backgroundImage.url && (
+                <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+                  <Label className="text-sm font-medium">Image Settings</Label>
+                  {/* Add simplified image controls here if needed for non-tab mode */}
+                </div>
+              )}
+
+              {/* Preview Note */}
+              <div className="p-2.5 sm:p-3 bg-blue-50 rounded-md border border-blue-200">
+                <p className="text-xs text-blue-800">
+                  <strong>Tip:</strong> Changes will be applied immediately when you save.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="p-4 sm:p-6 border-t bg-gray-50 flex justify-end gap-2 sm:gap-3 flex-shrink-0">
