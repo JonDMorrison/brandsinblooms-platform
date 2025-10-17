@@ -48,6 +48,8 @@ export function EditableCustomerSiteSection({
     updateFeatureContent,
     updateFeaturedContent,
     deleteFeaturedContent,
+    updateCategoryContent,
+    deleteCategoryContent,
     updateSectionSettings,
     addFeatureItem,
     deleteFeatureItem,
@@ -55,6 +57,8 @@ export function EditableCustomerSiteSection({
     deleteValueItem,
     addFAQItem,
     deleteFAQItem,
+    addFeaturedContent,
+    addCategoryContent,
     pageContent
   } = context
 
@@ -75,6 +79,16 @@ export function EditableCustomerSiteSection({
       case 'faq':
         addFAQItem(sectionKey, newItem)
         break
+      case 'hero':
+        // Hero uses same data.features structure as Features section
+        addFeatureItem(sectionKey, newItem)
+        break
+      case 'featured':
+        addFeaturedContent(sectionKey, newItem)
+        break
+      case 'categories':
+        addCategoryContent(sectionKey, newItem)
+        break
       default:
         console.warn(`[EditableCustomerSiteSection] Add item not supported for section type: ${section.type}`)
     }
@@ -91,6 +105,16 @@ export function EditableCustomerSiteSection({
         break
       case 'faq':
         deleteFAQItem(sectionKey, itemIndex)
+        break
+      case 'hero':
+        // Hero uses same data.features structure as Features section
+        deleteFeatureItem(sectionKey, itemIndex)
+        break
+      case 'featured':
+        deleteFeaturedContent(sectionKey, itemIndex)
+        break
+      case 'categories':
+        deleteCategoryContent(sectionKey, itemIndex)
         break
       default:
         console.warn(`[EditableCustomerSiteSection] Delete item not supported for section type: ${section.type}`)

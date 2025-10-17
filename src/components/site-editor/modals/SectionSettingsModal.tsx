@@ -21,6 +21,9 @@ import { handleError } from '@/lib/types/error-handling'
 import { FeaturesItemManager } from './item-managers/FeaturesItemManager'
 import { ValuesItemManager } from './item-managers/ValuesItemManager'
 import { FAQItemManager } from './item-managers/FAQItemManager'
+import { HeroFeaturesItemManager } from './item-managers/HeroFeaturesItemManager'
+import { FeaturedItemManager } from './item-managers/FeaturedItemManager'
+import { CategoriesItemManager } from './item-managers/CategoriesItemManager'
 
 interface SectionSettingsModalProps {
   isOpen: boolean
@@ -64,7 +67,7 @@ export function SectionSettingsModal({
   const originalSettingsRef = useRef<Record<string, unknown> | null>(null)
 
   // Determine if section supports item management
-  const supportsItemManagement = ['features', 'values', 'faq'].includes(section.type)
+  const supportsItemManagement = ['features', 'values', 'faq', 'hero', 'featured', 'categories'].includes(section.type)
 
   // Default item templates for each section type
   const getDefaultItem = () => {
@@ -73,6 +76,13 @@ export function SectionSettingsModal({
         return {
           id: `feature-${Date.now()}`,
           icon: 'Check',
+          title: 'New Feature'
+        }
+      case 'hero':
+        return {
+          id: `feature-${Date.now()}`,
+          icon: 'Check',
+          text: 'New Feature',
           title: 'New Feature'
         }
       case 'values':
@@ -87,6 +97,23 @@ export function SectionSettingsModal({
           id: `faq-${Date.now()}`,
           question: 'New Question',
           answer: 'Answer here...'
+        }
+      case 'featured':
+        return {
+          id: `featured-${Date.now()}`,
+          title: 'New Featured Item',
+          image: '',
+          tag: 'New',
+          link: ''
+        }
+      case 'categories':
+        return {
+          id: `category-${Date.now()}`,
+          name: 'New Category',
+          image: '',
+          link: '',
+          plantCount: 0,
+          description: ''
         }
       default:
         return {}
@@ -578,6 +605,14 @@ export function SectionSettingsModal({
                     onDelete={handleDeleteItem}
                   />
                 )}
+                {section.type === 'hero' && (
+                  <HeroFeaturesItemManager
+                    section={section}
+                    sectionKey={sectionKey}
+                    onAdd={handleAddItem}
+                    onDelete={handleDeleteItem}
+                  />
+                )}
                 {section.type === 'values' && (
                   <ValuesItemManager
                     section={section}
@@ -588,6 +623,22 @@ export function SectionSettingsModal({
                 )}
                 {section.type === 'faq' && (
                   <FAQItemManager
+                    section={section}
+                    sectionKey={sectionKey}
+                    onAdd={handleAddItem}
+                    onDelete={handleDeleteItem}
+                  />
+                )}
+                {section.type === 'featured' && (
+                  <FeaturedItemManager
+                    section={section}
+                    sectionKey={sectionKey}
+                    onAdd={handleAddItem}
+                    onDelete={handleDeleteItem}
+                  />
+                )}
+                {section.type === 'categories' && (
+                  <CategoriesItemManager
                     section={section}
                     sectionKey={sectionKey}
                     onAdd={handleAddItem}

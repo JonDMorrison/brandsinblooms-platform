@@ -97,13 +97,15 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   updateSectionSettings: (sectionKey: string, settings: Record<string, unknown>, options?: { silent?: boolean }) => void
   markAsChanged: () => void
 
-  // Item management (Features, Values, FAQ)
+  // Item management (Features, Values, FAQ, Featured, Categories)
   addFeatureItem: (sectionKey: string, newItem: Record<string, unknown>) => void
   deleteFeatureItem: (sectionKey: string, itemIndex: number) => void
   addValueItem: (sectionKey: string, newItem: Record<string, unknown>) => void
   deleteValueItem: (sectionKey: string, itemIndex: number) => void
   addFAQItem: (sectionKey: string, newItem: Record<string, unknown>) => void
   deleteFAQItem: (sectionKey: string, itemIndex: number) => void
+  addFeaturedContent: (sectionKey: string, newItem: Record<string, unknown>) => void
+  addCategoryContent: (sectionKey: string, newItem: Record<string, unknown>) => void
 
   // Page metadata management
   updatePageTitle: (title: string) => void
@@ -862,6 +864,89 @@ export function FullSiteEditorProvider({
     })
   }, [])
 
+  // Featured section item management
+  const addFeaturedContent = useCallback((sectionKey: string, newItem: Record<string, unknown>) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Initialize featuredItems array if it doesn't exist or is empty
+      if (!Array.isArray(updatedData.featuredItems) || updatedData.featuredItems.length === 0) {
+        console.info(`[FullSiteEditor] Initializing featuredItems with defaults for section "${sectionKey}"`)
+        updatedData.featuredItems = JSON.parse(JSON.stringify(DEFAULT_FEATURED_ITEMS))
+      }
+
+      // Add new item to featuredItems array
+      updatedData.featuredItems.push(newItem)
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      toast.success('Featured item added')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  // Categories section item management
+  const addCategoryContent = useCallback((sectionKey: string, newItem: Record<string, unknown>) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section || !section.data) return prev
+
+      // Deep clone section data
+      const updatedData = JSON.parse(JSON.stringify(section.data))
+
+      // Ensure categories array exists
+      if (!Array.isArray(updatedData.categories)) {
+        updatedData.categories = []
+      }
+
+      // Add new item to categories array
+      updatedData.categories.push(newItem)
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
+      }
+
+      toast.success('Category added')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
   // Section settings management
   const updateSectionSettings = useCallback((
     sectionKey: string,
@@ -1144,6 +1229,8 @@ export function FullSiteEditorProvider({
     deleteValueItem,
     addFAQItem,
     deleteFAQItem,
+    addFeaturedContent,
+    addCategoryContent,
     updateSectionSettings,
     markAsChanged,
     updatePageTitle,
