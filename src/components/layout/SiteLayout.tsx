@@ -13,6 +13,8 @@ import { Button } from '@/src/components/ui/button'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import AuthModal from '@/src/components/auth/AuthModal'
 import Link from 'next/link'
+import { EditableHeaderWrapper } from '@/src/components/site-editor/EditableHeaderWrapper'
+import { EditableFooterWrapper } from '@/src/components/site-editor/EditableFooterWrapper'
 
 interface SiteLayoutProps {
   children: React.ReactNode
@@ -60,7 +62,11 @@ export function SiteLayout({
       <CartProvider>
         <ThemeWrapper className="min-h-screen flex flex-col">
           {/* Site Navigation */}
-          {showNavigation && <SiteNavigation />}
+          {showNavigation && (
+            <EditableHeaderWrapper>
+              <SiteNavigation />
+            </EditableHeaderWrapper>
+          )}
 
           {/* Main Content */}
           <main className="flex-1">
@@ -68,7 +74,11 @@ export function SiteLayout({
           </main>
 
           {/* Site Footer */}
-          {showNavigation && <SiteFooter />}
+          {showNavigation && (
+            <EditableFooterWrapper>
+              <SiteFooter />
+            </EditableFooterWrapper>
+          )}
 
           {/* Auth Modal */}
           <AuthModal

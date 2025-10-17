@@ -97,7 +97,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
     <header
       className={cn(
         'w-full bg-white border-b transition-all duration-200',
-        stickyHeader && (isEditMode ? 'sticky top-14 z-50' : 'sticky top-0 z-50'),
+        stickyHeader && (isEditMode ? 'sticky top-14 z-30' : 'sticky top-0 z-50'),
         headerStyle === 'classic' ? '' : headerStyle === 'modern' || headerStyle === 'minimal' ? 'py-3' : heightClass,
         className
       )}
