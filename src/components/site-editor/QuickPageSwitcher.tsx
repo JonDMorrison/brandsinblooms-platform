@@ -47,51 +47,48 @@ export function QuickPageSwitcher({
   // Fetch all pages including drafts (logged-in users need to see unpublished pages)
   const { data: pages, loading, error } = usePages({ includeUnpublished: true })
 
-  // Special value for home page (Radix UI Select doesn't allow empty string values)
-  const HOME_VALUE = '__home__'
+  /**
+   * Normalize currentSlug to match database format (no leading slash)
+   * Handles: '/' → 'home', '/home' → 'home', '/about' → 'about'
+   */
+  const normalizedCurrentSlug = useMemo(() => {
+    if (!currentSlug || currentSlug === '/' || currentSlug === '') return 'home'
+    // Strip leading slash
+    return currentSlug.startsWith('/') ? currentSlug.slice(1) : currentSlug
+  }, [currentSlug])
 
-  // Convert slug to select value
-  const slugToValue = (slug: string) => slug === '' ? HOME_VALUE : slug
-
-  // Convert select value to slug
-  const valueToSlug = (value: string) => value === HOME_VALUE ? '' : value
-
-  // Get current page name from slug
+  // Get current page name from normalized slug
   const currentPageName = useMemo(() => {
-    if (currentSlug === '' || currentSlug === '/') return 'Home'
-
-    const currentPage = pages?.find(p => p.slug === currentSlug)
+    const currentPage = pages?.find(p => p.slug === normalizedCurrentSlug)
     if (currentPage) return currentPage.title
 
-    return currentSlug
-      .split('/')
-      .filter(Boolean)
-      .pop()
-      ?.replace(/-/g, ' ')
-      .replace(/^\w/, c => c.toUpperCase()) || 'Home'
-  }, [currentSlug, pages])
+    // Fallback for special pages
+    if (normalizedCurrentSlug === 'home') return 'Home'
 
-  // Navigate to a page
+    return normalizedCurrentSlug
+      .replace(/-/g, ' ')
+      .replace(/^\w/, c => c.toUpperCase())
+  }, [normalizedCurrentSlug, pages])
+
+  // Navigate to a page (slug is database format, e.g., 'home', 'about')
   const navigateToPage = (slug: string) => {
     setIsSwitching(true)
-    const url = slug === '' ? '/' : `/${slug}`
+    const url = `/${slug}`
     window.location.href = url
   }
 
-  // Handle page selection
+  // Handle page selection (value is database slug)
   const handlePageSelect = (value: string) => {
-    const newSlug = valueToSlug(value)
-
-    // Same page, do nothing
-    if (newSlug === currentSlug) return
+    // Same page, do nothing (compare normalized slugs)
+    if (value === normalizedCurrentSlug) return
 
     if (hasUnsavedChanges) {
       // Show confirmation dialog
-      setPendingPageSlug(newSlug)
+      setPendingPageSlug(value)
       setShowUnsavedDialog(true)
     } else {
       // Navigate immediately
-      navigateToPage(newSlug)
+      navigateToPage(value)
     }
   }
 
@@ -145,7 +142,7 @@ export function QuickPageSwitcher({
   return (
     <>
       <Select
-        value={slugToValue(currentSlug)}
+        value={normalizedCurrentSlug}
         onValueChange={handlePageSelect}
         disabled={isSwitching}
       >
@@ -164,20 +161,7 @@ export function QuickPageSwitcher({
           </div>
         </SelectTrigger>
         <SelectContent align="start" className="min-w-[300px] max-w-[400px]">
-          {/* Home page option */}
-          <SelectItem value={HOME_VALUE} className="focus:text-foreground hover:text-foreground">
-            <div className="flex items-center justify-between w-full gap-3">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="font-medium">Home</span>
-                <span className="text-xs text-muted-foreground shrink-0">/</span>
-              </div>
-              {currentSlug === '' && (
-                <Check className="w-4 h-4 text-primary shrink-0" />
-              )}
-            </div>
-          </SelectItem>
-
-          {/* All pages (published and drafts) */}
+          {/* All pages (published and drafts) from database */}
           {pages && pages.length > 0 && pages.map((page) => (
             <SelectItem
               key={page.id}
@@ -196,7 +180,7 @@ export function QuickPageSwitcher({
                     </span>
                   )}
                 </div>
-                {page.slug === currentSlug && (
+                {page.slug === normalizedCurrentSlug && (
                   <Check className="w-4 h-4 text-primary shrink-0" />
                 )}
               </div>
