@@ -9,6 +9,7 @@
 
 import React, { useState, ReactNode, useContext } from 'react'
 import { FullSiteEditorContext, useIsEditModeActive } from '@/src/contexts/FullSiteEditorContext'
+import { useDesignSettings } from '@/src/hooks/useDesignSettings'
 import { HeaderFooterControls } from './HeaderFooterControls'
 import { HeaderSettingsModal } from './modals/HeaderSettingsModal'
 
@@ -19,8 +20,12 @@ interface EditableHeaderWrapperProps {
 export function EditableHeaderWrapper({ children }: EditableHeaderWrapperProps) {
   const isEditMode = useIsEditModeActive()
   const context = useContext(FullSiteEditorContext)
+  const { data: designSettings } = useDesignSettings()
   const [isHovered, setIsHovered] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
+
+  // Get sticky header setting from theme
+  const stickyHeader = designSettings?.layout?.stickyHeader !== false
 
   // If not in edit mode or no context available, just render children
   if (!isEditMode || !context) {
@@ -36,7 +41,7 @@ export function EditableHeaderWrapper({ children }: EditableHeaderWrapperProps) 
 
   // In Edit mode: render with hover overlay and controls
   // Use double wrapper approach:
-  // 1. Outer wrapper takes over sticky positioning from header
+  // 1. Outer wrapper takes over sticky positioning from header (when enabled)
   // 2. Inner wrapper disables all clicks via pointer-events and provides positioning context
   // 3. Header gets inline style to override sticky class (prevent conflict with wrapper)
 
@@ -46,11 +51,11 @@ export function EditableHeaderWrapper({ children }: EditableHeaderWrapperProps) 
 
   return (
     <>
-      {/* Outer sticky wrapper - takes over sticky positioning from header */}
+      {/* Outer wrapper - conditionally sticky based on stickyHeader setting */}
       <div
         style={{
-          position: 'sticky',
-          top: '3.5rem', // top-14 (56px) - matches header's edit mode sticky position
+          position: stickyHeader ? 'sticky' : 'relative',
+          top: stickyHeader ? '3.5rem' : undefined, // top-14 (56px) - matches header's edit mode sticky position
           zIndex: 30, // z-30 - matches header's edit mode z-index
         }}
         onMouseEnter={() => setIsHovered(true)}
