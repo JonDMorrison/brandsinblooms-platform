@@ -5,7 +5,6 @@ import * as LucideIcons from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Search, ChevronDown, Package, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -116,6 +115,7 @@ export function IconSelector({
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [allIcons] = React.useState<IconOption[]>(() => getAllIcons());
+  const scrollRef = React.useRef<HTMLDivElement>(null);
 
   const filteredIcons = React.useMemo(() => {
     if (!searchQuery.trim()) {
@@ -215,7 +215,13 @@ export function IconSelector({
               {searchQuery && ` matching "${searchQuery}"`}
             </div>
 
-            <ScrollArea className="h-64">
+            <div
+              ref={scrollRef}
+              className="h-64 overflow-y-auto overflow-x-hidden"
+              style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
+              tabIndex={0}
+              onWheel={(e) => e.stopPropagation()}
+            >
               <div className="grid grid-cols-4 gap-1 p-1">
                 {filteredIcons.map((icon) => {
                   const IconComponent = icon.component;
@@ -248,7 +254,7 @@ export function IconSelector({
                   No icons found
                 </div>
               )}
-            </ScrollArea>
+            </div>
 
             {value && (
               <div className="border-t pt-3">
