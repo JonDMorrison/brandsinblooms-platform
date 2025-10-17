@@ -288,9 +288,9 @@ function FeaturedCard({ item, itemIndex, sectionKey, isPreview, onContentUpdate,
               />
             </div>
           ) : (
-            <h3 className="text-lg font-semibold mb-2" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
+            <p className="text-lg font-semibold" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
               {item.title}
-            </h3>
+            </p>
           )}
         </div>
       </div>
