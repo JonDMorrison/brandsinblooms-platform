@@ -14,6 +14,7 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import {
@@ -25,10 +26,12 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ImageUploadDialog } from './ImageUploadDialog';
 
 interface EditorToolbarProps {
   editor: Editor | null;
   disabled?: boolean;
+  siteId?: string;
 }
 
 interface LinkDialogProps {
@@ -83,8 +86,9 @@ function LinkDialog({ isOpen, onClose, onSubmit, initialUrl = '' }: LinkDialogPr
   );
 }
 
-export function EditorToolbar({ editor, disabled = false }: EditorToolbarProps) {
+export function EditorToolbar({ editor, disabled = false, siteId }: EditorToolbarProps) {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
   const handleLinkAdd = useCallback((url: string) => {
     if (url && editor) {
@@ -95,6 +99,12 @@ export function EditorToolbar({ editor, disabled = false }: EditorToolbarProps) 
   const handleLinkRemove = useCallback(() => {
     if (editor) {
       editor.chain().focus().unsetLink().run();
+    }
+  }, [editor]);
+
+  const handleImageInsert = useCallback((url: string, alt: string) => {
+    if (editor) {
+      editor.chain().focus().setImage({ src: url, alt }).run();
     }
   }, [editor]);
 
@@ -212,11 +222,32 @@ export function EditorToolbar({ editor, disabled = false }: EditorToolbarProps) 
         <Link className="h-3.5 w-3.5" />
       </Button>
 
+      {/* Image Control */}
+      <Button
+        variant={isActive('image') ? 'default' : 'ghost'}
+        size="sm"
+        onClick={() => setImageDialogOpen(true)}
+        disabled={disabled || !siteId}
+        title={!siteId ? 'Site ID required for image upload' : 'Insert Image'}
+        className="h-7 w-7 p-0"
+      >
+        <ImageIcon className="h-3.5 w-3.5" />
+      </Button>
+
       <LinkDialog
         isOpen={linkDialogOpen}
         onClose={() => setLinkDialogOpen(false)}
         onSubmit={handleLinkAdd}
       />
+
+      {siteId && (
+        <ImageUploadDialog
+          isOpen={imageDialogOpen}
+          onClose={() => setImageDialogOpen(false)}
+          onInsert={handleImageInsert}
+          siteId={siteId}
+        />
+      )}
     </div>
   );
 }

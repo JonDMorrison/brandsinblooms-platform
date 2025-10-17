@@ -8,6 +8,7 @@ import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import Heading from '@tiptap/extension-heading';
 import Placeholder from '@tiptap/extension-placeholder';
+import Image from '@tiptap/extension-image';
 
 /**
  * Default Tiptap editor configuration
@@ -65,6 +66,15 @@ export const getTiptapConfig = (placeholder?: string): Extensions => {
       types: ['heading', 'paragraph'],
       alignments: ['left', 'center', 'right'],
       defaultAlignment: 'left'
+    }),
+
+    // Image extension with inline support and resizing
+    Image.configure({
+      inline: true,
+      allowBase64: false,
+      HTMLAttributes: {
+        class: 'editor-image',
+      },
     }),
 
     // Placeholder text

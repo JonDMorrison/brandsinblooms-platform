@@ -8,6 +8,7 @@ import React, { forwardRef, useImperativeHandle } from 'react';
 import { EditorContent } from '@tiptap/react';
 import { useRichTextEditor, type UseRichTextEditorOptions } from '@/hooks/useRichTextEditor';
 import { EditorToolbar } from './EditorToolbar';
+import { ImageBubbleMenu } from './ImageBubbleMenu';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,6 +22,7 @@ export interface RichTextEditorProps extends UseRichTextEditorOptions {
   showSaveButton?: boolean;
   autoFocus?: boolean;
   minHeight?: string;
+  siteId?: string;
 }
 
 export interface RichTextEditorRef {
@@ -103,15 +105,18 @@ const RichTextEditorComponent = React.forwardRef<RichTextEditorRef, RichTextEdit
   return (
     <div className={cn('border border-border rounded-md overflow-hidden', className)}>
       {showToolbar && (
-        <EditorToolbar editor={editor} disabled={editorOptions.readOnly} />
+        <EditorToolbar editor={editor} disabled={editorOptions.readOnly} siteId={editorOptions.siteId} />
       )}
-      
+
       {error && (
         <Alert variant="destructive" className="m-2">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
+      {/* Image Bubble Menu */}
+      {editor && <ImageBubbleMenu editor={editor} />}
 
       <div className="relative">
         <EditorContent
@@ -154,6 +159,20 @@ const RichTextEditorComponent = React.forwardRef<RichTextEditorRef, RichTextEdit
             // Strong and emphasis
             '[&_.ProseMirror_strong]:font-bold',
             '[&_.ProseMirror_em]:italic',
+            // Image styles
+            '[&_.ProseMirror_.editor-image]:max-w-full',
+            '[&_.ProseMirror_.editor-image]:h-auto',
+            '[&_.ProseMirror_.editor-image]:rounded-md',
+            '[&_.ProseMirror_.editor-image]:cursor-pointer',
+            '[&_.ProseMirror_.editor-image.ProseMirror-selectednode]:ring-2',
+            '[&_.ProseMirror_.editor-image.ProseMirror-selectednode]:ring-primary',
+            '[&_.ProseMirror_.editor-image.ProseMirror-selectednode]:ring-offset-2',
+            // Image alignment
+            '[&_.ProseMirror_.editor-image[align="left"]]:mr-auto',
+            '[&_.ProseMirror_.editor-image[align="center"]]:mx-auto',
+            '[&_.ProseMirror_.editor-image[align="center"]]:block',
+            '[&_.ProseMirror_.editor-image[align="right"]]:ml-auto',
+            '[&_.ProseMirror_.editor-image[align="right"]]:block',
             editorOptions.readOnly && 'pointer-events-none opacity-60'
           )}
           style={{ '--min-height': minHeight } satisfies React.CSSProperties}

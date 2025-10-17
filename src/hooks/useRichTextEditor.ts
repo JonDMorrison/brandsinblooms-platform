@@ -15,6 +15,7 @@ export interface UseRichTextEditorOptions {
   onSave?: (content: EditorContent) => void | Promise<void>;
   saveDelay?: number;
   readOnly?: boolean;
+  siteId?: string;
 }
 
 export interface UseRichTextEditorReturn {

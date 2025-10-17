@@ -553,26 +553,34 @@ export function applySecurityHeaders(
     }
 
     const allowedFrameAncestors = getAllowedFrameAncestors()
-    
+
+    // Build img-src directive with proper sources
+    const imgSrcSources = ["'self'", "data:", "https:"]
+
+    // Add localhost HTTP support in development for local S3/MinIO testing
+    if (process.env.NODE_ENV === 'development') {
+      imgSrcSources.push("http://localhost:*", "http://127.0.0.1:*")
+    }
+
+    // Add custom domain if configured
+    if (site.custom_domain) {
+      imgSrcSources.push(`https://${site.custom_domain}`)
+    }
+
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Adjust based on your needs
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: https:",
+      `img-src ${imgSrcSources.join(' ')}`,
       "font-src 'self' data: https://fonts.gstatic.com",
       // Allow local development connections to Supabase
-      process.env.NODE_ENV === 'development' 
+      process.env.NODE_ENV === 'development'
         ? "connect-src 'self' wss: https: http://localhost:* http://127.0.0.1:*"
         : "connect-src 'self' wss: https:",
       `frame-ancestors ${allowedFrameAncestors}`,
       "base-uri 'self'",
       "form-action 'self'",
     ]
-
-    // Add site-specific CSP if available
-    if (site.custom_domain) {
-      cspDirectives.push(`img-src 'self' data: https: https://${site.custom_domain}`)
-    }
 
     response.headers.set('Content-Security-Policy', cspDirectives.join('; '))
   }

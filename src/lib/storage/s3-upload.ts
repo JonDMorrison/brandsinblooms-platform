@@ -232,11 +232,12 @@ export async function getPresignedUploadUrl(
 
 /**
  * Uploads a file directly to S3 using presigned URL
+ * Uses PUT method for PutObjectCommand presigned URLs
  */
 export async function uploadToS3(
   file: File,
   uploadUrl: string,
-  fields: Record<string, string>,
+  fields: Record<string, string>, // Kept for backwards compatibility but not used with PUT presigned URLs
   onProgress?: UploadProgressCallback
 ): Promise<S3UploadResult> {
   try {
@@ -246,18 +247,7 @@ export async function uploadToS3(
       throw new Error(validation.error);
     }
 
-    // Create form data
-    const formData = new FormData();
-    
-    // Add fields first (order matters for S3)
-    Object.entries(fields).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
-    
-    // Add file last
-    formData.append('file', file);
-
-    // Upload with progress tracking
+    // Upload with progress tracking using PUT method for presigned URLs
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 
@@ -273,17 +263,29 @@ export async function uploadToS3(
 
       xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          // Extract key from fields
-          const key = fields.key || '';
-          const bucket = fields.bucket || S3_CONFIG.bucket;
-          const region = fields['x-amz-region'] || S3_CONFIG.region;
-          
+          // Extract key from upload URL path
+          // URL format for path-style: http(s)://host/bucket/key
+          // URL format for virtual-hosted: http(s)://bucket.host/key
+          const urlObj = new URL(uploadUrl);
+          const pathParts = urlObj.pathname.split('/').filter(Boolean);
+
+          // For path-style URLs (MinIO/S3): /{bucket}/{key...}
+          // Skip the first part (bucket) and join the rest as the key
+          const key = pathParts.length > 1 ? pathParts.slice(1).join('/') : pathParts.join('/');
+
+          // Generate public URL using API proxy pattern
+          // This matches the pattern from the presigned URL API route
+          const publicUrl = `/api/images/${key}`;
+
+          // Generate CDN URL if configured
+          const cdnUrl = S3_CONFIG.cdnUrl ? `${S3_CONFIG.cdnUrl}/${key}` : undefined;
+
           resolve({
             success: true,
             data: {
               key,
-              url: `https://${bucket}.s3.${region}.amazonaws.com/${key}`,
-              cdnUrl: S3_CONFIG.cdnUrl ? `${S3_CONFIG.cdnUrl}/${key}` : undefined,
+              url: publicUrl,
+              cdnUrl,
               etag: xhr.getResponseHeader('ETag')?.replace(/"/g, '') || '',
               size: file.size,
               contentType: file.type,
@@ -302,8 +304,17 @@ export async function uploadToS3(
         reject(new Error('Upload was aborted'));
       });
 
-      xhr.open('POST', uploadUrl, true);
-      xhr.send(formData);
+      // Use PUT method for presigned URL uploads (required for PutObjectCommand)
+      xhr.open('PUT', uploadUrl, true);
+
+      // Set Content-Type header to match the presigned URL signature
+      xhr.setRequestHeader('Content-Type', file.type);
+
+      // Note: Content-Length is automatically set by the browser based on the body
+      // and must NOT be set manually with XHR as it will cause errors
+
+      // Send raw file as body (not FormData)
+      xhr.send(file);
     });
   } catch (error) {
     const handled = handleError(error);
