@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
-import { PageContent, LayoutType, DEFAULT_FEATURED_ITEMS } from '@/src/lib/content/schema'
+import { PageContent, LayoutType, DEFAULT_FEATURED_ITEMS, LAYOUT_SECTIONS, ContentSectionType, ContentSection } from '@/src/lib/content/schema'
 import { usePathname } from 'next/navigation'
 import { toast } from 'sonner'
 
@@ -115,8 +115,12 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   // Section management
   setActiveSection: (sectionKey: string | null) => void
   hideSection: (sectionKey: string) => void
+  toggleSectionVisibility: (sectionKey: string) => void
   deleteSection: (sectionKey: string) => void
   reorderSection: (sectionKey: string, direction: 'up' | 'down') => void
+  reorderSections: (sections: Array<{ key: string; section: ContentSection }>) => void
+  addSection: (sectionType: ContentSectionType, variant?: string) => void
+  updateSection: (sectionKey: string, section: ContentSection) => void
   duplicateSection: (sectionKey: string) => void
 
   // Save management
@@ -947,6 +951,182 @@ export function FullSiteEditorProvider({
     })
   }, [])
 
+  // Section visibility management
+  const toggleSectionVisibility = useCallback((sectionKey: string) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const section = prev.pageContent.sections[sectionKey]
+      if (!section) return prev
+
+      // Check if this is a required section for the current layout
+      const layoutConfig = LAYOUT_SECTIONS[state.layout]
+      const isRequired = layoutConfig.required.includes(sectionKey)
+
+      if (isRequired && section.visible) {
+        toast.error('Required sections cannot be hidden')
+        return prev
+      }
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            visible: !section.visible
+          }
+        }
+      }
+
+      toast.success(section.visible ? 'Section hidden' : 'Section visible')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [state.layout])
+
+  // Add new section
+  const addSection = useCallback((sectionType: ContentSectionType, variant?: string) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const layoutConfig = LAYOUT_SECTIONS[state.layout]
+      const defaultSection = layoutConfig.defaultSections[sectionType]
+
+      if (!defaultSection) {
+        console.warn(`[FullSiteEditor] No default section found for type "${sectionType}" in layout "${state.layout}"`)
+        toast.error('Section type not available for this layout')
+        return prev
+      }
+
+      // Generate unique section key
+      let sectionKey = sectionType
+      let counter = 1
+
+      // For sections that allow multiple instances (like richText), generate unique keys
+      if (sectionType === 'richText' || prev.pageContent.sections[sectionKey]) {
+        sectionKey = `${sectionType}_${Date.now()}`
+        while (prev.pageContent.sections[sectionKey]) {
+          sectionKey = `${sectionType}_${Date.now()}_${counter}`
+          counter++
+        }
+      }
+
+      // Deep clone the default section
+      let newSection = JSON.parse(JSON.stringify(defaultSection)) as ContentSection
+
+      // For Rich Text sections with variant, use appropriate template content
+      if (sectionType === 'richText' && variant) {
+        // Import createRichTextTemplate from CombinedSectionManager if needed
+        // For now, set basic template based on variant
+        const templates: Record<string, { headline: string; content: string }> = {
+          mission: {
+            headline: 'Our Mission',
+            content: '<p>We believe in transforming spaces and lives through the power of plants.</p>'
+          },
+          story: {
+            headline: 'Our Story',
+            content: '<p>Founded with a passion for plants and a commitment to sustainability.</p>'
+          },
+          contact: {
+            headline: 'Get in Touch',
+            content: '<p>We\'d love to hear from you. Reach out via phone, email, or stop by.</p>'
+          },
+          other: {
+            headline: 'Content',
+            content: '<p>Add your custom content here.</p>'
+          }
+        }
+
+        const template = templates[variant] || templates.other
+        newSection.data = {
+          ...newSection.data,
+          headline: template.headline,
+          content: template.content
+        }
+      }
+
+      // Calculate order value (place at end)
+      const existingSectionKeys = Object.keys(prev.pageContent.sections)
+      const maxOrder = existingSectionKeys.reduce((max, key) => {
+        const order = prev.pageContent.sections[key].order || 0
+        return Math.max(max, order)
+      }, 0)
+
+      newSection.order = maxOrder + 1
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: newSection
+        }
+      }
+
+      toast.success('Section added')
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [state.layout])
+
+  // Reorder sections in bulk (for drag-and-drop)
+  const reorderSections = useCallback((sections: Array<{ key: string; section: ContentSection }>) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const newSections: { [key: string]: ContentSection } = {}
+
+      // Rebuild sections object with new order
+      sections.forEach(({ key, section }) => {
+        newSections[key] = section
+      })
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: newSections
+      }
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
+  // Update entire section (for inline editors)
+  const updateSection = useCallback((sectionKey: string, section: ContentSection) => {
+    setState(prev => {
+      if (!prev.pageContent) return prev
+
+      const updatedContent: PageContent = {
+        ...prev.pageContent,
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: section
+        }
+      }
+
+      return {
+        ...prev,
+        pageContent: updatedContent,
+        hasUnsavedChanges: true,
+        sectionsChanged: true
+      }
+    })
+  }, [])
+
   // Section settings management
   const updateSectionSettings = useCallback((
     sectionKey: string,
@@ -1238,8 +1418,12 @@ export function FullSiteEditorProvider({
     updatePagePublished,
     setActiveSection,
     hideSection,
+    toggleSectionVisibility,
     deleteSection,
     reorderSection,
+    reorderSections,
+    addSection,
+    updateSection,
     duplicateSection,
     savePage,
     discardChanges,
