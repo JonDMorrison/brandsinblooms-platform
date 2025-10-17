@@ -6,6 +6,7 @@ import { getContentBySlug } from '@/src/lib/queries/domains/content'
 import { deserializePageContent } from '@/src/lib/content/serialization'
 import { getLayoutSections } from '@/src/lib/preview/section-renderers'
 import { CustomerSiteSection } from '@/src/components/customer-site/CustomerSiteSection'
+import { EditableCustomerSiteSection } from '@/src/components/site-editor/EditableCustomerSiteSection'
 import { ContentSection } from '@/src/lib/content/schema'
 
 interface DynamicContentPageProps {
@@ -88,20 +89,26 @@ export async function DynamicContentPage({ slug, isEditMode = false }: DynamicCo
       {/* Render sections in database order */}
       {orderedSections.map(({ key, section }) => {
         const sectionInfo = sectionDataMap[key]
-        
+
         // Only render if section has data and is available
         if (!sectionInfo || sectionInfo.status !== 'available' || !sectionInfo.data) {
           return null
         }
-        
+
         return (
-          <CustomerSiteSection
+          <EditableCustomerSiteSection
             key={key}
-            section={section}
             sectionKey={key}
+            section={section}
             sectionData={sectionInfo.data}
-            backgroundSetting={sectionInfo.backgroundSetting}
-          />
+          >
+            <CustomerSiteSection
+              section={section}
+              sectionKey={key}
+              sectionData={sectionInfo.data}
+              backgroundSetting={sectionInfo.backgroundSetting}
+            />
+          </EditableCustomerSiteSection>
         )
       })}
     </SiteRenderer>

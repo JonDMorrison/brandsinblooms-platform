@@ -7,6 +7,7 @@ import { getContentBySlug } from '@/src/lib/queries/domains/content'
 import { deserializePageContent } from '@/src/lib/content/serialization'
 import { getLayoutSections } from '@/src/lib/preview/section-renderers'
 import { CustomerSiteSection } from '@/src/components/customer-site/CustomerSiteSection'
+import { EditableCustomerSiteSection } from '@/src/components/site-editor/EditableCustomerSiteSection'
 
 export async function TermsPage() {
   const { siteId } = await getSiteHeaders()
@@ -108,13 +109,19 @@ export async function TermsPage() {
           }
 
           return (
-            <CustomerSiteSection
+            <EditableCustomerSiteSection
               key={key}
-              section={section as ContentSection}
               sectionKey={key}
+              section={section as ContentSection}
               sectionData={sectionInfo.data}
-              backgroundSetting={sectionInfo.backgroundSetting}
-            />
+            >
+              <CustomerSiteSection
+                section={section as ContentSection}
+                sectionKey={key}
+                sectionData={sectionInfo.data}
+                backgroundSetting={sectionInfo.backgroundSetting}
+              />
+            </EditableCustomerSiteSection>
           )
         })
       ) : (
