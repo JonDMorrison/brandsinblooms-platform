@@ -339,9 +339,19 @@ export function FullSiteEditorProvider({
         updatedData.features = []
       }
 
-      // Ensure feature at index exists
+      // Ensure feature at index exists and is an object (backward compatibility)
       if (!updatedData.features[featureIndex]) {
+        // Feature doesn't exist, create empty object
         updatedData.features[featureIndex] = {}
+      } else if (typeof updatedData.features[featureIndex] === 'string') {
+        // Feature is a string (old format), convert to object
+        const stringValue = updatedData.features[featureIndex] as string
+        updatedData.features[featureIndex] = {
+          id: `feature-${featureIndex}`,
+          icon: 'Check',
+          title: stringValue,
+          text: stringValue
+        }
       }
 
       // Update the specific field
