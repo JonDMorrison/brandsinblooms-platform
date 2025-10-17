@@ -37,12 +37,16 @@ export function EditableHeaderWrapper({ children }: EditableHeaderWrapperProps) 
   // In Edit mode: render with hover overlay and controls
   // Use double wrapper approach:
   // 1. Outer wrapper takes over sticky positioning from header
-  // 2. Inner wrapper provides positioning context for controls
-  // 3. Header gets inline styles to override sticky and disable clicks
+  // 2. Inner wrapper disables all clicks via pointer-events and provides positioning context
+  // 3. Header gets inline style to override sticky class (prevent conflict with wrapper)
+
+  // Type assert children for cloning
+  const headerElement = children as React.ReactElement<{ style?: React.CSSProperties }>
+  const existingStyle = headerElement.props?.style || {}
 
   return (
     <>
-      {/* Outer sticky wrapper - takes over sticky positioning */}
+      {/* Outer sticky wrapper - takes over sticky positioning from header */}
       <div
         style={{
           position: 'sticky',
@@ -52,25 +56,25 @@ export function EditableHeaderWrapper({ children }: EditableHeaderWrapperProps) 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Inner wrapper - provides positioning context and hover outline */}
+        {/* Inner wrapper - disables clicks and provides positioning context */}
         <div
           style={{
             position: 'relative',
+            pointerEvents: 'none', // Disable all clicks - cascades to header and all children
             outline: isHovered ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
             outlineOffset: '4px',
             transition: 'outline 0.2s ease'
           }}
         >
-          {/* Header - override sticky with relative, disable all clicks */}
-          {React.cloneElement(children as React.ReactElement, {
+          {/* Header - override sticky positioning to prevent conflict with wrapper */}
+          {React.cloneElement(headerElement, {
             style: {
-              ...((children as React.ReactElement).props.style || {}),
+              ...existingStyle,
               position: 'relative', // Override sticky class (inline > class)
-              pointerEvents: 'none', // Disable all navigation
             }
           })}
 
-          {/* Controls overlay - clickable despite parent having pointer-events: none */}
+          {/* Controls overlay - re-enable clicks for this element only */}
           {isHovered && (
             <div style={{ pointerEvents: 'auto' }}>
               <HeaderFooterControls

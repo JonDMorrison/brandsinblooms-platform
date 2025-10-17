@@ -35,16 +35,17 @@ export function EditableFooterWrapper({ children }: EditableFooterWrapperProps) 
   }
 
   // In Edit mode: render with hover overlay and controls
-  // Use wrapper approach (footer doesn't need sticky, but needs same pattern as header):
-  // 1. Wrapper provides positioning context for controls and hover outline
-  // 2. Footer gets inline styles to disable clicks
+  // Use wrapper approach (same pattern as header):
+  // 1. Wrapper disables all clicks via pointer-events and provides positioning context
+  // 2. Controls re-enable clicks with pointer-events: auto
 
   return (
     <>
-      {/* Wrapper - provides positioning context and hover outline */}
+      {/* Wrapper - disables clicks and provides positioning context */}
       <div
         style={{
           position: 'relative',
+          pointerEvents: 'none', // Disable all clicks - cascades to footer and all children
           outline: isHovered ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
           outlineOffset: '4px',
           transition: 'outline 0.2s ease'
@@ -52,15 +53,10 @@ export function EditableFooterWrapper({ children }: EditableFooterWrapperProps) 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Footer - disable all clicks */}
-        {React.cloneElement(children as React.ReactElement, {
-          style: {
-            ...((children as React.ReactElement).props.style || {}),
-            pointerEvents: 'none', // Disable all navigation
-          }
-        })}
+        {/* Footer - render as-is, clicks disabled by wrapper */}
+        {children}
 
-        {/* Controls overlay - clickable despite parent having pointer-events: none */}
+        {/* Controls overlay - re-enable clicks for this element only */}
         {isHovered && (
           <div style={{ pointerEvents: 'auto' }}>
             <HeaderFooterControls
