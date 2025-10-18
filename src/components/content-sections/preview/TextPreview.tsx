@@ -15,6 +15,7 @@ interface TextPreviewProps {
   sectionKey: string
   className?: string
   title?: string
+  siteId?: string
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
   onFeatureUpdate?: (sectionKey: string, featureIndex: number, newContent: string) => void
 }
@@ -24,6 +25,7 @@ export function TextPreview({
   sectionKey,
   className = '',
   title,
+  siteId,
   onContentUpdate,
   onFeatureUpdate
 }: TextPreviewProps) {
@@ -49,6 +51,7 @@ export function TextPreview({
                 isEnabled={true}
                 fieldPath="data.content"
                 format="rich"
+                siteId={siteId}
                 className="prose prose-gray max-w-none min-h-[100px]"
                 style={{
                   color: 'var(--theme-text)',

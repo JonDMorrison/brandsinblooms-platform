@@ -10,15 +10,14 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import Document from '@tiptap/extension-document';
-import Paragraph from '@tiptap/extension-paragraph';
-import Text from '@tiptap/extension-text';
 import TextAlign from '@tiptap/extension-text-align';
 import Heading from '@tiptap/extension-heading';
+import Image from '@tiptap/extension-image';
 import { useDebounceCallback } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
 import { FloatingToolbar } from './FloatingToolbar';
 import { SimpleFloatingToolbar } from './SimpleFloatingToolbar';
+import { ImageBubbleMenu } from './ImageBubbleMenu';
 import type { Editor } from '@tiptap/react';
 
 export interface InlineTextEditorProps {
@@ -33,12 +32,13 @@ export interface InlineTextEditorProps {
   debounceDelay?: number;
   showToolbar?: boolean;
   singleLine?: boolean; // If true, prevents line breaks and Enter key
+  siteId?: string; // For image uploads
 }
 
-const InlineTextEditorComponent = ({ 
-  content, 
-  onUpdate, 
-  isEnabled, 
+const InlineTextEditorComponent = ({
+  content,
+  onUpdate,
+  isEnabled,
   fieldPath,
   format = 'plain',
   className,
@@ -46,7 +46,8 @@ const InlineTextEditorComponent = ({
   placeholder = 'Click to edit...',
   debounceDelay = 500,
   showToolbar = true,
-  singleLine = false
+  singleLine = false,
+  siteId
 }: InlineTextEditorProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showFloatingToolbar, setShowFloatingToolbar] = useState(false);
@@ -56,16 +57,25 @@ const InlineTextEditorComponent = ({
   
   // Lightweight Tiptap instance with minimal extensions
   const editor = useEditor({
-    extensions: singleLine 
+    extensions: singleLine
       ? [
-          // Single-line mode: document, paragraph (single only), and text
-          Document,
-          Paragraph.configure({
-            HTMLAttributes: {
-              class: 'single-line-paragraph'
+          // Single-line mode: minimal StarterKit
+          StarterKit.configure({
+            heading: false,
+            bulletList: false,
+            orderedList: false,
+            codeBlock: false,
+            blockquote: false,
+            horizontalRule: false,
+            dropcursor: false,
+            gapcursor: false,
+            hardBreak: false,
+            paragraph: {
+              HTMLAttributes: {
+                class: 'single-line-paragraph'
+              }
             }
           }),
-          Text,
           Placeholder.configure({
             placeholder,
             showOnlyWhenEditable: true,
@@ -106,6 +116,13 @@ const InlineTextEditorComponent = ({
               rel: 'noopener noreferrer',
             }
           }),
+          Image.configure({
+            inline: true,
+            allowBase64: false,
+            HTMLAttributes: {
+              class: 'inline-editor-image',
+            },
+          }),
           Placeholder.configure({
             placeholder,
             showOnlyWhenEditable: true,
@@ -136,6 +153,13 @@ const InlineTextEditorComponent = ({
             types: ['heading', 'paragraph'],
             alignments: ['left', 'center', 'right'],
             defaultAlignment: 'left'
+          }),
+          Image.configure({
+            inline: true,
+            allowBase64: false,
+            HTMLAttributes: {
+              class: 'inline-editor-image',
+            },
           }),
           Placeholder.configure({
             placeholder,
@@ -296,26 +320,48 @@ const InlineTextEditorComponent = ({
             '[&_.ProseMirror_h3]:font-bold',
             '[&_.ProseMirror_strong]:font-bold',
             '[&_.ProseMirror_em]:italic',
-          ]
+          ],
+          // Image styles (for display and editing)
+          '[&_.ProseMirror_img.inline-editor-image]:max-w-full',
+          '[&_.ProseMirror_img.inline-editor-image]:h-auto',
+          '[&_.ProseMirror_img.inline-editor-image]:rounded-md',
+          '[&_.ProseMirror_img.inline-editor-image]:my-2',
+          '[&_.ProseMirror_img.inline-editor-image]:cursor-pointer',
+          // Selected image state
+          '[&_.ProseMirror_img.inline-editor-image.ProseMirror-selectednode]:ring-2',
+          '[&_.ProseMirror_img.inline-editor-image.ProseMirror-selectednode]:ring-primary',
+          '[&_.ProseMirror_img.inline-editor-image.ProseMirror-selectednode]:ring-offset-2',
+          // Image alignment support
+          '[&_.ProseMirror_img.inline-editor-image[align="left"]]:mr-auto',
+          '[&_.ProseMirror_img.inline-editor-image[align="center"]]:mx-auto',
+          '[&_.ProseMirror_img.inline-editor-image[align="center"]]:block',
+          '[&_.ProseMirror_img.inline-editor-image[align="right"]]:ml-auto',
+          '[&_.ProseMirror_img.inline-editor-image[align="right"]]:block',
         )}
         style={style}
       />
       
       {showFloatingToolbar && editor && (
         format === 'simple-toolbar' ? (
-          <SimpleFloatingToolbar 
-            editor={editor} 
+          <SimpleFloatingToolbar
+            editor={editor}
             anchorEl={elementRef.current}
             onClose={() => setShowFloatingToolbar(false)}
           />
         ) : (
-          <FloatingToolbar 
-            editor={editor} 
+          <FloatingToolbar
+            editor={editor}
             anchorEl={elementRef.current}
             format={format}
+            siteId={siteId}
             onClose={() => setShowFloatingToolbar(false)}
           />
         )
+      )}
+
+      {/* Image Bubble Menu - appears when image is selected */}
+      {editor && siteId && (
+        <ImageBubbleMenu editor={editor} />
       )}
     </div>
   );
@@ -333,7 +379,8 @@ export const InlineTextEditor = memo(InlineTextEditorComponent, (prevProps, next
     prevProps.placeholder === nextProps.placeholder &&
     prevProps.debounceDelay === nextProps.debounceDelay &&
     prevProps.showToolbar === nextProps.showToolbar &&
-    prevProps.singleLine === nextProps.singleLine
+    prevProps.singleLine === nextProps.singleLine &&
+    prevProps.siteId === nextProps.siteId
   );
 });
 

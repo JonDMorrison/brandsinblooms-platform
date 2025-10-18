@@ -7,28 +7,32 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useFloating, autoUpdate, offset, flip, shift, arrow } from '@floating-ui/react';
-import { Bold, Italic, Link, Type, Check, X, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { Bold, Italic, Link, Type, Check, X, AlignLeft, AlignCenter, AlignRight, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { Editor } from '@tiptap/react';
+import { ImageUploadDialog } from './ImageUploadDialog';
 
 interface FloatingToolbarProps {
   editor: Editor | null;
   anchorEl: HTMLElement | null;
   format?: 'plain' | 'rich';
+  siteId?: string;
   onClose?: () => void;
 }
 
-export const FloatingToolbar = ({ 
-  editor, 
+export const FloatingToolbar = ({
+  editor,
   anchorEl,
   format = 'plain',
+  siteId,
   onClose
 }: FloatingToolbarProps) => {
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const arrowRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   
@@ -124,6 +128,12 @@ export const FloatingToolbar = ({
     setShowLinkInput(false);
     setLinkUrl('');
     editor?.commands.focus();
+  }, [editor]);
+
+  const handleImageInsert = useCallback((url: string, alt: string) => {
+    if (editor) {
+      editor.chain().focus().setImage({ src: url, alt }).run();
+    }
   }, [editor]);
   
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -277,6 +287,24 @@ export const FloatingToolbar = ({
               >
                 <Link className="h-3.5 w-3.5" />
               </Button>
+
+              {/* Image Control - only show if siteId is available */}
+              {siteId && (
+                <>
+                  {/* Separator */}
+                  <div className="w-px h-5 bg-border mx-0.5" />
+
+                  <Button
+                    size="sm"
+                    variant={editor.isActive('image') ? 'secondary' : 'ghost'}
+                    onClick={() => setImageDialogOpen(true)}
+                    className="h-7 w-7 p-0"
+                    title="Insert Image"
+                  >
+                    <ImageIcon className="h-3.5 w-3.5" />
+                  </Button>
+                </>
+              )}
             </>
           )}
         </>
@@ -314,6 +342,16 @@ export const FloatingToolbar = ({
             <X className="h-3.5 w-3.5 text-red-600" />
           </Button>
         </div>
+      )}
+
+      {/* Image Upload Dialog */}
+      {siteId && (
+        <ImageUploadDialog
+          isOpen={imageDialogOpen}
+          onClose={() => setImageDialogOpen(false)}
+          onInsert={handleImageInsert}
+          siteId={siteId}
+        />
       )}
     </div>
   );

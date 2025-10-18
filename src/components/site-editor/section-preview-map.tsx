@@ -20,6 +20,7 @@ interface PreviewComponentProps {
   sectionKey: string
   className?: string
   title?: string
+  siteId?: string
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
   onFeatureUpdate?: (sectionKey: string, featureIndex: number, field: string, newContent: string) => void
   [key: string]: any

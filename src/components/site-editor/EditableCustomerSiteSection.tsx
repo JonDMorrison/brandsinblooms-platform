@@ -59,7 +59,8 @@ export function EditableCustomerSiteSection({
     deleteFAQItem,
     addFeaturedContent,
     addCategoryContent,
-    pageContent
+    pageContent,
+    siteId
   } = context
 
   // Handle settings save
@@ -156,6 +157,7 @@ export function EditableCustomerSiteSection({
           <PreviewComponent
             section={mergedSection}
             sectionKey={sectionKey}
+            siteId={siteId}
             // No onContentUpdate or onFeatureUpdate = no inline editing
           />
         </div>
@@ -191,6 +193,7 @@ export function EditableCustomerSiteSection({
         <PreviewComponent
           section={mergedSection}
           sectionKey={sectionKey}
+          siteId={siteId}
           onContentUpdate={(key, fieldPath, content) => {
             updateFieldContent(key, fieldPath, content)
           }}
