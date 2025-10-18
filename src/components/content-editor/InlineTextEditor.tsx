@@ -12,12 +12,12 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Heading from '@tiptap/extension-heading';
-import Image from '@tiptap/extension-image';
 import { useDebounceCallback } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
 import { FloatingToolbar } from './FloatingToolbar';
 import { SimpleFloatingToolbar } from './SimpleFloatingToolbar';
 import { ImageBubbleMenu } from './ImageBubbleMenu';
+import { CustomImage } from './CustomImage';
 import type { Editor } from '@tiptap/react';
 
 export interface InlineTextEditorProps {
@@ -116,7 +116,7 @@ const InlineTextEditorComponent = ({
               rel: 'noopener noreferrer',
             }
           }),
-          Image.configure({
+          CustomImage.configure({
             inline: true,
             allowBase64: false,
             HTMLAttributes: {
@@ -154,7 +154,7 @@ const InlineTextEditorComponent = ({
             alignments: ['left', 'center', 'right'],
             defaultAlignment: 'left'
           }),
-          Image.configure({
+          CustomImage.configure({
             inline: true,
             allowBase64: false,
             HTMLAttributes: {
@@ -302,6 +302,7 @@ const InlineTextEditorComponent = ({
           '[&_.ProseMirror]:outline-none',
           '[&_.ProseMirror]:min-h-[1.5em]',
           '[&_.ProseMirror]:p-0', // Remove ProseMirror padding
+          '[&_.ProseMirror]:overflow-hidden', // Contain floated images within bounds
           '[&_.tiptap]:p-0', // Explicitly target .tiptap class
           '[&>*]:p-0', // Target direct child wrapper
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]',
@@ -332,12 +333,16 @@ const InlineTextEditorComponent = ({
           '[&_.ProseMirror_img.inline-editor-image.ProseMirror-selectednode]:ring-2',
           '[&_.ProseMirror_img.inline-editor-image.ProseMirror-selectednode]:ring-primary',
           '[&_.ProseMirror_img.inline-editor-image.ProseMirror-selectednode]:ring-offset-2',
-          // Image alignment support
-          '[&_.ProseMirror_img.inline-editor-image[align="left"]]:mr-auto',
-          '[&_.ProseMirror_img.inline-editor-image[align="center"]]:mx-auto',
+          // Image alignment support with proper float behavior
+          '[&_.ProseMirror_img.inline-editor-image[align="left"]]:float-left',
+          '[&_.ProseMirror_img.inline-editor-image[align="left"]]:mr-4',
+          '[&_.ProseMirror_img.inline-editor-image[align="left"]]:mb-2',
           '[&_.ProseMirror_img.inline-editor-image[align="center"]]:block',
-          '[&_.ProseMirror_img.inline-editor-image[align="right"]]:ml-auto',
-          '[&_.ProseMirror_img.inline-editor-image[align="right"]]:block',
+          '[&_.ProseMirror_img.inline-editor-image[align="center"]]:mx-auto',
+          '[&_.ProseMirror_img.inline-editor-image[align="center"]]:mb-2',
+          '[&_.ProseMirror_img.inline-editor-image[align="right"]]:float-right',
+          '[&_.ProseMirror_img.inline-editor-image[align="right"]]:ml-4',
+          '[&_.ProseMirror_img.inline-editor-image[align="right"]]:mb-2',
         )}
         style={style}
       />

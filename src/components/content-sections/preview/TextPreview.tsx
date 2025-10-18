@@ -42,7 +42,7 @@ export function TextPreview({
       >
         <div className="brand-container">
           <div className="max-w-4xl mx-auto">
-            <div className="prose prose-gray max-w-none">
+            <div className="prose prose-gray max-w-none overflow-hidden">
               <InlineTextEditor
                 content={data.content || ''}
                 onUpdate={(htmlContent) => {
@@ -129,7 +129,7 @@ export function TextPreview({
     >
       <div className="brand-container">
         <div className="max-w-4xl mx-auto">
-          <div className="prose prose-gray max-w-none">
+          <div className="prose prose-gray max-w-none overflow-hidden">
             {data.content && <ContentRenderer content={data.content} />}
           </div>
         </div>

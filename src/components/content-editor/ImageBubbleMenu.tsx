@@ -60,15 +60,29 @@ export function ImageBubbleMenu({ editor }: ImageBubbleMenuProps) {
     const newWidth = value[0];
     setWidth(newWidth);
 
-    editor.chain().focus().updateAttributes('image', {
-      width: `${newWidth}%`
-    }).run();
+    // Get current node position before update
+    const { from } = editor.state.selection;
+
+    // Update attributes and re-select the node to keep it selected
+    editor.chain()
+      .updateAttributes('image', {
+        width: `${newWidth}%`
+      })
+      .setNodeSelection(from)
+      .run();
   }, [editor]);
 
   const setAlignment = useCallback((align: 'left' | 'center' | 'right') => {
-    editor.chain().focus().updateAttributes('image', {
-      align
-    }).run();
+    // Get current node position before update
+    const { from } = editor.state.selection;
+
+    // Update attributes and re-select the node to keep it selected
+    editor.chain()
+      .updateAttributes('image', {
+        align
+      })
+      .setNodeSelection(from)
+      .run();
   }, [editor]);
 
   const deleteImage = useCallback(() => {
