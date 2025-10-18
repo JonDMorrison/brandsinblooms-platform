@@ -95,6 +95,12 @@ export async function middleware(request: NextRequest) {
     const hostname = extractHostname(request)
     const pathname = request.nextUrl.pathname
     
+    // Hard-exempt dev tools and their APIs before any other logic
+    if (pathname.startsWith('/dev') || pathname.startsWith('/api/dev')) {
+      debug.middleware(`Early skip for dev path: ${pathname}`)
+      return NextResponse.next()
+    }
+    
     // Debug logging for environment variables and request details
     debug.middleware('Request details:', {
       hostname,
@@ -114,9 +120,10 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/admin')) {
       return handleAdminRoute(request)
     }
-    
-    // Skip middleware for certain paths
+
+    // Skip middleware for certain paths (must come BEFORE all other checks)
     if (shouldSkipMiddleware(pathname)) {
+      debug.middleware(`Skipping middleware for path: ${pathname}`)
       return NextResponse.next()
     }
 
@@ -146,7 +153,7 @@ export async function middleware(request: NextRequest) {
     // Add performance headers
     supabaseResponse.headers.set('X-DNS-Prefetch-Control', 'on')
     supabaseResponse.headers.set('X-Content-Type-Options', 'nosniff')
-    
+
     // Add cache headers for static assets
     if (pathname.startsWith('/_next/static/') || pathname.startsWith('/fonts/') || pathname.startsWith('/images/')) {
       supabaseResponse.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
@@ -230,6 +237,7 @@ function shouldSkipMiddleware(pathname: string): boolean {
   const skipPaths = [
     '/_next',           // Next.js internal paths
     '/api',             // All API routes handle their own authentication
+    '/dev',             // Development tools (handle their own authentication)
     '/favicon.ico',     // Favicon
     '/robots.txt',      // SEO files
     '/sitemap.xml',     // SEO files
@@ -269,16 +277,16 @@ interface User {
 }
 
 function handleMainAppAuthentication(
-  request: NextRequest, 
-  response: NextResponse, 
-  user: User | null, 
+  request: NextRequest,
+  response: NextResponse,
+  user: User | null,
   pathname: string
 ): NextResponse {
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || 
+  const isPublicRoute = publicRoutes.some(route =>
+    pathname === route ||
     pathname.startsWith('/test-supabase')
   )
-  
+
   const isAuthRoute = authRoutes.includes(pathname)
 
   // Redirect authenticated users away from auth pages
@@ -796,6 +804,8 @@ export const config = {
      * Match all request paths except for the ones starting with:
      * - _next/static (static files)
      * - _next/image (image optimization files)
+     * - api (API routes)
+     * - dev (development tools)
      * - favicon.ico (favicon file)
      * - manifest.json (PWA manifest)
      * - robots.txt (SEO file)
@@ -805,6 +815,6 @@ export const config = {
      * - *.worker.js (Service workers)
      * - health, monitoring (system endpoints)
      */
-    '/((?!_next/static|_next/image|favicon\.ico|manifest\.json|robots\.txt|icon-.*\.png|apple-icon.*\.png|screenshot-.*\.png|.*\.worker\.js|health|monitoring).*)',
+    '/((?!_next/static|_next/image|api|dev|favicon\.ico|manifest\.json|robots\.txt|icon-.*\.png|apple-icon.*\.png|screenshot-.*\.png|.*\.worker\.js|health|monitoring).*)',
   ],
 }

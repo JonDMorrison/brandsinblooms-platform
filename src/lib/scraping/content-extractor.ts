@@ -298,69 +298,70 @@ function extractLogo($: CheerioAPI, baseUrl: string): string | undefined {
 
   for (const selector of logoSelectors) {
     console.log(`[LOGO EXTRACTION] Trying selector: "${selector}"`);
-    const images = $(selector);
+    const images = $(selector).toArray();
     console.log(`[LOGO EXTRACTION]   Found ${images.length} image(s) matching selector`);
 
-    if (images.length > 0) {
-      images.each((index, element) => {
-        const img = $(element);
-        const src = img.attr('src');
-        const alt = img.attr('alt');
-        const className = img.attr('class');
-        const id = img.attr('id');
+    for (let index = 0; index < images.length; index++) {
+      const element = images[index];
+      const img = $(element);
+      const src = img.attr('src');
+      const alt = img.attr('alt');
+      const className = img.attr('class');
+      const id = img.attr('id');
 
-        console.log(`[LOGO EXTRACTION]   Image ${index + 1}:`);
-        console.log(`[LOGO EXTRACTION]     - src: ${src || '(missing)'}`);
-        console.log(`[LOGO EXTRACTION]     - alt: ${alt || '(none)'}`);
-        console.log(`[LOGO EXTRACTION]     - class: ${className || '(none)'}`);
-        console.log(`[LOGO EXTRACTION]     - id: ${id || '(none)'}`);
+      console.log(`[LOGO EXTRACTION]   Image ${index + 1}:`);
+      console.log(`[LOGO EXTRACTION]     - src: ${src || '(missing)'}`);
+      console.log(`[LOGO EXTRACTION]     - alt: ${alt || '(none)'}`);
+      console.log(`[LOGO EXTRACTION]     - class: ${className || '(none)'}`);
+      console.log(`[LOGO EXTRACTION]     - id: ${id || '(none)'}`);
 
-        if (!src) {
-          console.log(`[LOGO EXTRACTION]     ❌ Rejected: No src attribute`);
-          allCandidates.push({ selector, src: '(missing)', reason: 'No src attribute' });
-          return; // Continue to next image
+      if (!src) {
+        console.log(`[LOGO EXTRACTION]     ❌ Rejected: No src attribute`);
+        allCandidates.push({ selector, src: '(missing)', reason: 'No src attribute' });
+        continue;
+      }
+
+      // Check if it's a data URL (base64 or SVG)
+      if (src.startsWith('data:')) {
+        const dataType = src.substring(5, src.indexOf(';') > 0 ? src.indexOf(';') : src.indexOf(','));
+        console.log(`[LOGO EXTRACTION]     ❌ Rejected: Data URL (${dataType})`);
+        allCandidates.push({ selector, src: src.substring(0, 100) + '...', reason: `Data URL (${dataType})` });
+        continue;
+      }
+
+      // Check if it's an SVG file
+      if (src.endsWith('.svg') || src.includes('.svg?') || src.includes('.svg#')) {
+        console.log(`[LOGO EXTRACTION]     ⚠️  Warning: SVG file (may not be supported by all processors)`);
+      }
+
+      // Try to resolve the URL
+      try {
+        const resolvedUrl = new URL(src, baseUrl).href;
+        console.log(`[LOGO EXTRACTION]     ✅ URL resolved to: ${resolvedUrl}`);
+
+        // Additional validation
+        if (resolvedUrl.includes('placeholder') ||
+            resolvedUrl.includes('loading') ||
+            resolvedUrl.includes('spinner') ||
+            resolvedUrl.includes('blank') ||
+            resolvedUrl.includes('transparent')) {
+          console.log(`[LOGO EXTRACTION]     ⚠️  Warning: URL might be a placeholder`);
+          allCandidates.push({ selector, src: resolvedUrl, reason: 'Possible placeholder' });
+          continue;
         }
 
-        // Check if it's a data URL (base64 or SVG)
-        if (src.startsWith('data:')) {
-          const dataType = src.substring(5, src.indexOf(';') > 0 ? src.indexOf(';') : src.indexOf(','));
-          console.log(`[LOGO EXTRACTION]     ❌ Rejected: Data URL (${dataType})`);
-          allCandidates.push({ selector, src: src.substring(0, 100) + '...', reason: `Data URL (${dataType})` });
-          return; // Continue to next image
-        }
+        console.log(`[LOGO EXTRACTION]     🎯 Found valid logo candidate!`);
+        allCandidates.push({ selector, src: resolvedUrl });
 
-        // Check if it's an SVG file
-        if (src.endsWith('.svg') || src.includes('.svg?') || src.includes('.svg#')) {
-          console.log(`[LOGO EXTRACTION]     ⚠️  Warning: SVG file (may not be supported by all processors)`);
-        }
-
-        // Try to resolve the URL
-        try {
-          const resolvedUrl = new URL(src, baseUrl).href;
-          console.log(`[LOGO EXTRACTION]     ✅ URL resolved to: ${resolvedUrl}`);
-
-          // Additional validation
-          if (resolvedUrl.includes('placeholder') ||
-              resolvedUrl.includes('loading') ||
-              resolvedUrl.includes('spinner') ||
-              resolvedUrl.includes('blank') ||
-              resolvedUrl.includes('transparent')) {
-            console.log(`[LOGO EXTRACTION]     ⚠️  Warning: URL might be a placeholder`);
-            allCandidates.push({ selector, src: resolvedUrl, reason: 'Possible placeholder' });
-          } else {
-            console.log(`[LOGO EXTRACTION]     🎯 Found valid logo candidate!`);
-            allCandidates.push({ selector, src: resolvedUrl });
-
-            // Return the first valid logo found
-            console.log(`[LOGO EXTRACTION] ✅ Selected logo: ${resolvedUrl}`);
-            console.log(`[LOGO EXTRACTION] Total candidates evaluated: ${allCandidates.length}`);
-            return resolvedUrl;
-          }
-        } catch (urlError) {
-          console.log(`[LOGO EXTRACTION]     ❌ Failed to resolve URL: ${urlError instanceof Error ? urlError.message : String(urlError)}`);
-          allCandidates.push({ selector, src, reason: 'URL resolution failed' });
-        }
-      });
+        // Return the first valid logo found
+        console.log(`[LOGO EXTRACTION] ✅ Selected logo: ${resolvedUrl}`);
+        console.log(`[LOGO EXTRACTION] Total candidates evaluated: ${allCandidates.length}`);
+        return resolvedUrl;
+      } catch (urlError) {
+        console.log(`[LOGO EXTRACTION]     ❌ Failed to resolve URL: ${urlError instanceof Error ? urlError.message : String(urlError)}`);
+        allCandidates.push({ selector, src, reason: 'URL resolution failed' });
+        continue;
+      }
     }
   }
 
@@ -433,6 +434,161 @@ function extractBrandColors(html: string): string[] {
   const filtered = Array.from(colors).filter(color => !commonColors.includes(color));
 
   return filtered.slice(0, 5); // Top 5 unique colors
+}
+
+// Improved brand color extraction with weighting and context awareness
+function extractBrandColorsImproved(html: string): string[] {
+  const $ = load(html);
+
+  // Color parsers and helpers
+  const hex3 = /^#([0-9a-fA-F]{3})$/;
+  const hex6 = /^#([0-9a-fA-F]{6})$/;
+  const rgbRe = /rgba?\(\s*([\d]{1,3})\s*,\s*([\d]{1,3})\s*,\s*([\d]{1,3})(?:\s*,\s*(0|0?\.\d+|1(?:\.0)?))?\s*\)/g;
+  const hslRe = /hsla?\(\s*([\d]{1,3})\s*,\s*([\d]{1,3})%\s*,\s*([\d]{1,3})%(?:\s*,\s*(0|0?\.\d+|1(?:\.0)?))?\s*\)/g;
+
+  function expandShortHex(h: string): string {
+    const m = h.match(hex3);
+    if (!m) return h.toLowerCase();
+    const [r, g, b] = m[1].split('');
+    return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
+  }
+  function clamp(n: number) { return Math.max(0, Math.min(255, n)); }
+  function rgbToHex(r: number, g: number, b: number): string {
+    return `#${clamp(r).toString(16).padStart(2, '0')}${clamp(g).toString(16).padStart(2, '0')}${clamp(b).toString(16).padStart(2, '0')}`.toLowerCase();
+  }
+  function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+    h = (h % 360 + 360) % 360; s = s / 100; l = l / 100;
+    const c = (1 - Math.abs(2*l - 1)) * s;
+    const x = c * (1 - Math.abs(((h/60) % 2) - 1));
+    const m = l - c/2;
+    let r=0, g=0, b=0;
+    if (0 <= h && h < 60) { r=c; g=x; b=0; }
+    else if (60 <= h && h < 120) { r=x; g=c; b=0; }
+    else if (120 <= h && h < 180) { r=0; g=c; b=x; }
+    else if (180 <= h && h < 240) { r=0; g=x; b=c; }
+    else if (240 <= h && h < 300) { r=x; g=0; b=c; }
+    else { r=c; g=0; b=x; }
+    return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
+  }
+  function normalizeColor(raw: string | undefined | null): string | null {
+    if (!raw) return null;
+    const c = raw.trim().toLowerCase();
+    if (c === 'transparent' || c === 'inherit' || c === 'currentcolor') return null;
+    if (hex6.test(c)) return c;
+    if (hex3.test(c)) return expandShortHex(c);
+    const rgbMatch = c.match(/^rgba?\(/) ? c.match(/^rgba?\((.*)\)$/) : null;
+    if (rgbMatch) {
+      rgbRe.lastIndex = 0;
+      const m = rgbRe.exec(c);
+      if (m) return rgbToHex(parseInt(m[1],10), parseInt(m[2],10), parseInt(m[3],10));
+    }
+    const hslMatch = c.match(/^hsla?\(/) ? c.match(/^hsla?\((.*)\)$/) : null;
+    if (hslMatch) {
+      hslRe.lastIndex = 0;
+      const m = hslRe.exec(c);
+      if (m) {
+        const [r,g,b] = hslToRgb(parseInt(m[1],10), parseInt(m[2],10), parseInt(m[3],10));
+        return rgbToHex(r,g,b);
+      }
+    }
+    return null;
+  }
+  function isGrayscale(hex: string): boolean {
+    const m = hex.match(hex6);
+    if (!m) return false;
+    const r = parseInt(m[1].substring(0,2),16);
+    const g = parseInt(m[1].substring(2,4),16);
+    const b = parseInt(m[1].substring(4,6),16);
+    const max = Math.max(r,g,b), min = Math.min(r,g,b);
+    return (max - min) <= 15; // low saturation
+  }
+
+  const scores = new Map<string, number>();
+  const add = (color: string | null, weight: number) => {
+    if (!color) return;
+    const hex = normalizeColor(color);
+    if (!hex) return;
+    if (['#ffffff','#000000'].includes(hex)) return;
+    if (isGrayscale(hex)) return;
+    scores.set(hex, (scores.get(hex) || 0) + weight);
+  };
+
+  // Limits to prevent excessive scanning on large pages
+  const MAX_INLINE_ELEMENTS = 600; // scan at most 600 inline style elements
+  const MAX_STYLE_TAGS = 6;        // scan at most 6 <style> tags
+  const MAX_STYLE_LENGTH = 40000;  // scan at most 40KB per style block
+  const MAX_MATCHES_PER_BLOCK = 500; // avoid pathological regex backtracking
+
+  // Inline styles: strong signal. Boost if in header/hero/nav areas.
+  const importantSelector = 'header, nav, .header, .navbar, .site-header, #header, #masthead, .hero, [class*="hero"], .wp-block-cover, .wp-block-cover-image';
+  let inlineCount = 0;
+  $('[style]').each((_, el) => {
+    if (++inlineCount > MAX_INLINE_ELEMENTS) return false; // break
+    let style = ($(el).attr('style') || '').toLowerCase();
+    if (style.length > MAX_STYLE_LENGTH) style = style.slice(0, MAX_STYLE_LENGTH);
+    const base = $(el).is(importantSelector) ? 6 : 3;
+    const hexRe = /#([a-f0-9]{3}|[a-f0-9]{6})\b/gi; let m: RegExpExecArray | null;
+    let matchCount = 0;
+    while ((m = hexRe.exec(style)) !== null) { add(m[0], base); if (++matchCount > MAX_MATCHES_PER_BLOCK) break; }
+    rgbRe.lastIndex = 0; matchCount = 0; while ((m = rgbRe.exec(style)) !== null) { add(m[0], base); if (++matchCount > MAX_MATCHES_PER_BLOCK) break; }
+    hslRe.lastIndex = 0; matchCount = 0; while ((m = hslRe.exec(style)) !== null) { add(m[0], base); if (++matchCount > MAX_MATCHES_PER_BLOCK) break; }
+  });
+
+  // Style tags: weaker. Prefer CSS variables with brand-ish names.
+  let styleTagCount = 0;
+  $('style').each((_, el) => {
+    if (++styleTagCount > MAX_STYLE_TAGS) return false; // break
+    let css = ($(el).html() || '').toLowerCase();
+    if (css.length > MAX_STYLE_LENGTH) css = css.slice(0, MAX_STYLE_LENGTH);
+    const varRe = /(\-\-[a-z0-9-_]+)\s*:\s*([^;]+);/gi; let vm: RegExpExecArray | null;
+    let varCount = 0;
+    while ((vm = varRe.exec(css)) !== null) {
+      if (++varCount > MAX_MATCHES_PER_BLOCK) break;
+      const name = vm[1];
+      const val = vm[2].trim();
+      const weight = /primary|accent|brand|theme|palette|color/i.test(name) ? 6 : 2;
+      const inner = val;
+      const hexRe = /#([a-f0-9]{3}|[a-f0-9]{6})\b/gi; let m: RegExpExecArray | null;
+      let matchCount = 0;
+      while ((m = hexRe.exec(inner)) !== null) { add(m[0], weight); if (++matchCount > MAX_MATCHES_PER_BLOCK) break; }
+      rgbRe.lastIndex = 0; matchCount = 0; while ((m = rgbRe.exec(inner)) !== null) { add(m[0], weight); if (++matchCount > MAX_MATCHES_PER_BLOCK) break; }
+      hslRe.lastIndex = 0; matchCount = 0; while ((m = hslRe.exec(inner)) !== null) { add(m[0], weight); if (++matchCount > MAX_MATCHES_PER_BLOCK) break; }
+    }
+    const hexRe2 = /#([a-f0-9]{3}|[a-f0-9]{6})\b/gi; let m2: RegExpExecArray | null;
+    let matchCount2 = 0;
+    while ((m2 = hexRe2.exec(css)) !== null) { add(m2[0], 1); if (++matchCount2 > MAX_MATCHES_PER_BLOCK) break; }
+    rgbRe.lastIndex = 0; matchCount2 = 0; while ((m2 = rgbRe.exec(css)) !== null) { add(m2[0], 1); if (++matchCount2 > MAX_MATCHES_PER_BLOCK) break; }
+    hslRe.lastIndex = 0; matchCount2 = 0; while ((m2 = hslRe.exec(css)) !== null) { add(m2[0], 1); if (++matchCount2 > MAX_MATCHES_PER_BLOCK) break; }
+  });
+
+  // Meta theme-color: very strong
+  $('meta[name="theme-color"]').each((_, el) => {
+    const content = $(el).attr('content');
+    add(content || null, 8);
+  });
+
+  const ranked = Array.from(scores.entries()).sort((a,b) => b[1]-a[1]).map(([hex]) => hex);
+  if (ranked.length === 0) {
+    // Fallback to basic extraction
+    const simple = new Set<string>();
+    const hexColorRegex = /#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\b/g;
+    const styleMatches = html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+    if (styleMatches) {
+      styleMatches.forEach(styleTag => {
+        const matches = styleTag.match(hexColorRegex);
+        if (matches) matches.forEach(color => simple.add(expandShortHex(color)));
+      });
+    }
+    const inlineMatches = html.match(/style=\"[^\"]*\"/gi);
+    if (inlineMatches) {
+      inlineMatches.forEach(inlineStyle => {
+        const matches = inlineStyle.match(hexColorRegex);
+        if (matches) matches.forEach(color => simple.add(expandShortHex(color)));
+      });
+    }
+    return Array.from(simple).slice(0, 5);
+  }
+  return ranked.slice(0, 5);
 }
 
 /**
@@ -1425,7 +1581,7 @@ export function extractBusinessInfo(html: string, baseUrl: string): ExtractedBus
     addresses: extractAddresses($),
     socialLinks: extractSocialLinks($),
     logoUrl: extractLogo($, baseUrl),
-    brandColors: extractBrandColors(html),
+    brandColors: extractBrandColorsImproved(html),
     keyFeatures: extractKeyFeatures($),
     businessDescription: extractBusinessDescription($),
     heroSection: extractHeroSection($, baseUrl),

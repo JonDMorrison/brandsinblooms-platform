@@ -219,7 +219,9 @@ export async function POST(request: NextRequest) {
       discoveryResult = await discoverAndScrapePages(sanitizedUrl);
 
       if (discoveryResult.pages.length === 0) {
-        throw new Error('No pages could be scraped from the website');
+        const firstError = discoveryResult.errors?.[0]?.error || 'Unknown error';
+        console.error(`[${requestId}] No pages scraped. Discovery errors:`, discoveryResult.errors);
+        throw new Error(`No pages could be scraped from the website. First error: ${firstError}`);
       }
     } catch (error: unknown) {
       const errorInfo = handleError(error);

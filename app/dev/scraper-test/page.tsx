@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Globe,
@@ -42,13 +42,17 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/src/compo
 import { Progress } from '@/src/components/ui/progress'
 import { Separator } from '@/src/components/ui/separator'
 import { ScrollArea } from '@/src/components/ui/scroll-area'
-import { useAuth } from '@/src/contexts/AuthContext'
 import { toast } from 'sonner'
+import NextLink from 'next/link'
+import { useAuth } from '@/src/contexts/AuthContext'
 import type { ScraperPreviewResponse, DevApiErrorResponse, ScrapedPageResult } from '@/lib/types/dev-api-types'
 
 export default function ScraperTestPage() {
-  const { user } = useAuth()
+  console.log('[ScraperTestPage] Component rendering')
+
   const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
+
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -57,29 +61,41 @@ export default function ScraperTestPage() {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
   const [selectedPage, setSelectedPage] = useState<ScrapedPageResult | null>(null)
 
-  // Redirect to login if not authenticated
-  if (!user) {
-    router.push('/login')
-    return null
-  }
+  // Note: Authentication is handled at the API level
+  // The /api/dev/scraper-preview endpoint requires authentication and returns 401 if not authenticated
+  // This page is accessible to all users in development, but the API will enforce auth
 
-  // Note: Production blocking is handled at the API level
-  // The /api/dev/scraper-preview endpoint returns 404 in production
+  console.log('[ScraperTestPage] Current state:', { url, loading, error: !!error, result: !!result })
+  console.log('[ScraperTestPage] Router:', router)
+
+  useEffect(() => {
+    console.log('[ScraperTestPage useEffect] Mounted - checking if any effects run')
+    return () => {
+      console.log('[ScraperTestPage useEffect] Unmounting - navigation detected')
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('[handleSubmit] Form submitted, preventing default')
     e.preventDefault()
 
+    console.log('[handleSubmit] URL:', url)
     if (!url) {
+      console.log('[handleSubmit] No URL, showing error')
       toast.error('Please enter a URL')
       return
     }
 
+    console.log('[handleSubmit] Setting loading state')
     setLoading(true)
     setError(null)
     setResult(null)
     setSelectedPage(null)
 
     try {
+      console.log('[handleSubmit] Calling API...')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 45000)
       const response = await fetch('/api/dev/scraper-preview', {
         method: 'POST',
         headers: {
@@ -89,18 +105,29 @@ export default function ScraperTestPage() {
           websiteUrl: url,
           verbose: true,
         }),
+        signal: controller.signal,
       })
 
+      console.log('[handleSubmit] API response status:', response.status)
+
       if (!response.ok) {
+        if (response.status === 401) {
+          console.log('[handleSubmit] 401 Unauthorized')
+          throw new Error('Authentication required. Please log in to use this tool.')
+        }
         const errorData = await response.json() as DevApiErrorResponse
+        console.log('[handleSubmit] Error data:', errorData)
         throw new Error(errorData.error || `Failed with status ${response.status}`)
       }
 
+      console.log('[handleSubmit] Parsing response...')
       const data = await response.json() as { data: ScraperPreviewResponse }
+      console.log('[handleSubmit] Setting result data')
       setResult(data.data)
 
       // Auto-select first page if available
       if (data.data.scraping.discovery.pages.length > 0) {
+        console.log('[handleSubmit] Auto-selecting first page')
         const firstPage: ScrapedPageResult = {
           url: data.data.scraping.discovery.pages[0].url,
           pageType: data.data.scraping.discovery.pages[0].pageType,
@@ -111,12 +138,18 @@ export default function ScraperTestPage() {
         setSelectedPage(firstPage)
       }
 
+      console.log('[handleSubmit] Success!')
       toast.success('Scraping completed successfully')
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to scrape website'
+      console.log('[handleSubmit] Error:', err)
+      const message = (err as any)?.name === 'AbortError'
+        ? 'Request timed out. Try again or use a simpler page.'
+        : err instanceof Error ? err.message : 'Failed to scrape website'
       setError(message)
       toast.error(message)
     } finally {
+      console.log('[handleSubmit] Resetting loading state')
+      clearTimeout(timeoutId)
       setLoading(false)
     }
   }
@@ -193,6 +226,21 @@ export default function ScraperTestPage() {
 
   return (
     <div className="container max-w-7xl mx-auto py-8 px-4">
+      {/* Auth Banner for dev tools */}
+      {!authLoading && !user && (
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Sign in required</AlertTitle>
+          <AlertDescription className="flex items-center gap-3 flex-wrap">
+            Dev tools require authentication. Submitting will return 401 until you sign in.
+            <Button size="sm" variant="outline" asChild>
+              <NextLink href={`/login?redirectTo=${encodeURIComponent('/dev/scraper-test')}`}>
+                Sign In
+              </NextLink>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Website Scraper Test</h1>
@@ -210,7 +258,13 @@ export default function ScraperTestPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            onSubmitCapture={(e) => {
+              console.log('[form onSubmitCapture] Form submit captured')
+            }}
+          >
             <div>
               <Label htmlFor="url">Website URL</Label>
               <div className="flex gap-2 mt-1">
@@ -223,7 +277,14 @@ export default function ScraperTestPage() {
                   disabled={loading}
                   className="flex-1"
                 />
-                <Button type="submit" disabled={loading}>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  onClick={(e) => {
+                    console.log('[Button onClick] Button clicked directly')
+                    console.log('[Button onClick] Event:', e.type, e.currentTarget.type)
+                  }}
+                >
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
