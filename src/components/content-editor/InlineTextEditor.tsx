@@ -190,8 +190,9 @@ const InlineTextEditorComponent = ({
     onSelectionUpdate: ({ editor }) => {
       const { from, to } = editor.state.selection;
       const hasSelection = from !== to;
-      
-      if (hasSelection && isEditing && showToolbar) {
+
+      // Don't show text toolbar when an image is selected
+      if (hasSelection && isEditing && showToolbar && !editor.isActive('image')) {
         setSelectionRange({ from, to });
         setShowFloatingToolbar(true);
       } else {

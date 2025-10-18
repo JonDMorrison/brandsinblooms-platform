@@ -92,7 +92,7 @@ export function ImageBubbleMenu({ editor }: ImageBubbleMenuProps) {
     <BubbleMenu
       editor={editor}
       shouldShow={({ editor }) => editor.isActive('image')}
-      className="bg-background border rounded-lg shadow-lg p-2 flex items-center gap-1"
+      className="bg-white/95 backdrop-blur-sm border-gray-200 rounded-lg shadow-lg p-2 flex items-center gap-1"
     >
       {/* Width Control */}
       <div className="flex items-center gap-2 px-2 min-w-[200px]">
@@ -153,7 +153,7 @@ export function ImageBubbleMenu({ editor }: ImageBubbleMenuProps) {
             <Edit className="h-3.5 w-3.5" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80" align="start">
+        <PopoverContent className="w-80 bg-white" align="start">
           <div className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="image-alt">Alt Text</Label>
