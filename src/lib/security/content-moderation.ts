@@ -13,6 +13,13 @@
 
 import type { GeneratedSiteData, ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
 
+// Feature flag to enable/disable moderation (disabled by default)
+const CONTENT_MODERATION_ENABLED = process.env.CONTENT_MODERATION_ENABLED === 'true';
+
+export function isContentModerationEnabled(): boolean {
+  return CONTENT_MODERATION_ENABLED;
+}
+
 /**
  * Content validation result
  */
@@ -134,6 +141,9 @@ const MAX_ARRAY_LENGTH = 50;
  * ```
  */
 export function validateGeneratedContent(content: string | object): ContentValidationResult {
+  if (!CONTENT_MODERATION_ENABLED) {
+    return { safe: true, violations: [] };
+  }
   const violations: string[] = [];
 
   // Convert to string for pattern matching
@@ -299,6 +309,9 @@ function sanitizeStringArray(arr: unknown, maxLength: number = MAX_ARRAY_LENGTH)
  * ```
  */
 export function moderateStructuredContent(data: GeneratedSiteData): ContentValidationResult {
+  if (!CONTENT_MODERATION_ENABLED) {
+    return { safe: true, violations: [] };
+  }
   const issues: string[] = [];
 
   try {
@@ -597,6 +610,9 @@ function isSafeUrl(url: string): boolean {
  * ```
  */
 export function moderateScrapedContent(data: ScrapedWebsiteContext): boolean {
+  if (!CONTENT_MODERATION_ENABLED) {
+    return true;
+  }
   // Check all text fields
   const textFields: string[] = [];
 

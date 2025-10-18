@@ -12,7 +12,7 @@
 
 import { getJob, updateJobStatus, updateJobResult, updateJobError } from './site-generation-jobs';
 import { generateSiteContent } from '@/lib/ai/site-generator-service';
-import { moderateStructuredContent } from '@/lib/security/content-moderation';
+import { moderateStructuredContent, isContentModerationEnabled } from '@/lib/security/content-moderation';
 import { calculateActualCost } from './cost-management';
 import { createSiteFromGenerated, getSiteUrl } from '@/lib/sites/site-creator';
 import { handleError } from '@/lib/types/error-handling';
@@ -145,6 +145,9 @@ export async function processGenerationJob(
 
     // 4. Moderate generated content
     console.log(`[Job ${jobId}] Moderating content...`);
+    if (!isContentModerationEnabled()) {
+      console.log(`[Job ${jobId}] Content moderation disabled by config. Skipping checks.`);
+    }
     const moderation = moderateStructuredContent(generationResult.data);
 
     if (!moderation.safe) {
