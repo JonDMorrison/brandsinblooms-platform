@@ -13,6 +13,7 @@ import { FullSiteEditorContext, useIsEditModeActive } from '@/src/contexts/FullS
 import { SectionControls } from './SectionControls'
 import { getPreviewComponent } from './section-preview-map'
 import { SectionSettingsModal } from './modals/SectionSettingsModal'
+import { DeleteSectionModal } from './modals/DeleteSectionModal'
 
 interface EditableCustomerSiteSectionProps {
   children: ReactNode
@@ -33,6 +34,7 @@ export function EditableCustomerSiteSection({
   const context = useContext(FullSiteEditorContext)
   const [isHovered, setIsHovered] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   // If not in edit mode or no context available, just render children (CustomerSiteSection)
   if (!isEditMode || !context) {
@@ -122,6 +124,11 @@ export function EditableCustomerSiteSection({
     }
   }
 
+  // Handle delete section
+  const handleDeleteSection = () => {
+    context.deleteSection(sectionKey)
+  }
+
   // Get fresh section data from context (includes staged/unsaved changes)
   // This ensures both Edit and Navigate modes show the same staged content
   const contextSectionData = pageContent?.sections?.[sectionKey]
@@ -201,6 +208,7 @@ export function EditableCustomerSiteSection({
             sectionKey={sectionKey}
             section={mergedSection}
             onSettingsClick={() => setShowSettingsModal(true)}
+            onDeleteClick={() => setShowDeleteModal(true)}
           />
         )}
 
@@ -233,6 +241,15 @@ export function EditableCustomerSiteSection({
         onSave={handleSettingsSave}
         onAddItem={handleAddItem}
         onDeleteItem={handleDeleteItem}
+      />
+
+      {/* Delete Modal - rendered outside conditional to prevent unmounting on hover loss */}
+      <DeleteSectionModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        sectionKey={sectionKey}
+        sectionType={mergedSection.type}
+        onConfirm={handleDeleteSection}
       />
     </>
     )
@@ -283,6 +300,7 @@ export function EditableCustomerSiteSection({
             sectionKey={sectionKey}
             section={section}
             onSettingsClick={() => setShowSettingsModal(true)}
+            onDeleteClick={() => setShowDeleteModal(true)}
           />
         )}
 
@@ -299,6 +317,15 @@ export function EditableCustomerSiteSection({
         onSave={handleSettingsSave}
         onAddItem={handleAddItem}
         onDeleteItem={handleDeleteItem}
+      />
+
+      {/* Delete Modal - rendered outside conditional to prevent unmounting on hover loss */}
+      <DeleteSectionModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        sectionKey={sectionKey}
+        sectionType={section.type}
+        onConfirm={handleDeleteSection}
       />
     </>
   )

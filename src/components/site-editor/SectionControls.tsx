@@ -5,7 +5,7 @@
  * Floating controls that appear on hover for section management
  */
 
-import React, { useState, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { useFullSiteEditor } from '@/src/contexts/FullSiteEditorContext'
 import { ContentSection, LAYOUT_SECTIONS } from '@/src/lib/content/schema'
 import {
@@ -18,24 +18,21 @@ import {
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { cn } from '@/src/lib/utils'
-import { DeleteSectionModal } from './modals/DeleteSectionModal'
 
 interface SectionControlsProps {
   sectionKey: string
   section: ContentSection
   onSettingsClick: () => void
+  onDeleteClick: () => void
 }
 
-export function SectionControls({ sectionKey, section, onSettingsClick }: SectionControlsProps) {
+export function SectionControls({ sectionKey, section, onSettingsClick, onDeleteClick }: SectionControlsProps) {
   const {
     toggleSectionVisibility,
-    deleteSection,
     reorderSection,
     pageContent,
     layout
   } = useFullSiteEditor()
-
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   // Determine if this section is required for the current layout
   const layoutConfig = LAYOUT_SECTIONS[layout]
@@ -54,10 +51,6 @@ export function SectionControls({ sectionKey, section, onSettingsClick }: Sectio
       isLast: currentIndex === sectionKeys.length - 1
     }
   }, [pageContent?.sections, sectionKey])
-
-  const handleDelete = () => {
-    deleteSection(sectionKey)
-  }
 
   // Determine disabled states
   const cannotHide = isRequired && section.visible
@@ -144,7 +137,7 @@ export function SectionControls({ sectionKey, section, onSettingsClick }: Sectio
           size="sm"
           variant="ghost"
           className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={() => setShowDeleteModal(true)}
+          onClick={onDeleteClick}
           disabled={cannotDelete}
           title={
             cannotDelete
@@ -155,15 +148,6 @@ export function SectionControls({ sectionKey, section, onSettingsClick }: Sectio
           <Trash2 className="w-4 h-4" />
         </Button>
       </div>
-
-      {/* Delete Confirmation Modal */}
-      <DeleteSectionModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        sectionKey={sectionKey}
-        sectionType={section.type}
-        onConfirm={handleDelete}
-      />
     </>
   )
 }

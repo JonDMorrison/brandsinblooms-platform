@@ -357,16 +357,16 @@ export function CustomerSiteSection({
           >
             <div className="brand-container">
               <div className="max-w-4xl mx-auto text-center">
-                <h2 className={`text-4xl md:text-5xl font-bold mb-6 leading-tight ${
+                <h2 className={`text-4xl md:text-6xl font-bold mb-6 leading-tight ${
                   backgroundSetting === 'primary' ? 'text-white' : ''
                 }`} style={{
-                  fontFamily: 'var(--theme-font-heading)', 
+                  fontFamily: 'var(--theme-font-heading)',
                   color: backgroundSetting === 'primary' ? 'white' : 'var(--theme-text)'
                 }}>
                   {String(sectionData.headline || 'Growing Together, Sustainably')}
                 </h2>
-                <div 
-                  className={`text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed ${
+                <div
+                  className={`text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed ${
                     backgroundSetting === 'primary' ? 'text-white/90' : ''
                   } [&_p:not(:first-child)]:mt-2`}
                   style={{

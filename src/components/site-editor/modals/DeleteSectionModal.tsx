@@ -55,18 +55,17 @@ export function DeleteSectionModal({
           </div>
         </div>
 
-        <DialogFooter className="flex justify-end gap-3 mt-6">
+        <DialogFooter className="p-4 sm:p-6 border-t bg-gray-50 flex-shrink-0">
           <Button
             variant="outline"
             onClick={onClose}
-            className="text-sm"
           >
             Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={handleConfirm}
-            className="text-sm"
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold"
           >
             Delete Section
           </Button>
