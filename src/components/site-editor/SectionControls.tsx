@@ -5,20 +5,20 @@
  * Floating controls that appear on hover for section management
  */
 
-import React from 'react'
+import React, { useState, useMemo } from 'react'
 import { useFullSiteEditor } from '@/src/contexts/FullSiteEditorContext'
-import { ContentSection } from '@/src/lib/content/schema'
+import { ContentSection, LAYOUT_SECTIONS } from '@/src/lib/content/schema'
 import {
   Eye,
   EyeOff,
   Trash2,
   ChevronUp,
   ChevronDown,
-  Copy,
   Settings
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { cn } from '@/src/lib/utils'
+import { DeleteSectionModal } from './modals/DeleteSectionModal'
 
 interface SectionControlsProps {
   sectionKey: string
@@ -28,17 +28,41 @@ interface SectionControlsProps {
 
 export function SectionControls({ sectionKey, section, onSettingsClick }: SectionControlsProps) {
   const {
-    hideSection,
+    toggleSectionVisibility,
     deleteSection,
     reorderSection,
-    duplicateSection,
+    pageContent,
+    layout
   } = useFullSiteEditor()
 
-  const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this section?')) {
-      deleteSection(sectionKey)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  // Determine if this section is required for the current layout
+  const layoutConfig = LAYOUT_SECTIONS[layout]
+  const isRequired = layoutConfig.required.includes(sectionKey)
+
+  // Determine if this section is first or last for up/down button states
+  const { isFirst, isLast } = useMemo(() => {
+    if (!pageContent?.sections) return { isFirst: false, isLast: false }
+
+    const sectionKeys = Object.keys(pageContent.sections)
+    const currentIndex = sectionKeys.indexOf(sectionKey)
+
+    return {
+      isFirst: currentIndex === 0,
+      isLast: currentIndex === sectionKeys.length - 1
     }
+  }, [pageContent?.sections, sectionKey])
+
+  const handleDelete = () => {
+    deleteSection(sectionKey)
   }
+
+  // Determine disabled states
+  const cannotHide = isRequired && section.visible
+  const cannotMoveUp = isFirst || isRequired
+  const cannotMoveDown = isLast
+  const cannotDelete = isRequired
 
   return (
     <>
@@ -56,8 +80,15 @@ export function SectionControls({ sectionKey, section, onSettingsClick }: Sectio
           size="sm"
           variant="ghost"
           className="h-8 w-8 p-0"
-          onClick={() => hideSection(sectionKey)}
-          title={section.visible ? 'Hide section' : 'Show section'}
+          onClick={() => toggleSectionVisibility(sectionKey)}
+          disabled={cannotHide}
+          title={
+            cannotHide
+              ? 'Required sections cannot be hidden'
+              : section.visible
+              ? 'Hide section'
+              : 'Show section'
+          }
         >
           {section.visible ? (
             <Eye className="w-4 h-4" />
@@ -72,7 +103,14 @@ export function SectionControls({ sectionKey, section, onSettingsClick }: Sectio
           variant="ghost"
           className="h-8 w-8 p-0"
           onClick={() => reorderSection(sectionKey, 'up')}
-          title="Move section up"
+          disabled={cannotMoveUp}
+          title={
+            isRequired
+              ? 'Required sections must stay first'
+              : isFirst
+              ? 'Already at the top'
+              : 'Move section up'
+          }
         >
           <ChevronUp className="w-4 h-4" />
         </Button>
@@ -83,20 +121,10 @@ export function SectionControls({ sectionKey, section, onSettingsClick }: Sectio
           variant="ghost"
           className="h-8 w-8 p-0"
           onClick={() => reorderSection(sectionKey, 'down')}
-          title="Move section down"
+          disabled={cannotMoveDown}
+          title={cannotMoveDown ? 'Already at the bottom' : 'Move section down'}
         >
           <ChevronDown className="w-4 h-4" />
-        </Button>
-
-        {/* Duplicate */}
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-8 w-8 p-0"
-          onClick={() => duplicateSection(sectionKey)}
-          title="Duplicate section"
-        >
-          <Copy className="w-4 h-4" />
         </Button>
 
         {/* Settings */}
@@ -115,12 +143,26 @@ export function SectionControls({ sectionKey, section, onSettingsClick }: Sectio
           size="sm"
           variant="ghost"
           className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={handleDelete}
-          title="Delete section"
+          onClick={() => setShowDeleteModal(true)}
+          disabled={cannotDelete}
+          title={
+            cannotDelete
+              ? 'Required sections cannot be deleted'
+              : 'Delete section'
+          }
         >
           <Trash2 className="w-4 h-4" />
         </Button>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteSectionModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        sectionKey={sectionKey}
+        sectionType={section.type}
+        onConfirm={handleDelete}
+      />
     </>
   )
 }

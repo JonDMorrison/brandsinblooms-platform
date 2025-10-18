@@ -165,21 +165,31 @@ export function EditableCustomerSiteSection({
     }
 
     // In Edit mode: render PreviewComponent WITH edit callbacks (editing enabled)
+    const isHidden = mergedSection.visible === false
+
     return (
       <>
       <div
-        className={`relative ${className}`}
+        className={`relative ${className} ${isHidden ? 'opacity-50' : ''}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => setActiveSection(sectionKey)}
         data-section-key={sectionKey}
         data-edit-mode="edit"
+        data-section-hidden={isHidden}
         style={{
           outline: isHovered ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
           outlineOffset: '4px',
-          transition: 'outline 0.2s ease'
+          transition: 'outline 0.2s ease, opacity 0.2s ease'
         }}
       >
+        {/* Hidden Section Badge */}
+        {isHidden && (
+          <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-gray-900 text-white text-xs font-medium rounded shadow-lg">
+            Hidden
+          </div>
+        )}
+
         {/* Section Controls Overlay */}
         {isHovered && (
           <SectionControls
@@ -232,22 +242,31 @@ export function EditableCustomerSiteSection({
   // Fallback: render children with controls (no preview component available)
   const isActive = activeSection === sectionKey
   const showControls = (isHovered || isActive)
+  const isFallbackHidden = section.visible === false
 
   return (
     <>
       <div
-        className={`relative ${className}`}
+        className={`relative ${className} ${isFallbackHidden ? 'opacity-50' : ''}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => setActiveSection(sectionKey)}
         data-section-key={sectionKey}
         data-edit-mode="true"
+        data-section-hidden={isFallbackHidden}
         style={{
           outline: showControls ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
           outlineOffset: '4px',
-          transition: 'outline 0.2s ease'
+          transition: 'outline 0.2s ease, opacity 0.2s ease'
         }}
       >
+        {/* Hidden Section Badge */}
+        {isFallbackHidden && (
+          <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-gray-900 text-white text-xs font-medium rounded shadow-lg">
+            Hidden
+          </div>
+        )}
+
         {/* Section Controls Overlay */}
         {showControls && (
           <SectionControls

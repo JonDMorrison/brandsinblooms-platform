@@ -953,20 +953,27 @@ export function FullSiteEditorProvider({
 
   // Section visibility management
   const toggleSectionVisibility = useCallback((sectionKey: string) => {
+    // First, check if this operation is allowed
+    const section = state.pageContent?.sections[sectionKey]
+    if (!section) return
+
+    const layoutConfig = LAYOUT_SECTIONS[state.layout]
+    const isRequired = layoutConfig.required.includes(sectionKey)
+
+    if (isRequired && section.visible) {
+      toast.error('Required sections cannot be hidden')
+      return
+    }
+
+    // Store the current visibility state to determine the message
+    const wasVisible = section.visible
+
+    // Update state
     setState(prev => {
       if (!prev.pageContent) return prev
 
       const section = prev.pageContent.sections[sectionKey]
       if (!section) return prev
-
-      // Check if this is a required section for the current layout
-      const layoutConfig = LAYOUT_SECTIONS[state.layout]
-      const isRequired = layoutConfig.required.includes(sectionKey)
-
-      if (isRequired && section.visible) {
-        toast.error('Required sections cannot be hidden')
-        return prev
-      }
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
@@ -979,8 +986,6 @@ export function FullSiteEditorProvider({
         }
       }
 
-      toast.success(section.visible ? 'Section hidden' : 'Section visible')
-
       return {
         ...prev,
         pageContent: updatedContent,
@@ -988,7 +993,10 @@ export function FullSiteEditorProvider({
         sectionsChanged: true
       }
     })
-  }, [state.layout])
+
+    // Show toast AFTER setState, not inside it
+    toast.success(wasVisible ? 'Section hidden' : 'Section visible')
+  }, [state.layout, state.pageContent])
 
   // Add new section
   const addSection = useCallback((sectionType: ContentSectionType, variant?: string) => {
@@ -1194,7 +1202,8 @@ export function FullSiteEditorProvider({
         sectionsChanged: true
       }
     })
-    toast.success('Section hidden')
+    // No toast here - this is a utility method
+    // Toasts should only come from user-facing actions like toggleSectionVisibility
   }, [])
 
   const deleteSection = useCallback((sectionKey: string) => {
