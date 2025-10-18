@@ -1233,15 +1233,19 @@ export function FullSiteEditorProvider({
     const sections = state.pageContent?.sections
     if (!sections) return
 
-    // Work with ALL sections (visible and hidden)
-    const sectionKeys = Object.keys(sections)
-    const currentIndex = sectionKeys.indexOf(sectionKey)
+    // Sort sections by order property to get actual visual order
+    // Use order property as single source of truth, not object key order
+    const sortedSections = Object.entries(sections)
+      .map(([key, section]) => ({ key, section, order: section.order || 0 }))
+      .sort((a, b) => a.order - b.order)
+
+    const currentIndex = sortedSections.findIndex(s => s.key === sectionKey)
 
     if (currentIndex === -1) return
 
     const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
 
-    if (newIndex < 0 || newIndex >= sectionKeys.length) {
+    if (newIndex < 0 || newIndex >= sortedSections.length) {
       toast.error(`Cannot move section ${direction}`)
       return
     }
@@ -1250,36 +1254,43 @@ export function FullSiteEditorProvider({
       if (!prev.pageContent) return prev
 
       const sections = prev.pageContent.sections
-      const sectionKeys = Object.keys(sections)
-      const currentIndex = sectionKeys.indexOf(sectionKey)
+
+      // Sort sections by order property
+      const sortedSections = Object.entries(sections)
+        .map(([key, section]) => ({ key, section, order: section.order || 0 }))
+        .sort((a, b) => a.order - b.order)
+
+      const currentIndex = sortedSections.findIndex(s => s.key === sectionKey)
 
       if (currentIndex === -1) return prev
 
       const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
 
-      if (newIndex < 0 || newIndex >= sectionKeys.length) {
+      if (newIndex < 0 || newIndex >= sortedSections.length) {
         return prev
       }
 
-      // Swap sections in key array (includes ALL sections: visible + hidden)
-      const newSectionKeys = [...sectionKeys]
-      ;[newSectionKeys[currentIndex], newSectionKeys[newIndex]] = [
-        newSectionKeys[newIndex],
-        newSectionKeys[currentIndex]
-      ]
+      // Get keys of sections to swap
+      const currentKey = sortedSections[currentIndex].key
+      const swapKey = sortedSections[newIndex].key
 
-      // Rebuild sections object in new order AND update order property for ALL sections
-      const reorderedSections = {} as typeof sections
-      newSectionKeys.forEach((key, index) => {
-        reorderedSections[key] = {
-          ...sections[key],
-          order: index + 1  // Update order property to match position (1-indexed)
-        }
-      })
+      // Swap ONLY the order property values (keep object structure unchanged)
+      const currentOrder = sections[currentKey].order || 0
+      const swapOrder = sections[swapKey].order || 0
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: reorderedSections
+        sections: {
+          ...sections,
+          [currentKey]: {
+            ...sections[currentKey],
+            order: swapOrder
+          },
+          [swapKey]: {
+            ...sections[swapKey],
+            order: currentOrder
+          }
+        }
       }
 
       return {

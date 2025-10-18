@@ -40,15 +40,20 @@ export function SectionControls({ sectionKey, section, onSettingsClick, onDelete
 
   // Determine if this section is first or last for up/down button states
   // Consider ALL sections (visible and hidden) since reordering works on all sections
+  // Use order property as single source of truth, not object key order
   const { isFirst, isLast } = useMemo(() => {
     if (!pageContent?.sections) return { isFirst: false, isLast: false }
 
-    const sectionKeys = Object.keys(pageContent.sections)
-    const currentIndex = sectionKeys.indexOf(sectionKey)
+    // Sort sections by order property to get actual visual order
+    const sortedSections = Object.entries(pageContent.sections)
+      .map(([key, section]) => ({ key, order: section.order || 0 }))
+      .sort((a, b) => a.order - b.order)
+
+    const currentIndex = sortedSections.findIndex(s => s.key === sectionKey)
 
     return {
       isFirst: currentIndex === 0,
-      isLast: currentIndex === sectionKeys.length - 1
+      isLast: currentIndex === sortedSections.length - 1
     }
   }, [pageContent?.sections, sectionKey])
 
