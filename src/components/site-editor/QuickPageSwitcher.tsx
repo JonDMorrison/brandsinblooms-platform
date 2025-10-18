@@ -198,14 +198,14 @@ export function QuickPageSwitcher({
 
       {/* Unsaved Changes Confirmation Dialog */}
       <Dialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
             <DialogTitle>You have unsaved changes</DialogTitle>
             <DialogDescription>
               Would you like to save your changes before switching pages?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-2 flex-col-reverse sm:flex-row">
+          <DialogFooter className="gap-2 sm:gap-3 flex-col-reverse sm:flex-row sm:flex-wrap">
             <Button
               type="button"
               variant="outline"
