@@ -121,7 +121,63 @@ export interface ScrapedWebsiteContext {
         content: string;
         rating?: number;
       }>;
+      /** FAQ questions and answers - MUST preserve exactly as found */
+      faq?: Array<{
+        question: string;
+        answer: string;
+      }>;
+      /** Product/Service categories for navigation */
+      productCategories?: Array<{
+        name: string;
+        description?: string;
+        itemCount?: number;
+      }>;
+      /** Footer content extracted from the site */
+      footerContent?: {
+        copyrightText?: string;
+        importantLinks?: Array<{ text: string; url: string }>;
+        additionalInfo?: string;
+      };
     };
+    /** Font families used on the site */
+    fonts?: string[];
+    /** Favicon URL for branding */
+    favicon?: string;
+    /** Original site title from meta tags */
+    siteTitle?: string;
+    /** Meta description for SEO */
+    siteDescription?: string;
+    /** Geographic coordinates if available */
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+    /** Design tokens extracted from the site for consistent styling */
+    designTokens?: {
+      spacing?: {
+        values: string[];
+        unit: 'rem' | 'px' | 'em';
+      };
+      borderRadius?: {
+        values: string[];
+      };
+      shadows?: string[];
+    };
+    /** Image galleries found on the site */
+    galleries?: Array<{
+      type: 'grid' | 'carousel' | 'masonry' | 'unknown';
+      images: Array<{
+        url: string;
+        alt?: string;
+        width?: number;
+        height?: number;
+        aspectRatio?: string;
+      }>;
+      columns?: number;
+      title?: string;
+    }>;
+    /** Detailed page content structure */
+    pageContent?: Record<string, unknown>;
   };
   /** Clean text content from each scraped page, keyed by page type */
   pageContents?: Record<string, string>;

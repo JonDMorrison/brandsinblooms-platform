@@ -195,7 +195,8 @@ export async function processGenerationJob(
       siteResult = await createSiteFromGenerated(
         generationResult.data,
         job.user_id,
-        logoUrl
+        logoUrl,
+        scrapedContext
       );
       console.log(
         `[Job ${jobId}] Site created: ${siteResult.siteId} (${siteResult.pageIds.length} pages)`

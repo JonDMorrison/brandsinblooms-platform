@@ -713,29 +713,155 @@ export async function generateSiteContent(
     // PHASE 3: Generate custom pages from scraped context (if available)
     const customPages: CustomPageSection[] = [];
 
-    if (scrapedContext?.recommendedPages && scrapedContext.recommendedPages.length > 0) {
+    // Check for FAQ data first
+    const hasFAQ = scrapedContext?.businessInfo.structuredContent?.faq &&
+                   scrapedContext.businessInfo.structuredContent.faq.length > 0;
+
+    if (hasFAQ || (scrapedContext?.recommendedPages && scrapedContext.recommendedPages.length > 0)) {
       console.log('\n=== PHASE 3: Generating Custom Pages ===');
-      console.log('Recommended pages:', scrapedContext.recommendedPages.join(', '));
 
-      // Filter out standard pages we already generated
-      const standardPages = ['home', 'about', 'contact', 'services', 'team', 'testimonials', 'values', 'features'];
-      const customPageTypes = scrapedContext.recommendedPages.filter(
-        pageType => !standardPages.includes(pageType.toLowerCase())
-      );
+      // Generate FAQ page if FAQ data exists
+      if (hasFAQ) {
+        console.log('Generating FAQ page from scraped content...');
+        const faqData = scrapedContext.businessInfo.structuredContent!.faq!;
 
-      if (customPageTypes.length > 0) {
-        console.log('Generating custom pages:', customPageTypes.join(', '));
+        try {
+          // Build prompt for FAQ page with actual scraped FAQs
+          const faqPrompt = `Generate an FAQ page using these ACTUAL questions and answers from the business website.
 
-        // Generate custom pages (limit to avoid excessive API calls)
-        const pagesToGenerate = customPageTypes.slice(0, 3);
+Business: ${businessInfo.name}
+Industry: ${businessInfo.industry || 'business'}
 
-        for (const pageType of pagesToGenerate) {
+CRITICAL INSTRUCTIONS:
+- You MUST preserve these EXACT questions and answers
+- DO NOT create new FAQs or modify the content
+- Only improve formatting and organization
+- Group related questions if appropriate
+- Add a page title and description
+
+Actual FAQs from the website:
+${JSON.stringify(faqData, null, 2)}
+
+Generate JSON in this exact format:
+{
+  "title": "Frequently Asked Questions",
+  "slug": "faq",
+  "headline": "Frequently Asked Questions",
+  "description": "Find answers to common questions about our products and services",
+  "items": [
+    {
+      "title": "[exact question from above]",
+      "description": "[exact answer from above]",
+      "icon": "help-circle"
+    }
+  ]
+}
+
+REMEMBER: Use the EXACT questions as titles and EXACT answers as descriptions. Do not create new content.`;
+
+          const faqResponse = await generateWithOpenRouter<string>(
+            faqPrompt,
+            PAGE_GENERATION_SYSTEM_PROMPT,
+            {
+              temperature: 0.3, // Low temperature to preserve content exactly
+              maxTokens: 2000,
+              timeout: 30000,
+              retries: 2
+            }
+          );
+
+          totalCalls++;
+          if (faqResponse.usage) {
+            totalPromptTokens += faqResponse.usage.promptTokens;
+            totalCompletionTokens += faqResponse.usage.completionTokens;
+          }
+
+          // Parse the response
+          const content = typeof faqResponse.content === 'string'
+            ? faqResponse.content
+            : JSON.stringify(faqResponse.content);
+
           try {
-            // Get page content from scraped context if available
-            const pageContent = scrapedContext.pageContents?.[pageType] || '';
+            const parsed = JSON.parse(content);
+            customPages.push({
+              pageType: 'faq',
+              title: parsed.title || 'Frequently Asked Questions',
+              slug: parsed.slug || 'faq',
+              content: {
+                headline: parsed.headline || 'Frequently Asked Questions',
+                description: parsed.description || 'Find answers to common questions',
+                items: parsed.items || faqData.map(faq => ({
+                  title: faq.question,
+                  description: faq.answer,
+                  icon: 'help-circle'
+                }))
+              }
+            });
+            console.log(`FAQ page generated with ${faqData.length} questions`);
+          } catch (parseError) {
+            console.warn('Failed to parse FAQ page response, using fallback structure');
+            // Fallback: create FAQ page directly from scraped data
+            customPages.push({
+              pageType: 'faq',
+              title: 'Frequently Asked Questions',
+              slug: 'faq',
+              content: {
+                headline: 'Frequently Asked Questions',
+                description: 'Find answers to common questions about our products and services',
+                items: faqData.map(faq => ({
+                  title: faq.question,
+                  description: faq.answer,
+                  icon: 'help-circle'
+                }))
+              }
+            });
+            failedSections.push('faq-parsing');
+          }
+        } catch (error: unknown) {
+          const errorInfo = handleError(error);
+          console.error('Failed to generate FAQ page:', errorInfo.message);
+          // Fallback: create FAQ page directly from scraped data
+          customPages.push({
+            pageType: 'faq',
+            title: 'Frequently Asked Questions',
+            slug: 'faq',
+            content: {
+              headline: 'Frequently Asked Questions',
+              description: 'Find answers to common questions about our products and services',
+              items: faqData.map(faq => ({
+                title: faq.question,
+                description: faq.answer,
+                icon: 'help-circle'
+              }))
+            }
+          });
+          failedSections.push('faq-generation');
+        }
+      }
 
-            // Build prompt for custom page
-            const customPagePrompt = `Generate a custom page for a ${businessInfo.industry || 'business'} website.
+      // Generate other custom pages from recommended pages
+      if (scrapedContext?.recommendedPages && scrapedContext.recommendedPages.length > 0) {
+        console.log('Recommended pages:', scrapedContext.recommendedPages.join(', '));
+
+        // Filter out standard pages we already generated
+        const standardPages = ['home', 'about', 'contact', 'services', 'team', 'testimonials', 'values', 'features', 'faq'];
+        const customPageTypes = scrapedContext.recommendedPages.filter(
+          pageType => !standardPages.includes(pageType.toLowerCase())
+        );
+
+        if (customPageTypes.length > 0) {
+          console.log('Generating custom pages:', customPageTypes.join(', '));
+
+          // Generate custom pages (limit to avoid excessive API calls)
+          const pagesToGenerate = customPageTypes.slice(0, 3);
+
+          for (const pageType of pagesToGenerate) {
+            try {
+              // Get page content from scraped context if available
+              const pageContent = scrapedContext.pageContents?.[pageType] || '';
+
+              // Build prompt for custom page
+              const customPagePrompt = `Generate a custom page for a ${businessInfo.industry || 'business'} website.
 
 Page Type: ${pageType}
 Business: ${businessInfo.name}
@@ -798,10 +924,11 @@ Generate JSON in this format:
               console.warn(`Failed to parse custom page: ${pageType}`);
               failedSections.push(`custom-page-${pageType}`);
             }
-          } catch (error: unknown) {
-            const errorInfo = handleError(error);
-            console.error(`Failed to generate custom page ${pageType}:`, errorInfo.message);
-            failedSections.push(`custom-page-${pageType}`);
+            } catch (error: unknown) {
+              const errorInfo = handleError(error);
+              console.error(`Failed to generate custom page ${pageType}:`, errorInfo.message);
+              failedSections.push(`custom-page-${pageType}`);
+            }
           }
         }
       }

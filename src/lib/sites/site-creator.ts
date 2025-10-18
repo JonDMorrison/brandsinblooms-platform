@@ -452,13 +452,16 @@ function createCustomPageContent(customPage: CustomPageSection) {
  *
  * @param data - Generated site data from LLM
  * @param userId - Owner user ID
+ * @param logoUrl - Optional logo URL
+ * @param scrapedContext - Optional scraped website context for enhanced features
  * @returns Site creation result
  * @throws Error if creation fails
  */
 export async function createSiteFromGenerated(
   data: GeneratedSiteData,
   userId: string,
-  logoUrl?: string
+  logoUrl?: string,
+  scrapedContext?: import('@/lib/types/site-generation-jobs').ScrapedWebsiteContext
 ): Promise<SiteCreationResult> {
   const supabase = await createClient();
   let siteId: string | null = null;
@@ -483,10 +486,42 @@ export async function createSiteFromGenerated(
       : subdomain;
 
     // Build navigation items including custom pages
-    const navigationItems = [
+    const navigationItems: Array<{
+      label: string;
+      href: string;
+      children?: Array<{ label: string; href: string; description?: string }>;
+    }> = [
       { label: 'Home', href: '/home' },
       { label: 'About', href: '/about' }
     ];
+
+    // Add product/service categories if available from scraped context
+    const productCategories = scrapedContext?.businessInfo?.structuredContent?.productCategories;
+    if (productCategories && productCategories.length > 0) {
+      // Determine if it's products or services based on category names
+      const hasServices = productCategories.some((cat: { name: string }) =>
+        cat.name.toLowerCase().includes('service') ||
+        cat.name.toLowerCase().includes('consultation') ||
+        cat.name.toLowerCase().includes('support')
+      );
+
+      const parentLabel = hasServices ? 'Services' : 'Products';
+
+      // Create dropdown menu with categories
+      navigationItems.push({
+        label: parentLabel,
+        href: '#', // Parent item doesn't navigate
+        children: productCategories.map((category: { name: string; description?: string }) => ({
+          label: category.name,
+          href: `/${parentLabel.toLowerCase()}/${category.name.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')}`,
+          description: category.description
+        }))
+      });
+
+      console.log(`Added ${productCategories.length} product/service categories to navigation`);
+    }
 
     // Add custom page links in the middle
     if (data.customPages && data.customPages.length > 0) {
@@ -500,6 +535,29 @@ export async function createSiteFromGenerated(
 
     // Add Contact at the end
     navigationItems.push({ label: 'Contact', href: '/contact' });
+
+    // Extract footer content from scraped context
+    const footerContent = scrapedContext?.businessInfo?.structuredContent?.footerContent;
+
+    // Build footer links array
+    const footerLinks: Array<{ text: string; url: string }> = [];
+
+    // Add important links from scraped footer if available
+    if (footerContent?.importantLinks && footerContent.importantLinks.length > 0) {
+      footerLinks.push(...footerContent.importantLinks.map(link => ({
+        text: link.text,
+        url: link.url
+      })));
+      console.log(`Added ${footerContent.importantLinks.length} footer links from scraped content`);
+    }
+
+    // Determine copyright text - use scraped if available, otherwise generate
+    const copyrightText = footerContent?.copyrightText ||
+                         `© ${new Date().getFullYear()} ${data.site_name}. All rights reserved.`;
+
+    if (footerContent?.copyrightText) {
+      console.log('Using scraped footer copyright text');
+    }
 
     // Create site record
     const themeSettings = {
@@ -536,7 +594,9 @@ export async function createSiteFromGenerated(
         style: 'centered',
         navigationItems: navigationItems, // Use same navigation items in footer
         socialLinks: [],
-        copyright: `© ${new Date().getFullYear()} ${data.site_name}. All rights reserved.`
+        copyright: copyrightText,
+        links: footerLinks, // Include scraped footer links
+        additionalInfo: footerContent?.additionalInfo || undefined
       },
       // Store original branding and SEO for reference
       _generated: {

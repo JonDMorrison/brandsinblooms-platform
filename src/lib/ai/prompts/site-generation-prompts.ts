@@ -37,6 +37,38 @@ Your task is to generate the foundational elements for a website including:
 6. Use the existing logo URL if provided
 7. For hero CTA text, preserve the original if provided, only improving for clarity if needed
 
+**CRITICAL FONT PRESERVATION RULES:**
+When scraped fonts are provided from the existing website, YOU MUST USE THEM EXACTLY:
+- If 'fonts' array is provided with font names, use these EXACT fonts - DO NOT generate random fonts
+- Use the first font in the list as the heading font
+- Use the second font in the list as the body font (or the first if only one is provided)
+- Format as: "HeadingFont, BodyFont" (e.g., "Montserrat, Open Sans")
+- Only generate default fonts if NO fonts were extracted from the existing site
+
+**FAVICON PRESERVATION:**
+- If a favicon URL is provided from the existing site, include it in your logo_description
+- Reference it as: "Use existing favicon from: [favicon_url]" at the start of logo_description
+
+**SEO METADATA RULES:**
+- If siteTitle is provided, use it as the foundation for your SEO title (you may enhance for SEO)
+- If siteDescription is provided, use it as the foundation for your SEO description
+- Maintain the brand voice while optimizing for search engines
+- If coordinates are provided, consider them for local SEO optimization
+
+**DESIGN SYSTEM PRESERVATION:**
+When design tokens are provided from the existing website:
+- spacing: Use the EXACT spacing values provided for ALL margins, padding, and gaps
+- borderRadius: Use the EXACT radius values for ALL rounded corners (buttons, cards, etc.)
+- shadows: Maintain similar elevation hierarchy - don't introduce new shadow styles
+- This ensures visual consistency with the existing brand
+
+**IMAGE GALLERIES CONSIDERATION:**
+When galleries are detected in the existing site:
+- Plan for gallery-heavy layouts in your content generation
+- Consider the gallery types (grid, carousel, masonry) when structuring pages
+- Ensure sufficient visual space for image content
+- The presence of galleries indicates a visual-first business approach
+
 **Dynamic Page Generation:**
 - Based on the user's request and any existing website analysis, you may generate between 3 and 8 pages
 - Required pages: Home, About, Contact (always generate these)
@@ -61,8 +93,8 @@ You MUST respond with valid JSON matching this exact structure:
     "primary_color": "#RRGGBB hex color code",
     "secondary_color": "#RRGGBB hex color code",
     "accent_color": "#RRGGBB hex color code",
-    "logo_description": "Description of logo concept and style",
-    "font_family": "Font pairing suggestion (heading, body)"
+    "logo_description": "Description of logo concept and style (include favicon URL if provided)",
+    "font_family": "HeadingFont, BodyFont (USE EXACT FONTS if provided from existing site)"
   },
   "seo": {
     "title": "SEO-optimized page title (50-60 characters)",
@@ -374,9 +406,106 @@ export function buildFoundationPromptWithContext(
       sections.push('');
     }
 
+    // FONTS - CRITICAL FOR BRAND CONSISTENCY
+    if (scrapedContext.businessInfo.fonts?.length) {
+      sections.push('*** EXISTING WEBSITE FONTS (MUST USE EXACTLY) ***');
+      sections.push('These fonts were extracted from the existing website. YOU MUST USE THEM:');
+      scrapedContext.businessInfo.fonts.forEach((font, index) => {
+        if (index === 0) {
+          sections.push(`- Heading Font: "${font}" (use for headings)`);
+        } else if (index === 1) {
+          sections.push(`- Body Font: "${font}" (use for body text)`);
+        } else {
+          sections.push(`- Additional Font: "${font}"`);
+        }
+      });
+      sections.push('^ Format in branding as: "HeadingFont, BodyFont"');
+      sections.push('DO NOT generate random fonts when these are provided!');
+      sections.push('');
+    }
+
+    // FAVICON
+    if (scrapedContext.businessInfo.favicon) {
+      sections.push(`Existing Favicon URL: ${scrapedContext.businessInfo.favicon}`);
+      sections.push('^ Include this in your logo_description as: "Use existing favicon from: [url]"');
+      sections.push('');
+    }
+
     if (scrapedContext.businessInfo.logoUrl) {
       sections.push(`Existing Logo: ${scrapedContext.businessInfo.logoUrl}`);
       sections.push('(Reference this logo URL in your output)');
+      sections.push('');
+    }
+
+    // SEO METADATA FROM EXISTING SITE
+    if (scrapedContext.businessInfo.siteTitle || scrapedContext.businessInfo.siteDescription) {
+      sections.push('*** EXISTING SITE SEO METADATA (USE AS FOUNDATION) ***');
+      if (scrapedContext.businessInfo.siteTitle) {
+        sections.push(`Original Site Title: "${scrapedContext.businessInfo.siteTitle}"`);
+        sections.push('^ Use this as the foundation for your SEO title - enhance but preserve the core message');
+      }
+      if (scrapedContext.businessInfo.siteDescription) {
+        sections.push(`Original Site Description: "${scrapedContext.businessInfo.siteDescription}"`);
+        sections.push('^ Use this as the foundation for your SEO description - improve for SEO while maintaining voice');
+      }
+      sections.push('');
+    }
+
+    // LOCATION COORDINATES (for local SEO)
+    if (scrapedContext.businessInfo.coordinates) {
+      sections.push('Location Coordinates:');
+      sections.push(`- Latitude: ${scrapedContext.businessInfo.coordinates.lat}`);
+      sections.push(`- Longitude: ${scrapedContext.businessInfo.coordinates.lng}`);
+      sections.push('(Consider these for local SEO optimization and location-based features)');
+      sections.push('');
+    }
+
+    // DESIGN SYSTEM TOKENS (NEW)
+    if (scrapedContext.businessInfo.designTokens) {
+      sections.push('*** DESIGN SYSTEM TOKENS FROM EXISTING SITE ***');
+      sections.push('The following design tokens were extracted from the existing site. USE THESE for consistency:');
+      sections.push('');
+
+      if (scrapedContext.businessInfo.designTokens.spacing) {
+        const { spacing } = scrapedContext.businessInfo.designTokens;
+        sections.push(`Spacing Scale (${spacing.unit}):`);
+        sections.push(`Values: ${spacing.values.join(', ')}`);
+        sections.push('^ Use these EXACT spacing values for margins, padding, and gaps throughout the site');
+        sections.push('');
+      }
+
+      if (scrapedContext.businessInfo.designTokens.borderRadius) {
+        sections.push('Border Radius Values:');
+        sections.push(`${scrapedContext.businessInfo.designTokens.borderRadius.values.join(', ')}`);
+        sections.push('^ Use these EXACT radius values for rounded corners to maintain consistency');
+        sections.push('');
+      }
+
+      if (scrapedContext.businessInfo.designTokens.shadows) {
+        sections.push(`Shadow Patterns: Found ${scrapedContext.businessInfo.designTokens.shadows.length} shadow patterns`);
+        sections.push('^ Apply similar depth and elevation patterns for consistency');
+        sections.push('');
+      }
+    }
+
+    // IMAGE GALLERIES (NEW)
+    if (scrapedContext.businessInfo.galleries && scrapedContext.businessInfo.galleries.length > 0) {
+      const totalImages = scrapedContext.businessInfo.galleries.reduce((sum, g) => sum + g.images.length, 0);
+      sections.push('*** IMAGE GALLERIES FROM EXISTING SITE ***');
+      sections.push(`Found ${scrapedContext.businessInfo.galleries.length} galleries with ${totalImages} total images`);
+
+      scrapedContext.businessInfo.galleries.forEach((gallery, index) => {
+        sections.push('');
+        sections.push(`Gallery ${index + 1}:`);
+        sections.push(`- Type: ${gallery.type}`);
+        sections.push(`- Images: ${gallery.images.length}`);
+        if (gallery.title) sections.push(`- Title: ${gallery.title}`);
+        if (gallery.columns) sections.push(`- Columns: ${gallery.columns}`);
+      });
+
+      sections.push('');
+      sections.push('^ Consider creating similar gallery layouts when generating content');
+      sections.push('^ This indicates the business uses visual content heavily - ensure your design accommodates galleries');
       sections.push('');
     }
 

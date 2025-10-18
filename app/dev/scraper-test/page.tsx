@@ -460,6 +460,16 @@ export default function ScraperTestPage() {
                       {result.analysis.result.businessInfo.favicon}
                     </code>
                   )}
+
+                  {result.analysis.result.businessInfo.fonts && result.analysis.result.businessInfo.fonts.length > 0 && renderExtractedSection(
+                    'Fonts',
+                    <Code className="h-4 w-4" />,
+                    <div className="flex flex-wrap gap-2">
+                      {result.analysis.result.businessInfo.fonts.map((font, idx) => (
+                        <Badge key={idx} variant="secondary">{font}</Badge>
+                      ))}
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* Contact Tab */}

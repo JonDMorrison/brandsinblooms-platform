@@ -337,6 +337,7 @@ export async function POST(request: NextRequest) {
           }
 
           // Build scraped context for LLM - include all extracted fields
+          // This ensures all rich data from the scraper (fonts, favicon, SEO metadata, etc.) is passed to the LLM
           scrapedContext = {
             baseUrl: analyzed.baseUrl,
             businessInfo: {
@@ -351,6 +352,15 @@ export async function POST(request: NextRequest) {
               tagline: analyzed.businessInfo.tagline,
               keyFeatures: analyzed.businessInfo.keyFeatures,
               structuredContent: analyzed.businessInfo.structuredContent, // Include structured content for preservation
+              // Include additional rich metadata fields
+              fonts: analyzed.businessInfo.fonts, // Font families used on the site
+              favicon: analyzed.businessInfo.favicon, // Favicon URL for branding
+              siteTitle: analyzed.businessInfo.siteTitle, // Original site title from meta tags
+              siteDescription: analyzed.businessInfo.siteDescription, // Meta description for SEO
+              coordinates: analyzed.businessInfo.coordinates, // Geographic coordinates if available
+              designTokens: analyzed.businessInfo.designTokens, // Design tokens for consistent styling
+              galleries: analyzed.businessInfo.galleries, // Image galleries found on site
+              pageContent: analyzed.businessInfo.pageContent, // Detailed page content structure
             },
             pageContents: Object.fromEntries(analyzed.pageContents),
             recommendedPages: analyzed.recommendedPages,
