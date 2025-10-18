@@ -240,7 +240,51 @@
     color: var(--theme-text);
     font-family: var(--theme-font-body);
     line-height: 1.7;
-    margin-bottom: 1rem;
+    margin-bottom: 0;
+  }
+
+  /* Image styles with alignment support */
+  .customer-richtext-content img.inline-editor-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.375rem; /* rounded-md */
+    margin-top: 0.5rem; /* my-2 */
+    margin-bottom: 0.5rem;
+  }
+
+  /* Image float alignment */
+  .customer-richtext-content img.inline-editor-image[align="left"] {
+    float: left;
+    margin-right: 1rem; /* mr-4 */
+    margin-bottom: 0.5rem; /* mb-2 */
+  }
+
+  .customer-richtext-content img.inline-editor-image[align="right"] {
+    float: right;
+    margin-left: 1rem; /* ml-4 */
+    margin-bottom: 0.5rem; /* mb-2 */
+  }
+
+  .customer-richtext-content img.inline-editor-image[align="center"] {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 0.5rem; /* mb-2 */
+  }
+
+  /* Strong and italic text */
+  .customer-richtext-content strong {
+    font-weight: 700;
+  }
+
+  .customer-richtext-content em {
+    font-style: italic;
+  }
+
+  /* Empty paragraph spacing */
+  .customer-richtext-content p:empty {
+    min-height: 1.7em;
+    margin-bottom: 0; /* Override the 1rem margin from line 243 */
   }
 
   [data-sonner-toast][data-styled="true"] {

@@ -42,6 +42,7 @@ export function SectionControls({ sectionKey, section, onSettingsClick }: Sectio
   const isRequired = layoutConfig.required.includes(sectionKey)
 
   // Determine if this section is first or last for up/down button states
+  // Consider ALL sections (visible and hidden) since reordering works on all sections
   const { isFirst, isLast } = useMemo(() => {
     if (!pageContent?.sections) return { isFirst: false, isLast: false }
 

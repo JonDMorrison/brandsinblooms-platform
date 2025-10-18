@@ -115,6 +115,55 @@ export function TextPreview({
             :global(.prose h2:not(.text-center):not(.text-right)) {
               text-align: left;
             }
+
+            /* Image styles with alignment support */
+            :global(.prose img.inline-editor-image) {
+              max-width: 100%;
+              height: auto;
+              border-radius: 0.375rem; /* rounded-md */
+              margin-top: 0.5rem; /* my-2 */
+              margin-bottom: 0.5rem;
+            }
+
+            /* Image float alignment */
+            :global(.prose img.inline-editor-image[align="left"]) {
+              float: left;
+              margin-right: 1rem; /* mr-4 */
+              margin-bottom: 0.5rem; /* mb-2 */
+            }
+
+            :global(.prose img.inline-editor-image[align="right"]) {
+              float: right;
+              margin-left: 1rem; /* ml-4 */
+              margin-bottom: 0.5rem; /* mb-2 */
+            }
+
+            :global(.prose img.inline-editor-image[align="center"]) {
+              display: block;
+              margin-left: auto;
+              margin-right: auto;
+              margin-bottom: 0.5rem; /* mb-2 */
+            }
+
+            /* Strong and italic text */
+            :global(.prose strong) {
+              font-weight: 700;
+            }
+
+            :global(.prose em) {
+              font-style: italic;
+            }
+
+            /* Paragraph margin override */
+            :global(.prose p) {
+              margin: 0;
+            }
+
+            /* Empty paragraph spacing */
+            :global(.prose p:empty) {
+              min-height: 1.7em; /* Matches line-height */
+              margin-bottom: 0; /* Override prose/default margins */
+            }
           `}</style>
         </div>
       </section>
@@ -184,6 +233,55 @@ export function TextPreview({
           :global(.prose h1:not(.text-center):not(.text-right)),
           :global(.prose h2:not(.text-center):not(.text-right)) {
             text-align: left;
+          }
+
+          /* Image styles with alignment support */
+          :global(.prose img.inline-editor-image) {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.375rem; /* rounded-md */
+            margin-top: 0.5rem; /* my-2 */
+            margin-bottom: 0.5rem;
+          }
+
+          /* Image float alignment */
+          :global(.prose img.inline-editor-image[align="left"]) {
+            float: left;
+            margin-right: 1rem; /* mr-4 */
+            margin-bottom: 0.5rem; /* mb-2 */
+          }
+
+          :global(.prose img.inline-editor-image[align="right"]) {
+            float: right;
+            margin-left: 1rem; /* ml-4 */
+            margin-bottom: 0.5rem; /* mb-2 */
+          }
+
+          :global(.prose img.inline-editor-image[align="center"]) {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 0.5rem; /* mb-2 */
+          }
+
+          /* Strong and italic text */
+          :global(.prose strong) {
+            font-weight: 700;
+          }
+
+          :global(.prose em) {
+            font-style: italic;
+          }
+
+          /* Paragraph margin override */
+          :global(.prose p) {
+            margin: 0;
+          }
+
+          /* Empty paragraph spacing */
+          :global(.prose p:empty) {
+            min-height: 1.7em; /* Matches line-height */
+            margin-bottom: 0; /* Override prose/default margins */
           }
         `}</style>
       </div>

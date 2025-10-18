@@ -577,7 +577,7 @@ export function CustomerSiteSection({
         <section className="py-16" style={backgroundStyle}>
           <div className="brand-container">
             <div className="max-w-4xl mx-auto">
-              <div className="prose prose-gray max-w-none customer-richtext-content">
+              <div className="prose prose-gray max-w-none overflow-hidden customer-richtext-content">
                 <ContentRenderer
                   content={String(sectionData.content || '')}
                   className="prose prose-gray max-w-none"

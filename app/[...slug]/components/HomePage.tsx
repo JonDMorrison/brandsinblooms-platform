@@ -25,6 +25,7 @@ import { deserializePageContent } from '@/src/lib/content/serialization'
 import { getLayoutSections } from '@/src/lib/preview/section-renderers'
 import { CustomerSiteSection } from '@/src/components/customer-site/CustomerSiteSection'
 import { EditableCustomerSiteSection } from '@/src/components/site-editor/EditableCustomerSiteSection'
+import { DynamicSectionRenderer } from '@/src/components/site-editor/DynamicSectionRenderer'
 
 // Helper functions for multiline support and feature centering
 const textToHtml = (text: string): string => {
@@ -236,33 +237,10 @@ export async function HomePage() {
       showNavigation={true}
     >
       {/* Dynamic sections based on database order */}
-      {orderedSections.length > 0 ? (
-        // Render sections in database order
-        orderedSections.map(({ key, section }) => {
-          const sectionInfo = sectionDataMap[key as keyof typeof sectionDataMap]
-          
-          // Only render if section has data and is available
-          if (!sectionInfo || sectionInfo.status !== 'available' || !sectionInfo.data) {
-            return null
-          }
-          
-          return (
-            <EditableCustomerSiteSection
-              key={key}
-              sectionKey={key}
-              section={section as ContentSection}
-              sectionData={sectionInfo.data}
-            >
-              <CustomerSiteSection
-                section={section as ContentSection}
-                sectionKey={key}
-                sectionData={sectionInfo.data}
-                backgroundSetting={sectionInfo.backgroundSetting}
-              />
-            </EditableCustomerSiteSection>
-          )
-        })
-      ) : (
+      <DynamicSectionRenderer
+        initialSections={orderedSections}
+        sectionDataMap={sectionDataMap}
+        fallbackContent={
         // Fallback to hardcoded hero section if no database content
         <HeroSectionErrorBoundary>
           <section className="relative py-20 lg:py-32" style={{background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))'}}>
@@ -294,7 +272,8 @@ export async function HomePage() {
             </div>
           </section>
         </HeroSectionErrorBoundary>
-      )}
+        }
+      />
     </SiteRenderer>
   )
 }

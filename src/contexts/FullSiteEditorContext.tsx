@@ -1229,6 +1229,23 @@ export function FullSiteEditorProvider({
   }, [])
 
   const reorderSection = useCallback((sectionKey: string, direction: 'up' | 'down') => {
+    // Check bounds before updating state to determine toast message
+    const sections = state.pageContent?.sections
+    if (!sections) return
+
+    // Work with ALL sections (visible and hidden)
+    const sectionKeys = Object.keys(sections)
+    const currentIndex = sectionKeys.indexOf(sectionKey)
+
+    if (currentIndex === -1) return
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+
+    if (newIndex < 0 || newIndex >= sectionKeys.length) {
+      toast.error(`Cannot move section ${direction}`)
+      return
+    }
+
     setState(prev => {
       if (!prev.pageContent) return prev
 
@@ -1241,29 +1258,29 @@ export function FullSiteEditorProvider({
       const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
 
       if (newIndex < 0 || newIndex >= sectionKeys.length) {
-        toast.error(`Cannot move section ${direction}`)
         return prev
       }
 
-      // Swap sections
+      // Swap sections in key array (includes ALL sections: visible + hidden)
       const newSectionKeys = [...sectionKeys]
       ;[newSectionKeys[currentIndex], newSectionKeys[newIndex]] = [
         newSectionKeys[newIndex],
         newSectionKeys[currentIndex]
       ]
 
-      // Rebuild sections object in new order
+      // Rebuild sections object in new order AND update order property for ALL sections
       const reorderedSections = {} as typeof sections
-      newSectionKeys.forEach(key => {
-        reorderedSections[key] = sections[key]
+      newSectionKeys.forEach((key, index) => {
+        reorderedSections[key] = {
+          ...sections[key],
+          order: index + 1  // Update order property to match position (1-indexed)
+        }
       })
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
         sections: reorderedSections
       }
-
-      toast.success(`Section moved ${direction}`)
 
       return {
         ...prev,
@@ -1272,7 +1289,10 @@ export function FullSiteEditorProvider({
         sectionsChanged: true
       }
     })
-  }, [])
+
+    // Show toast AFTER setState, not inside it
+    toast.success(`Section moved ${direction}`)
+  }, [state.pageContent])
 
   const duplicateSection = useCallback((sectionKey: string) => {
     setState(prev => {

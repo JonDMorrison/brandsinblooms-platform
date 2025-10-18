@@ -8,6 +8,7 @@ import { deserializePageContent } from '@/src/lib/content/serialization'
 import { getLayoutSections } from '@/src/lib/preview/section-renderers'
 import { CustomerSiteSection } from '@/src/components/customer-site/CustomerSiteSection'
 import { EditableCustomerSiteSection } from '@/src/components/site-editor/EditableCustomerSiteSection'
+import { DynamicSectionRenderer } from '@/src/components/site-editor/DynamicSectionRenderer'
 
 export async function ContactPage() {
   const { siteId } = await getSiteHeaders()
@@ -128,33 +129,10 @@ export async function ContactPage() {
       />
 
       {/* Dynamic sections based on database order */}
-      {orderedSections.length > 0 ? (
-        // Render sections in database order
-        orderedSections.map(({ key, section }) => {
-          const sectionInfo = sectionDataMap[key as keyof typeof sectionDataMap]
-
-          // Only render if section has data and is available
-          if (!sectionInfo || sectionInfo.status !== 'available' || !sectionInfo.data) {
-            return null
-          }
-
-          return (
-            <EditableCustomerSiteSection
-              key={key}
-              sectionKey={key}
-              section={section as ContentSection}
-              sectionData={sectionInfo.data}
-            >
-              <CustomerSiteSection
-                section={section as ContentSection}
-                sectionKey={key}
-                sectionData={sectionInfo.data}
-                backgroundSetting={sectionInfo.backgroundSetting}
-              />
-            </EditableCustomerSiteSection>
-          )
-        })
-      ) : (
+      <DynamicSectionRenderer
+        initialSections={orderedSections}
+        sectionDataMap={sectionDataMap}
+        fallbackContent={
         // Fallback to hardcoded sections when no database content
         <>
           {/* Header Section */}
@@ -243,7 +221,8 @@ export async function ContactPage() {
             backgroundSetting="alternate"
           />
         </>
-      )}
+        }
+      />
     </SiteRenderer>
   )
 }
