@@ -38,7 +38,7 @@ export async function ContactPage() {
         const pageContent = deserializePageContent(contentResult.content)
 
         // Check for header section
-        if (pageContent?.sections?.header?.data && pageContent.sections.header.visible) {
+        if (pageContent?.sections?.header?.data) {
           databaseHeaderData = pageContent.sections.header.data
           headerStatus = 'available'
           headerBackgroundSetting = String(pageContent.sections.header.settings?.backgroundColor || 'gradient')
@@ -47,7 +47,7 @@ export async function ContactPage() {
         }
 
         // Check for businessInfo section
-        if (pageContent?.sections?.businessInfo?.data && pageContent.sections.businessInfo.visible) {
+        if (pageContent?.sections?.businessInfo?.data) {
           databaseBusinessInfoData = pageContent.sections.businessInfo.data
           businessInfoStatus = 'available'
           businessInfoBackgroundSetting = String(pageContent.sections.businessInfo.settings?.backgroundColor || 'default')
@@ -56,7 +56,7 @@ export async function ContactPage() {
         // Check for richText sections (richText, richText_1, richText_2, etc.)
         if (pageContent?.sections) {
           Object.entries(pageContent.sections).forEach(([sectionKey, section]) => {
-            if (sectionKey.startsWith('richText') && section?.data && section.visible) {
+            if (sectionKey.startsWith('richText') && section?.data) {
               databaseRichTextSections[sectionKey] = section.data
               richTextStatuses[sectionKey] = 'available'
               richTextBackgroundSettings[sectionKey] = String(section.settings?.backgroundColor || 'default')
@@ -65,7 +65,7 @@ export async function ContactPage() {
         }
 
         // Check for faq section
-        if (pageContent?.sections?.faq?.data && pageContent.sections.faq.visible) {
+        if (pageContent?.sections?.faq?.data) {
           databaseFaqData = pageContent.sections.faq.data
           faqStatus = 'available'
           faqBackgroundSetting = String(pageContent.sections.faq.settings?.backgroundColor || 'alternate')

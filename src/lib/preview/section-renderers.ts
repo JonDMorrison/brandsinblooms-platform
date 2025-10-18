@@ -14,9 +14,10 @@ export function getLayoutSections(
 ): Array<{ key: string; section: ContentSection }> {
   // Get all sections from content, not just those defined in schema
   // This allows for multiple instances of sections like richText_1, richText_2, etc.
+  // Note: Returns ALL sections including hidden ones - visibility is handled at render time
   const sections = Object.entries(content)
     .map(([key, section]) => ({ key, section }))
-    .filter(({ section }) => section && section.visible)
+    .filter(({ section }) => section)  // Only check section exists, not visibility
     .sort((a, b) => (a.section.order || 0) - (b.section.order || 0))
 
   return sections

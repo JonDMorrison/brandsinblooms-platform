@@ -81,39 +81,39 @@ export async function HomePage() {
         heroStatus = 'unpublished'
       } else {
         const pageContent = deserializePageContent(contentResult.content)
-        if (pageContent?.sections?.hero?.data && pageContent.sections.hero.visible) {
+        if (pageContent?.sections?.hero?.data) {
           databaseHeroData = pageContent.sections.hero.data
           heroStatus = 'available'
         } else {
           heroStatus = 'missing_hero'
         }
-        
+
         // Check for featured section data
-        if (pageContent?.sections?.featured?.data && pageContent.sections.featured.visible) {
+        if (pageContent?.sections?.featured?.data) {
           databaseFeaturedData = pageContent.sections.featured.data
           featuredStatus = 'available'
           // Store the background setting
           featuredBackgroundSetting = String(pageContent.sections.featured.settings?.backgroundColor || 'default')
         }
-        
+
         // Check for categories section data
-        if (pageContent?.sections?.categories?.data && pageContent.sections.categories.visible) {
+        if (pageContent?.sections?.categories?.data) {
           databaseCategoriesData = pageContent.sections.categories.data
           categoriesStatus = 'available'
           // Store the background setting
           categoriesBackgroundSetting = String(pageContent.sections.categories.settings?.backgroundColor || 'default')
         }
-        
+
         // Check for features section data
-        if (pageContent?.sections?.features?.data && pageContent.sections.features.visible) {
+        if (pageContent?.sections?.features?.data) {
           databaseFeaturesData = pageContent.sections.features.data
           featuresStatus = 'available'
           // Store the background setting
           featuresBackgroundSetting = String(pageContent.sections.features.settings?.backgroundColor || 'default')
         }
-        
+
         // Check for cta section data
-        if (pageContent?.sections?.cta?.data && pageContent.sections.cta.visible) {
+        if (pageContent?.sections?.cta?.data) {
           databaseCtaData = pageContent.sections.cta.data
           ctaStatus = 'available'
           // Store the background setting
@@ -123,7 +123,7 @@ export async function HomePage() {
         // Check for richText sections (richText, richText_1, richText_2, etc.)
         if (pageContent?.sections) {
           Object.entries(pageContent.sections).forEach(([sectionKey, section]) => {
-            if (sectionKey.startsWith('richText') && section?.data && section.visible) {
+            if (sectionKey.startsWith('richText') && section?.data) {
               databaseRichTextSections[sectionKey] = section.data
               richTextStatuses[sectionKey] = 'available'
               richTextBackgroundSettings[sectionKey] = String(section.settings?.backgroundColor || 'default')

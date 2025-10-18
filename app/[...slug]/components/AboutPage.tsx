@@ -50,7 +50,7 @@ export async function AboutPage() {
         const pageContent = deserializePageContent(contentResult.content)
 
         // Check for header section
-        if (pageContent?.sections?.header?.data && pageContent.sections.header.visible) {
+        if (pageContent?.sections?.header?.data) {
           databaseHeaderData = pageContent.sections.header.data
           headerStatus = 'available'
           headerBackgroundSetting = String(pageContent.sections.header.settings?.backgroundColor || 'gradient')
@@ -59,28 +59,28 @@ export async function AboutPage() {
         }
 
         // Check for mission section
-        if (pageContent?.sections?.mission?.data && pageContent.sections.mission.visible) {
+        if (pageContent?.sections?.mission?.data) {
           databaseMissionData = pageContent.sections.mission.data
           missionStatus = 'available'
           missionBackgroundSetting = String(pageContent.sections.mission.settings?.backgroundColor || 'default')
         }
 
         // Check for values section
-        if (pageContent?.sections?.values?.data && pageContent.sections.values.visible) {
+        if (pageContent?.sections?.values?.data) {
           databaseValuesData = pageContent.sections.values.data
           valuesStatus = 'available'
           valuesBackgroundSetting = String(pageContent.sections.values.settings?.backgroundColor || 'default')
         }
 
         // Check for team section
-        if (pageContent?.sections?.team?.data && pageContent.sections.team.visible) {
+        if (pageContent?.sections?.team?.data) {
           databaseTeamData = pageContent.sections.team.data
           teamStatus = 'available'
           teamBackgroundSetting = String(pageContent.sections.team.settings?.backgroundColor || 'default')
         }
 
         // Check for features section
-        if (pageContent?.sections?.features?.data && pageContent.sections.features.visible) {
+        if (pageContent?.sections?.features?.data) {
           databaseFeaturesData = pageContent.sections.features.data
           featuresStatus = 'available'
           featuresBackgroundSetting = String(pageContent.sections.features.settings?.backgroundColor || 'default')
@@ -89,7 +89,7 @@ export async function AboutPage() {
         // Check for richText sections (richText, richText_1, richText_2, etc.)
         if (pageContent?.sections) {
           Object.entries(pageContent.sections).forEach(([sectionKey, section]) => {
-            if (sectionKey.startsWith('richText') && section?.data && section.visible) {
+            if (sectionKey.startsWith('richText') && section?.data) {
               databaseRichTextSections[sectionKey] = section.data
               richTextStatuses[sectionKey] = 'available'
               richTextBackgroundSettings[sectionKey] = String(section.settings?.backgroundColor || 'default')
@@ -98,7 +98,7 @@ export async function AboutPage() {
         }
 
         // Check for cta section
-        if (pageContent?.sections?.cta?.data && pageContent.sections.cta.visible) {
+        if (pageContent?.sections?.cta?.data) {
           databaseCtaData = pageContent.sections.cta.data
           ctaStatus = 'available'
           ctaBackgroundSetting = String(pageContent.sections.cta.settings?.backgroundColor || 'default')

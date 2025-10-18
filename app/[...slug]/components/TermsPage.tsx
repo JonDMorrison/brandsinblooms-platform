@@ -32,7 +32,7 @@ export async function TermsPage() {
         const pageContent = deserializePageContent(contentResult.content)
 
         // Check for header section
-        if (pageContent?.sections?.header?.data && pageContent.sections.header.visible) {
+        if (pageContent?.sections?.header?.data) {
           databaseHeaderData = pageContent.sections.header.data
           headerStatus = 'available'
           headerBackgroundSetting = String(pageContent.sections.header.settings?.backgroundColor || 'default')
@@ -43,7 +43,7 @@ export async function TermsPage() {
         // Check for richText sections (richText, richText_1, richText_2, etc.)
         if (pageContent?.sections) {
           Object.entries(pageContent.sections).forEach(([sectionKey, section]) => {
-            if (sectionKey.startsWith('richText') && section?.data && section.visible) {
+            if (sectionKey.startsWith('richText') && section?.data) {
               databaseRichTextSections[sectionKey] = section.data
               richTextStatuses[sectionKey] = 'available'
               richTextBackgroundSettings[sectionKey] = String(section.settings?.backgroundColor || 'default')

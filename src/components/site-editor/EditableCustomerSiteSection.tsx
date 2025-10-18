@@ -147,6 +147,11 @@ export function EditableCustomerSiteSection({
   if (PreviewComponent && activeSectionData) {
     // In Navigate mode: render PreviewComponent WITHOUT edit callbacks (preview only)
     if (editorMode === 'navigate') {
+      // Don't render hidden sections in Navigate mode (matches logged-out customer site behavior)
+      if (mergedSection.visible === false) {
+        return null
+      }
+
       return (
         <div
           className={`relative ${className}`}
@@ -236,6 +241,11 @@ export function EditableCustomerSiteSection({
   // Fallback: No PreviewComponent available
   // In Navigate mode, render children without editing UI
   if (editorMode === 'navigate') {
+    // Don't render hidden sections in Navigate mode (matches logged-out customer site behavior)
+    if (mergedSection.visible === false) {
+      return null
+    }
+
     return <>{children}</>
   }
 
