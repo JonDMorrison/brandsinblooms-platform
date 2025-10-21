@@ -9,7 +9,6 @@ import { supabase } from '@/src/lib/supabase/client';
 import { getUserFavorites, toggleFavorite } from '@/src/lib/queries/domains/favorites';
 import { handleError } from '@/src/lib/types/error-handling';
 import { toast } from 'sonner';
-import { queryKeys } from '@/src/lib/queries/keys';
 
 export function useProductFavorites() {
   const siteId = useSiteId();
