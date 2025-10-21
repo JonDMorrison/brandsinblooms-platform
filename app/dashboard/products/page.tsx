@@ -48,7 +48,7 @@ const ProductsPageContent = memo(() => {
   const [editingProductRef, setEditingProductRef] = useState<HTMLElement | null>(null);
 
   // Data hooks
-  const { data: productsResponse, loading, refetch } = useProducts();
+  const { data: productsResponse, loading, refresh } = useProducts();
   const { data: categoriesData = [] } = useProductCategories();
   const updateProduct = useUpdateProduct();
 
@@ -252,8 +252,8 @@ const ProductsPageContent = memo(() => {
   };
 
   const handleProductCreated = useCallback(() => {
-    refetch();
-  }, [refetch]);
+    refresh();
+  }, [refresh]);
 
   return (
     <div className="space-y-6 relative">
