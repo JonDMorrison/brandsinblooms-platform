@@ -5,18 +5,18 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
-import { 
-  uploadProductImage, 
-  uploadMultipleProductImages, 
-  deleteProductImage 
+import {
+  uploadProductImage,
+  uploadMultipleProductImages,
+  deleteProductImage
 } from '@/lib/supabase/storage';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
 import { handleError } from '@/lib/types/error-handling';
-import { 
-  useProductPlaceholder, 
+import {
+  useProductPlaceholder,
   useProductPlaceholderUrl,
-  type ProductPlaceholderParams 
+  type ProductPlaceholderParams
 } from '@/hooks/useProductPlaceholder';
 
 type ProductImage = Tables<'product_images'>;
@@ -50,12 +50,11 @@ type EnhancedProductImage = (ProductImage & { is_legacy: false }) | LegacyProduc
  */
 export function useProductImages(productId?: string) {
   const siteId = useSiteId();
-  
-  return useQuery({
-    queryKey: queryKeys.products.images(siteId!, productId!),
-    queryFn: async () => {
+
+  return useSupabaseQuery<ProductImage[]>(
+    async (signal) => {
       if (!siteId || !productId) return [];
-      
+
       const { data, error } = await supabase
         .from('product_images')
         .select('*')
@@ -66,9 +65,13 @@ export function useProductImages(productId?: string) {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!siteId && !!productId,
-    staleTime: 30 * 1000,
-  });
+    {
+      enabled: !!siteId && !!productId,
+      staleTime: 30 * 1000,
+      initialData: [],
+    },
+    [siteId, productId]
+  );
 }
 
 /**
@@ -76,22 +79,24 @@ export function useProductImages(productId?: string) {
  */
 export function useUploadProductImage() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      file,
-      productId,
-      altText,
-      caption,
-      isTemporary = false,
-    }: {
+  return useSupabaseMutation<
+    {
+      success: boolean;
+      data: { url: string; width?: number; height?: number; size?: number };
+      image?: ProductImage;
+    },
+    {
       file: File;
       productId?: string;
       altText?: string;
       caption?: string;
       isTemporary?: boolean;
-    }) => {
+    }
+  >(
+    async (variables, signal) => {
+      const { file, productId, altText, caption, isTemporary = false } = variables;
+
       if (!siteId) throw new Error('Site ID is required');
 
       // Upload to storage
@@ -129,8 +134,8 @@ export function useUploadProductImage() {
           .order('position', { ascending: false })
           .limit(1);
 
-        const nextPosition = existingImages && existingImages.length > 0 
-          ? (existingImages[0].position || 0) + 1 
+        const nextPosition = existingImages && existingImages.length > 0
+          ? (existingImages[0].position || 0) + 1
           : 1;
 
         // Check if this should be the primary image (first image)
@@ -176,19 +181,15 @@ export function useUploadProductImage() {
         data: uploadResult.data,
       };
     },
-    onError: (error) => {
-      const handled = handleError(error);
-      toast.error(`Upload failed: ${handled.message}`);
-    },
-    onSuccess: (result, variables) => {
-      if (variables.productId) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.products.images(siteId!, variables.productId),
-        });
-        toast.success('Image uploaded successfully');
-      }
-    },
-  });
+    {
+      onSuccess: (result, variables) => {
+        if (variables.productId) {
+          toast.success('Image uploaded successfully');
+        }
+      },
+      showErrorToast: true,
+    }
+  );
 }
 
 /**
@@ -196,18 +197,23 @@ export function useUploadProductImage() {
  */
 export function useUploadMultipleProductImages() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      files,
-      productId,
-      onProgress,
-    }: {
+  return useSupabaseMutation<
+    {
+      success: boolean;
+      error?: string;
+      results: Array<{ success: boolean; data?: { url: string; width?: number; height?: number; size?: number }; error?: string }>;
+      images?: ProductImage[];
+    },
+    {
       files: File[];
       productId?: string;
       onProgress?: (completed: number, total: number) => void;
-    }) => {
+    }
+  >(
+    async (variables, signal) => {
+      const { files, productId, onProgress } = variables;
+
       if (!siteId) throw new Error('Site ID is required');
 
       // Upload files to storage
@@ -237,8 +243,8 @@ export function useUploadMultipleProductImages() {
         .order('position', { ascending: false })
         .limit(1);
 
-      const nextPosition = existingImages && existingImages.length > 0 
-        ? (existingImages[0].position || 0) + 1 
+      const nextPosition = existingImages && existingImages.length > 0
+        ? (existingImages[0].position || 0) + 1
         : 1;
 
       // Check if this should be the first primary image
@@ -252,7 +258,7 @@ export function useUploadMultipleProductImages() {
 
       // Create image records for successful uploads
       const imageInserts: ProductImageInsert[] = [];
-      
+
       uploadResults.results.forEach((result, index) => {
         if (result.success && result.data) {
           imageInserts.push({
@@ -286,20 +292,16 @@ export function useUploadMultipleProductImages() {
 
       return uploadResults;
     },
-    onError: (error) => {
-      const handled = handleError(error);
-      toast.error(`Upload failed: ${handled.message}`);
-    },
-    onSuccess: (result, variables) => {
-      if (variables.productId) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.products.images(siteId!, variables.productId),
-        });
-        const successCount = result.results.filter(r => r.success).length;
-        toast.success(`${successCount} image${successCount > 1 ? 's' : ''} uploaded successfully`);
-      }
-    },
-  });
+    {
+      onSuccess: (result, variables) => {
+        if (variables.productId) {
+          const successCount = result.results.filter(r => r.success).length;
+          toast.success(`${successCount} image${successCount > 1 ? 's' : ''} uploaded successfully`);
+        }
+      },
+      showErrorToast: true,
+    }
+  );
 }
 
 /**
@@ -307,18 +309,18 @@ export function useUploadMultipleProductImages() {
  */
 export function useUpdateProductImage() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      id,
-      productId,
-      updates,
-    }: {
+  return useSupabaseMutation<
+    ProductImage,
+    {
       id: string;
       productId: string;
       updates: Partial<ProductImageUpdate>;
-    }) => {
+    }
+  >(
+    async (variables, signal) => {
+      const { id, productId, updates } = variables;
+
       if (!siteId) throw new Error('Site ID is required');
 
       const { data, error } = await supabase
@@ -336,36 +338,13 @@ export function useUpdateProductImage() {
       if (error) throw error;
       return data;
     },
-    onMutate: async ({ id, productId, updates }) => {
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.products.images(siteId!, productId),
-      });
-
-      const previousImages = queryClient.getQueryData<ProductImage[]>(
-        queryKeys.products.images(siteId!, productId)
-      );
-
-      queryClient.setQueryData<ProductImage[]>(
-        queryKeys.products.images(siteId!, productId),
-        (old) => old?.map(img => img.id === id ? { ...img, ...updates } : img) || []
-      );
-
-      return { previousImages, productId };
-    },
-    onError: (error, variables, context) => {
-      if (context?.previousImages) {
-        queryClient.setQueryData(
-          queryKeys.products.images(siteId!, context.productId),
-          context.previousImages
-        );
-      }
-      const handled = handleError(error);
-      toast.error(`Update failed: ${handled.message}`);
-    },
-    onSuccess: () => {
-      toast.success('Image updated successfully');
-    },
-  });
+    {
+      onSuccess: () => {
+        toast.success('Image updated successfully');
+      },
+      showErrorToast: true,
+    }
+  );
 }
 
 /**
@@ -373,18 +352,18 @@ export function useUpdateProductImage() {
  */
 export function useDeleteProductImage() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      id,
-      productId,
-      imagePath,
-    }: {
+  return useSupabaseMutation<
+    { id: string },
+    {
       id: string;
       productId: string;
       imagePath?: string;
-    }) => {
+    }
+  >(
+    async (variables, signal) => {
+      const { id, productId, imagePath } = variables;
+
       if (!siteId) throw new Error('Site ID is required');
 
       // Get image data before deletion
@@ -446,36 +425,13 @@ export function useDeleteProductImage() {
 
       return { id };
     },
-    onMutate: async ({ id, productId }) => {
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.products.images(siteId!, productId),
-      });
-
-      const previousImages = queryClient.getQueryData<ProductImage[]>(
-        queryKeys.products.images(siteId!, productId)
-      );
-
-      queryClient.setQueryData<ProductImage[]>(
-        queryKeys.products.images(siteId!, productId),
-        (old) => old?.filter(img => img.id !== id) || []
-      );
-
-      return { previousImages, productId };
-    },
-    onError: (error, variables, context) => {
-      if (context?.previousImages) {
-        queryClient.setQueryData(
-          queryKeys.products.images(siteId!, context.productId),
-          context.previousImages
-        );
-      }
-      const handled = handleError(error);
-      toast.error(`Delete failed: ${handled.message}`);
-    },
-    onSuccess: () => {
-      toast.success('Image deleted successfully');
-    },
-  });
+    {
+      onSuccess: () => {
+        toast.success('Image deleted successfully');
+      },
+      showErrorToast: true,
+    }
+  );
 }
 
 /**
@@ -483,16 +439,17 @@ export function useDeleteProductImage() {
  */
 export function useReorderProductImages() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      productId,
-      imageUpdates,
-    }: {
+  return useSupabaseMutation<
+    { success: boolean },
+    {
       productId: string;
       imageUpdates: Array<{ id: string; position: number }>;
-    }) => {
+    }
+  >(
+    async (variables, signal) => {
+      const { productId, imageUpdates } = variables;
+
       if (!siteId) throw new Error('Site ID is required');
 
       // Update positions in batch
@@ -506,53 +463,20 @@ export function useReorderProductImages() {
       );
 
       const results = await Promise.all(updates);
-      
+
       // Check for errors
       const error = results.find(result => result.error)?.error;
       if (error) throw error;
 
       return { success: true };
     },
-    onMutate: async ({ productId, imageUpdates }) => {
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.products.images(siteId!, productId),
-      });
-
-      const previousImages = queryClient.getQueryData<ProductImage[]>(
-        queryKeys.products.images(siteId!, productId)
-      );
-
-      // Apply optimistic updates
-      queryClient.setQueryData<ProductImage[]>(
-        queryKeys.products.images(siteId!, productId),
-        (old) => {
-          if (!old) return [];
-          
-          const updated = old.map(img => {
-            const update = imageUpdates.find(u => u.id === img.id);
-            return update ? { ...img, position: update.position } : img;
-          });
-          
-          return updated.sort((a, b) => (a.position || 0) - (b.position || 0));
-        }
-      );
-
-      return { previousImages, productId };
-    },
-    onError: (error, variables, context) => {
-      if (context?.previousImages) {
-        queryClient.setQueryData(
-          queryKeys.products.images(siteId!, context.productId),
-          context.previousImages
-        );
-      }
-      const handled = handleError(error);
-      toast.error(`Reorder failed: ${handled.message}`);
-    },
-    onSuccess: () => {
-      toast.success('Images reordered successfully');
-    },
-  });
+    {
+      onSuccess: () => {
+        toast.success('Images reordered successfully');
+      },
+      showErrorToast: true,
+    }
+  );
 }
 
 /**
@@ -560,16 +484,17 @@ export function useReorderProductImages() {
  */
 export function useSetPrimaryProductImage() {
   const siteId = useSiteId();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async ({
-      imageId,
-      productId,
-    }: {
+  return useSupabaseMutation<
+    ProductImage,
+    {
       imageId: string;
       productId: string;
-    }) => {
+    }
+  >(
+    async (variables, signal) => {
+      const { imageId, productId } = variables;
+
       if (!siteId) throw new Error('Site ID is required');
 
       // First, unset all primary flags
@@ -592,39 +517,13 @@ export function useSetPrimaryProductImage() {
       if (error) throw error;
       return data;
     },
-    onMutate: async ({ imageId, productId }) => {
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.products.images(siteId!, productId),
-      });
-
-      const previousImages = queryClient.getQueryData<ProductImage[]>(
-        queryKeys.products.images(siteId!, productId)
-      );
-
-      queryClient.setQueryData<ProductImage[]>(
-        queryKeys.products.images(siteId!, productId),
-        (old) => old?.map(img => ({
-          ...img,
-          is_primary: img.id === imageId,
-        })) || []
-      );
-
-      return { previousImages, productId };
-    },
-    onError: (error, variables, context) => {
-      if (context?.previousImages) {
-        queryClient.setQueryData(
-          queryKeys.products.images(siteId!, context.productId),
-          context.previousImages
-        );
-      }
-      const handled = handleError(error);
-      toast.error(`Update failed: ${handled.message}`);
-    },
-    onSuccess: () => {
-      toast.success('Primary image updated');
-    },
-  });
+    {
+      onSuccess: () => {
+        toast.success('Primary image updated');
+      },
+      showErrorToast: true,
+    }
+  );
 }
 
 /**
@@ -638,13 +537,17 @@ export function useProductImagesWithPlaceholders(
   
   // Get product images
   const imagesQuery = useProductImages(productId);
-  
+
   // Get product details for placeholder generation
-  const productQuery = useQuery({
-    queryKey: queryKeys.products.detail(siteId!, productId!),
-    queryFn: async () => {
+  const productQuery = useSupabaseQuery<{
+    id: string;
+    name: string;
+    category?: string;
+    images?: unknown;
+  } | null>(
+    async (signal) => {
       if (!siteId || !productId) return null;
-      
+
       const { data, error } = await supabase
         .from('products')
         .select('id, name, category, images')
@@ -655,9 +558,13 @@ export function useProductImagesWithPlaceholders(
       if (error) throw error;
       return data;
     },
-    enabled: !!siteId && !!productId,
-    staleTime: 5 * 60 * 1000,
-  });
+    {
+      enabled: !!siteId && !!productId,
+      staleTime: 5 * 60 * 1000,
+      initialData: null,
+    },
+    [siteId, productId]
+  );
 
   // Generate placeholder based on product data
   const productPlaceholderParams: ProductPlaceholderParams = {
@@ -736,10 +643,10 @@ export function useProductImagesWithPlaceholders(
 
   // Enhanced error handling with placeholder fallbacks
   const hasImages = allImages.length > 0;
-  const hasValidImages = allImages.some(img => 
+  const hasValidImages = allImages.some(img =>
     img.url && !('is_placeholder' in img && img.is_placeholder)
   );
-  const isLoadingImages = imagesQuery.isLoading || productQuery.isLoading;
+  const isLoadingImages = imagesQuery.loading || productQuery.loading;
   const hasImageErrors = imagesQuery.error || productQuery.error;
   const isPlaceholderReady = !!placeholderQuery.data && !placeholderQuery.isLoading;
 

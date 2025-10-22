@@ -1,279 +1,81 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useProduct, useUpdateProduct } from '@/src/hooks/useProducts'
-import { useCurrentSite } from '@/src/contexts/SiteContext'
-import { useSlugField } from '@/src/hooks/useSlugGeneration'
-import { 
-  useProductImages, 
-  useUploadMultipleProductImages,
-  useUpdateProductImage,
-  useDeleteProductImage,
-  useReorderProductImages,
-  useSetPrimaryProductImage 
-} from '@/src/hooks/useProductImages'
-import { ImageUploadS3 } from '@/src/components/products/ImageUploadS3'
-import type { ProductImage } from '@/src/components/products/ImageUploadS3'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/src/components/ui/card'
-import { Button } from '@/src/components/ui/button'
-import { Input } from '@/src/components/ui/input'
-import { Textarea } from '@/src/components/ui/textarea'
-import { Label } from '@/src/components/ui/label'
-import { Switch } from '@/src/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/src/components/ui/form'
-import { Badge } from '@/src/components/ui/badge'
-import { toast } from 'sonner'
-import { 
-  ArrowLeft, 
-  ArrowRight, 
-  Check,
-  Package,
-  DollarSign,
-  Info,
-  Image,
-  Tag,
-  Loader2,
-  AlertCircle,
-  RefreshCw,
-  Link
-} from 'lucide-react'
-
-// Product form schema with enhanced slug validation
-const productSchema = z.object({
-  name: z.string().min(1, 'Product name is required').max(255),
-  description: z.string().optional(),
-  sku: z.string().min(1, 'SKU is required').max(100),
-  category: z.string().min(1, 'Category is required'),
-  subcategory: z.string().optional(),
-  price: z.coerce.number().min(0, 'Price must be positive'),
-  sale_price: z.coerce.number().min(0).optional().nullable(),
-  compare_at_price: z.coerce.number().min(0).optional().nullable(),
-  inventory_count: z.coerce.number().int().min(0, 'Inventory must be non-negative'),
-  low_stock_threshold: z.coerce.number().int().min(0).default(10),
-  unit_of_measure: z.string().optional(),
-  care_instructions: z.string().optional(),
-  is_active: z.boolean().default(true),
-  is_featured: z.boolean().default(false),
-  slug: z.string()
-    .min(1, 'Slug is required')
-    .max(100, 'Slug must be 100 characters or less')
-    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens')
-    .refine((slug) => !slug.startsWith('-') && !slug.endsWith('-'), {
-      message: 'Slug cannot start or end with a hyphen',
-    }),
-  meta_description: z.string().optional(),
-})
-
-type ProductFormData = z.infer<typeof productSchema>
-
-// Common categories for garden centers
-const categories = [
-  'Annuals',
-  'Perennials',
-  'Trees',
-  'Shrubs',
-  'Houseplants',
-  'Garden Supplies',
-  'Tools',
-  'Fertilizers',
-  'Seeds',
-  'Pottery',
-  'Decor',
-  'Other'
-]
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { Button } from '@/src/components/ui/button';
+import { Card, CardContent } from '@/src/components/ui/card';
+import { toast } from 'sonner';
+import { ProductForm } from '@/src/components/products/form';
+import { useProduct, useUpdateProduct } from '@/src/hooks/useProducts';
+import { useCategoriesList } from '@/src/hooks/useCategories';
+import { useCurrentSite } from '@/src/contexts/SiteContext';
+import { useProductImages } from '@/src/hooks/useProductImages';
+import type { ProductFormData } from '@/src/lib/products/validation/schemas';
+import type { ProductImage } from '@/src/components/products/ImageUploadS3';
 
 interface EditProductPageProps {
   params: Promise<{
-    id: string
-  }>
+    id: string;
+  }>;
 }
 
 export default function EditProductPage({ params }: EditProductPageProps) {
-  const router = useRouter()
-  const [productId, setProductId] = useState<string | null>(null)
-  const { site } = useCurrentSite()
-  
+  const router = useRouter();
+  const [productId, setProductId] = useState<string | null>(null);
+  const { site } = useCurrentSite();
+
+  // Resolve params
   useEffect(() => {
     async function getParams() {
-      const resolvedParams = await params
-      setProductId(resolvedParams.id)
+      const resolvedParams = await params;
+      setProductId(resolvedParams.id);
     }
-    getParams()
-  }, [params])
-  
-  const { data: product, loading, error } = useProduct(productId || '')
-  const updateProduct = useUpdateProduct()
-  const [currentStep, setCurrentStep] = useState(0)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
-  // Initialize slug field management
-  const {
-    currentSlug,
-    isGenerating,
-    manuallyEdited,
-    validationError: slugValidationError,
-    handleNameChange: handleSlugNameChange,
-    handleSlugChange,
-    validateCurrentSlug,
-    resetToAutoGenerated,
-  } = useSlugField({ delay: 500, excludeId: productId || undefined })
-  
-  if (!productId) {
-    return <div>Loading...</div>
-  }
+    getParams();
+  }, [params]);
 
-  const form = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema) as any,
-    defaultValues: {
-      name: '',
-      description: '',
-      sku: '',
-      category: '',
-      subcategory: '',
-      price: 0,
-      sale_price: null,
-      compare_at_price: null,
-      inventory_count: 0,
-      low_stock_threshold: 10,
-      unit_of_measure: '',
-      care_instructions: '',
-      is_active: true,
-      is_featured: false,
-      slug: '',
-      meta_description: '',
-    },
-  })
+  const { data: product, loading, error } = useProduct(productId || '');
+  const updateProduct = useUpdateProduct();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategoriesList();
+  const { data: productImages = [], loading: imagesLoading } = useProductImages(productId || '');
 
-  // Image management hooks
-  const { data: productImages = [], loading: imagesLoading } = useProductImages(productId || '')
-  const uploadImages = useUploadMultipleProductImages()
-  const updateImage = useUpdateProductImage()
-  const deleteImage = useDeleteProductImage()
-  const reorderImages = useReorderProductImages()
-  const setPrimaryImage = useSetPrimaryProductImage()
+  const [images, setImages] = useState<ProductImage[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Image handlers
-  const handleImageUpload = async (files: File[]) => {
-    const result = await uploadImages.mutateAsync({ productId, files })
-    if (result && 'results' in result) {
-      return result.results.map(r => ({ 
-        success: r.success, 
-        data: r.data, 
-        error: r.error 
-      }))
-    }
-    return []
-  }
-
-  const handleImageUpdate = async (imageId: string, data: Partial<ProductImage>) => {
-    await updateImage.mutateAsync({ id: imageId, productId, updates: data })
-  }
-
-  const handleImageRemove = async (imageId: string) => {
-    await deleteImage.mutateAsync({ id: imageId, productId })
-  }
-
-  const handleImagesReorder = async (images: ProductImage[]) => {
-    const imageUpdates = images.map((img, index) => ({ id: img.id, position: index }))
-    await reorderImages.mutateAsync({ productId, imageUpdates })
-  }
-
-  const handleSetPrimary = async (imageId: string) => {
-    await setPrimaryImage.mutateAsync({ productId, imageId })
-  }
-
-  // Pre-populate form with product data when it loads
+  // Update images state when productImages load
   useEffect(() => {
-    if (product) {
-      form.reset({
-        name: product.name || '',
-        description: product.description || '',
-        sku: product.sku || '',
-        category: product.category || '',
-        subcategory: product.subcategory || '',
-        price: product.price || 0,
-        sale_price: product.sale_price || null,
-        compare_at_price: product.compare_at_price || null,
-        inventory_count: product.inventory_count || 0,
-        low_stock_threshold: product.low_stock_threshold || 10,
-        unit_of_measure: product.unit_of_measure || '',
-        care_instructions: product.care_instructions || '',
-        is_active: product.is_active ?? true,
-        is_featured: product.is_featured ?? false,
-        slug: product.slug || '',
-        meta_description: product.meta_description || '',
-      })
-      // If product has no slug, generate one from the name
-      if (!product.slug && product.name) {
-        handleSlugNameChange(product.name)
-      }
+    if (productImages.length > 0) {
+      setImages(productImages.map((img: ProductImage) => ({
+        ...img,
+        position: img.position ?? 0,
+        is_primary: img.is_primary ?? false,
+      })));
     }
-  }, [product, form, handleSlugNameChange])
-  
-  // Update form when slug changes (from auto-generation)
-  useEffect(() => {
-    if (currentSlug && !manuallyEdited) {
-      form.setValue('slug', currentSlug, { shouldValidate: false })
+  }, [productImages]);
+
+  // Form submission handler
+  const handleSubmit = async (data: ProductFormData) => {
+    if (!productId) {
+      toast.error('Product ID is missing');
+      return;
     }
-  }, [currentSlug, form, manuallyEdited])
 
-  const steps = [
-    { title: 'Basic Info', icon: <Info className="h-4 w-4" /> },
-    { title: 'Pricing', icon: <DollarSign className="h-4 w-4" /> },
-    { title: 'Inventory', icon: <Package className="h-4 w-4" /> },
-    { title: 'Images', icon: <Image className="h-4 w-4" /> },
-    { title: 'Review', icon: <Check className="h-4 w-4" /> },
-  ]
+    setIsSubmitting(true);
 
-  const onSubmit = async (data: ProductFormData) => {
-    setIsSubmitting(true)
     try {
-      // Generate slug from name if not provided
-      if (!data.slug) {
-        data.slug = data.name
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, '')
-      }
-
-      await updateProduct.mutateAsync({ id: productId, ...data })
-      toast.success('Product updated successfully!')
-      router.push('/dashboard/products')
+      await updateProduct.mutateAsync({ id: productId, ...data });
+      toast.success('Product updated successfully!');
+      router.push('/dashboard/products');
     } catch (error) {
-      console.error('Error updating product:', error)
-      toast.error('Failed to update product')
+      console.error('Error updating product:', error);
+      toast.error('Failed to update product');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
-
-  const nextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1)
-    }
-  }
-
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
+  };
 
   // Loading state
-  if (isLoading) {
+  if (!productId || loading || imagesLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -286,7 +88,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             Back
           </Button>
         </div>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-center space-x-2">
@@ -296,11 +98,11 @@ export default function EditProductPage({ params }: EditProductPageProps) {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   // Error state - product not found or other error
-  if (isError || !product) {
+  if (error || !product) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -313,7 +115,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             Back
           </Button>
         </div>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-center space-x-2 text-destructive">
@@ -328,8 +130,28 @@ export default function EditProductPage({ params }: EditProductPageProps) {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
+
+  // Prepare initial data for the form
+  const initialData: Partial<ProductFormData> = {
+    name: product.name || '',
+    description: product.description || '',
+    sku: product.sku || '',
+    slug: product.slug || '',
+    primary_category_id: product.primary_category_id || '',
+    category_ids: [], // TODO: Load from product_category_assignments if needed
+    price: product.price || 0,
+    sale_price: product.sale_price || null,
+    compare_at_price: product.compare_at_price || null,
+    inventory_count: product.inventory_count || 0,
+    low_stock_threshold: product.low_stock_threshold || 10,
+    unit_of_measure: product.unit_of_measure || '',
+    care_instructions: product.care_instructions || '',
+    is_active: product.is_active ?? true,
+    is_featured: product.is_featured ?? false,
+    meta_description: product.meta_description || '',
+  };
 
   return (
     <div className="space-y-6">
@@ -345,522 +167,19 @@ export default function EditProductPage({ params }: EditProductPageProps) {
         </Button>
       </div>
 
-      {/* Progress Steps */}
-      <div className="flex items-center justify-between max-w-2xl">
-        {steps.map((step, index) => (
-          <div key={index} className="flex items-center">
-            <div
-              className={`flex items-center justify-center h-10 w-10 rounded-full border-2 ${
-                index <= currentStep
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-muted bg-white text-gray-500'
-              }`}
-            >
-              {index < currentStep ? <Check className="h-4 w-4" /> : step.icon}
-            </div>
-            {index < steps.length - 1 && (
-              <div
-                className={`h-0.5 w-16 mx-2 ${
-                  index < currentStep ? 'bg-primary' : 'bg-muted'
-                }`}
-              />
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Form */}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{steps[currentStep].title}</CardTitle>
-              <CardDescription>
-                {currentStep === 0 && 'Update basic product information'}
-                {currentStep === 1 && 'Update pricing for your product'}
-                {currentStep === 2 && 'Manage inventory and stock settings'}
-                {currentStep === 3 && 'Manage product images'}
-                {currentStep === 4 && 'Review and save your changes'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Step 1: Basic Info */}
-              {currentStep === 0 && (
-                <>
-                  <FormField
-                    control={form.control as any}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Product Name *</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="e.g., Red Geranium" 
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e);
-                              // Only trigger slug generation if slug wasn't manually edited
-                              if (!manuallyEdited) {
-                                handleSlugNameChange(e.target.value);
-                              }
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control as any}
-                    name="sku"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>SKU *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., FLW-GER-RED-001" {...field} />
-                        </FormControl>
-                        <FormDescription>Unique identifier for inventory tracking</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control as any}
-                    name="slug"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>URL Slug *</FormLabel>
-                        <div className="relative">
-                          <FormControl>
-                            <Input 
-                              placeholder="auto-generated-from-name" 
-                              {...field}
-                              value={field.value || currentSlug || ''}
-                              onChange={(e) => {
-                                field.onChange(e);
-                                handleSlugChange(e.target.value);
-                              }}
-                              onBlur={async () => {
-                                field.onBlur();
-                                const isValid = await validateCurrentSlug();
-                                if (!isValid && slugValidationError) {
-                                  form.setError('slug', {
-                                    type: 'manual',
-                                    message: slugValidationError,
-                                  });
-                                } else {
-                                  form.clearErrors('slug');
-                                }
-                              }}
-                              className={manuallyEdited ? 'pr-10' : ''}
-                            />
-                          </FormControl>
-                          {isGenerating && (
-                            <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                              <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
-                            </div>
-                          )}
-                          {manuallyEdited && !isGenerating && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="absolute right-0 top-0 h-full px-2"
-                              onClick={() => {
-                                const name = form.getValues('name');
-                                if (name) {
-                                  resetToAutoGenerated(name);
-                                  form.clearErrors('slug');
-                                }
-                              }}
-                            >
-                              <RefreshCw className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                        <FormDescription className="flex items-center gap-1">
-                          <Link className="h-3 w-3" />
-                          Preview: /products/{field.value || currentSlug || 'product-name'}
-                        </FormDescription>
-                        {slugValidationError && (
-                          <p className="text-sm text-destructive mt-1">{slugValidationError}</p>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control as any}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Describe your product..."
-                            className="min-h-[100px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Category *</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a category" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {categories.map((category) => (
-                                <SelectItem key={category} value={category}>
-                                  {category}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="subcategory"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Subcategory</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Annual Flowers" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control as any}
-                    name="care_instructions"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Care Instructions</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="How to care for this product..."
-                            className="min-h-[80px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
-              {/* Step 2: Pricing */}
-              {currentStep === 1 && (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Regular Price *</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                                $
-                              </span>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="0.00"
-                                className="pl-7"
-                                {...field}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="sale_price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Sale Price</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                                $
-                              </span>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="0.00"
-                                className="pl-7"
-                                {...field}
-                                value={field.value || ''}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormDescription>Leave empty if not on sale</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control as any}
-                    name="compare_at_price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Compare at Price</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                              $
-                            </span>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="pl-7"
-                              {...field}
-                              value={field.value || ''}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormDescription>Original price to show savings</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control as any}
-                    name="unit_of_measure"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Unit of Measure</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., per plant, per pack, per lb" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
-              {/* Step 3: Inventory */}
-              {currentStep === 2 && (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="inventory_count"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Current Stock *</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="0"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>Current quantity in stock</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="low_stock_threshold"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Low Stock Alert</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="10"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>Alert when stock falls below</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="is_active"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Active Product</FormLabel>
-                            <FormDescription>
-                              Make this product visible on your site
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="is_featured"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Featured Product</FormLabel>
-                            <FormDescription>
-                              Highlight this product in featured sections
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </>
-              )}
-
-              {/* Step 4: Images */}
-              {currentStep === 3 && (
-                <ImageUploadS3
-                  images={productImages.map(img => ({ ...img, position: img.position ?? 0, is_primary: img.is_primary ?? false }))}
-                  onImagesChange={handleImagesReorder}
-                  onUpdate={handleImageUpdate}
-                  onRemove={handleImageRemove}
-                  onSetPrimary={handleSetPrimary}
-                  productId={product?.id || ''}
-                  siteId={site?.id || ''}
-                  maxImages={10}
-                  disabled={isSubmitting || imagesLoading}
-                />
-              )}
-
-              {/* Step 5: Review */}
-              {currentStep === 4 && (
-                <div className="space-y-4">
-                  <div className="rounded-lg border p-4 space-y-3">
-                    <h3 className="font-semibold">Product Details</h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-500">Name:</span>
-                        <p className="font-medium">{form.watch('name') || 'Not set'}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">SKU:</span>
-                        <p className="font-medium">{form.watch('sku') || 'Not set'}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Category:</span>
-                        <p className="font-medium">{form.watch('category') || 'Not set'}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Price:</span>
-                        <p className="font-medium">${form.watch('price') || '0.00'}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Stock:</span>
-                        <p className="font-medium">{form.watch('inventory_count')} units</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Status:</span>
-                        <div className="flex gap-2 mt-1">
-                          {form.watch('is_active') && (
-                            <Badge variant="default">Active</Badge>
-                          )}
-                          {form.watch('is_featured') && (
-                            <Badge variant="secondary">Featured</Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg bg-muted p-4">
-                    <p className="text-sm text-gray-500">
-                      Review your product details above. You can go back to make changes or click
-                      &quot;Update Product&quot; to save your changes.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={prevStep}
-              disabled={currentStep === 0}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Previous
-            </Button>
-
-            {currentStep < steps.length - 1 ? (
-              <Button type="button" onClick={nextStep}>
-                Next
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            ) : (
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <Check className="h-4 w-4 mr-2" />
-                    Update Product
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-        </form>
-      </Form>
+      {/* Product Form */}
+      <ProductForm
+        mode="edit"
+        initialData={initialData}
+        categories={categories}
+        categoriesLoading={categoriesLoading}
+        productImages={images}
+        onImagesChange={setImages}
+        onSubmit={handleSubmit}
+        onCancel={() => router.back()}
+        isSubmitting={isSubmitting}
+        productId={productId}
+      />
     </div>
-  )
+  );
 }
