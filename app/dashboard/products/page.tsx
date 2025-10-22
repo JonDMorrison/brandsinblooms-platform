@@ -2,15 +2,11 @@
 
 import { useState, useMemo, useCallback, memo } from 'react';
 import { Card, CardContent } from '@/src/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useProducts, useProductCategories, useUpdateProduct } from '@/src/hooks/useProducts';
 import { useSitePermissions, useSiteContext } from '@/src/contexts/SiteContext';
 import { useProductEdit } from '@/src/hooks/useProductEdit';
-import { ProductSelectionProvider, useProductSelection } from '@/src/contexts/ProductSelectionContext';
-import { BulkActionsToolbar } from '@/src/components/products/BulkActionsToolbar';
-import { ImportExportDialog } from '@/src/components/products/ImportExportDialog';
 import { ProductEditModal } from '@/src/components/products/ProductEditModal';
 import type { Tables } from '@/src/lib/database/types';
 
@@ -40,7 +36,7 @@ const ProductsPageContent = memo(() => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [activeTab, setActiveTab] = useState('catalogue');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active'>('all');
 
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -123,8 +119,8 @@ const ProductsPageContent = memo(() => {
 
     let filtered = displayProducts;
 
-    // Tab filter
-    if (activeTab === 'my-products') {
+    // Filter by active status
+    if (activeFilter === 'active') {
       filtered = filtered.filter((product) => product.addedToSite);
     }
 
@@ -144,7 +140,7 @@ const ProductsPageContent = memo(() => {
     }
 
     return filtered;
-  }, [displayProducts, searchQuery, selectedCategory, activeTab]);
+  }, [displayProducts, searchQuery, selectedCategory, activeFilter]);
 
   // Product actions
   const handleAddToSite = useCallback(
@@ -229,28 +225,6 @@ const ProductsPageContent = memo(() => {
     setEditingProduct(null);
   }, []);
 
-  // Bulk selection
-  const { selectedIds, hasSelection, isAllSelected, isIndeterminate, toggleAll, clearSelection } =
-    useProductSelection();
-
-  const [showBulkSelection, setShowBulkSelection] = useState(false);
-  const [showImportExport, setShowImportExport] = useState(false);
-
-  const availableProductIds = filteredProducts.map((p) => p.id);
-  const allSelected = isAllSelected(availableProductIds);
-  const indeterminate = isIndeterminate(availableProductIds);
-
-  const handleSelectAll = () => {
-    toggleAll(availableProductIds);
-  };
-
-  const toggleBulkMode = () => {
-    setShowBulkSelection(!showBulkSelection);
-    if (showBulkSelection) {
-      clearSelection();
-    }
-  };
-
   const handleProductCreated = useCallback(() => {
     refresh();
   }, [refresh]);
@@ -263,59 +237,33 @@ const ProductsPageContent = memo(() => {
       {/* Stats */}
       <ProductsStats />
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="catalogue">All Products</TabsTrigger>
-          <TabsTrigger value="my-products">Active on Site</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={activeTab} className="mt-6 space-y-4">
-          {/* Toolbar */}
-          <ProductsToolbar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            categories={categories}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            showBulkSelection={showBulkSelection}
-            onToggleBulkMode={toggleBulkMode}
-            allSelected={allSelected}
-            indeterminate={indeterminate}
-            onSelectAll={handleSelectAll}
-            hasSelection={hasSelection}
-            onImportExport={() => setShowImportExport(true)}
-            onManageCategories={() => router.push('/dashboard/products/categories')}
-          />
-
-          {/* Products Grid */}
-          <Card>
-            <CardContent className="p-6">
-              <ProductsGrid
-                products={filteredProducts}
-                loading={loading}
-                viewMode={viewMode}
-                showBulkSelection={showBulkSelection}
-                onProductEdit={canEdit ? handleProductEdit : undefined}
-                onAddToSite={handleAddToSite}
-                onRemoveFromSite={handleRemoveFromSite}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Bulk Actions Toolbar */}
-      {hasSelection && <BulkActionsToolbar />}
-
-      {/* Import/Export Dialog */}
-      <ImportExportDialog
-        open={showImportExport}
-        onOpenChange={setShowImportExport}
-        selectedProductIds={selectedIds}
+      {/* Toolbar */}
+      <ProductsToolbar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        categories={categories}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        activeFilter={activeFilter}
+        onFilterChange={setActiveFilter}
+        onManageCategories={() => router.push('/dashboard/products/categories')}
       />
+
+      {/* Products Grid */}
+      <Card>
+        <CardContent className="p-6">
+          <ProductsGrid
+            products={filteredProducts}
+            loading={loading}
+            viewMode={viewMode}
+            onProductEdit={canEdit ? handleProductEdit : undefined}
+            onAddToSite={handleAddToSite}
+            onRemoveFromSite={handleRemoveFromSite}
+          />
+        </CardContent>
+      </Card>
 
       {/* Edit Modal */}
       <ProductEditModal
@@ -333,9 +281,5 @@ const ProductsPageContent = memo(() => {
 ProductsPageContent.displayName = 'ProductsPageContent';
 
 export default function ProductsPage() {
-  return (
-    <ProductSelectionProvider>
-      <ProductsPageContent />
-    </ProductSelectionProvider>
-  );
+  return <ProductsPageContent />;
 }

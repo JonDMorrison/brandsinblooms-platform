@@ -3,10 +3,8 @@
 import { Card, CardContent } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
-import { Checkbox } from '@/src/components/ui/checkbox'
 import { Star, ShoppingCart, Eye, Heart } from 'lucide-react'
 import React, { useState, useRef, useCallback, memo, useMemo } from 'react'
-import { useProductSelection } from '@/src/contexts/ProductSelectionContext'
 import { ProductImage } from '@/src/components/ui/product-image'
 import { useProductFavorites } from '@/src/hooks/useProductFavorites'
 import { ProductQuickView } from '@/src/components/products/ProductQuickView'
@@ -31,9 +29,8 @@ interface Product {
 interface ProductCardProps {
   product: Product
   viewMode: 'grid' | 'list'
-  onAddToSite: (productId: string) => void
-  onRemoveFromSite: (productId: string) => void
-  showSelection?: boolean
+  onAddToSite?: (productId: string) => void
+  onRemoveFromSite?: (productId: string) => void
   onEdit?: (productId: string) => void
   isEditLoading?: boolean
 }
@@ -41,17 +38,15 @@ interface ProductCardProps {
 // Memoized product image component to prevent re-renders on hover
 const MemoizedProductImage = memo(ProductImage)
 
-export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, showSelection = false, onEdit, isEditLoading = false }: ProductCardProps) {
+export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, onEdit, isEditLoading = false }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [quickViewOpen, setQuickViewOpen] = useState(false)
   const [showMobileActions, setShowMobileActions] = useState(false)
   const [isAddingToSite, setIsAddingToSite] = useState(false)
   const [isRemovingFromSite, setIsRemovingFromSite] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
-  const { isSelected, toggleProduct } = useProductSelection()
   const { isFavorite, toggleFavorite, isToggling } = useProductFavorites()
-  
-  const selected = isSelected(product.id)
+
   const isProductFavorite = isFavorite(product.id)
   
   // Memoize placeholder config to prevent recreation on every render
@@ -78,10 +73,6 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
     cancelOnMovement: true,
     detect: 'touch' // Only detect on touch devices
   })
-  
-  const handleSelectionChange = (checked: boolean) => {
-    toggleProduct(product.id)
-  }
 
   // Helper function to check if click target is an interactive element
   const isInteractiveElement = (target: EventTarget | null): boolean => {
@@ -136,6 +127,7 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
 
   // Handle add to site with loading state
   const handleAddToSiteClick = useCallback(async (e: React.MouseEvent) => {
+    if (!onAddToSite) return
     e.stopPropagation()
     e.preventDefault()
     setIsAddingToSite(true)
@@ -148,6 +140,7 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
 
   // Handle remove from site with loading state
   const handleRemoveFromSiteClick = useCallback(async (e: React.MouseEvent) => {
+    if (!onRemoveFromSite) return
     e.stopPropagation()
     e.preventDefault()
     setIsRemovingFromSite(true)
@@ -190,7 +183,6 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
         ref={cardRef}
         className={cn(
           "transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-          selected && "ring-2 ring-blue-500",
           onEdit && "cursor-pointer hover:shadow-md hover:ring-1 hover:ring-gray-300",
           isEditLoading && "opacity-75 pointer-events-none"
         )}
@@ -204,18 +196,6 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
       >
         <CardContent className="p-4">
           <div className="flex gap-4">
-            {/* Selection Checkbox */}
-            {showSelection && (
-              <div className="flex items-center pt-1">
-                <Checkbox
-                  checked={selected}
-                  onCheckedChange={handleSelectionChange}
-                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                  aria-label={`Select ${product.name}`}
-                />
-              </div>
-            )}
-            
             {/* Product Image */}
             <MemoizedProductImage
               src={product.image}
@@ -349,7 +329,6 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
         ref={cardRef}
         className={cn(
           "group transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-          selected && "ring-2 ring-blue-500",
           onEdit ? "cursor-pointer hover:shadow-lg hover:ring-1 hover:ring-gray-300" : "hover:shadow-lg",
           isEditLoading && "opacity-75 pointer-events-none"
         )}
@@ -373,18 +352,6 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
         aria-disabled={isEditLoading}
       >
       <CardContent className="p-4">
-        {/* Selection Checkbox */}
-        {showSelection && (
-          <div className="absolute top-2 left-2 z-10">
-            <Checkbox
-              checked={selected}
-              onCheckedChange={handleSelectionChange}
-              className="bg-white  data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-              aria-label={`Select ${product.name}`}
-            />
-          </div>
-        )}
-        
         {/* Product Image */}
         <div className="relative mb-4">
           <MemoizedProductImage
@@ -400,7 +367,7 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
           />
           
           {/* Badges */}
-          <div className={`absolute top-2 ${showSelection ? 'left-10' : 'left-2'} flex flex-col gap-1`}>
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
             {product.featured && (
               <Badge className="bg-blue-600 text-white text-xs">Featured</Badge>
             )}

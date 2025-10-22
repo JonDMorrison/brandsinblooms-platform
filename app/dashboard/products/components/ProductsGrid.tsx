@@ -24,7 +24,6 @@ interface ProductsGridProps {
   products: ProductDisplay[];
   loading?: boolean;
   viewMode: 'grid' | 'list';
-  showBulkSelection: boolean;
   onProductEdit?: (productId: string) => void;
   onAddToSite?: (productId: string) => void;
   onRemoveFromSite?: (productId: string) => void;
@@ -62,7 +61,6 @@ export const ProductsGrid = memo(({
   products,
   loading = false,
   viewMode,
-  showBulkSelection,
   onProductEdit,
   onAddToSite,
   onRemoveFromSite,
@@ -86,7 +84,6 @@ export const ProductsGrid = memo(({
           key={product.id}
           product={product}
           viewMode={viewMode}
-          selectable={showBulkSelection}
           onEdit={onProductEdit ? () => onProductEdit(product.id) : undefined}
           onAddToSite={onAddToSite ? () => onAddToSite(product.id) : undefined}
           onRemoveFromSite={onRemoveFromSite ? () => onRemoveFromSite(product.id) : undefined}
