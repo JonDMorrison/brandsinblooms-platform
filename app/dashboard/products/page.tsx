@@ -42,8 +42,11 @@ const ProductsPageContent = memo(() => {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editingProductRef, setEditingProductRef] = useState<HTMLElement | null>(null);
 
+  // Memoize filters to prevent infinite request loop (object reference changes on every render)
+  const productFilters = useMemo(() => ({ limit: 100 }), []);
+
   // Data hooks
-  const { data: productsResponse, loading, refresh } = useProducts({ limit: 100 }); // Increased limit to show more products
+  const { data: productsResponse, loading, refresh } = useProducts(productFilters);
   const { data: categoriesData = [] } = useProductCategories();
   const updateProduct = useUpdateProduct();
 
