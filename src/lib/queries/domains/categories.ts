@@ -494,10 +494,41 @@ async function updateChildrenPaths(
 
     await supabase
       .from('product_categories')
-      .update({ 
+      .update({
         path: newPath,
-        updated_at: new Date().toISOString() 
+        updated_at: new Date().toISOString()
       })
       .eq('id', child.id);
   }
+}
+
+/**
+ * Check if a category slug is available for a given site
+ */
+export async function checkCategorySlugAvailability(
+  supabase: SupabaseClient<Database>,
+  siteId: string,
+  slug: string,
+  excludeCategoryId?: string
+): Promise<boolean> {
+  let query = supabase
+    .from('product_categories')
+    .select('id')
+    .eq('site_id', siteId)
+    .eq('slug', slug);
+
+  // Exclude the current category when editing
+  if (excludeCategoryId) {
+    query = query.neq('id', excludeCategoryId);
+  }
+
+  const response = await query.maybeSingle();
+
+  if (response.error) {
+    console.error('Error checking category slug availability:', response.error);
+    return false;
+  }
+
+  // If no category found, slug is available
+  return response.data === null;
 }

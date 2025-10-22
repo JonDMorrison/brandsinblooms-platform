@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -16,16 +16,22 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Badge } from '@/components/ui/badge';
 import {
   Save,
   X,
-  Loader2
+  Loader2,
+  Sparkles,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Tables } from '@/lib/database/types';
 import { categorySchema, type CategoryData } from '@/lib/validations/categories';
 import { sanitizeSlug } from '@/lib/utils/slug';
+import { checkCategorySlugAvailability } from '@/lib/queries/domains/categories';
+import { useSupabase } from '@/hooks/useSupabase';
+import { useSiteId } from '@/src/contexts/SiteContext';
 
 type ProductCategory = Tables<'product_categories'>;
 
@@ -55,7 +61,14 @@ export function CategoryEditor({
   className,
 }: CategoryEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
-  
+  const [autoGenerateSlug, setAutoGenerateSlug] = useState(true);
+  const [isValidatingSlug, setIsValidatingSlug] = useState(false);
+  const [slugValidationStatus, setSlugValidationStatus] = useState<'idle' | 'validating' | 'available' | 'taken'>('idle');
+  const [slugValidationMessage, setSlugValidationMessage] = useState('');
+
+  const supabase = useSupabase();
+  const siteId = useSiteId();
+
   const isEditing = !!category;
   const title = isEditing ? 'Edit Category' : 'Create Category';
 
@@ -71,14 +84,67 @@ export function CategoryEditor({
 
   const { watch, setValue, handleSubmit, formState: { errors, isDirty } } = form;
   const watchedName = watch('name');
+  const watchedSlug = watch('slug');
 
-  // Auto-generate slug from name (always)
+  // Validate slug availability
+  const validateSlugAvailability = useCallback(async (slug: string) => {
+    if (!slug || !siteId) {
+      setSlugValidationStatus('idle');
+      setSlugValidationMessage('');
+      return;
+    }
+
+    setIsValidatingSlug(true);
+    setSlugValidationStatus('validating');
+
+    try {
+      const isAvailable = await checkCategorySlugAvailability(
+        supabase,
+        siteId,
+        slug,
+        category?.id // Exclude current category when editing
+      );
+
+      if (isAvailable) {
+        setSlugValidationStatus('available');
+        setSlugValidationMessage('Category slug is available');
+      } else {
+        setSlugValidationStatus('taken');
+        setSlugValidationMessage('A category with this slug already exists');
+      }
+    } catch (error) {
+      console.error('Error validating slug:', error);
+      setSlugValidationStatus('idle');
+      setSlugValidationMessage('');
+    } finally {
+      setIsValidatingSlug(false);
+    }
+  }, [supabase, siteId, category?.id]);
+
+  // Auto-generate slug from name (only when auto-generate is enabled)
   useEffect(() => {
-    if (watchedName) {
+    if (watchedName && autoGenerateSlug) {
       const generatedSlug = sanitizeSlug(watchedName);
       setValue('slug', generatedSlug, { shouldValidate: true });
     }
-  }, [watchedName, setValue]);
+  }, [watchedName, autoGenerateSlug, setValue]);
+
+  // Validate slug when it changes
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    if (watchedSlug) {
+      // Debounce validation
+      timeoutId = setTimeout(() => {
+        validateSlugAvailability(watchedSlug);
+      }, 500);
+    } else {
+      setSlugValidationStatus('idle');
+      setSlugValidationMessage('');
+    }
+
+    return () => clearTimeout(timeoutId);
+  }, [watchedSlug, validateSlugAvailability]);
 
   const onSubmit = async (data: CategoryData) => {
     setIsSaving(true);
@@ -106,66 +172,98 @@ export function CategoryEditor({
               }
             </p>
           </div>
-          
-          {/* Buttons moved to form */}
         </div>
-        
-        {/* Preview */}
-        {watchedName && (
-          <div className="border rounded-lg p-2 bg-muted/20 mt-2">
-            <div className="flex items-center gap-2">
-              <span className="font-medium">{watchedName}</span>
-              <Badge variant="secondary" className="text-xs">
-                /{watch('slug')}
-              </Badge>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="px-4 sm:px-6 pt-0 pb-4">
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
             <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category Name *</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., Roses, Indoor Plants, Garden Tools"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category Name *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., Roses, Indoor Plants, Garden Tools"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="slug"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>URL Slug</FormLabel>
-                        <FormControl>
+                {/* Auto-generate slug toggle */}
+                <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-full bg-purple-100 p-2">
+                        <Sparkles className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <Label htmlFor="auto-slug" className="text-base font-semibold text-purple-900">
+                          Auto-Generate Slug
+                        </Label>
+                        <p className="text-sm text-purple-700 mt-1">
+                          Automatically create URL slug from category name
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      id="auto-slug"
+                      checked={autoGenerateSlug}
+                      onCheckedChange={setAutoGenerateSlug}
+                    />
+                  </div>
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>URL Slug</FormLabel>
+                      <FormControl>
+                        <div className="relative">
                           <Input
                             {...field}
-                            disabled
-                            className="bg-muted cursor-not-allowed"
+                            disabled={autoGenerateSlug}
+                            className={cn(
+                              autoGenerateSlug ? "bg-muted cursor-not-allowed pr-10" : "pr-10",
+                              slugValidationStatus === 'taken' && "border-red-500 focus-visible:ring-red-500"
+                            )}
+                            placeholder="e.g., roses, indoor-plants"
                           />
-                        </FormControl>
-                        <FormDescription>
-                          Automatically generated from category name
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                          {isValidatingSlug && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                            </div>
+                          )}
+                          {!isValidatingSlug && slugValidationStatus === 'available' && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            </div>
+                          )}
+                          {!isValidatingSlug && slugValidationStatus === 'taken' && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <XCircle className="h-4 w-4 text-red-500" />
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormDescription className={slugValidationStatus === 'taken' ? "text-red-500" : ""}>
+                        {slugValidationMessage || (autoGenerateSlug
+                          ? "Automatically generated from category name"
+                          : "Customize the URL slug for this category"
+                        )}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={form.control}
@@ -221,8 +319,8 @@ export function CategoryEditor({
                 <X className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
-              <Button 
-                disabled={isSaving || (isEditing && !isDirty)}
+              <Button
+                disabled={isSaving || (isEditing && !isDirty) || slugValidationStatus === 'taken' || isValidatingSlug}
                 type="submit"
                 size="sm"
                 className="hover:bg-primary/90 cursor-pointer"
