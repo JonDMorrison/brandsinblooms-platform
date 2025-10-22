@@ -21,7 +21,7 @@ export function ProductsHeader({ onProductCreated }: ProductsHeaderProps) {
             Manage your product catalog and site products
           </p>
         </div>
-        <Button onClick={() => setCreateModalOpen(true)}>
+        <Button className="btn-gradient-primary" onClick={() => setCreateModalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Add Product
         </Button>

@@ -135,7 +135,7 @@ export default function CategoriesPage() {
             Organize your products with hierarchical categories
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button className="btn-gradient-primary" onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           New Category
         </Button>
