@@ -17,6 +17,7 @@ export interface ProductStats {
   averageRating: number;
   totalReviews: number;
   lowStockCount: number;
+  uniqueCategories: number;
 }
 
 /**
@@ -44,6 +45,7 @@ export function useProductStats() {
         averageRating: stats.avgRating,
         totalReviews: stats.totalReviews,
         lowStockCount: stats.lowStockCount,
+        uniqueCategories: stats.uniqueCategories,
       } as ProductStats;
     },
     {
