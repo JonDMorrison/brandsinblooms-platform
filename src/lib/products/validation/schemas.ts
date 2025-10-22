@@ -17,11 +17,9 @@ export const productFormSchema = z.object({
   primary_category_id: z.string().min(1, 'Category is required'),
   category_ids: z.array(z.string()).optional(),
   price: z.coerce.number().min(0, 'Price must be positive'),
-  sale_price: z.coerce.number().min(0).optional().nullable(),
   compare_at_price: z.coerce.number().min(0).optional().nullable(),
   inventory_count: z.coerce.number().int().min(0, 'Inventory must be non-negative'),
   low_stock_threshold: z.coerce.number().int().min(0).default(10),
-  unit_of_measure: z.string().optional(),
   care_instructions: z.string().optional(),
   is_active: z.boolean().default(true),
   is_featured: z.boolean().default(false),
@@ -49,11 +47,6 @@ export const productEditSchema = z.object({
     const num = parseFloat(val);
     return !isNaN(num) && num >= 0;
   }, 'Price must be a valid positive number'),
-  sale_price: z.string().optional().refine((val) => {
-    if (!val || val === '') return true;
-    const num = parseFloat(val);
-    return !isNaN(num) && num >= 0;
-  }, 'Sale price must be a valid positive number'),
   description: z.string().optional(),
   care_instructions: z.string().optional(),
   is_active: z.boolean(),

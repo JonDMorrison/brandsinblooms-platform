@@ -17,13 +17,11 @@ interface ReviewStepProps {
     primary_category_id?: string;
     category_ids?: string[];
     price?: number;
-    sale_price?: number | null;
     compare_at_price?: number | null;
     inventory_count?: number;
     low_stock_threshold?: number;
     is_active?: boolean;
     is_featured?: boolean;
-    unit_of_measure?: string;
     care_instructions?: string;
   };
   images: Array<{ url: string; alt_text?: string }>;
@@ -87,22 +85,10 @@ export function ReviewStep({ formValues, images, categories }: ReviewStepProps) 
             <span className="text-gray-500">Regular Price:</span>
             <p className="font-medium">{formatPrice(formValues.price)}</p>
           </div>
-          {formValues.sale_price && (
-            <div>
-              <span className="text-gray-500">Sale Price:</span>
-              <p className="font-medium">{formatPrice(formValues.sale_price)}</p>
-            </div>
-          )}
           {formValues.compare_at_price && (
             <div>
               <span className="text-gray-500">Compare At Price:</span>
               <p className="font-medium">{formatPrice(formValues.compare_at_price)}</p>
-            </div>
-          )}
-          {formValues.unit_of_measure && (
-            <div>
-              <span className="text-gray-500">Unit of Measure:</span>
-              <p className="font-medium">{formValues.unit_of_measure}</p>
             </div>
           )}
         </div>

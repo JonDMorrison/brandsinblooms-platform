@@ -92,7 +92,6 @@ export function ProductForm({
       primary_category_id: '',
       category_ids: [],
       price: 0,
-      sale_price: null,
       compare_at_price: null,
       inventory_count: 0,
       low_stock_threshold: 10,
