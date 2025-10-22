@@ -14,7 +14,7 @@ import type { Tables } from '@/src/lib/database/types';
 import { ProductsHeader } from './components/ProductsHeader';
 import { ProductsStats } from './components/ProductsStats';
 import { ProductsToolbar } from './components/ProductsToolbar';
-import { ProductsGrid } from './components/ProductsGrid';
+import { ProductsTable } from './components/ProductsTable';
 
 interface ProductDisplay {
   id: string;
@@ -234,10 +234,10 @@ const ProductsPageContent = memo(() => {
         onManageCategories={() => router.push('/dashboard/products/categories')}
       />
 
-      {/* Products Grid */}
+      {/* Products Table */}
       <Card>
         <CardContent className="p-6">
-          <ProductsGrid
+          <ProductsTable
             products={filteredProducts}
             loading={loading}
             onProductEdit={canEdit ? handleProductEdit : undefined}
