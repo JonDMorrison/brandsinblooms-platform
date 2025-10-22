@@ -33,7 +33,6 @@ interface ProductDisplay {
 
 const ProductsPageContent = memo(() => {
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [activeFilter, setActiveFilter] = useState<'all' | 'active'>('all');
@@ -244,8 +243,6 @@ const ProductsPageContent = memo(() => {
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
         categories={categories}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
         onManageCategories={() => router.push('/dashboard/products/categories')}
@@ -257,7 +254,6 @@ const ProductsPageContent = memo(() => {
           <ProductsGrid
             products={filteredProducts}
             loading={loading}
-            viewMode={viewMode}
             onProductEdit={canEdit ? handleProductEdit : undefined}
             onAddToSite={handleAddToSite}
             onRemoveFromSite={handleRemoveFromSite}

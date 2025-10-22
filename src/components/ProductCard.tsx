@@ -28,7 +28,6 @@ interface Product {
 
 interface ProductCardProps {
   product: Product
-  viewMode: 'grid' | 'list'
   onAddToSite?: (productId: string) => void
   onRemoveFromSite?: (productId: string) => void
   onEdit?: (productId: string) => void
@@ -38,7 +37,7 @@ interface ProductCardProps {
 // Memoized product image component to prevent re-renders on hover
 const MemoizedProductImage = memo(ProductImage)
 
-export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, onEdit, isEditLoading = false }: ProductCardProps) {
+export function ProductCard({ product, onAddToSite, onRemoveFromSite, onEdit, isEditLoading = false }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [quickViewOpen, setQuickViewOpen] = useState(false)
   const [showMobileActions, setShowMobileActions] = useState(false)
@@ -176,153 +175,6 @@ export function ProductCard({ product, viewMode, onAddToSite, onRemoveFromSite, 
     ))
   }
 
-  if (viewMode === 'list') {
-    return (
-      <>
-      <Card 
-        ref={cardRef}
-        className={cn(
-          "transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-          onEdit && "cursor-pointer hover:shadow-md hover:ring-1 hover:ring-gray-300",
-          isEditLoading && "opacity-75 pointer-events-none"
-        )}
-        onClick={handleCardClick}
-        onKeyDown={handleCardKeyDown}
-        tabIndex={onEdit ? 0 : undefined}
-        role={onEdit ? "button" : undefined}
-        aria-label={onEdit ? `Edit product ${product.name}. Price: $${product.price}. Stock: ${stockLabels[product.stock]}` : undefined}
-        aria-describedby={onEdit ? `product-desc-${product.id}` : undefined}
-        aria-disabled={isEditLoading}
-      >
-        <CardContent className="p-4">
-          <div className="flex gap-4">
-            {/* Product Image */}
-            <MemoizedProductImage
-              src={product.image}
-              alt={product.name}
-              productName={product.name}
-              width={80}
-              height={80}
-              className="w-20 h-20 rounded-lg flex-shrink-0"
-              placeholder={placeholderConfig}
-              priority={false}
-              loading="lazy"
-              showLoadingState={false}
-            />
-
-            {/* Product Details */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                    {product.featured && (
-                      <Badge variant="secondary" className="text-xs">Featured</Badge>
-                    )}
-                  </div>
-                  
-                  <p id={`product-desc-${product.id}`} className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description}</p>
-                  
-                  <div className="flex items-center gap-4 mb-2">
-                    <div className="flex items-center gap-1">
-                      {renderStars(product.rating)}
-                      <span className="text-xs text-gray-500 ml-1">
-                        ({product.reviews})
-                      </span>
-                    </div>
-                    
-                    <Badge className={stockColors[product.stock]} variant="outline">
-                      {stockLabels[product.stock]}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Price and Actions */}
-                <div className="text-right flex-shrink-0 ml-4">
-                  <div className="mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold">${product.price}</span>
-                      {product.originalPrice && (
-                        <span className="text-sm text-gray-500 line-through">
-                          ${product.originalPrice}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-1">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="hover:bg-gradient-primary-50 hover:border-gray-300 transition-colors cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        setQuickViewOpen(true);
-                      }}
-                      aria-label={`Quick view ${product.name}`}
-                      title={`Quick view ${product.name}`}
-                      disabled={isEditLoading}
-                    >
-                      <Eye className="h-3 w-3" />
-                    </Button>
-                    
-                    {product.addedToSite ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRemoveFromSiteClick}
-                        className="text-red-600 hover:text-red-700"
-                        disabled={isRemovingFromSite || isEditLoading}
-                        aria-label={`Remove ${product.name} from site`}
-                      >
-                        {isRemovingFromSite ? (
-                          <div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
-                        ) : (
-                          'Remove'
-                        )}
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={handleAddToSiteClick}
-                        disabled={product.stock === 'out-of-stock' || isAddingToSite || isEditLoading}
-                        aria-label={`Add ${product.name} to site`}
-                      >
-                        {isAddingToSite ? (
-                          <div className="h-3 w-3 mr-1 animate-spin rounded-full border border-current border-t-transparent" />
-                        ) : (
-                          <ShoppingCart className="h-3 w-3 mr-1" />
-                        )}
-                        Add
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Quick View Modal for List View */}
-      {quickViewOpen && (
-        <ProductQuickView
-          product={product as any}
-          isOpen={quickViewOpen}
-          onClose={() => {
-            setQuickViewOpen(false);
-            // Return focus to the card after modal closes
-            setTimeout(returnFocus, 100);
-          }}
-          onAddToSite={onAddToSite}
-        />
-      )}
-      </>
-    )
-  }
-
-  // Grid view
   return (
     <>
       <Card 

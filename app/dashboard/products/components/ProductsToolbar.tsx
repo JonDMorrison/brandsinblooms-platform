@@ -12,8 +12,6 @@ import {
 import { ToggleGroup, ToggleGroupItem } from '@/src/components/ui/toggle-group';
 import {
   Search,
-  Grid3X3,
-  List,
   Filter,
   FolderTree,
 } from 'lucide-react';
@@ -32,8 +30,6 @@ interface ProductsToolbarProps {
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
   categories: Category[];
-  viewMode: 'grid' | 'list';
-  onViewModeChange: (mode: 'grid' | 'list') => void;
   activeFilter: 'all' | 'active';
   onFilterChange: (filter: 'all' | 'active') => void;
   onManageCategories: () => void;
@@ -45,8 +41,6 @@ export function ProductsToolbar({
   selectedCategory,
   onCategoryChange,
   categories,
-  viewMode,
-  onViewModeChange,
   activeFilter,
   onFilterChange,
   onManageCategories,
@@ -105,20 +99,6 @@ export function ProductsToolbar({
           <FolderTree className="h-4 w-4 mr-2" />
           Categories
         </Button>
-
-        {/* View Mode Toggle */}
-        <ToggleGroup
-          type="single"
-          value={viewMode}
-          onValueChange={(value) => value && onViewModeChange(value as 'grid' | 'list')}
-        >
-          <ToggleGroupItem value="grid" aria-label="Grid view">
-            <Grid3X3 className="h-4 w-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="list" aria-label="List view">
-            <List className="h-4 w-4" />
-          </ToggleGroupItem>
-        </ToggleGroup>
       </div>
     </div>
   );
