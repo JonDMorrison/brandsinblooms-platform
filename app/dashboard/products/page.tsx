@@ -142,20 +142,6 @@ const ProductsPageContent = memo(() => {
   }, [displayProducts, searchQuery, selectedCategory, activeFilter]);
 
   // Product actions
-  const handleAddToSite = useCallback(
-    (productId: string) => {
-      updateProduct.mutate({ id: productId, is_active: true });
-    },
-    [updateProduct]
-  );
-
-  const handleRemoveFromSite = useCallback(
-    (productId: string) => {
-      updateProduct.mutate({ id: productId, is_active: false });
-    },
-    [updateProduct]
-  );
-
   const handleProductEdit = useCallback(
     (productId: string) => {
       if (!canEdit) {
@@ -255,8 +241,6 @@ const ProductsPageContent = memo(() => {
             products={filteredProducts}
             loading={loading}
             onProductEdit={canEdit ? handleProductEdit : undefined}
-            onAddToSite={handleAddToSite}
-            onRemoveFromSite={handleRemoveFromSite}
           />
         </CardContent>
       </Card>

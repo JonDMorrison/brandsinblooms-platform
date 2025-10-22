@@ -1,14 +1,10 @@
 'use client'
 
 import { Card, CardContent } from '@/src/components/ui/card'
-import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
-import { Star, ShoppingCart, Eye, Heart } from 'lucide-react'
+import { Star } from 'lucide-react'
 import React, { useState, useRef, useCallback, memo, useMemo } from 'react'
 import { ProductImage } from '@/src/components/ui/product-image'
-import { useProductFavorites } from '@/src/hooks/useProductFavorites'
-import { ProductQuickView } from '@/src/components/products/ProductQuickView'
-import { useLongPress } from 'use-long-press'
 import { cn } from '@/src/lib/utils'
 
 interface Product {
@@ -28,8 +24,6 @@ interface Product {
 
 interface ProductCardProps {
   product: Product
-  onAddToSite?: (productId: string) => void
-  onRemoveFromSite?: (productId: string) => void
   onEdit?: (productId: string) => void
   isEditLoading?: boolean
 }
@@ -37,16 +31,8 @@ interface ProductCardProps {
 // Memoized product image component to prevent re-renders on hover
 const MemoizedProductImage = memo(ProductImage)
 
-export function ProductCard({ product, onAddToSite, onRemoveFromSite, onEdit, isEditLoading = false }: ProductCardProps) {
-  const [isHovered, setIsHovered] = useState(false)
-  const [quickViewOpen, setQuickViewOpen] = useState(false)
-  const [showMobileActions, setShowMobileActions] = useState(false)
-  const [isAddingToSite, setIsAddingToSite] = useState(false)
-  const [isRemovingFromSite, setIsRemovingFromSite] = useState(false)
+export function ProductCard({ product, onEdit, isEditLoading = false }: ProductCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
-  const { isFavorite, toggleFavorite, isToggling } = useProductFavorites()
-
-  const isProductFavorite = isFavorite(product.id)
   
   // Memoize placeholder config to prevent recreation on every render
   const placeholderConfig = useMemo(() => ({
@@ -57,21 +43,6 @@ export function ProductCard({ product, onAddToSite, onRemoveFromSite, onEdit, is
               ['#e9d5ff', '#c084fc']
     }
   }), [product.category])
-  
-  // Long press for mobile (with improved touch handling)
-  const bind = useLongPress(() => {
-    if (!onEdit) return // Don't show actions if edit is not available
-    setShowMobileActions(true)
-    // Provide haptic feedback on supported devices
-    if ('vibrate' in navigator) {
-      navigator.vibrate(50)
-    }
-  }, {
-    threshold: 600, // Slightly longer to avoid accidental triggers
-    captureEvent: true,
-    cancelOnMovement: true,
-    detect: 'touch' // Only detect on touch devices
-  })
 
   // Helper function to check if click target is an interactive element
   const isInteractiveElement = (target: EventTarget | null): boolean => {
@@ -124,32 +95,6 @@ export function ProductCard({ product, onAddToSite, onRemoveFromSite, onEdit, is
     }
   }, [])
 
-  // Handle add to site with loading state
-  const handleAddToSiteClick = useCallback(async (e: React.MouseEvent) => {
-    if (!onAddToSite) return
-    e.stopPropagation()
-    e.preventDefault()
-    setIsAddingToSite(true)
-    try {
-      await onAddToSite(product.id)
-    } finally {
-      setIsAddingToSite(false)
-    }
-  }, [onAddToSite, product.id])
-
-  // Handle remove from site with loading state
-  const handleRemoveFromSiteClick = useCallback(async (e: React.MouseEvent) => {
-    if (!onRemoveFromSite) return
-    e.stopPropagation()
-    e.preventDefault()
-    setIsRemovingFromSite(true)
-    try {
-      await onRemoveFromSite(product.id)
-    } finally {
-      setIsRemovingFromSite(false)
-    }
-  }, [onRemoveFromSite, product.id])
-
   const stockColors = {
     'in-stock': 'bg-green-100 text-green-800  ',
     'low-stock': 'bg-yellow-100 text-yellow-800  ',
@@ -176,36 +121,23 @@ export function ProductCard({ product, onAddToSite, onRemoveFromSite, onEdit, is
   }
 
   return (
-    <>
-      <Card 
-        ref={cardRef}
-        className={cn(
-          "group transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-          onEdit ? "cursor-pointer hover:shadow-lg hover:ring-1 hover:ring-gray-300" : "hover:shadow-lg",
-          isEditLoading && "opacity-75 pointer-events-none"
-        )}
-        {...bind()}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onTouchStart={() => {
-          // Show mobile actions immediately on touch start for better UX
-          if (onEdit) setShowMobileActions(true);
-        }}
-        onTouchEnd={() => {
-          // Hide actions after a delay
-          setTimeout(() => setShowMobileActions(false), 4000);
-        }}
-        onClick={handleCardClick}
-        onKeyDown={handleCardKeyDown}
-        tabIndex={onEdit ? 0 : undefined}
-        role={onEdit ? "button" : undefined}
-        aria-label={onEdit ? `Edit product ${product.name}. Price: $${product.price}. Stock: ${stockLabels[product.stock]}` : undefined}
-        aria-describedby={onEdit ? `product-desc-grid-${product.id}` : undefined}
-        aria-disabled={isEditLoading}
-      >
+    <Card
+      ref={cardRef}
+      className={cn(
+        "py-0 group transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+        onEdit ? "cursor-pointer hover:shadow-lg hover:ring-1 hover:ring-gray-300" : "hover:shadow-lg",
+        isEditLoading && "opacity-75 pointer-events-none"
+      )}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      tabIndex={onEdit ? 0 : undefined}
+      role={onEdit ? "button" : undefined}
+      aria-label={onEdit ? `Edit product ${product.name}. Price: $${product.price}. Stock: ${stockLabels[product.stock]}` : undefined}
+      aria-disabled={isEditLoading}
+    >
       <CardContent className="p-4">
         {/* Product Image */}
-        <div className="relative mb-4">
+        <div className="relative mb-3">
           <MemoizedProductImage
             src={product.image}
             alt={product.name}
@@ -228,61 +160,6 @@ export function ProductCard({ product, onAddToSite, onRemoveFromSite, onEdit, is
             </Badge>
           </div>
 
-          {/* Hover Actions */}
-          {(isHovered || showMobileActions) && (
-            <div className="absolute top-2 right-2 flex flex-col gap-1 z-50" style={{ pointerEvents: 'auto' }}>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className={cn(
-                  "h-8 w-8 bg-white/95 backdrop-blur-sm border-gray-200 shadow-sm transition-all",
-                  "hover:scale-110 hover:shadow-md hover:bg-white hover:border-gray-300",
-                  isProductFavorite && "text-red-500 hover:text-red-600 border-red-200 hover:border-red-300"
-                )}
-                style={{ cursor: 'pointer' }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  if (toggleFavorite) {
-                    toggleFavorite({ 
-                      productId: product.id, 
-                      isFavorite: isProductFavorite 
-                    });
-                  }
-                }}
-                disabled={isToggling || isEditLoading}
-                aria-label={isProductFavorite ? `Remove ${product.name} from favorites` : `Add ${product.name} to favorites`}
-                title={isProductFavorite ? `Remove ${product.name} from favorites` : `Add ${product.name} to favorites`}
-              >
-                {isToggling ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border border-current border-t-transparent" />
-                ) : (
-                  <Heart className={cn(
-                    "h-4 w-4 transition-all",
-                    isProductFavorite && "fill-current"
-                  )} />
-                )}
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 bg-white/95 backdrop-blur-sm border-gray-200 shadow-sm transition-all hover:scale-110 hover:shadow-md hover:bg-white hover:border-gray-300"
-                style={{ cursor: 'pointer' }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setQuickViewOpen(true);
-                }}
-                aria-label={`Quick view ${product.name}`}
-                title={`Quick view ${product.name}`}
-                disabled={isEditLoading}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-
           {/* Discount */}
           {product.originalPrice && (
             <div className="absolute bottom-2 left-2">
@@ -295,10 +172,7 @@ export function ProductCard({ product, onAddToSite, onRemoveFromSite, onEdit, is
 
         {/* Product Info */}
         <div className="space-y-2">
-          <div>
-            <h3 className="font-semibold text-sm mb-1 line-clamp-1">{product.name}</h3>
-            <p id={`product-desc-grid-${product.id}`} className="text-xs text-gray-500 line-clamp-2">{product.description}</p>
-          </div>
+          <h3 className="font-semibold text-sm mb-1 line-clamp-1">{product.name}</h3>
 
           {/* Rating */}
           <div className="flex items-center gap-1">
@@ -318,64 +192,8 @@ export function ProductCard({ product, onAddToSite, onRemoveFromSite, onEdit, is
 
           {/* Category */}
           <div className="text-xs text-gray-500">{product.category}</div>
-
-          {/* Action Button */}
-          <div className="pt-2">
-            {product.addedToSite ? (
-              <Button
-                variant="outline"
-                className="w-full text-red-600 hover:text-red-700 hover:border-red-300"
-                onClick={handleRemoveFromSiteClick}
-                disabled={isRemovingFromSite || isEditLoading}
-                aria-label={`Remove ${product.name} from site`}
-              >
-                {isRemovingFromSite ? (
-                  <>
-                    <div className="h-4 w-4 mr-2 animate-spin rounded-full border border-current border-t-transparent" />
-                    Removing...
-                  </>
-                ) : (
-                  'Remove from Site'
-                )}
-              </Button>
-            ) : (
-              <Button
-                className="w-full"
-                onClick={handleAddToSiteClick}
-                disabled={product.stock === 'out-of-stock' || isAddingToSite || isEditLoading}
-                aria-label={`Add ${product.name} to site`}
-              >
-                {isAddingToSite ? (
-                  <>
-                    <div className="h-4 w-4 mr-2 animate-spin rounded-full border border-current border-t-transparent" />
-                    Adding...
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Add to Site
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
         </div>
       </CardContent>
     </Card>
-    
-    {/* Quick View Modal */}
-    {quickViewOpen && (
-      <ProductQuickView
-        product={product as any}
-        isOpen={quickViewOpen}
-        onClose={() => {
-          setQuickViewOpen(false);
-          // Return focus to the card after modal closes
-          setTimeout(returnFocus, 100);
-        }}
-        onAddToSite={onAddToSite}
-      />
-    )}
-    </>
   )
 }

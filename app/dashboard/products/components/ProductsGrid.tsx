@@ -24,8 +24,6 @@ interface ProductsGridProps {
   products: ProductDisplay[];
   loading?: boolean;
   onProductEdit?: (productId: string) => void;
-  onAddToSite?: (productId: string) => void;
-  onRemoveFromSite?: (productId: string) => void;
 }
 
 const ProductGridSkeleton = memo(() => (
@@ -60,8 +58,6 @@ export const ProductsGrid = memo(({
   products,
   loading = false,
   onProductEdit,
-  onAddToSite,
-  onRemoveFromSite,
 }: ProductsGridProps) => {
   if (loading) {
     return <ProductGridSkeleton />;
@@ -78,8 +74,6 @@ export const ProductsGrid = memo(({
           key={product.id}
           product={product}
           onEdit={onProductEdit ? () => onProductEdit(product.id) : undefined}
-          onAddToSite={onAddToSite ? () => onAddToSite(product.id) : undefined}
-          onRemoveFromSite={onRemoveFromSite ? () => onRemoveFromSite(product.id) : undefined}
         />
       ))}
     </div>
