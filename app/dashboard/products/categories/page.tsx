@@ -37,13 +37,14 @@ export default function CategoriesPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch categories
-  const { 
-    data: categories = [], 
-    isLoading, 
-    error 
+  const {
+    data,
+    isLoading,
+    error
   } = useCategoriesHierarchy({
     active: !showInactive,
   });
+  const categories = data ?? [];
 
   // Fetch selected category details
   const { 
