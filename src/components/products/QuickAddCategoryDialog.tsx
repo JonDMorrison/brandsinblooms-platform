@@ -6,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useCreateCategory } from '@/src/hooks/useCategories';
-import { useCategoriesList } from '@/src/hooks/useCategories';
 import { sanitizeSlug } from '@/src/lib/utils/slug';
 import {
   Dialog,
@@ -24,13 +23,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/src/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/src/components/ui/select';
 import { Input } from '@/src/components/ui/input';
 import { Textarea } from '@/src/components/ui/textarea';
 import { Button } from '@/src/components/ui/button';
@@ -39,7 +31,6 @@ import { Loader2, Plus } from 'lucide-react';
 const quickAddCategorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
   description: z.string().optional(),
-  parent_id: z.string().nullable().optional(),
 });
 
 type QuickAddCategoryForm = z.infer<typeof quickAddCategorySchema>;
@@ -57,14 +48,12 @@ export function QuickAddCategoryDialog({
 }: QuickAddCategoryDialogProps) {
   const [isCreating, setIsCreating] = useState(false);
   const createCategory = useCreateCategory();
-  const { data: categories = [] } = useCategoriesList();
 
   const form = useForm<QuickAddCategoryForm>({
     resolver: zodResolver(quickAddCategorySchema),
     defaultValues: {
       name: '',
       description: '',
-      parent_id: null,
     },
   });
 
@@ -81,9 +70,7 @@ export function QuickAddCategoryDialog({
         name: data.name,
         slug,
         description: data.description || null,
-        parent_id: data.parent_id || null,
         is_active: true,
-        sort_order: 0,
       });
 
       toast.success('Category created successfully!', { id: toastId });
@@ -168,39 +155,6 @@ export function QuickAddCategoryDialog({
                   </FormControl>
                   <FormDescription className="text-xs">
                     Help customers understand what products belong here
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="parent_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Parent Category (Optional)</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(value === 'none' ? null : value)}
-                    value={field.value || 'none'}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="None - Top Level Category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">None - Top Level Category</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {'  '.repeat(category.level || 0)}
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription className="text-xs">
-                    Organize as a subcategory under another category
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
