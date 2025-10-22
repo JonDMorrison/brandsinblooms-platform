@@ -152,7 +152,7 @@ export function useCreateProduct() {
       return createProduct(supabase, { ...data, site_id: siteId });
     },
     {
-      showSuccessToast: 'Product created successfully',
+      showSuccessToast: false, // Toast shown in CreateProductModal after image association
       optimisticUpdate: (newProduct) => {
         // Clear related localStorage caches
         const patterns = [`products_${siteId}_`, `product_categories_${siteId}`];
