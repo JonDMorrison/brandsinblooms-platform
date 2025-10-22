@@ -26,6 +26,7 @@ import type {
   BulkAssignInput,
 } from '@/lib/validations/categories';
 import type { TablesInsert, TablesUpdate } from '@/lib/database/types';
+import { emitCategoryChange, useCategoryChangeListener } from '@/lib/events/category-events';
 
 /**
  * Hook to fetch categories hierarchy
@@ -34,7 +35,7 @@ export function useCategoriesHierarchy(filters?: CategoryFilters) {
   const siteId = useSiteId();
   const supabase = useSupabase();
 
-  return useSupabaseQuery(
+  const result = useSupabaseQuery(
     (signal) => getCategoriesHierarchy(supabase, siteId!, filters),
     {
       enabled: !!siteId,
@@ -42,6 +43,13 @@ export function useCategoriesHierarchy(filters?: CategoryFilters) {
     },
     [siteId, filters] // Re-fetch when siteId or filters change
   );
+
+  // Listen for category change events and refresh data
+  useCategoryChangeListener(() => {
+    result.refresh();
+  }, siteId);
+
+  return result;
 }
 
 /**
@@ -110,6 +118,15 @@ export function useCreateCategory() {
       createCategory(supabase, { ...data, site_id: siteId! }),
     {
       showSuccessToast: 'Category created successfully',
+      onSuccess: (category) => {
+        // Emit event to trigger cache invalidation across all category queries
+        if (siteId) {
+          emitCategoryChange('category:created', {
+            siteId,
+            categoryId: category.id
+          });
+        }
+      },
     }
   );
 }
@@ -126,6 +143,15 @@ export function useUpdateCategory(categoryId: string) {
       updateCategory(supabase, siteId!, categoryId, data),
     {
       showSuccessToast: 'Category updated successfully',
+      onSuccess: () => {
+        // Emit event to trigger cache invalidation across all category queries
+        if (siteId) {
+          emitCategoryChange('category:updated', {
+            siteId,
+            categoryId
+          });
+        }
+      },
     }
   );
 }
@@ -138,21 +164,29 @@ export function useDeleteCategory() {
   const supabase = useSupabase();
 
   return useSupabaseMutation(
-    ({ 
-      categoryId, 
-      reassignToId 
-    }: { 
-      categoryId: string; 
+    ({
+      categoryId,
+      reassignToId
+    }: {
+      categoryId: string;
       reassignToId?: string;
     }, signal) =>
       deleteCategory(supabase, siteId!, categoryId, reassignToId),
     {
-      onSuccess: (data) => {
+      onSuccess: (data, variables) => {
         toast.success('Category deleted successfully', {
-          description: data.affected_products 
+          description: data.affected_products
             ? `${data.affected_products} products were updated`
             : undefined,
         });
+
+        // Emit event to trigger cache invalidation across all category queries
+        if (siteId) {
+          emitCategoryChange('category:deleted', {
+            siteId,
+            categoryId: variables.categoryId
+          });
+        }
       },
     }
   );
@@ -204,6 +238,7 @@ export function useCategoriesList(includeInactive = false) {
   const [data, setData] = React.useState<Array<CategoryHierarchy & { level: number }>>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<Error | null>(null);
+  const [refreshCounter, setRefreshCounter] = React.useState(0);
 
   React.useEffect(() => {
     const fetchCategories = async () => {
@@ -212,16 +247,16 @@ export function useCategoriesList(includeInactive = false) {
         setIsLoading(false);
         return;
       }
-      
+
       setIsLoading(true);
       try {
         const hierarchy = await getCategoriesHierarchy(supabase, siteId!, {
           active: !includeInactive,
         });
-        
+
         // Flatten hierarchy into a list
         const flattenCategories = (
-          categories: CategoryHierarchy[], 
+          categories: CategoryHierarchy[],
           level = 0
         ): Array<CategoryHierarchy & { level: number }> => {
           return categories.reduce((acc, cat) => {
@@ -244,7 +279,12 @@ export function useCategoriesList(includeInactive = false) {
     };
 
     fetchCategories();
-  }, [siteId, includeInactive, supabase]);
+  }, [siteId, includeInactive, supabase, refreshCounter]);
+
+  // Listen for category change events and trigger refresh
+  useCategoryChangeListener(() => {
+    setRefreshCounter(prev => prev + 1);
+  }, siteId);
 
   return { data, isLoading, error };
 }
