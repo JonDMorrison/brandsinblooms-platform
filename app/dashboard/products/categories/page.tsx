@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,14 +27,17 @@ export default function CategoriesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  // Memoize filters to prevent infinite request loop
+  const categoryFilters = useMemo(() => ({
+    includeInactive: true, // Show all categories (both active and inactive)
+  }), []);
+
   // Fetch categories (showing all categories - no filtering)
   const {
     data,
     loading,
     error
-  } = useCategoriesHierarchy({
-    includeInactive: true, // Show all categories (both active and inactive)
-  });
+  } = useCategoriesHierarchy(categoryFilters);
   const categories = data ?? [];
 
   // Get selected category for editing

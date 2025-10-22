@@ -17,12 +17,24 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Save,
   X,
   Loader2,
   Sparkles,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -32,6 +44,7 @@ import { sanitizeSlug } from '@/lib/utils/slug';
 import { checkCategorySlugAvailability } from '@/lib/queries/domains/categories';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
+import { useDeleteCategory } from '@/hooks/useCategories';
 
 type ProductCategory = Tables<'product_categories'>;
 
@@ -65,9 +78,12 @@ export function CategoryEditor({
   const [isValidatingSlug, setIsValidatingSlug] = useState(false);
   const [slugValidationStatus, setSlugValidationStatus] = useState<'idle' | 'validating' | 'available' | 'taken'>('idle');
   const [slugValidationMessage, setSlugValidationMessage] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const supabase = useSupabase();
   const siteId = useSiteId();
+  const deleteCategory = useDeleteCategory();
 
   const isEditing = !!category;
   const title = isEditing ? 'Edit Category' : 'Create Category';
@@ -154,6 +170,25 @@ export function CategoryEditor({
       console.error('Error saving category:', error);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!category?.id) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteCategory.mutateAsync({
+        categoryId: category.id,
+        // No reassignToId - removes all product assignments
+      });
+      setShowDeleteDialog(false);
+      onCancel(); // Close the edit modal
+    } catch (error) {
+      // Error is handled by the mutation hook
+      console.error('Delete failed:', error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -307,35 +342,113 @@ export function CategoryEditor({
             </div>
 
             {/* Form Actions */}
-            <div className="flex items-center justify-end gap-2 pt-4 border-t">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={onCancel} 
-                disabled={isSaving}
-                type="button"
-                className="hover:bg-gradient-primary-50 cursor-pointer"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-              <Button
-                disabled={isSaving || (isEditing && !isDirty) || slugValidationStatus === 'taken' || isValidatingSlug}
-                type="submit"
-                size="sm"
-                className="hover:bg-primary/90 cursor-pointer"
-              >
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
-                {isEditing ? 'Update' : 'Create'} Category
-              </Button>
+            <div className="flex items-center justify-between pt-4 border-t">
+              {/* Delete Button (left side, only when editing) */}
+              {isEditing ? (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={isDeleting || isSaving}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              ) : (
+                <div />
+              )}
+
+              {/* Cancel and Save/Update buttons (right side) */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onCancel}
+                  disabled={isSaving || isDeleting}
+                  type="button"
+                  className="hover:bg-gradient-primary-50 cursor-pointer"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button
+                  disabled={isSaving || isDeleting || (isEditing && !isDirty) || slugValidationStatus === 'taken' || isValidatingSlug}
+                  type="submit"
+                  size="sm"
+                  className="hover:bg-primary/90 cursor-pointer"
+                >
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {isEditing ? 'Update' : 'Create'} Category
+                </Button>
+              </div>
             </div>
           </form>
         </Form>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 p-2 bg-red-100 rounded-full">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-left">
+                  Delete {category?.name}?
+                </AlertDialogTitle>
+              </div>
+            </div>
+          </AlertDialogHeader>
+
+          <AlertDialogDescription className="text-left">
+            This action cannot be undone. This will permanently delete the category
+            from your site.
+          </AlertDialogDescription>
+
+          {category && 'product_count' in category && category.product_count && category.product_count > 0 && (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <span className="text-sm text-amber-800 font-medium">
+                ⚠️ This category has {category.product_count} product{category.product_count > 1 ? 's' : ''}.
+                They will be uncategorized after deletion.
+              </span>
+            </div>
+          )}
+
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Category
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

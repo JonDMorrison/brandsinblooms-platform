@@ -215,7 +215,7 @@ export async function deleteCategory(
   siteId: string,
   categoryId: string,
   reassignToCategoryId?: string
-): Promise<void> {
+): Promise<{ affected_products: number }> {
   // Check if category has children
   const childrenResponse = await supabase
     .from('product_categories')
@@ -232,6 +232,14 @@ export async function deleteCategory(
       { children_count: children.length }
     );
   }
+
+  // Count products that will be affected
+  const countResponse = await supabase
+    .from('product_category_assignments')
+    .select('id', { count: 'exact', head: false })
+    .eq('category_id', categoryId);
+
+  const affectedCount = countResponse.data?.length ?? 0;
 
   // Handle product reassignment
   if (reassignToCategoryId) {
@@ -265,6 +273,8 @@ export async function deleteCategory(
   if (deleteResponse.error) {
     throw SupabaseError.fromPostgrestError(deleteResponse.error);
   }
+
+  return { affected_products: affectedCount };
 }
 
 /**
