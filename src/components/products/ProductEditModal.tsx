@@ -140,6 +140,7 @@ export function ProductEditModal({
       <div className="mt-4">
         <ProductForm
           mode="edit"
+          variant="tabs"
           initialData={initialData}
           categories={categories}
           categoriesLoading={categoriesLoading}

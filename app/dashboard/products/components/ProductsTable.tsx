@@ -31,8 +31,6 @@ interface ProductDisplay {
   description: string;
   price: number;
   originalPrice?: number;
-  rating: number;
-  reviews: number;
   category: string;
   stock: 'in-stock' | 'low-stock' | 'out-of-stock';
   image: string;

@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Form } from '@/src/components/ui/form';
 import { Button } from '@/src/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/src/components/ui/tabs';
 import { ArrowLeft, ArrowRight, Check, Loader2, Info, DollarSign, Package, Image } from 'lucide-react';
 import { productFormSchema, type ProductFormData } from '@/src/lib/products/validation/schemas';
 import { BasicInfoStep, PricingStep, InventoryStep, ImagesStep, ReviewStep } from './steps';
@@ -25,6 +26,7 @@ interface Category {
 
 interface ProductFormProps {
   mode: 'create' | 'edit';
+  variant?: 'stepper' | 'tabs'; // Navigation style
   initialData?: Partial<ProductFormData>;
   categories: Category[];
   categoriesLoading?: boolean;
@@ -46,8 +48,16 @@ const STEPS = [
   { title: 'Review', icon: Check, description: 'Review and save your product' },
 ];
 
+const TABS = [
+  { value: 'details', label: 'Details', icon: Info, step: 0 },
+  { value: 'pricing', label: 'Pricing', icon: DollarSign, step: 1 },
+  { value: 'inventory', label: 'Inventory', icon: Package, step: 2 },
+  { value: 'images', label: 'Images', icon: Image, step: 3 },
+];
+
 export function ProductForm({
   mode,
+  variant,
   initialData,
   categories,
   categoriesLoading = false,
@@ -62,6 +72,13 @@ export function ProductForm({
 }: ProductFormProps) {
   const siteId = useSiteId();
   const [images, setImages] = useState<ProductImage[]>(productImages);
+
+  // Default to tabs for edit mode, stepper for create mode
+  const displayVariant = variant || (mode === 'edit' ? 'tabs' : 'stepper');
+  const useTabs = displayVariant === 'tabs';
+
+  // Tab state (only used in tabs mode)
+  const [activeTab, setActiveTab] = useState('details');
 
   // Form setup
   const form = useForm<ProductFormData>({
@@ -122,21 +139,21 @@ export function ProductForm({
     handleSlugNameChange(name);
   }, [handleSlugNameChange]);
 
-  // Form state management
-  const {
-    currentStep,
-    isSubmitting: formIsSubmitting,
-    isFirstStep,
-    isLastStep,
-    nextStep,
-    prevStep,
-    setIsSubmitting,
-  } = useProductFormState<ProductFormData>({
+  // Form state management (only for stepper mode)
+  const stepperState = useProductFormState<ProductFormData>({
     totalSteps: STEPS.length,
     onSubmit: form.handleSubmit(onSubmit),
     trigger: form.trigger,
     validateSlug: validateCurrentSlug,
   });
+
+  // Use stepper state only in stepper mode, otherwise provide defaults
+  const currentStep = useTabs ? 0 : stepperState.currentStep;
+  const isSubmitting = externalIsSubmitting || (!useTabs && stepperState.isSubmitting);
+  const isFirstStep = useTabs ? true : stepperState.isFirstStep;
+  const isLastStep = useTabs ? true : stepperState.isLastStep;
+  const nextStep = stepperState.nextStep;
+  const prevStep = stepperState.prevStep;
 
   // Update form when initialData changes (for edit mode)
   useEffect(() => {
@@ -191,8 +208,97 @@ export function ProductForm({
     }
   };
 
-  const isSubmitting = externalIsSubmitting || formIsSubmitting;
   const currentStepConfig = STEPS[currentStep];
+
+  // Render tabs variant
+  if (useTabs) {
+    return (
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              {TABS.map((tab) => {
+                const TabIcon = tab.icon;
+                return (
+                  <TabsTrigger key={tab.value} value={tab.value} className="gap-2">
+                    <TabIcon className="h-4 w-4" />
+                    {tab.label}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+
+            <TabsContent value="details" className="space-y-6 mt-6">
+              <BasicInfoStep
+                control={form.control}
+                categories={categories}
+                categoriesLoading={categoriesLoading}
+                disabled={isSubmitting}
+                isGenerating={isGenerating}
+                manuallyEdited={manuallyEdited}
+                currentSlug={currentSlug}
+                slugValidationError={slugValidationError}
+                onSlugChange={handleSlugChange}
+                onSlugBlur={handleSlugBlur}
+                onResetToAuto={handleResetSlug}
+                onNameChange={handleNameChange}
+                onSkuValidate={onSkuValidate}
+                setError={form.setError}
+                clearErrors={form.clearErrors}
+                primaryCategoryId={form.watch('primary_category_id')}
+              />
+            </TabsContent>
+
+            <TabsContent value="pricing" className="space-y-6 mt-6">
+              <PricingStep control={form.control} disabled={isSubmitting} />
+            </TabsContent>
+
+            <TabsContent value="inventory" className="space-y-6 mt-6">
+              <InventoryStep control={form.control} disabled={isSubmitting} />
+            </TabsContent>
+
+            <TabsContent value="images" className="space-y-6 mt-6">
+              <ImagesStep
+                images={images}
+                onImagesChange={handleImagesChange}
+                productId={productId || crypto.randomUUID()}
+                siteId={siteId || ''}
+                disabled={isSubmitting}
+              />
+            </TabsContent>
+          </Tabs>
+
+          {/* Action Buttons */}
+          <div className="flex justify-between pt-4 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {mode === 'create' ? 'Creating...' : 'Saving...'}
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  {mode === 'create' ? 'Create Product' : 'Save Changes'}
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    );
+  }
+
+  // Render stepper variant (original behavior)
   const IconComponent = currentStepConfig.icon;
 
   return (

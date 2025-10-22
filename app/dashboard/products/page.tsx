@@ -22,8 +22,6 @@ interface ProductDisplay {
   description: string;
   price: number;
   originalPrice?: number;
-  rating: number;
-  reviews: number;
   category: string;
   stock: 'in-stock' | 'low-stock' | 'out-of-stock';
   image: string;
@@ -102,8 +100,6 @@ const ProductsPageContent = memo(() => {
       description: product.description || '',
       price: product.price,
       originalPrice: product.compare_at_price,
-      rating: product.rating || 0,
-      reviews: product.review_count || 0,
       category: getCategoryName(product),
       stock: getStockStatus(product.inventory_count),
       image: getProductImage(product),

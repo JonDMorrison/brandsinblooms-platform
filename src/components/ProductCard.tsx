@@ -2,7 +2,6 @@
 
 import { Card, CardContent } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
-import { Star } from 'lucide-react'
 import React, { useState, useRef, useCallback, memo, useMemo } from 'react'
 import { ProductImage } from '@/src/components/ui/product-image'
 import { cn } from '@/src/lib/utils'
@@ -13,8 +12,6 @@ interface Product {
   description: string
   price: number
   originalPrice?: number
-  rating: number
-  reviews: number
   category: string
   stock: 'in-stock' | 'low-stock' | 'out-of-stock'
   image: string
@@ -107,19 +104,6 @@ export function ProductCard({ product, onEdit, isEditLoading = false }: ProductC
     'out-of-stock': 'Out of Stock'
   }
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }).map((_, i) => (
-      <Star
-        key={i}
-        className={`h-3 w-3 ${
-          i < Math.floor(rating) 
-            ? 'fill-yellow-400 text-yellow-400' 
-            : 'text-gray-300 '
-        }`}
-      />
-    ))
-  }
-
   return (
     <Card
       ref={cardRef}
@@ -173,12 +157,6 @@ export function ProductCard({ product, onEdit, isEditLoading = false }: ProductC
         {/* Product Info */}
         <div className="space-y-2">
           <h3 className="font-semibold text-sm mb-1 line-clamp-1">{product.name}</h3>
-
-          {/* Rating */}
-          <div className="flex items-center gap-1">
-            {renderStars(product.rating)}
-            <span className="text-xs text-gray-500 ml-1">({product.reviews})</span>
-          </div>
 
           {/* Price */}
           <div className="flex items-center gap-2">
