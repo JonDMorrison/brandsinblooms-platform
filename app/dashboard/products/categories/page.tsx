@@ -122,7 +122,7 @@ export default function CategoriesPage() {
                   <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[30%] sm:w-32">
                     Status
                   </th>
-                  <th className="pl-2 pr-4 sm:pl-6 sm:pr-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%] sm:w-24">
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%] min-w-12">
                     Products
                   </th>
                 </tr>
@@ -148,7 +148,7 @@ export default function CategoriesPage() {
                         {category.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                     </td>
-                    <td className="pl-2 pr-4 sm:pl-6 sm:pr-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-500 text-right whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-500 text-right whitespace-nowrap min-w-12">
                       {category.product_count || 0}
                     </td>
                   </tr>
