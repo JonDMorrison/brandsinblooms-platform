@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
@@ -45,9 +45,12 @@ export function useCategoriesHierarchy(filters?: CategoryFilters) {
   );
 
   // Listen for category change events and refresh data
-  useCategoryChangeListener(() => {
+  // Memoize callback to prevent unnecessary event listener re-registration
+  const handleCategoryChange = useCallback(() => {
     result.refresh();
-  }, siteId);
+  }, [result]); // Only recreate when result changes
+
+  useCategoryChangeListener(handleCategoryChange, siteId);
 
   return result;
 }
@@ -282,9 +285,12 @@ export function useCategoriesList(includeInactive = false) {
   }, [siteId, includeInactive, supabase, refreshCounter]);
 
   // Listen for category change events and trigger refresh
-  useCategoryChangeListener(() => {
+  // Memoize callback to prevent unnecessary event listener re-registration
+  const handleCategoryChange = useCallback(() => {
     setRefreshCounter(prev => prev + 1);
-  }, siteId);
+  }, []); // setRefreshCounter is stable, no dependencies needed
+
+  useCategoryChangeListener(handleCategoryChange, siteId);
 
   return { data, isLoading, error };
 }

@@ -72,6 +72,7 @@ export function ProductForm({
 }: ProductFormProps) {
   const siteId = useSiteId();
   const [images, setImages] = useState<ProductImage[]>(productImages);
+  const [currentProductId, setCurrentProductId] = useState<string | undefined>(productId);
 
   // Default to tabs for edit mode, stepper for create mode
   const displayVariant = variant || (mode === 'edit' ? 'tabs' : 'stepper');
@@ -155,15 +156,19 @@ export function ProductForm({
   const nextStep = stepperState.nextStep;
   const prevStep = stepperState.prevStep;
 
-  // Update form when initialData changes (for edit mode)
+  // Update form when product changes (for edit mode)
+  // Only reset when productId actually changes to prevent infinite loops
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData);
-      if (!initialData.slug && initialData.name) {
-        handleSlugNameChange(initialData.name);
+    if (productId !== currentProductId) {
+      setCurrentProductId(productId);
+      if (initialData) {
+        form.reset(initialData);
+        if (!initialData.slug && initialData.name) {
+          handleSlugNameChange(initialData.name);
+        }
       }
     }
-  }, [initialData, form, handleSlugNameChange]);
+  }, [productId, currentProductId, initialData, form, handleSlugNameChange]);
 
   // Update slug field when auto-generated slug changes
   useEffect(() => {

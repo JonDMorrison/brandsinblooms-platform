@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -70,6 +70,31 @@ export function ProductEditModal({
     onReturnFocus?.();
   };
 
+  // Prepare initial data - memoized to prevent infinite re-renders
+  // MUST be before any conditional returns to follow Rules of Hooks
+  const initialData: Partial<ProductFormData> = useMemo(() => {
+    if (!product) return {};
+
+    return {
+      name: product.name || '',
+      description: product.description || '',
+      sku: product.sku || '',
+      slug: product.slug || '',
+      primary_category_id: product.primary_category_id || '',
+      category_ids: [],
+      price: product.price || 0,
+      sale_price: product.sale_price || null,
+      compare_at_price: product.compare_at_price || null,
+      inventory_count: product.inventory_count || 0,
+      low_stock_threshold: product.low_stock_threshold || 10,
+      unit_of_measure: product.unit_of_measure || '',
+      care_instructions: product.care_instructions || '',
+      is_active: product.is_active ?? true,
+      is_featured: product.is_featured ?? false,
+      meta_description: product.meta_description || '',
+    };
+  }, [product?.id]); // Only recreate when product ID changes
+
   // Handle form submission
   const handleSubmit = async (data: ProductFormData) => {
     if (!product?.id) {
@@ -104,26 +129,6 @@ export function ProductEditModal({
   if (!product) {
     return null;
   }
-
-  // Prepare initial data
-  const initialData: Partial<ProductFormData> = {
-    name: product.name || '',
-    description: product.description || '',
-    sku: product.sku || '',
-    slug: product.slug || '',
-    primary_category_id: product.primary_category_id || '',
-    category_ids: [],
-    price: product.price || 0,
-    sale_price: product.sale_price || null,
-    compare_at_price: product.compare_at_price || null,
-    inventory_count: product.inventory_count || 0,
-    low_stock_threshold: product.low_stock_threshold || 10,
-    unit_of_measure: product.unit_of_measure || '',
-    care_instructions: product.care_instructions || '',
-    is_active: product.is_active ?? true,
-    is_featured: product.is_featured ?? false,
-    meta_description: product.meta_description || '',
-  };
 
   const content = (
     <>
