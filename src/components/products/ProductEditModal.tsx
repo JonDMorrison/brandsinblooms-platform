@@ -7,12 +7,14 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/src/components/ui/dialog';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from '@/src/components/ui/sheet';
 import { useIsMobile } from '@/src/hooks/use-mobile';
 import { ProductForm } from '@/src/components/products/form';
@@ -135,10 +137,16 @@ export function ProductEditModal({
       {isMobile ? (
         <SheetHeader>
           <SheetTitle>Edit Product</SheetTitle>
+          <SheetDescription>
+            Update product details, pricing, inventory, and images
+          </SheetDescription>
         </SheetHeader>
       ) : (
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
+          <DialogDescription>
+            Update product details, pricing, inventory, and images
+          </DialogDescription>
         </DialogHeader>
       )}
 
