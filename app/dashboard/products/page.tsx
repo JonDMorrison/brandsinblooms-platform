@@ -43,7 +43,7 @@ const ProductsPageContent = memo(() => {
   const [editingProductRef, setEditingProductRef] = useState<HTMLElement | null>(null);
 
   // Data hooks
-  const { data: productsResponse, loading, refresh } = useProducts();
+  const { data: productsResponse, loading, refresh } = useProducts({ limit: 100 }); // Increased limit to show more products
   const { data: categoriesData = [] } = useProductCategories();
   const updateProduct = useUpdateProduct();
 
@@ -52,9 +52,17 @@ const ProductsPageContent = memo(() => {
   const { currentSite } = useSiteContext();
   const productEdit = useProductEdit();
 
-  // Extract products
+  // Extract products and total count from paginated response
   const products = useMemo(
     () => (Array.isArray(productsResponse) ? productsResponse : productsResponse?.data || []),
+    [productsResponse]
+  );
+
+  const totalProductCount = useMemo(
+    () => {
+      if (Array.isArray(productsResponse)) return productsResponse.length;
+      return productsResponse?.count || 0;
+    },
     [productsResponse]
   );
 
@@ -109,8 +117,8 @@ const ProductsPageContent = memo(() => {
       count: cat.count,
     }));
 
-    return [{ value: 'All', label: 'All', count: displayProducts.length }, ...categoryOptions];
-  }, [categoriesData, displayProducts.length]);
+    return [{ value: 'All', label: 'All', count: totalProductCount }, ...categoryOptions];
+  }, [categoriesData, totalProductCount]);
 
   // Filter products
   const filteredProducts = useMemo(() => {
