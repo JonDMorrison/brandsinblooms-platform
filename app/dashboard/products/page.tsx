@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/src/components/ui/card';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useProducts, useProductCategories, useUpdateProduct } from '@/src/hooks/useProducts';
+import { useProductStats } from '@/src/hooks/useProductStats';
 import { useSitePermissions, useSiteContext } from '@/src/contexts/SiteContext';
 import { useProductEdit } from '@/src/hooks/useProductEdit';
 import { ProductEditModal } from '@/src/components/products/ProductEditModal';
@@ -47,6 +48,7 @@ const ProductsPageContent = memo(() => {
   const { data: productsResponse, loading, refresh } = useProducts(productFilters);
   const { data: categoriesData = [] } = useProductCategories();
   const updateProduct = useUpdateProduct();
+  const productStats = useProductStats();
 
   // Permissions
   const { canEdit } = useSitePermissions();
@@ -218,8 +220,9 @@ const ProductsPageContent = memo(() => {
   }, []);
 
   const handleProductCreated = useCallback(() => {
-    refresh();
-  }, [refresh]);
+    refresh(); // Refresh products list
+    productStats.refresh(); // Refresh stats
+  }, [refresh, productStats]);
 
   return (
     <div className="space-y-6 relative">
