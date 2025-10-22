@@ -703,7 +703,7 @@ export function CreateProductModal({
                         name="price"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-base font-semibold">Regular Price *</FormLabel>
+                            <FormLabel>Regular Price *</FormLabel>
                             <FormControl>
                               <div className="relative">
                                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -718,6 +718,9 @@ export function CreateProductModal({
                                 />
                               </div>
                             </FormControl>
+                            <FormDescription className="text-xs">
+                              Standard selling price
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}

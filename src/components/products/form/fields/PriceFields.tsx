@@ -44,6 +44,7 @@ export function PriceFields<T extends FieldValues>({
                   />
                 </div>
               </FormControl>
+              <FormDescription>Standard selling price</FormDescription>
               <FormMessage />
             </FormItem>
           )}
