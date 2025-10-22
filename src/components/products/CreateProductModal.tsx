@@ -53,8 +53,10 @@ import {
   Loader2,
   DollarSign,
   Sparkles,
+  Plus,
 } from 'lucide-react'
 import { ImageUploadS3 } from '@/src/components/products/ImageUploadS3'
+import { QuickAddCategoryDialog } from '@/src/components/products/QuickAddCategoryDialog'
 
 type ProductImageInsert = TablesInsert<'product_images'>
 
@@ -80,6 +82,7 @@ export function CreateProductModal({
   const [isCreating, setIsCreating] = useState(false)
   const [productImages, setProductImages] = useState<ProductImage[]>([])
   const [autoGenerateSku, setAutoGenerateSku] = useState(true)
+  const [quickAddCategoryOpen, setQuickAddCategoryOpen] = useState(false)
 
   // Slug validation state
   const [isValidatingSlug, setIsValidatingSlug] = useState(false)
@@ -544,7 +547,19 @@ export function CreateProductModal({
                   name="primary_category_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Primary Category *</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel className="text-base font-semibold">Primary Category *</FormLabel>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setQuickAddCategoryOpen(true)}
+                          className="h-auto py-1 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          New Category
+                        </Button>
+                      </div>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-12">
@@ -957,6 +972,17 @@ export function CreateProductModal({
           </form>
         </Form>
       </DialogContent>
+
+      {/* Quick Add Category Dialog */}
+      <QuickAddCategoryDialog
+        open={quickAddCategoryOpen}
+        onOpenChange={setQuickAddCategoryOpen}
+        onCategoryCreated={(categoryId) => {
+          // Auto-select the newly created category
+          form.setValue('primary_category_id', categoryId);
+          toast.success('Category created and selected');
+        }}
+      />
     </Dialog>
   )
 }
