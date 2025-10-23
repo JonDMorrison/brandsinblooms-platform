@@ -443,7 +443,7 @@ export const ProductImage = forwardRef<HTMLImageElement, ProductImageProps>(
             width={width}
             height={height}
             priority={priority}
-            loading={performanceConfig.lazyLoad ? 'lazy' : loading}
+            {...(!priority && { loading: performanceConfig.lazyLoad ? 'lazy' : loading })}
             sizes={responsiveSizes}
             quality={quality}
             placeholder="blur"
