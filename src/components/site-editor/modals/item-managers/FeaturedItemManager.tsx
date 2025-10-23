@@ -5,13 +5,15 @@
  * Manages add/delete operations for Featured section items (up to 4)
  * Used within Section Settings Modal
  * For full editing (image, tag, link), users click the card to open FeaturedEditModal
+ * Supports database product mode where items are pulled from featured products
  */
 
 import React from 'react'
 import { ContentSection, DEFAULT_FEATURED_ITEMS } from '@/src/lib/content/schema'
 import { Label } from '@/src/components/ui/label'
 import { Button } from '@/src/components/ui/button'
-import { Plus, Trash2, ImageIcon } from 'lucide-react'
+import { Plus, Trash2, ImageIcon, ExternalLink, Info } from 'lucide-react'
+import Link from 'next/link'
 
 interface FeaturedItem {
   id: string
@@ -36,6 +38,53 @@ export function FeaturedItemManager({
 }: FeaturedItemManagerProps) {
   const { data } = section
 
+  // Check if database mode is enabled
+  const useProductDatabase = data.useProductDatabase ?? false
+  const productLimit = data.productLimit ?? 4
+
+  // If database mode is enabled, show special message
+  if (useProductDatabase) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <Label className="text-sm font-medium">Featured Items</Label>
+          <p className="text-xs text-gray-500 mt-1">
+            Featured products from your inventory
+          </p>
+        </div>
+
+        {/* Database mode info */}
+        <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+          <div className="flex-1 space-y-2">
+            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">
+              Using Featured Products from Database
+            </p>
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              This section is displaying up to {productLimit} product{productLimit !== 1 ? 's' : ''} marked as featured in your inventory.
+              Manual featured items are hidden while this mode is active.
+            </p>
+            <Link
+              href="/dashboard/products"
+              className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium mt-2"
+            >
+              Manage Featured Products <ExternalLink className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Instructions */}
+        <div className="p-3 bg-muted rounded-md">
+          <p className="text-xs text-muted-foreground">
+            To manage featured items manually, disable the "Use Featured Products from Database" toggle
+            in the Appearance tab.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Manual mode - original functionality
   // Get featured items, fallback to defaults if missing
   let featuredItems = data.featuredItems
   if (!Array.isArray(featuredItems) || featuredItems.length === 0) {

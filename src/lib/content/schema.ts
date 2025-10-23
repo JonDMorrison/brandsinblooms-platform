@@ -189,6 +189,22 @@ export interface FeaturedItem {
 }
 
 /**
+ * Featured section data structure
+ * Supports both manual featured items and dynamic products from database
+ */
+export interface FeaturedData {
+  headline: string
+  subheadline: string
+  viewAllText: string
+  viewAllLink: string
+  featuredItems: FeaturedItem[]
+
+  // Database product integration
+  useProductDatabase?: boolean  // If true, pull featured products from database
+  productLimit?: number          // Number of products to display (1-4, default: 4)
+}
+
+/**
  * Default featured items for new featured sections
  * Used as fallback when no featured items exist in database
  */

@@ -1,6 +1,7 @@
 /**
  * Featured section preview component
  * Features editable cards with images, tags, and titles
+ * Supports both manual featured items and dynamic products from database
  */
 
 import React, { useState } from 'react'
@@ -9,11 +10,15 @@ import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEdit
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared'
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
-import { ImageIcon } from 'lucide-react'
+import { ImageIcon, ExternalLink } from 'lucide-react'
 import { SmartLink } from '@/src/components/ui/smart-link'
 import { FeaturedEditModal } from '@/src/components/site-editor/modals/FeaturedEditModal'
 import { useFullSiteEditorOptional } from '@/src/contexts/FullSiteEditorContext'
 import { useSiteContext } from '@/src/contexts/SiteContext'
+import { useFeaturedProducts } from '@/src/hooks/useProducts'
+import { ProductCard } from '@/src/components/ProductCard'
+import Link from 'next/link'
+import { Product } from '@/lib/database/aliases'
 
 interface FeaturedPreviewProps {
   section: ContentSection
@@ -39,23 +44,46 @@ export function FeaturedPreview({
   const { data, settings } = section
   const isPreview = isPreviewMode(onContentUpdate, onFeatureUpdate)
   const responsive = createResponsiveClassHelper(isPreview)
+  const editorContext = useFullSiteEditorOptional()
 
-  // Data migration and validation
-  // Ensure we always have valid featured items to display
-  let featuredItems = data.featuredItems
+  // Check if we should use database products
+  const useProductDatabase = data.useProductDatabase ?? false
+  const productLimit = data.productLimit ?? 4
 
-  // Migration: Check for old schema (featuredPlants) or missing/invalid data
-  if (!Array.isArray(featuredItems) || featuredItems.length === 0) {
-    // If old schema exists (featuredPlants from previous implementation), use defaults
-    if (data.featuredPlants) {
-      console.info(`[FeaturedPreview] Old schema detected (featuredPlants) in section "${sectionKey}", using default featured items`)
-    } else {
-      console.info(`[FeaturedPreview] No featuredItems found in section "${sectionKey}", using default featured items`)
+  // Fetch featured products from database if enabled
+  const { data: productsResponse, isLoading: isLoadingProducts } = useFeaturedProducts(
+    useProductDatabase ? productLimit : 0
+  )
+
+  // Determine which items to display
+  let displayedItems: any[] = []
+  let displayMode: 'manual' | 'database' = 'manual'
+
+  if (useProductDatabase) {
+    displayMode = 'database'
+    if (productsResponse?.data) {
+      displayedItems = productsResponse.data.slice(0, productLimit)
     }
-    featuredItems = DEFAULT_FEATURED_ITEMS
+  } else {
+    // Manual featured items mode
+    let featuredItems = data.featuredItems
+
+    // Migration: Check for old schema (featuredPlants) or missing/invalid data
+    if (!Array.isArray(featuredItems) || featuredItems.length === 0) {
+      // If old schema exists (featuredPlants from previous implementation), use defaults
+      if (data.featuredPlants) {
+        console.info(`[FeaturedPreview] Old schema detected (featuredPlants) in section "${sectionKey}", using default featured items`)
+      } else {
+        console.info(`[FeaturedPreview] No featuredItems found in section "${sectionKey}", using default featured items`)
+      }
+      featuredItems = DEFAULT_FEATURED_ITEMS
+    }
+
+    displayedItems = featuredItems.slice(0, 4) // Maximum 4 items
   }
 
-  const displayedItems = featuredItems.slice(0, 4) // Maximum 4 items
+  // Determine if we're in Edit mode
+  const isEditMode = isPreview || (editorContext?.editorMode === 'edit')
 
   return (
     <section className={`${responsive.spacing.sectionPadding} ${className}`} style={getSectionBackgroundStyle(settings)}>
@@ -106,18 +134,71 @@ export function FeaturedPreview({
 
         {/* Featured Items Grid */}
         <div className={`grid ${getFeaturedGridClasses(displayedItems.length, isPreview)} gap-6 mb-12`}>
-          {displayedItems.map((item: any, index: number) => (
-            <FeaturedCard
-              key={item.id}
-              item={item}
-              itemIndex={index}
-              sectionKey={sectionKey}
-              isPreview={isPreview}
-              onContentUpdate={onContentUpdate}
-              onFeaturedUpdate={onFeaturedUpdate}
-              onFeaturedDelete={onFeaturedDelete}
-            />
-          ))}
+          {displayMode === 'database' ? (
+            // Database Products Mode
+            <>
+              {isLoadingProducts ? (
+                // Loading skeleton
+                Array.from({ length: productLimit }).map((_, index) => (
+                  <div key={`skeleton-${index}`} className="animate-pulse">
+                    <div className="bg-muted rounded-lg h-64"></div>
+                  </div>
+                ))
+              ) : displayedItems.length === 0 ? (
+                // Empty state
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground mb-2">No featured products found</p>
+                  {isEditMode && (
+                    <Link
+                      href="/dashboard/products"
+                      className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                    >
+                      Go to Products <ExternalLink className="h-4 w-4" />
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                // Product cards
+                displayedItems.map((product: Product) => (
+                  <Link
+                    key={product.id}
+                    href={`/products/${product.slug || product.id}`}
+                    className="block"
+                  >
+                    <ProductCard
+                      product={product}
+                      onEdit={undefined}
+                      isLoading={false}
+                    />
+                  </Link>
+                ))
+              )}
+              {/* Info message in edit mode */}
+              {isEditMode && displayedItems.length > 0 && (
+                <div className="col-span-full mt-4 p-3 bg-muted rounded-md text-sm text-muted-foreground text-center">
+                  Products are managed via the{' '}
+                  <Link href="/dashboard/products" className="text-primary hover:underline">
+                    Products dashboard
+                  </Link>
+                  . Mark products as "Featured" to display them here.
+                </div>
+              )}
+            </>
+          ) : (
+            // Manual Featured Items Mode
+            displayedItems.map((item: any, index: number) => (
+              <FeaturedCard
+                key={item.id}
+                item={item}
+                itemIndex={index}
+                sectionKey={sectionKey}
+                isPreview={isPreview}
+                onContentUpdate={onContentUpdate}
+                onFeaturedUpdate={onFeaturedUpdate}
+                onFeaturedDelete={onFeaturedDelete}
+              />
+            ))
+          )}
         </div>
 
         {/* View All Link */}

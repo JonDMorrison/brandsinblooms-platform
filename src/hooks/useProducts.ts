@@ -26,9 +26,9 @@ import { Product, ProductInsert, ProductUpdate } from '@/lib/database/aliases';
 // Main products query hook
 export function useProducts(filters?: ProductFilters) {
   const siteId = useSiteId();
-  
+
   const cacheKey = `products_${siteId}_${JSON.stringify(filters || {})}`;
-  
+
   return useSupabaseQuery(
     async (signal) => {
       if (!siteId) throw new Error('Site ID is required');
@@ -43,6 +43,37 @@ export function useProducts(filters?: ProductFilters) {
       },
     },
     [siteId, filters] // Re-fetch when siteId or filters change
+  );
+}
+
+// Featured products query hook - fetches products marked as featured
+export function useFeaturedProducts(limit: number = 4) {
+  const siteId = useSiteId();
+
+  const filters: ProductFilters = {
+    featured: true,
+    active: true, // Only show active products
+    limit,
+    sortBy: 'created_at',
+    sortOrder: 'desc', // Newest featured products first
+  };
+
+  const cacheKey = `featured_products_${siteId}_${limit}`;
+
+  return useSupabaseQuery(
+    async (signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return getProducts(supabase, siteId, filters);
+    },
+    {
+      enabled: !!siteId,
+      persistKey: cacheKey,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      onError: (error) => {
+        console.error('Failed to fetch featured products:', error.message);
+      },
+    },
+    [siteId, limit] // Re-fetch when siteId or limit changes
   );
 }
 
