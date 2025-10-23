@@ -2,15 +2,12 @@
 
 import { useState, useMemo, useCallback, memo } from 'react';
 import { Card, CardContent } from '@/src/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { useProducts, useProductCategories, useUpdateProduct } from '@/src/hooks/useProducts';
+import { useProducts, useProductCategories, useUpdateProduct, useDeleteProduct } from '@/src/hooks/useProducts';
+import { useProductStats } from '@/src/hooks/useProductStats';
 import { useSitePermissions, useSiteContext } from '@/src/contexts/SiteContext';
 import { useProductEdit } from '@/src/hooks/useProductEdit';
-import { ProductSelectionProvider, useProductSelection } from '@/src/contexts/ProductSelectionContext';
-import { BulkActionsToolbar } from '@/src/components/products/BulkActionsToolbar';
-import { ImportExportDialog } from '@/src/components/products/ImportExportDialog';
 import { ProductEditModal } from '@/src/components/products/ProductEditModal';
 import type { Tables } from '@/src/lib/database/types';
 
@@ -18,7 +15,7 @@ import type { Tables } from '@/src/lib/database/types';
 import { ProductsHeader } from './components/ProductsHeader';
 import { ProductsStats } from './components/ProductsStats';
 import { ProductsToolbar } from './components/ProductsToolbar';
-import { ProductsGrid } from './components/ProductsGrid';
+import { ProductsTable } from './components/ProductsTable';
 
 interface ProductDisplay {
   id: string;
@@ -26,8 +23,6 @@ interface ProductDisplay {
   description: string;
   price: number;
   originalPrice?: number;
-  rating: number;
-  reviews: number;
   category: string;
   stock: 'in-stock' | 'low-stock' | 'out-of-stock';
   image: string;
@@ -37,29 +32,47 @@ interface ProductDisplay {
 
 const ProductsPageContent = memo(() => {
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [activeTab, setActiveTab] = useState('catalogue');
+  const [activeFilter, setActiveFilter] = useState<'active' | 'inactive'>('active');
 
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editingProductRef, setEditingProductRef] = useState<HTMLElement | null>(null);
 
+  // Memoize filters to prevent infinite request loop (object reference changes on every render)
+  const productFilters = useMemo(
+    () => ({
+      limit: 100,
+      active: activeFilter === 'active' ? true : false,
+    }),
+    [activeFilter]
+  );
+
   // Data hooks
-  const { data: productsResponse, loading, refresh } = useProducts();
+  const { data: productsResponse, loading, refresh } = useProducts(productFilters);
   const { data: categoriesData = [] } = useProductCategories();
   const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
+  const productStats = useProductStats();
 
   // Permissions
   const { canEdit } = useSitePermissions();
   const { currentSite } = useSiteContext();
   const productEdit = useProductEdit();
 
-  // Extract products
+  // Extract products and total count from paginated response
   const products = useMemo(
     () => (Array.isArray(productsResponse) ? productsResponse : productsResponse?.data || []),
+    [productsResponse]
+  );
+
+  const totalProductCount = useMemo(
+    () => {
+      if (Array.isArray(productsResponse)) return productsResponse.length;
+      return productsResponse?.count || 0;
+    },
     [productsResponse]
   );
 
@@ -96,8 +109,6 @@ const ProductsPageContent = memo(() => {
       description: product.description || '',
       price: product.price,
       originalPrice: product.compare_at_price,
-      rating: product.rating || 0,
-      reviews: product.review_count || 0,
       category: getCategoryName(product),
       stock: getStockStatus(product.inventory_count),
       image: getProductImage(product),
@@ -114,19 +125,14 @@ const ProductsPageContent = memo(() => {
       count: cat.count,
     }));
 
-    return [{ value: 'All', label: 'All', count: displayProducts.length }, ...categoryOptions];
-  }, [categoriesData, displayProducts.length]);
+    return [{ value: 'All', label: 'All', count: totalProductCount }, ...categoryOptions];
+  }, [categoriesData, totalProductCount]);
 
   // Filter products
   const filteredProducts = useMemo(() => {
     if (!displayProducts.length) return [];
 
     let filtered = displayProducts;
-
-    // Tab filter
-    if (activeTab === 'my-products') {
-      filtered = filtered.filter((product) => product.addedToSite);
-    }
 
     // Category filter
     if (selectedCategory !== 'All') {
@@ -144,23 +150,9 @@ const ProductsPageContent = memo(() => {
     }
 
     return filtered;
-  }, [displayProducts, searchQuery, selectedCategory, activeTab]);
+  }, [displayProducts, searchQuery, selectedCategory]);
 
   // Product actions
-  const handleAddToSite = useCallback(
-    (productId: string) => {
-      updateProduct.mutate({ id: productId, is_active: true });
-    },
-    [updateProduct]
-  );
-
-  const handleRemoveFromSite = useCallback(
-    (productId: string) => {
-      updateProduct.mutate({ id: productId, is_active: false });
-    },
-    [updateProduct]
-  );
-
   const handleProductEdit = useCallback(
     (productId: string) => {
       if (!canEdit) {
@@ -214,46 +206,46 @@ const ProductsPageContent = memo(() => {
       productId: string,
       updates: Partial<Tables<'products'> & { category_ids?: string[] }>
     ): Promise<Tables<'products'>> => {
-      return new Promise((resolve, reject) => {
-        productEdit.mutate({ id: productId, ...updates } as any, {
-          onSuccess: (data) => resolve(data),
-          onError: (error) => reject(error),
-        });
-      });
+      const result = await productEdit.mutate({ id: productId, ...updates } as any);
+      if (!result) {
+        throw new Error('Product update returned no data');
+      }
+      return result;
     },
     [productEdit]
   );
 
-  const handleProductSave = useCallback((updatedProduct: Tables<'products'>) => {
-    setEditModalOpen(false);
-    setEditingProduct(null);
-  }, []);
+  const handleProductSave = useCallback(
+    (updatedProduct: Tables<'products'>) => {
+      setEditModalOpen(false);
+      setEditingProduct(null);
+      refresh(); // Refresh product list
+      productStats.refresh(); // Refresh stats
+    },
+    [refresh, productStats]
+  );
 
-  // Bulk selection
-  const { selectedIds, hasSelection, isAllSelected, isIndeterminate, toggleAll, clearSelection } =
-    useProductSelection();
+  const handleProductDelete = useCallback(
+    async (productId: string) => {
+      if (!canEdit) {
+        toast.error('You do not have permission to delete products');
+        throw new Error('Permission denied');
+      }
 
-  const [showBulkSelection, setShowBulkSelection] = useState(false);
-  const [showImportExport, setShowImportExport] = useState(false);
+      await deleteProduct.mutateAsync(productId);
 
-  const availableProductIds = filteredProducts.map((p) => p.id);
-  const allSelected = isAllSelected(availableProductIds);
-  const indeterminate = isIndeterminate(availableProductIds);
-
-  const handleSelectAll = () => {
-    toggleAll(availableProductIds);
-  };
-
-  const toggleBulkMode = () => {
-    setShowBulkSelection(!showBulkSelection);
-    if (showBulkSelection) {
-      clearSelection();
-    }
-  };
+      // Modal will close automatically after successful deletion
+      // Refresh data after deletion
+      refresh(); // Refresh product list
+      productStats.refresh(); // Refresh stats
+    },
+    [canEdit, deleteProduct, refresh, productStats]
+  );
 
   const handleProductCreated = useCallback(() => {
-    refresh();
-  }, [refresh]);
+    refresh(); // Refresh products list
+    productStats.refresh(); // Refresh stats
+  }, [refresh, productStats]);
 
   return (
     <div className="space-y-6 relative">
@@ -263,59 +255,28 @@ const ProductsPageContent = memo(() => {
       {/* Stats */}
       <ProductsStats />
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="catalogue">All Products</TabsTrigger>
-          <TabsTrigger value="my-products">Active on Site</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={activeTab} className="mt-6 space-y-4">
-          {/* Toolbar */}
-          <ProductsToolbar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            categories={categories}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            showBulkSelection={showBulkSelection}
-            onToggleBulkMode={toggleBulkMode}
-            allSelected={allSelected}
-            indeterminate={indeterminate}
-            onSelectAll={handleSelectAll}
-            hasSelection={hasSelection}
-            onImportExport={() => setShowImportExport(true)}
-            onManageCategories={() => router.push('/dashboard/products/categories')}
-          />
-
-          {/* Products Grid */}
-          <Card>
-            <CardContent className="p-6">
-              <ProductsGrid
-                products={filteredProducts}
-                loading={loading}
-                viewMode={viewMode}
-                showBulkSelection={showBulkSelection}
-                onProductEdit={canEdit ? handleProductEdit : undefined}
-                onAddToSite={handleAddToSite}
-                onRemoveFromSite={handleRemoveFromSite}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Bulk Actions Toolbar */}
-      {hasSelection && <BulkActionsToolbar />}
-
-      {/* Import/Export Dialog */}
-      <ImportExportDialog
-        open={showImportExport}
-        onOpenChange={setShowImportExport}
-        selectedProductIds={selectedIds}
+      {/* Toolbar */}
+      <ProductsToolbar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        categories={categories}
+        activeFilter={activeFilter}
+        onFilterChange={setActiveFilter}
+        onManageCategories={() => router.push('/dashboard/products/categories')}
       />
+
+      {/* Products Table */}
+      <Card>
+        <CardContent className="p-6">
+          <ProductsTable
+            products={filteredProducts}
+            loading={loading}
+            onProductEdit={canEdit ? handleProductEdit : undefined}
+          />
+        </CardContent>
+      </Card>
 
       {/* Edit Modal */}
       <ProductEditModal
@@ -324,6 +285,7 @@ const ProductsPageContent = memo(() => {
         onClose={handleEditModalClose}
         onSave={handleProductSave}
         customSaveHandler={customSaveHandler}
+        onDelete={canEdit ? handleProductDelete : undefined}
         onReturnFocus={handleReturnFocus}
       />
     </div>
@@ -333,9 +295,5 @@ const ProductsPageContent = memo(() => {
 ProductsPageContent.displayName = 'ProductsPageContent';
 
 export default function ProductsPage() {
-  return (
-    <ProductSelectionProvider>
-      <ProductsPageContent />
-    </ProductSelectionProvider>
-  );
+  return <ProductsPageContent />;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Package, ShoppingCart, DollarSign, Star } from 'lucide-react';
+import { Package, ShoppingCart, DollarSign, Layers } from 'lucide-react';
 import { DashboardStats, type DashboardStat } from '@/src/components/DashboardStats';
 import { useProductStats } from '@/src/hooks/useProductStats';
 
@@ -47,14 +47,14 @@ export function ProductsStats() {
       },
       {
         id: '4',
-        title: 'Avg Rating',
-        count: Math.round((productStats?.averageRating || 0) * 10) / 10,
+        title: 'Product Categories',
+        count: productStats?.uniqueCategories || 0,
         trend:
-          productStats && productStats.totalReviews > 0
-            ? `${productStats.totalReviews} reviews`
-            : 'No reviews yet',
-        icon: <Star className="h-6 w-6" />,
-        color: 'text-orange-600',
+          productStats && productStats.uniqueCategories > 0
+            ? `${productStats.totalProducts} products across categories`
+            : 'No categories assigned',
+        icon: <Layers className="h-6 w-6" />,
+        color: 'text-teal-600',
         showTrendIcon: false,
       },
     ];

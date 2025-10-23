@@ -23,11 +23,7 @@ interface ProductDisplay {
 interface ProductsGridProps {
   products: ProductDisplay[];
   loading?: boolean;
-  viewMode: 'grid' | 'list';
-  showBulkSelection: boolean;
   onProductEdit?: (productId: string) => void;
-  onAddToSite?: (productId: string) => void;
-  onRemoveFromSite?: (productId: string) => void;
 }
 
 const ProductGridSkeleton = memo(() => (
@@ -61,11 +57,7 @@ EmptyState.displayName = 'EmptyState';
 export const ProductsGrid = memo(({
   products,
   loading = false,
-  viewMode,
-  showBulkSelection,
   onProductEdit,
-  onAddToSite,
-  onRemoveFromSite,
 }: ProductsGridProps) => {
   if (loading) {
     return <ProductGridSkeleton />;
@@ -75,21 +67,13 @@ export const ProductsGrid = memo(({
     return <EmptyState />;
   }
 
-  const gridClass = viewMode === 'grid'
-    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
-    : 'flex flex-col gap-4';
-
   return (
-    <div className={gridClass}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {products.map((product) => (
         <ProductCard
           key={product.id}
           product={product}
-          viewMode={viewMode}
-          selectable={showBulkSelection}
           onEdit={onProductEdit ? () => onProductEdit(product.id) : undefined}
-          onAddToSite={onAddToSite ? () => onAddToSite(product.id) : undefined}
-          onRemoveFromSite={onRemoveFromSite ? () => onRemoveFromSite(product.id) : undefined}
         />
       ))}
     </div>

@@ -53,8 +53,10 @@ import {
   Loader2,
   DollarSign,
   Sparkles,
+  Plus,
 } from 'lucide-react'
 import { ImageUploadS3 } from '@/src/components/products/ImageUploadS3'
+import { QuickAddCategoryDialog } from '@/src/components/products/QuickAddCategoryDialog'
 
 type ProductImageInsert = TablesInsert<'product_images'>
 
@@ -80,6 +82,7 @@ export function CreateProductModal({
   const [isCreating, setIsCreating] = useState(false)
   const [productImages, setProductImages] = useState<ProductImage[]>([])
   const [autoGenerateSku, setAutoGenerateSku] = useState(true)
+  const [quickAddCategoryOpen, setQuickAddCategoryOpen] = useState(false)
 
   // Slug validation state
   const [isValidatingSlug, setIsValidatingSlug] = useState(false)
@@ -101,13 +104,11 @@ export function CreateProductModal({
       sku: '',
       slug: '',
       price: 0,
-      sale_price: null,
       compare_at_price: null,
       inventory_count: 0,
       low_stock_threshold: 10,
       primary_category_id: '',
       category_ids: [],
-      unit_of_measure: '',
       care_instructions: '',
       is_active: true,
       is_featured: false,
@@ -544,7 +545,19 @@ export function CreateProductModal({
                   name="primary_category_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Primary Category *</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel className="text-base font-semibold">Primary Category *</FormLabel>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setQuickAddCategoryOpen(true)}
+                          className="h-auto py-1 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          New Category
+                        </Button>
+                      </div>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-12">
@@ -682,61 +695,33 @@ export function CreateProductModal({
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Pricing</h3>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="price"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-base font-semibold">Regular Price *</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  placeholder="0.00"
-                                  className="h-12 pl-10"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="sale_price"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Sale Price</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  placeholder="0.00"
-                                  className="h-12 pl-10"
-                                  {...field}
-                                  value={field.value ?? ''}
-                                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
-                                />
-                              </div>
-                            </FormControl>
-                            <FormDescription className="text-xs">
-                              Leave empty if not on sale
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Regular Price *</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                className="h-12 pl-10"
+                                {...field}
+                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              />
+                            </div>
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            Current selling price
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                     <FormField
                       control={form.control}
@@ -760,26 +745,8 @@ export function CreateProductModal({
                             </div>
                           </FormControl>
                           <FormDescription className="text-xs">
-                            Original price to show savings
+                            Original price to show savings (optional)
                           </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="unit_of_measure"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Unit of Measure</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g., per plant, per 6-pack, per lb"
-                              className="h-12"
-                              {...field}
-                            />
-                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -957,6 +924,17 @@ export function CreateProductModal({
           </form>
         </Form>
       </DialogContent>
+
+      {/* Quick Add Category Dialog */}
+      <QuickAddCategoryDialog
+        open={quickAddCategoryOpen}
+        onOpenChange={setQuickAddCategoryOpen}
+        onCategoryCreated={(categoryId) => {
+          // Auto-select the newly created category
+          form.setValue('primary_category_id', categoryId);
+          toast.success('Category created and selected');
+        }}
+      />
     </Dialog>
   )
 }

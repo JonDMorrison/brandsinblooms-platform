@@ -719,6 +719,7 @@ export async function getProductStats(
   avgRating: number;
   totalReviews: number;
   lowStockCount: number;
+  uniqueCategories: number;
 }> {
   // The current database function doesn't include inventory value calculations
   // So we'll always use client-side calculation for consistency
@@ -727,22 +728,30 @@ export async function getProductStats(
   // Fallback to client-side calculation
   const { data: products, error } = await supabase
     .from('products')
-    .select('price, inventory_count, rating, review_count, is_active, is_featured, in_stock')
+    .select('price, inventory_count, rating, review_count, is_active, is_featured, in_stock, primary_category_id')
     .eq('site_id', siteId);
   
   if (error) throw SupabaseError.fromPostgrestError(error);
-  
+
+  // Track unique categories
+  const uniqueCategoryIds = new Set<string>();
+
   const stats = (products || []).reduce((acc, product) => {
     const inventory = product.inventory_count ?? 0;
     const price = product.price ?? 0;
     const rating = product.rating ?? 0;
     const reviews = product.review_count ?? 0;
-    
+
+    // Track unique categories
+    if (product.primary_category_id) {
+      uniqueCategoryIds.add(product.primary_category_id);
+    }
+
     // Skip invalid data
     if (inventory < 0 || price < 0) {
       return acc;
     }
-    
+
     return {
       total: acc.total + 1,
       active: acc.active + (product.is_active ? 1 : 0),
@@ -778,16 +787,17 @@ export async function getProductStats(
     featured: stats.featured,
     inStock: stats.inStock,
     outOfStock: stats.outOfStock,
-    avgPrice: stats.priceCount > 0 
-      ? Math.round((stats.priceSum / stats.priceCount) * 100) / 100 
+    avgPrice: stats.priceCount > 0
+      ? Math.round((stats.priceSum / stats.priceCount) * 100) / 100
       : 0,
     inventoryValue: Math.round(stats.inventoryValue * 100) / 100,
     totalInventoryUnits: stats.totalInventoryUnits,
-    avgRating: stats.total > 0 
-      ? Math.round((stats.totalRatings / stats.total) * 10) / 10 
+    avgRating: stats.total > 0
+      ? Math.round((stats.totalRatings / stats.total) * 10) / 10
       : 0,
     totalReviews: stats.totalReviews,
     lowStockCount: stats.lowStockCount,
+    uniqueCategories: uniqueCategoryIds.size,
   };
 }
 

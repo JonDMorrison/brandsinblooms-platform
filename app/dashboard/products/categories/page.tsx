@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Settings, ChevronRight } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
@@ -16,45 +15,37 @@ import {
   AlertTitle,
 } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { CategoryTree } from '@/components/categories/CategoryTree';
 import { CategoryEditor } from '@/components/categories/CategoryEditor';
-import { CategoryBreadcrumb } from '@/components/categories/CategoryBreadcrumb';
-import { 
-  useCategoriesHierarchy, 
-  useCategory,
+import {
+  useCategoriesHierarchy,
   useCreateCategory,
   useUpdateCategory,
-  useDeleteCategory,
-  useReorderCategories,
 } from '@/hooks/useCategories';
-import type { CategoryWithChildren as CategoryHierarchy } from '@/lib/queries/domains/categories';
 
 export default function CategoriesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [showInactive, setShowInactive] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch categories
-  const { 
-    data: categories = [], 
-    isLoading, 
-    error 
-  } = useCategoriesHierarchy({
-    active: !showInactive,
-  });
+  // Memoize filters to prevent infinite request loop
+  const categoryFilters = useMemo(() => ({
+    includeInactive: true, // Show all categories (both active and inactive)
+  }), []);
 
-  // Fetch selected category details
-  const { 
-    data: categoryDetails,
-  } = useCategory(selectedCategory || undefined, true);
+  // Fetch categories (showing all categories - no filtering)
+  const {
+    data,
+    loading,
+    error
+  } = useCategoriesHierarchy(categoryFilters);
+  const categories = data ?? [];
+
+  // Get selected category for editing
+  const selectedCategoryData = categories.find(c => c.id === selectedCategory);
 
   // Mutations
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory(selectedCategory || '');
-  const deleteCategory = useDeleteCategory();
-  const reorderCategories = useReorderCategories();
 
   // Handlers
   const handleCreateCategory = async (data: any) => {
@@ -68,49 +59,16 @@ export default function CategoriesPage() {
 
   const handleUpdateCategory = async (data: any) => {
     if (!selectedCategory) return;
-    
+
     try {
       await updateCategory.mutateAsync(data);
       setIsEditDialogOpen(false);
-    } catch (error) {
-      // Error is handled by the mutation
-    }
-  };
-
-  const handleDeleteCategory = async (categoryId: string, reassignToId?: string) => {
-    try {
-      await deleteCategory.mutateAsync({ categoryId, reassignToId });
       setSelectedCategory(null);
     } catch (error) {
       // Error is handled by the mutation
     }
   };
 
-  const handleReorder = async (reorderData: Array<{ id: string; sort_order: number; parent_id?: string | null }>) => {
-    // Process the reorder data to update categories
-    // For now, we'll update the first item that changed position
-    if (reorderData.length > 0) {
-      const firstItem = reorderData[0];
-      try {
-        await reorderCategories.mutateAsync({
-          category_id: firstItem.id,
-          new_parent_id: firstItem.parent_id || null,
-          new_sort_order: firstItem.sort_order,
-        });
-      } catch (error) {
-        // Error is handled by the mutation
-      }
-    }
-  };
-
-  // Calculate statistics
-  const totalCategories = categories.length;
-  const totalProducts = categories.reduce((sum, cat) => {
-    const countProducts = (c: CategoryHierarchy): number => {
-      return (c.product_count || 0) + (c.children || []).reduce((s, child) => s + countProducts(child), 0);
-    };
-    return sum + countProducts(cat);
-  }, 0);
 
   if (error) {
     return (
@@ -135,194 +93,73 @@ export default function CategoriesPage() {
             Organize your products with hierarchical categories
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button className="btn-gradient-primary" onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           New Category
         </Button>
       </div>
 
-      {/* Statistics */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-lg border p-4">
-          <div className="text-2xl font-bold">{totalCategories}</div>
-          <p className="text-xs text-gray-500">Total Categories</p>
-        </div>
-        <div className="rounded-lg border p-4">
-          <div className="text-2xl font-bold">{totalProducts}</div>
-          <p className="text-xs text-gray-500">Total Products</p>
-        </div>
-        <div className="rounded-lg border p-4">
-          <div className="text-2xl font-bold">
-            {categories.filter(c => c.children && c.children.length > 0).length}
-          </div>
-          <p className="text-xs text-gray-500">Parent Categories</p>
-        </div>
-        <div className="rounded-lg border p-4">
-          <div className="text-2xl font-bold">
-            {categories.length > 0 ? Math.max(...categories.map(c => c.level + 1)) : 0}
-          </div>
-          <p className="text-xs text-gray-500">Max Depth</p>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Category Tree */}
-        <div className="lg:col-span-2">
-          <div className="rounded-lg border">
-            <div className="border-b p-4">
-              <h2 className="font-semibold">Category Hierarchy</h2>
-              <p className="text-sm text-gray-500">
-                Drag and drop to reorganize categories
-              </p>
-            </div>
-            <div className="p-4">
-              <CategoryTree
-                categories={categories}
-                onCategorySelect={(category) => setSelectedCategory(category.id)}
-                onCategoryEdit={(category) => {
-                  setSelectedCategory(category.id);
-                  setIsEditDialogOpen(true);
-                }}
-                onCategoryDelete={(category) => handleDeleteCategory(category.id)}
-                onCategoryReorder={handleReorder}
-                selectedCategory={categoryDetails || null}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                showInactive={showInactive}
-                onToggleInactive={setShowInactive}
-                loading={isLoading}
-              />
-            </div>
-          </div>
+      {/* Categories Table */}
+      <div className="rounded-lg border">
+        <div className="border-b p-4">
+          <h2 className="font-semibold">Categories</h2>
+          <p className="text-sm text-gray-500">
+            Click a category to edit its details
+          </p>
         </div>
 
-        {/* Category Details */}
-        <div className="space-y-6">
-          {selectedCategory && categoryDetails ? (
-            <div className="rounded-lg border">
-              <div className="border-b p-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="font-semibold">Category Details</h2>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsEditDialogOpen(true)}
+        {loading ? (
+          <div className="p-8 text-center text-gray-500">Loading categories...</div>
+        ) : categories.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            No categories found. Create your first category to get started.
+          </div>
+        ) : (
+          <div className="overflow-hidden">
+            <table className="w-full table-fixed">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[50%] sm:w-auto">
+                    Category
+                  </th>
+                  <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[30%] sm:w-32">
+                    Status
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%] min-w-12">
+                    Products
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {categories.map((category) => (
+                  <tr
+                    key={category.id}
+                    onClick={() => {
+                      setSelectedCategory(category.id);
+                      setIsEditDialogOpen(true);
+                    }}
+                    className="cursor-pointer hover:bg-gray-50 transition-colors"
                   >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="p-4 space-y-4">
-                {/* Breadcrumb */}
-                {categoryDetails.ancestors && categoryDetails.ancestors.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-2">Path</p>
-                    <CategoryBreadcrumb
-                      ancestors={categoryDetails.ancestors}
-                      category={categoryDetails}
-                    />
-                  </div>
-                )}
-
-                {/* Basic Info */}
-                <div>
-                  <p className="text-xs font-medium text-gray-500 mb-2">Name</p>
-                  <p className="font-medium">{categoryDetails.name}</p>
-                </div>
-
-                {categoryDetails.description && (
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-2">Description</p>
-                    <p className="text-sm">{categoryDetails.description}</p>
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <Badge variant={categoryDetails.is_active ? 'default' : 'secondary'}>
-                    {categoryDetails.is_active ? 'Active' : 'Inactive'}
-                  </Badge>
-                  <Badge variant="outline">
-                    {categoryDetails.product_count || 0} products
-                  </Badge>
-                </div>
-
-                {/* Visual */}
-                {(categoryDetails.icon || categoryDetails.color) && (
-                  <>
-                    <Separator />
-                    <div className="flex items-center gap-4">
-                      {categoryDetails.icon && (
-                        <div>
-                          <p className="text-xs font-medium text-gray-500 mb-2">Icon</p>
-                          <span className="text-2xl">{categoryDetails.icon}</span>
-                        </div>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4">
+                      <div className="font-medium text-gray-900 text-sm sm:text-base truncate">{category.name}</div>
+                      {category.description && (
+                        <div className="text-xs sm:text-sm text-gray-500 line-clamp-1 truncate hidden sm:block">{category.description}</div>
                       )}
-                      {categoryDetails.color && (
-                        <div>
-                          <p className="text-xs font-medium text-gray-500 mb-2">Color</p>
-                          <div 
-                            className="h-8 w-8 rounded border"
-                            style={{ backgroundColor: categoryDetails.color }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-
-                {/* SEO */}
-                {(categoryDetails.meta_title || categoryDetails.meta_description) && (
-                  <>
-                    <Separator />
-                    <div className="space-y-2">
-                      {categoryDetails.meta_title && (
-                        <div>
-                          <p className="text-xs font-medium text-gray-500 mb-1">SEO Title</p>
-                          <p className="text-sm">{categoryDetails.meta_title}</p>
-                        </div>
-                      )}
-                      {categoryDetails.meta_description && (
-                        <div>
-                          <p className="text-xs font-medium text-gray-500 mb-1">SEO Description</p>
-                          <p className="text-sm">{categoryDetails.meta_description}</p>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-lg border p-8 text-center">
-              <p className="text-gray-500">
-                Select a category to view details
-              </p>
-            </div>
-          )}
-
-          {/* Quick Actions */}
-          <div className="rounded-lg border p-4 space-y-2">
-            <h3 className="font-medium mb-2">Quick Actions</h3>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => setIsCreateDialogOpen(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Category
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              disabled={!selectedCategory}
-              onClick={() => setIsEditDialogOpen(true)}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Edit Selected
-            </Button>
+                    </td>
+                    <td className="px-2 sm:px-6 py-3 sm:py-4">
+                      <Badge variant={category.is_active ? 'default' : 'secondary'} className="text-xs whitespace-nowrap">
+                        {category.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-500 text-right whitespace-nowrap min-w-12">
+                      {category.product_count || 0}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Create Dialog */}
@@ -336,7 +173,7 @@ export default function CategoriesPage() {
             availableParents={categories}
             onSave={handleCreateCategory}
             onCancel={() => setIsCreateDialogOpen(false)}
-            loading={createCategory.isPending}
+            loading={createCategory.loading}
           />
         </DialogContent>
       </Dialog>
@@ -348,13 +185,16 @@ export default function CategoriesPage() {
           <DialogDescription className="sr-only">
             Update category information and settings
           </DialogDescription>
-          {categoryDetails && (
+          {selectedCategoryData && (
             <CategoryEditor
-              category={categoryDetails}
+              category={selectedCategoryData}
               availableParents={categories}
               onSave={handleUpdateCategory}
-              onCancel={() => setIsEditDialogOpen(false)}
-              loading={updateCategory.isPending}
+              onCancel={() => {
+                setIsEditDialogOpen(false);
+                setSelectedCategory(null);
+              }}
+              loading={updateCategory.loading}
             />
           )}
         </DialogContent>

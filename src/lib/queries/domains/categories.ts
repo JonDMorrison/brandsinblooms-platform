@@ -215,7 +215,7 @@ export async function deleteCategory(
   siteId: string,
   categoryId: string,
   reassignToCategoryId?: string
-): Promise<void> {
+): Promise<{ affected_products: number }> {
   // Check if category has children
   const childrenResponse = await supabase
     .from('product_categories')
@@ -232,6 +232,14 @@ export async function deleteCategory(
       { children_count: children.length }
     );
   }
+
+  // Count products that will be affected
+  const countResponse = await supabase
+    .from('product_category_assignments')
+    .select('id', { count: 'exact', head: false })
+    .eq('category_id', categoryId);
+
+  const affectedCount = countResponse.data?.length ?? 0;
 
   // Handle product reassignment
   if (reassignToCategoryId) {
@@ -265,6 +273,8 @@ export async function deleteCategory(
   if (deleteResponse.error) {
     throw SupabaseError.fromPostgrestError(deleteResponse.error);
   }
+
+  return { affected_products: affectedCount };
 }
 
 /**
@@ -494,10 +504,41 @@ async function updateChildrenPaths(
 
     await supabase
       .from('product_categories')
-      .update({ 
+      .update({
         path: newPath,
-        updated_at: new Date().toISOString() 
+        updated_at: new Date().toISOString()
       })
       .eq('id', child.id);
   }
+}
+
+/**
+ * Check if a category slug is available for a given site
+ */
+export async function checkCategorySlugAvailability(
+  supabase: SupabaseClient<Database>,
+  siteId: string,
+  slug: string,
+  excludeCategoryId?: string
+): Promise<boolean> {
+  let query = supabase
+    .from('product_categories')
+    .select('id')
+    .eq('site_id', siteId)
+    .eq('slug', slug);
+
+  // Exclude the current category when editing
+  if (excludeCategoryId) {
+    query = query.neq('id', excludeCategoryId);
+  }
+
+  const response = await query.maybeSingle();
+
+  if (response.error) {
+    console.error('Error checking category slug availability:', response.error);
+    return false;
+  }
+
+  // If no category found, slug is available
+  return response.data === null;
 }

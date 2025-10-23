@@ -9,15 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/src/components/ui/select';
-import { Checkbox } from '@/src/components/ui/checkbox';
 import { ToggleGroup, ToggleGroupItem } from '@/src/components/ui/toggle-group';
 import {
   Search,
-  Grid3X3,
-  List,
   Filter,
-  Download,
-  Upload,
   FolderTree,
 } from 'lucide-react';
 
@@ -35,15 +30,8 @@ interface ProductsToolbarProps {
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
   categories: Category[];
-  viewMode: 'grid' | 'list';
-  onViewModeChange: (mode: 'grid' | 'list') => void;
-  showBulkSelection: boolean;
-  onToggleBulkMode: () => void;
-  allSelected: boolean;
-  indeterminate: boolean;
-  onSelectAll: () => void;
-  hasSelection: boolean;
-  onImportExport: () => void;
+  activeFilter: 'active' | 'inactive';
+  onFilterChange: (filter: 'active' | 'inactive') => void;
   onManageCategories: () => void;
 }
 
@@ -53,15 +41,8 @@ export function ProductsToolbar({
   selectedCategory,
   onCategoryChange,
   categories,
-  viewMode,
-  onViewModeChange,
-  showBulkSelection,
-  onToggleBulkMode,
-  allSelected,
-  indeterminate,
-  onSelectAll,
-  hasSelection,
-  onImportExport,
+  activeFilter,
+  onFilterChange,
   onManageCategories,
 }: ProductsToolbarProps) {
   return (
@@ -98,56 +79,26 @@ export function ProductsToolbar({
 
       {/* Right side: View Controls and Actions */}
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Bulk Selection Checkbox */}
-        {showBulkSelection && (
-          <div className="flex items-center gap-2 px-3 py-2 border rounded-md">
-            <Checkbox
-              checked={allSelected}
-              onCheckedChange={onSelectAll}
-              ref={(ref) => {
-                if (ref) {
-                  (ref as HTMLButtonElement).indeterminate = indeterminate;
-                }
-              }}
-            />
-            <span className="text-sm">Select All</span>
-          </div>
-        )}
-
-        {/* Bulk Mode Toggle */}
-        <Button
-          variant={showBulkSelection ? 'default' : 'outline'}
-          size="sm"
-          onClick={onToggleBulkMode}
+        {/* Filter Toggle: Active / Inactive */}
+        <ToggleGroup
+          type="single"
+          value={activeFilter}
+          onValueChange={(value) => value && onFilterChange(value as 'active' | 'inactive')}
+          className="border rounded-md"
         >
-          {showBulkSelection ? 'Exit Bulk Mode' : 'Bulk Select'}
-        </Button>
-
-        {/* Import/Export */}
-        <Button variant="outline" size="sm" onClick={onImportExport}>
-          <Download className="h-4 w-4 mr-2" />
-          Import/Export
-        </Button>
+          <ToggleGroupItem value="active" aria-label="Active products" className="px-4">
+            Active
+          </ToggleGroupItem>
+          <ToggleGroupItem value="inactive" aria-label="Inactive products" className="px-4">
+            Inactive
+          </ToggleGroupItem>
+        </ToggleGroup>
 
         {/* Manage Categories */}
         <Button variant="outline" size="sm" onClick={onManageCategories}>
           <FolderTree className="h-4 w-4 mr-2" />
           Categories
         </Button>
-
-        {/* View Mode Toggle */}
-        <ToggleGroup
-          type="single"
-          value={viewMode}
-          onValueChange={(value) => value && onViewModeChange(value as 'grid' | 'list')}
-        >
-          <ToggleGroupItem value="grid" aria-label="Grid view">
-            <Grid3X3 className="h-4 w-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="list" aria-label="List view">
-            <List className="h-4 w-4" />
-          </ToggleGroupItem>
-        </ToggleGroup>
       </div>
     </div>
   );

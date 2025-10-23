@@ -11,6 +11,7 @@ import { useIsMobile } from '@/src/hooks/use-mobile';
 import Image from 'next/image';
 import { useState } from 'react';
 import { cn } from '@/src/lib/utils';
+import { shouldShowCompareAtPrice } from '@/src/lib/products/utils/pricing';
 
 // Support both database product type and simplified display type
 type ProductType = Tables<'products'> | {
@@ -120,8 +121,7 @@ export function ProductQuickView({ product, isOpen, onClose, onAddToSite }: Prod
 
         <div className="flex items-center gap-4">
           <span className="text-3xl font-bold">${product.price}</span>
-          {((product as any).originalPrice || (product as any).compare_at_price) && 
-           ((product as any).originalPrice || (product as any).compare_at_price) > product.price && (
+          {shouldShowCompareAtPrice(product.price, (product as any).originalPrice || (product as any).compare_at_price) && (
             <span className="text-lg text-gray-500 line-through">
               ${(product as any).originalPrice || (product as any).compare_at_price}
             </span>

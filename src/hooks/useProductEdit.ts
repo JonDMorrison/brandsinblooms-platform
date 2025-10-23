@@ -56,13 +56,12 @@ export function useProductEditManager() {
     
     toggleProductActive: (productId: string, active: boolean) =>
       editProduct.mutate({ id: productId, is_active: active }),
-    
-    updateProductPricing: (productId: string, price?: number, salePrice?: number, compareAtPrice?: number) =>
-      editProduct.mutate({ 
-        id: productId, 
-        price, 
-        sale_price: salePrice, 
-        compare_at_price: compareAtPrice 
+
+    updateProductPricing: (productId: string, price?: number, compareAtPrice?: number) =>
+      editProduct.mutate({
+        id: productId,
+        price,
+        compare_at_price: compareAtPrice
       }),
     
     updateProductInventory: (productId: string, inventoryCount: number, lowStockThreshold?: number) =>
