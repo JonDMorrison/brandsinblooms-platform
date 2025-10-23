@@ -15,11 +15,13 @@ import { SmartLink } from '@/src/components/ui/smart-link'
 import { FeaturedEditModal } from '@/src/components/site-editor/modals/FeaturedEditModal'
 import { useFullSiteEditorOptional } from '@/src/contexts/FullSiteEditorContext'
 import { useSiteContext } from '@/src/contexts/SiteContext'
+import { useCartContext } from '@/src/contexts/CartContext'
 import { useFeaturedProducts } from '@/src/hooks/useProducts'
 import { ProductCard } from '@/src/components/ProductCard'
 import Link from 'next/link'
 import { Product } from '@/lib/database/aliases'
 import { transformProductForDisplay } from '@/src/lib/utils/product-transformer'
+import { toast } from 'sonner'
 
 interface FeaturedPreviewProps {
   section: ContentSection
@@ -46,6 +48,10 @@ export function FeaturedPreview({
   const isPreview = isPreviewMode(onContentUpdate, onFeatureUpdate)
   const responsive = createResponsiveClassHelper(isPreview)
   const editorContext = useFullSiteEditorOptional()
+  const { addItem } = useCartContext()
+
+  // Track which product is being added to cart
+  const [addingToCartId, setAddingToCartId] = useState<string | null>(null)
 
   // Check if we should use database products
   const useProductDatabase = data.useProductDatabase ?? false
@@ -85,6 +91,24 @@ export function FeaturedPreview({
 
   // Determine if we're in Edit mode
   const isEditMode = isPreview || (editorContext?.editorMode === 'edit')
+
+  // Handle add to cart for database products
+  const handleAddToCart = async (productId: string) => {
+    // Find the original product from the database
+    const product = productsResponse?.data?.find((p) => p.id === productId)
+    if (!product) return
+
+    setAddingToCartId(productId)
+    try {
+      await addItem(product, 1)
+      toast.success(`${product.name} added to cart`)
+    } catch (error) {
+      toast.error('Failed to add to cart')
+      console.error('Error adding to cart:', error)
+    } finally {
+      setAddingToCartId(null)
+    }
+  }
 
   return (
     <section className={`${responsive.spacing.sectionPadding} ${className}`} style={getSectionBackgroundStyle(settings)}>
@@ -170,6 +194,9 @@ export function FeaturedPreview({
                       product={displayProduct}
                       onEdit={undefined}
                       isLoading={false}
+                      showAddToCart={!isEditMode}
+                      onAddToCart={handleAddToCart}
+                      isAddingToCart={addingToCartId === displayProduct.id}
                     />
                   )
 
