@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, memo } from 'react';
 import { Card, CardContent } from '@/src/components/ui/card';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { useProducts, useProductCategories, useUpdateProduct } from '@/src/hooks/useProducts';
+import { useProducts, useProductCategories, useUpdateProduct, useDeleteProduct } from '@/src/hooks/useProducts';
 import { useProductStats } from '@/src/hooks/useProductStats';
 import { useSitePermissions, useSiteContext } from '@/src/contexts/SiteContext';
 import { useProductEdit } from '@/src/hooks/useProductEdit';
@@ -54,6 +54,7 @@ const ProductsPageContent = memo(() => {
   const { data: productsResponse, loading, refresh } = useProducts(productFilters);
   const { data: categoriesData = [] } = useProductCategories();
   const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
   const productStats = useProductStats();
 
   // Permissions
@@ -224,6 +225,23 @@ const ProductsPageContent = memo(() => {
     [refresh, productStats]
   );
 
+  const handleProductDelete = useCallback(
+    async (productId: string) => {
+      if (!canEdit) {
+        toast.error('You do not have permission to delete products');
+        throw new Error('Permission denied');
+      }
+
+      await deleteProduct.mutateAsync(productId);
+
+      // Modal will close automatically after successful deletion
+      // Refresh data after deletion
+      refresh(); // Refresh product list
+      productStats.refresh(); // Refresh stats
+    },
+    [canEdit, deleteProduct, refresh, productStats]
+  );
+
   const handleProductCreated = useCallback(() => {
     refresh(); // Refresh products list
     productStats.refresh(); // Refresh stats
@@ -267,6 +285,7 @@ const ProductsPageContent = memo(() => {
         onClose={handleEditModalClose}
         onSave={handleProductSave}
         customSaveHandler={customSaveHandler}
+        onDelete={canEdit ? handleProductDelete : undefined}
         onReturnFocus={handleReturnFocus}
       />
     </div>

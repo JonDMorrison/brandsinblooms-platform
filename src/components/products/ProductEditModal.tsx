@@ -16,6 +16,18 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/src/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/src/components/ui/alert-dialog';
+import { Button } from '@/src/components/ui/button';
+import { Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/src/hooks/use-mobile';
 import { ProductForm } from '@/src/components/products/form';
 import { useCategoriesList } from '@/src/hooks/useCategories';
@@ -37,6 +49,7 @@ interface ProductEditModalProps {
     productId: string,
     updates: Partial<TablesUpdate<'products'> & { category_ids?: string[] }>
   ) => Promise<Tables<'products'>>;
+  onDelete?: (productId: string) => Promise<void>;
   onReturnFocus?: () => void;
 }
 
@@ -46,11 +59,14 @@ export function ProductEditModal({
   onClose,
   onSave,
   customSaveHandler,
+  onDelete,
   onReturnFocus,
 }: ProductEditModalProps) {
   const isMobile = useIsMobile();
   const siteId = useSiteId();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
 
   const { data: categories = [], isLoading: categoriesLoading } = useCategoriesList();
@@ -58,21 +74,29 @@ export function ProductEditModal({
 
   // Load images when product changes
   useEffect(() => {
-    if (images.length > 0) {
+    if (images && images.length > 0) {
       setProductImages(
         images.map((img) => ({
           ...img,
           position: img.position ?? 0,
           is_primary: img.is_primary ?? false,
-        }))
+        })) as ProductImage[]
       );
     } else {
       setProductImages([]);
     }
   }, [images]);
 
+  // Reset delete confirmation when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setShowDeleteDialog(false);
+    }
+  }, [isOpen]);
+
   // Handle close
   const handleClose = () => {
+    setShowDeleteDialog(false);
     onClose();
     onReturnFocus?.();
   };
@@ -184,6 +208,27 @@ export function ProductEditModal({
     }
   };
 
+  // Handle product deletion
+  const handleDelete = async () => {
+    if (!product?.id || !onDelete) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      await onDelete(product.id);
+      // Note: Success toast is shown by useDeleteProduct hook
+      handleClose();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast.error('Failed to delete product');
+      // Keep modal open on error so user can try again or cancel
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (!product) {
     return null;
   }
@@ -217,29 +262,96 @@ export function ProductEditModal({
           onImagesChange={setProductImages}
           onSubmit={handleSubmit}
           onCancel={handleClose}
-          isSubmitting={isLoading}
+          isSubmitting={isLoading || isDeleting}
           compact={true}
           productId={product.id}
         />
       </div>
+
+      {/* Delete Section */}
+      {onDelete && (
+        <div className="mt-6 pt-6 border-t">
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={isLoading || isDeleting}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete Product
+          </Button>
+        </div>
+      )}
     </>
   );
 
-  if (isMobile) {
-    return (
-      <Sheet open={isOpen} onOpenChange={handleClose}>
-        <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">
-          {content}
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        {content}
-      </DialogContent>
-    </Dialog>
+    <>
+      {/* Main Edit Modal */}
+      {isMobile ? (
+        <Sheet open={isOpen} onOpenChange={handleClose}>
+          <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">
+            {content}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isOpen} onOpenChange={handleClose}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            {content}
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 p-2 bg-red-100 rounded-full">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-left">
+                  Delete {product?.name}?
+                </AlertDialogTitle>
+              </div>
+            </div>
+          </AlertDialogHeader>
+
+          <AlertDialogDescription className="text-left">
+            This action cannot be undone. This will permanently delete the product
+            from your site.
+          </AlertDialogDescription>
+
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Product
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
