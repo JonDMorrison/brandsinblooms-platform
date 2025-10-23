@@ -6,6 +6,27 @@
 import type { Product } from '@/lib/database/aliases'
 
 /**
+ * Product image from product_images table relation
+ */
+interface ProductImageRelation {
+  id: string
+  url: string
+  position: number
+  is_primary: boolean
+  alt_text?: string | null
+  caption?: string | null
+  storage_type?: string | null
+  cdn_url?: string | null
+}
+
+/**
+ * Extended Product type with relations
+ */
+type ProductWithRelations = Product & {
+  product_images?: ProductImageRelation[]
+}
+
+/**
  * ProductDisplay interface matching ProductCard component expectations
  */
 export interface ProductDisplay {
@@ -25,7 +46,7 @@ export interface ProductDisplay {
  * Transforms a database Product to ProductDisplay format
  * Handles field mapping, data extraction, and type conversions
  */
-export function transformProductForDisplay(product: Product): ProductDisplay {
+export function transformProductForDisplay(product: Product | ProductWithRelations): ProductDisplay {
   return {
     id: product.id,
     name: product.name,
@@ -34,7 +55,7 @@ export function transformProductForDisplay(product: Product): ProductDisplay {
     originalPrice: product.compare_at_price ?? undefined,
     category: getCategoryName(product),
     stock: getStockStatus(product.inventory_count ?? 0),
-    image: getProductImage(product),
+    image: getProductImage(product as ProductWithRelations),
     featured: !!product.is_featured,
     addedToSite: !!product.is_active,
   }
@@ -61,11 +82,28 @@ function getStockStatus(count: number): 'in-stock' | 'low-stock' | 'out-of-stock
 }
 
 /**
- * Extracts first product image URL from images array
+ * Extracts first product image URL from product_images relation or legacy images array
+ * Priority: 1) Modern product_images relation, 2) Legacy JSONB images field
  * Returns empty string if no images available
  */
-function getProductImage(product: Product): string {
-  // Try to get from images JSONB array
+function getProductImage(product: ProductWithRelations): string {
+  // FIRST: Try modern product_images relation (current system)
+  if (product.product_images && Array.isArray(product.product_images) && product.product_images.length > 0) {
+    // Find primary image first
+    const primaryImage = product.product_images.find(img => img.is_primary)
+    if (primaryImage?.url) {
+      return primaryImage.url
+    }
+
+    // Fall back to first image sorted by position
+    const firstImage = product.product_images
+      .sort((a, b) => a.position - b.position)[0]
+    if (firstImage?.url) {
+      return firstImage.url
+    }
+  }
+
+  // SECOND: Try legacy images JSONB array (backward compatibility)
   if (product.images) {
     try {
       const images = Array.isArray(product.images)
@@ -76,9 +114,10 @@ function getProductImage(product: Product): string {
         return images[0]
       }
     } catch {
-      // If parsing fails, return empty string
+      // If parsing fails, continue to return empty string
     }
   }
 
+  // No images found in either location
   return ''
 }
