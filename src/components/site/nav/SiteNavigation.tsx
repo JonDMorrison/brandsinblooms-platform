@@ -16,6 +16,7 @@ import { MobileNav } from './MobileNav'
 import { SearchBar } from './SearchBar'
 import { CartButton } from './CartButton'
 import { UserMenu } from './UserMenu'
+import { SearchOverlay } from './SearchOverlay'
 import type { SiteNavigationProps } from './types'
 
 export function SiteNavigation({ className }: SiteNavigationProps) {
@@ -134,15 +135,15 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
             <div className="flex items-center gap-3">
               {/* Desktop Icons */}
               <div className="hidden lg:flex items-center gap-3">
-                <Search
-                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                  style={{ color: 'var(--theme-text)' }}
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setSearchOpen(true)}
-                />
-                <ShoppingCart
-                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                  style={{ color: 'var(--theme-text)' }}
-                />
+                  className="h-8 w-8"
+                >
+                  <Search className="h-4 w-4" style={{ color: 'var(--theme-text)' }} />
+                </Button>
+                <CartButton itemCount={itemCount} />
                 {ctaButton?.text && (
                   <Link href={ctaButton.href || '#'}>
                     <button
@@ -156,15 +157,15 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
               </div>
               {/* Mobile Icons - Only on Mobile/Tablet */}
               <div className="flex lg:hidden items-center gap-2">
-                <Search
-                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                  style={{ color: 'var(--theme-text)' }}
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setSearchOpen(true)}
-                />
-                <ShoppingCart
-                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                  style={{ color: 'var(--theme-text)' }}
-                />
+                  className="h-8 w-8"
+                >
+                  <Search className="h-4 w-4" style={{ color: 'var(--theme-text)' }} />
+                </Button>
+                <CartButton itemCount={itemCount} />
                 <div
                   className="w-6 h-5 flex flex-col gap-1 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity"
                   onClick={() => setMobileMenuOpen(true)}
@@ -212,15 +213,15 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                     </Link>
                   ))}
                   {/* Search and Cart Icons inline with navigation */}
-                  <Search
-                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                    style={{ color: 'var(--theme-text)' }}
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setSearchOpen(true)}
-                  />
-                  <ShoppingCart
-                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                    style={{ color: 'var(--theme-text)' }}
-                  />
+                    className="h-8 w-8"
+                  >
+                    <Search className="h-4 w-4" style={{ color: 'var(--theme-text)' }} />
+                  </Button>
+                  <CartButton itemCount={itemCount} />
                 </nav>
               </div>
               {/* CTA Button below navigation */}
@@ -249,15 +250,15 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                   className="hover:opacity-80 transition-opacity cursor-pointer"
                 />
                 <div className="flex items-center gap-2">
-                  <Search
-                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                    style={{ color: 'var(--theme-text)' }}
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setSearchOpen(true)}
-                  />
-                  <ShoppingCart
-                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                    style={{ color: 'var(--theme-text)' }}
-                  />
+                    className="h-8 w-8"
+                  >
+                    <Search className="h-4 w-4" style={{ color: 'var(--theme-text)' }} />
+                  </Button>
+                  <CartButton itemCount={itemCount} />
                   <div
                     className="w-6 h-5 flex flex-col gap-1 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity"
                     onClick={() => setMobileMenuOpen(true)}
@@ -291,15 +292,15 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
               className="hover:opacity-80 transition-opacity cursor-pointer"
             />
             <div className="flex items-center gap-3">
-              <Search
-                className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                style={{ color: 'var(--theme-text)' }}
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setSearchOpen(true)}
-              />
-              <ShoppingCart
-                className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                style={{ color: 'var(--theme-text)' }}
-              />
+                className="h-8 w-8"
+              >
+                <Search className="h-4 w-4" style={{ color: 'var(--theme-text)' }} />
+              </Button>
+              <CartButton itemCount={itemCount} />
               <div
                 className="w-6 h-5 flex flex-col gap-1 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity"
                 onClick={() => setMobileMenuOpen(true)}
@@ -320,6 +321,9 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
           </div>
         )}
       </div>
+
+      {/* Search Overlay */}
+      <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   )
 }
