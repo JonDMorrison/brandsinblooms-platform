@@ -92,6 +92,22 @@ export function isOnSale(
 }
 
 /**
+ * Check if compare at price should be displayed
+ * Only shows when compareAtPrice is valid and higher than current price
+ */
+export function shouldShowCompareAtPrice(
+  price: number,
+  compareAtPrice?: number | null
+): boolean {
+  return (
+    compareAtPrice !== null &&
+    compareAtPrice !== undefined &&
+    compareAtPrice > 0 &&
+    compareAtPrice > price
+  );
+}
+
+/**
  * Apply percentage change to price
  */
 export function applyPercentageChange(

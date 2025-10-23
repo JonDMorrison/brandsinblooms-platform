@@ -5,6 +5,7 @@ import { Badge } from '@/src/components/ui/badge'
 import React, { useState, useRef, useCallback, memo, useMemo } from 'react'
 import { ProductImage } from '@/src/components/ui/product-image'
 import { cn } from '@/src/lib/utils'
+import { shouldShowCompareAtPrice } from '@/src/lib/products/utils/pricing'
 
 interface Product {
   id: string
@@ -145,10 +146,10 @@ export function ProductCard({ product, onEdit, isEditLoading = false }: ProductC
           </div>
 
           {/* Discount */}
-          {product.originalPrice && (
+          {shouldShowCompareAtPrice(product.price, product.originalPrice) && (
             <div className="absolute bottom-2 left-2">
               <Badge className="bg-red-600 text-white text-xs">
-                {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                {Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100)}% OFF
               </Badge>
             </div>
           )}
@@ -161,7 +162,7 @@ export function ProductCard({ product, onEdit, isEditLoading = false }: ProductC
           {/* Price */}
           <div className="flex items-center gap-2">
             <span className="font-bold">${product.price}</span>
-            {product.originalPrice && (
+            {shouldShowCompareAtPrice(product.price, product.originalPrice) && (
               <span className="text-sm text-gray-500 line-through">
                 ${product.originalPrice}
               </span>

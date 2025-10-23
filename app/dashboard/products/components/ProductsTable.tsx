@@ -24,6 +24,7 @@ import { ProductImage } from '@/src/components/ui/product-image';
 import { ChevronDown, ChevronRight, Pencil } from 'lucide-react';
 import { ProductCard } from '@/src/components/ProductCard';
 import { cn } from '@/src/lib/utils';
+import { shouldShowCompareAtPrice } from '@/src/lib/products/utils/pricing';
 
 interface ProductDisplay {
   id: string;
@@ -180,7 +181,7 @@ export const ProductsTable = memo(({
         return (
           <div className="flex items-center gap-2">
             <span className="font-semibold">${row.original.price}</span>
-            {row.original.originalPrice && (
+            {shouldShowCompareAtPrice(row.original.price, row.original.originalPrice) && (
               <span className="text-sm text-gray-400 line-through">
                 ${row.original.originalPrice}
               </span>
