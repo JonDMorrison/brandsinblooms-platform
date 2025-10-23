@@ -20,9 +20,13 @@ import { useIsMobile } from '@/src/hooks/use-mobile';
 import { ProductForm } from '@/src/components/products/form';
 import { useCategoriesList } from '@/src/hooks/useCategories';
 import { useProductImages } from '@/src/hooks/useProductImages';
-import type { Tables, TablesUpdate } from '@/src/lib/database/types';
+import { supabase } from '@/src/lib/supabase/client';
+import { useSiteId } from '@/src/contexts/SiteContext';
+import type { Tables, TablesUpdate, TablesInsert } from '@/src/lib/database/types';
 import type { ProductFormData } from '@/src/lib/products/validation/schemas';
 import type { ProductImage } from '@/src/components/products/ImageUploadS3';
+
+type ProductImageInsert = TablesInsert<'product_images'>;
 
 interface ProductEditModalProps {
   product: (Tables<'products'> & { site_name?: string; site_subdomain?: string }) | null;
@@ -45,6 +49,7 @@ export function ProductEditModal({
   onReturnFocus,
 }: ProductEditModalProps) {
   const isMobile = useIsMobile();
+  const siteId = useSiteId();
   const [isLoading, setIsLoading] = useState(false);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
 
@@ -95,6 +100,56 @@ export function ProductEditModal({
     };
   }, [product?.id]); // Only recreate when product ID changes
 
+  // Associate images with the product (delete existing and insert new ones)
+  const associateImages = async (productId: string, images: ProductImage[]) => {
+    if (!siteId) {
+      throw new Error('Site ID is required to save images');
+    }
+
+    try {
+      // Step 1: Delete all existing images for this product
+      const { error: deleteError } = await supabase
+        .from('product_images')
+        .delete()
+        .eq('product_id', productId);
+
+      if (deleteError) {
+        console.error('Failed to delete existing images:', deleteError);
+        throw new Error('Failed to remove old images');
+      }
+
+      // Step 2: Insert new images if any
+      if (images.length > 0) {
+        const imageRecords: ProductImageInsert[] = images.map((img, index) => ({
+          product_id: productId,
+          site_id: siteId,
+          url: img.url,
+          alt_text: img.alt_text || `Product image ${index + 1}`,
+          caption: img.caption || null,
+          position: img.position ?? index,
+          is_primary: img.is_primary ?? (index === 0),
+          width: img.width || null,
+          height: img.height || null,
+          size_bytes: img.size || null,
+          storage_type: img.storage_type || 's3',
+          cdn_url: img.cdn_url || img.url,
+        }));
+
+        const { error: insertError } = await supabase
+          .from('product_images')
+          .insert(imageRecords);
+
+        if (insertError) {
+          console.error('Failed to insert images:', insertError);
+          throw new Error('Failed to save new images');
+        }
+      }
+    } catch (error) {
+      console.error('Error associating images:', error);
+      throw error;
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (data: ProductFormData) => {
     if (!product?.id) {
@@ -114,6 +169,9 @@ export function ProductEditModal({
         // This shouldn't happen as customSaveHandler should always be provided
         throw new Error('No save handler provided');
       }
+
+      // Save images after product update succeeds
+      await associateImages(product.id, productImages);
 
       // Note: Success toast is shown by useProductEdit hook
       onSave?.(updatedProduct);
