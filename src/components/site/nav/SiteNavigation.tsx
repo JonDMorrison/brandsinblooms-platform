@@ -27,9 +27,6 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
-  // E-commerce feature flag - disabled by default, must be explicitly enabled
-  const ecommerceEnabled = process.env.NEXT_PUBLIC_ENABLE_ECOMMERCE === 'true'
-
   // Get navigation configuration from theme settings
   const theme = designSettings
   const menuStyle = theme?.layout?.menuStyle || 'horizontal'
@@ -137,19 +134,15 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
             <div className="flex items-center gap-3">
               {/* Desktop Icons */}
               <div className="hidden lg:flex items-center gap-3">
-                {ecommerceEnabled && (
-                  <>
-                    <Search
-                      className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                      style={{ color: 'var(--theme-text)' }}
-                      onClick={() => setSearchOpen(true)}
-                    />
-                    <ShoppingCart
-                      className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                      style={{ color: 'var(--theme-text)' }}
-                    />
-                  </>
-                )}
+                <Search
+                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                  style={{ color: 'var(--theme-text)' }}
+                  onClick={() => setSearchOpen(true)}
+                />
+                <ShoppingCart
+                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                  style={{ color: 'var(--theme-text)' }}
+                />
                 {ctaButton?.text && (
                   <Link href={ctaButton.href || '#'}>
                     <button
@@ -163,19 +156,15 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
               </div>
               {/* Mobile Icons - Only on Mobile/Tablet */}
               <div className="flex lg:hidden items-center gap-2">
-                {ecommerceEnabled && (
-                  <>
-                    <Search
-                      className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                      style={{ color: 'var(--theme-text)' }}
-                      onClick={() => setSearchOpen(true)}
-                    />
-                    <ShoppingCart
-                      className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                      style={{ color: 'var(--theme-text)' }}
-                    />
-                  </>
-                )}
+                <Search
+                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                  style={{ color: 'var(--theme-text)' }}
+                  onClick={() => setSearchOpen(true)}
+                />
+                <ShoppingCart
+                  className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                  style={{ color: 'var(--theme-text)' }}
+                />
                 <div
                   className="w-6 h-5 flex flex-col gap-1 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity"
                   onClick={() => setMobileMenuOpen(true)}
@@ -223,19 +212,15 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                     </Link>
                   ))}
                   {/* Search and Cart Icons inline with navigation */}
-                  {ecommerceEnabled && (
-                    <>
-                      <Search
-                        className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                        style={{ color: 'var(--theme-text)' }}
-                        onClick={() => setSearchOpen(true)}
-                      />
-                      <ShoppingCart
-                        className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                        style={{ color: 'var(--theme-text)' }}
-                      />
-                    </>
-                  )}
+                  <Search
+                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                    style={{ color: 'var(--theme-text)' }}
+                    onClick={() => setSearchOpen(true)}
+                  />
+                  <ShoppingCart
+                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                    style={{ color: 'var(--theme-text)' }}
+                  />
                 </nav>
               </div>
               {/* CTA Button below navigation */}
@@ -264,19 +249,15 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                   className="hover:opacity-80 transition-opacity cursor-pointer"
                 />
                 <div className="flex items-center gap-2">
-                  {ecommerceEnabled && (
-                    <>
-                      <Search
-                        className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                        style={{ color: 'var(--theme-text)' }}
-                        onClick={() => setSearchOpen(true)}
-                      />
-                      <ShoppingCart
-                        className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                        style={{ color: 'var(--theme-text)' }}
-                      />
-                    </>
-                  )}
+                  <Search
+                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                    style={{ color: 'var(--theme-text)' }}
+                    onClick={() => setSearchOpen(true)}
+                  />
+                  <ShoppingCart
+                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                    style={{ color: 'var(--theme-text)' }}
+                  />
                   <div
                     className="w-6 h-5 flex flex-col gap-1 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity"
                     onClick={() => setMobileMenuOpen(true)}
@@ -310,19 +291,15 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
               className="hover:opacity-80 transition-opacity cursor-pointer"
             />
             <div className="flex items-center gap-3">
-              {ecommerceEnabled && (
-                <>
-                  <Search
-                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                    style={{ color: 'var(--theme-text)' }}
-                    onClick={() => setSearchOpen(true)}
-                  />
-                  <ShoppingCart
-                    className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
-                    style={{ color: 'var(--theme-text)' }}
-                  />
-                </>
-              )}
+              <Search
+                className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                style={{ color: 'var(--theme-text)' }}
+                onClick={() => setSearchOpen(true)}
+              />
+              <ShoppingCart
+                className="h-4 w-4 hover:opacity-70 transition-opacity cursor-pointer"
+                style={{ color: 'var(--theme-text)' }}
+              />
               <div
                 className="w-6 h-5 flex flex-col gap-1 items-center justify-center cursor-pointer hover:opacity-70 transition-opacity"
                 onClick={() => setMobileMenuOpen(true)}

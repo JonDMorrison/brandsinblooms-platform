@@ -34,12 +34,10 @@ export function BrandingElement({ value, colors, typography, logoSize, brandingT
 }
 
 export function NavigationItems({ selectedNavItems, colors, typography }: Pick<SharedPreviewProps, 'selectedNavItems' | 'colors' | 'typography'>) {
-  const ecommerceEnabled = process.env.NEXT_PUBLIC_ENABLE_ECOMMERCE === 'true'
-
   return (
     <>
       {selectedNavItems.includes('home') && <span className="hover:opacity-70 cursor-default transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Home</span>}
-      {ecommerceEnabled && <span className="hover:opacity-70 cursor-default transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Products</span>}
+      <span className="hover:opacity-70 cursor-default transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Products</span>
       {selectedNavItems.includes('about') && <span className="hover:opacity-70 cursor-default transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>About</span>}
       {selectedNavItems.includes('contact') && <span className="hover:opacity-70 cursor-default transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Contact</span>}
       {selectedNavItems.includes('blog') && <span className="hover:opacity-70 cursor-default transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Blog</span>}
@@ -48,10 +46,6 @@ export function NavigationItems({ selectedNavItems, colors, typography }: Pick<S
 }
 
 export function ActionIcons({ colors }: Pick<SharedPreviewProps, 'colors'>) {
-  const ecommerceEnabled = process.env.NEXT_PUBLIC_ENABLE_ECOMMERCE === 'true'
-
-  if (!ecommerceEnabled) return null
-
   return (
     <>
       <Search className="h-4 w-4 hover:opacity-70 transition-opacity cursor-default" style={{ color: colors?.text || '#1f2937' }} />
