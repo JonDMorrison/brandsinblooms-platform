@@ -159,19 +159,36 @@ export function FeaturedPreview({
                 </div>
               ) : (
                 // Product cards
-                displayedItems.map((product: Product) => (
-                  <Link
-                    key={product.id}
-                    href={`/products/${product.slug || product.id}`}
-                    className="block"
-                  >
+                displayedItems.map((product: Product) => {
+                  const productCard = (
                     <ProductCard
+                      key={product.id}
                       product={product}
                       onEdit={undefined}
                       isLoading={false}
                     />
-                  </Link>
-                ))
+                  )
+
+                  // In Edit Mode: No link wrapper (not clickable)
+                  if (isEditMode) {
+                    return (
+                      <div key={product.id} className="block">
+                        {productCard}
+                      </div>
+                    )
+                  }
+
+                  // Customer View: Link wrapper (clickable, navigates to product page)
+                  return (
+                    <Link
+                      key={product.id}
+                      href={`/products/${product.slug || product.id}`}
+                      className="block"
+                    >
+                      {productCard}
+                    </Link>
+                  )
+                })
               )}
               {/* Info message in edit mode */}
               {isEditMode && displayedItems.length > 0 && (
