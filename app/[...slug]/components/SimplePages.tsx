@@ -3,6 +3,9 @@ import { SiteRenderer } from '@/src/components/site/SiteRenderer'
 import { ProductCatalog } from '@/src/components/site/ProductCatalog'
 import { generateStructuredData } from '@/src/data/seo-data'
 import { getSiteHeaders } from '../utils/routing'
+import { ProductDetailPage as ProductDetailPageComponent } from './ProductDetailPage'
+import { CategoryPage as CategoryPageComponent } from './CategoryPage'
+import { CartPage as CartPageComponent } from './CartPage'
 
 // Simple page wrapper component
 interface SimplePageProps {
@@ -204,52 +207,13 @@ export async function TermsPage() {
 }
 
 export async function ProductsPage() {
-  const { siteId } = await getSiteHeaders()
-  
-  return (
-    <SiteRenderer 
-      siteId={siteId}
-      mode="live"
-      showNavigation={true}
-    >
-      <div className="brand-container py-12">
-        <h1 className="text-4xl font-bold mb-8" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-          All Products
-        </h1>
-        <ProductCatalog />
-      </div>
-    </SiteRenderer>
-  )
+  // Import the new enhanced component
+  const { ProductsPageComponent } = await import('./ProductsPageComponent')
+  return <ProductsPageComponent />
 }
 
-export async function CartPage() {
-  const { siteId } = await getSiteHeaders()
-  
-  return (
-    <SiteRenderer 
-      siteId={siteId}
-      mode="live"
-      showNavigation={true}
-    >
-      <div className="brand-container py-12">
-        <h1 className="text-4xl font-bold mb-8" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-          Shopping Cart
-        </h1>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <p className="text-gray-500">Your cart items will appear here</p>
-          </div>
-          <div>
-            <div className="border rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                Order Summary
-              </h2>
-            </div>
-          </div>
-        </div>
-      </div>
-    </SiteRenderer>
-  )
+export function CartPage() {
+  return <CartPageComponent />
 }
 
 export async function CheckoutPage() {
@@ -342,47 +306,10 @@ export async function OrdersPage() {
   )
 }
 
-export async function ProductDetailPage({ slug }: { slug: string }) {
-  const { siteId } = await getSiteHeaders()
-  
-  return (
-    <SiteRenderer 
-      siteId={siteId}
-      mode="live"
-      showNavigation={true}
-    >
-      <div className="brand-container py-12">
-        <h1 className="text-4xl font-bold mb-8" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-          Product: {slug}
-        </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            {/* Product images */}
-          </div>
-          <div>
-            {/* Product info and add to cart */}
-          </div>
-        </div>
-      </div>
-    </SiteRenderer>
-  )
+export function ProductDetailPage({ slug }: { slug: string }) {
+  return <ProductDetailPageComponent slug={slug} />
 }
 
-export async function CategoryPage({ slug }: { slug: string }) {
-  const { siteId } = await getSiteHeaders()
-  
-  return (
-    <SiteRenderer 
-      siteId={siteId}
-      mode="live"
-      showNavigation={true}
-    >
-      <div className="brand-container py-12">
-        <h1 className="text-4xl font-bold mb-8" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-          Category: {slug}
-        </h1>
-        <ProductCatalog categoryId={slug} />
-      </div>
-    </SiteRenderer>
-  )
+export function CategoryPage({ slug }: { slug: string }) {
+  return <CategoryPageComponent slug={slug} />
 }

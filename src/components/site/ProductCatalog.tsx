@@ -33,6 +33,11 @@ import { formatPrice } from '@/src/lib/utils/format'
 import { toast } from 'sonner'
 
 type Product = Tables<'products'>
+type ProductImage = Tables<'product_images'>
+
+interface ProductWithImages extends Product {
+  product_images?: ProductImage[]
+}
 
 interface ProductCatalogProps {
   categoryId?: string
@@ -56,8 +61,8 @@ export function ProductCatalog({
   const [sortBy, setSortBy] = useState('name')
   const [filterCategory, setFilterCategory] = useState(categoryId || '')
   
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<any[]>([])
+  const [products, setProducts] = useState<ProductWithImages[]>([])
+  const [categories, setCategories] = useState<Tables<'product_categories'>[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   // Fetch products and categories when dependencies change
@@ -72,15 +77,24 @@ export function ProductCatalog({
       
       setIsLoading(true)
       try {
-        // Fetch products
+        // Fetch products with images
         let query = supabase
           .from('products')
-          .select('*')
+          .select(`
+            *,
+            product_images (
+              id,
+              url,
+              position,
+              is_primary,
+              alt_text
+            )
+          `)
           .eq('site_id', site.id)
           .eq('is_active', true)
         
         if (filterCategory) {
-          query = query.eq('category_id', filterCategory)
+          query = query.eq('primary_category_id', filterCategory)
         }
         
         if (featured) {
@@ -110,9 +124,22 @@ export function ProductCatalog({
         }
         
         const { data: productsData, error: productsError } = await query
-        
+
         if (productsError) throw productsError
-        setProducts(productsData || [])
+
+        // Sort product images by primary first, then position
+        const productsWithSortedImages = (productsData || []).map((product) => {
+          if (product.product_images && Array.isArray(product.product_images)) {
+            product.product_images.sort((a, b) => {
+              if (a.is_primary && !b.is_primary) return -1
+              if (!a.is_primary && b.is_primary) return 1
+              return (a.position ?? 999) - (b.position ?? 999)
+            })
+          }
+          return product
+        })
+
+        setProducts(productsWithSortedImages)
 
         // Fetch categories
         const { data: categoriesData, error: categoriesError } = await supabase
@@ -147,9 +174,14 @@ export function ProductCatalog({
     )
   }) || []
   
-  const handleAddToCart = async (product: Product) => {
+  const handleAddToCart = async (product: ProductWithImages) => {
     try {
-      await addItem(product, 1)
+      // Convert ProductWithImages to Product type for cart
+      const productForCart: Product = {
+        ...product,
+        product_images: undefined, // Remove to match Product type
+      }
+      await addItem(productForCart, 1)
       toast.success(`${product.name} added to cart`)
     } catch (error) {
       toast.error('Failed to add item to cart')
@@ -263,8 +295,8 @@ export function ProductCatalog({
 }
 
 interface ProductCardProps {
-  product: Product
-  onAddToCart: (product: Product) => void
+  product: ProductWithImages
+  onAddToCart: (product: ProductWithImages) => void
 }
 
 function ProductGridCard({ product, onAddToCart }: ProductCardProps) {
@@ -277,10 +309,10 @@ function ProductGridCard({ product, onAddToCart }: ProductCardProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative aspect-square bg-muted">
-        {product.images && Array.isArray(product.images) && (product.images as any[])[0]?.url ? (
+        {product.product_images && product.product_images.length > 0 ? (
           <Image
-            src={(product.images as any[])[0].url}
-            alt={product.name || ''}
+            src={product.product_images[0].url}
+            alt={product.product_images[0].alt_text || product.name || 'Product image'}
             fill
             className="object-cover transition-transform group-hover:scale-105"
           />
@@ -369,10 +401,10 @@ function ProductListCard({ product, onAddToCart }: ProductCardProps) {
       <div className="flex gap-4 p-4">
         {/* Image */}
         <div className="relative w-32 h-32 rounded-md overflow-hidden bg-muted flex-shrink-0">
-          {product.images && Array.isArray(product.images) && (product.images as any[])[0]?.url ? (
+          {product.product_images && product.product_images.length > 0 ? (
             <Image
-              src={(product.images as any[])[0].url}
-              alt={product.name || ''}
+              src={product.product_images[0].url}
+              alt={product.product_images[0].alt_text || product.name || 'Product image'}
               fill
               className="object-cover"
             />
