@@ -30,14 +30,14 @@ export function useCategory(slug: string | null) {
         .from('product_categories')
         .select(`
           *,
-          parent:product_categories!product_categories_parent_id_fkey (
+          parent:parent_id (
             id,
             name,
             slug,
             icon,
             color
           ),
-          children:product_categories!product_categories_parent_id_fkey (
+          children:product_categories!parent_id (
             id,
             name,
             slug,
