@@ -35,12 +35,10 @@ export function ProductCard({ product, onEdit, isEditLoading = false }: ProductC
   // Memoize placeholder config to prevent recreation on every render
   const placeholderConfig = useMemo(() => ({
     type: 'gradient' as const,
-    config: { 
-      colors: product.category === 'flowers' ? ['#fce7f3', '#fbbf24'] : 
-              product.category === 'plants' ? ['#d9f99d', '#84cc16'] :
-              ['#e9d5ff', '#c084fc']
+    config: {
+      colors: ['var(--theme-primary)', 'var(--theme-secondary)']
     }
-  }), [product.category])
+  }), [])
 
   // Helper function to check if click target is an interactive element
   const isInteractiveElement = (target: EventTarget | null): boolean => {
@@ -137,9 +135,6 @@ export function ProductCard({ product, onEdit, isEditLoading = false }: ProductC
           
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {product.featured && (
-              <Badge className="bg-blue-600 text-white text-xs">Featured</Badge>
-            )}
             <Badge className={stockColors[product.stock]} variant="outline">
               {stockLabels[product.stock]}
             </Badge>

@@ -19,6 +19,7 @@ import { useFeaturedProducts } from '@/src/hooks/useProducts'
 import { ProductCard } from '@/src/components/ProductCard'
 import Link from 'next/link'
 import { Product } from '@/lib/database/aliases'
+import { transformProductForDisplay } from '@/src/lib/utils/product-transformer'
 
 interface FeaturedPreviewProps {
   section: ContentSection
@@ -160,10 +161,13 @@ export function FeaturedPreview({
               ) : (
                 // Product cards
                 displayedItems.map((product: Product) => {
+                  // Transform database Product to ProductDisplay format
+                  const displayProduct = transformProductForDisplay(product)
+
                   const productCard = (
                     <ProductCard
-                      key={product.id}
-                      product={product}
+                      key={displayProduct.id}
+                      product={displayProduct}
                       onEdit={undefined}
                       isLoading={false}
                     />
@@ -172,7 +176,7 @@ export function FeaturedPreview({
                   // In Edit Mode: No link wrapper (not clickable)
                   if (isEditMode) {
                     return (
-                      <div key={product.id} className="block">
+                      <div key={displayProduct.id} className="block">
                         {productCard}
                       </div>
                     )
@@ -181,7 +185,7 @@ export function FeaturedPreview({
                   // Customer View: Link wrapper (clickable, navigates to product page)
                   return (
                     <Link
-                      key={product.id}
+                      key={displayProduct.id}
                       href={`/products/${product.slug || product.id}`}
                       className="block"
                     >
