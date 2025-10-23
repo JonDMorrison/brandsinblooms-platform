@@ -115,7 +115,7 @@ export function ProductEditModal({
         throw new Error('No save handler provided');
       }
 
-      toast.success('Product updated successfully');
+      // Note: Success toast is shown by useProductEdit hook
       onSave?.(updatedProduct);
       handleClose();
     } catch (error) {

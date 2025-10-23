@@ -205,20 +205,24 @@ const ProductsPageContent = memo(() => {
       productId: string,
       updates: Partial<Tables<'products'> & { category_ids?: string[] }>
     ): Promise<Tables<'products'>> => {
-      return new Promise((resolve, reject) => {
-        productEdit.mutate({ id: productId, ...updates } as any, {
-          onSuccess: (data) => resolve(data),
-          onError: (error) => reject(error),
-        });
-      });
+      const result = await productEdit.mutate({ id: productId, ...updates } as any);
+      if (!result) {
+        throw new Error('Product update returned no data');
+      }
+      return result;
     },
     [productEdit]
   );
 
-  const handleProductSave = useCallback((updatedProduct: Tables<'products'>) => {
-    setEditModalOpen(false);
-    setEditingProduct(null);
-  }, []);
+  const handleProductSave = useCallback(
+    (updatedProduct: Tables<'products'>) => {
+      setEditModalOpen(false);
+      setEditingProduct(null);
+      refresh(); // Refresh product list
+      productStats.refresh(); // Refresh stats
+    },
+    [refresh, productStats]
+  );
 
   const handleProductCreated = useCallback(() => {
     refresh(); // Refresh products list
