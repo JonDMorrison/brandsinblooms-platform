@@ -53,6 +53,7 @@ export function EditableCustomerSiteSection({
     updateCategoryContent,
     deleteCategoryContent,
     updateSectionSettings,
+    updateSectionContent,
     addFeatureItem,
     deleteFeatureItem,
     addValueItem,
@@ -68,6 +69,19 @@ export function EditableCustomerSiteSection({
   // Handle settings save
   const handleSettingsSave = (settings: Record<string, unknown>, options?: { silent?: boolean }) => {
     updateSectionSettings(sectionKey, settings, options)
+  }
+
+  // Handle data update - merge updates into section data
+  const handleDataUpdate = (updates: Record<string, unknown>) => {
+    const currentSection = pageContent?.sections?.[sectionKey]
+    if (!currentSection) return
+
+    const mergedData = {
+      ...currentSection.data,
+      ...updates
+    }
+
+    updateSectionContent(sectionKey, mergedData)
   }
 
   // Handle add item - dispatch to correct method based on section type
@@ -241,6 +255,7 @@ export function EditableCustomerSiteSection({
         onSave={handleSettingsSave}
         onAddItem={handleAddItem}
         onDeleteItem={handleDeleteItem}
+        onDataUpdate={handleDataUpdate}
       />
 
       {/* Delete Modal - rendered outside conditional to prevent unmounting on hover loss */}
@@ -317,6 +332,7 @@ export function EditableCustomerSiteSection({
         onSave={handleSettingsSave}
         onAddItem={handleAddItem}
         onDeleteItem={handleDeleteItem}
+        onDataUpdate={handleDataUpdate}
       />
 
       {/* Delete Modal - rendered outside conditional to prevent unmounting on hover loss */}

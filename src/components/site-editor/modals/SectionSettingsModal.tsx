@@ -33,6 +33,7 @@ interface SectionSettingsModalProps {
   onSave: (settings: Record<string, unknown>, options?: { silent?: boolean }) => void
   onAddItem?: (sectionKey: string, newItem: Record<string, unknown>) => void
   onDeleteItem?: (sectionKey: string, itemIndex: number) => void
+  onDataUpdate?: (updates: Record<string, unknown>) => void
 }
 
 type BackgroundColor = 'default' | 'alternate' | 'primary' | 'gradient' | 'image'
@@ -51,7 +52,8 @@ export function SectionSettingsModal({
   sectionKey,
   onSave,
   onAddItem,
-  onDeleteItem
+  onDeleteItem,
+  onDataUpdate
 }: SectionSettingsModalProps) {
   const { currentSite } = useSiteContext()
   const [backgroundColor, setBackgroundColor] = useState<BackgroundColor>('default')
@@ -635,6 +637,7 @@ export function SectionSettingsModal({
                     sectionKey={sectionKey}
                     onAdd={handleAddItem}
                     onDelete={handleDeleteItem}
+                    onDataUpdate={onDataUpdate}
                   />
                 )}
                 {section.type === 'categories' && (
