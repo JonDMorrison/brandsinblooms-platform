@@ -1,8 +1,6 @@
 'use client'
 
 import { useCartContext } from '@/src/contexts/CartContext'
-import { useSiteContext } from '@/src/contexts/SiteContext'
-import { SiteRenderer } from '@/src/components/site/SiteRenderer'
 import { CartItem } from '@/src/components/cart/CartItem'
 import { EmptyState } from '@/src/components/products/EmptyState'
 import { Button } from '@/src/components/ui/button'
@@ -13,8 +11,7 @@ import { formatPrice } from '@/src/lib/utils/format'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
-export function CartPage() {
-  const { currentSite: site } = useSiteContext()
+export function CartPageClient() {
   const {
     items,
     total,
@@ -23,10 +20,6 @@ export function CartPage() {
     removeItem,
     isLoading,
   } = useCartContext()
-
-  if (!site) {
-    return null
-  }
 
   const handleUpdateQuantity = async (itemId: string, quantity: number) => {
     try {
@@ -53,8 +46,7 @@ export function CartPage() {
   }
 
   return (
-    <SiteRenderer siteId={site.id} mode="live" showNavigation={true}>
-      <div className="brand-container py-12">
+    <div className="brand-container py-12">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1
@@ -188,6 +180,5 @@ export function CartPage() {
           </div>
         )}
       </div>
-    </SiteRenderer>
   )
 }

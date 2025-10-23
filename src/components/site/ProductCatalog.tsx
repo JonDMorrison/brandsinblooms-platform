@@ -59,7 +59,7 @@ export function ProductCatalog({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('name')
-  const [filterCategory, setFilterCategory] = useState(categoryId || '')
+  const [filterCategory, setFilterCategory] = useState(categoryId || 'all')
   
   const [products, setProducts] = useState<ProductWithImages[]>([])
   const [categories, setCategories] = useState<Tables<'product_categories'>[]>([])
@@ -93,7 +93,7 @@ export function ProductCatalog({
           .eq('site_id', site.id)
           .eq('is_active', true)
         
-        if (filterCategory) {
+        if (filterCategory && filterCategory !== 'all') {
           query = query.eq('primary_category_id', filterCategory)
         }
         
@@ -215,7 +215,7 @@ export function ProductCatalog({
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}

@@ -3,9 +3,10 @@ import { SiteRenderer } from '@/src/components/site/SiteRenderer'
 import { ProductCatalog } from '@/src/components/site/ProductCatalog'
 import { generateStructuredData } from '@/src/data/seo-data'
 import { getSiteHeaders } from '../utils/routing'
-import { ProductDetailPage as ProductDetailPageComponent } from './ProductDetailPage'
-import { CategoryPage as CategoryPageComponent } from './CategoryPage'
-import { CartPage as CartPageComponent } from './CartPage'
+import { ProductDetailPageClient } from './ProductDetailPage'
+import { CategoryPageClient } from './CategoryPage'
+import { CartPageClient } from './CartPage'
+import { ProductsPageClient } from './ProductsPageComponent'
 
 // Simple page wrapper component
 interface SimplePageProps {
@@ -207,13 +208,31 @@ export async function TermsPage() {
 }
 
 export async function ProductsPage() {
-  // Import the new enhanced component
-  const { ProductsPageComponent } = await import('./ProductsPageComponent')
-  return <ProductsPageComponent />
+  const { siteId } = await getSiteHeaders()
+
+  return (
+    <SiteRenderer
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <ProductsPageClient />
+    </SiteRenderer>
+  )
 }
 
-export function CartPage() {
-  return <CartPageComponent />
+export async function CartPage() {
+  const { siteId } = await getSiteHeaders()
+
+  return (
+    <SiteRenderer
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <CartPageClient />
+    </SiteRenderer>
+  )
 }
 
 export async function CheckoutPage() {
@@ -306,10 +325,30 @@ export async function OrdersPage() {
   )
 }
 
-export function ProductDetailPage({ slug }: { slug: string }) {
-  return <ProductDetailPageComponent slug={slug} />
+export async function ProductDetailPage({ slug }: { slug: string }) {
+  const { siteId } = await getSiteHeaders()
+
+  return (
+    <SiteRenderer
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <ProductDetailPageClient slug={slug} />
+    </SiteRenderer>
+  )
 }
 
-export function CategoryPage({ slug }: { slug: string }) {
-  return <CategoryPageComponent slug={slug} />
+export async function CategoryPage({ slug }: { slug: string }) {
+  const { siteId } = await getSiteHeaders()
+
+  return (
+    <SiteRenderer
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <CategoryPageClient slug={slug} />
+    </SiteRenderer>
+  )
 }

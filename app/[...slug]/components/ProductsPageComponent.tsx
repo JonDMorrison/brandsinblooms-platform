@@ -3,7 +3,6 @@
 import { useFeaturedProducts } from '@/src/hooks/useProducts'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { useSupabase } from '@/hooks/useSupabase'
-import { SiteRenderer } from '@/src/components/site/SiteRenderer'
 import { ProductCatalog } from '@/src/components/site/ProductCatalog'
 import { Card, CardContent } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
@@ -19,7 +18,7 @@ import { toast } from 'sonner'
 
 type ProductCategory = Tables<'product_categories'>
 
-export function ProductsPageComponent() {
+export function ProductsPageClient() {
   const { currentSite: site } = useSiteContext()
   const supabase = useSupabase()
   const { data: featuredProducts, loading: isFeaturedLoading } =
@@ -65,8 +64,7 @@ export function ProductsPageComponent() {
   }
 
   return (
-    <SiteRenderer siteId={site.id} mode="live" showNavigation={true}>
-      <div className="brand-container">
+    <div className="brand-container">
         {/* Hero Section */}
         <div className="py-12 mb-8">
           <div className="text-center max-w-3xl mx-auto">
@@ -154,7 +152,6 @@ export function ProductsPageComponent() {
           <ProductCatalog />
         </div>
       </div>
-    </SiteRenderer>
   )
 }
 

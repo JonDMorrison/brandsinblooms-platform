@@ -1,8 +1,6 @@
 'use client'
 
 import { useCategory } from '@/src/hooks/useCategory'
-import { useSiteContext } from '@/src/contexts/SiteContext'
-import { SiteRenderer } from '@/src/components/site/SiteRenderer'
 import { ProductCatalog } from '@/src/components/site/ProductCatalog'
 import { Breadcrumbs, BreadcrumbItem } from '@/src/components/products/Breadcrumbs'
 import { Card, CardContent } from '@/src/components/ui/card'
@@ -11,17 +9,12 @@ import { Skeleton } from '@/src/components/ui/skeleton'
 import Image from 'next/image'
 import Link from 'next/link'
 
-interface CategoryPageProps {
+interface CategoryPageClientProps {
   slug: string
 }
 
-export function CategoryPage({ slug }: CategoryPageProps) {
-  const { currentSite: site } = useSiteContext()
+export function CategoryPageClient({ slug }: CategoryPageClientProps) {
   const { data: category, loading: isLoading, error } = useCategory(slug)
-
-  if (!site) {
-    return null
-  }
 
   // Build breadcrumbs
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -44,8 +37,7 @@ export function CategoryPage({ slug }: CategoryPageProps) {
   }
 
   return (
-    <SiteRenderer siteId={site.id} mode="live" showNavigation={true}>
-      <div className="brand-container py-8">
+    <div className="brand-container py-8">
         {/* Breadcrumbs */}
         {!isLoading && category && (
           <Breadcrumbs items={breadcrumbItems} className="mb-6" />
@@ -164,7 +156,6 @@ export function CategoryPage({ slug }: CategoryPageProps) {
           </div>
         )}
       </div>
-    </SiteRenderer>
   )
 }
 

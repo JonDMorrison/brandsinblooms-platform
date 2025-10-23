@@ -4,8 +4,6 @@ import { useState } from 'react'
 import { useProduct } from '@/src/hooks/useProduct'
 import { useRelatedProducts } from '@/src/hooks/useRelatedProducts'
 import { useCartContext } from '@/src/contexts/CartContext'
-import { useSiteContext } from '@/src/contexts/SiteContext'
-import { SiteRenderer } from '@/src/components/site/SiteRenderer'
 import { ProductImageGallery } from '@/src/components/products/ProductImageGallery'
 import { QuantitySelector } from '@/src/components/products/QuantitySelector'
 import { StockBadge } from '@/src/components/products/StockBadge'
@@ -21,12 +19,11 @@ import { toast } from 'sonner'
 import Image from 'next/image'
 import Link from 'next/link'
 
-interface ProductDetailPageProps {
+interface ProductDetailPageClientProps {
   slug: string
 }
 
-export function ProductDetailPage({ slug }: ProductDetailPageProps) {
-  const { currentSite: site } = useSiteContext()
+export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) {
   const { data: product, loading: isLoading, error } = useProduct(slug)
   const { data: relatedProducts } = useRelatedProducts(
     product?.id || null,
@@ -37,10 +34,6 @@ export function ProductDetailPage({ slug }: ProductDetailPageProps) {
 
   const [quantity, setQuantity] = useState(1)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
-
-  if (!site) {
-    return null
-  }
 
   const handleAddToCart = async () => {
     if (!product) return
@@ -75,8 +68,7 @@ export function ProductDetailPage({ slug }: ProductDetailPageProps) {
   }
 
   return (
-    <SiteRenderer siteId={site.id} mode="live" showNavigation={true}>
-      <div className="brand-container py-8">
+    <div className="brand-container py-8">
         {/* Breadcrumbs */}
         {!isLoading && product && (
           <Breadcrumbs items={breadcrumbItems} className="mb-6" />
@@ -289,7 +281,6 @@ export function ProductDetailPage({ slug }: ProductDetailPageProps) {
           </>
         )}
       </div>
-    </SiteRenderer>
   )
 }
 
