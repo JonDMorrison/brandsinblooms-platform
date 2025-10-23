@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Customer site section renderer
  * Renders sections for live customer sites (no editing capabilities)
@@ -20,6 +22,7 @@ import { getFeatureGridClasses, getCategoriesGridClasses } from '@/src/component
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
 import { ImageIcon } from 'lucide-react'
 import { SmartLink } from '@/src/components/ui/smart-link'
+import { FeaturedPreview } from '@/src/components/content-sections/preview/FeaturedPreview'
 
 interface CustomerSiteSectionProps {
   section: ContentSection
@@ -165,77 +168,27 @@ export function CustomerSiteSection({
         </section>
       )
 
-    case 'featured':
+    case 'featured': {
+      // Merge sectionData into section object (matches pattern in EditableCustomerSiteSection)
+      const mergedSection = {
+        ...section,
+        data: sectionData,
+        settings: section.settings
+      }
+
       return (
         <ViewportLazyLoad fallback={<div className="h-96" />} delay={100}>
           <FeaturedPlantsErrorBoundary>
-            <section className="py-16" style={backgroundStyle}>
-              <div className="brand-container">
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                    {String(sectionData.headline || 'Featured Plants This Season')}
-                  </h2>
-                  <div
-                    className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
-                    style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
-                    dangerouslySetInnerHTML={{
-                      __html: textToHtml(String(sectionData.subheadline || 'Handpicked selections from our master horticulturists'))
-                    }}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                  {((sectionData.featuredItems || []) as any[]).slice(0, 4).map((item) => (
-                    <SmartLink
-                      key={item.id}
-                      href={item.link || '#'}
-                      className="block h-full"
-                    >
-                      <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full">
-                        <div className="relative">
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-full h-48 object-cover"
-                            loading="lazy"
-                          />
-                          {item.tag && (
-                            <div className="absolute top-3 right-3">
-                              <span
-                                className="px-2 py-1 rounded-full text-xs font-medium"
-                                style={{ backgroundColor: 'var(--theme-accent)', color: 'rgb(255, 255, 255)' }}
-                              >
-                                {item.tag}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-4">
-                          <h3 className="text-lg font-semibold mb-2" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                            {item.title}
-                          </h3>
-                        </div>
-                      </div>
-                    </SmartLink>
-                  ))}
-                </div>
-                <div className="text-center">
-                  <SmartLink
-                    href={String(sectionData.viewAllLink || '/plants')}
-                    className="border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
-                    style={{
-                      borderColor: 'var(--theme-primary)',
-                      color: 'var(--theme-primary)',
-                      fontFamily: 'var(--theme-font-body)'
-                    }}
-                  >
-                    {String(sectionData.viewAllText || 'View All Plants')}
-                  </SmartLink>
-                </div>
-              </div>
-            </section>
+            <FeaturedPreview
+              section={mergedSection}
+              sectionKey={sectionKey}
+              // No onContentUpdate or other edit callbacks = read-only customer view
+              // FeaturedPreview handles useProductDatabase logic internally
+            />
           </FeaturedPlantsErrorBoundary>
         </ViewportLazyLoad>
       )
+    }
 
     case 'categories':
       return (
