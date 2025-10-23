@@ -30,8 +30,8 @@ interface ProductsToolbarProps {
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
   categories: Category[];
-  activeFilter: 'all' | 'active';
-  onFilterChange: (filter: 'all' | 'active') => void;
+  activeFilter: 'active' | 'inactive';
+  onFilterChange: (filter: 'active' | 'inactive') => void;
   onManageCategories: () => void;
 }
 
@@ -79,18 +79,18 @@ export function ProductsToolbar({
 
       {/* Right side: View Controls and Actions */}
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Filter Toggle: All Products / Active on Site */}
+        {/* Filter Toggle: Active / Inactive */}
         <ToggleGroup
           type="single"
           value={activeFilter}
-          onValueChange={(value) => value && onFilterChange(value as 'all' | 'active')}
+          onValueChange={(value) => value && onFilterChange(value as 'active' | 'inactive')}
           className="border rounded-md"
         >
-          <ToggleGroupItem value="all" aria-label="All products" className="px-4">
-            All Products
+          <ToggleGroupItem value="active" aria-label="Active products" className="px-4">
+            Active
           </ToggleGroupItem>
-          <ToggleGroupItem value="active" aria-label="Active on site" className="px-4">
-            Active on Site
+          <ToggleGroupItem value="inactive" aria-label="Inactive products" className="px-4">
+            Inactive
           </ToggleGroupItem>
         </ToggleGroup>
 

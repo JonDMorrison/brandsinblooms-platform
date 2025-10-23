@@ -34,7 +34,7 @@ const ProductsPageContent = memo(() => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active'>('all');
+  const [activeFilter, setActiveFilter] = useState<'active' | 'inactive'>('active');
 
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -42,7 +42,13 @@ const ProductsPageContent = memo(() => {
   const [editingProductRef, setEditingProductRef] = useState<HTMLElement | null>(null);
 
   // Memoize filters to prevent infinite request loop (object reference changes on every render)
-  const productFilters = useMemo(() => ({ limit: 100 }), []);
+  const productFilters = useMemo(
+    () => ({
+      limit: 100,
+      active: activeFilter === 'active' ? true : false,
+    }),
+    [activeFilter]
+  );
 
   // Data hooks
   const { data: productsResponse, loading, refresh } = useProducts(productFilters);
@@ -127,11 +133,6 @@ const ProductsPageContent = memo(() => {
 
     let filtered = displayProducts;
 
-    // Filter by active status
-    if (activeFilter === 'active') {
-      filtered = filtered.filter((product) => product.addedToSite);
-    }
-
     // Category filter
     if (selectedCategory !== 'All') {
       filtered = filtered.filter((product) => product.category === selectedCategory);
@@ -148,7 +149,7 @@ const ProductsPageContent = memo(() => {
     }
 
     return filtered;
-  }, [displayProducts, searchQuery, selectedCategory, activeFilter]);
+  }, [displayProducts, searchQuery, selectedCategory]);
 
   // Product actions
   const handleProductEdit = useCallback(

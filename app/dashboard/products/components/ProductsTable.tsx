@@ -212,15 +212,6 @@ export const ProductsTable = memo(({
       ),
     },
     {
-      id: 'status',
-      header: 'Status',
-      cell: ({ row }) => (
-        <Badge variant={row.original.addedToSite ? 'default' : 'outline'}>
-          {row.original.addedToSite ? 'Active' : 'Inactive'}
-        </Badge>
-      ),
-    },
-    {
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => (
