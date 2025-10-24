@@ -10,16 +10,20 @@ import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEdit
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared'
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
-import { ImageIcon, ExternalLink } from 'lucide-react'
+import { ImageIcon, ExternalLink, Settings } from 'lucide-react'
 import { SmartLink } from '@/src/components/ui/smart-link'
+import { Button } from '@/src/components/ui/button'
 import { FeaturedEditModal } from '@/src/components/site-editor/modals/FeaturedEditModal'
+import { LinkEditModal } from '@/src/components/site-editor/modals/LinkEditModal'
 import { useFullSiteEditorOptional } from '@/src/contexts/FullSiteEditorContext'
 import { useSiteContext } from '@/src/contexts/SiteContext'
+import { useCartContext } from '@/src/contexts/CartContext'
 import { useFeaturedProducts } from '@/src/hooks/useProducts'
 import { ProductCard } from '@/src/components/ProductCard'
 import Link from 'next/link'
 import { Product } from '@/lib/database/aliases'
 import { transformProductForDisplay } from '@/src/lib/utils/product-transformer'
+import { toast } from 'sonner'
 
 interface FeaturedPreviewProps {
   section: ContentSection
@@ -46,6 +50,13 @@ export function FeaturedPreview({
   const isPreview = isPreviewMode(onContentUpdate, onFeatureUpdate)
   const responsive = createResponsiveClassHelper(isPreview)
   const editorContext = useFullSiteEditorOptional()
+  const { addItem } = useCartContext()
+
+  // Track which product is being added to cart
+  const [addingToCartId, setAddingToCartId] = useState<string | null>(null)
+
+  // State for link edit modal
+  const [linkEditModalOpen, setLinkEditModalOpen] = useState(false)
 
   // Check if we should use database products
   const useProductDatabase = data.useProductDatabase ?? false
@@ -85,6 +96,37 @@ export function FeaturedPreview({
 
   // Determine if we're in Edit mode
   const isEditMode = isPreview || (editorContext?.editorMode === 'edit')
+
+  // Handle add to cart for database products
+  const handleAddToCart = async (productId: string) => {
+    // Find the original product from the database
+    const product = productsResponse?.data?.find((p) => p.id === productId)
+    if (!product) return
+
+    setAddingToCartId(productId)
+    try {
+      await addItem(product, 1)
+      toast.success(`${product.name} added to cart`)
+    } catch (error) {
+      toast.error('Failed to add to cart')
+      console.error('Error adding to cart:', error)
+    } finally {
+      setAddingToCartId(null)
+    }
+  }
+
+  // Handle link editing for View All button
+  const handleOpenLinkModal = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setLinkEditModalOpen(true)
+  }
+
+  const handleLinkSave = (url: string) => {
+    if (onContentUpdate) {
+      onContentUpdate(sectionKey, 'data.viewAllLink', url)
+    }
+  }
 
   return (
     <section className={`${responsive.spacing.sectionPadding} ${className}`} style={getSectionBackgroundStyle(settings)}>
@@ -170,6 +212,9 @@ export function FeaturedPreview({
                       product={displayProduct}
                       onEdit={undefined}
                       isLoading={false}
+                      showAddToCart={!isEditMode}
+                      onAddToCart={handleAddToCart}
+                      isAddingToCart={addingToCartId === displayProduct.id}
                     />
                   )
 
@@ -224,48 +269,95 @@ export function FeaturedPreview({
 
         {/* View All Link */}
         <div className="text-center">
-          <a
-            href={data.viewAllLink || '/plants'}
-            className="inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
-            style={{
-              borderColor: 'var(--theme-primary)',
-              color: 'var(--theme-primary)',
-              fontFamily: 'var(--theme-font-body)'
-            }}
-            onClick={(e) => {
-              // Check if inline editor is currently active/editing
-              const isEditing = e.target.closest('[data-editing="true"]') ||
-                               e.target.closest('.ProseMirror') ||
-                               e.target.closest('.inline-editor-wrapper')
-              if (isEditing) {
-                e.preventDefault()
-                e.stopPropagation()
-              }
-            }}
-          >
-            <InlineTextEditor
-              content={String(data.viewAllText || 'View All Plants')}
-              onUpdate={(content) => {
-                if (onContentUpdate) {
-                  onContentUpdate(sectionKey, 'data.viewAllText', content)
-                }
-              }}
-              isEnabled={Boolean(onContentUpdate)}
-              fieldPath="data.viewAllText"
-              format="plain"
-              singleLine={true}
-              className="[&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.ProseMirror]:leading-none"
+          {isPreview ? (
+            // EDIT MODE: Button-styled div with gear icon, no navigation
+            <div
+              className="group relative inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
               style={{
-                color: 'inherit',
-                fontFamily: 'inherit'
+                borderColor: 'var(--theme-primary)',
+                color: 'var(--theme-primary)',
+                fontFamily: 'var(--theme-font-body)'
               }}
-              placeholder="View All Text..."
-              showToolbar={false}
-              debounceDelay={0}
-            />
-          </a>
+            >
+              <InlineTextEditor
+                content={String(data.viewAllText || 'View All Plants')}
+                onUpdate={(content) => {
+                  if (onContentUpdate) {
+                    onContentUpdate(sectionKey, 'data.viewAllText', content)
+                  }
+                }}
+                isEnabled={Boolean(onContentUpdate)}
+                fieldPath="data.viewAllText"
+                format="plain"
+                singleLine={true}
+                className="[&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.ProseMirror]:leading-none"
+                style={{
+                  color: 'inherit',
+                  fontFamily: 'inherit'
+                }}
+                placeholder="View All Text..."
+                showToolbar={false}
+                debounceDelay={0}
+              />
+              {/* Link Settings Icon */}
+              {onContentUpdate && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md rounded-full border border-gray-200 hover:bg-gray-50 z-10"
+                  onClick={handleOpenLinkModal}
+                  title="Edit link URL"
+                  data-editor-control="true"
+                >
+                  <Settings className="w-3 h-3 text-gray-700" />
+                </Button>
+              )}
+            </div>
+          ) : (
+            // NAVIGATE MODE: Regular link for navigation
+            <a
+              href={data.viewAllLink || '/plants'}
+              className="inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
+              style={{
+                borderColor: 'var(--theme-primary)',
+                color: 'var(--theme-primary)',
+                fontFamily: 'var(--theme-font-body)'
+              }}
+            >
+              <InlineTextEditor
+                content={String(data.viewAllText || 'View All Plants')}
+                onUpdate={(content) => {
+                  if (onContentUpdate) {
+                    onContentUpdate(sectionKey, 'data.viewAllText', content)
+                  }
+                }}
+                isEnabled={Boolean(onContentUpdate)}
+                fieldPath="data.viewAllText"
+                format="plain"
+                singleLine={true}
+                className="[&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0 [&_.ProseMirror]:leading-none"
+                style={{
+                  color: 'inherit',
+                  fontFamily: 'inherit'
+                }}
+                placeholder="View All Text..."
+                showToolbar={false}
+                debounceDelay={0}
+              />
+            </a>
+          )}
         </div>
       </div>
+
+      {/* Link Edit Modal */}
+      <LinkEditModal
+        isOpen={linkEditModalOpen}
+        onClose={() => setLinkEditModalOpen(false)}
+        currentUrl={data.viewAllLink || ''}
+        onSave={handleLinkSave}
+        fieldLabel="View All Button"
+        sectionType="Featured"
+      />
     </section>
   )
 }

@@ -119,14 +119,11 @@ export default function CategoriesPage() {
             <table className="w-full table-fixed">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[50%] sm:w-auto">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[70%] sm:w-auto">
                     Category
                   </th>
                   <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[30%] sm:w-32">
                     Status
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%] min-w-12">
-                    Products
                   </th>
                 </tr>
               </thead>
@@ -150,9 +147,6 @@ export default function CategoriesPage() {
                       <Badge variant={category.is_active ? 'default' : 'secondary'} className="text-xs whitespace-nowrap">
                         {category.is_active ? 'Active' : 'Inactive'}
                       </Badge>
-                    </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-gray-500 text-right whitespace-nowrap min-w-12">
-                      {category.product_count || 0}
                     </td>
                   </tr>
                 ))}

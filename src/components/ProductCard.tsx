@@ -2,10 +2,12 @@
 
 import { Card, CardContent } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
+import { Button } from '@/src/components/ui/button'
 import React, { useState, useRef, useCallback, memo, useMemo } from 'react'
 import { ProductImage } from '@/src/components/ui/product-image'
 import { cn } from '@/src/lib/utils'
 import { shouldShowCompareAtPrice } from '@/src/lib/products/utils/pricing'
+import { ShoppingCart } from 'lucide-react'
 
 interface Product {
   id: string
@@ -24,12 +26,22 @@ interface ProductCardProps {
   product: Product
   onEdit?: (productId: string) => void
   isEditLoading?: boolean
+  showAddToCart?: boolean
+  onAddToCart?: (productId: string) => void
+  isAddingToCart?: boolean
 }
 
 // Memoized product image component to prevent re-renders on hover
 const MemoizedProductImage = memo(ProductImage)
 
-export function ProductCard({ product, onEdit, isEditLoading = false }: ProductCardProps) {
+export function ProductCard({
+  product,
+  onEdit,
+  isEditLoading = false,
+  showAddToCart = false,
+  onAddToCart,
+  isAddingToCart = false
+}: ProductCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   
   // Memoize placeholder config to prevent recreation on every render
@@ -90,6 +102,16 @@ export function ProductCard({ product, onEdit, isEditLoading = false }: ProductC
       cardRef.current.focus()
     }
   }, [])
+
+  // Handle add to cart click
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (onAddToCart && !isAddingToCart) {
+      onAddToCart(product.id)
+    }
+  }, [onAddToCart, product.id, isAddingToCart])
 
   const stockColors = {
     'in-stock': 'bg-green-100 text-green-800  ',
@@ -154,13 +176,28 @@ export function ProductCard({ product, onEdit, isEditLoading = false }: ProductC
         <div className="space-y-2">
           <h3 className="font-semibold text-sm mb-1 line-clamp-1">{product.name}</h3>
 
-          {/* Price */}
-          <div className="flex items-center gap-2">
-            <span className="font-bold">${product.price}</span>
-            {shouldShowCompareAtPrice(product.price, product.originalPrice) && (
-              <span className="text-sm text-gray-500 line-through">
-                ${product.originalPrice}
-              </span>
+          {/* Price and Cart */}
+          <div className={cn("flex items-center", showAddToCart ? "justify-between" : "gap-2")}>
+            <div className="flex items-center gap-2">
+              <span className="font-bold">${product.price}</span>
+              {shouldShowCompareAtPrice(product.price, product.originalPrice) && (
+                <span className="text-sm text-gray-500 line-through">
+                  ${product.originalPrice}
+                </span>
+              )}
+            </div>
+
+            {showAddToCart && onAddToCart && (
+              <Button
+                size="icon"
+                variant="default"
+                className="h-8 w-8 flex-shrink-0"
+                onClick={handleAddToCart}
+                disabled={isAddingToCart || product.stock === 'out-of-stock'}
+                aria-label={`Add ${product.name} to cart`}
+              >
+                <ShoppingCart className="h-4 w-4" />
+              </Button>
             )}
           </div>
 

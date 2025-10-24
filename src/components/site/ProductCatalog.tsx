@@ -5,9 +5,10 @@ import { useSiteContext } from '@/src/contexts/SiteContext'
 import { useCartContext } from '@/src/contexts/CartContext'
 import { useSupabase } from '@/hooks/useSupabase'
 import { Tables } from '@/src/lib/database/types'
+import { Product } from '@/src/lib/database/aliases'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -17,9 +18,9 @@ import {
 import { Card, CardContent } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
 import { Skeleton } from '@/src/components/ui/skeleton'
-import { 
-  Grid3X3, 
-  List, 
+import {
+  Grid3X3,
+  List,
   Search,
   SlidersHorizontal,
   ShoppingCart,
@@ -27,12 +28,19 @@ import {
   Heart,
   Eye
 } from 'lucide-react'
+import { ProductCard } from '@/src/components/ProductCard'
+import { transformProductForDisplay } from '@/src/lib/utils/product-transformer'
+import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/src/lib/utils'
 import { formatPrice } from '@/src/lib/utils/format'
 import { toast } from 'sonner'
 
-type Product = Tables<'products'>
+type ProductImage = Tables<'product_images'>
+
+interface ProductWithImages extends Product {
+  product_images?: ProductImage[]
+}
 
 interface ProductCatalogProps {
   categoryId?: string
@@ -54,10 +62,10 @@ export function ProductCatalog({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('name')
-  const [filterCategory, setFilterCategory] = useState(categoryId || '')
+  const [filterCategory, setFilterCategory] = useState(categoryId || 'all')
   
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<any[]>([])
+  const [products, setProducts] = useState<ProductWithImages[]>([])
+  const [categories, setCategories] = useState<Tables<'product_categories'>[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   // Fetch products and categories when dependencies change
@@ -72,15 +80,24 @@ export function ProductCatalog({
       
       setIsLoading(true)
       try {
-        // Fetch products
+        // Fetch products with images
         let query = supabase
           .from('products')
-          .select('*')
+          .select(`
+            *,
+            product_images (
+              id,
+              url,
+              position,
+              is_primary,
+              alt_text
+            )
+          `)
           .eq('site_id', site.id)
           .eq('is_active', true)
         
-        if (filterCategory) {
-          query = query.eq('category_id', filterCategory)
+        if (filterCategory && filterCategory !== 'all') {
+          query = query.eq('primary_category_id', filterCategory)
         }
         
         if (featured) {
@@ -110,9 +127,22 @@ export function ProductCatalog({
         }
         
         const { data: productsData, error: productsError } = await query
-        
+
         if (productsError) throw productsError
-        setProducts(productsData || [])
+
+        // Sort product images by primary first, then position
+        const productsWithSortedImages = (productsData || []).map((product) => {
+          if (product.product_images && Array.isArray(product.product_images)) {
+            product.product_images.sort((a, b) => {
+              if (a.is_primary && !b.is_primary) return -1
+              if (!a.is_primary && b.is_primary) return 1
+              return (a.position ?? 999) - (b.position ?? 999)
+            })
+          }
+          return product
+        })
+
+        setProducts(productsWithSortedImages as ProductWithImages[])
 
         // Fetch categories
         const { data: categoriesData, error: categoriesError } = await supabase
@@ -147,8 +177,9 @@ export function ProductCatalog({
     )
   }) || []
   
-  const handleAddToCart = async (product: Product) => {
+  const handleAddToCart = async (product: ProductWithImages) => {
     try {
+      // ProductWithImages extends Product, so we can pass it directly
       await addItem(product, 1)
       toast.success(`${product.name} added to cart`)
     } catch (error) {
@@ -183,7 +214,7 @@ export function ProductCatalog({
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
@@ -238,11 +269,11 @@ export function ProductCatalog({
           <p className="text-gray-500">No products found</p>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
           {filteredProducts.map((product) => (
-            <ProductGridCard 
-              key={product.id} 
-              product={product} 
+            <ProductGridCard
+              key={product.id}
+              product={product}
               onAddToCart={handleAddToCart}
             />
           ))}
@@ -250,9 +281,9 @@ export function ProductCatalog({
       ) : (
         <div className="space-y-4">
           {filteredProducts.map((product) => (
-            <ProductListCard 
-              key={product.id} 
-              product={product} 
+            <ProductListCard
+              key={product.id}
+              product={product}
               onAddToCart={handleAddToCart}
             />
           ))}
@@ -263,103 +294,34 @@ export function ProductCatalog({
 }
 
 interface ProductCardProps {
-  product: Product
-  onAddToCart: (product: Product) => void
+  product: ProductWithImages
+  onAddToCart: (product: ProductWithImages) => void
 }
 
 function ProductGridCard({ product, onAddToCart }: ProductCardProps) {
-  const [isHovered, setIsHovered] = useState(false)
-  
+  const [isAdding, setIsAdding] = useState(false)
+
+  const handleAddToCart = async (productId: string) => {
+    setIsAdding(true)
+    try {
+      await onAddToCart(product)
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
+  // Transform database product to display format
+  const displayProduct = transformProductForDisplay(product)
+
   return (
-    <Card 
-      className="group cursor-pointer overflow-hidden"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="relative aspect-square bg-muted">
-        {product.images && Array.isArray(product.images) && (product.images as any[])[0]?.url ? (
-          <Image
-            src={(product.images as any[])[0].url}
-            alt={product.name || ''}
-            fill
-            className="object-cover transition-transform group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <ShoppingCart className="h-12 w-12 text-gray-500" />
-          </div>
-        )}
-        
-        {/* Quick Actions */}
-        {isHovered && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2 transition-opacity">
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-9 w-9"
-              onClick={(e) => {
-                e.stopPropagation()
-                // TODO: Implement quick view
-              }}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-9 w-9"
-              onClick={(e) => {
-                e.stopPropagation()
-                // TODO: Implement favorites
-              }}
-            >
-              <Heart className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-        
-        {/* Badges */}
-        {product.is_featured && (
-          <Badge className="absolute top-2 left-2">Featured</Badge>
-        )}
-        {product.inventory_count === 0 && (
-          <Badge variant="destructive" className="absolute top-2 right-2">
-            Out of Stock
-          </Badge>
-        )}
-      </div>
-      
-      <CardContent className="p-4 space-y-2">
-        <h3 className="font-medium line-clamp-1">{product.name}</h3>
-        <p className="text-sm text-gray-500 line-clamp-2">
-          {product.description}
-        </p>
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-lg font-semibold">
-              {formatPrice(product.price || 0)}
-            </p>
-            {product.compare_at_price && product.compare_at_price > (product.price || 0) && (
-              <p className="text-sm text-gray-500 line-through">
-                {formatPrice(product.compare_at_price)}
-              </p>
-            )}
-          </div>
-          
-          <Button
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation()
-              onAddToCart(product)
-            }}
-            disabled={product.inventory_count === 0}
-          >
-            <ShoppingCart className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <Link href={`/products/${product.slug || product.id}`} className="block">
+      <ProductCard
+        product={displayProduct}
+        showAddToCart={true}
+        onAddToCart={handleAddToCart}
+        isAddingToCart={isAdding}
+      />
+    </Link>
   )
 }
 
@@ -369,10 +331,10 @@ function ProductListCard({ product, onAddToCart }: ProductCardProps) {
       <div className="flex gap-4 p-4">
         {/* Image */}
         <div className="relative w-32 h-32 rounded-md overflow-hidden bg-muted flex-shrink-0">
-          {product.images && Array.isArray(product.images) && (product.images as any[])[0]?.url ? (
+          {product.product_images && product.product_images.length > 0 ? (
             <Image
-              src={(product.images as any[])[0].url}
-              alt={product.name || ''}
+              src={product.product_images[0].url}
+              alt={product.product_images[0].alt_text || product.name || 'Product image'}
               fill
               className="object-cover"
             />
@@ -436,12 +398,11 @@ function ProductCatalogSkeleton({ viewMode }: { viewMode: 'grid' | 'list' }) {
             <Skeleton className="aspect-square" />
             <CardContent className="p-4 space-y-2">
               <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-2/3" />
               <div className="flex justify-between items-center pt-2">
                 <Skeleton className="h-6 w-20" />
-                <Skeleton className="h-9 w-9 rounded-md" />
+                <Skeleton className="h-8 w-8 rounded-md" />
               </div>
+              <Skeleton className="h-3 w-1/2" />
             </CardContent>
           </Card>
         ))}
