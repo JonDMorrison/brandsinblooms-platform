@@ -34,17 +34,18 @@ export function PageSelector({
 
   // Group pages by type for better organization
   const groupedPages = React.useMemo(() => {
-    if (!pages) return { special: [], other: [] }
+    if (!pages) return { content: [], static: [], categories: [] }
 
-    const special = pages.filter(p => ['landing', 'about', 'contact'].includes(p.contentType))
-    const other = pages.filter(p => p.contentType === 'other')
+    const content = pages.filter(p => ['landing', 'about', 'contact', 'other'].includes(p.contentType))
+    const staticPages = pages.filter(p => p.contentType === 'static')
+    const categories = pages.filter(p => p.contentType === 'category')
 
-    return { special, other }
+    return { content, static: staticPages, categories }
   }, [pages])
 
-  // Format display value - handle home page specially
+  // Format display value - normalize to slug format (no leading slash)
   const displayValue = React.useMemo(() => {
-    if (!value || value === '/') return '__home__'
+    if (!value || value === '/') return 'home'
     return value.startsWith('/') ? value.substring(1) : value
   }, [value])
 
@@ -72,8 +73,9 @@ export function PageSelector({
   }
 
   const handleValueChange = (val: string) => {
-    // Convert special home identifier back to /
-    if (val === '__home__') {
+    // Convert slug to path format with leading slash
+    // Home is stored as 'home' but converts to '/'
+    if (val === 'home') {
       onChange('/')
     } else {
       onChange(`/${val}`)
@@ -82,13 +84,21 @@ export function PageSelector({
 
   // Get the display label for the selected value
   const selectedPageLabel = React.useMemo(() => {
-    if (displayValue === '__home__') return 'Home /'
-
     const selectedPage = pages?.find(p => p.slug === displayValue)
     if (selectedPage) {
+      // Special handling for home page display
+      if (selectedPage.slug === 'home') {
+        return 'Home /'
+      }
+      // Category pages already have 'category/' in slug
+      if (selectedPage.contentType === 'category') {
+        return `${selectedPage.title} /${selectedPage.slug}`
+      }
+      // Regular pages
       return `${selectedPage.title} /${selectedPage.slug}`
     }
 
+    // Fallback
     return displayValue ? `/${displayValue}` : ''
   }, [displayValue, pages])
 
@@ -102,22 +112,16 @@ export function PageSelector({
           </SelectValue>
         </SelectTrigger>
         <SelectContent className="w-full">
-          {/* Home page option */}
-          <SelectItem value="__home__" className="focus:text-foreground hover:text-foreground">
-            <div className="flex items-center gap-2">
-              <span className="font-medium truncate">Home</span>
-              <span className="text-xs text-muted-foreground shrink-0">/</span>
-            </div>
-          </SelectItem>
-
-          {/* Special pages (landing, about, contact) */}
-          {groupedPages.special.length > 0 && (
+          {/* Content pages (landing, about, contact, other - includes home) */}
+          {groupedPages.content.length > 0 && (
             <>
-              {groupedPages.special.map((page) => (
+              {groupedPages.content.map((page) => (
                 <SelectItem key={page.id} value={page.slug} className="focus:text-foreground hover:text-foreground">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="font-medium truncate">{page.title}</span>
-                    <span className="text-xs text-muted-foreground shrink-0">/{page.slug}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {page.slug === 'home' ? '/' : `/${page.slug}`}
+                    </span>
                     {!page.isPublished && (
                       <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded shrink-0">
                         Draft
@@ -129,19 +133,28 @@ export function PageSelector({
             </>
           )}
 
-          {/* Other pages */}
-          {groupedPages.other.length > 0 && (
+          {/* Static pages (products, cart) */}
+          {groupedPages.static.length > 0 && (
             <>
-              {groupedPages.other.map((page) => (
+              {groupedPages.static.map((page) => (
                 <SelectItem key={page.id} value={page.slug} className="focus:text-foreground hover:text-foreground">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="font-medium truncate">{page.title}</span>
                     <span className="text-xs text-muted-foreground shrink-0">/{page.slug}</span>
-                    {!page.isPublished && (
-                      <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded shrink-0">
-                        Draft
-                      </span>
-                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </>
+          )}
+
+          {/* Category pages */}
+          {groupedPages.categories.length > 0 && (
+            <>
+              {groupedPages.categories.map((page) => (
+                <SelectItem key={page.id} value={page.slug} className="focus:text-foreground hover:text-foreground">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-medium truncate">{page.title}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">/{page.slug}</span>
                   </div>
                 </SelectItem>
               ))}

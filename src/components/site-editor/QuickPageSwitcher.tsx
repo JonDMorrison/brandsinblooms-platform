@@ -49,7 +49,10 @@ export function QuickPageSwitcher({
 
   /**
    * Normalize currentSlug to match database format (no leading slash)
-   * Handles: '/' → 'home', '/home' → 'home', '/about' → 'about'
+   * Handles:
+   *   - '/' → 'home', '/home' → 'home'
+   *   - '/about' → 'about'
+   *   - '/category/flowers' → 'category/flowers'
    */
   const normalizedCurrentSlug = useMemo(() => {
     if (!currentSlug || currentSlug === '/' || currentSlug === '') return 'home'
@@ -172,7 +175,7 @@ export function QuickPageSwitcher({
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <span className="font-medium truncate">{page.title}</span>
                   <span className="text-xs text-muted-foreground shrink-0">
-                    /{page.slug}
+                    {page.slug === 'home' ? '/' : `/${page.slug}`}
                   </span>
                   {!page.isPublished && (
                     <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded shrink-0">
