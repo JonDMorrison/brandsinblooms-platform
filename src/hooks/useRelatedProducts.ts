@@ -47,7 +47,6 @@ export function useRelatedProducts(
         .eq('site_id', siteId)
         .eq('primary_category_id', categoryId)
         .eq('is_active', true)
-        .eq('is_published', true)
         .neq('id', productId || '')
         .order('created_at', { ascending: false })
         .limit(limit)

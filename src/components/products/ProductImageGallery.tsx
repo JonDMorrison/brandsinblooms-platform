@@ -51,6 +51,7 @@ export function ProductImageGallery({
           src={currentImage.url}
           alt={currentImage.alt_text || productName}
           fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
           className="object-cover"
           priority={selectedIndex === 0}
         />
@@ -104,6 +105,7 @@ export function ProductImageGallery({
                 src={image.url}
                 alt={image.alt_text || `${productName} - Image ${index + 1}`}
                 fill
+                sizes="(max-width: 768px) 25vw, 150px"
                 className="object-cover"
               />
             </button>
