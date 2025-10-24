@@ -8,10 +8,13 @@ import { Card, CardContent } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
 import { Button } from '@/src/components/ui/button'
 import { ShoppingCart, Sparkles, ArrowRight } from 'lucide-react'
+import { ProductCard } from '@/src/components/ProductCard'
+import { transformProductForDisplay } from '@/src/lib/utils/product-transformer'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Tables } from '@/lib/database/types'
+import { Tables } from '@/src/lib/database/types'
+import { Product, ProductWithTags } from '@/src/lib/database/aliases'
 import { useCartContext } from '@/src/contexts/CartContext'
 import { formatPrice } from '@/src/lib/utils/format'
 import { toast } from 'sonner'
@@ -108,9 +111,9 @@ export function ProductsPageClient() {
                   Featured Products
                 </h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
                 {featuredProducts.data.map((product) => (
-                  <FeaturedProductCard key={product.id} product={product} />
+                  <FeaturedProductCard key={product.id} product={product as ProductWithTags} />
                 ))}
               </div>
             </div>
@@ -156,19 +159,11 @@ export function ProductsPageClient() {
 }
 
 // Featured Product Card
-function FeaturedProductCard({ product }: { product: Tables<'products'> }) {
+function FeaturedProductCard({ product }: { product: ProductWithTags }) {
   const { addItem } = useCartContext()
   const [isAdding, setIsAdding] = useState(false)
 
-  const firstImage =
-    product.images &&
-    Array.isArray(product.images) &&
-    (product.images as Array<{ url: string }>)[0]?.url
-
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
+  const handleAddToCart = async (productId: string) => {
     setIsAdding(true)
     try {
       await addItem(product, 1)
@@ -180,51 +175,17 @@ function FeaturedProductCard({ product }: { product: Tables<'products'> }) {
     }
   }
 
+  // Transform database product to display format
+  const displayProduct = transformProductForDisplay(product)
+
   return (
-    <Link href={`/products/${product.slug}`}>
-      <Card className="group cursor-pointer overflow-hidden hover:shadow-lg transition-all">
-        <div className="relative aspect-square bg-muted">
-          {firstImage ? (
-            <Image
-              src={firstImage}
-              alt={product.name}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <ShoppingCart className="h-12 w-12 text-gray-400" />
-            </div>
-          )}
-          <Badge className="absolute top-2 left-2">Featured</Badge>
-        </div>
-        <CardContent className="p-4 space-y-2">
-          <h3 className="font-medium line-clamp-2 min-h-[2.5rem]">
-            {product.name}
-          </h3>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-lg font-semibold">
-                {formatPrice(product.price || 0)}
-              </p>
-              {product.compare_at_price &&
-                product.compare_at_price > (product.price || 0) && (
-                  <p className="text-sm text-gray-500 line-through">
-                    {formatPrice(product.compare_at_price)}
-                  </p>
-                )}
-            </div>
-            <Button
-              size="icon"
-              variant="secondary"
-              onClick={handleAddToCart}
-              disabled={isAdding || !product.inventory_count}
-            >
-              <ShoppingCart className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <Link href={`/products/${product.slug}`} className="block">
+      <ProductCard
+        product={displayProduct}
+        showAddToCart={true}
+        onAddToCart={handleAddToCart}
+        isAddingToCart={isAdding}
+      />
     </Link>
   )
 }

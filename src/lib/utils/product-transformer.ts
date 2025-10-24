@@ -3,7 +3,7 @@
  * Transforms database Product types to ProductDisplay format for UI components
  */
 
-import type { Product } from '@/lib/database/aliases'
+import type { Product } from '@/src/lib/database/aliases'
 
 /**
  * Product image from product_images table relation

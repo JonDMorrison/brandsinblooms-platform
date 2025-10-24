@@ -5,9 +5,10 @@ import { useSiteContext } from '@/src/contexts/SiteContext'
 import { useCartContext } from '@/src/contexts/CartContext'
 import { useSupabase } from '@/hooks/useSupabase'
 import { Tables } from '@/src/lib/database/types'
+import { Product } from '@/src/lib/database/aliases'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -17,9 +18,9 @@ import {
 import { Card, CardContent } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
 import { Skeleton } from '@/src/components/ui/skeleton'
-import { 
-  Grid3X3, 
-  List, 
+import {
+  Grid3X3,
+  List,
   Search,
   SlidersHorizontal,
   ShoppingCart,
@@ -27,12 +28,14 @@ import {
   Heart,
   Eye
 } from 'lucide-react'
+import { ProductCard } from '@/src/components/ProductCard'
+import { transformProductForDisplay } from '@/src/lib/utils/product-transformer'
+import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/src/lib/utils'
 import { formatPrice } from '@/src/lib/utils/format'
 import { toast } from 'sonner'
 
-type Product = Tables<'products'>
 type ProductImage = Tables<'product_images'>
 
 interface ProductWithImages extends Product {
@@ -139,7 +142,7 @@ export function ProductCatalog({
           return product
         })
 
-        setProducts(productsWithSortedImages)
+        setProducts(productsWithSortedImages as ProductWithImages[])
 
         // Fetch categories
         const { data: categoriesData, error: categoriesError } = await supabase
@@ -176,12 +179,8 @@ export function ProductCatalog({
   
   const handleAddToCart = async (product: ProductWithImages) => {
     try {
-      // Convert ProductWithImages to Product type for cart
-      const productForCart: Product = {
-        ...product,
-        product_images: undefined, // Remove to match Product type
-      }
-      await addItem(productForCart, 1)
+      // ProductWithImages extends Product, so we can pass it directly
+      await addItem(product, 1)
       toast.success(`${product.name} added to cart`)
     } catch (error) {
       toast.error('Failed to add item to cart')
@@ -270,11 +269,11 @@ export function ProductCatalog({
           <p className="text-gray-500">No products found</p>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
           {filteredProducts.map((product) => (
-            <ProductGridCard 
-              key={product.id} 
-              product={product} 
+            <ProductGridCard
+              key={product.id}
+              product={product}
               onAddToCart={handleAddToCart}
             />
           ))}
@@ -282,9 +281,9 @@ export function ProductCatalog({
       ) : (
         <div className="space-y-4">
           {filteredProducts.map((product) => (
-            <ProductListCard 
-              key={product.id} 
-              product={product} 
+            <ProductListCard
+              key={product.id}
+              product={product}
               onAddToCart={handleAddToCart}
             />
           ))}
@@ -300,98 +299,29 @@ interface ProductCardProps {
 }
 
 function ProductGridCard({ product, onAddToCart }: ProductCardProps) {
-  const [isHovered, setIsHovered] = useState(false)
-  
+  const [isAdding, setIsAdding] = useState(false)
+
+  const handleAddToCart = async (productId: string) => {
+    setIsAdding(true)
+    try {
+      await onAddToCart(product)
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
+  // Transform database product to display format
+  const displayProduct = transformProductForDisplay(product)
+
   return (
-    <Card 
-      className="group cursor-pointer overflow-hidden"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="relative aspect-square bg-muted">
-        {product.product_images && product.product_images.length > 0 ? (
-          <Image
-            src={product.product_images[0].url}
-            alt={product.product_images[0].alt_text || product.name || 'Product image'}
-            fill
-            className="object-cover transition-transform group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <ShoppingCart className="h-12 w-12 text-gray-500" />
-          </div>
-        )}
-        
-        {/* Quick Actions */}
-        {isHovered && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2 transition-opacity">
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-9 w-9"
-              onClick={(e) => {
-                e.stopPropagation()
-                // TODO: Implement quick view
-              }}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-9 w-9"
-              onClick={(e) => {
-                e.stopPropagation()
-                // TODO: Implement favorites
-              }}
-            >
-              <Heart className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-        
-        {/* Badges */}
-        {product.is_featured && (
-          <Badge className="absolute top-2 left-2">Featured</Badge>
-        )}
-        {product.inventory_count === 0 && (
-          <Badge variant="destructive" className="absolute top-2 right-2">
-            Out of Stock
-          </Badge>
-        )}
-      </div>
-      
-      <CardContent className="p-4 space-y-2">
-        <h3 className="font-medium line-clamp-1">{product.name}</h3>
-        <p className="text-sm text-gray-500 line-clamp-2">
-          {product.description}
-        </p>
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-lg font-semibold">
-              {formatPrice(product.price || 0)}
-            </p>
-            {product.compare_at_price && product.compare_at_price > (product.price || 0) && (
-              <p className="text-sm text-gray-500 line-through">
-                {formatPrice(product.compare_at_price)}
-              </p>
-            )}
-          </div>
-          
-          <Button
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation()
-              onAddToCart(product)
-            }}
-            disabled={product.inventory_count === 0}
-          >
-            <ShoppingCart className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <Link href={`/products/${product.slug || product.id}`} className="block">
+      <ProductCard
+        product={displayProduct}
+        showAddToCart={true}
+        onAddToCart={handleAddToCart}
+        isAddingToCart={isAdding}
+      />
+    </Link>
   )
 }
 
@@ -468,12 +398,11 @@ function ProductCatalogSkeleton({ viewMode }: { viewMode: 'grid' | 'list' }) {
             <Skeleton className="aspect-square" />
             <CardContent className="p-4 space-y-2">
               <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-2/3" />
               <div className="flex justify-between items-center pt-2">
                 <Skeleton className="h-6 w-20" />
-                <Skeleton className="h-9 w-9 rounded-md" />
+                <Skeleton className="h-8 w-8 rounded-md" />
               </div>
+              <Skeleton className="h-3 w-1/2" />
             </CardContent>
           </Card>
         ))}
