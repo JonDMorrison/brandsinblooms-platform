@@ -17,7 +17,7 @@ import { FeaturedEditModal } from '@/src/components/site-editor/modals/FeaturedE
 import { LinkEditModal } from '@/src/components/site-editor/modals/LinkEditModal'
 import { useFullSiteEditorOptional } from '@/src/contexts/FullSiteEditorContext'
 import { useSiteContext } from '@/src/contexts/SiteContext'
-import { useCartContext } from '@/src/contexts/CartContext'
+import { useCartOptional } from '@/src/contexts/CartContext'
 import { useFeaturedProducts } from '@/src/hooks/useProducts'
 import { ProductCard } from '@/src/components/ProductCard'
 import Link from 'next/link'
@@ -50,7 +50,7 @@ export function FeaturedPreview({
   const isPreview = isPreviewMode(onContentUpdate, onFeatureUpdate)
   const responsive = createResponsiveClassHelper(isPreview)
   const editorContext = useFullSiteEditorOptional()
-  const { addItem } = useCartContext()
+  const cart = useCartOptional()
 
   // Track which product is being added to cart
   const [addingToCartId, setAddingToCartId] = useState<string | null>(null)
@@ -99,13 +99,16 @@ export function FeaturedPreview({
 
   // Handle add to cart for database products
   const handleAddToCart = async (productId: string) => {
+    // Cart not available (e.g., in editor preview) - no-op
+    if (!cart?.addItem) return
+
     // Find the original product from the database
     const product = productsResponse?.data?.find((p) => p.id === productId)
     if (!product) return
 
     setAddingToCartId(productId)
     try {
-      await addItem(product, 1)
+      await cart.addItem(product, 1)
       toast.success(`${product.name} added to cart`)
     } catch (error) {
       toast.error('Failed to add to cart')
