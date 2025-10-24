@@ -1,12 +1,13 @@
 'use client'
 
-import { 
-  createContext, 
-  useContext, 
-  useEffect, 
-  useState, 
-  useCallback, 
-  ReactNode 
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  ReactNode
 } from 'react'
 import { useAuth } from './AuthContext'
 import { useSiteContext } from './SiteContext'
@@ -27,7 +28,7 @@ export interface CartContextType {
   itemCount: number
   isLoading: boolean
   error: Error | null
-  
+
   // Actions
   addItem: (product: Tables<'products'>, quantity: number) => Promise<void>
   updateQuantity: (itemId: string, quantity: number) => Promise<void>
@@ -36,59 +37,154 @@ export interface CartContextType {
   refreshCart: () => Promise<void>
 }
 
+// Storage interface with metadata for TTL support
+interface CartStorage {
+  version: number
+  items: CartItem[]
+  createdAt: number
+  lastActivityAt: number
+  expiresAt: number
+  siteId?: string
+}
+
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 const CART_STORAGE_KEY = 'brands-in-blooms-cart'
+const CART_VERSION = 1
+const CART_TTL = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+
+/**
+ * Load cart from localStorage with expiration check
+ * Returns empty array if cart is expired or invalid
+ */
+function loadCartFromStorage(): CartItem[] {
+  if (typeof window === 'undefined') return []
+
+  try {
+    const stored = localStorage.getItem(CART_STORAGE_KEY)
+    if (!stored) return []
+
+    const parsed = JSON.parse(stored)
+
+    // Handle old cart format (plain array) - migrate it
+    if (Array.isArray(parsed)) {
+      console.log('Migrating old cart format to new format with TTL')
+      const migratedData: CartStorage = {
+        version: CART_VERSION,
+        items: parsed,
+        createdAt: Date.now(),
+        lastActivityAt: Date.now(),
+        expiresAt: Date.now() + CART_TTL,
+      }
+      // Save migrated format immediately
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(migratedData))
+      return parsed
+    }
+
+    const cartData = parsed as CartStorage
+
+    // Check version for future migrations
+    if (cartData.version !== CART_VERSION) {
+      console.warn(`Cart version mismatch: expected ${CART_VERSION}, got ${cartData.version}`)
+      // Could add migration logic here for future versions
+    }
+
+    // Check if cart has expired
+    const now = Date.now()
+    if (now > cartData.expiresAt) {
+      console.log('Cart has expired, clearing it')
+      localStorage.removeItem(CART_STORAGE_KEY)
+      return []
+    }
+
+    return cartData.items || []
+  } catch (err) {
+    console.error('Failed to load cart from storage:', err)
+    // Clear corrupt data
+    try {
+      localStorage.removeItem(CART_STORAGE_KEY)
+    } catch {}
+    return []
+  }
+}
+
+/**
+ * Save cart to localStorage with metadata and TTL
+ * Implements sliding window expiration - resets timer on every save
+ */
+function saveCartToStorage(items: CartItem[]): void {
+  if (typeof window === 'undefined') return
+
+  try {
+    const now = Date.now()
+
+    // Try to load existing metadata to preserve createdAt
+    let existingData: CartStorage | null = null
+    try {
+      const stored = localStorage.getItem(CART_STORAGE_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (!Array.isArray(parsed)) {
+          existingData = parsed as CartStorage
+        }
+      }
+    } catch {
+      // Ignore errors, will create new metadata
+    }
+
+    const cartData: CartStorage = {
+      version: CART_VERSION,
+      items,
+      createdAt: existingData?.createdAt || now,
+      lastActivityAt: now,
+      expiresAt: now + CART_TTL, // Reset expiration on every save (sliding window)
+    }
+
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartData))
+  } catch (err) {
+    console.error('Failed to save cart to storage:', err)
+  }
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const { currentSite } = useSiteContext()
-  const [items, setItems] = useState<CartItem[]>([])
+  const [allItems, setAllItems] = useState<CartItem[]>([])
+  const [isHydrated, setIsHydrated] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
-  // Calculate totals
+  // Load cart from localStorage on mount (once only, no dependencies!)
+  useEffect(() => {
+    const loadedItems = loadCartFromStorage()
+    setAllItems(loadedItems)
+    setIsHydrated(true)
+  }, []) // No dependencies - runs once on mount
+
+  // Save cart to localStorage whenever items change (after hydration)
+  useEffect(() => {
+    if (!isHydrated) return // Don't save during initial load
+    saveCartToStorage(allItems)
+  }, [allItems, isHydrated])
+
+  // Filter items for current site (in memory, not in storage!)
+  const items = useMemo(() => {
+    if (!currentSite) return allItems
+    return allItems.filter(item => item.product.site_id === currentSite.id)
+  }, [allItems, currentSite])
+
+  // Calculate totals from filtered items
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
   const total = items.reduce((sum, item) => sum + item.subtotal, 0)
-
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    
-    try {
-      const storedCart = localStorage.getItem(CART_STORAGE_KEY)
-      if (storedCart) {
-        const parsedCart = JSON.parse(storedCart)
-        // Filter items by current site
-        const siteItems = parsedCart.filter((item: CartItem) => 
-          currentSite && item.product.site_id === currentSite.id
-        )
-        setItems(siteItems)
-      }
-    } catch (err) {
-      console.error('Failed to load cart from storage:', err)
-    }
-  }, [currentSite])
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    
-    try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items))
-    } catch (err) {
-      console.error('Failed to save cart to storage:', err)
-    }
-  }, [items])
 
   const addItem = useCallback(async (product: Tables<'products'>, quantity: number) => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
-      setItems(prevItems => {
+      setAllItems(prevItems => {
         const existingItem = prevItems.find(item => item.productId === product.id)
-        
+
         if (existingItem) {
           // Update quantity for existing item
           return prevItems.map(item =>
@@ -125,14 +221,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
       if (quantity <= 0) {
         await removeItem(itemId)
         return
       }
-      
-      setItems(prevItems =>
+
+      setAllItems(prevItems =>
         prevItems.map(item =>
           item.id === itemId
             ? {
@@ -155,9 +251,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removeItem = useCallback(async (itemId: string) => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
-      setItems(prevItems => prevItems.filter(item => item.id !== itemId))
+      setAllItems(prevItems => prevItems.filter(item => item.id !== itemId))
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to remove item')
       setError(error)
@@ -170,9 +266,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = useCallback(async () => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
-      setItems([])
+      setAllItems([])
       localStorage.removeItem(CART_STORAGE_KEY)
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to clear cart')
@@ -184,26 +280,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const refreshCart = useCallback(async () => {
-    // Placeholder for future server sync
-    // For now, just reload from localStorage
     if (typeof window === 'undefined') return
-    
+
     try {
-      const storedCart = localStorage.getItem(CART_STORAGE_KEY)
-      if (storedCart) {
-        const parsedCart = JSON.parse(storedCart)
-        const siteItems = parsedCart.filter((item: CartItem) => 
-          currentSite && item.product.site_id === currentSite.id
-        )
-        setItems(siteItems)
-      }
+      const loadedItems = loadCartFromStorage()
+      setAllItems(loadedItems)
     } catch (err) {
       console.error('Failed to refresh cart:', err)
     }
-  }, [currentSite])
+  }, [])
 
   const value: CartContextType = {
-    items,
+    items, // Return filtered items
     total,
     itemCount,
     isLoading,
