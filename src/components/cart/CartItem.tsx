@@ -22,13 +22,7 @@ export function CartItem({
   onRemove,
   className
 }: CartItemProps) {
-  const { product, quantity, subtotal } = item
-
-  // Get first image URL from legacy JSONB or show placeholder
-  const imageUrl =
-    product.images &&
-    Array.isArray(product.images) &&
-    (product.images as Array<{ url: string }>)[0]?.url
+  const { product, quantity, subtotal, imageUrl } = item
 
   return (
     <div className={cn('flex gap-4 p-4 bg-white border rounded-lg', className)}>

@@ -18,6 +18,7 @@ import { formatPrice } from '@/src/lib/utils/format'
 import { toast } from 'sonner'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Tables } from '@/src/lib/database/types'
 
 interface ProductDetailPageClientProps {
   slug: string
@@ -40,11 +41,9 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
 
     setIsAddingToCart(true)
     try {
-      // Extract base product fields for cart (remove relations)
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { product_images, primary_category, product_category_assignments, ...productForCart } = product
-
-      await addItem(productForCart, quantity)
+      // Pass full product object - CartContext will extract imageUrl from product_images
+      // Note: Relations (product_images, primary_category) are fine to pass - they won't be stored
+      await addItem(product as Tables<'products'>, quantity)
       toast.success(`${product.name} added to cart`)
       setQuantity(1) // Reset quantity after adding
     } catch {

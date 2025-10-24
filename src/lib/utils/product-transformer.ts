@@ -85,18 +85,28 @@ function getStockStatus(count: number): 'in-stock' | 'low-stock' | 'out-of-stock
  * Extracts first product image URL from product_images relation or legacy images array
  * Priority: 1) Modern product_images relation, 2) Legacy JSONB images field
  * Returns empty string if no images available
+ *
+ * @param product - Product object that may contain product_images relation or legacy images JSONB
+ * @returns Primary image URL or empty string if no images found
  */
-function getProductImage(product: ProductWithRelations): string {
+export function getProductImageUrl(product: unknown): string {
+  // Type guard: check if product is an object
+  if (!product || typeof product !== 'object') {
+    return ''
+  }
+
+  const productObj = product as ProductWithRelations
+
   // FIRST: Try modern product_images relation (current system)
-  if (product.product_images && Array.isArray(product.product_images) && product.product_images.length > 0) {
+  if (productObj.product_images && Array.isArray(productObj.product_images) && productObj.product_images.length > 0) {
     // Find primary image first
-    const primaryImage = product.product_images.find(img => img.is_primary)
+    const primaryImage = productObj.product_images.find(img => img.is_primary)
     if (primaryImage?.url) {
       return primaryImage.url
     }
 
     // Fall back to first image sorted by position
-    const firstImage = product.product_images
+    const firstImage = productObj.product_images
       .sort((a, b) => a.position - b.position)[0]
     if (firstImage?.url) {
       return firstImage.url
@@ -104,11 +114,11 @@ function getProductImage(product: ProductWithRelations): string {
   }
 
   // SECOND: Try legacy images JSONB array (backward compatibility)
-  if (product.images) {
+  if (productObj.images) {
     try {
-      const images = Array.isArray(product.images)
-        ? product.images
-        : JSON.parse(product.images as unknown as string)
+      const images = Array.isArray(productObj.images)
+        ? productObj.images
+        : JSON.parse(productObj.images as unknown as string)
 
       if (Array.isArray(images) && images.length > 0) {
         return images[0]
@@ -120,4 +130,12 @@ function getProductImage(product: ProductWithRelations): string {
 
   // No images found in either location
   return ''
+}
+
+/**
+ * Internal helper for transformProductForDisplay
+ * @deprecated Use getProductImageUrl instead for new code
+ */
+function getProductImage(product: ProductWithRelations): string {
+  return getProductImageUrl(product)
 }

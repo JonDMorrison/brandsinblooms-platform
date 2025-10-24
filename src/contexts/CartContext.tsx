@@ -12,6 +12,7 @@ import {
 import { useAuth } from './AuthContext'
 import { useSiteContext } from './SiteContext'
 import { Tables } from '@/src/lib/database/types'
+import { getProductImageUrl } from '@/src/lib/utils/product-transformer'
 
 export interface CartItem {
   id: string
@@ -20,6 +21,7 @@ export interface CartItem {
   quantity: number
   price: number
   subtotal: number
+  imageUrl?: string // Primary product image URL for cart display
 }
 
 export interface CartContextType {
@@ -182,11 +184,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setError(null)
 
     try {
+      // Extract image URL from product (handles product_images relation or legacy images JSONB)
+      const imageUrl = getProductImageUrl(product)
+
       setAllItems(prevItems => {
         const existingItem = prevItems.find(item => item.productId === product.id)
 
         if (existingItem) {
-          // Update quantity for existing item
+          // Update quantity for existing item (preserve existing imageUrl)
           return prevItems.map(item =>
             item.id === existingItem.id
               ? {
@@ -197,14 +202,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
               : item
           )
         } else {
-          // Add new item
+          // Add new item with extracted image URL
           const newItem: CartItem = {
             id: `${product.id}_${Date.now()}`,
             productId: product.id,
             product,
             quantity,
             price: product.price || 0,
-            subtotal: (product.price || 0) * quantity
+            subtotal: (product.price || 0) * quantity,
+            imageUrl: imageUrl || undefined
           }
           return [...prevItems, newItem]
         }
