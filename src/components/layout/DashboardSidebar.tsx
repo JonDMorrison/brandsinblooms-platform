@@ -32,9 +32,14 @@ const allNavigationItems = [
 
 // Filter navigation items based on environment variable
 const isDevFeaturesEnabled = process.env.NEXT_PUBLIC_ENABLE_DEV_FEATURES === 'true'
-const navigationItems = allNavigationItems.filter(item => 
-  !item.adminOnly || isDevFeaturesEnabled
-)
+const navigationItems = allNavigationItems.filter(item => {
+  // Always hide Orders and Settings from main site navigation
+  if (item.name === 'Orders' || item.name === 'Settings') {
+    return false
+  }
+  // For other adminOnly items, check feature flag
+  return !item.adminOnly || isDevFeaturesEnabled
+})
 
 export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
   const pathname = usePathname()
