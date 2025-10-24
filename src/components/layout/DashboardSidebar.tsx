@@ -25,7 +25,7 @@ const allNavigationItems = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Content', href: '/dashboard/content', icon: FileText },
   { name: 'Design', href: '/dashboard/design', icon: Palette },
-  { name: 'Products', href: '/dashboard/products', icon: Package, adminOnly: true },
+  { name: 'Products', href: '/dashboard/products', icon: Package },
   { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart, adminOnly: true },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings, adminOnly: true },
 ]
