@@ -38,14 +38,22 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   // Build navigation items from theme settings
   const configuredNavItems = theme?.navigation?.items || []
 
+  // Products is always required and visible (like Search and Cart)
+  const requiredNavItems = [
+    { label: 'Products', href: '/products' }
+  ]
+
   // Use all configured navigation items from theme settings
-  const navItems = configuredNavItems.length > 0
+  const optionalNavItems = configuredNavItems.length > 0
     ? configuredNavItems
     : [
         { label: 'Home', href: '/home' },
         { label: 'About', href: '/about' },
         { label: 'Contact', href: '/contact' }
       ]
+
+  // Combine required items (Products) with optional items
+  const navItems = [...requiredNavItems, ...optionalNavItems]
   
   // Get branding configuration
   const brandingType = theme?.logo?.displayType || 'text'
