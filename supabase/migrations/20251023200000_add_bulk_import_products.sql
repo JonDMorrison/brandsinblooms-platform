@@ -1,9 +1,6 @@
 -- Migration: Add bulk import products function
 -- Description: Atomic function for importing products from CSV data
 
--- Drop function if exists
-DROP FUNCTION IF EXISTS bulk_import_products_atomic(uuid, jsonb);
-
 -- Create the bulk import function
 CREATE OR REPLACE FUNCTION bulk_import_products_atomic(
   p_site_id uuid,
@@ -155,9 +152,3 @@ BEGIN
   RETURN v_result;
 END;
 $$;
-
--- Grant execute permission
-GRANT EXECUTE ON FUNCTION bulk_import_products_atomic(uuid, jsonb) TO authenticated;
-
--- Add comment
-COMMENT ON FUNCTION bulk_import_products_atomic IS 'Atomically import multiple products from CSV data. Updates existing products or creates new ones.';
