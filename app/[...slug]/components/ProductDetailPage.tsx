@@ -13,7 +13,7 @@ import { Skeleton } from '@/src/components/ui/skeleton'
 import { Card, CardContent } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
 import { Separator } from '@/src/components/ui/separator'
-import { ShoppingCart, Star, Package } from 'lucide-react'
+import { ShoppingCart, Package } from 'lucide-react'
 import { formatPrice } from '@/src/lib/utils/format'
 import { toast } from 'sonner'
 import Image from 'next/image'
@@ -121,27 +121,6 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
                     <p className="text-sm text-gray-500">SKU: {product.sku}</p>
                   )}
                 </div>
-
-                {/* Rating & Reviews */}
-                {product.rating && product.rating > 0 && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < Math.floor(product.rating || 0)
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      {product.rating.toFixed(1)} ({product.review_count} reviews)
-                    </span>
-                  </div>
-                )}
 
                 {/* Price */}
                 <div className="space-y-1">
