@@ -22,39 +22,31 @@ import {
   AlertCircle,
   Info,
 } from 'lucide-react';
-import { useExportProducts } from '@/hooks/useProductBulkOperations';
+import { useExportProducts, useImportProducts } from '@/hooks/useProductBulkOperations';
+import { ImportResult, ImportError } from '@/lib/queries/domains/products-bulk';
 import { toast } from 'sonner';
 
 interface ImportExportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedProductIds?: string[];
+  defaultTab?: 'export' | 'import';
+  onImportComplete?: () => void;
 }
 
-interface ImportError {
-  row: number;
-  field: string;
-  message: string;
-}
-
-interface ImportResult {
-  successful: number;
-  failed: number;
-  errors: ImportError[];
-}
-
-export function ImportExportDialog({ 
-  open, 
-  onOpenChange, 
-  selectedProductIds = [] 
+export function ImportExportDialog({
+  open,
+  onOpenChange,
+  selectedProductIds = [],
+  defaultTab = 'export',
+  onImportComplete
 }: ImportExportDialogProps) {
   const exportProducts = useExportProducts();
+  const importProducts = useImportProducts();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [importFile, setImportFile] = useState<File | null>(null);
-  const [importProgress, setImportProgress] = useState(0);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
 
   // Export handlers
   const handleExportAll = () => {
@@ -117,111 +109,36 @@ export function ImportExportDialog({
     }
   };
 
-  const parseCSV = (csvText: string): Record<string, string>[] => {
-    const lines = csvText.split('\n').filter(line => line.trim());
-    if (lines.length < 2) return [];
-
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-    const rows = lines.slice(1);
-
-    return rows.map(row => {
-      const values = row.split(',').map(v => v.trim().replace(/"/g, ''));
-      const item: Record<string, string> = {};
-      
-      headers.forEach((header, index) => {
-        item[header] = values[index] || '';
-      });
-      
-      return item;
-    });
-  };
-
-  const validateRow = (row: Record<string, string>, index: number): ImportError[] => {
-    const errors: ImportError[] = [];
-    
-    if (!row.Name?.trim()) {
-      errors.push({ row: index + 1, field: 'Name', message: 'Name is required' });
-    }
-    
-    if (row.Price && isNaN(parseFloat(row.Price))) {
-      errors.push({ row: index + 1, field: 'Price', message: 'Invalid price format' });
-    }
-    
-    if (row['Compare At Price'] && isNaN(parseFloat(row['Compare At Price']))) {
-      errors.push({ row: index + 1, field: 'Compare At Price', message: 'Invalid price format' });
-    }
-    
-    if (row['Inventory Count'] && isNaN(parseInt(row['Inventory Count']))) {
-      errors.push({ row: index + 1, field: 'Inventory Count', message: 'Invalid inventory count' });
-    }
-
-    return errors;
-  };
-
-  const simulateImport = async (data: Record<string, string>[]): Promise<ImportResult> => {
-    const errors: ImportError[] = [];
-    let successful = 0;
-    let failed = 0;
-
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      const rowErrors = validateRow(row, i);
-      
-      if (rowErrors.length > 0) {
-        errors.push(...rowErrors);
-        failed++;
-      } else {
-        // Simulate processing time
-        await new Promise(resolve => setTimeout(resolve, 50));
-        successful++;
-      }
-      
-      setImportProgress(((i + 1) / data.length) * 100);
-    }
-
-    return { successful, failed, errors };
-  };
-
   const handleImport = async () => {
     if (!importFile) return;
 
-    setIsImporting(true);
-    setImportProgress(0);
     setImportResult(null);
 
     try {
       const fileContent = await importFile.text();
-      const parsedData = parseCSV(fileContent);
-      
-      if (parsedData.length === 0) {
-        toast.error('No valid data found in CSV file');
+
+      if (!fileContent || !fileContent.trim()) {
+        toast.error('CSV file is empty');
         return;
       }
 
-      const result = await simulateImport(parsedData);
+      // Call the real import function
+      const result = await importProducts.mutateAsync(fileContent);
       setImportResult(result);
-      
-      if (result.successful > 0) {
-        toast.success(`Successfully imported ${result.successful} products`);
+
+      // Call the onImportComplete callback if provided
+      if (result.successful > 0 && onImportComplete) {
+        onImportComplete();
       }
-      
-      if (result.failed > 0) {
-        toast.error(`Failed to import ${result.failed} products`);
-      }
-      
     } catch (error) {
-      toast.error('Failed to process CSV file');
       console.error('Import error:', error);
-    } finally {
-      setIsImporting(false);
+      // Error handling is done in the hook
     }
   };
 
   const handleClose = () => {
     setImportFile(null);
-    setImportProgress(0);
     setImportResult(null);
-    setIsImporting(false);
     onOpenChange(false);
   };
 
@@ -235,7 +152,7 @@ export function ImportExportDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="export" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="export">Export</TabsTrigger>
             <TabsTrigger value="import">Import</TabsTrigger>
@@ -333,7 +250,7 @@ export function ImportExportDialog({
                     onClick={() => fileInputRef.current?.click()}
                     variant="outline"
                     className="w-full justify-start"
-                    disabled={isImporting}
+                    disabled={importProducts.isPending}
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     {importFile ? `Selected: ${importFile.name}` : 'Select CSV File'}
@@ -342,21 +259,20 @@ export function ImportExportDialog({
                   {importFile && (
                     <Button
                       onClick={handleImport}
-                      disabled={isImporting}
+                      disabled={importProducts.isPending}
                       className="w-full"
                     >
-                      {isImporting ? 'Importing...' : 'Import Products'}
+                      {importProducts.isPending ? 'Importing...' : 'Import Products'}
                     </Button>
                   )}
                 </div>
 
-                {isImporting && (
+                {importProducts.isPending && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Importing products...</span>
-                      <span>{Math.round(importProgress)}%</span>
                     </div>
-                    <Progress value={importProgress} />
+                    <Progress value={undefined} className="animate-pulse" />
                   </div>
                 )}
 
@@ -379,10 +295,10 @@ export function ImportExportDialog({
                           <AlertCircle className="h-4 w-4" />
                           Import Errors
                         </h4>
-                        <div className="max-h-32 overflow-y-auto">
+                        <div className="max-h-32 overflow-y-auto space-y-1">
                           {importResult.errors.slice(0, 10).map((error, index) => (
                             <div key={index} className="text-sm text-red-600">
-                              Row {error.row}, {error.field}: {error.message}
+                              Row {error.row} ({error.product_name}): {error.message}
                             </div>
                           ))}
                           {importResult.errors.length > 10 && (

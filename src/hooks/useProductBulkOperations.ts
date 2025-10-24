@@ -13,6 +13,7 @@ import {
   bulkUpdatePrices,
   exportProducts,
   generateProductCSV,
+  importProducts,
   bulkActivateProducts,
   bulkDeactivateProducts,
   bulkSetFeatured,
@@ -20,7 +21,8 @@ import {
   bulkProcessor,
   BulkUpdateData,
   BulkPriceUpdate,
-  ProductExportData
+  ProductExportData,
+  ImportResult
 } from '@/lib/queries/domains/products-bulk';
 import { Product } from '@/lib/database/aliases';
 import { filterUndefined } from '@/lib/queries/base';
@@ -382,25 +384,25 @@ export function useExportProducts() {
     async (variables: { productIds?: string[]; filename?: string }, signal) => {
       const { productIds, filename = 'products' } = variables;
       if (!siteId) throw new Error('Site ID is required');
-      
+
       const products = await exportProducts(supabase, siteId, productIds);
       const csvContent = generateProductCSV(products);
-      
+
       // Create and download file
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
-      
+
       link.setAttribute('href', url);
       link.setAttribute('download', `${filename}-${new Date().toISOString().split('T')[0]}.csv`);
       link.style.visibility = 'hidden';
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       URL.revokeObjectURL(url);
-      
+
       return { products, csvContent };
     },
     {
@@ -413,6 +415,57 @@ export function useExportProducts() {
       onError: (error) => {
         const { message } = handleError(error);
         toast.error('Failed to export products', {
+          description: message
+        });
+      },
+      showSuccessToast: false, // We handle our own success messages
+    }
+  );
+}
+
+/**
+ * Hook for importing products from CSV
+ */
+export function useImportProducts() {
+  const siteId = useSiteId();
+
+  return useSupabaseMutation(
+    async (csvText: string, signal) => {
+      if (!siteId) throw new Error('Site ID is required');
+      return await importProducts(supabase, siteId, csvText);
+    },
+    {
+      onSuccess: (result: ImportResult) => {
+        if (result.successful > 0) {
+          toast.success(
+            `Successfully imported ${result.successful} product${result.successful === 1 ? '' : 's'}`,
+            {
+              description: result.failed > 0
+                ? `${result.failed} product${result.failed === 1 ? '' : 's'} failed to import`
+                : undefined
+            }
+          );
+        }
+
+        if (result.failed > 0 && result.successful === 0) {
+          toast.error(`Failed to import ${result.failed} product${result.failed === 1 ? '' : 's'}`, {
+            description: 'Check the error details for more information'
+          });
+        }
+
+        // Clear related localStorage caches on success
+        const patterns = [`products_${siteId}_`, `product_categories_${siteId}`];
+        patterns.forEach(pattern => {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(pattern)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+      },
+      onError: (error) => {
+        const { message } = handleError(error);
+        toast.error('Failed to import products', {
           description: message
         });
       },
@@ -583,24 +636,26 @@ export function useProductBulkOperations(siteId: string | null) {
   const bulkDuplicate = useBulkDuplicateProducts();
   const bulkUpdatePricesHook = useBulkUpdatePrices();
   const exportProductsHook = useExportProducts();
+  const importProductsHook = useImportProducts();
   const bulkActivate = useBulkActivateProducts();
   const bulkDeactivate = useBulkDeactivateProducts();
   const bulkSetFeaturedHook = useBulkSetFeatured();
   const bulkUpdateCategoryHook = useBulkUpdateCategory();
 
   // Aggregate operation progress
-  const operationProgress = 
+  const operationProgress =
     bulkUpdate.loading ? (bulkUpdate as any).operationProgress :
     bulkDelete.loading ? (bulkDelete as any).operationProgress :
     bulkDuplicate.loading ? (bulkDuplicate as any).operationProgress :
     bulkUpdatePricesHook.loading ? (bulkUpdatePricesHook as any).operationProgress :
     null;
 
-  const isLoading = bulkUpdate.loading || 
-                    bulkDelete.loading || 
-                    bulkDuplicate.loading || 
-                    bulkUpdatePricesHook.loading || 
+  const isLoading = bulkUpdate.loading ||
+                    bulkDelete.loading ||
+                    bulkDuplicate.loading ||
+                    bulkUpdatePricesHook.loading ||
                     exportProductsHook.loading ||
+                    importProductsHook.loading ||
                     bulkActivate.loading ||
                     bulkDeactivate.loading ||
                     bulkSetFeaturedHook.loading ||
@@ -613,6 +668,7 @@ export function useProductBulkOperations(siteId: string | null) {
     bulkDuplicate,
     bulkUpdatePrices: bulkUpdatePricesHook,
     exportProducts: exportProductsHook,
+    importProducts: importProductsHook,
     bulkActivate,
     bulkDeactivate,
     bulkSetFeatured: bulkSetFeaturedHook,
@@ -630,6 +686,7 @@ export function useProductBulkOperations(siteId: string | null) {
     duplicateProducts: bulkDuplicate.mutate,
     updatePrices: bulkUpdatePricesHook.mutate,
     export: exportProductsHook.mutate,
+    import: importProductsHook.mutate,
     activateProducts: bulkActivate.mutate,
     deactivateProducts: bulkDeactivate.mutate,
     setFeatured: bulkSetFeaturedHook.mutate,

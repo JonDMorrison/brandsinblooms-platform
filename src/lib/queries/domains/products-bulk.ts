@@ -52,6 +52,34 @@ export interface ProductExportData {
   updated_at: string;
 }
 
+export interface ProductImportData {
+  id?: string;
+  name: string;
+  description?: string;
+  sku?: string;
+  category?: string;
+  subcategory?: string;
+  price?: number;
+  compare_at_price?: number;
+  inventory_count?: number;
+  in_stock?: boolean;
+  is_active?: boolean;
+  is_featured?: boolean;
+}
+
+export interface ImportError {
+  row: number;
+  product_name: string;
+  field?: string;
+  message: string;
+}
+
+export interface ImportResult {
+  successful: number;
+  failed: number;
+  errors: ImportError[];
+}
+
 /**
  * Bulk update products using atomic RPC function
  */
@@ -576,3 +604,161 @@ export class BulkOperationProcessor {
 
 // Export processor instance
 export const bulkProcessor = new BulkOperationProcessor();
+
+/**
+ * Parse CSV text into product import data
+ */
+export function parseProductCSV(csvText: string): ProductImportData[] {
+  const lines = csvText.split('\n').filter(line => line.trim());
+
+  if (lines.length < 2) {
+    throw new Error('CSV file must contain headers and at least one data row');
+  }
+
+  // Parse headers
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
+
+  // Map headers to expected field names
+  const headerMap: Record<string, string> = {
+    'id': 'id',
+    'name': 'name',
+    'description': 'description',
+    'sku': 'sku',
+    'category': 'category',
+    'subcategory': 'subcategory',
+    'price': 'price',
+    'compare at price': 'compare_at_price',
+    'compareatprice': 'compare_at_price',
+    'inventory count': 'inventory_count',
+    'inventorycount': 'inventory_count',
+    'in stock': 'in_stock',
+    'instock': 'in_stock',
+    'active': 'is_active',
+    'is active': 'is_active',
+    'isactive': 'is_active',
+    'featured': 'is_featured',
+    'is featured': 'is_featured',
+    'isfeatured': 'is_featured',
+  };
+
+  // Parse data rows
+  const products: ProductImportData[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line.trim()) continue;
+
+    // Simple CSV parsing (handles quoted fields)
+    const values: string[] = [];
+    let currentValue = '';
+    let inQuotes = false;
+
+    for (let j = 0; j < line.length; j++) {
+      const char = line[j];
+
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        values.push(currentValue.trim());
+        currentValue = '';
+      } else {
+        currentValue += char;
+      }
+    }
+    values.push(currentValue.trim()); // Add last value
+
+    // Build product object
+    const product: Record<string, unknown> = {};
+
+    headers.forEach((header, index) => {
+      const fieldName = headerMap[header] || header;
+      const value = values[index]?.replace(/^"|"$/g, '').trim();
+
+      if (!value) return;
+
+      // Type conversions
+      if (fieldName === 'price' || fieldName === 'compare_at_price') {
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue)) {
+          product[fieldName] = numValue;
+        }
+      } else if (fieldName === 'inventory_count') {
+        const numValue = parseInt(value, 10);
+        if (!isNaN(numValue)) {
+          product[fieldName] = numValue;
+        }
+      } else if (fieldName === 'in_stock' || fieldName === 'is_active' || fieldName === 'is_featured') {
+        const lowerValue = value.toLowerCase();
+        product[fieldName] = lowerValue === 'true' || lowerValue === '1' || lowerValue === 'yes';
+      } else {
+        product[fieldName] = value;
+      }
+    });
+
+    // Validate required fields
+    if (!product.name || typeof product.name !== 'string') {
+      throw new Error(`Row ${i + 1}: Product name is required`);
+    }
+
+    products.push(product as ProductImportData);
+  }
+
+  return products;
+}
+
+/**
+ * Import products from CSV data
+ */
+export async function importProducts(
+  supabase: SupabaseClient<Database>,
+  siteId: string,
+  csvText: string
+): Promise<ImportResult> {
+  if (!csvText || !csvText.trim()) {
+    throw new Error('CSV content is empty');
+  }
+
+  try {
+    // Parse CSV
+    const products = parseProductCSV(csvText);
+
+    if (products.length === 0) {
+      throw new Error('No valid products found in CSV file');
+    }
+
+    // Call RPC function
+    const { data, error } = await withRetry(
+      () => supabase.rpc('bulk_import_products_atomic', {
+        p_site_id: siteId,
+        p_products: products as unknown as Json
+      }),
+      3,
+      1000
+    );
+
+    if (error) {
+      throw SupabaseError.fromPostgrestError(error);
+    }
+
+    if (!data || !data.success) {
+      throw new Error(data?.error || 'Import failed');
+    }
+
+    // Transform errors to include row numbers
+    const errors: ImportError[] = (data.errors || []).map((err: any, index: number) => ({
+      row: index + 2, // +2 because row 1 is headers
+      product_name: err.product_name || 'Unknown',
+      message: err.error || 'Unknown error'
+    }));
+
+    return {
+      successful: data.successful || 0,
+      failed: data.failed || 0,
+      errors
+    };
+  } catch (error) {
+    const { message } = handleError(error);
+    console.error('Import failed:', error);
+    throw new Error(`Failed to import products: ${message}`);
+  }
+}
