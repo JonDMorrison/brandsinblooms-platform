@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          operationName?: string
           extensions?: Json
-          variables?: Json
+          operationName?: string
           query?: string
+          variables?: Json
         }
         Returns: Json
       }
@@ -2738,7 +2738,7 @@ export type Database = {
     }
     Functions: {
       acquire_migration_lock: {
-        Args: { p_instance_id: string; p_migration_batch: string }
+        Args: { p_migration_batch: string; p_instance_id: string }
         Returns: boolean
       }
       admin_bulk_update_content: {
@@ -2751,8 +2751,8 @@ export type Database = {
       }
       admin_bulk_update_products: {
         Args: {
-          admin_notes?: string
           product_ids: string[]
+          admin_notes?: string
           bulk_updates: Json
         }
         Returns: Json
@@ -2762,57 +2762,57 @@ export type Database = {
         Returns: boolean
       }
       admin_get_content_analytics: {
-        Args: { site_uuid: string; end_date?: string; start_date?: string }
+        Args: { end_date?: string; start_date?: string; site_uuid: string }
         Returns: Json
       }
       admin_get_product_analytics: {
-        Args: { site_uuid: string; start_date?: string; end_date?: string }
+        Args: { end_date?: string; site_uuid: string; start_date?: string }
         Returns: Json
       }
       admin_get_site_content: {
         Args: {
+          limit_count?: number
+          offset_count?: number
           site_uuid: string
           search_query?: string
           content_type_filter?: string
           status_filter?: string
-          limit_count?: number
-          offset_count?: number
         }
         Returns: Json
       }
       admin_get_site_products: {
         Args: {
-          site_uuid: string
-          search_query?: string
-          category_filter?: string
           status_filter?: string
-          limit_count?: number
+          category_filter?: string
+          search_query?: string
+          site_uuid: string
           offset_count?: number
+          limit_count?: number
         }
         Returns: Json
       }
       admin_update_content: {
         Args: {
           content_uuid: string
-          content_updates: Json
           admin_notes?: string
+          content_updates: Json
         }
         Returns: Json
       }
       admin_update_product: {
         Args: {
           product_uuid: string
-          admin_notes?: string
           product_updates: Json
+          admin_notes?: string
         }
         Returns: Json
       }
       admin_update_site_status: {
         Args: {
+          new_is_published?: boolean
+          new_is_active?: boolean
           notes?: string
           site_uuid: string
-          new_is_active?: boolean
-          new_is_published?: boolean
         }
         Returns: boolean
       }
@@ -2821,7 +2821,7 @@ export type Database = {
         Returns: string
       }
       can_upload_product_image: {
-        Args: { site_id_param: string; user_id_param: string }
+        Args: { user_id_param: string; site_id_param: string }
         Returns: boolean
       }
       check_site_health: {
@@ -2848,27 +2848,27 @@ export type Database = {
         Returns: undefined
       }
       create_initial_admin: {
-        Args: { admin_full_name?: string; target_user_id: string }
+        Args: { target_user_id: string; admin_full_name?: string }
         Returns: boolean
       }
       create_plant_page_content: {
-        Args: { page_type: string; layout_type?: string }
+        Args: { layout_type?: string; page_type: string }
         Returns: Json
       }
       create_site_with_template: {
         Args: {
-          owner_email: string
-          business_info?: Json
-          template_slug: string
           site_name: string
+          business_info?: Json
+          owner_email: string
           site_subdomain: string
+          template_slug: string
         }
         Returns: Json
       }
       end_impersonation_session: {
         Args: {
-          session_id_param?: string
           end_reason_param?: string
+          session_id_param?: string
           session_token_param?: string
         }
         Returns: Json
@@ -2887,31 +2887,31 @@ export type Database = {
       }
       generate_s3_key: {
         Args: {
-          filename: string
+          site_id: string
           resource_type: string
           resource_id: string
-          site_id: string
+          filename: string
         }
         Returns: string
       }
       generate_unique_slug: {
-        Args: { p_name: string; p_exclude_id?: string; p_site_id: string }
+        Args: { p_site_id: string; p_exclude_id?: string; p_name: string }
         Returns: string
       }
       get_active_impersonation_sessions: {
         Args: {
+          limit_count?: number
           site_uuid?: string
           admin_user_uuid?: string
-          limit_count?: number
         }
         Returns: Json
       }
       get_admin_action_logs: {
         Args: {
+          target_type_filter?: string
           site_uuid?: string
           admin_user_uuid?: string
           action_type_filter?: string
-          target_type_filter?: string
           start_date?: string
           end_date?: string
           limit_count?: number
@@ -2921,9 +2921,9 @@ export type Database = {
       }
       get_all_sites_with_stats: {
         Args: {
+          offset_count?: number
           limit_count?: number
           status_filter?: string
-          offset_count?: number
           search_query?: string
         }
         Returns: Json
@@ -2931,23 +2931,22 @@ export type Database = {
       get_category_ancestors: {
         Args: { p_category_id: string }
         Returns: {
+          slug: string
+          name: string
+          level: number
           id: string
           parent_id: string
-          name: string
-          slug: string
-          level: number
         }[]
       }
       get_category_tree: {
         Args: { p_site_id: string }
         Returns: {
-          children_count: number
-          name: string
+          image_url: string
           id: string
           parent_id: string
+          name: string
           slug: string
           description: string
-          image_url: string
           icon: string
           color: string
           path: string
@@ -2955,6 +2954,7 @@ export type Database = {
           sort_order: number
           is_active: boolean
           product_count: number
+          children_count: number
         }[]
       }
       get_image_url: {
@@ -2968,37 +2968,37 @@ export type Database = {
       get_job_statistics: {
         Args: { p_user_id?: string }
         Returns: {
-          pending_jobs: number
           processing_jobs: number
-          avg_completion_time_seconds: number
+          pending_jobs: number
           total_jobs: number
-          completed_jobs: number
-          failed_jobs: number
           total_cost_cents: number
+          failed_jobs: number
+          completed_jobs: number
+          avg_completion_time_seconds: number
         }[]
       }
       get_migration_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
           pending_records: number
-          table_name: string
           total_records: number
           migrated_records: number
+          table_name: string
           failed_records: number
           migration_percentage: number
         }[]
       }
       get_order_summary_stats: {
-        Args: { p_site_id: string; p_date_range?: unknown }
+        Args: { p_date_range?: unknown; p_site_id: string }
         Returns: {
-          processing_orders: number
           shipped_orders: number
           delivered_orders: number
           total_revenue: number
-          total_orders: number
-          average_order_value: number
           conversion_rate: number
+          average_order_value: number
+          total_orders: number
           pending_orders: number
+          processing_orders: number
         }[]
       }
       get_platform_analytics_summary: {
@@ -3009,19 +3009,19 @@ export type Database = {
         Args: { p_site_id: string }
         Returns: {
           out_of_stock: number
-          total_reviews: number
-          average_rating: number
           low_stock: number
+          average_rating: number
+          total_reviews: number
           total_products: number
           active_products: number
         }[]
       }
       get_site_analytics: {
-        Args: { period_type?: string; site_uuid: string; days_back?: number }
+        Args: { site_uuid: string; days_back?: number; period_type?: string }
         Returns: Json
       }
       get_site_health_summary: {
-        Args: { days_back?: number; site_uuid: string }
+        Args: { site_uuid: string; days_back?: number }
         Returns: Json
       }
       get_site_summary_stats: {
@@ -3029,7 +3029,7 @@ export type Database = {
         Returns: Json
       }
       get_site_templates: {
-        Args: { category_filter?: string; active_only?: boolean }
+        Args: { active_only?: boolean; category_filter?: string }
         Returns: Json
       }
       get_unread_notification_count: {
@@ -3046,8 +3046,6 @@ export type Database = {
       }
       log_admin_action: {
         Args: {
-          details?: string
-          admin_id: string
           site_uuid: string
           action_type_val: string
           target_type_val: string
@@ -3055,7 +3053,9 @@ export type Database = {
           old_vals?: Json
           new_vals?: Json
           ip_addr?: unknown
+          details?: string
           user_agent_val?: string
+          admin_id: string
         }
         Returns: string
       }
@@ -3090,7 +3090,7 @@ export type Database = {
         Returns: boolean
       }
       rollback_image_migration: {
-        Args: { p_table_name: string; p_record_id: string }
+        Args: { p_record_id: string; p_table_name: string }
         Returns: boolean
       }
       run_platform_health_checks: {
@@ -3108,14 +3108,14 @@ export type Database = {
           result_limit?: number
         }
         Returns: {
-          content_type: string
+          excerpt: string
+          updated_at: string
+          relevance: number
+          slug: string
+          is_published: boolean
           id: string
           title: string
-          slug: string
-          excerpt: string
-          is_published: boolean
-          relevance: number
-          updated_at: string
+          content_type: string
         }[]
       }
       search_orders: {
@@ -3128,25 +3128,25 @@ export type Database = {
           p_offset?: number
         }
         Returns: {
-          id: string
-          created_at: string
           total_amount: number
-          payment_status: string
-          status: string
-          customer_email: string
-          customer_name: string
+          id: string
           order_number: string
+          customer_name: string
+          customer_email: string
+          status: string
+          payment_status: string
+          created_at: string
         }[]
       }
       start_admin_impersonation: {
         Args: {
+          site_uuid: string
           impersonated_user_uuid?: string
           purpose_text?: string
-          duration_hours?: number
-          allowed_actions_list?: string[]
-          ip_addr?: unknown
           user_agent_val?: string
-          site_uuid: string
+          duration_hours?: number
+          ip_addr?: unknown
+          allowed_actions_list?: string[]
         }
         Returns: Json
       }
