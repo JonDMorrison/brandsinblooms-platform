@@ -323,3 +323,11 @@ export function useCart() {
 export function useCartContext() {
   return useCart()
 }
+
+/**
+ * Optional cart hook that returns undefined if CartProvider is not available.
+ * Use this in components that may be rendered outside of CartProvider (e.g., editor previews).
+ */
+export function useCartOptional() {
+  return useContext(CartContext)
+}
