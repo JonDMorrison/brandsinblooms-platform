@@ -35,6 +35,12 @@ import { z } from 'zod';
 const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/;
 
 /**
+ * URL validation regex
+ * Matches http:// or https:// URLs
+ */
+const URL_REGEX = /^https?:\/\/.+/i;
+
+/**
  * Hex color schema with validation
  */
 export const HexColorSchema = z
@@ -67,9 +73,20 @@ export const HeroSectionSchema = z
       .describe('Call-to-action button text'),
     background_image: z
       .string()
-      .max(500, 'Background image description too long')
+      .max(1000, 'Background image URL too long')
+      .refine(
+        (val) => {
+          // Prefer URLs but allow descriptions as fallback
+          // Warn if it looks like a description rather than URL
+          if (val && !URL_REGEX.test(val)) {
+            console.warn(`[Schema Warning] background_image should be a URL, got: ${val.substring(0, 100)}`);
+          }
+          return true;  // Still allow it through for backwards compatibility
+        },
+        { message: 'background_image should ideally be a complete URL starting with http:// or https://' }
+      )
       .optional()
-      .describe('Description or URL of background image')
+      .describe('URL of hero background image (MUST be complete http/https URL, not a description)')
   })
   .strict()
   .describe('Hero section at top of page');

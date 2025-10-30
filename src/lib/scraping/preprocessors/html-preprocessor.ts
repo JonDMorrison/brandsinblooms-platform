@@ -124,14 +124,16 @@ function extractKeyStructure($: CheerioAPI): string {
  * Extracts clean text content while preserving:
  * - Semantic structure hints
  * - Link text and URLs
+ * - Hero image URLs (CRITICAL for background extraction)
  * - Image alt text
  * - Heading hierarchy
  * - List structures
  *
  * @param html - Raw HTML content
+ * @param baseUrl - Base URL for resolving relative image paths (REQUIRED for hero images)
  * @returns Clean text content (max 15KB)
  */
-export function preprocessHtmlForText(html: string): string {
+export function preprocessHtmlForText(html: string, baseUrl?: string): string {
   const $ = load(html);
 
   // Remove elements that don't contribute to content
@@ -166,7 +168,7 @@ export function preprocessHtmlForText(html: string): string {
   for (const selector of contentSelectors) {
     const element = $(selector).first();
     if (element.length && element.text().length > 100) {
-      mainContent = extractStructuredText(element, $);
+      mainContent = extractStructuredText(element, $, baseUrl);
       break;
     }
   }
@@ -195,10 +197,136 @@ export function preprocessHtmlForText(html: string): string {
 }
 
 /**
+ * Extract hero images from HTML with full URLs
+ * Returns array of hero image candidates with metadata
+ */
+interface HeroImageCandidate {
+  url: string;
+  context: string;  // 'background' | 'img' | 'picture'
+  selector: string;  // CSS selector that found it
+  alt?: string;
+  width?: number;
+  height?: number;
+}
+
+function extractHeroImages(element: ReturnType<CheerioAPI>, $: CheerioAPI, baseUrl?: string): HeroImageCandidate[] {
+  const images: HeroImageCandidate[] = [];
+
+  const heroSelectors = [
+    '.hero', '[class*="hero"]', '[id*="hero"]',
+    '.banner', '[class*="banner"]',
+    '.jumbotron',
+    'section:first-of-type',
+    '[class*="landing"]',
+    '[class*="intro"]',
+    '[class*="header-image"]',
+    '[class*="background"]'
+  ];
+
+  heroSelectors.forEach(selector => {
+    element.find(selector).first().each((_, hero) => {
+      const $hero = $(hero);
+
+      // Check for background images in inline style
+      const style = $hero.attr('style');
+      if (style) {
+        const bgMatch = style.match(/background(?:-image)?:\s*url\(['"]?([^'")]+)['"]?\)/i);
+        if (bgMatch && bgMatch[1]) {
+          let url = bgMatch[1];
+          // Resolve relative URLs
+          if (baseUrl && !url.startsWith('http')) {
+            url = resolveUrl(url, baseUrl);
+          }
+          images.push({
+            url,
+            context: 'background',
+            selector,
+            alt: 'Hero background image',
+          });
+        }
+      }
+
+      // Check for <img> tags in hero section
+      $hero.find('img').each((_, img) => {
+        const $img = $(img);
+        let src = $img.attr('src') || $img.attr('data-src');  // Handle lazy loading
+        if (src) {
+          // Resolve relative URLs
+          if (baseUrl && !src.startsWith('http') && !src.startsWith('data:')) {
+            src = resolveUrl(src, baseUrl);
+          }
+          const alt = $img.attr('alt');
+          const width = $img.attr('width') ? parseInt($img.attr('width')!) : undefined;
+          const height = $img.attr('height') ? parseInt($img.attr('height')!) : undefined;
+
+          // Skip tiny images (likely icons/logos)
+          if (width && height && (width < 200 || height < 200)) {
+            return;
+          }
+
+          images.push({
+            url: src,
+            context: 'img',
+            selector: `${selector} img`,
+            alt,
+            width,
+            height,
+          });
+        }
+      });
+
+      // Check for <picture> elements
+      $hero.find('picture source, picture img').each((_, source) => {
+        const $source = $(source);
+        let srcset = $source.attr('srcset') || $source.attr('src');
+        if (srcset) {
+          // Parse srcset to get largest image
+          const urls = srcset.split(',').map(s => s.trim().split(/\s+/)[0]);
+          let url = urls[urls.length - 1];  // Last is typically largest
+          if (baseUrl && !url.startsWith('http') && !url.startsWith('data:')) {
+            url = resolveUrl(url, baseUrl);
+          }
+          images.push({
+            url,
+            context: 'picture',
+            selector: `${selector} picture`,
+            alt: $source.attr('alt'),
+          });
+        }
+      });
+    });
+  });
+
+  return images;
+}
+
+/**
+ * Resolve relative URLs to absolute
+ */
+function resolveUrl(url: string, baseUrl: string): string {
+  try {
+    if (url.startsWith('//')) {
+      return `https:${url}`;
+    }
+    if (url.startsWith('/')) {
+      const base = new URL(baseUrl);
+      return `${base.origin}${url}`;
+    }
+    if (url.startsWith('http')) {
+      return url;
+    }
+    // Relative path
+    return new URL(url, baseUrl).href;
+  } catch {
+    return url;
+  }
+}
+
+/**
  * Extract text with structural context
  * Prioritizes prominent content (hero sections, large headings, top-of-page content)
  */
-function extractStructuredText(element: ReturnType<CheerioAPI>, $: CheerioAPI): string {
+function extractStructuredText(element: ReturnType<CheerioAPI>, $: CheerioAPI, baseUrl?: string): string {
   const parts: string[] = [];
 
   // First, extract hero/prominent sections with special markers
@@ -210,6 +338,23 @@ function extractStructuredText(element: ReturnType<CheerioAPI>, $: CheerioAPI): 
     '[class*="landing"]',
     '[class*="intro"]'
   ];
+
+  // Extract hero images FIRST with full URLs
+  const heroImages = extractHeroImages(element, $, baseUrl);
+  if (heroImages.length > 0) {
+    parts.push('[HERO IMAGES DETECTED]');
+    heroImages.forEach((img, idx) => {
+      parts.push(`HERO_IMAGE_${idx + 1}: ${img.url}`);
+      if (img.alt) {
+        parts.push(`  Alt: ${img.alt}`);
+      }
+      if (img.width && img.height) {
+        parts.push(`  Dimensions: ${img.width}x${img.height}`);
+      }
+      parts.push(`  Context: ${img.context} (found in ${img.selector})`);
+    });
+    parts.push('');
+  }
 
   heroSelectors.forEach(selector => {
     element.find(selector).first().each((_, hero) => {

@@ -81,7 +81,7 @@ export async function extractBusinessInfoWithLLM(
   try {
     // Preprocess HTML for both phases
     const visualHtml = preprocessHtmlForVision(html);
-    const textHtml = preprocessHtmlForText(html);
+    const textHtml = preprocessHtmlForText(html, baseUrl);  // Pass baseUrl for hero image URL resolution
 
     if (EXTRACTION_FLAGS.LOG_METRICS) {
       console.log('[LLM Extraction] Preprocessed HTML:');
