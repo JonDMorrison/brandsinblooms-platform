@@ -6,24 +6,21 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/src/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/src/components/ui/sheet'
 import { Separator } from '@/src/components/ui/separator'
-import { 
-  Home, 
-  FileText, 
-  Package, 
-  ShoppingCart, 
-  Palette, 
-  Settings,
+import {
+  Home,
+  FileText,
+  Package,
+  Palette,
   Menu,
   Flower
 } from 'lucide-react'
 
+// Navigation items matching DashboardSidebar (Orders and Settings are intentionally excluded)
 const navigationItems = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Content', href: '/dashboard/content', icon: FileText },
   { name: 'Design', href: '/dashboard/design', icon: Palette },
   { name: 'Products', href: '/dashboard/products', icon: Package },
-  { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
 export function MobileNav() {
