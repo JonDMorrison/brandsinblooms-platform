@@ -583,7 +583,7 @@ export async function createSiteFromGenerated(
         position: 'left',
         size: 'medium',
         pixelSize: logoUrl ? 80 : undefined,
-        displayType: logoUrl ? 'both' : undefined,
+        displayType: logoUrl ? 'logo' : 'text',
         description: data.branding?.logo_description || null
       },
       navigation: {

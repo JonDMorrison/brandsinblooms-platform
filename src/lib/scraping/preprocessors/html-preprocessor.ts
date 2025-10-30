@@ -196,21 +196,43 @@ export function preprocessHtmlForText(html: string): string {
 
 /**
  * Extract text with structural context
+ * Prioritizes prominent content (hero sections, large headings, top-of-page content)
  */
 function extractStructuredText(element: ReturnType<CheerioAPI>, $: CheerioAPI): string {
   const parts: string[] = [];
+
+  // First, extract hero/prominent sections with special markers
+  const heroSelectors = [
+    '.hero', '[class*="hero"]', '[id*="hero"]',
+    '.banner', '[class*="banner"]',
+    '.jumbotron',
+    'section:first-of-type',
+    '[class*="landing"]',
+    '[class*="intro"]'
+  ];
+
+  heroSelectors.forEach(selector => {
+    element.find(selector).first().each((_, hero) => {
+      const $hero = $(hero);
+      const heroText = cleanText($hero.text());
+      if (heroText && heroText.length > 30) {
+        parts.push(`[HERO SECTION - PROMINENT]\n${heroText}\n`);
+      }
+    });
+  });
 
   // Process child elements recursively
   element.children().each((_, child) => {
     const $child = $(child);
     const tagName = child.type === 'tag' ? child.name : '';
 
-    // Headings
+    // Headings - mark h1 as most prominent
     if (tagName.match(/^h[1-6]$/)) {
       const level = tagName[1];
       const text = cleanText($child.text());
       if (text) {
-        parts.push(`${'#'.repeat(Number(level))} ${text}`);
+        const prefix = level === '1' ? '[MAIN HEADING - PROMINENT] ' : '';
+        parts.push(`${prefix}${'#'.repeat(Number(level))} ${text}`);
       }
     }
     // Lists

@@ -17,9 +17,9 @@ export async function PrivacyPage() {
   let databaseHeaderData = null
   let headerStatus = 'not_found' // 'not_found', 'unpublished', 'missing_header', 'available'
   let headerBackgroundSetting = 'default'
-  let databaseRichTextSections: Record<string, unknown> = {}
-  let richTextStatuses: Record<string, string> = {}
-  let richTextBackgroundSettings: Record<string, string> = {}
+  const databaseRichTextSections: Record<string, unknown> = {}
+  const richTextStatuses: Record<string, string> = {}
+  const richTextBackgroundSettings: Record<string, string> = {}
   let contentResult = null
 
   try {

@@ -85,11 +85,32 @@ export function buildVisualExtractionPrompt(
   parts.push('```');
   parts.push('');
 
-  parts.push('Focus on extracting:');
-  parts.push('1. Brand colors (2-4 primary colors, in hex format)');
-  parts.push('2. Logo URL (look for img tags in header/nav with "logo" in class/id/alt)');
-  parts.push('3. Font families (from inline styles or style tags)');
-  parts.push('4. Design patterns (spacing, border-radius, shadows)');
+  parts.push('Focus on extracting IN ORDER OF VISUAL PROMINENCE:');
+  parts.push('');
+  parts.push('PRIORITY 1: Brand Colors from Most Visible Elements');
+  parts.push('- Colors from HERO section backgrounds, buttons, and CTAs (highest priority)');
+  parts.push('- Colors from LARGE headings and prominent text');
+  parts.push('- Logo colors (if logo is present)');
+  parts.push('- Header/navigation background and accent colors');
+  parts.push('- Return 2-4 PRIMARY brand colors in hex format (#RRGGBB)');
+  parts.push('- IGNORE: body text colors, subtle grays, pure white/black unless clearly brand colors');
+  parts.push('');
+  parts.push('PRIORITY 2: Logo');
+  parts.push('- Look for img tags in header/nav with "logo" in class/id/alt/src');
+  parts.push('- Prefer SVG or PNG logos over favicon');
+  parts.push('- Return the full URL to the logo image');
+  parts.push('');
+  parts.push('PRIORITY 3: Typography from Prominent Text');
+  parts.push('- Font families used in LARGE HEADINGS (h1, h2)');
+  parts.push('- Font families used in hero section');
+  parts.push('- Body text font (secondary priority)');
+  parts.push('');
+  parts.push('PRIORITY 4: Design Patterns');
+  parts.push('- Spacing, border-radius, shadows from prominent UI elements');
+  parts.push('- Focus on buttons, cards, and hero sections');
+  parts.push('');
+
+  parts.push('CRITICAL: Extract colors and styles from the MOST VISIBLE and PROMINENT elements first. Hero sections and large CTAs reveal the true brand identity.');
   parts.push('');
 
   parts.push('Provide your analysis as a JSON object following the schema in the system prompt.');

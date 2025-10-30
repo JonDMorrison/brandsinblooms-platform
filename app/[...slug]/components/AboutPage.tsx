@@ -32,9 +32,9 @@ export async function AboutPage() {
   let databaseFeaturesData = null
   let featuresStatus = 'not_found'
   let featuresBackgroundSetting = 'default'
-  let databaseRichTextSections: Record<string, any> = {}
-  let richTextStatuses: Record<string, string> = {}
-  let richTextBackgroundSettings: Record<string, string> = {}
+  const databaseRichTextSections: Record<string, any> = {}
+  const richTextStatuses: Record<string, string> = {}
+  const richTextBackgroundSettings: Record<string, string> = {}
   let databaseCtaData = null
   let ctaStatus = 'not_found'
   let ctaBackgroundSetting = 'default'

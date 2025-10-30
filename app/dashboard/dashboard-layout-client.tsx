@@ -37,7 +37,8 @@ export function DashboardLayoutClient({
   }
 
   // Show create first site screen if user has no sites
-  if (hasNoSites) {
+  // BUT allow them to access the sites page where they can create one
+  if (hasNoSites && pathname !== '/dashboard/sites') {
     return (
       <div className='flex h-screen items-center justify-center bg-gradient-subtle'>
         <CreateFirstSite />

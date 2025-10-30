@@ -1026,7 +1026,7 @@ export function FullSiteEditorProvider({
       }
 
       // Deep clone the default section
-      let newSection = JSON.parse(JSON.stringify(defaultSection)) as ContentSection
+      const newSection = JSON.parse(JSON.stringify(defaultSection)) as ContentSection
 
       // For Rich Text sections with variant, use appropriate template content
       if (sectionType === 'richText' && variant) {

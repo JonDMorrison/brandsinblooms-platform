@@ -20,9 +20,9 @@ export async function ContactPage() {
   let databaseBusinessInfoData = null
   let businessInfoStatus = 'not_found'
   let businessInfoBackgroundSetting = 'default'
-  let databaseRichTextSections: Record<string, any> = {}
-  let richTextStatuses: Record<string, string> = {}
-  let richTextBackgroundSettings: Record<string, string> = {}
+  const databaseRichTextSections: Record<string, any> = {}
+  const richTextStatuses: Record<string, string> = {}
+  const richTextBackgroundSettings: Record<string, string> = {}
   let databaseFaqData = null
   let faqStatus = 'not_found'
   let faqBackgroundSetting = 'alternate'

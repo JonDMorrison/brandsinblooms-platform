@@ -253,7 +253,7 @@ export default function DashboardSitesPage() {
             size: 'medium',
             position: 'left',
             pixelSize: 80,
-            displayType: 'both'
+            displayType: newSite.logoUrl ? 'logo' : 'text'
           }
 
           // Merge logo config into theme settings

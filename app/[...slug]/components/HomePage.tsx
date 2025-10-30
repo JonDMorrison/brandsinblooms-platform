@@ -68,9 +68,9 @@ export async function HomePage() {
   let databaseCtaData = null
   let ctaStatus = 'not_found' // 'not_found', 'available'
   let ctaBackgroundSetting = 'default' // Store the background setting
-  let databaseRichTextSections: Record<string, any> = {}
-  let richTextStatuses: Record<string, string> = {}
-  let richTextBackgroundSettings: Record<string, string> = {}
+  const databaseRichTextSections: Record<string, any> = {}
+  const richTextStatuses: Record<string, string> = {}
+  const richTextBackgroundSettings: Record<string, string> = {}
   let contentResult = null
   
   try {
