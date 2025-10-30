@@ -35,14 +35,14 @@ const HeaderCustomization = dynamic(
 )
 const FooterCustomization = dynamic(
   () => import('@/src/components/design/FooterCustomization').then(mod => mod.FooterCustomization),
-  { 
+  {
     loading: () => <Skeleton className="h-[400px] w-full" />,
     ssr: false
   }
 )
 const DesignPreview = dynamic(
   () => import('@/src/components/design/DesignPreview').then(mod => mod.DesignPreview),
-  { 
+  {
     loading: () => <Skeleton className="h-[600px] w-full" />,
     ssr: false
   }
@@ -139,7 +139,7 @@ export default function DesignPage() {
           >
             <Eye className="h-4 w-4" />
             <span className="sm:inline">
-              {previewMode ? 'Exit Preview' : 'Live Preview'}
+              {previewMode ? 'Close' : 'View Site'}
             </span>
           </Button>
         </div>
