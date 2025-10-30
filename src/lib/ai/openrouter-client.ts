@@ -25,6 +25,7 @@ import {
   createOpenRouterError,
   type OpenRouterError
 } from '@/lib/types/openrouter';
+import { MODELS } from './model-config';
 
 /**
  * Default configuration values
@@ -43,7 +44,7 @@ const DEFAULT_CONFIG: Partial<GenerationOptions> = {
 function getOpenRouterConfig(): OpenRouterConfig {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const baseURL = process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
-  const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-code-fast-1';
+  const model = MODELS.DEFAULT;
 
   if (!apiKey) {
     throw createOpenRouterError(

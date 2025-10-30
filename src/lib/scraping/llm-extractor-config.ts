@@ -6,30 +6,31 @@
  */
 
 import type { GenerationOptions } from '@/lib/types/openrouter';
+import { MODELS, MODEL_PRICING as PRICING } from '@/lib/ai/model-config';
 
 /**
  * Model configurations for different extraction phases
+ *
+ * These can be overridden via environment variables:
+ * - OPENROUTER_VISION_MODEL for vision model
+ * - OPENROUTER_TEXT_MODEL for text model
  */
 export const EXTRACTION_MODELS = {
   /** Phase 1: Vision model for brand identity analysis */
-  VISION: 'qwen/qwen3-vl-32b-instruct',
+  VISION: MODELS.VISION,
   /** Phase 2: Fast text model for content extraction */
-  TEXT: 'qwen/qwen3-coder-flash',
+  TEXT: MODELS.TEXT,
 } as const;
 
 /**
  * Model pricing (per 1M tokens)
  * Used for cost estimation and monitoring
+ *
+ * Imported from central model config
  */
 export const MODEL_PRICING = {
-  [EXTRACTION_MODELS.VISION]: {
-    input: 2.0, // $2.00 per 1M input tokens
-    output: 10.0, // $10.00 per 1M output tokens
-  },
-  [EXTRACTION_MODELS.TEXT]: {
-    input: 0.0, // Free for input
-    output: 0.0, // Free for output
-  },
+  [EXTRACTION_MODELS.VISION]: PRICING[MODELS.VISION],
+  [EXTRACTION_MODELS.TEXT]: PRICING[MODELS.TEXT],
 } as const;
 
 /**

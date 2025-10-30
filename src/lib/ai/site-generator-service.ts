@@ -67,13 +67,15 @@ import { isOpenRouterError } from '@/lib/types/openrouter';
 
 /**
  * Pricing information for cost calculation
- * Based on OpenRouter's pricing for x-ai/grok-code-fast-1
- * These values should be updated if model or pricing changes
+ * Based on OpenRouter's pricing for the default model (configurable via OPENROUTER_MODEL)
+ * These values should be updated if model pricing changes
+ *
+ * Note: Currently using free models, so costs are $0
  */
 const PRICING = {
   // Cost per 1M tokens (in cents)
-  PROMPT_TOKENS_PER_MILLION: 5, // $0.05 per 1M prompt tokens
-  COMPLETION_TOKENS_PER_MILLION: 10 // $0.10 per 1M completion tokens
+  PROMPT_TOKENS_PER_MILLION: 0, // $0.00 per 1M prompt tokens (free model)
+  COMPLETION_TOKENS_PER_MILLION: 0 // $0.00 per 1M completion tokens (free model)
 };
 
 /**
