@@ -41,7 +41,7 @@ RESPONSE FORMAT:
     "subheadline": "Supporting text",
     "ctaText": "Call to action button text",
     "ctaLink": "Button URL or null",
-    "backgroundImage": "Hero background image URL or null"
+    "backgroundImage": "FULL-SIZE hero background image URL (prefer large images, avoid thumbnails) or null"
   },
   "galleries": [
     {
@@ -96,6 +96,12 @@ export function buildContentExtractionPrompt(
   parts.push('- The LARGEST heading should be the hero headline');
   parts.push('- Supporting text near the main heading should be the hero subheadline');
   parts.push('- Extract any prominent call-to-action button text and link');
+  parts.push('- **Hero Background Image**: Extract the FULL-SIZE background image URL if present:');
+  parts.push('  * Look for CSS background-image, <img> tags, or picture elements in hero section');
+  parts.push('  * Prefer LARGE images (e.g., 1920x1080, 1600x900) over small thumbnails');
+  parts.push('  * Avoid logos, icons, or decorative elements');
+  parts.push('  * Look for images with "hero", "banner", "background", "cover" in the URL or attributes');
+  parts.push('  * Return the FULL URL (absolute path), not relative paths');
   parts.push('');
   parts.push('PRIORITY 2: Site Identity');
   parts.push('- Site title and description from the top of the content');

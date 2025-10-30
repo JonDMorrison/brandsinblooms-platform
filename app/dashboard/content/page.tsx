@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
@@ -10,6 +11,8 @@ import {
   Plus,
   Activity,
   Files,
+  Edit,
+  ExternalLink,
 } from 'lucide-react'
 import { useContent, useContentStats } from '@/src/hooks/useContent'
 import type { ContentType } from '@/src/lib/queries/domains/content'
@@ -21,14 +24,18 @@ import { CreateContentModal } from '@/src/components/content/CreateContentModal'
 import { debug } from '@/src/lib/utils/debug'
 import type { PaginationState } from '@tanstack/react-table'
 import { useContentChangeListener } from '@/src/lib/events/content-events'
+import { supabase } from '@/src/lib/supabase/client'
+import { getCustomerSiteFullUrl } from '@/src/lib/site/url-utils'
 
 
 
 export default function ContentPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState('all')
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [homepageId, setHomepageId] = useState<string | null>(null)
   const siteId = useSiteId()
   const { loading: siteLoading, currentSite } = useSiteContext()
 
@@ -52,6 +59,27 @@ export default function ContentPage() {
     type: contentTypeFilter,
   })
   const { data: contentStats, loading: statsLoading, refresh: refetchStats } = useContentStats()
+
+  // Fetch homepage ID for Site Editor button
+  useEffect(() => {
+    async function fetchHomepageId() {
+      if (!siteId) return
+
+      const { data, error } = await supabase
+        .from('content')
+        .select('id')
+        .eq('site_id', siteId)
+        .eq('slug', 'home')
+        .eq('content_type', 'landing')
+        .single()
+
+      if (!error && data) {
+        setHomepageId(data.id)
+      }
+    }
+
+    fetchHomepageId()
+  }, [siteId])
 
   // Listen for content changes and automatically refetch data
   useContentChangeListener(() => {
@@ -198,13 +226,39 @@ export default function ContentPage() {
             Create, edit, and manage your website pages and blog posts
           </p>
         </div>
-        <Button
-          className="btn-gradient-primary"
-          onClick={() => setCreateModalOpen(true)}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Create New
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (homepageId) {
+                router.push(`/dashboard/content/editor?id=${homepageId}`)
+              }
+            }}
+            disabled={!homepageId}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Edit Homepage
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (currentSite) {
+                window.open(getCustomerSiteFullUrl(currentSite), '_blank')
+              }
+            }}
+            disabled={!currentSite}
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            View Site
+          </Button>
+          <Button
+            className="btn-gradient-primary"
+            onClick={() => setCreateModalOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create New
+          </Button>
+        </div>
       </div>
 
       {/* Quick Stats */}

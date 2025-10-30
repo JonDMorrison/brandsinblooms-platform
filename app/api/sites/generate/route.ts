@@ -44,6 +44,7 @@ import type { BusinessInfo } from '@/lib/types/site-generation-jobs';
 import { discoverAndScrapePages } from '@/lib/scraping/page-discovery';
 import { analyzeScrapedWebsite } from '@/lib/scraping/content-analyzer';
 import { downloadAndUploadLogo } from '@/lib/storage/logo-processor';
+import { downloadAndUploadHeroImage } from '@/lib/storage/hero-image-processor';
 
 /**
  * POST /api/sites/generate
@@ -288,45 +289,84 @@ export async function POST(request: NextRequest) {
 
         if (discoveryResult.pages.length > 0) {
           // Analyze scraped content
-          console.log(`[${requestId}] [LOGO EXTRACTION] Starting content analysis...`);
+          console.log(`[${requestId}] [IMAGE EXTRACTION] Starting content analysis...`);
           const analyzed = await analyzeScrapedWebsite(discoveryResult.pages);
 
-          // Process logo if found in scraped data
+          // Process logo and hero image in parallel if found in scraped data
           let processedLogoUrl: string | undefined = undefined;
+          let processedHeroImageUrl: string | undefined = undefined;
 
-          console.log(`[${requestId}] [LOGO EXTRACTION] Analysis complete. Logo found: ${analyzed.businessInfo.logoUrl ? 'YES' : 'NO'}`);
+          console.log(`[${requestId}] [IMAGE EXTRACTION] Analysis complete. Logo found: ${analyzed.businessInfo.logoUrl ? 'YES' : 'NO'}, Hero image found: ${analyzed.businessInfo.heroSection?.backgroundImage ? 'YES' : 'NO'}`);
 
-          if (analyzed.businessInfo.logoUrl) {
-            console.log(`[${requestId}] [LOGO EXTRACTION] Processing scraped logo: ${analyzed.businessInfo.logoUrl}`);
+          const tempSiteId = `temp-${job.id}`;
 
-            // Generate a temporary site ID for logo upload (will be updated once site is created)
-            const tempSiteId = `temp-${job.id}`;
+          // Process logo and hero image concurrently for better performance
+          const [logoResult, heroResult] = await Promise.allSettled([
+            // Process logo
+            analyzed.businessInfo.logoUrl
+              ? (async () => {
+                  console.log(`[${requestId}] [LOGO] Processing scraped logo: ${analyzed.businessInfo.logoUrl}`);
+                  try {
+                    const uploadedUrl = await downloadAndUploadLogo(
+                      analyzed.businessInfo.logoUrl!,
+                      tempSiteId,
+                      user.id
+                    );
+                    if (uploadedUrl) {
+                      console.log(`[${requestId}] [LOGO] ✅ Successfully uploaded to: ${uploadedUrl}`);
+                      return uploadedUrl;
+                    } else {
+                      console.warn(`[${requestId}] [LOGO] ⚠️  Upload failed, using original URL`);
+                      return analyzed.businessInfo.logoUrl;
+                    }
+                  } catch (error: unknown) {
+                    const errorInfo = handleError(error);
+                    console.error(`[${requestId}] [LOGO] ❌ Processing error: ${errorInfo.message}`);
+                    return analyzed.businessInfo.logoUrl;
+                  }
+                })()
+              : Promise.resolve(undefined),
 
-            try {
-              const uploadedLogoUrl = await downloadAndUploadLogo(
-                analyzed.businessInfo.logoUrl,
-                tempSiteId,
-                user.id
-              );
+            // Process hero image
+            analyzed.businessInfo.heroSection?.backgroundImage
+              ? (async () => {
+                  console.log(`[${requestId}] [HERO IMAGE] Processing scraped hero image: ${analyzed.businessInfo.heroSection?.backgroundImage}`);
+                  try {
+                    const uploadedUrl = await downloadAndUploadHeroImage(
+                      analyzed.businessInfo.heroSection!.backgroundImage!,
+                      tempSiteId,
+                      user.id
+                    );
+                    if (uploadedUrl) {
+                      console.log(`[${requestId}] [HERO IMAGE] ✅ Successfully uploaded to: ${uploadedUrl}`);
+                      return uploadedUrl;
+                    } else {
+                      console.warn(`[${requestId}] [HERO IMAGE] ⚠️  Upload failed, will skip hero background`);
+                      return null;
+                    }
+                  } catch (error: unknown) {
+                    const errorInfo = handleError(error);
+                    console.error(`[${requestId}] [HERO IMAGE] ❌ Processing error: ${errorInfo.message}`);
+                    return null;
+                  }
+                })()
+              : Promise.resolve(undefined),
+          ]);
 
-              if (uploadedLogoUrl) {
-                processedLogoUrl = uploadedLogoUrl;
-                console.log(`[${requestId}] [LOGO EXTRACTION] ✅ Logo successfully uploaded to: ${uploadedLogoUrl}`);
-
-                // Update businessInfo with the processed logo URL
-                businessInfo.logoUrl = uploadedLogoUrl;
-              } else {
-                console.warn(`[${requestId}] [LOGO EXTRACTION] ⚠️  Logo download/upload failed, using original URL`);
-                // Keep the original URL as fallback
-                processedLogoUrl = analyzed.businessInfo.logoUrl;
-              }
-            } catch (logoError: unknown) {
-              const errorInfo = handleError(logoError);
-              console.error(`[${requestId}] [LOGO EXTRACTION] ❌ Logo processing error: ${errorInfo.message}`);
-              // Keep the original URL as fallback
-              processedLogoUrl = analyzed.businessInfo.logoUrl;
+          // Extract results from settled promises
+          if (logoResult.status === 'fulfilled') {
+            processedLogoUrl = logoResult.value ?? undefined;
+            if (processedLogoUrl) {
+              businessInfo.logoUrl = processedLogoUrl;
             }
-          } else {
+          }
+
+          if (heroResult.status === 'fulfilled') {
+            processedHeroImageUrl = heroResult.value ?? undefined;
+            // Note: Hero image will be passed to background processor for use in site content
+          }
+
+          if (!analyzed.businessInfo.logoUrl) {
             console.log(`[${requestId}] [LOGO EXTRACTION] ℹ️  No logo found in scraped data`);
             console.log(`[${requestId}] [LOGO EXTRACTION] Checking if favicon can be used as fallback...`);
             if (analyzed.businessInfo.favicon) {
@@ -347,7 +387,13 @@ export async function POST(request: NextRequest) {
               socialLinks: analyzed.businessInfo.socialLinks,
               logoUrl: processedLogoUrl || analyzed.businessInfo.logoUrl, // Use processed or original
               brandColors: analyzed.businessInfo.brandColors,
-              heroSection: analyzed.businessInfo.heroSection, // Include hero section
+              heroSection: analyzed.businessInfo.heroSection
+                ? {
+                    ...analyzed.businessInfo.heroSection,
+                    // Use processed hero image if available, otherwise use original
+                    backgroundImage: processedHeroImageUrl || analyzed.businessInfo.heroSection.backgroundImage,
+                  }
+                : undefined,
               businessDescription: analyzed.businessInfo.businessDescription,
               tagline: analyzed.businessInfo.tagline,
               keyFeatures: analyzed.businessInfo.keyFeatures,

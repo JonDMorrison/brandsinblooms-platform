@@ -87,7 +87,7 @@ You MUST respond with valid JSON matching this exact structure:
     "headline": "Compelling main headline (5-10 words)",
     "subheadline": "Supporting tagline that expands on headline (10-15 words)",
     "cta_text": "Call to action button text (2-4 words)",
-    "background_image": "Description of ideal hero background image"
+    "background_image": "URL to hero background image (USE EXACT URL if provided from existing site, otherwise describe ideal image)"
   },
   "branding": {
     "primary_color": "#RRGGBB hex color code",
@@ -393,6 +393,7 @@ export function buildFoundationPromptWithContext(
       }
       if (scrapedContext.businessInfo.heroSection.backgroundImage) {
         sections.push(`Existing Hero Background Image: ${scrapedContext.businessInfo.heroSection.backgroundImage}`);
+        sections.push('^ USE THIS EXACT URL in hero.background_image field (do not describe, use the URL as-is)');
       }
       sections.push('');
     }
