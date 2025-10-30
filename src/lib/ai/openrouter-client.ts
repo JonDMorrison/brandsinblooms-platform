@@ -151,6 +151,7 @@ function handleOpenAIError(error: unknown): OpenRouterError {
  * @param prompt - The user prompt to send to the LLM
  * @param systemPrompt - The system prompt that sets context and instructions
  * @param options - Optional generation parameters
+ * @param model - Optional model override (uses env default if not provided)
  * @returns Typed response from the LLM
  *
  * @example
@@ -166,9 +167,10 @@ function handleOpenAIError(error: unknown): OpenRouterError {
 export async function generateWithOpenRouter<T = unknown>(
   prompt: string,
   systemPrompt: string,
-  options?: GenerationOptions
+  options?: GenerationOptions,
+  model?: string
 ): Promise<GenerationResponse<T>> {
-  const config = getOpenRouterConfig();
+  const config = model ? { ...getOpenRouterConfig(), model } : getOpenRouterConfig();
   const client = createOpenRouterClient();
 
   // Merge options with defaults
@@ -287,6 +289,181 @@ export async function generateWithOpenRouter<T = unknown>(
   throw lastError || createOpenRouterError(
     OpenRouterErrorType.UNKNOWN_ERROR,
     'Request failed after all retries'
+  );
+}
+
+/**
+ * Vision message content types for multimodal requests
+ */
+export interface VisionContentText {
+  type: 'text';
+  text: string;
+}
+
+export interface VisionContentImage {
+  type: 'image_url';
+  image_url: {
+    url: string;
+    detail?: 'low' | 'high' | 'auto';
+  };
+}
+
+export type VisionContent = VisionContentText | VisionContentImage;
+
+/**
+ * Vision message format for multimodal models
+ */
+export interface VisionMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: VisionContent[] | string;
+}
+
+/**
+ * Generate content using vision-capable model with multimodal input
+ *
+ * @param messages - Array of messages with text and/or images
+ * @param model - Vision-capable model identifier
+ * @param options - Optional generation parameters
+ * @returns Typed response from the vision model
+ *
+ * @example
+ * ```typescript
+ * const response = await generateWithVision<BrandAnalysis>(
+ *   [
+ *     { role: 'system', content: 'You are a brand analysis expert.' },
+ *     {
+ *       role: 'user',
+ *       content: [
+ *         { type: 'text', text: 'Analyze this homepage for brand colors' },
+ *         { type: 'image_url', image_url: { url: 'data:image/png;base64,...' } }
+ *       ]
+ *     }
+ *   ],
+ *   'x-ai/grok-2-vision-1212'
+ * );
+ * ```
+ */
+export async function generateWithVision<T = unknown>(
+  messages: VisionMessage[],
+  model: string,
+  options?: GenerationOptions
+): Promise<GenerationResponse<T>> {
+  const config = { ...getOpenRouterConfig(), model };
+  const client = createOpenRouterClient();
+
+  // Merge options with defaults
+  const finalOptions: Required<GenerationOptions> = {
+    temperature: options?.temperature ?? DEFAULT_CONFIG.temperature!,
+    maxTokens: options?.maxTokens ?? DEFAULT_CONFIG.maxTokens!,
+    topP: options?.topP ?? 1,
+    frequencyPenalty: options?.frequencyPenalty ?? 0,
+    presencePenalty: options?.presencePenalty ?? 0,
+    timeout: options?.timeout ?? DEFAULT_CONFIG.timeout!,
+    retries: options?.retries ?? DEFAULT_CONFIG.retries!,
+    retryDelay: options?.retryDelay ?? DEFAULT_CONFIG.retryDelay!
+  };
+
+  let lastError: OpenRouterError | null = null;
+
+  // Retry loop
+  for (let attempt = 0; attempt <= finalOptions.retries; attempt++) {
+    try {
+      // Add delay before retry (except first attempt)
+      if (attempt > 0) {
+        const delay = finalOptions.retryDelay * Math.pow(2, attempt - 1);
+        await sleep(delay);
+      }
+
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), finalOptions.timeout);
+
+      try {
+        // Make API request with vision support
+        const completion = await client.chat.completions.create(
+          {
+            model: config.model,
+            messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+            temperature: finalOptions.temperature,
+            max_tokens: finalOptions.maxTokens,
+            top_p: finalOptions.topP,
+            frequency_penalty: finalOptions.frequencyPenalty,
+            presence_penalty: finalOptions.presencePenalty,
+            response_format: { type: 'json_object' }
+          },
+          {
+            signal: controller.signal
+          }
+        );
+
+        clearTimeout(timeoutId);
+
+        // Extract response
+        const message = completion.choices[0]?.message;
+        if (!message?.content) {
+          throw createOpenRouterError(
+            OpenRouterErrorType.API_ERROR,
+            'No content in response from OpenRouter'
+          );
+        }
+
+        // Parse JSON response
+        let parsedContent: T;
+        try {
+          parsedContent = JSON.parse(message.content) as T;
+        } catch (parseError: unknown) {
+          throw createOpenRouterError(
+            OpenRouterErrorType.PARSING_ERROR,
+            'Failed to parse JSON response from OpenRouter',
+            {
+              details: `Raw content: ${message.content.substring(0, 200)}...`
+            }
+          );
+        }
+
+        // Return successful response
+        return {
+          content: parsedContent,
+          usage: completion.usage
+            ? {
+                promptTokens: completion.usage.prompt_tokens,
+                completionTokens: completion.usage.completion_tokens,
+                totalTokens: completion.usage.total_tokens
+              }
+            : undefined,
+          model: completion.model,
+          finishReason: completion.choices[0]?.finish_reason
+        };
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    } catch (error: unknown) {
+      lastError = handleOpenAIError(error);
+
+      // Don't retry on authentication or validation errors
+      if (
+        lastError.type === OpenRouterErrorType.AUTHENTICATION_ERROR ||
+        lastError.type === OpenRouterErrorType.INVALID_REQUEST_ERROR
+      ) {
+        throw lastError;
+      }
+
+      // If this is the last retry, throw the error
+      if (attempt === finalOptions.retries) {
+        throw lastError;
+      }
+
+      // Log retry attempt
+      console.warn(
+        `OpenRouter vision request failed (attempt ${attempt + 1}/${finalOptions.retries + 1}): ${lastError.message}`
+      );
+    }
+  }
+
+  // This should never be reached, but TypeScript needs it
+  throw lastError || createOpenRouterError(
+    OpenRouterErrorType.UNKNOWN_ERROR,
+    'Vision request failed after all retries'
   );
 }
 

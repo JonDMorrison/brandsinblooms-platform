@@ -289,7 +289,7 @@ export async function POST(request: NextRequest) {
         if (discoveryResult.pages.length > 0) {
           // Analyze scraped content
           console.log(`[${requestId}] [LOGO EXTRACTION] Starting content analysis...`);
-          const analyzed = analyzeScrapedWebsite(discoveryResult.pages);
+          const analyzed = await analyzeScrapedWebsite(discoveryResult.pages);
 
           // Process logo if found in scraped data
           let processedLogoUrl: string | undefined = undefined;

@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import DashboardSidebar from '@/src/components/layout/DashboardSidebar';
 import DashboardHeader from '@/src/components/layout/DashboardHeader';
+import { useUserSites } from '@/src/hooks/useSite';
+import { CreateFirstSite } from '@/src/components/dashboard/CreateFirstSite';
+import { Skeleton } from '@/src/components/ui/skeleton';
 
 export function DashboardLayoutClient({
   children,
@@ -12,9 +15,35 @@ export function DashboardLayoutClient({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
-  
+  const { sites, loading: sitesLoading } = useUserSites();
+
   // Check if we're on the content editor page
   const isContentEditor = pathname?.includes('/dashboard/content/editor');
+
+  // Check if user has no sites
+  const hasNoSites = !sitesLoading && sites.length === 0;
+
+  // Show loading state while checking sites
+  if (sitesLoading) {
+    return (
+      <div className='flex h-screen items-center justify-center bg-gradient-subtle'>
+        <div className='space-y-4 w-full max-w-md px-4'>
+          <Skeleton className='h-8 w-48 mx-auto' />
+          <Skeleton className='h-4 w-64 mx-auto' />
+          <Skeleton className='h-32 w-full' />
+        </div>
+      </div>
+    );
+  }
+
+  // Show create first site screen if user has no sites
+  if (hasNoSites) {
+    return (
+      <div className='flex h-screen items-center justify-center bg-gradient-subtle'>
+        <CreateFirstSite />
+      </div>
+    );
+  }
 
   return (
     <div className='flex h-screen bg-gradient-subtle'>

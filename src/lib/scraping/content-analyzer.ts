@@ -1,5 +1,7 @@
 import type { DiscoveredPage } from './page-discovery';
 import { extractBusinessInfo, type ExtractedBusinessInfo } from './content-extractor';
+import { extractBusinessInfoWithLLM } from './llm-extractor';
+import { isLLMExtractionReady } from './llm-extractor-config';
 import { load } from 'cheerio';
 import type { ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
 
@@ -138,7 +140,7 @@ function createContentSummary(
 /**
  * Analyzes scraped pages and synthesizes content
  */
-export function analyzeScrapedWebsite(pages: DiscoveredPage[]): AnalyzedWebsite {
+export async function analyzeScrapedWebsite(pages: DiscoveredPage[]): Promise<AnalyzedWebsite> {
   if (pages.length === 0) {
     throw new Error('No pages to analyze');
   }
@@ -149,8 +151,22 @@ export function analyzeScrapedWebsite(pages: DiscoveredPage[]): AnalyzedWebsite 
   }
 
   // Extract business info from homepage
-  console.log('[LOGO EXTRACTION] Starting business info extraction from homepage...');
-  const businessInfo = extractBusinessInfo(homepage.html, homepage.url);
+  console.log('[CONTENT EXTRACTION] Starting business info extraction from homepage...');
+
+  // Check if LLM extraction is enabled and ready
+  let businessInfo: ExtractedBusinessInfo;
+  if (isLLMExtractionReady()) {
+    console.log('[CONTENT EXTRACTION] Using LLM-based extraction');
+    try {
+      businessInfo = await extractBusinessInfoWithLLM(homepage.html, homepage.url);
+    } catch (error: unknown) {
+      console.error('[CONTENT EXTRACTION] LLM extraction failed, falling back to algorithmic extraction');
+      businessInfo = extractBusinessInfo(homepage.html, homepage.url);
+    }
+  } else {
+    console.log('[CONTENT EXTRACTION] Using algorithmic extraction (LLM not enabled)');
+    businessInfo = extractBusinessInfo(homepage.html, homepage.url);
+  }
 
   // Log logo extraction result
   if (businessInfo.logoUrl) {

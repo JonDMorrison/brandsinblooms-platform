@@ -59,7 +59,7 @@ function calculateScrapingMetrics(discovery: ReturnType<typeof discoverAndScrape
 /**
  * Extracts summary of analyzed data for quick overview
  */
-function extractDataSummary(businessInfo: ReturnType<typeof analyzeScrapedWebsite>['businessInfo']): ExtractedDataSummary {
+function extractDataSummary(businessInfo: Awaited<ReturnType<typeof analyzeScrapedWebsite>>['businessInfo']): ExtractedDataSummary {
   return {
     hasLogo: Boolean(businessInfo.logoUrl),
     logoUrl: businessInfo.logoUrl,
@@ -93,7 +93,7 @@ function estimateTokenCount(text: string): number {
 /**
  * Builds the LLM context from analyzed website
  */
-function buildLLMContext(analyzed: ReturnType<typeof analyzeScrapedWebsite>): ScrapedWebsiteContext {
+function buildLLMContext(analyzed: Awaited<ReturnType<typeof analyzeScrapedWebsite>>): ScrapedWebsiteContext {
   return {
     baseUrl: analyzed.baseUrl,
     businessInfo: {
@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
 
     let analyzed;
     try {
-      analyzed = analyzeScrapedWebsite(discoveryResult.pages);
+      analyzed = await analyzeScrapedWebsite(discoveryResult.pages);
     } catch (error: unknown) {
       const errorInfo = handleError(error);
       console.error(`[${requestId}] Analysis failed:`, errorInfo.message);
