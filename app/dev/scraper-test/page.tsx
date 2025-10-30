@@ -92,10 +92,11 @@ export default function ScraperTestPage() {
     setResult(null)
     setSelectedPage(null)
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 45000)
+
     try {
       console.log('[handleSubmit] Calling API...')
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 45000)
       const response = await fetch('/api/dev/scraper-preview', {
         method: 'POST',
         headers: {

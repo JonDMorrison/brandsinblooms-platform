@@ -48,6 +48,15 @@ export interface ExtractedBusinessInfo {
     backgroundImage?: string;
   };
 
+  // Hero images extracted by LLM (Phase 2D)
+  heroImages?: Array<{
+    url: string;
+    context: string;
+    alt?: string;
+    dimensions?: { width: number; height: number };
+    confidence: number;
+  }>;
+
   // Gallery Data
   galleries?: Array<{
     type: 'grid' | 'carousel' | 'masonry' | 'unknown';

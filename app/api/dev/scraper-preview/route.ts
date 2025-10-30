@@ -29,6 +29,7 @@ import {
 } from '@/lib/security/site-generation-rate-limit';
 import { discoverAndScrapePages } from '@/lib/scraping/page-discovery';
 import { analyzeScrapedWebsite } from '@/lib/scraping/content-analyzer';
+import { saveScrapedHtmlForDebug } from '@/lib/scraping/debug';
 import type {
   ScraperPreviewRequest,
   ScraperPreviewResponse,
@@ -242,6 +243,27 @@ export async function POST(request: NextRequest) {
 
     if (scrapingMetrics.failedPages > 0) {
       warnings.push(`Failed to scrape ${scrapingMetrics.failedPages} pages`);
+    }
+
+    // Save HTML for debugging (development only)
+    try {
+      const savedHtml = await saveScrapedHtmlForDebug(
+        discoveryResult.pages,
+        sanitizedUrl
+      );
+
+      if (savedHtml) {
+        console.log(`[${requestId}] 📁 HTML saved for debugging:`);
+        console.log(`[${requestId}]    Scrape ID: ${savedHtml.scrapeId}`);
+        console.log(`[${requestId}]    Base path: ${savedHtml.basePath}`);
+        savedHtml.savedFiles.forEach(file => {
+          console.log(`[${requestId}]    - ${file.pageType}: ${file.filePath}`);
+        });
+      }
+    } catch (error: unknown) {
+      const errorInfo = error instanceof Error ? error.message : String(error);
+      console.warn(`[${requestId}] Failed to save HTML for debugging: ${errorInfo}`);
+      // Don't fail the request, this is just for debugging
     }
 
     // 7. Start analysis phase

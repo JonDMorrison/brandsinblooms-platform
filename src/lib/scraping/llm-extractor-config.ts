@@ -51,8 +51,8 @@ export const PHASE1_OPTIONS: GenerationOptions = {
 export const PHASE2_OPTIONS: GenerationOptions = {
   temperature: 0.2, // Very low temperature for factual extraction
   maxTokens: 3000, // Sufficient for detailed content
-  timeout: 15000, // 15 seconds
-  retries: 2, // Retry twice on failure
+  timeout: 30000, // 30 seconds (matches OpenRouter default, prevents free-tier timeouts)
+  retries: 3, // Retry three times on failure (free-tier models can be queued)
   retryDelay: 1000, // 1 second between retries
 } as const;
 
@@ -64,6 +64,8 @@ export const HTML_LIMITS = {
   VISUAL_HTML_MAX_SIZE: 10 * 1024, // 10KB
   /** Maximum size for text HTML (content only) */
   TEXT_HTML_MAX_SIZE: 15 * 1024, // 15KB
+  /** Maximum size for image extraction HTML (structure with styles) */
+  IMAGE_HTML_MAX_SIZE: 10 * 1024, // 10KB - reduced for faster processing
   /** Maximum screenshot size (base64) */
   SCREENSHOT_MAX_SIZE: 500 * 1024, // 500KB
 } as const;
