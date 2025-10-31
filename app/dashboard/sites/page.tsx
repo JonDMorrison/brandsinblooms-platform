@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Globe, Calendar, Settings, ExternalLink, Loader2, Sparkles, CheckCircle2, AlertCircle, Upload, ArrowRight, ArrowLeft, Check, Image as ImageIcon, Edit3 } from 'lucide-react'
+import { Plus, Globe, Calendar, Settings, ExternalLink, Loader2, Sparkles, CheckCircle2, AlertCircle, Upload, ArrowRight, ArrowLeft, Check, Image as ImageIcon, Edit3, Copy } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useSiteSwitcher, useUserSites } from '@/src/hooks/useSite'
+import { useSiteContext, useSiteSwitcher, useUserSites } from '@/src/hooks/useSite'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/src/components/ui/dialog'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
@@ -43,15 +43,25 @@ export default function DashboardSitesPage() {
   const { user } = useAuth()
   const router = useRouter()
   const { switchSite } = useSiteSwitcher()
+  const { refreshUserSites } = useSiteContext()
   const { sites: userSites, loading: sitesLoading, error: sitesError, refresh: refreshSites } = useUserSites()
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [step, setStep] = useState(0)
 
   // Step 0: Website source selection
-  const [sourceMode, setSourceMode] = useState<'scrape' | 'manual'>('scrape')
+  const [sourceMode, setSourceMode] = useState<'scrape' | 'manual' | 'duplicate'>('scrape')
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [urlError, setUrlError] = useState<string | null>(null)
+
+  // Duplicate mode state
+  const [selectedSiteForDuplicate, setSelectedSiteForDuplicate] = useState<string | null>(null)
+  const [duplicateOptions, setDuplicateOptions] = useState({
+    copyContent: true,
+    copyProducts: true,
+    copyTheme: true,
+    copyNavigation: true
+  })
 
   const [newSite, setNewSite] = useState({
     name: '',
@@ -478,10 +488,74 @@ export default function DashboardSitesPage() {
     }
   }
 
-  // Generate site using AI
+  // Generate site using AI or duplicate existing site
   const generateSiteWithAI = async () => {
     if (!user) {
       toast.error('User not authenticated')
+      return
+    }
+
+    // Handle duplicate mode separately
+    if (sourceMode === 'duplicate') {
+      if (!selectedSiteForDuplicate || !newSite.name) {
+        toast.error('Please select a site and provide a name')
+        return
+      }
+
+      setIsGenerating(true)
+
+      try {
+        const response = await fetch('/api/sites/duplicate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sourceSiteId: selectedSiteForDuplicate,
+            newName: newSite.name,
+            newSubdomain: newSite.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+            copyContent: duplicateOptions.copyContent,
+            copyProducts: duplicateOptions.copyProducts,
+            copyTheme: duplicateOptions.copyTheme,
+            copyNavigation: duplicateOptions.copyNavigation
+          })
+        })
+
+        const result = await response.json()
+
+        if (!response.ok || !result.success) {
+          toast.error(result.error?.message || 'Failed to duplicate site')
+          return
+        }
+
+        const { siteId, siteName, copiedItems } = result.data
+
+        toast.success(
+          `Site "${siteName}" duplicated successfully! ` +
+          `${copiedItems.contentPages} pages and ${copiedItems.products} products copied.`
+        )
+
+        // Close modal and refresh both caches in parallel
+        setIsCreateModalOpen(false)
+        resetForm()
+
+        // Refresh both the dashboard page cache AND the SiteContext cache
+        // This ensures the new site appears in both the sites list and the site switcher dropdown
+        await Promise.all([
+          refreshSites(),
+          refreshUserSites()
+        ])
+
+        // Navigate to dashboard
+        router.push(`/dashboard`)
+
+      } catch (error) {
+        console.error('Duplicate error:', error)
+        toast.error('Failed to duplicate site')
+      } finally {
+        setIsGenerating(false)
+      }
+
       return
     }
 
@@ -602,6 +676,13 @@ export default function DashboardSitesPage() {
     setStatusMessage('')
     setIsUploading(false)
     setUploadProgress(0)
+    setSelectedSiteForDuplicate(null)
+    setDuplicateOptions({
+      copyContent: true,
+      copyProducts: true,
+      copyTheme: true,
+      copyNavigation: true
+    })
   }
 
   const handleModalClose = (open: boolean) => {
@@ -616,7 +697,7 @@ export default function DashboardSitesPage() {
   // Step navigation
   const nextStep = () => {
     if (step === 0) {
-      // Step 0: Validate URL if scraping mode selected
+      // Step 0: Validate based on source mode
       if (sourceMode === 'scrape') {
         if (!websiteUrl) {
           toast.error('Please enter a website URL or choose "Design Your Own"')
@@ -635,18 +716,35 @@ export default function DashboardSitesPage() {
           name: websiteUrl.replace(/^https?:\/\/(www\.)?/, '').split('/')[0].split('.')[0] // Extract domain name as placeholder
         }))
         setStep(3) // Skip Steps 1 & 2 - scraping will provide the data
+      } else if (sourceMode === 'duplicate') {
+        // Validate site selection for duplicate mode
+        if (!selectedSiteForDuplicate) {
+          toast.error('Please select a site to duplicate')
+          return
+        }
+        setStep(1) // Go to customization step
       } else {
         // Clear URL if manual mode and go to Step 1
         setNewSite(prev => ({ ...prev, basedOnWebsite: undefined }))
         setStep(1)
       }
     } else if (step === 1) {
-      // Validate required fields
-      if (!newSite.name || !newSite.description) {
-        toast.error('Please fill in all required fields')
-        return
+      // Validate required fields based on mode
+      if (sourceMode === 'duplicate') {
+        if (!newSite.name) {
+          toast.error('Please enter a name for the new site')
+          return
+        }
+        // For duplicate mode, skip to step 3 (review)
+        setStep(3)
+      } else {
+        // Manual mode validation
+        if (!newSite.name || !newSite.description) {
+          toast.error('Please fill in all required fields')
+          return
+        }
+        setStep(2)
       }
-      setStep(2)
     } else if (step === 2) {
       setStep(3)
     }
@@ -654,9 +752,10 @@ export default function DashboardSitesPage() {
 
   const prevStep = () => {
     if (step > 0) {
-      // If in scraping mode and on step 3, go back to step 0
-      if (sourceMode === 'scrape' && step === 3) {
-        setStep(0)
+      // Handle different mode flows
+      if ((sourceMode === 'scrape' || sourceMode === 'duplicate') && step === 3) {
+        // Both scrape and duplicate skip step 2, go back to step 1 or 0
+        setStep(sourceMode === 'scrape' ? 0 : 1)
       } else {
         setStep(step - 1)
       }
@@ -912,15 +1011,33 @@ export default function DashboardSitesPage() {
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              Create AI-Powered Website
+              {sourceMode === 'duplicate' ? (
+                <>
+                  <Copy className="h-5 w-5 text-purple-600" />
+                  Duplicate Existing Site
+                </>
+              ) : sourceMode === 'scrape' ? (
+                <>
+                  <Globe className="h-5 w-5 text-blue-600" />
+                  Import from Website
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Create AI-Powered Website
+                </>
+              )}
             </DialogTitle>
             <DialogDescription>
               {isGenerating
-                ? 'Our AI is creating your professional website with all the pages you need'
+                ? sourceMode === 'duplicate'
+                  ? 'Duplicating your site with all selected content and settings...'
+                  : 'Our AI is creating your professional website with all the pages you need'
                 : sourceMode === 'scrape'
                   ? `Step ${step === 0 ? 1 : 2} of 2: ${step === 0 ? 'Choose Website' : 'Review & Generate'}`
-                  : `Step ${step + 1} of 4: ${step === 0 ? 'Choose Source' : step === 1 ? 'Company Information' : step === 2 ? 'Design Settings' : 'Review & Create'}`}
+                  : sourceMode === 'duplicate'
+                    ? `Step ${step === 0 ? 1 : 2} of 2: ${step === 0 ? 'Select Site' : 'Review & Duplicate'}`
+                    : `Step ${step + 1} of 4: ${step === 0 ? 'Choose Source' : step === 1 ? 'Company Information' : step === 2 ? 'Design Settings' : 'Review & Create'}`}
             </DialogDescription>
           </DialogHeader>
 
@@ -950,6 +1067,36 @@ export default function DashboardSitesPage() {
                       w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
                       ${step >= 3
                         ? 'bg-green-600 text-white shadow-lg'
+                        : 'bg-gray-200 text-gray-600'
+                      }
+                    `}>
+                      2
+                    </div>
+                  </div>
+                </>
+              ) : sourceMode === 'duplicate' ? (
+                /* Duplicate Mode: 2 steps (0 and 1, then jumps to 3) */
+                <>
+                  <div className="flex items-center">
+                    <div className={`
+                      w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
+                      ${step >= 0
+                        ? 'bg-purple-600 text-white shadow-lg'
+                        : 'bg-gray-200 text-gray-600'
+                      }
+                    `}>
+                      {step > 0 ? <Check className="h-4 w-4" /> : 1}
+                    </div>
+                  </div>
+                  <div className={`
+                    w-12 h-1 mx-2 rounded-full transition-all
+                    ${step > 0 ? 'bg-purple-600' : 'bg-gray-200'}
+                  `} />
+                  <div className="flex items-center">
+                    <div className={`
+                      w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
+                      ${step >= 3
+                        ? 'bg-purple-600 text-white shadow-lg'
                         : 'bg-gray-200 text-gray-600'
                       }
                     `}>
@@ -1037,7 +1184,7 @@ export default function DashboardSitesPage() {
                   </div>
 
                   {/* Option Cards */}
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-3 gap-4">
                     {/* Import from Website Card */}
                     <Card
                       className={`cursor-pointer transition-all ${
@@ -1048,18 +1195,18 @@ export default function DashboardSitesPage() {
                       onClick={() => setSourceMode('scrape')}
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${
+                        <div className="flex flex-col items-center text-center gap-3">
+                          <div className={`p-3 rounded-lg ${
                             sourceMode === 'scrape' ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-600'
                           }`}>
-                            <Globe className="h-5 w-5" />
+                            <Globe className="h-6 w-6" />
                           </div>
-                          <div className="flex-1">
+                          <div>
                             <h4 className="font-semibold text-sm mb-1">
                               Import from Website
                             </h4>
                             <p className="text-xs text-gray-600 leading-snug">
-                              Let AI analyze your site and extract branding, content, and contact info.
+                              Let AI analyze an existing website and extract branding, content, and contact info.
                             </p>
                           </div>
                         </div>
@@ -1076,18 +1223,46 @@ export default function DashboardSitesPage() {
                       onClick={() => setSourceMode('manual')}
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${
+                        <div className="flex flex-col items-center text-center gap-3">
+                          <div className={`p-3 rounded-lg ${
                             sourceMode === 'manual' ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-600'
                           }`}>
-                            <Sparkles className="h-5 w-5" />
+                            <Sparkles className="h-6 w-6" />
                           </div>
-                          <div className="flex-1">
+                          <div>
                             <h4 className="font-semibold text-sm mb-1">
                               Start from Scratch
                             </h4>
                             <p className="text-xs text-gray-600 leading-snug">
                               Provide business details manually and let AI generate a custom website.
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Duplicate Existing Site Card */}
+                    <Card
+                      className={`cursor-pointer transition-all ${
+                        sourceMode === 'duplicate'
+                          ? 'ring-2 ring-primary border-primary bg-primary/5'
+                          : 'hover:border-gray-400'
+                      }`}
+                      onClick={() => setSourceMode('duplicate')}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex flex-col items-center text-center gap-3">
+                          <div className={`p-3 rounded-lg ${
+                            sourceMode === 'duplicate' ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            <Copy className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-sm mb-1">
+                              Duplicate Existing Site
+                            </h4>
+                            <p className="text-xs text-gray-600 leading-snug">
+                              Create a copy of one of your existing sites with all content and settings.
                             </p>
                           </div>
                         </div>
@@ -1147,11 +1322,62 @@ export default function DashboardSitesPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Site Selection for Duplicate Mode */}
+                  {sourceMode === 'duplicate' && (
+                    <div className="space-y-3 mt-6 p-4 border rounded-lg bg-purple-50">
+                      <Label htmlFor="siteSelect" className="text-base font-semibold">
+                        Select Site to Duplicate
+                      </Label>
+                      <select
+                        id="siteSelect"
+                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                        value={selectedSiteForDuplicate || ''}
+                        onChange={(e) => setSelectedSiteForDuplicate(e.target.value || null)}
+                      >
+                        <option value="">Choose a site...</option>
+                        {sites.map((site) => (
+                          <option key={site.id} value={site.id}>
+                            {site.name} ({site.subdomain})
+                          </option>
+                        ))}
+                      </select>
+
+                      {selectedSiteForDuplicate && (
+                        <div className="bg-white border border-purple-200 rounded p-3 mt-3">
+                          <h5 className="text-sm font-semibold text-purple-900 mb-2">
+                            What will be copied:
+                          </h5>
+                          <ul className="text-xs text-purple-700 space-y-1">
+                            <li className="flex items-center gap-2">
+                              <CheckCircle2 className="h-3 w-3" />
+                              All content pages and their structure
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Products and categories
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Theme and design settings
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Navigation and menu structure
+                            </li>
+                          </ul>
+                          <p className="text-xs text-purple-600 mt-3 italic">
+                            Note: Analytics, user data, and site-specific settings will not be copied.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Step 1: Company Information */}
-              {step === 1 && (
+              {/* Step 1: Company Information (manual mode) or Duplicate Customization (duplicate mode) */}
+              {step === 1 && sourceMode === 'manual' && (
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Company Name *</Label>
@@ -1212,6 +1438,99 @@ export default function DashboardSitesPage() {
                     <p className="text-xs text-gray-500">
                       Only provide if you want it displayed on your contact page
                     </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 1: Duplicate Mode - Customization */}
+              {step === 1 && sourceMode === 'duplicate' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="duplicateName">New Site Name *</Label>
+                    <Input
+                      id="duplicateName"
+                      placeholder="My New Site"
+                      value={newSite.name}
+                      onChange={(e) => setNewSite({ ...newSite, name: e.target.value })}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Give your duplicated site a unique name
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="duplicateSubdomain">New Subdomain *</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="duplicateSubdomain"
+                        placeholder="my-new-site"
+                        value={newSite.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}
+                        onChange={(e) => {
+                          const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
+                          setNewSite({ ...newSite, name: value })
+                        }}
+                      />
+                      <span className="text-sm text-gray-500">
+                        .{typeof window !== 'undefined' ? window.location.host : 'localhost:3001'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      This will be your new site&apos;s URL
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">What to Copy</Label>
+                    <div className="space-y-2 p-4 border rounded-lg bg-gray-50">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="copyContent"
+                          checked={duplicateOptions.copyContent}
+                          onChange={(e) => setDuplicateOptions({ ...duplicateOptions, copyContent: e.target.checked })}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="copyContent" className="text-sm font-normal cursor-pointer">
+                          Copy all content pages
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="copyProducts"
+                          checked={duplicateOptions.copyProducts}
+                          onChange={(e) => setDuplicateOptions({ ...duplicateOptions, copyProducts: e.target.checked })}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="copyProducts" className="text-sm font-normal cursor-pointer">
+                          Copy products and categories
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="copyTheme"
+                          checked={duplicateOptions.copyTheme}
+                          onChange={(e) => setDuplicateOptions({ ...duplicateOptions, copyTheme: e.target.checked })}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="copyTheme" className="text-sm font-normal cursor-pointer">
+                          Copy theme and design settings
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="copyNavigation"
+                          checked={duplicateOptions.copyNavigation}
+                          onChange={(e) => setDuplicateOptions({ ...duplicateOptions, copyNavigation: e.target.checked })}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="copyNavigation" className="text-sm font-normal cursor-pointer">
+                          Copy navigation structure
+                        </Label>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1308,7 +1627,100 @@ export default function DashboardSitesPage() {
               {/* Step 3: Review */}
               {step === 3 && (
                 <div className="space-y-4">
-                  {sourceMode === 'scrape' ? (
+                  {sourceMode === 'duplicate' ? (
+                    /* Duplicate Mode Review */
+                    <>
+                      <div className="text-center mb-4">
+                        <h3 className="text-lg font-semibold">Ready to Duplicate!</h3>
+                        <p className="text-sm text-gray-500">
+                          Review the details before creating your duplicate site
+                        </p>
+                      </div>
+
+                      <Card className="p-6 space-y-4 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                        <div className="flex items-center justify-between gap-4">
+                          {/* Source Site */}
+                          <div className="flex-1">
+                            <div className="p-4 bg-white rounded-lg border border-purple-200">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Globe className="h-4 w-4 text-purple-600" />
+                                <span className="text-xs font-medium text-purple-700">SOURCE SITE</span>
+                              </div>
+                              <h4 className="font-semibold text-gray-900">
+                                {sites.find(s => s.id === selectedSiteForDuplicate)?.name || 'Unknown Site'}
+                              </h4>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {sites.find(s => s.id === selectedSiteForDuplicate)?.subdomain}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Arrow */}
+                          <div className="flex-shrink-0">
+                            <ArrowRight className="h-8 w-8 text-purple-400" />
+                          </div>
+
+                          {/* New Site */}
+                          <div className="flex-1">
+                            <div className="p-4 bg-white rounded-lg border border-purple-200">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Copy className="h-4 w-4 text-purple-600" />
+                                <span className="text-xs font-medium text-purple-700">NEW SITE</span>
+                              </div>
+                              <h4 className="font-semibold text-gray-900">{newSite.name}</h4>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {newSite.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-purple-200">
+                          <h5 className="text-sm font-semibold text-purple-900 mb-3">What will be copied:</h5>
+                          <div className="grid grid-cols-2 gap-2">
+                            {duplicateOptions.copyContent && (
+                              <div className="flex items-center gap-2 text-sm text-purple-800">
+                                <CheckCircle2 className="h-4 w-4 text-purple-600" />
+                                <span>Content pages</span>
+                              </div>
+                            )}
+                            {duplicateOptions.copyProducts && (
+                              <div className="flex items-center gap-2 text-sm text-purple-800">
+                                <CheckCircle2 className="h-4 w-4 text-purple-600" />
+                                <span>Products</span>
+                              </div>
+                            )}
+                            {duplicateOptions.copyTheme && (
+                              <div className="flex items-center gap-2 text-sm text-purple-800">
+                                <CheckCircle2 className="h-4 w-4 text-purple-600" />
+                                <span>Theme & design</span>
+                              </div>
+                            )}
+                            {duplicateOptions.copyNavigation && (
+                              <div className="flex items-center gap-2 text-sm text-purple-800">
+                                <CheckCircle2 className="h-4 w-4 text-purple-600" />
+                                <span>Navigation</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="h-5 w-5 text-purple-600 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm text-purple-900 font-medium mb-1">
+                              Quick & Efficient Duplication
+                            </p>
+                            <p className="text-xs text-purple-700">
+                              This creates an exact copy with a new subdomain. Analytics, user data, and site-specific settings will not be copied.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : sourceMode === 'scrape' ? (
                     /* Scraping Mode Review */
                     <>
                       <div className="text-center mb-4">
@@ -1510,11 +1922,20 @@ export default function DashboardSitesPage() {
                     </Button>
                   ) : (
                     <Button
-                      className="btn-gradient-primary"
+                      className={sourceMode === 'duplicate' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'btn-gradient-primary'}
                       onClick={generateSiteWithAI}
                     >
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Generate Website with AI
+                      {sourceMode === 'duplicate' ? (
+                        <>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Duplicate Site
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Generate Website with AI
+                        </>
+                      )}
                     </Button>
                   )}
                 </div>
