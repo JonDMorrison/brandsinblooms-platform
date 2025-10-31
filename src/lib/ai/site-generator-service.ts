@@ -950,7 +950,13 @@ Generate JSON in this format:
       },
       about,
       contact,
-      branding: foundation.branding,
+      branding: {
+        ...foundation.branding,
+        // Inject scraped typography if available (enhances LLM-generated branding)
+        ...(scrapedContext?.businessInfo?.typography && {
+          typography: scrapedContext.businessInfo.typography
+        })
+      },
       seo: foundation.seo,
       // Optional sections
       values: values || undefined,

@@ -181,42 +181,69 @@ export function preprocessHtmlForVision(html: string): string {
 
 /**
  * Extract key structural elements when HTML is too large
+ * Prioritizes sections critical for logo detection (header, nav, footer)
  */
 function extractKeyStructure($: CheerioAPI): string {
   const parts: string[] = [];
+  const maxSize = HTML_LIMITS.VISUAL_HTML_MAX_SIZE;
 
-  // Extract head styles and links
+  // Extract head styles and links (compact)
   const styleContent = $('head style').text();
   if (styleContent) {
-    parts.push(`<style>${styleContent.substring(0, 2000)}</style>`);
+    parts.push(`<style>${styleContent.substring(0, 1000)}</style>`);
   }
 
-  const fontLinks = $('head link[rel="stylesheet"], head link[href*="font"]');
+  const fontLinks = $('head link[rel="stylesheet"], head link[href*="font"]').slice(0, 3);
   fontLinks.each((_, el) => {
     parts.push($(el).toString());
   });
 
-  // Extract key body sections
-  const keySelectors = [
+  // PRIORITY 1: Header/Nav (critical for logo detection)
+  const criticalSelectors = [
     'header',
     'nav',
     '[role="banner"]',
     '[role="navigation"]',
     '.header',
-    '.navbar',
-    'main',
-    '[role="main"]',
-    '.hero',
-    '.banner',
-    'footer'
+    '.navbar'
   ];
 
-  keySelectors.forEach(selector => {
+  criticalSelectors.forEach(selector => {
     const element = $(selector).first();
     if (element.length) {
-      parts.push(element.toString());
+      const html = element.toString();
+      // Limit each section to 2KB to leave room for footer
+      parts.push(html.length > 2048 ? html.substring(0, 2048) + '...' : html);
     }
   });
+
+  // PRIORITY 2: Footer (critical for logo detection - often has logos)
+  const footer = $('footer').first();
+  if (footer.length) {
+    const html = footer.toString();
+    // Limit footer to 3KB
+    parts.push(html.length > 3072 ? html.substring(0, 3072) + '...' : html);
+  }
+
+  // PRIORITY 3: Main content sections (if space allows)
+  const currentSize = parts.join('\n').length;
+  if (currentSize < maxSize * 0.7) { // Only if we have 30% space left
+    const secondarySelectors = [
+      'main',
+      '[role="main"]',
+      '.hero',
+      '.banner'
+    ];
+
+    secondarySelectors.forEach(selector => {
+      const element = $(selector).first();
+      if (element.length && parts.join('\n').length < maxSize * 0.9) {
+        const html = element.toString();
+        // Limit each section to 1KB
+        parts.push(html.length > 1024 ? html.substring(0, 1024) + '...' : html);
+      }
+    });
+  }
 
   return parts.join('\n');
 }

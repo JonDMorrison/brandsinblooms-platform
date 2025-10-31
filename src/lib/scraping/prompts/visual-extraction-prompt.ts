@@ -35,6 +35,26 @@ Return a JSON object with this exact structure:
   "brandColors": ["#COLOR1", "#COLOR2", ...],
   "logoUrl": "url or null",
   "fonts": ["Font Family 1", "Font Family 2", ...],
+  "typography": {
+    "heading": {
+      "fontFamily": "Font Name",
+      "fontWeight": "700 or bold or 600",
+      "textColor": "#HEX",
+      "fontSize": "2rem or 32px"
+    },
+    "body": {
+      "fontFamily": "Font Name",
+      "fontWeight": "400 or normal",
+      "textColor": "#HEX",
+      "fontSize": "1rem or 16px",
+      "lineHeight": "1.5 or 24px"
+    },
+    "accent": {
+      "fontFamily": "Font Name (can be same as heading)",
+      "fontWeight": "500 or medium or 600",
+      "textColor": "#HEX (often a brand color)"
+    }
+  },
   "designTokens": {
     "spacing": {
       "values": ["0.5rem", "1rem", ...],
@@ -96,14 +116,34 @@ export function buildVisualExtractionPrompt(
   parts.push('- IGNORE: body text colors, subtle grays, pure white/black unless clearly brand colors');
   parts.push('');
   parts.push('PRIORITY 2: Logo');
-  parts.push('- Look for img tags in header/nav with "logo" in class/id/alt/src');
+  parts.push('- Look for img tags with "logo" in class/id/alt/src in these locations (in order):');
+  parts.push('  1. Header/navigation area (highest priority)');
+  parts.push('  2. Footer area (common fallback location)');
+  parts.push('  3. Any other prominent location');
   parts.push('- Prefer SVG or PNG logos over favicon');
+  parts.push('- If multiple logos found, prefer the one from header/nav over footer');
   parts.push('- Return the full URL to the logo image');
   parts.push('');
   parts.push('PRIORITY 3: Typography from Prominent Text');
-  parts.push('- Font families used in LARGE HEADINGS (h1, h2)');
-  parts.push('- Font families used in hero section');
-  parts.push('- Body text font (secondary priority)');
+  parts.push('Extract detailed typography for THREE text categories:');
+  parts.push('');
+  parts.push('3A. HEADING typography (h1, h2, large titles):');
+  parts.push('  - Font family name');
+  parts.push('  - Font weight (e.g., "700", "bold", "600")');
+  parts.push('  - Text color in hex format');
+  parts.push('  - Font size (e.g., "2rem", "32px", "2.5rem")');
+  parts.push('');
+  parts.push('3B. BODY typography (paragraphs, main text):');
+  parts.push('  - Font family name (may differ from heading)');
+  parts.push('  - Font weight (typically "400" or "normal")');
+  parts.push('  - Text color in hex format (usually darker/neutral)');
+  parts.push('  - Font size (e.g., "1rem", "16px")');
+  parts.push('  - Line height (e.g., "1.5", "24px")');
+  parts.push('');
+  parts.push('3C. ACCENT typography (buttons, links, emphasis):');
+  parts.push('  - Font family name (often matches heading)');
+  parts.push('  - Font weight (e.g., "500", "600", "medium")');
+  parts.push('  - Text color (often uses brand color)');
   parts.push('');
   parts.push('PRIORITY 4: Design Patterns');
   parts.push('- Spacing, border-radius, shadows from prominent UI elements');

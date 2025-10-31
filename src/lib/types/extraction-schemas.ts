@@ -20,6 +20,30 @@ export interface VisualBrandAnalysisResponse {
   logoUrl?: string;
   /** Primary font families detected (ordered by prominence) */
   fonts?: string[];
+  /** Typography styles for different text elements */
+  typography?: {
+    /** Heading typography (h1, h2, etc.) */
+    heading?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+      fontSize?: string;
+    };
+    /** Body text typography */
+    body?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+      fontSize?: string;
+      lineHeight?: string;
+    };
+    /** Accent/emphasis text typography */
+    accent?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+    };
+  };
   /** Design tokens extracted from visual inspection */
   designTokens?: {
     spacing?: {

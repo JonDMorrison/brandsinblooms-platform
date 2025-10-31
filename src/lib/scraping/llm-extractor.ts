@@ -444,6 +444,7 @@ function mergeExtractionResults(
     logoUrl: visual?.logoUrl,
     brandColors: visual?.brandColors || [],
     fonts: visual?.fonts,
+    typography: visual?.typography,
     designTokens: visual?.designTokens,
 
     // Content (from Phase 2B)

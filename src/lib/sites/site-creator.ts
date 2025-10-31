@@ -579,9 +579,26 @@ export async function createSiteFromGenerated(
         background: '#FFFFFF'
       },
       typography: {
-        headingFont: data.branding?.font_family?.split(',')[0]?.trim() || 'Inter',
-        bodyFont: data.branding?.font_family?.split(',')[1]?.trim() || 'Inter',
-        fontSize: 'medium'
+        // Use extracted typography or fall back to font_family
+        headingFont: data.branding?.typography?.heading?.fontFamily ||
+                     data.branding?.font_family?.split(',')[0]?.trim() ||
+                     'Inter',
+        bodyFont: data.branding?.typography?.body?.fontFamily ||
+                  data.branding?.font_family?.split(',')[1]?.trim() ||
+                  'Inter',
+        fontSize: 'medium',
+        // Add extracted font weights if available
+        headingWeight: data.branding?.typography?.heading?.fontWeight || '700',
+        bodyWeight: data.branding?.typography?.body?.fontWeight || '400',
+        // Add extracted text colors if available
+        headingColor: data.branding?.typography?.heading?.textColor,
+        bodyColor: data.branding?.typography?.body?.textColor,
+        // Add line height if available
+        bodyLineHeight: data.branding?.typography?.body?.lineHeight,
+        // Add accent typography if available
+        accentFont: data.branding?.typography?.accent?.fontFamily,
+        accentWeight: data.branding?.typography?.accent?.fontWeight,
+        accentColor: data.branding?.typography?.accent?.textColor
       },
       layout: {
         headerStyle: 'modern',

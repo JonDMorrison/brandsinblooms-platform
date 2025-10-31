@@ -22,6 +22,28 @@ export interface ExtractedBusinessInfo {
   // Detected font families (primary first)
   fonts?: string[];
 
+  // Typography styles for different text elements
+  typography?: {
+    heading?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+      fontSize?: string;
+    };
+    body?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+      fontSize?: string;
+      lineHeight?: string;
+    };
+    accent?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+    };
+  };
+
   // Design Tokens (NEW)
   designTokens?: {
     spacing?: {
