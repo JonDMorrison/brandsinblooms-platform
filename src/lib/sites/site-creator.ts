@@ -59,13 +59,24 @@ function createHomePageContent(data: GeneratedSiteData) {
           ctaLink: '/contact',
           secondaryCtaText: 'Care Guides',
           secondaryCtaLink: '/watering',
-          backgroundImage: data.hero.background_image || '/images/hero-greenhouse.jpg',
           features: data.features?.features?.map(f => f.title).slice(0, 4) || [
             'Expert horticultural guidance',
             'Premium plant selection',
             'Comprehensive care resources',
             'Local hardiness zone expertise'
           ]
+        },
+        settings: {
+          // Use scraped background image if available, otherwise use gradient
+          backgroundColor: data.hero.background_image ? 'image' : 'gradient',
+          ...(data.hero.background_image && {
+            backgroundImage: {
+              url: data.hero.background_image,
+              position: 'center',
+              opacity: 80,
+              scale: 100
+            }
+          })
         }
       },
       featured: {

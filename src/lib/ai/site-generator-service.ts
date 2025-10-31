@@ -941,7 +941,13 @@ Generate JSON in this format:
       site_name: foundation.site_name,
       tagline: foundation.tagline,
       description: foundation.description,
-      hero: foundation.hero,
+      hero: {
+        ...foundation.hero,
+        // Inject scraped background image if available (takes priority over LLM-generated description)
+        ...(scrapedContext?.businessInfo?.heroSection?.backgroundImage && {
+          background_image: scrapedContext.businessInfo.heroSection.backgroundImage
+        })
+      },
       about,
       contact,
       branding: foundation.branding,
