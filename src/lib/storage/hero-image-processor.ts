@@ -253,6 +253,7 @@ async function downloadImage(
  * @param buffer - Image data as Buffer
  * @param contentType - MIME type of the image
  * @param filePath - S3 file path (key)
+ * @param siteId - Site ID for presigned URL request
  * @param userId - User ID for metadata
  * @returns Public URL of the uploaded image
  */
@@ -260,15 +261,18 @@ async function uploadToS3(
   buffer: Buffer,
   contentType: string,
   filePath: string,
+  siteId: string,
   userId: string
 ): Promise<string> {
   console.log(`[HeroImageProcessor] Getting presigned URL for: ${filePath}`);
 
   // Get presigned URL from our API
   const presignedResult = await getPresignedUploadUrl({
+    key: filePath,
     fileName: filePath,
     contentType,
     contentLength: buffer.length,
+    siteId,
     metadata: {
       'original-source': 'ai-generation-hero',
       'processor': 'hero-image-processor',
@@ -361,7 +365,7 @@ export async function downloadAndUploadHeroImage(
     console.log(`[HERO IMAGE DOWNLOAD] Uploading to S3: ${filePath}`);
 
     // Upload to S3
-    const publicUrl = await uploadToS3(buffer, contentType, filePath, userId);
+    const publicUrl = await uploadToS3(buffer, contentType, filePath, siteId, userId);
     console.log(`[HERO IMAGE DOWNLOAD] ✅ Upload successful: ${publicUrl}`);
 
     return publicUrl;
