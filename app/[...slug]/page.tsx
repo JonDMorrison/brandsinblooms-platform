@@ -37,6 +37,7 @@ export default async function SitePage({ params }: SitePageProps) {
   const { siteId } = await getSiteHeaders()
 
   // Check if edit mode is active
+  // Note: Auto-enable logic runs in middleware before this page loads
   const editModeStatus = await getEditModeStatus()
 
   // Determine which page component to render based on path

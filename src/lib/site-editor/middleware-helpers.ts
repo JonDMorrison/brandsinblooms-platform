@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getSharedCookieDomain } from '@/lib/cookies/domain-config'
 
 const EDIT_MODE_COOKIE = 'x-site-edit-mode'
 const EDIT_SESSION_COOKIE = 'x-site-edit-session'
@@ -69,8 +70,19 @@ export function setEditModeHeaders(
  * Clear edit mode cookies on response
  */
 export function clearEditModeCookies(response: NextResponse): void {
-  response.cookies.delete(EDIT_MODE_COOKIE)
-  response.cookies.delete(EDIT_SESSION_COOKIE)
+  const cookieDomain = getSharedCookieDomain()
+
+  // Delete with domain to ensure cookies are cleared across subdomains
+  response.cookies.set(EDIT_MODE_COOKIE, '', {
+    domain: cookieDomain,
+    maxAge: 0,
+    path: '/'
+  })
+  response.cookies.set(EDIT_SESSION_COOKIE, '', {
+    domain: cookieDomain,
+    maxAge: 0,
+    path: '/'
+  })
 }
 
 /**

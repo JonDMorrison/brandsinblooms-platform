@@ -20,6 +20,8 @@ import {
   clearEditModeCookies,
   validateEditSessionForSite
 } from '@/src/lib/site-editor/middleware-helpers'
+import { getSharedCookieDomain } from '@/lib/cookies/domain-config'
+import { autoEnableEditModeInMiddleware } from '@/src/lib/site-editor/middleware-auto-enable'
 
 // Environment configuration
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
@@ -129,6 +131,10 @@ export async function middleware(request: NextRequest) {
 
     // Initialize Supabase client for middleware
     let supabaseResponse = NextResponse.next({ request })
+    const cookieDomain = getSharedCookieDomain()
+
+    console.log('🍪 [MIDDLEWARE] Initializing Supabase client with cookie domain:', cookieDomain)
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -142,9 +148,20 @@ export async function middleware(request: NextRequest) {
               request.cookies.set(name, value)
             )
             supabaseResponse = NextResponse.next({ request })
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(name, value, options)
-            )
+            cookiesToSet.forEach(({ name, value, options }) => {
+              // Override cookie domain to enable sharing across main app and customer subdomains
+              const cookieOptions = {
+                ...options,
+                domain: cookieDomain,
+              }
+              console.log('🍪 [MIDDLEWARE] Setting cookie:', {
+                name,
+                domain: cookieOptions.domain,
+                path: cookieOptions.path || '/',
+                sameSite: cookieOptions.sameSite
+              })
+              supabaseResponse.cookies.set(name, value, cookieOptions)
+            })
           },
         },
       }
@@ -161,6 +178,36 @@ export async function middleware(request: NextRequest) {
 
     // Get user for authentication checks
     const { data: { user } } = await supabase.auth.getUser()
+
+    // ALWAYS LOG authentication status (console.log always shows)
+    const allCookies = request.cookies.getAll()
+    const authCookies = allCookies.filter(c => c.name.startsWith('sb-'))
+
+    console.log('🔐 [MIDDLEWARE AUTH CHECK]', {
+      hostname,
+      pathname,
+      hasUser: !!user,
+      userId: user?.id || 'none',
+      userEmail: user?.email || 'none',
+      cookieCount: allCookies.length,
+      authCookies: authCookies.map(c => c.name),
+      allCookieNames: allCookies.map(c => c.name)
+    })
+
+    // Log what domain getSharedCookieDomain() returns
+    const expectedDomain = getSharedCookieDomain()
+    console.log('🍪 [COOKIE DOMAIN] Expected shared domain:', expectedDomain)
+
+    // Log authentication status (debug mode)
+    if (user) {
+      debug.middleware(`✅ User authenticated: ${user.id} (${user.email})`)
+      const authCookies = request.cookies.getAll().filter(c => c.name.startsWith('sb-'))
+      debug.middleware(`Auth cookies present: ${authCookies.map(c => `${c.name} (domain: ${c.value ? 'set' : 'unset'})`).join(', ')}`)
+    } else {
+      debug.middleware(`❌ No authenticated user`)
+      const allCookies = request.cookies.getAll()
+      debug.middleware(`Total cookies: ${allCookies.length}`)
+    }
 
     // Handle development environment
     if (isDevelopmentEnvironment(hostname)) {
@@ -201,6 +248,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // This is a site domain - resolve site and handle site-specific logic
+    console.log('🚀 [MIDDLEWARE] Calling handleSiteDomain for:', hostname)
     return await handleSiteDomain(request, supabase, supabaseResponse, hostname, start)
 
   } catch (error) {
@@ -265,7 +313,22 @@ function isDevelopmentEnvironment(hostname: string): boolean {
  * Checks if hostname is the main app domain
  */
 function isMainAppDomain(hostname: string): boolean {
-  return hostname === APP_DOMAIN || hostname.endsWith('.vercel.app') || hostname.endsWith('.railway.app')
+  // Extract domain without port from APP_DOMAIN
+  const appDomainWithoutPort = APP_DOMAIN.split(':')[0]
+
+  console.log('🔍 [isMainAppDomain] Checking:', {
+    hostname,
+    APP_DOMAIN,
+    appDomainWithoutPort,
+    isMatch: hostname === APP_DOMAIN || hostname === appDomainWithoutPort
+  })
+
+  return (
+    hostname === APP_DOMAIN ||
+    hostname === appDomainWithoutPort ||
+    hostname.endsWith('.vercel.app') ||
+    hostname.endsWith('.railway.app')
+  )
 }
 
 /**
@@ -318,10 +381,10 @@ function handleDevelopmentRequest(
   const url = request.nextUrl.clone()
   const pathname = url.pathname
   
-  // For subdomain.localhost, treat it as a site domain (not main app)
-  if (hostname.includes('.localhost')) {
+  // For subdomain.localhost or subdomain.local, treat it as a site domain (not main app)
+  if (hostname.includes('.localhost') || hostname.includes('.local')) {
     const subdomain = hostname.split('.')[0]
-    if (subdomain && subdomain !== 'localhost') {
+    if (subdomain && subdomain !== 'localhost' && subdomain !== 'blooms') {
       // Don't handle this as main app - let it fall through to site domain handling
       // This will trigger the site resolution logic
       response.cookies.set('x-dev-subdomain', subdomain, {
@@ -329,7 +392,7 @@ function handleDevelopmentRequest(
         maxAge: 60 * 60 * 24, // 1 day
       })
       response.headers.set('x-dev-subdomain', subdomain)
-      
+
       // Return null to indicate this should be handled as a site domain
       return null
     }
@@ -548,13 +611,22 @@ async function handleSiteDomain(
   hostname: string,
   start: number
 ): Promise<NextResponse> {
+  console.log('📍 [handleSiteDomain] ENTERED - hostname:', hostname)
+
   // Resolve site from hostname
+  console.log('🔍 [SITE RESOLUTION]', { hostname })
+  debug.middleware(`🔍 Resolving site for hostname: ${hostname}`)
   const siteResolution = resolveSiteFromHost(hostname)
-  
+
   if (!siteResolution.isValid) {
+    console.log('❌ [SITE RESOLUTION] Invalid hostname:', hostname)
+    debug.middleware(`❌ Invalid hostname: ${hostname}`)
     logDomainResolution(hostname, null, 'INVALID_HOSTNAME', Date.now() - start)
     return handleInvalidDomain(request, hostname)
   }
+
+  console.log('✅ [SITE RESOLUTION] Valid:', { type: siteResolution.type, value: siteResolution.value })
+  debug.middleware(`✅ Site resolution valid: type=${siteResolution.type}, value=${siteResolution.value}`)
 
   // Try to get site from cache first (Redis in production, memory in development)
   let site = null
@@ -630,8 +702,18 @@ async function handleSiteDomain(
     }
   }
 
+  // Log successful site resolution
+  console.log('🎯 [SITE FOUND]', {
+    siteName: site.name,
+    siteId: site.id,
+    subdomain: site.subdomain,
+    isPublished: site.is_published
+  })
+  debug.middleware(`🎯 Site found: ${site.name} (${site.id}) - subdomain: ${site.subdomain}, published: ${site.is_published}`)
+
   // Check if site is published (for non-authenticated users)
   if (!site.is_published) {
+    debug.middleware(`⚠️ Site is unpublished, checking user access...`)
     // Check if user is authenticated and has access to this site
     const { data: { user } } = await supabase.auth.getUser()
     
@@ -655,25 +737,63 @@ async function handleSiteDomain(
     }
   }
 
+  console.log('✅ [handleSiteDomain] Passed unpublished check, continuing...')
+
   // Apply multi-domain security if enabled
   if (ENABLE_SECURITY) {
+    console.log('🔒 [handleSiteDomain] Applying security checks...')
     const securityResult = await applyMultiDomainSecurity(request, site)
     if (!securityResult.success) {
+      console.log('❌ [handleSiteDomain] Security check failed, returning early')
       if (ENABLE_ANALYTICS) {
         await trackDomainResolution(hostname, site.id, 'SECURITY_VIOLATION', Date.now() - start)
       }
       return securityResult.response!
     }
     // Use the security-enhanced response
+    console.log('✅ [handleSiteDomain] Security passed, using enhanced response')
     var response = securityResult.response!
   } else {
     // Create standard response
+    console.log('ℹ️ [handleSiteDomain] Security disabled, creating standard response')
     var response = NextResponse.next({ request })
   }
-  
-  // Check for edit mode session
+
+  console.log('🎬 [handleSiteDomain] About to start auto-enable section...')
+
+  // AUTO-ENABLE EDIT MODE for authenticated users with permissions
+  // This enables seamless cross-domain authentication from dashboard to customer sites
+  console.log('🔧 [AUTO-ENABLE] Starting auto-enable check...')
   const editModeActive = isEditModeEnabled(request)
-  if (editModeActive) {
+  console.log('🔧 [AUTO-ENABLE] Edit mode currently active?', editModeActive)
+
+  if (!editModeActive) {
+    // Get user to check if they should have edit access
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    console.log('🔧 [AUTO-ENABLE] User check:', {
+      hasUser: !!currentUser,
+      userId: currentUser?.id || 'none',
+      siteId: site.id
+    })
+
+    if (currentUser) {
+      // User is authenticated but edit mode not active - try to auto-enable
+      console.log('🔧 [AUTO-ENABLE] Attempting to enable edit mode...')
+      debug.middleware(`[Auto Edit Mode] User ${currentUser.id} authenticated, attempting auto-enable for site ${site.id}`)
+      const enabled = await autoEnableEditModeInMiddleware(request, response, supabase, currentUser.id, site.id)
+      console.log('🔧 [AUTO-ENABLE] Result:', enabled ? '✅ SUCCESS' : '❌ FAILED')
+    } else {
+      console.log('🔧 [AUTO-ENABLE] ❌ No authenticated user, skipping')
+      debug.middleware(`[Auto Edit Mode] No authenticated user, skipping auto-enable`)
+    }
+  } else {
+    console.log('🔧 [AUTO-ENABLE] ℹ️ Already active, skipping')
+    debug.middleware(`[Auto Edit Mode] Edit mode already active, skipping auto-enable`)
+  }
+
+  // Check for edit mode session (may have just been set by auto-enable above)
+  const editModeNowActive = isEditModeEnabled(request) || response.cookies.get('x-site-edit-mode')?.value === 'true'
+  if (editModeNowActive) {
     const editValidation = validateEditSessionForSite(request, site.id)
 
     if (editValidation.valid && editValidation.session) {
@@ -681,14 +801,30 @@ async function handleSiteDomain(
       setEditModeHeaders(response, editValidation.session)
       debug.middleware(`Edit mode active for site ${site.id} by user ${editValidation.session.userId}`)
     } else {
-      // Invalid or expired edit session - clear cookies
-      clearEditModeCookies(response)
-      debug.middleware('Edit mode session invalid or expired, clearing cookies')
+      // Check if we just set it in the response (not yet in request)
+      const newEditSession = response.cookies.get('x-site-edit-session')?.value
+      if (newEditSession) {
+        try {
+          const session = JSON.parse(newEditSession)
+          setEditModeHeaders(response, session)
+          debug.middleware(`[Auto Edit Mode] Edit mode headers set from newly created session`)
+        } catch (error) {
+          debug.middleware(`Error parsing new edit session: ${error}`)
+          clearEditModeCookies(response)
+        }
+      } else {
+        // Invalid or expired edit session - clear cookies
+        clearEditModeCookies(response)
+        debug.middleware('Edit mode session invalid or expired, clearing cookies')
+      }
     }
   }
 
   // Set site context in cookies and headers for downstream use
+  const siteContextCookieDomain = getSharedCookieDomain()
+
   response.cookies.set('x-site-id', site.id, {
+    domain: siteContextCookieDomain,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -696,6 +832,7 @@ async function handleSiteDomain(
   })
 
   response.cookies.set('x-site-subdomain', site.subdomain, {
+    domain: siteContextCookieDomain,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -704,6 +841,7 @@ async function handleSiteDomain(
 
   if (site.custom_domain) {
     response.cookies.set('x-site-custom-domain', site.custom_domain, {
+      domain: siteContextCookieDomain,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

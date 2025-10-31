@@ -8,6 +8,7 @@
 
 import { createClient } from '@/src/lib/supabase/server'
 import { cookies } from 'next/headers'
+import { getSharedCookieDomain } from '@/lib/cookies/domain-config'
 
 const EDIT_MODE_COOKIE = 'x-site-edit-mode'
 const EDIT_SESSION_COOKIE = 'x-site-edit-session'
@@ -98,9 +99,12 @@ export async function setEditModeSession(
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
     }
 
-    // Set cookies
+    // Set cookies with shared domain for cross-subdomain access
     const cookieStore = await cookies()
+    const cookieDomain = getSharedCookieDomain()
+
     cookieStore.set(EDIT_MODE_COOKIE, 'true', {
+      domain: cookieDomain,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -109,6 +113,7 @@ export async function setEditModeSession(
     })
 
     cookieStore.set(EDIT_SESSION_COOKIE, JSON.stringify(session), {
+      domain: cookieDomain,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

@@ -166,7 +166,10 @@ export function SiteProvider({
       
       // Check if this is the main app domain - if so, don't try to resolve it as a site
       const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+      const appDomainWithoutPort = appDomain.split(':')[0]
+
       const isMainDomain = hostname === appDomain ||
+                          hostname === appDomainWithoutPort ||
                           hostname.endsWith('.vercel.app') ||
                           hostname.endsWith('.railway.app') ||
                           hostname === 'localhost'
@@ -174,6 +177,7 @@ export function SiteProvider({
       debug.site('resolveSiteFromUrl - Domain check:', {
         hostname,
         appDomain,
+        appDomainWithoutPort,
         isMainDomain,
         envDomain: process.env.NEXT_PUBLIC_APP_DOMAIN
       });
@@ -528,8 +532,12 @@ export function SiteProvider({
       // Check if we're on the main app domain
       const hostname = window.location.hostname
       const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+      // Strip port from appDomain for comparison
+      const appDomainWithoutPort = appDomain.split(':')[0]
+
       const isMainDomain = hostname === 'localhost' ||
                           hostname === appDomain ||
+                          hostname === appDomainWithoutPort ||
                           hostname.includes('staging') ||
                           hostname.endsWith('.vercel.app') ||
                           hostname.endsWith('.railway.app')
@@ -537,6 +545,7 @@ export function SiteProvider({
       debug.site('SiteProvider - Browser environment detected:', {
         hostname,
         appDomain,
+        appDomainWithoutPort,
         isMainDomain,
         currentUrl: window.location.href
       });
