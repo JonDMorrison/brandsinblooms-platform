@@ -218,11 +218,25 @@ function extractKeyStructure($: CheerioAPI): string {
   });
 
   // PRIORITY 2: Footer (critical for logo detection - often has logos)
-  const footer = $('footer').first();
-  if (footer.length) {
-    const html = footer.toString();
-    // Limit footer to 3KB
-    parts.push(html.length > 3072 ? html.substring(0, 3072) + '...' : html);
+  const footerSelectors = [
+    'footer',
+    '[role="contentinfo"]',
+    '.footer',
+    '.footer-wrapper',
+    '.site-footer'
+  ];
+
+  // Find first matching footer element
+  let footerFound = false;
+  for (const selector of footerSelectors) {
+    const footer = $(selector).first();
+    if (footer.length) {
+      const html = footer.toString();
+      // Limit footer to 3KB
+      parts.push(html.length > 3072 ? html.substring(0, 3072) + '...' : html);
+      footerFound = true;
+      break; // Only include one footer
+    }
   }
 
   // PRIORITY 3: Main content sections (if space allows)
