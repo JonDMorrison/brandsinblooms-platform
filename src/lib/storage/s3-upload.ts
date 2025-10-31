@@ -221,15 +221,34 @@ export async function getPresignedUploadUrl(
       throw new Error(`Failed to get presigned URL: ${response.statusText}`);
     }
 
-    const result = await response.json();
+    // Parse JSON response with error handling
+    let result;
+    try {
+      result = await response.json();
+    } catch (jsonError) {
+      // JSON parsing failed - get the raw response body
+      const rawBody = await response.text();
+      console.error('[S3 Upload] Failed to parse JSON response:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType: response.headers.get('content-type'),
+        bodyPreview: rawBody.substring(0, 500),
+        jsonError: jsonError instanceof Error ? jsonError.message : String(jsonError),
+      });
+      throw new Error(`Failed to parse presigned URL response: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`);
+    }
 
-    if (!result.success) {
-      console.error('[S3 Upload] Presigned URL API returned error:', {
+    if (!result.success || !result.data?.uploadUrl || !result.data?.publicUrl) {
+      console.error('[S3 Upload] Presigned URL API returned invalid data:', {
+        success: result.success,
+        hasData: !!result.data,
+        hasUploadUrl: !!result.data?.uploadUrl,
+        hasPublicUrl: !!result.data?.publicUrl,
         error: result.error,
         code: result.code,
         fullResponse: result,
       });
-      throw new Error(result.error || 'Failed to generate presigned URL');
+      throw new Error(result.error || 'Invalid response from presigned URL API');
     }
 
     return {
@@ -237,7 +256,7 @@ export async function getPresignedUploadUrl(
       data: {
         uploadUrl: result.data.uploadUrl,
         fields: result.data.fields || {},
-        url: result.data.publicUrl || result.data.url,
+        url: result.data.publicUrl,
         cdnUrl: result.data.cdnUrl,
       },
     };
