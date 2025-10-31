@@ -5,11 +5,13 @@ import dynamic from 'next/dynamic'
 import { Card, CardContent } from '@/src/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { Button } from '@/src/components/ui/button'
-import { Palette, Type, Layout, Eye, X } from 'lucide-react'
+import { Palette, Type, Layout, Eye } from 'lucide-react'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { useDesignSettings, useUpdateDesignSettings } from '@/src/hooks/useDesignSettings'
 import { useDebounceCallback } from '@/src/hooks/useDebounce'
 import { ThemeSettings } from '@/src/lib/queries/domains/theme'
+import { useSite } from '@/src/hooks/useSite'
+import { getCustomerSiteFullUrl } from '@/src/lib/site/url-utils'
 
 // Dynamic imports for design components with loading states and lazy loading
 const ColorCustomization = dynamic(
@@ -40,13 +42,6 @@ const FooterCustomization = dynamic(
     ssr: false
   }
 )
-const DesignPreview = dynamic(
-  () => import('@/src/components/design/DesignPreview').then(mod => mod.DesignPreview),
-  {
-    loading: () => <Skeleton className="h-[600px] w-full" />,
-    ssr: false
-  }
-)
 
 function DesignPageSkeleton() {
   return (
@@ -64,11 +59,11 @@ function DesignPageSkeleton() {
 export default function DesignPage() {
   const { data: designSettings, loading: isLoading } = useDesignSettings()
   const { mutate: updateSettings } = useUpdateDesignSettings()
-  
+  const { site } = useSite()
+
   // Local state for immediate UI updates
   const [localSettings, setLocalSettings] = useState<ThemeSettings | null>(null)
   const [activeTab, setActiveTab] = useState<string>('colors')
-  const [previewMode, setPreviewMode] = useState<boolean>(false)
   
   // Debounced save to database (1 second delay)
   const debouncedSave = useDebounceCallback((settings: ThemeSettings) => {
@@ -131,16 +126,19 @@ export default function DesignPage() {
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <Button
-            onClick={() => setPreviewMode(!previewMode)}
+            onClick={() => {
+              if (site) {
+                window.open(getCustomerSiteFullUrl(site), '_blank')
+              }
+            }}
+            disabled={!site}
             className="flex items-center gap-2 text-white w-full sm:w-auto"
             style={{
               background: 'linear-gradient(135deg, hsl(152 45% 40%) 0%, hsl(145 35% 60%) 100%)'
             }}
           >
             <Eye className="h-4 w-4" />
-            <span className="sm:inline">
-              {previewMode ? 'Close' : 'View Site'}
-            </span>
+            <span className="sm:inline">View Site</span>
           </Button>
         </div>
       </div>
@@ -224,39 +222,6 @@ export default function DesignPage() {
           </Tabs>
         </CardContent>
       </Card>
-
-      {/* Live Preview Modal/Panel */}
-      {previewMode && (
-        <div className="fixed inset-0 z-50 bg-black/50 overflow-auto">
-          <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
-            <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] flex flex-col my-2 sm:my-4">
-              <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
-                <h2 className="text-base sm:text-lg font-semibold">Design Preview</h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setPreviewMode(false)}
-                  className="h-8 w-8 sm:h-10 sm:w-10"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex-1 overflow-hidden relative bg-white flex items-center justify-center">
-                <Suspense fallback={
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <Eye className="h-8 w-8 animate-pulse text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Loading preview...</p>
-                    </div>
-                  </div>
-                }>
-                  <DesignPreview settings={localSettings} className="h-full w-full border-0 shadow-none" />
-                </Suspense>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -1,8 +1,7 @@
 'use client'
 
-import React, { useMemo, useState, Suspense } from 'react'
+import React, { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import {
@@ -13,7 +12,6 @@ import {
   Plus,
   Palette,
   ArrowUpRight,
-  X,
 } from 'lucide-react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useSite } from '@/src/hooks/useSite'
@@ -21,19 +19,10 @@ import { useDashboardMetrics, useSiteStats } from '@/src/hooks/useStats'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { DashboardStats, type DashboardStat } from '@/src/components/DashboardStats'
 import { debug } from '@/src/lib/utils/debug'
-import { useDesignSettings } from '@/src/hooks/useDesignSettings'
+import { getCustomerSiteFullUrl } from '@/src/lib/site/url-utils'
 
 // Import MetricsChart for actual data visualization
 import { MetricsChart } from '@/src/components/charts/MetricsChart'
-
-// Dynamic import for DesignPreview
-const DesignPreview = dynamic(
-  () => import('@/src/components/design/DesignPreview').then(mod => mod.DesignPreview),
-  {
-    loading: () => <Skeleton className="h-[600px] w-full" />,
-    ssr: false
-  }
-)
 
 // const ActivityFeed = dynamic(
 //   () => import('@/src/components/ActivityFeed').then(mod => mod.ActivityFeed),
@@ -119,8 +108,6 @@ export default function DashboardPage() {
   const { site: currentSite, loading: siteLoading } = useSite()
   const { data: siteStats, loading: statsLoading } = useSiteStats()
   const { data: metrics, loading: metricsLoading } = useDashboardMetrics()
-  const { data: designSettings } = useDesignSettings()
-  const [previewMode, setPreviewMode] = useState<boolean>(false)
 
   debug.dashboard('Dashboard page render:', {
     user: !!user,
@@ -221,12 +208,17 @@ export default function DashboardPage() {
           </p>
         </div>
         <Button
-          onClick={() => setPreviewMode(!previewMode)}
+          onClick={() => {
+            if (currentSite) {
+              window.open(getCustomerSiteFullUrl(currentSite), '_blank')
+            }
+          }}
+          disabled={!currentSite}
           className="flex items-center gap-2 w-full sm:w-auto"
           variant="outline"
         >
           <Eye className="h-4 w-4" />
-          <span>{previewMode ? 'Close' : 'View Site'}</span>
+          <span>View Site</span>
         </Button>
       </div>
 
@@ -287,38 +279,6 @@ export default function DashboardPage() {
         <ActivityFeed />
         <PerformanceMetrics />
       </div> */}
-
-      {/* Site Preview Modal */}
-      {previewMode && designSettings && (
-        <div className="fixed inset-0 z-50 bg-black/50 overflow-auto">
-          <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
-            <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] flex flex-col my-2 sm:my-4">
-              <div className="flex items-center justify-end p-3 sm:p-4 border-b flex-shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setPreviewMode(false)}
-                  className="h-8 w-8 sm:h-10 sm:w-10"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex-1 overflow-hidden relative bg-white flex items-center justify-center">
-                <Suspense fallback={
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <Eye className="h-8 w-8 animate-pulse text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Loading preview...</p>
-                    </div>
-                  </div>
-                }>
-                  <DesignPreview settings={designSettings} className="h-full w-full border-0 shadow-none" />
-                </Suspense>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
