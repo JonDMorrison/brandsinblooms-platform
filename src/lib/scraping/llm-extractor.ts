@@ -15,6 +15,7 @@ import { handleError } from '@/lib/types/error-handling';
 import {
   preprocessHtmlForVision,
   preprocessHtmlForText,
+  preprocessHtmlForImageExtraction,
   extractFavicon
 } from './preprocessors/html-preprocessor';
 import {
@@ -34,6 +35,10 @@ import {
   buildSocialProofExtractionPrompt
 } from './prompts/social-proof-extraction-prompt';
 import {
+  IMAGE_EXTRACTION_SYSTEM_PROMPT,
+  buildImageExtractionPrompt
+} from './prompts/image-extraction-prompt';
+import {
   EXTRACTION_MODELS,
   PHASE1_OPTIONS,
   PHASE2_OPTIONS,
@@ -45,12 +50,14 @@ import type {
   ContactExtractionResponse,
   ContentExtractionResponse,
   SocialProofExtractionResponse,
+  ImageExtractionResponse,
   ExtractionMetadata
 } from '@/lib/types/extraction-schemas';
 import {
   hasMinimumBrandData,
   hasMinimumContactData,
-  hasMinimumContentData
+  hasMinimumContentData,
+  hasMinimumImageData
 } from '@/lib/types/extraction-schemas';
 
 /**
@@ -72,6 +79,7 @@ export async function extractBusinessInfoWithLLM(
     phase2aComplete: false,
     phase2bComplete: false,
     phase2cComplete: false,
+    phase2dComplete: false,
     success: false,
     usedFallback: false,
     errors: [],
@@ -79,14 +87,22 @@ export async function extractBusinessInfoWithLLM(
   };
 
   try {
-    // Preprocess HTML for both phases
+    // Preprocess HTML for all phases
     const visualHtml = preprocessHtmlForVision(html);
-    const textHtml = preprocessHtmlForText(html, baseUrl);  // Pass baseUrl for hero image URL resolution
+    const textHtml = preprocessHtmlForText(html, baseUrl);
+    const imageHtml = preprocessHtmlForImageExtraction(html);  // LLM-first: raw HTML structure for image extraction
 
     if (EXTRACTION_FLAGS.LOG_METRICS) {
       console.log('[LLM Extraction] Preprocessed HTML:');
       console.log(`  Visual HTML: ${visualHtml.length} bytes`);
       console.log(`  Text HTML: ${textHtml.length} bytes`);
+      console.log(`  Image HTML: ${imageHtml.length} bytes`);
+
+      // Verify image HTML contains HTML structure, not pre-extracted URLs
+      console.log('[LLM Extraction] Image HTML verification:');
+      console.log(`  Contains HTML tags: ${imageHtml.includes('<div') || imageHtml.includes('<section')}`);
+      console.log(`  Contains style attrs: ${imageHtml.includes('style=')}`);
+      console.log(`  Contains pre-extracted URLs: ${imageHtml.includes('HERO_IMAGE_')}`);  // Should be FALSE
     }
 
     // Phase 1: Visual brand analysis
@@ -107,17 +123,19 @@ export async function extractBusinessInfoWithLLM(
       console.warn(`[LLM Extraction] Phase 1 failed: ${errorInfo.message}`);
     }
 
-    // Phase 2: Parallel text extraction
+    // Phase 2: Parallel extraction
     const phase2Results = await Promise.allSettled([
-      extractContactInfo(textHtml, baseUrl),
-      extractContentStructure(textHtml, baseUrl),
-      extractSocialProof(textHtml, baseUrl)
+      extractContactInfo(textHtml, baseUrl),      // 2A: Contact info from text
+      extractContentStructure(textHtml, baseUrl), // 2B: Content structure from text
+      extractSocialProof(textHtml, baseUrl),      // 2C: Social proof from text
+      extractImages(imageHtml, baseUrl)           // 2D: Images from HTML structure (LLM-first)
     ]);
 
     // Extract results from Phase 2
     let contactData: ContactExtractionResponse | undefined;
     let contentData: ContentExtractionResponse | undefined;
     let socialProofData: SocialProofExtractionResponse | undefined;
+    let imageData: ImageExtractionResponse | undefined;
 
     // Phase 2A: Contact info
     if (phase2Results[0].status === 'fulfilled') {
@@ -170,12 +188,35 @@ export async function extractBusinessInfoWithLLM(
       console.warn(`[LLM Extraction] Phase 2C failed: ${errorInfo.message}`);
     }
 
+    // Phase 2D: Image extraction
+    if (phase2Results[3].status === 'fulfilled') {
+      imageData = phase2Results[3].value;
+      metadata.phase2dComplete = true;
+
+      if (EXTRACTION_FLAGS.LOG_METRICS) {
+        console.log('[LLM Extraction] Phase 2D complete:');
+        console.log(`  Images found: ${imageData?.images.length || 0}`);
+
+        const heroImages = imageData?.images.filter(img => img.type === 'hero') || [];
+        if (heroImages.length > 0) {
+          console.log(`  Hero images: ${heroImages.length}`);
+        }
+
+        console.log(`  Confidence: ${imageData?.confidence || 0}`);
+      }
+    } else {
+      const errorInfo = handleError(phase2Results[3].reason);
+      metadata.errors?.push(`Phase 2D failed: ${errorInfo.message}`);
+      console.warn(`[LLM Extraction] Phase 2D failed: ${errorInfo.message}`);
+    }
+
     // Merge results
     const result = mergeExtractionResults(
       visualData,
       contactData,
       contentData,
       socialProofData,
+      imageData,
       baseUrl
     );
 
@@ -333,6 +374,51 @@ async function extractSocialProof(
 }
 
 /**
+ * Phase 2D: Extract images with categorization
+ */
+async function extractImages(
+  imageHtml: string,
+  baseUrl: string
+): Promise<ImageExtractionResponse | undefined> {
+  try {
+    // Verify we're receiving HTML structure, not pre-extracted text
+    if (EXTRACTION_FLAGS.LOG_METRICS) {
+      console.log('[LLM Extraction] Phase 2D input verification:');
+      console.log(`  Input length: ${imageHtml.length} bytes`);
+      console.log(`  Contains HTML tags: ${imageHtml.includes('<div') || imageHtml.includes('<section') || imageHtml.includes('<header')}`);
+      console.log(`  Contains style attrs: ${imageHtml.includes('style=')}`);
+      console.log(`  Contains pre-extracted URLs: ${imageHtml.includes('HERO_IMAGE_')}`);
+      console.log(`  First 200 chars: ${imageHtml.substring(0, 200)}`);
+    }
+
+    const userPrompt = buildImageExtractionPrompt(imageHtml, baseUrl);
+
+    if (EXTRACTION_FLAGS.LOG_PROMPTS) {
+      console.log('[LLM Extraction] Phase 2D prompt:', userPrompt.substring(0, 500));
+    }
+
+    const response = await generateWithOpenRouter<ImageExtractionResponse>(
+      userPrompt,
+      IMAGE_EXTRACTION_SYSTEM_PROMPT,
+      PHASE2_OPTIONS,
+      EXTRACTION_MODELS.TEXT
+    );
+
+    // Validate response has minimum image data
+    if (!hasMinimumImageData(response.content)) {
+      console.warn('[LLM Extraction] Phase 2D returned insufficient image data');
+      return undefined;
+    }
+
+    return response.content;
+  } catch (error: unknown) {
+    const errorInfo = handleError(error);
+    console.error('[LLM Extraction] Phase 2D extraction error:', errorInfo.message);
+    return undefined;
+  }
+}
+
+/**
  * Merge extraction results into ExtractedBusinessInfo format
  */
 function mergeExtractionResults(
@@ -340,9 +426,10 @@ function mergeExtractionResults(
   contact?: ContactExtractionResponse,
   content?: ContentExtractionResponse,
   socialProof?: SocialProofExtractionResponse,
+  images?: ImageExtractionResponse,
   baseUrl?: string
 ): ExtractedBusinessInfo {
-  return {
+  const result: ExtractedBusinessInfo = {
     // Contact information (from Phase 2A)
     emails: contact?.emails || [],
     phones: contact?.phones || [],
@@ -357,6 +444,7 @@ function mergeExtractionResults(
     logoUrl: visual?.logoUrl,
     brandColors: visual?.brandColors || [],
     fonts: visual?.fonts,
+    typography: visual?.typography,
     designTokens: visual?.designTokens,
 
     // Content (from Phase 2B)
@@ -377,6 +465,47 @@ function mergeExtractionResults(
     // Structured content (from Phase 2C)
     structuredContent: socialProof?.structuredContent
   };
+
+  // Process image extraction results (Phase 2D)
+  if (images && images.images.length > 0) {
+    const heroImages = images.images.filter(img => img.type === 'hero');
+    const galleryImages = images.images.filter(img => img.type === 'gallery');
+
+    // Update hero section with hero images
+    if (heroImages.length > 0) {
+      if (!result.heroSection) {
+        result.heroSection = {};
+      }
+
+      // Set primary hero background image (prefer highest confidence or first)
+      const primaryHero = heroImages.sort((a, b) => b.confidence - a.confidence)[0];
+      result.heroSection.backgroundImage = primaryHero.url;
+
+      // Store all hero images for potential use
+      result.heroImages = heroImages.map(img => ({
+        url: img.url,
+        context: img.context,
+        alt: img.alt,
+        dimensions: img.dimensions,
+        confidence: img.confidence
+      }));
+    }
+
+    // Store gallery images if found
+    if (galleryImages.length > 0) {
+      result.galleries = [{
+        type: 'grid' as const,
+        images: galleryImages.map(img => ({
+          url: img.url,
+          alt: img.alt,
+          width: img.dimensions?.width,
+          height: img.dimensions?.height
+        }))
+      }];
+    }
+  }
+
+  return result;
 }
 
 /**

@@ -22,6 +22,28 @@ export interface ExtractedBusinessInfo {
   // Detected font families (primary first)
   fonts?: string[];
 
+  // Typography styles for different text elements
+  typography?: {
+    heading?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+      fontSize?: string;
+    };
+    body?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+      fontSize?: string;
+      lineHeight?: string;
+    };
+    accent?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+    };
+  };
+
   // Design Tokens (NEW)
   designTokens?: {
     spacing?: {
@@ -47,6 +69,15 @@ export interface ExtractedBusinessInfo {
     ctaLink?: string;
     backgroundImage?: string;
   };
+
+  // Hero images extracted by LLM (Phase 2D)
+  heroImages?: Array<{
+    url: string;
+    context: string;
+    alt?: string;
+    dimensions?: { width: number; height: number };
+    confidence: number;
+  }>;
 
   // Gallery Data
   galleries?: Array<{

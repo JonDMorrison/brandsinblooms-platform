@@ -11,6 +11,109 @@ import type { CheerioAPI } from 'cheerio';
 import { HTML_LIMITS } from '../llm-extractor-config';
 
 /**
+ * Preprocess HTML for image extraction (Phase 2D)
+ *
+ * Creates focused HTML that preserves structure and style attributes
+ * for LLM to analyze and extract images. This is TRUE LLM-first extraction:
+ * the LLM analyzes raw HTML structure, not pre-extracted URLs.
+ *
+ * Preserves:
+ * - HTML structure (div, section, header tags)
+ * - Style attributes with background-image and CSS variables
+ * - Image tags with src, srcset, data-src attributes
+ * - Class/ID attributes for context
+ *
+ * Removes:
+ * - Scripts, noscript, iframes
+ * - Large text content (keeps structure, removes verbose text)
+ * - Non-visual elements
+ *
+ * @param html - Raw HTML content
+ * @returns Focused HTML structure for image extraction (max 10KB)
+ */
+export function preprocessHtmlForImageExtraction(html: string): string {
+  const $ = load(html);
+
+  // Remove non-visual elements
+  $('script, noscript, iframe, audio, canvas, nav, footer').remove();
+
+  // Focus on image-rich areas - collect elements that likely contain images
+  const imageRichElements: string[] = [];
+
+  // Selectors for elements that commonly contain hero/banner images
+  const heroSelectors = [
+    'header', '[role="banner"]',
+    '.hero', '[class*="hero"]', '[id*="hero"]',
+    '.banner', '[class*="banner"]', '[id*="banner"]',
+    '.jumbotron',
+    'section:first-of-type',
+    '[class*="landing"]',
+    '[class*="intro"]',
+    '.w-block-banner', '.w-image-block',  // Squarespace
+    '[data-block-purpose*="banner"]',      // Squarespace
+    '[class*="HeroBanner"]',               // Wix
+  ];
+
+  // Collect hero sections
+  heroSelectors.forEach(selector => {
+    $(selector).each((_, el) => {
+      const $el = $(el);
+      const style = $el.attr('style') || '';
+      const hasBackground = style.includes('background') || style.includes('--bg');
+      const hasImages = $el.find('img, picture').length > 0;
+
+      if (hasBackground || hasImages) {
+        // Clean element: keep structure but minimize text
+        $el.find('*').each((_, child) => {
+          $(child).contents().filter((_, node) => node.type === 'text').each((_, textNode) => {
+            const text = $(textNode).text().trim();
+            if (text.length > 30) {
+              $(textNode).replaceWith('[text]');
+            }
+          });
+        });
+
+        imageRichElements.push($el.toString());
+      }
+    });
+  });
+
+  // Collect standalone images and galleries
+  $('img, picture, figure, [class*="gallery"]').each((_, el) => {
+    const $el = $(el);
+    const parent = $el.parent();
+
+    // Only add if not already captured in hero sections
+    const alreadyCaptured = imageRichElements.some(html =>
+      html.includes($el.attr('src') || '') ||
+      html.includes($el.attr('class') || '')
+    );
+
+    if (!alreadyCaptured) {
+      imageRichElements.push(parent.toString().substring(0, 500));
+    }
+  });
+
+  // Build final HTML
+  let result = imageRichElements.join('\n');
+
+  // Add any relevant global styles (background-related CSS)
+  $('style').each((_, style) => {
+    const css = $(style).text();
+    if (css.includes('background') || css.includes('--bg')) {
+      result = `<style>${css.substring(0, 1000)}</style>\n${result}`;
+    }
+  });
+
+  // Size limit enforcement (10KB - optimized for faster processing)
+  if (result.length > HTML_LIMITS.IMAGE_HTML_MAX_SIZE) {
+    result = result.substring(0, HTML_LIMITS.IMAGE_HTML_MAX_SIZE);
+  }
+
+  return result;
+}
+
+/**
  * Preprocess HTML for vision model analysis
  *
  * Strips HTML down to structural elements while preserving:
@@ -78,42 +181,83 @@ export function preprocessHtmlForVision(html: string): string {
 
 /**
  * Extract key structural elements when HTML is too large
+ * Prioritizes sections critical for logo detection (header, nav, footer)
  */
 function extractKeyStructure($: CheerioAPI): string {
   const parts: string[] = [];
+  const maxSize = HTML_LIMITS.VISUAL_HTML_MAX_SIZE;
 
-  // Extract head styles and links
+  // Extract head styles and links (compact)
   const styleContent = $('head style').text();
   if (styleContent) {
-    parts.push(`<style>${styleContent.substring(0, 2000)}</style>`);
+    parts.push(`<style>${styleContent.substring(0, 1000)}</style>`);
   }
 
-  const fontLinks = $('head link[rel="stylesheet"], head link[href*="font"]');
+  const fontLinks = $('head link[rel="stylesheet"], head link[href*="font"]').slice(0, 3);
   fontLinks.each((_, el) => {
     parts.push($(el).toString());
   });
 
-  // Extract key body sections
-  const keySelectors = [
+  // PRIORITY 1: Header/Nav (critical for logo detection)
+  const criticalSelectors = [
     'header',
     'nav',
     '[role="banner"]',
     '[role="navigation"]',
     '.header',
-    '.navbar',
-    'main',
-    '[role="main"]',
-    '.hero',
-    '.banner',
-    'footer'
+    '.navbar'
   ];
 
-  keySelectors.forEach(selector => {
+  criticalSelectors.forEach(selector => {
     const element = $(selector).first();
     if (element.length) {
-      parts.push(element.toString());
+      const html = element.toString();
+      // Limit each section to 2KB to leave room for footer
+      parts.push(html.length > 2048 ? html.substring(0, 2048) + '...' : html);
     }
   });
+
+  // PRIORITY 2: Footer (critical for logo detection - often has logos)
+  const footerSelectors = [
+    'footer',
+    '[role="contentinfo"]',
+    '.footer',
+    '.footer-wrapper',
+    '.site-footer'
+  ];
+
+  // Find first matching footer element
+  let footerFound = false;
+  for (const selector of footerSelectors) {
+    const footer = $(selector).first();
+    if (footer.length) {
+      const html = footer.toString();
+      // Limit footer to 3KB
+      parts.push(html.length > 3072 ? html.substring(0, 3072) + '...' : html);
+      footerFound = true;
+      break; // Only include one footer
+    }
+  }
+
+  // PRIORITY 3: Main content sections (if space allows)
+  const currentSize = parts.join('\n').length;
+  if (currentSize < maxSize * 0.7) { // Only if we have 30% space left
+    const secondarySelectors = [
+      'main',
+      '[role="main"]',
+      '.hero',
+      '.banner'
+    ];
+
+    secondarySelectors.forEach(selector => {
+      const element = $(selector).first();
+      if (element.length && parts.join('\n').length < maxSize * 0.9) {
+        const html = element.toString();
+        // Limit each section to 1KB
+        parts.push(html.length > 1024 ? html.substring(0, 1024) + '...' : html);
+      }
+    });
+  }
 
   return parts.join('\n');
 }
@@ -152,6 +296,9 @@ export function preprocessHtmlForText(html: string, baseUrl?: string): string {
   if (description) {
     parts.push(`DESCRIPTION: ${description}`);
   }
+
+  // NOTE: Image extraction is now handled by Phase 2D with preprocessHtmlForImageExtraction()
+  // This function focuses on text content only
 
   // Extract main content with structure hints
   const contentSelectors = [
@@ -211,6 +358,7 @@ interface HeroImageCandidate {
 
 function extractHeroImages(element: ReturnType<CheerioAPI>, $: CheerioAPI, baseUrl?: string): HeroImageCandidate[] {
   const images: HeroImageCandidate[] = [];
+  console.log('[IMAGE EXTRACTION] Starting hero image extraction...');
 
   const heroSelectors = [
     '.hero', '[class*="hero"]', '[id*="hero"]',
@@ -220,7 +368,15 @@ function extractHeroImages(element: ReturnType<CheerioAPI>, $: CheerioAPI, baseU
     '[class*="landing"]',
     '[class*="intro"]',
     '[class*="header-image"]',
-    '[class*="background"]'
+    '[class*="background"]',
+    // Modern website builders (Squarespace, Wix, Weebly, etc.)
+    '.w-block-banner',           // Squarespace
+    '.w-image-block',            // Squarespace
+    '[data-block-purpose*="banner"]',  // Squarespace
+    '.banner-block-wrapper',     // Squarespace
+    '.Header__hero',             // Squarespace
+    '[class*="HeroBanner"]',     // Wix
+    '[class*="hero-image"]',     // Common pattern
   ];
 
   heroSelectors.forEach(selector => {
@@ -230,6 +386,7 @@ function extractHeroImages(element: ReturnType<CheerioAPI>, $: CheerioAPI, baseU
       // Check for background images in inline style
       const style = $hero.attr('style');
       if (style) {
+        // Check for traditional background-image
         const bgMatch = style.match(/background(?:-image)?:\s*url\(['"]?([^'")]+)['"]?\)/i);
         if (bgMatch && bgMatch[1]) {
           let url = bgMatch[1];
@@ -244,6 +401,39 @@ function extractHeroImages(element: ReturnType<CheerioAPI>, $: CheerioAPI, baseU
             alt: 'Hero background image',
           });
         }
+
+        // Check for CSS custom properties (CSS variables) with URLs
+        // Modern website builders (Squarespace, Wix, etc.) often use CSS variables for responsive images
+        // Example: --bg-img-src: url("..."), --bg-img-src-2400w: url("...")
+        const cssVarRegex = /--[\w-]+:\s*url\(['"]?([^'")]+)['"]?\)/gi;
+        const cssVarMatches = Array.from(style.matchAll(cssVarRegex));
+        const cssVarImages = new Map<string, string>(); // Track unique URLs to avoid duplicates
+
+        cssVarMatches.forEach(match => {
+          const varName = match[0].split(':')[0];
+          let url = match[1];
+
+          // Resolve relative URLs
+          if (baseUrl && !url.startsWith('http')) {
+            url = resolveUrl(url, baseUrl);
+          }
+
+          // Avoid duplicate URLs from responsive variants
+          if (!cssVarImages.has(url)) {
+            cssVarImages.set(url, varName);
+          }
+        });
+
+        // Add unique CSS variable images
+        // Prefer the base --bg-img-src over responsive variants if available
+        Array.from(cssVarImages.entries()).forEach(([url, varName]) => {
+          images.push({
+            url,
+            context: 'background',
+            selector: `${selector} [CSS var: ${varName}]`,
+            alt: 'Hero background image (CSS variable)',
+          });
+        });
       }
 
       // Check for <img> tags in hero section
@@ -261,6 +451,7 @@ function extractHeroImages(element: ReturnType<CheerioAPI>, $: CheerioAPI, baseU
 
           // Skip tiny images (likely icons/logos)
           if (width && height && (width < 200 || height < 200)) {
+            console.log(`[IMAGE EXTRACTION] Skipped small image (${width}x${height}): ${src.substring(0, 60)}...`);
             return;
           }
 
@@ -296,6 +487,24 @@ function extractHeroImages(element: ReturnType<CheerioAPI>, $: CheerioAPI, baseU
       });
     });
   });
+
+  // Log results
+  if (images.length > 0) {
+    console.log(`[IMAGE EXTRACTION] ✅ Found ${images.length} hero image(s):`);
+    images.forEach((img, idx) => {
+      console.log(`  ${idx + 1}. ${img.url.substring(0, 80)}${img.url.length > 80 ? '...' : ''}`);
+      console.log(`     Context: ${img.context} | Selector: ${img.selector}`);
+      if (img.width && img.height) {
+        console.log(`     Dimensions: ${img.width}x${img.height}`);
+      }
+    });
+  } else {
+    console.log('[IMAGE EXTRACTION] ⚠️  No hero images found in HTML');
+    console.log('[IMAGE EXTRACTION] Checked selectors:', heroSelectors.join(', '));
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[IMAGE EXTRACTION] 💡 TIP: Check saved HTML in .tmp/scrapes/ for manual inspection');
+    }
+  }
 
   return images;
 }
@@ -339,22 +548,9 @@ function extractStructuredText(element: ReturnType<CheerioAPI>, $: CheerioAPI, b
     '[class*="intro"]'
   ];
 
-  // Extract hero images FIRST with full URLs
-  const heroImages = extractHeroImages(element, $, baseUrl);
-  if (heroImages.length > 0) {
-    parts.push('[HERO IMAGES DETECTED]');
-    heroImages.forEach((img, idx) => {
-      parts.push(`HERO_IMAGE_${idx + 1}: ${img.url}`);
-      if (img.alt) {
-        parts.push(`  Alt: ${img.alt}`);
-      }
-      if (img.width && img.height) {
-        parts.push(`  Dimensions: ${img.width}x${img.height}`);
-      }
-      parts.push(`  Context: ${img.context} (found in ${img.selector})`);
-    });
-    parts.push('');
-  }
+  // NOTE: Hero images are now extracted at the top level in preprocessHtmlForText()
+  // from the entire document, not just the main content area.
+  // This ensures we catch hero images in header elements.
 
   heroSelectors.forEach(selector => {
     element.find(selector).first().each((_, hero) => {

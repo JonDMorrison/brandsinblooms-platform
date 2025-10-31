@@ -20,6 +20,30 @@ export interface VisualBrandAnalysisResponse {
   logoUrl?: string;
   /** Primary font families detected (ordered by prominence) */
   fonts?: string[];
+  /** Typography styles for different text elements */
+  typography?: {
+    /** Heading typography (h1, h2, etc.) */
+    heading?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+      fontSize?: string;
+    };
+    /** Body text typography */
+    body?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+      fontSize?: string;
+      lineHeight?: string;
+    };
+    /** Accent/emphasis text typography */
+    accent?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+    };
+  };
   /** Design tokens extracted from visual inspection */
   designTokens?: {
     spacing?: {
@@ -156,6 +180,37 @@ export interface SocialProofExtractionResponse {
 }
 
 /**
+ * Phase 2D: Image Extraction Response
+ *
+ * Extracts all images from HTML with categorization and metadata.
+ * Uses fast text model (x-ai/grok-code-fast-1).
+ */
+export interface ImageExtractionResponse {
+  /** All extracted images */
+  images: Array<{
+    /** Full absolute URL */
+    url: string;
+    /** Image type/purpose */
+    type: 'hero' | 'gallery' | 'product' | 'feature' | 'team' | 'logo' | 'other';
+    /** How the image was found */
+    context: 'background-image' | 'css-variable' | 'img-tag' | 'picture-element' | 'data-attribute';
+    /** CSS selector or element that contained the image */
+    selector: string;
+    /** Alt text if available */
+    alt?: string;
+    /** Image dimensions if available */
+    dimensions?: {
+      width: number;
+      height: number;
+    };
+    /** Extraction confidence (0-1) */
+    confidence: number;
+  }>;
+  /** Overall extraction confidence (0-1) */
+  confidence: number;
+}
+
+/**
  * Validation result for extracted data
  */
 export interface ValidationResult {
@@ -181,6 +236,8 @@ export interface ExtractionMetadata {
   phase2bComplete: boolean;
   /** Phase 2C completion status */
   phase2cComplete: boolean;
+  /** Phase 2D completion status */
+  phase2dComplete: boolean;
   /** Overall extraction success */
   success: boolean;
   /** Whether fallback extraction was used */
@@ -218,6 +275,16 @@ export function hasMinimumContentData(data: ContentExtractionResponse): boolean 
     (data.siteTitle !== undefined ||
      data.businessDescription !== undefined ||
      data.keyFeatures.length > 0) &&
+    data.confidence >= 0.3
+  );
+}
+
+/**
+ * Type guard to check if image data is sufficient
+ */
+export function hasMinimumImageData(data: ImageExtractionResponse): boolean {
+  return (
+    data.images.length > 0 &&
     data.confidence >= 0.3
   );
 }

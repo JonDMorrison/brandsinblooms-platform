@@ -385,6 +385,27 @@ export interface SiteBranding {
   logo_description?: string;
   /** Font suggestions */
   font_family?: string;
+  /** Detailed typography settings extracted from source site */
+  typography?: {
+    heading?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+      fontSize?: string;
+    };
+    body?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+      fontSize?: string;
+      lineHeight?: string;
+    };
+    accent?: {
+      fontFamily?: string;
+      fontWeight?: string | number;
+      textColor?: string;
+    };
+  };
 }
 
 /**

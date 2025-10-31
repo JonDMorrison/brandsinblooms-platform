@@ -182,6 +182,26 @@ export async function analyzeScrapedWebsite(pages: DiscoveredPage[]): Promise<An
     console.log(`[LOGO EXTRACTION]   - Favicon: ${businessInfo.favicon || '(none)'}`);
   }
 
+  // Log hero image extraction result
+  if (businessInfo.heroSection?.backgroundImage) {
+    console.log(`[HERO IMAGE EXTRACTION] ✅ Hero image found in extracted business info:`);
+    console.log(`[HERO IMAGE EXTRACTION]    URL: ${businessInfo.heroSection.backgroundImage}`);
+    if (businessInfo.heroSection.headline) {
+      console.log(`[HERO IMAGE EXTRACTION]    Hero headline: ${businessInfo.heroSection.headline.substring(0, 60)}${businessInfo.heroSection.headline.length > 60 ? '...' : ''}`);
+    }
+  } else {
+    console.log('[HERO IMAGE EXTRACTION] ⚠️  No hero image found in extracted business info');
+    if (businessInfo.heroSection?.headline) {
+      console.log(`[HERO IMAGE EXTRACTION]    Hero section found but no background image`);
+      console.log(`[HERO IMAGE EXTRACTION]    Hero headline: ${businessInfo.heroSection.headline.substring(0, 60)}${businessInfo.heroSection.headline.length > 60 ? '...' : ''}`);
+    } else {
+      console.log('[HERO IMAGE EXTRACTION]    No hero section found at all');
+    }
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[HERO IMAGE EXTRACTION] 💡 TIP: Check saved HTML in .tmp/scrapes/ for manual inspection');
+    }
+  }
+
   // Extract clean text from each page
   const pageContents = new Map<string, string>();
   pages.forEach(page => {

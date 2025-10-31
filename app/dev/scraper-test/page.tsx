@@ -92,10 +92,11 @@ export default function ScraperTestPage() {
     setResult(null)
     setSelectedPage(null)
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 45000)
+
     try {
       console.log('[handleSubmit] Calling API...')
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 45000)
       const response = await fetch('/api/dev/scraper-preview', {
         method: 'POST',
         headers: {
@@ -409,10 +410,11 @@ export default function ScraperTestPage() {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="branding" className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-6">
                   <TabsTrigger value="branding">Branding</TabsTrigger>
                   <TabsTrigger value="contact">Contact</TabsTrigger>
                   <TabsTrigger value="content">Content</TabsTrigger>
+                  <TabsTrigger value="images">Images</TabsTrigger>
                   <TabsTrigger value="structured">Structured</TabsTrigger>
                   <TabsTrigger value="context">LLM Context</TabsTrigger>
                 </TabsList>
@@ -594,6 +596,132 @@ export default function ScraperTestPage() {
                     'Tagline',
                     <MessageSquare className="h-4 w-4" />,
                     <p className="text-lg font-medium">{result.analysis.result.businessInfo.tagline}</p>
+                  )}
+                </TabsContent>
+
+                {/* Images Tab */}
+                <TabsContent value="images" className="space-y-4">
+                  {result.analysis.result.businessInfo.heroImages && result.analysis.result.businessInfo.heroImages.length > 0 && renderExtractedSection(
+                    `Hero Images (${result.analysis.result.businessInfo.heroImages.length})`,
+                    <Image className="h-4 w-4" />,
+                    <div className="space-y-3">
+                      {result.analysis.result.businessInfo.heroImages.map((image, index) => (
+                        <Card key={index}>
+                          <CardContent className="pt-4">
+                            <div className="space-y-3">
+                              {/* Image Preview */}
+                              <div className="relative w-full h-48 bg-muted rounded-md overflow-hidden">
+                                <img
+                                  src={image.url}
+                                  alt={image.alt || `Hero image ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E'
+                                  }}
+                                />
+                              </div>
+
+                              {/* Image Details */}
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary">{image.context}</Badge>
+                                  <Badge variant="outline">Confidence: {(image.confidence * 100).toFixed(0)}%</Badge>
+                                </div>
+
+                                {image.alt && (
+                                  <div>
+                                    <p className="text-sm font-medium">Alt Text:</p>
+                                    <p className="text-sm text-muted-foreground">{image.alt}</p>
+                                  </div>
+                                )}
+
+                                {image.dimensions && (
+                                  <div>
+                                    <p className="text-sm font-medium">Dimensions:</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {image.dimensions.width} × {image.dimensions.height}
+                                    </p>
+                                  </div>
+                                )}
+
+                                <div>
+                                  <p className="text-sm font-medium">URL:</p>
+                                  <div className="flex items-center gap-2">
+                                    <code className="text-xs bg-muted p-2 rounded flex-1 overflow-x-auto">
+                                      {image.url}
+                                    </code>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => copyToClipboard(image.url, `hero-image-${index}`)}
+                                    >
+                                      {copiedField === `hero-image-${index}` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+
+                  {result.analysis.result.businessInfo.galleries && result.analysis.result.businessInfo.galleries.length > 0 && renderExtractedSection(
+                    `Image Galleries (${result.analysis.result.businessInfo.galleries.length})`,
+                    <Image className="h-4 w-4" />,
+                    <div className="space-y-4">
+                      {result.analysis.result.businessInfo.galleries.map((gallery, galleryIndex) => (
+                        <Card key={galleryIndex}>
+                          <CardContent className="pt-4">
+                            <div className="space-y-3">
+                              {/* Gallery Info */}
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary">{gallery.type}</Badge>
+                                {gallery.title && <Badge variant="outline">{gallery.title}</Badge>}
+                                {gallery.columns && <Badge>Columns: {gallery.columns}</Badge>}
+                              </div>
+
+                              {/* Gallery Images Grid */}
+                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                                {gallery.images.slice(0, 12).map((image, imageIndex) => (
+                                  <div key={imageIndex} className="relative aspect-square bg-muted rounded-md overflow-hidden group">
+                                    <img
+                                      src={image.url}
+                                      alt={image.alt || `Gallery image ${imageIndex + 1}`}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E'
+                                      }}
+                                    />
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                      <div className="text-white text-xs text-center p-2">
+                                        {image.alt || 'No alt text'}
+                                        {image.aspectRatio && <div className="mt-1">Ratio: {image.aspectRatio}</div>}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {gallery.images.length > 12 && (
+                                <p className="text-sm text-muted-foreground text-center">
+                                  +{gallery.images.length - 12} more images
+                                </p>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+
+                  {(!result.analysis.result.businessInfo.heroImages || result.analysis.result.businessInfo.heroImages.length === 0) &&
+                   (!result.analysis.result.businessInfo.galleries || result.analysis.result.businessInfo.galleries.length === 0) && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Image className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>No images were extracted from this site</p>
+                    </div>
                   )}
                 </TabsContent>
 

@@ -301,7 +301,7 @@ async function uploadToS3(
     // Get presigned URL
     const presignedResult = await getPresignedUploadUrl({
       key: filePath,
-      fileName,
+      fileName: filePath,
       siteId,
       contentType,
       contentLength: buffer.byteLength,

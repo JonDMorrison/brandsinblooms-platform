@@ -59,6 +59,7 @@ tsconfig.tsbuildinfo
 # Debug/temporary files
 debug-*.js
 debug-*.ts
+.tmp/
 
 # Supabase config (local development)
 supabase/config/

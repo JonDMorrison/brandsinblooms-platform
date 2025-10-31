@@ -152,6 +152,7 @@ async function downloadImage(
 ): Promise<{ buffer: Buffer; contentType: string; fileName: string }> {
   // Validate URL safety
   if (!isUrlSafe(url)) {
+    console.error(`[HERO IMAGE DOWNLOAD] ❌ URL failed safety validation: ${url}`);
     throw new Error('URL failed safety validation');
   }
 
@@ -170,12 +171,14 @@ async function downloadImage(
     });
 
     if (!response.ok) {
+      console.error(`[HERO IMAGE DOWNLOAD] ❌ HTTP error: ${response.status} ${response.statusText}`);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     // Check content-length before downloading
     const contentLength = response.headers.get('content-length');
     if (contentLength && parseInt(contentLength, 10) > MAX_FILE_SIZE) {
+      console.error(`[HERO IMAGE DOWNLOAD] ❌ Image too large: ${contentLength} bytes (max ${MAX_FILE_SIZE})`);
       throw new Error(`Image too large: ${contentLength} bytes (max ${MAX_FILE_SIZE})`);
     }
 
@@ -197,6 +200,8 @@ async function downloadImage(
 
     // Validate it's a supported image type
     if (!SUPPORTED_IMAGE_TYPES.includes(finalContentType as typeof SUPPORTED_IMAGE_TYPES[number])) {
+      console.error(`[HERO IMAGE DOWNLOAD] ❌ Unsupported image type: ${finalContentType}`);
+      console.error(`[HERO IMAGE DOWNLOAD]    Supported types: ${SUPPORTED_IMAGE_TYPES.join(', ')}`);
       throw new Error(`Unsupported image type: ${finalContentType}`);
     }
 
@@ -227,6 +232,16 @@ async function downloadImage(
       contentType: finalContentType,
       fileName,
     };
+  } catch (error: unknown) {
+    // Handle specific error types
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        console.error(`[HERO IMAGE DOWNLOAD] ❌ Download timeout after ${DOWNLOAD_TIMEOUT}ms`);
+        throw new Error(`Download timeout after ${DOWNLOAD_TIMEOUT}ms`);
+      }
+    }
+    // Re-throw other errors (they'll be logged by the caller)
+    throw error;
   } finally {
     clearTimeout(timeoutId);
   }
@@ -238,6 +253,7 @@ async function downloadImage(
  * @param buffer - Image data as Buffer
  * @param contentType - MIME type of the image
  * @param filePath - S3 file path (key)
+ * @param siteId - Site ID for presigned URL request
  * @param userId - User ID for metadata
  * @returns Public URL of the uploaded image
  */
@@ -245,15 +261,18 @@ async function uploadToS3(
   buffer: Buffer,
   contentType: string,
   filePath: string,
+  siteId: string,
   userId: string
 ): Promise<string> {
   console.log(`[HeroImageProcessor] Getting presigned URL for: ${filePath}`);
 
   // Get presigned URL from our API
   const presignedResult = await getPresignedUploadUrl({
+    key: filePath,
     fileName: filePath,
     contentType,
     contentLength: buffer.length,
+    siteId,
     metadata: {
       'original-source': 'ai-generation-hero',
       'processor': 'hero-image-processor',
@@ -320,30 +339,41 @@ export async function downloadAndUploadHeroImage(
     maxFileSize?: number;
   }
 ): Promise<string | null> {
+  console.log(`[HERO IMAGE DOWNLOAD] Starting download and upload process...`);
+  console.log(`[HERO IMAGE DOWNLOAD] Source URL: ${url}`);
+  console.log(`[HERO IMAGE DOWNLOAD] Site ID: ${siteId}`);
+
   try {
     // Use provided options or defaults
     const minWidth = options?.minWidth ?? MIN_WIDTH;
     const minHeight = options?.minHeight ?? MIN_HEIGHT;
 
+    console.log(`[HERO IMAGE DOWNLOAD] Downloading image from source...`);
     // Download the image
     const { buffer, contentType, fileName } = await downloadImage(url);
+    console.log(`[HERO IMAGE DOWNLOAD] ✅ Download successful`);
+    console.log(`[HERO IMAGE DOWNLOAD]    File: ${fileName}`);
+    console.log(`[HERO IMAGE DOWNLOAD]    Type: ${contentType}`);
+    console.log(`[HERO IMAGE DOWNLOAD]    Size: ${(buffer.length / 1024).toFixed(2)} KB`);
 
     // Note: We can't easily validate dimensions without a library like sharp
     // For now, we trust the LLM to provide appropriately sized images
     // TODO: Consider adding dimension validation with sharp if needed
 
     // Generate S3 file path: {siteId}/hero-images/{fileName}
-    const filePath = generateFilePath(siteId, 'hero-images', fileName);
+    const filePath = generateFilePath(fileName, siteId, 'hero-images');
+    console.log(`[HERO IMAGE DOWNLOAD] Uploading to S3: ${filePath}`);
 
     // Upload to S3
-    const publicUrl = await uploadToS3(buffer, contentType, filePath, userId);
+    const publicUrl = await uploadToS3(buffer, contentType, filePath, siteId, userId);
+    console.log(`[HERO IMAGE DOWNLOAD] ✅ Upload successful: ${publicUrl}`);
 
     return publicUrl;
   } catch (error: unknown) {
     const errorInfo = handleError(error);
-    console.error(
-      `[HeroImageProcessor] Failed to process hero image from ${url}: ${errorInfo.message}`
-    );
+    console.error(`[HERO IMAGE DOWNLOAD] ❌ Failed to process hero image`);
+    console.error(`[HERO IMAGE DOWNLOAD]    Source URL: ${url}`);
+    console.error(`[HERO IMAGE DOWNLOAD]    Error: ${errorInfo.message}`);
     // Return null instead of throwing - allows site generation to continue
     return null;
   }

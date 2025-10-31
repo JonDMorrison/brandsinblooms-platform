@@ -50,9 +50,71 @@ Working on domain-based site routing implementation with site context and domain
 ## File Structure
 - `app/` - Next.js App Router pages
 - `src/components/` - React components
-- `src/lib/` - Utilities and database logic  
+- `src/lib/` - Utilities and database logic
 - `src/contexts/` - React contexts
 - `supabase/` - Database migrations and config
+
+## Scraping Strategy
+
+### LLM-Based Extraction (Primary Approach)
+The scraper uses a **multi-phase LLM approach via OpenRouter** for all content extraction. This handles diverse website builders automatically without code updates.
+
+**Phase 1: Visual Analysis** (Vision Model: `grok-2-vision`)
+- Brand colors, logos, design tokens
+- Uses vision model with page screenshots when available
+
+**Phase 2: Parallel Text Extraction** (Text Model: `grok-code-fast-1`)
+- 2A: Contact information (emails, phones, addresses)
+- 2B: Content structure (headlines, features, descriptions)
+- 2C: Social proof (testimonials, reviews)
+- 2D: **Image extraction** (hero images, galleries, product images)
+
+All Phase 2 extractions run **in parallel** for optimal performance.
+
+### Adding New Extraction Types
+
+When adding new scraping capabilities, **ALWAYS use LLM extraction**:
+
+1. **Create dedicated prompt** in `src/lib/scraping/prompts/{feature}-extraction-prompt.ts`
+   - System prompt with extraction rules
+   - User prompt builder function
+   - Clear instructions for the model
+
+2. **Define response schema** in `src/lib/types/extraction-schemas.ts`
+   - TypeScript interface for LLM response
+   - Include confidence scores
+   - Validate responses match schema
+
+3. **Add extraction function** to Phase 2 in `src/lib/scraping/llm-extractor.ts`
+   - Follow pattern of existing Phase 2 functions
+   - Include error handling and retries
+   - Merge results into `ExtractedBusinessInfo`
+
+4. **Run in parallel** with other Phase 2 extractions
+   - Add to `Promise.allSettled()` array
+   - Handle graceful failure (don't break other extractions)
+
+### Image Extraction Approach
+
+**Primary:** Send HTML blocks to LLM for analysis
+- LLM identifies images in ALL forms (backgrounds, CSS vars, img tags, picture elements)
+- Returns structured JSON with URLs, types, context, and metadata
+- Handles Squarespace, Wix, WordPress, custom builders automatically
+
+**Fallback:** Algorithmic extraction only if LLM fails
+- Kept for backward compatibility
+- Not actively maintained
+
+**Why LLM vs Regex:**
+- Website builders constantly change HTML structure
+- LLM understands context and intent
+- No builder-specific code needed
+- Self-healing as models improve
+
+### Cost & Performance
+- Per-page extraction: ~$0.001 (all phases combined)
+- Phase 2 runs in parallel (no added latency)
+- Typical scrape time: 20-30 seconds for 10 pages
 
 ## Development Principles
 - When implementing new features, always consider leaning on supabase's features first instead of introducing external dependencies
