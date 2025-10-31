@@ -361,7 +361,7 @@ export async function downloadAndUploadHeroImage(
     // TODO: Consider adding dimension validation with sharp if needed
 
     // Generate S3 file path: {siteId}/hero-images/{fileName}
-    const filePath = generateFilePath(siteId, 'hero-images', fileName);
+    const filePath = generateFilePath(fileName, siteId, 'hero-images');
     console.log(`[HERO IMAGE DOWNLOAD] Uploading to S3: ${filePath}`);
 
     // Upload to S3
