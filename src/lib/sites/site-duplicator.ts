@@ -105,7 +105,7 @@ export async function duplicateSite(
       longitude: sourceSite.longitude,
       timezone: sourceSite.timezone,
       is_active: true,
-      is_published: false,
+      is_published: sourceSite.is_published, // Copy published status from source
       created_by: userId
     };
 
@@ -173,7 +173,9 @@ export async function duplicateSite(
           .insert(newContent)
           .select();
 
-        if (!contentError && insertedContent) {
+        if (contentError) {
+          console.error('Failed to copy content:', contentError);
+        } else if (insertedContent) {
           contentCount = insertedContent.length;
         }
       }
@@ -199,8 +201,7 @@ export async function duplicateSite(
           is_active: product.is_active,
           category: product.category,
           care_instructions: product.care_instructions,
-          attributes: product.attributes,
-          created_by: userId
+          attributes: product.attributes
         }));
 
         const { data: insertedProducts, error: productError } = await supabase
@@ -208,7 +209,9 @@ export async function duplicateSite(
           .insert(newProducts)
           .select();
 
-        if (!productError && insertedProducts) {
+        if (productError) {
+          console.error('Failed to copy products:', productError);
+        } else if (insertedProducts) {
           productCount = insertedProducts.length;
         }
       }
