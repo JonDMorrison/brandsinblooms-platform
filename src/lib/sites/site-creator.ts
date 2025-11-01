@@ -621,7 +621,7 @@ export async function createSiteFromGenerated(
       footer: {
         style: 'centered',
         navigationItems: navigationItems, // Use same navigation items in footer
-        socialLinks: [],
+        socialLinks: scrapedContext?.businessInfo?.socialLinks || [],
         copyright: copyrightText,
         links: footerLinks, // Include scraped footer links
         additionalInfo: footerContent?.additionalInfo || undefined

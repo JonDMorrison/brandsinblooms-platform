@@ -16,6 +16,7 @@ import { useCurrentSite, useSitePermissions } from '@/src/hooks/useSite'
 import { useUpdateSiteSettings } from '@/src/hooks/useSiteSettings'
 import { DomainConfiguration } from '@/src/components/site/DomainConfiguration'
 import { SitePreview } from '@/src/components/site/SitePreview'
+import { DangerZone } from '@/src/components/settings/DangerZone'
 
 const siteSchema = z.object({
   siteName: z.string().min(1, 'Site name is required').max(100, 'Site name must be less than 100 characters'),
@@ -363,6 +364,9 @@ export function SiteSettings() {
           <DomainConfiguration />
         </div>
       </div>
+
+      {/* Danger Zone - Full Width Below Other Settings */}
+      {canManage && <DangerZone />}
     </div>
   )
 }

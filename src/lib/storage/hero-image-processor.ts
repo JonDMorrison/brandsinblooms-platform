@@ -8,8 +8,7 @@
  */
 
 import { handleError } from '../types/error-handling';
-import { getPresignedUploadUrl } from './s3-upload';
-import { generateFilePath } from './index';
+import { generateFilePath, generatePresignedUploadUrl } from './index';
 
 /**
  * Supported image MIME types for hero images
@@ -266,25 +265,31 @@ async function uploadToS3(
 ): Promise<string> {
   console.log(`[HeroImageProcessor] Getting presigned URL for: ${filePath}`);
 
-  // Get presigned URL from our API
-  const presignedResult = await getPresignedUploadUrl({
-    key: filePath,
-    fileName: filePath,
+  // Use direct S3 SDK call (server-side) instead of API route to avoid auth issues
+  const presignedResult = await generatePresignedUploadUrl(
+    filePath,
     contentType,
-    contentLength: buffer.length,
-    siteId,
-    metadata: {
+    buffer.length,
+    {
       'original-source': 'ai-generation-hero',
       'processor': 'hero-image-processor',
       'user-id': userId,
+      'site-id': siteId,
     },
-  });
+    {
+      siteId,
+      userId,
+      uploadType: 'hero-image',
+    }
+  );
 
   if (!presignedResult.success || !presignedResult.data) {
+    console.error(`[HeroImageProcessor] Failed to get presigned URL: ${presignedResult.error}`);
     throw new Error('Failed to get presigned upload URL');
   }
 
   console.log(`[HeroImageProcessor] Uploading to S3...`);
+  console.log(`[HeroImageProcessor] Upload URL: ${presignedResult.data.uploadUrl}`);
 
   // Upload to S3 using presigned URL
   const uploadResponse = await fetch(presignedResult.data.uploadUrl, {
@@ -297,13 +302,14 @@ async function uploadToS3(
   });
 
   if (!uploadResponse.ok) {
+    console.error(`[HeroImageProcessor] S3 upload failed with status ${uploadResponse.status}`);
     throw new Error(
       `S3 upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`
     );
   }
 
   // Return the public URL
-  const publicUrl = presignedResult.data.url;
+  const publicUrl = presignedResult.data.publicUrl;
   console.log(`[HeroImageProcessor] Upload successful: ${publicUrl}`);
 
   return publicUrl;

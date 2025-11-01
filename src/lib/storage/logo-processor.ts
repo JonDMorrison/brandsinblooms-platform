@@ -6,8 +6,7 @@
  */
 
 import { handleError } from '../types/error-handling';
-import { getPresignedUploadUrl } from './s3-upload';
-import { generateFilePath } from './index';
+import { generateFilePath, generatePresignedUploadUrl } from './index';
 
 /**
  * Supported image MIME types for logos
@@ -298,19 +297,23 @@ async function uploadToS3(
     // Generate file path
     const filePath = generateFilePath(fileName, siteId, 'logos');
 
-    // Get presigned URL
-    const presignedResult = await getPresignedUploadUrl({
-      key: filePath,
-      fileName: filePath,
-      siteId,
+    // Use direct S3 SDK call (server-side) instead of API route to avoid auth issues
+    const presignedResult = await generatePresignedUploadUrl(
+      filePath,
       contentType,
-      contentLength: buffer.byteLength,
-      metadata: {
+      buffer.byteLength,
+      {
         'original-source': 'ai-generation',
         'processor': 'logo-processor',
         'user-id': userId,
+        'site-id': siteId,
       },
-    });
+      {
+        siteId,
+        userId,
+        uploadType: 'logo',
+      }
+    );
 
     if (!presignedResult.success || !presignedResult.data) {
       console.error(`[LogoProcessor] Failed to get presigned URL: ${presignedResult.error}`);
@@ -318,6 +321,7 @@ async function uploadToS3(
     }
 
     // Upload directly to S3 using the presigned URL
+    console.log(`[LogoProcessor] Upload URL: ${presignedResult.data.uploadUrl}`);
     const uploadResponse = await fetch(presignedResult.data.uploadUrl, {
       method: 'PUT',
       body: buffer,
@@ -333,7 +337,7 @@ async function uploadToS3(
     }
 
     // Return the public URL
-    const publicUrl = presignedResult.data.url;
+    const publicUrl = presignedResult.data.publicUrl;
     console.log(`[LogoProcessor] Upload successful: ${publicUrl}`);
 
     return publicUrl;

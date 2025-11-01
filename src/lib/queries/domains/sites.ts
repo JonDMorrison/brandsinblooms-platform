@@ -37,12 +37,12 @@ export async function getCurrentUserSite(
 }
 
 /**
- * Get all sites for a user
+ * Get all sites for a user (excludes deleted sites by default)
  */
 export async function getUserSites(
   supabase: SupabaseClient<Database>,
   userId: string,
-  options?: { active?: boolean }
+  options?: { active?: boolean; includeDeleted?: boolean }
 ): Promise<SiteWithMembership[]> {
   let query = supabase
     .from('site_memberships')
@@ -59,6 +59,11 @@ export async function getUserSites(
     query = query.eq('is_active', options.active);
   }
 
+  // Exclude deleted sites by default
+  if (!options?.includeDeleted) {
+    query = query.is('sites.deleted_at', null);
+  }
+
   const response = await query.order('created_at', { ascending: false });
   const memberships = await handleQueryResponse(response);
 
@@ -70,7 +75,7 @@ export async function getUserSites(
     created_at: string;
     sites: Record<string, unknown>;
   }
-  
+
   return memberships.map((item: MembershipWithSite) => ({
     ...item.sites,
     membership: {
@@ -235,7 +240,8 @@ export async function updateSite(
 }
 
 /**
- * Delete a site (soft delete by setting is_active to false)
+ * Soft-delete a site (sets deleted_at timestamp)
+ * Site and related content can be recovered for 30 days
  */
 export async function deleteSite(
   supabase: SupabaseClient<Database>,
@@ -243,11 +249,95 @@ export async function deleteSite(
 ): Promise<void> {
   const response = await supabase
     .from('sites')
-    .update({ 
-      is_active: false,
+    .update({
+      deleted_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
-    .eq('id', siteId);
+    .eq('id', siteId)
+    .is('deleted_at', null); // Prevent double-deletion
+
+  if (response.error) {
+    throw SupabaseError.fromPostgrestError(response.error);
+  }
+}
+
+/**
+ * Restore a soft-deleted site
+ */
+export async function restoreSite(
+  supabase: SupabaseClient<Database>,
+  siteId: string
+): Promise<Site> {
+  const response = await supabase
+    .from('sites')
+    .update({
+      deleted_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', siteId)
+    .not('deleted_at', 'is', null) // Only restore deleted sites
+    .select()
+    .single();
+
+  return handleSingleResponse(response);
+}
+
+/**
+ * Get all deleted sites for a user (for recovery)
+ */
+export async function getDeletedSites(
+  supabase: SupabaseClient<Database>,
+  userId: string
+): Promise<SiteWithMembership[]> {
+  const response = await supabase
+    .from('site_memberships')
+    .select(`
+      site_id,
+      role,
+      is_active,
+      created_at,
+      sites!inner(*)
+    `)
+    .eq('user_id', userId)
+    .not('sites.deleted_at', 'is', null)
+    .order('sites.deleted_at', { ascending: false });
+
+  const memberships = await handleQueryResponse(response);
+
+  interface MembershipWithSite {
+    site_id: string;
+    role: string;
+    is_active: boolean | null;
+    created_at: string;
+    sites: Record<string, unknown>;
+  }
+
+  return memberships.map((item: MembershipWithSite) => ({
+    ...item.sites,
+    membership: {
+      id: `${userId}-${item.site_id}`,
+      user_id: userId,
+      site_id: item.site_id,
+      role: item.role,
+      is_active: item.is_active ?? false,
+      created_at: item.created_at,
+    },
+  })) as SiteWithMembership[];
+}
+
+/**
+ * Permanently delete a site (cannot be recovered)
+ * Only allowed for sites that are already soft-deleted
+ */
+export async function permanentlyDeleteSite(
+  supabase: SupabaseClient<Database>,
+  siteId: string
+): Promise<void> {
+  const response = await supabase
+    .from('sites')
+    .delete()
+    .eq('id', siteId)
+    .not('deleted_at', 'is', null); // Only hard-delete soft-deleted sites
 
   if (response.error) {
     throw SupabaseError.fromPostgrestError(response.error);

@@ -19,6 +19,7 @@ import { generateFilePath } from '@/lib/storage/index';
  */
 interface PresignedUrlRequest {
   fileName: string;
+  key?: string;  // Optional: exact S3 key to use (bypasses path generation)
   contentType: string;
   fileSize: number;
   siteId: string;
@@ -64,6 +65,7 @@ function validateUploadRequest(data: unknown): {
   }
 
   const fileName = request.fileName as string;
+  const key = request.key as string | undefined;  // Extract optional key
   const contentType = request.contentType as string;
   const fileSize = typeof request.fileSize === 'number' ? request.fileSize : parseInt(request.fileSize as string, 10);
   const siteId = request.siteId as string;
@@ -111,6 +113,7 @@ function validateUploadRequest(data: unknown): {
     isValid: true,
     data: {
       fileName,
+      key,
       contentType,
       fileSize,
       siteId,
@@ -222,8 +225,8 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const uploadRequest = validation.data!;
 
-    // Generate unique file path
-    const filePath = generateFilePath(
+    // Use provided key if available, otherwise generate unique file path
+    const filePath = uploadRequest.key || generateFilePath(
       uploadRequest.fileName,
       uploadRequest.siteId,
       'images',

@@ -211,6 +211,45 @@ export interface ImageExtractionResponse {
 }
 
 /**
+ * Phase 2E: Social Media Links Extraction Response
+ *
+ * Extracts social media profile URLs from HTML.
+ * Uses fast text model (x-ai/grok-code-fast-1).
+ */
+export interface SocialMediaExtractionResponse {
+  /** Extracted social media links */
+  socialLinks: Array<{
+    /** Platform identifier (lowercase) */
+    platform: 'facebook' | 'instagram' | 'twitter' | 'x' | 'linkedin' | 'tiktok' | 'youtube' | 'pinterest' | 'snapchat' | 'whatsapp' | 'yelp';
+    /** Complete URL to the business profile */
+    url: string;
+    /** Extraction confidence (0-1) */
+    confidence: number;
+    /** Where the link was found on the page */
+    location: 'footer' | 'header' | 'content' | 'sidebar' | 'contact';
+    /** Method used to extract the link */
+    extractionMethod: 'direct_link' | 'icon_link' | 'schema_markup' | 'inferred';
+    /** Username or handle if extracted */
+    username?: string;
+    /** Any relevant notes or warnings about this link */
+    notes?: string;
+  }>;
+  /** Metadata about the extraction process */
+  extractionMetadata: {
+    /** Total number of social links found */
+    totalLinksFound: number;
+    /** Description of primary location where links were found */
+    primarySocialSection?: string;
+    /** Whether structured data (JSON-LD, schema.org) was present */
+    hasStructuredData: boolean;
+    /** URLs that were unclear or ambiguous */
+    ambiguousLinks?: string[];
+  };
+  /** Overall extraction confidence (0-1) */
+  confidence: number;
+}
+
+/**
  * Validation result for extracted data
  */
 export interface ValidationResult {
@@ -238,6 +277,8 @@ export interface ExtractionMetadata {
   phase2cComplete: boolean;
   /** Phase 2D completion status */
   phase2dComplete: boolean;
+  /** Phase 2E completion status */
+  phase2eComplete: boolean;
   /** Overall extraction success */
   success: boolean;
   /** Whether fallback extraction was used */
@@ -285,6 +326,16 @@ export function hasMinimumContentData(data: ContentExtractionResponse): boolean 
 export function hasMinimumImageData(data: ImageExtractionResponse): boolean {
   return (
     data.images.length > 0 &&
+    data.confidence >= 0.3
+  );
+}
+
+/**
+ * Type guard to check if social media data is sufficient
+ */
+export function hasMinimumSocialMediaData(data: SocialMediaExtractionResponse): boolean {
+  return (
+    data.socialLinks.length > 0 &&
     data.confidence >= 0.3
   );
 }

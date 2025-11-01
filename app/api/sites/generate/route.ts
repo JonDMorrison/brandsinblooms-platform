@@ -45,6 +45,7 @@ import { discoverAndScrapePages } from '@/lib/scraping/page-discovery';
 import { analyzeScrapedWebsite } from '@/lib/scraping/content-analyzer';
 import { downloadAndUploadLogo } from '@/lib/storage/logo-processor';
 import { downloadAndUploadHeroImage } from '@/lib/storage/hero-image-processor';
+import { saveScrapedHtmlForDebug } from '@/lib/scraping/debug';
 
 /**
  * POST /api/sites/generate
@@ -287,6 +288,22 @@ export async function POST(request: NextRequest) {
           `[${requestId}] Scraped ${discoveryResult.totalPagesScraped} of ${discoveryResult.totalPagesFound} pages`
         );
 
+        // Save HTML for debugging in development
+        if (process.env.NODE_ENV === 'development' && discoveryResult.pages.length > 0) {
+          try {
+            const savedHtml = await saveScrapedHtmlForDebug(
+              discoveryResult.pages,
+              businessInfo.basedOnWebsite
+            );
+            if (savedHtml) {
+              console.log(`[${requestId}] [DEBUG] HTML saved to: ${savedHtml.basePath}`);
+              console.log(`[${requestId}] [DEBUG] Saved ${savedHtml.pagesSaved} pages`);
+            }
+          } catch (saveError: unknown) {
+            console.error(`[${requestId}] [DEBUG] Failed to save HTML:`, handleError(saveError).message);
+          }
+        }
+
         if (discoveryResult.pages.length > 0) {
           // Analyze scraped content
           console.log(`[${requestId}] [IMAGE EXTRACTION] Starting content analysis...`);
@@ -341,13 +358,14 @@ export async function POST(request: NextRequest) {
                       console.log(`[${requestId}] [HERO IMAGE] ✅ Successfully uploaded to: ${uploadedUrl}`);
                       return uploadedUrl;
                     } else {
-                      console.warn(`[${requestId}] [HERO IMAGE] ⚠️  Upload failed, will skip hero background`);
-                      return null;
+                      console.warn(`[${requestId}] [HERO IMAGE] ⚠️  Upload failed, using original URL`);
+                      return analyzed.businessInfo.heroSection?.backgroundImage;
                     }
                   } catch (error: unknown) {
                     const errorInfo = handleError(error);
                     console.error(`[${requestId}] [HERO IMAGE] ❌ Processing error: ${errorInfo.message}`);
-                    return null;
+                    // Fall back to original URL on error
+                    return analyzed.businessInfo.heroSection?.backgroundImage ?? null;
                   }
                 })()
               : Promise.resolve(undefined),

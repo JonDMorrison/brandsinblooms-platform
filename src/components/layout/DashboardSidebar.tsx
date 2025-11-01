@@ -27,14 +27,14 @@ const allNavigationItems = [
   { name: 'Design', href: '/dashboard/design', icon: Palette },
   { name: 'Products', href: '/dashboard/products', icon: Package },
   { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart, adminOnly: true },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings, adminOnly: true },
+  { name: 'Settings', href: '/dashboard/settings', icon: Settings }, // Always show Settings
 ]
 
 // Filter navigation items based on environment variable
 const isDevFeaturesEnabled = process.env.NEXT_PUBLIC_ENABLE_DEV_FEATURES === 'true'
 const navigationItems = allNavigationItems.filter(item => {
-  // Always hide Orders and Settings from main site navigation
-  if (item.name === 'Orders' || item.name === 'Settings') {
+  // Always hide Orders from main site navigation (keep Settings visible)
+  if (item.name === 'Orders') {
     return false
   }
   // For other adminOnly items, check feature flag

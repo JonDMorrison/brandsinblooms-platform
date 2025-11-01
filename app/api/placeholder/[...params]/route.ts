@@ -22,11 +22,15 @@ import { handleError } from '@/lib/types/error-handling';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { params: string[] } }
+  { params }: { params: Promise<{ params: string[] }> }
 ) {
+  let urlParams: string[] = [];
+
   try {
     // Parse URL parameters
-    const placeholderParams = parseUrlParams(params.params);
+    const awaitedParams = await params;
+    urlParams = awaitedParams.params;
+    const placeholderParams = parseUrlParams(urlParams);
     
     // Validate dimensions
     const validation = validateDimensions(
@@ -67,10 +71,10 @@ export async function GET(
     
   } catch (error: unknown) {
     const errorDetails = handleError(error);
-    
+
     // Log error for debugging (in production, consider using a proper logging service)
     console.error('Placeholder generation error:', {
-      params: params.params,
+      params: urlParams,
       error: errorDetails,
       timestamp: new Date().toISOString(),
     });

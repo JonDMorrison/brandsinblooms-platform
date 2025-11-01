@@ -172,10 +172,11 @@ export function validateFileForS3(file: File): { isValid: boolean; error?: strin
 }
 
 /**
- * Gets a presigned URL for direct S3 upload
+ * Gets a presigned URL for direct S3 upload with retry logic
  */
 export async function getPresignedUploadUrl(
-  config: PresignedUrlConfig
+  config: PresignedUrlConfig,
+  maxRetries: number = 3
 ): Promise<{
   success: boolean;
   data?: {
@@ -186,9 +187,14 @@ export async function getPresignedUploadUrl(
   };
   error?: string;
 }> {
-  try {
-    const requestBody = {
+  let lastError: Error | null = null;
+
+  // Retry loop with exponential backoff
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const requestBody = {
       fileName: config.fileName,
+      key: config.key,  // Send the exact S3 key if provided
       contentType: config.contentType,
       fileSize: config.contentLength,
       siteId: config.siteId,
@@ -196,14 +202,23 @@ export async function getPresignedUploadUrl(
       metadata: config.metadata,
     };
 
-    console.log('[S3 Upload] Requesting presigned URL:', {
+    console.log(`[S3 Upload] Requesting presigned URL (attempt ${attempt}/${maxRetries}):`, {
       fileName: requestBody.fileName,
+      key: requestBody.key,
       fileSize: requestBody.fileSize,
       contentType: requestBody.contentType,
       siteId: requestBody.siteId,
     });
 
-    const response = await fetch('/api/upload/presigned', {
+    // Use absolute URL for server-side fetch (works in both browser and Node.js)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+      || 'http://localhost:3001';
+    const apiUrl = `${baseUrl}/api/upload/presigned`;
+
+    console.log('[S3 Upload] Using API URL:', { apiUrl, baseUrl });
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -238,35 +253,110 @@ export async function getPresignedUploadUrl(
       throw new Error(`Failed to parse presigned URL response: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`);
     }
 
-    if (!result.success || !result.data?.uploadUrl || !result.data?.publicUrl) {
-      console.error('[S3 Upload] Presigned URL API returned invalid data:', {
-        success: result.success,
-        hasData: !!result.data,
-        hasUploadUrl: !!result.data?.uploadUrl,
-        hasPublicUrl: !!result.data?.publicUrl,
+    // Comprehensive response validation
+    console.log('[S3 Upload] Validating API response:', {
+      hasResult: !!result,
+      resultType: typeof result,
+      success: result?.success,
+      hasData: !!result?.data,
+      dataType: typeof result?.data,
+    });
+
+    // Check that result is an object
+    if (!result || typeof result !== 'object') {
+      console.error('[S3 Upload] Invalid response type:', {
+        type: typeof result,
+        value: result,
+      });
+      throw new Error('Invalid response from presigned URL API: not an object');
+    }
+
+    // Check for API error first
+    if (!result.success) {
+      console.error('[S3 Upload] Presigned URL API returned error:', {
         error: result.error,
         code: result.code,
         fullResponse: result,
       });
-      throw new Error(result.error || 'Invalid response from presigned URL API');
+      throw new Error(result.error || 'Presigned URL API returned an error');
     }
 
+    // CRITICAL FIX: Validate data exists when success=true
+    if (!result.data || typeof result.data !== 'object') {
+      console.error('[S3 Upload] API returned success=true but data is invalid:', {
+        success: result.success,
+        dataValue: result.data,
+        dataType: typeof result.data,
+        fullResponse: JSON.stringify(result).substring(0, 500),
+      });
+      throw new Error('Invalid response: success=true but data is missing or invalid');
+    }
+
+    // Validate required fields exist in data
+    const requiredFields = ['uploadUrl', 'publicUrl'];
+    const missingFields: string[] = [];
+
+    for (const field of requiredFields) {
+      if (!result.data[field] || typeof result.data[field] !== 'string') {
+        missingFields.push(field);
+      }
+    }
+
+    if (missingFields.length > 0) {
+      console.error('[S3 Upload] Required fields missing in data:', {
+        missingFields,
+        receivedFields: Object.keys(result.data),
+        data: result.data,
+      });
+      throw new Error(`Invalid response: missing required fields: ${missingFields.join(', ')}`);
+    }
+
+    console.log('[S3 Upload] Response validation successful:', {
+      uploadUrl: result.data.uploadUrl.substring(0, 50) + '...',
+      publicUrl: result.data.publicUrl,
+    });
+
+    // Successfully validated response - return formatted data
     return {
       success: true,
       data: {
         uploadUrl: result.data.uploadUrl,
         fields: result.data.fields || {},
-        url: result.data.publicUrl,
+        url: result.data.publicUrl,  // Map publicUrl to url for compatibility
         cdnUrl: result.data.cdnUrl,
       },
     };
-  } catch (error) {
-    const handled = handleError(error);
-    return {
-      success: false,
-      error: handled.message,
-    };
+
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      // Log the error for this attempt
+      console.error(`[S3 Upload] Attempt ${attempt}/${maxRetries} failed:`, {
+        error: lastError.message,
+        willRetry: attempt < maxRetries,
+      });
+
+      // If not the last attempt, wait before retrying
+      if (attempt < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Exponential backoff, max 10s
+        console.log(`[S3 Upload] Retrying after ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+    }
   }
+
+  // All retries failed
+  const handled = handleError(lastError || new Error('Unknown error'));
+  console.error('[S3 Upload] All retry attempts exhausted:', {
+    message: handled.message,
+    attempts: maxRetries,
+  });
+
+  return {
+    success: false,
+    error: `Failed after ${maxRetries} attempts: ${handled.message}`,
+  };
 }
 
 /**
@@ -643,7 +733,7 @@ export async function uploadLargeFileToS3(
       throw new Error(initResult.error || 'Failed to initialize upload');
     }
 
-    const { uploadId } = initResult.data;
+    const { uploadId, key } = initResult.data;
     
     try {
       // Calculate parts

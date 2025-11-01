@@ -39,6 +39,10 @@ import {
   buildImageExtractionPrompt
 } from './prompts/image-extraction-prompt';
 import {
+  SOCIAL_MEDIA_EXTRACTION_SYSTEM_PROMPT,
+  buildSocialMediaExtractionPrompt
+} from './prompts/social-media-extraction-prompt';
+import {
   EXTRACTION_MODELS,
   PHASE1_OPTIONS,
   PHASE2_OPTIONS,
@@ -51,13 +55,15 @@ import type {
   ContentExtractionResponse,
   SocialProofExtractionResponse,
   ImageExtractionResponse,
+  SocialMediaExtractionResponse,
   ExtractionMetadata
 } from '@/lib/types/extraction-schemas';
 import {
   hasMinimumBrandData,
   hasMinimumContactData,
   hasMinimumContentData,
-  hasMinimumImageData
+  hasMinimumImageData,
+  hasMinimumSocialMediaData
 } from '@/lib/types/extraction-schemas';
 
 /**
@@ -80,6 +86,7 @@ export async function extractBusinessInfoWithLLM(
     phase2bComplete: false,
     phase2cComplete: false,
     phase2dComplete: false,
+    phase2eComplete: false,
     success: false,
     usedFallback: false,
     errors: [],
@@ -128,7 +135,8 @@ export async function extractBusinessInfoWithLLM(
       extractContactInfo(textHtml, baseUrl),      // 2A: Contact info from text
       extractContentStructure(textHtml, baseUrl), // 2B: Content structure from text
       extractSocialProof(textHtml, baseUrl),      // 2C: Social proof from text
-      extractImages(imageHtml, baseUrl)           // 2D: Images from HTML structure (LLM-first)
+      extractImages(imageHtml, baseUrl),          // 2D: Images from HTML structure (LLM-first)
+      extractSocialMedia(textHtml, baseUrl)       // 2E: Comprehensive social media links
     ]);
 
     // Extract results from Phase 2
@@ -136,6 +144,7 @@ export async function extractBusinessInfoWithLLM(
     let contentData: ContentExtractionResponse | undefined;
     let socialProofData: SocialProofExtractionResponse | undefined;
     let imageData: ImageExtractionResponse | undefined;
+    let socialMediaData: SocialMediaExtractionResponse | undefined;
 
     // Phase 2A: Contact info
     if (phase2Results[0].status === 'fulfilled') {
@@ -210,6 +219,23 @@ export async function extractBusinessInfoWithLLM(
       console.warn(`[LLM Extraction] Phase 2D failed: ${errorInfo.message}`);
     }
 
+    // Phase 2E: Social media extraction
+    if (phase2Results[4].status === 'fulfilled') {
+      socialMediaData = phase2Results[4].value;
+      metadata.phase2eComplete = true;
+
+      if (EXTRACTION_FLAGS.LOG_METRICS) {
+        console.log('[LLM Extraction] Phase 2E complete:');
+        console.log(`  Social links found: ${socialMediaData.socialLinks.length}`);
+        console.log(`  Platforms: ${socialMediaData.socialLinks.map(l => l.platform).join(', ')}`);
+        console.log(`  Confidence: ${socialMediaData.confidence}`);
+      }
+    } else {
+      const errorInfo = handleError(phase2Results[4].reason);
+      metadata.errors?.push(`Phase 2E failed: ${errorInfo.message}`);
+      console.warn(`[LLM Extraction] Phase 2E failed: ${errorInfo.message}`);
+    }
+
     // Merge results
     const result = mergeExtractionResults(
       visualData,
@@ -217,6 +243,7 @@ export async function extractBusinessInfoWithLLM(
       contentData,
       socialProofData,
       imageData,
+      socialMediaData,
       baseUrl
     );
 
@@ -419,6 +446,32 @@ async function extractImages(
 }
 
 /**
+ * Phase 2E: Extract comprehensive social media links
+ */
+async function extractSocialMedia(
+  textHtml: string,
+  baseUrl: string
+): Promise<SocialMediaExtractionResponse> {
+  const userPrompt = buildSocialMediaExtractionPrompt({
+    html: textHtml,
+    url: baseUrl
+  });
+
+  if (EXTRACTION_FLAGS.LOG_PROMPTS) {
+    console.log('[LLM Extraction] Phase 2E prompt:', userPrompt.substring(0, 500));
+  }
+
+  const response = await generateWithOpenRouter<SocialMediaExtractionResponse>(
+    userPrompt,
+    SOCIAL_MEDIA_EXTRACTION_SYSTEM_PROMPT,
+    PHASE2_OPTIONS,
+    EXTRACTION_MODELS.TEXT
+  );
+
+  return response.content;
+}
+
+/**
  * Merge extraction results into ExtractedBusinessInfo format
  */
 function mergeExtractionResults(
@@ -427,6 +480,7 @@ function mergeExtractionResults(
   content?: ContentExtractionResponse,
   socialProof?: SocialProofExtractionResponse,
   images?: ImageExtractionResponse,
+  socialMedia?: SocialMediaExtractionResponse,
   baseUrl?: string
 ): ExtractedBusinessInfo {
   const result: ExtractedBusinessInfo = {
@@ -437,8 +491,11 @@ function mergeExtractionResults(
     hours: contact?.hours,
     coordinates: contact?.coordinates,
 
-    // Social media (from Phase 2A)
-    socialLinks: contact?.socialLinks || [],
+    // Social media (prefer Phase 2E comprehensive extraction, fallback to Phase 2A basic links)
+    socialLinks: socialMedia?.socialLinks.map(link => ({
+      platform: link.platform,
+      url: link.url
+    })) || contact?.socialLinks || [],
 
     // Branding (from Phase 1)
     logoUrl: visual?.logoUrl,

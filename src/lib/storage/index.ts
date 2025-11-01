@@ -285,14 +285,14 @@ export async function generateSignedUrl(
     }
 
     const bucketName = getBucketName();
-    
+
     const getCommand = new GetObjectCommand({
       Bucket: bucketName,
       Key: filePath,
     });
 
     const signedUrl = await getSignedUrl(s3Client, getCommand, { expiresIn });
-    
+
     return {
       success: true,
       data: signedUrl,
@@ -302,6 +302,63 @@ export async function generateSignedUrl(
     return {
       success: false,
       error: `Signed URL generation failed: ${handled.message}`,
+    };
+  }
+}
+
+/**
+ * Generate presigned upload URL (server-side only)
+ * Use this instead of calling the API route when running server-side
+ */
+export async function generatePresignedUploadUrl(
+  filePath: string,
+  contentType: string,
+  contentLength: number,
+  metadata?: Record<string, string>,
+  tags?: Record<string, string>,
+  expiresIn: number = 300
+): Promise<StorageResult<{ uploadUrl: string; publicUrl: string }>> {
+  try {
+    if (!isStorageConfigured()) {
+      return {
+        success: false,
+        error: 'Storage is not properly configured',
+      };
+    }
+
+    const bucketName = getBucketName();
+
+    const putCommand = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: filePath,
+      ContentType: contentType,
+      ContentLength: contentLength,
+      CacheControl: 'public, max-age=31536000, immutable',
+      Metadata: metadata,
+      ...(tags && { Tagging: new URLSearchParams(tags).toString() }),
+    });
+
+    const uploadUrl = await getSignedUrl(s3Client, putCommand, {
+      expiresIn,
+      signableHeaders: new Set(['host', 'content-type', 'content-length']),
+    });
+
+    // Generate public URL
+    const cdnUrl = getCdnUrl();
+    const publicUrl = `${cdnUrl}/${bucketName}/${filePath}`;
+
+    return {
+      success: true,
+      data: {
+        uploadUrl,
+        publicUrl,
+      },
+    };
+  } catch (error) {
+    const handled = handleError(error);
+    return {
+      success: false,
+      error: `Presigned upload URL generation failed: ${handled.message}`,
     };
   }
 }

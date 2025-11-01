@@ -21,12 +21,31 @@ export interface StorageConfig {
 
 /**
  * Get storage configuration based on environment
+ * Priority: R2 config (if present) > MinIO config (if present) > MinIO defaults
  */
 function getStorageConfig(): StorageConfig {
+  // Check for R2 configuration first (works in both dev and prod)
+  const accountId = process.env.R2_ACCOUNT_ID;
+
+  if (accountId && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET_NAME) {
+    // Cloudflare R2 configuration
+    console.log('[S3 Client] Using Cloudflare R2 configuration');
+    return {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID,
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+      region: 'auto', // R2 uses 'auto' as the region
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      bucketName: process.env.R2_BUCKET_NAME,
+      forcePathStyle: false,
+      cdnUrl: process.env.NEXT_PUBLIC_CDN_URL || `https://${accountId}.r2.cloudflarestorage.com`,
+    };
+  }
+
+  // Fall back to MinIO for local development
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   if (isDevelopment) {
-    // MinIO configuration for local development
+    console.log('[S3 Client] Using MinIO configuration for local development');
     return {
       accessKeyId: process.env.MINIO_ACCESS_KEY || 'minioadmin',
       secretAccessKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
@@ -38,21 +57,8 @@ function getStorageConfig(): StorageConfig {
     };
   }
 
-  // Cloudflare R2 configuration for production
-  const accountId = process.env.R2_ACCOUNT_ID;
-  if (!accountId) {
-    throw new Error('R2_ACCOUNT_ID is required for production environment');
-  }
-
-  return {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-    region: 'auto', // R2 uses 'auto' as the region
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    bucketName: process.env.R2_BUCKET_NAME!,
-    forcePathStyle: false,
-    cdnUrl: process.env.NEXT_PUBLIC_CDN_URL,
-  };
+  // Production without R2 config - this should not happen
+  throw new Error('Storage not configured: R2_ACCOUNT_ID and related credentials are required');
 }
 
 /**
