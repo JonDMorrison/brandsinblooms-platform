@@ -84,6 +84,8 @@ const VisualEditorContent = memo(function VisualEditorContent({
     handleCategoryDelete,
     handleFeaturedUpdate,
     handleFeaturedDelete,
+    handleFAQUpdate,
+    handleFAQDelete,
     handleTitleUpdate: updateTitle,
     handleSubtitleUpdate: updateSubtitle
   } = createContentUpdateHandlers(content, onContentChange, updateContent)
@@ -134,6 +136,8 @@ const VisualEditorContent = memo(function VisualEditorContent({
           onCategoryDelete={handleCategoryDelete}
           onFeaturedUpdate={handleFeaturedUpdate}
           onFeaturedDelete={handleFeaturedDelete}
+          onFAQUpdate={handleFAQUpdate}
+          onFAQDelete={handleFAQDelete}
         />
       </div>
       

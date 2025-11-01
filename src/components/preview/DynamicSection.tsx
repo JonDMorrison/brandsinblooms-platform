@@ -33,9 +33,11 @@ interface DynamicSectionProps {
   onCategoryDelete?: (sectionKey: string, categoryIndex: number) => void
   onFeaturedUpdate?: (sectionKey: string, itemIndex: number, updatedItem: Record<string, unknown>) => void
   onFeaturedDelete?: (sectionKey: string, itemIndex: number) => void
+  onFAQUpdate?: (sectionKey: string, faqIndex: number, updatedFAQ: Record<string, unknown>) => void
+  onFAQDelete?: (sectionKey: string, faqIndex: number) => void
 }
 
-function DynamicSectionComponent({ section, sectionKey, className = '', title, onContentUpdate, onFeatureUpdate, onValueUpdate, onCategoryUpdate, onCategoryDelete, onFeaturedUpdate, onFeaturedDelete }: DynamicSectionProps) {
+function DynamicSectionComponent({ section, sectionKey, className = '', title, onContentUpdate, onFeatureUpdate, onValueUpdate, onCategoryUpdate, onCategoryDelete, onFeaturedUpdate, onFeaturedDelete, onFAQUpdate, onFAQDelete }: DynamicSectionProps) {
   const { theme } = useSiteTheme()
 
   // Don't render if section is not visible or has no data
@@ -46,7 +48,7 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
   const { type, data, settings } = section
 
   // Common props for all preview components
-  const commonProps = { section, sectionKey, className, title, onContentUpdate, onFeatureUpdate, onValueUpdate, onCategoryUpdate, onCategoryDelete, onFeaturedUpdate, onFeaturedDelete }
+  const commonProps = { section, sectionKey, className, title, onContentUpdate, onFeatureUpdate, onValueUpdate, onCategoryUpdate, onCategoryDelete, onFeaturedUpdate, onFeaturedDelete, onFAQUpdate, onFAQDelete }
 
   // Section-specific rendering logic
   switch (type) {

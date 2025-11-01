@@ -15,6 +15,8 @@ interface UnifiedPagePreviewProps {
   onCategoryDelete?: (sectionKey: string, categoryIndex: number) => void
   onFeaturedUpdate?: (sectionKey: string, itemIndex: number, updatedItem: Record<string, unknown>) => void
   onFeaturedDelete?: (sectionKey: string, itemIndex: number) => void
+  onFAQUpdate?: (sectionKey: string, faqIndex: number, updatedFAQ: Record<string, unknown>) => void
+  onFAQDelete?: (sectionKey: string, faqIndex: number) => void
   title?: string
   subtitle?: string
 }
@@ -29,6 +31,8 @@ function UnifiedPagePreviewContent({
   onCategoryDelete,
   onFeaturedUpdate,
   onFeaturedDelete,
+  onFAQUpdate,
+  onFAQDelete,
   title,
   subtitle
 }: UnifiedPagePreviewProps) {
@@ -62,6 +66,8 @@ function UnifiedPagePreviewContent({
               onCategoryDelete={onCategoryDelete}
               onFeaturedUpdate={onFeaturedUpdate}
               onFeaturedDelete={onFeaturedDelete}
+              onFAQUpdate={onFAQUpdate}
+              onFAQDelete={onFAQDelete}
             />
           ))}
       </div>

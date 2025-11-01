@@ -377,6 +377,89 @@ export function deleteSectionFeatured(
 }
 
 /**
+ * Helper to update FAQ items in sections
+ * Supports partial updates - merges updatedFAQ object into existing FAQ item
+ */
+export function updateSectionFAQ(
+  content: PageContent,
+  sectionKey: string,
+  faqIndex: number,
+  updatedFAQ: Record<string, unknown>
+): PageContent {
+  if (!content || !content.sections[sectionKey]) {
+    return content
+  }
+
+  const section = content.sections[sectionKey]
+  if (!section || !section.data.faqs || !Array.isArray(section.data.faqs)) {
+    return content
+  }
+
+  // Create updated FAQs array
+  const updatedFAQs = [...section.data.faqs]
+  const currentFAQ = updatedFAQs[faqIndex]
+  if (currentFAQ && typeof currentFAQ === 'object') {
+    // Merge updated fields into existing FAQ item
+    updatedFAQs[faqIndex] = {
+      ...currentFAQ,
+      ...updatedFAQ
+    }
+  }
+
+  // Create updated content with new FAQs array
+  return {
+    ...content,
+    sections: {
+      ...content.sections,
+      [sectionKey]: {
+        ...section,
+        data: {
+          ...section.data,
+          faqs: updatedFAQs
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Helper to delete a FAQ item from a section
+ */
+export function deleteSectionFAQ(
+  content: PageContent,
+  sectionKey: string,
+  faqIndex: number
+): PageContent {
+  if (!content || !content.sections[sectionKey]) {
+    return content
+  }
+
+  const section = content.sections[sectionKey]
+  if (!section || !section.data.faqs || !Array.isArray(section.data.faqs)) {
+    return content
+  }
+
+  // Create updated FAQs array with item removed
+  const updatedFAQs = [...section.data.faqs]
+  updatedFAQs.splice(faqIndex, 1)
+
+  // Create updated content with new FAQs array
+  return {
+    ...content,
+    sections: {
+      ...content.sections,
+      [sectionKey]: {
+        ...section,
+        data: {
+          ...section.data,
+          faqs: updatedFAQs
+        }
+      }
+    }
+  }
+}
+
+/**
  * Type-safe content update factory
  */
 export function createContentUpdateHandlers(
@@ -452,6 +535,23 @@ export function createContentUpdateHandlers(
   }
 
   /**
+   * Handle FAQ item updates
+   * Supports partial updates - merges updatedFAQ into existing FAQ item
+   */
+  const handleFAQUpdate = (sectionKey: string, faqIndex: number, updatedFAQ: Record<string, unknown>) => {
+    const updatedContent = updateSectionFAQ(content, sectionKey, faqIndex, updatedFAQ)
+    onContentChange(updatedContent)
+  }
+
+  /**
+   * Handle FAQ item deletion
+   */
+  const handleFAQDelete = (sectionKey: string, faqIndex: number) => {
+    const updatedContent = deleteSectionFAQ(content, sectionKey, faqIndex)
+    onContentChange(updatedContent)
+  }
+
+  /**
    * Handle title updates (with fallback support)
    */
   const handleTitleUpdate = (
@@ -488,6 +588,8 @@ export function createContentUpdateHandlers(
     handleCategoryDelete,
     handleFeaturedUpdate,
     handleFeaturedDelete,
+    handleFAQUpdate,
+    handleFAQDelete,
     handleTitleUpdate,
     handleSubtitleUpdate
   }
