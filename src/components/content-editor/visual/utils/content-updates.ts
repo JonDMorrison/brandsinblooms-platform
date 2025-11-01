@@ -294,6 +294,89 @@ export function deleteSectionCategory(
 }
 
 /**
+ * Helper to update featured items in sections
+ * Supports partial updates - merges updatedItem object into existing featured item
+ */
+export function updateSectionFeatured(
+  content: PageContent,
+  sectionKey: string,
+  itemIndex: number,
+  updatedItem: Record<string, unknown>
+): PageContent {
+  if (!content || !content.sections[sectionKey]) {
+    return content
+  }
+
+  const section = content.sections[sectionKey]
+  if (!section || !section.data.featuredItems || !Array.isArray(section.data.featuredItems)) {
+    return content
+  }
+
+  // Create updated featured items array
+  const updatedFeaturedItems = [...section.data.featuredItems]
+  const currentItem = updatedFeaturedItems[itemIndex]
+  if (currentItem && typeof currentItem === 'object') {
+    // Merge updated fields into existing featured item
+    updatedFeaturedItems[itemIndex] = {
+      ...currentItem,
+      ...updatedItem
+    }
+  }
+
+  // Create updated content with new featured items array
+  return {
+    ...content,
+    sections: {
+      ...content.sections,
+      [sectionKey]: {
+        ...section,
+        data: {
+          ...section.data,
+          featuredItems: updatedFeaturedItems
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Helper to delete a featured item from a section
+ */
+export function deleteSectionFeatured(
+  content: PageContent,
+  sectionKey: string,
+  itemIndex: number
+): PageContent {
+  if (!content || !content.sections[sectionKey]) {
+    return content
+  }
+
+  const section = content.sections[sectionKey]
+  if (!section || !section.data.featuredItems || !Array.isArray(section.data.featuredItems)) {
+    return content
+  }
+
+  // Create updated featured items array with item removed
+  const updatedFeaturedItems = [...section.data.featuredItems]
+  updatedFeaturedItems.splice(itemIndex, 1)
+
+  // Create updated content with new featured items array
+  return {
+    ...content,
+    sections: {
+      ...content.sections,
+      [sectionKey]: {
+        ...section,
+        data: {
+          ...section.data,
+          featuredItems: updatedFeaturedItems
+        }
+      }
+    }
+  }
+}
+
+/**
  * Type-safe content update factory
  */
 export function createContentUpdateHandlers(
@@ -352,6 +435,23 @@ export function createContentUpdateHandlers(
   }
 
   /**
+   * Handle featured item updates
+   * Supports partial updates - merges updatedItem into existing featured item
+   */
+  const handleFeaturedUpdate = (sectionKey: string, itemIndex: number, updatedItem: Record<string, unknown>) => {
+    const updatedContent = updateSectionFeatured(content, sectionKey, itemIndex, updatedItem)
+    onContentChange(updatedContent)
+  }
+
+  /**
+   * Handle featured item deletion
+   */
+  const handleFeaturedDelete = (sectionKey: string, itemIndex: number) => {
+    const updatedContent = deleteSectionFeatured(content, sectionKey, itemIndex)
+    onContentChange(updatedContent)
+  }
+
+  /**
    * Handle title updates (with fallback support)
    */
   const handleTitleUpdate = (
@@ -386,6 +486,8 @@ export function createContentUpdateHandlers(
     handleValueUpdate,
     handleCategoryUpdate,
     handleCategoryDelete,
+    handleFeaturedUpdate,
+    handleFeaturedDelete,
     handleTitleUpdate,
     handleSubtitleUpdate
   }
