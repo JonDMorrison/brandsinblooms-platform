@@ -21,7 +21,12 @@ import { AuthError } from '@supabase/supabase-js'
 import { handleError } from '@/lib/types/error-handling'
 import { AlertCircle } from 'lucide-react'
 
-export default function SignIn() {
+interface SignInProps {
+  returnUrlProp?: string
+  enableEditProp?: boolean
+}
+
+export default function SignIn({ returnUrlProp, enableEditProp }: SignInProps = {}) {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoadingProvider, setIsLoadingProvider] = useState<string | null>(null)
   const [isLoadingMagicLink, setIsLoadingMagicLink] = useState(false)
@@ -31,9 +36,9 @@ export default function SignIn() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Get edit mode parameters from URL
-  const enableEdit = searchParams.get('enableEdit') === 'true'
-  const returnUrl = searchParams.get('returnUrl') || '/'
+  // Get edit mode parameters - prefer props (from context), fallback to URL params
+  const enableEdit = enableEditProp !== undefined ? enableEditProp : searchParams.get('enableEdit') === 'true'
+  const returnUrl = returnUrlProp || searchParams.get('returnUrl') || '/'
 
   // Generate unique IDs at the top level
   const emailId = React.useId()

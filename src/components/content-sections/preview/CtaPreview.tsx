@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react'
-import { ContentSection } from '@/src/lib/content/schema'
+import { ContentSection, ButtonStyleVariant } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { textToHtml, htmlToText } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
@@ -14,6 +14,7 @@ import { SmartLink } from '@/src/components/ui/smart-link'
 import { LinkEditModal } from '@/src/components/site-editor/modals/LinkEditModal'
 import { Settings } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
+import { getButtonStyles, getButtonClassName } from '@/src/lib/utils/button-styles'
 
 interface CtaPreviewProps {
   section: ContentSection
@@ -55,10 +56,17 @@ export function CtaPreview({
     setLinkEditModalOpen(true)
   }
 
-  const handleLinkSave = (url: string) => {
+  const handleLinkSave = (url: string, style?: ButtonStyleVariant) => {
     if (editingLinkField && onContentUpdate) {
-      const fieldPath = editingLinkField === 'cta' ? 'data.ctaLink' : 'data.secondaryCtaLink'
-      onContentUpdate(sectionKey, fieldPath, url)
+      // Update URL
+      const linkFieldPath = editingLinkField === 'cta' ? 'data.ctaLink' : 'data.secondaryCtaLink'
+      onContentUpdate(sectionKey, linkFieldPath, url)
+
+      // Update style if provided
+      if (style) {
+        const styleFieldPath = editingLinkField === 'cta' ? 'data.ctaStyle' : 'data.secondaryCtaStyle'
+        onContentUpdate(sectionKey, styleFieldPath, style)
+      }
     }
   }
 
@@ -120,16 +128,8 @@ export function CtaPreview({
                 {isPreview ? (
                   // EDIT MODE: Button-styled div, no navigation
                   <div
-                    className={`group relative inline-block px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 hover:opacity-90 ${
-                      isPrimaryBackground
-                        ? 'bg-white hover:bg-gray-100'
-                        : 'hover:bg-theme-primary/90'
-                    }`}
-                    style={{
-                      backgroundColor: isPrimaryBackground ? 'white' : 'var(--theme-primary)',
-                      color: isPrimaryBackground ? 'var(--theme-primary)' : 'white',
-                      fontFamily: 'var(--theme-font-body)'
-                    }}
+                    className={getButtonClassName((data.ctaStyle as ButtonStyleVariant) || 'primary', isPrimaryBackground)}
+                    style={getButtonStyles((data.ctaStyle as ButtonStyleVariant) || 'primary', isPrimaryBackground)}
                   >
                     <InlineTextEditor
                       content={String(data.ctaText || 'Shop Plants')}
@@ -168,16 +168,8 @@ export function CtaPreview({
                   // NAVIGATE MODE: SmartLink for navigation
                   <SmartLink
                     href={String(data.ctaLink || '/plants')}
-                    className={`group relative inline-block px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 hover:opacity-90 ${
-                      isPrimaryBackground
-                        ? 'bg-white hover:bg-gray-100'
-                        : 'hover:bg-theme-primary/90'
-                    }`}
-                    style={{
-                      backgroundColor: isPrimaryBackground ? 'white' : 'var(--theme-primary)',
-                      color: isPrimaryBackground ? 'var(--theme-primary)' : 'white',
-                      fontFamily: 'var(--theme-font-body)'
-                    }}
+                    className={getButtonClassName((data.ctaStyle as ButtonStyleVariant) || 'primary', isPrimaryBackground)}
+                    style={getButtonStyles((data.ctaStyle as ButtonStyleVariant) || 'primary', isPrimaryBackground)}
                   >
                     <InlineTextEditor
                       content={String(data.ctaText || 'Shop Plants')}
@@ -209,17 +201,8 @@ export function CtaPreview({
                 {isPreview ? (
                   // EDIT MODE: Button-styled div, no navigation
                   <div
-                    className={`group relative inline-block px-8 py-3 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:opacity-80 ${
-                      isPrimaryBackground
-                        ? 'border-white text-white hover:bg-white hover:text-theme-primary'
-                        : 'hover:bg-theme-primary hover:text-white'
-                    }`}
-                    style={{
-                      borderColor: isPrimaryBackground ? 'white' : 'var(--theme-primary)',
-                      color: isPrimaryBackground ? 'white' : 'var(--theme-primary)',
-                      backgroundColor: 'transparent',
-                      fontFamily: 'var(--theme-font-body)'
-                    }}
+                    className={getButtonClassName((data.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', isPrimaryBackground)}
+                    style={getButtonStyles((data.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', isPrimaryBackground)}
                   >
                     <InlineTextEditor
                       content={String(data.secondaryCtaText || 'Browse Plants')}
@@ -258,17 +241,8 @@ export function CtaPreview({
                   // NAVIGATE MODE: SmartLink for navigation
                   <SmartLink
                     href={String(data.secondaryCtaLink || '/products')}
-                    className={`group relative inline-block px-8 py-3 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:opacity-80 ${
-                      isPrimaryBackground
-                        ? 'border-white text-white hover:bg-white hover:text-theme-primary'
-                        : 'hover:bg-theme-primary hover:text-white'
-                    }`}
-                    style={{
-                      borderColor: isPrimaryBackground ? 'white' : 'var(--theme-primary)',
-                      color: isPrimaryBackground ? 'white' : 'var(--theme-primary)',
-                      backgroundColor: 'transparent',
-                      fontFamily: 'var(--theme-font-body)'
-                    }}
+                    className={getButtonClassName((data.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', isPrimaryBackground)}
+                    style={getButtonStyles((data.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', isPrimaryBackground)}
                   >
                     <InlineTextEditor
                       content={String(data.secondaryCtaText || 'Browse Plants')}
@@ -305,6 +279,7 @@ export function CtaPreview({
           setEditingLinkField(null)
         }}
         currentUrl={editingLinkField === 'cta' ? (data.ctaLink || '') : (data.secondaryCtaLink || '')}
+        currentStyle={editingLinkField === 'cta' ? ((data.ctaStyle as ButtonStyleVariant) || 'primary') : ((data.secondaryCtaStyle as ButtonStyleVariant) || 'secondary')}
         onSave={handleLinkSave}
         fieldLabel={editingLinkField === 'cta' ? 'Primary CTA Button' : 'Secondary CTA Button'}
         sectionType="CTA"

@@ -519,9 +519,79 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
                   >
                     <CardContent className="p-4">
                       <RadioGroupItem value={style.value} className="sr-only" />
-                      <div className="space-y-2">
-                        <span className="font-medium">{style.label}</span>
-                        <p className="text-sm text-muted-foreground">{style.description}</p>
+                      <div className="space-y-3">
+                        <div>
+                          <span className="font-medium">{style.label}</span>
+                          <p className="text-sm text-muted-foreground">{style.description}</p>
+                        </div>
+
+                        {/* Visual Preview */}
+                        <div className="h-16 rounded border bg-gray-50 p-2 flex flex-col justify-between">
+                          {style.value === 'minimal' && (
+                            <div className="flex items-center justify-between h-full">
+                              <div className="flex gap-0.5">
+                                <div className="w-8 h-0.5 bg-gray-300 rounded"></div>
+                                <div className="w-6 h-0.5 bg-gray-300 rounded"></div>
+                              </div>
+                              <div className="flex gap-1">
+                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                              </div>
+                            </div>
+                          )}
+                          {style.value === 'comprehensive' && (
+                            <>
+                              {/* Three columns at top */}
+                              <div className="flex gap-2 flex-1">
+                                <div className="flex-1 space-y-0.5">
+                                  <div className="w-full h-0.5 bg-primary rounded"></div>
+                                  <div className="w-3/4 h-0.5 bg-gray-300 rounded"></div>
+                                  <div className="w-3/4 h-0.5 bg-gray-300 rounded"></div>
+                                </div>
+                                <div className="flex-1 space-y-0.5">
+                                  <div className="w-full h-0.5 bg-primary rounded"></div>
+                                  <div className="w-3/4 h-0.5 bg-gray-300 rounded"></div>
+                                  <div className="w-3/4 h-0.5 bg-gray-300 rounded"></div>
+                                </div>
+                                <div className="flex-1 space-y-0.5">
+                                  <div className="w-full h-0.5 bg-primary rounded"></div>
+                                  <div className="w-3/4 h-0.5 bg-gray-300 rounded"></div>
+                                  <div className="w-3/4 h-0.5 bg-gray-300 rounded"></div>
+                                </div>
+                              </div>
+                              {/* Bottom bar */}
+                              <div className="border-t pt-1 flex items-center justify-between">
+                                <div className="w-8 h-0.5 bg-gray-300 rounded"></div>
+                                <div className="flex gap-1">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                          {style.value === 'centered' && (
+                            <div className="flex flex-col items-center justify-center gap-1 h-full">
+                              {/* Centered nav links */}
+                              <div className="flex gap-1">
+                                <div className="w-3 h-0.5 bg-gray-300 rounded"></div>
+                                <div className="w-3 h-0.5 bg-gray-300 rounded"></div>
+                                <div className="w-3 h-0.5 bg-gray-300 rounded"></div>
+                              </div>
+                              {/* Centered social icons */}
+                              <div className="flex gap-1">
+                                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                              </div>
+                              {/* Centered copyright */}
+                              <div className="border-t pt-1 mt-1 w-full flex justify-center">
+                                <div className="w-8 h-0.5 bg-gray-300 rounded"></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

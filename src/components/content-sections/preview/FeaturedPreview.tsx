@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react'
-import { ContentSection, DEFAULT_FEATURED_ITEMS } from '@/src/lib/content/schema'
+import { ContentSection, DEFAULT_FEATURED_ITEMS, ButtonStyleVariant } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared'
@@ -24,6 +24,7 @@ import Link from 'next/link'
 import { Product } from '@/lib/database/aliases'
 import { transformProductForDisplay } from '@/src/lib/utils/product-transformer'
 import { toast } from 'sonner'
+import { getButtonStyles, getButtonClassName } from '@/src/lib/utils/button-styles'
 
 interface FeaturedPreviewProps {
   section: ContentSection
@@ -125,9 +126,15 @@ export function FeaturedPreview({
     setLinkEditModalOpen(true)
   }
 
-  const handleLinkSave = (url: string) => {
+  const handleLinkSave = (url: string, style?: ButtonStyleVariant) => {
     if (onContentUpdate) {
+      // Update URL
       onContentUpdate(sectionKey, 'data.viewAllLink', url)
+
+      // Update style if provided
+      if (style) {
+        onContentUpdate(sectionKey, 'data.viewAllStyle', style)
+      }
     }
   }
 
@@ -275,12 +282,8 @@ export function FeaturedPreview({
           {isPreview ? (
             // EDIT MODE: Button-styled div with gear icon, no navigation
             <div
-              className="group relative inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
-              style={{
-                borderColor: 'var(--theme-primary)',
-                color: 'var(--theme-primary)',
-                fontFamily: 'var(--theme-font-body)'
-              }}
+              className={getButtonClassName((data.viewAllStyle as ButtonStyleVariant) || 'secondary', false)}
+              style={getButtonStyles((data.viewAllStyle as ButtonStyleVariant) || 'secondary', false)}
             >
               <InlineTextEditor
                 content={String(data.viewAllText || 'View All Plants')}
@@ -320,12 +323,8 @@ export function FeaturedPreview({
             // NAVIGATE MODE: Regular link for navigation
             <a
               href={data.viewAllLink || '/plants'}
-              className="inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-80"
-              style={{
-                borderColor: 'var(--theme-primary)',
-                color: 'var(--theme-primary)',
-                fontFamily: 'var(--theme-font-body)'
-              }}
+              className={getButtonClassName((data.viewAllStyle as ButtonStyleVariant) || 'secondary', false)}
+              style={getButtonStyles((data.viewAllStyle as ButtonStyleVariant) || 'secondary', false)}
             >
               <InlineTextEditor
                 content={String(data.viewAllText || 'View All Plants')}
@@ -357,6 +356,7 @@ export function FeaturedPreview({
         isOpen={linkEditModalOpen}
         onClose={() => setLinkEditModalOpen(false)}
         currentUrl={data.viewAllLink || ''}
+        currentStyle={(data.viewAllStyle as ButtonStyleVariant) || 'secondary'}
         onSave={handleLinkSave}
         fieldLabel="View All Button"
         sectionType="Featured"

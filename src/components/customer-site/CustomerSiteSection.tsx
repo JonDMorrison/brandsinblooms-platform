@@ -7,7 +7,7 @@
  */
 
 import React from 'react'
-import { ContentSection } from '@/src/lib/content/schema'
+import { ContentSection, ButtonStyleVariant } from '@/src/lib/content/schema'
 import { ViewportLazyLoad } from '@/src/components/ui/lazy-loading'
 import {
   HeroSectionErrorBoundary,
@@ -24,6 +24,7 @@ import { ImageIcon } from 'lucide-react'
 import { SmartLink } from '@/src/components/ui/smart-link'
 import { FeaturedPreview } from '@/src/components/content-sections/preview/FeaturedPreview'
 import { DEFAULT_CATEGORIES } from '@/src/lib/content/default-categories'
+import { getButtonStyles, getButtonClassName } from '@/src/lib/utils/button-styles'
 
 interface CustomerSiteSectionProps {
   section: ContentSection
@@ -84,16 +85,16 @@ export function CustomerSiteSection({
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
                   <SmartLink
                     href={String(sectionData.ctaLink || '/plants')}
-                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
-                    style={{backgroundColor: 'var(--theme-primary)', color: '#fff', fontFamily: 'var(--theme-font-body)'}}
+                    className={getButtonClassName((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', false)}
+                    style={getButtonStyles((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', false)}
                   >
                     {String(sectionData.ctaText || 'Shop Plants')}
                   </SmartLink>
                   {sectionData.secondaryCtaText && (
                     <SmartLink
                       href={String(sectionData.secondaryCtaLink || '/about')}
-                      className="px-8 py-4 border rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
-                      style={{borderColor: 'var(--theme-secondary)', color: 'var(--theme-secondary)', fontFamily: 'var(--theme-font-body)'}}
+                      className={getButtonClassName((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', false)}
+                      style={getButtonStyles((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', false)}
                     >
                       {String(sectionData.secondaryCtaText)}
                     </SmartLink>
@@ -341,16 +342,8 @@ export function CustomerSiteSection({
                   {(sectionData.ctaText || sectionData.ctaLink) && (
                     <SmartLink
                       href={String(sectionData.ctaLink || '/plants')}
-                      className={`px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 hover:opacity-90 ${
-                        backgroundSetting === 'primary'
-                          ? 'bg-white hover:bg-gray-100'
-                          : 'hover:bg-theme-primary/90'
-                      }`}
-                      style={{
-                        backgroundColor: backgroundSetting === 'primary' ? 'white' : 'var(--theme-primary)',
-                        color: backgroundSetting === 'primary' ? 'var(--theme-primary)' : 'white',
-                        fontFamily: 'var(--theme-font-body)'
-                      }}
+                      className={getButtonClassName((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', backgroundSetting === 'primary')}
+                      style={getButtonStyles((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', backgroundSetting === 'primary')}
                     >
                       {String(sectionData.ctaText || 'Shop Plants')}
                     </SmartLink>
@@ -360,17 +353,8 @@ export function CustomerSiteSection({
                   {(sectionData.secondaryCtaText || sectionData.secondaryCtaLink) && (
                     <SmartLink
                       href={String(sectionData.secondaryCtaLink || '/products')}
-                      className={`px-8 py-3 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:opacity-80 ${
-                        backgroundSetting === 'primary'
-                          ? 'border-white text-white hover:bg-white hover:text-theme-primary'
-                          : 'hover:bg-theme-primary hover:text-white'
-                      }`}
-                      style={{
-                        borderColor: backgroundSetting === 'primary' ? 'white' : 'var(--theme-primary)',
-                        color: backgroundSetting === 'primary' ? 'white' : 'var(--theme-primary)',
-                        backgroundColor: 'transparent',
-                        fontFamily: 'var(--theme-font-body)'
-                      }}
+                      className={getButtonClassName((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', backgroundSetting === 'primary')}
+                      style={getButtonStyles((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', backgroundSetting === 'primary')}
                     >
                       {String(sectionData.secondaryCtaText || 'Browse Plants')}
                     </SmartLink>
