@@ -47,6 +47,11 @@ export type ContentSectionType =
   | 'soil_guide'
 
 /**
+ * Button style variants for CTA buttons
+ */
+export type ButtonStyleVariant = 'primary' | 'secondary' | 'accent'
+
+/**
  * Base content section interface
  */
 export interface ContentSection {
@@ -66,28 +71,32 @@ export interface ContentSectionData {
   // Text content
   content?: string // HTML for richText, plain text for text
   json?: Json      // Tiptap JSON format for richText
-  
+
   // Media content
   url?: string     // For images/videos
   alt?: string     // For images
   caption?: string // For media captions
-  
+
   // Icon content
   icon?: string    // Lucide icon name
   iconSize?: 'sm' | 'md' | 'lg' | 'xl'
   iconColor?: string
-  
+
+  // Button/CTA styling
+  ctaStyle?: ButtonStyleVariant       // Primary button style variant
+  secondaryCtaStyle?: ButtonStyleVariant  // Secondary button style variant
+
   // Repeatable content (features, testimonials, team members, etc.)
   items?: Json // ContentItem[] typed as Json for database compatibility
-  
+
   // Form-specific data
   fields?: Json // FormField[] typed as Json for database compatibility
-  
+
   // Layout-specific settings
   columns?: number
   spacing?: 'tight' | 'normal' | 'loose'
   alignment?: 'left' | 'center' | 'right'
-  
+
   // Plant-specific data
   careLevel?: 'easy' | 'medium' | 'challenging'
   lightRequirement?: 'low' | 'medium' | 'bright' | 'direct'
@@ -95,7 +104,7 @@ export interface ContentSectionData {
   seasonalTips?: Json // SeasonalTip[] typed as Json
   growingConditions?: Json // GrowingCondition[] typed as Json
   plantCategories?: Json // PlantCategory[] typed as Json
-  
+
   // Additional custom data
   [key: string]: Json | undefined
 }
@@ -372,8 +381,10 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           description: 'Our mission is to help you create thriving plant sanctuaries while protecting our planet. Every plant comes with expert care guidance, sustainable growing practices, and our commitment to your plant parenthood success.',
           ctaText: 'Shop Plants',
           ctaLink: '/',
+          ctaStyle: 'primary' as ButtonStyleVariant,
           secondaryCtaText: 'Browse Plants',
-          secondaryCtaLink: '/'
+          secondaryCtaLink: '/',
+          secondaryCtaStyle: 'secondary' as ButtonStyleVariant
         },
         visible: true,
         order: 5,
@@ -559,8 +570,10 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
           description: 'Let our experts help you create the perfect green sanctuary for your space.',
           ctaText: 'Schedule Consultation',
           ctaLink: '/consultation',
+          ctaStyle: 'primary' as ButtonStyleVariant,
           secondaryCtaText: 'Browse Plants',
-          secondaryCtaLink: '/plants'
+          secondaryCtaLink: '/plants',
+          secondaryCtaStyle: 'secondary' as ButtonStyleVariant
         },
         visible: false,
         order: 7,

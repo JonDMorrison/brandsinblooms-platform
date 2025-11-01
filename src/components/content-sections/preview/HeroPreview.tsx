@@ -3,7 +3,7 @@
  */
 
 import React, { useState } from 'react'
-import { ContentSection } from '@/src/lib/content/schema'
+import { ContentSection, ButtonStyleVariant } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getFeatureGridClasses } from '@/src/components/content-sections/shared'
@@ -16,6 +16,7 @@ import { SmartLink } from '@/src/components/ui/smart-link'
 import { LinkEditModal } from '@/src/components/site-editor/modals/LinkEditModal'
 import { Settings } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
+import { getButtonStyles, getButtonClassName } from '@/src/lib/utils/button-styles'
 
 interface HeroPreviewProps {
   section: ContentSection
@@ -121,10 +122,17 @@ export function HeroPreview({
     setLinkEditModalOpen(true)
   }
 
-  const handleLinkSave = (url: string) => {
+  const handleLinkSave = (url: string, style?: ButtonStyleVariant) => {
     if (editingLinkField && onContentUpdate) {
-      const fieldPath = editingLinkField === 'cta' ? 'data.ctaLink' : 'data.secondaryCtaLink'
-      onContentUpdate(sectionKey, fieldPath, url)
+      // Update URL
+      const linkFieldPath = editingLinkField === 'cta' ? 'data.ctaLink' : 'data.secondaryCtaLink'
+      onContentUpdate(sectionKey, linkFieldPath, url)
+
+      // Update style if provided
+      if (style) {
+        const styleFieldPath = editingLinkField === 'cta' ? 'data.ctaStyle' : 'data.secondaryCtaStyle'
+        onContentUpdate(sectionKey, styleFieldPath, style)
+      }
     }
   }
 
@@ -212,12 +220,8 @@ export function HeroPreview({
                 {isPreview ? (
                   // EDIT MODE: Button-styled div, no navigation
                   <div
-                    className="group relative inline-block px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
-                    style={{
-                      backgroundColor: 'var(--theme-primary)',
-                      color: 'rgb(255, 255, 255)',
-                      fontFamily: 'var(--theme-font-body)'
-                    }}
+                    className={getButtonClassName((data.ctaStyle as ButtonStyleVariant) || 'primary', false)}
+                    style={getButtonStyles((data.ctaStyle as ButtonStyleVariant) || 'primary', false)}
                   >
                     <InlineTextEditor
                       content={data.ctaText || ''}
@@ -257,12 +261,8 @@ export function HeroPreview({
                   // NAVIGATE MODE: SmartLink for navigation
                   <SmartLink
                     href={data.ctaLink || '#'}
-                    className="group relative inline-block px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:opacity-90"
-                    style={{
-                      backgroundColor: 'var(--theme-primary)',
-                      color: 'rgb(255, 255, 255)',
-                      fontFamily: 'var(--theme-font-body)'
-                    }}
+                    className={getButtonClassName((data.ctaStyle as ButtonStyleVariant) || 'primary', false)}
+                    style={getButtonStyles((data.ctaStyle as ButtonStyleVariant) || 'primary', false)}
                   >
                     <InlineTextEditor
                       content={data.ctaText || ''}
@@ -293,12 +293,8 @@ export function HeroPreview({
                 {isPreview ? (
                   // EDIT MODE: Button-styled div, no navigation
                   <div
-                    className="group relative inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
-                    style={{
-                      borderColor: 'var(--theme-secondary)',
-                      color: 'var(--theme-secondary)',
-                      fontFamily: 'var(--theme-font-body)'
-                    }}
+                    className={getButtonClassName((data.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', false)}
+                    style={getButtonStyles((data.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', false)}
                   >
                     <InlineTextEditor
                       content={data.secondaryCtaText || ''}
@@ -338,12 +334,8 @@ export function HeroPreview({
                   // NAVIGATE MODE: SmartLink for navigation
                   <SmartLink
                     href={data.secondaryCtaLink || '#'}
-                    className="group relative inline-block border px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-50"
-                    style={{
-                      borderColor: 'var(--theme-secondary)',
-                      color: 'var(--theme-secondary)',
-                      fontFamily: 'var(--theme-font-body)'
-                    }}
+                    className={getButtonClassName((data.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', false)}
+                    style={getButtonStyles((data.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', false)}
                   >
                     <InlineTextEditor
                       content={data.secondaryCtaText || ''}
@@ -448,6 +440,7 @@ export function HeroPreview({
           setEditingLinkField(null)
         }}
         currentUrl={editingLinkField === 'cta' ? (data.ctaLink || '') : (data.secondaryCtaLink || '')}
+        currentStyle={editingLinkField === 'cta' ? ((data.ctaStyle as ButtonStyleVariant) || 'primary') : ((data.secondaryCtaStyle as ButtonStyleVariant) || 'secondary')}
         onSave={handleLinkSave}
         fieldLabel={editingLinkField === 'cta' ? 'Primary CTA Button' : 'Secondary CTA Button'}
         sectionType="Hero"
