@@ -23,6 +23,7 @@ import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
 import { ImageIcon } from 'lucide-react'
 import { SmartLink } from '@/src/components/ui/smart-link'
 import { FeaturedPreview } from '@/src/components/content-sections/preview/FeaturedPreview'
+import { DEFAULT_CATEGORIES } from '@/src/lib/content/default-categories'
 
 interface CustomerSiteSectionProps {
   section: ContentSection
@@ -190,7 +191,10 @@ export function CustomerSiteSection({
       )
     }
 
-    case 'categories':
+    case 'categories': {
+      // Use categories from data or fall back to default categories (matches CategoriesPreview behavior)
+      const categories = (sectionData.categories as any[]) || DEFAULT_CATEGORIES
+
       return (
         <ViewportLazyLoad fallback={<div className="h-96" />} delay={200}>
           <CategoriesSectionErrorBoundary>
@@ -200,7 +204,7 @@ export function CustomerSiteSection({
                   <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
                     {String(sectionData.headline || 'Shop by Category')}
                   </h2>
-                  <div 
+                  <div
                     className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
                     style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
                     dangerouslySetInnerHTML={{
@@ -208,8 +212,8 @@ export function CustomerSiteSection({
                     }}
                   />
                 </div>
-                <div className={`grid ${getCategoriesGridClasses(((sectionData.categories as any[]) || []).length, false)} gap-8`}>
-                  {((sectionData.categories as any[]) || []).map((category: any) => {
+                <div className={`grid ${getCategoriesGridClasses(categories.length, false)} gap-8`}>
+                  {categories.map((category: any) => {
                     const hasImage = category.image && category.image.trim() !== ''
 
                     return (
@@ -259,6 +263,7 @@ export function CustomerSiteSection({
           </CategoriesSectionErrorBoundary>
         </ViewportLazyLoad>
       )
+    }
 
     case 'features':
       return (

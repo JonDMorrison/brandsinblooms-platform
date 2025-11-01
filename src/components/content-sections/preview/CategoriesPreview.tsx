@@ -15,6 +15,7 @@ import { SmartLink } from '@/src/components/ui/smart-link'
 import { CategoryEditModal } from '@/src/components/site-editor/modals/CategoryEditModal'
 import { useFullSiteEditorOptional } from '@/src/contexts/FullSiteEditorContext'
 import { useSiteContext } from '@/src/contexts/SiteContext'
+import { DEFAULT_CATEGORIES } from '@/src/lib/content/default-categories'
 
 interface CategoriesPreviewProps {
   section: ContentSection
@@ -26,42 +27,6 @@ interface CategoriesPreviewProps {
   onCategoryUpdate?: (sectionKey: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => void
   onCategoryDelete?: (sectionKey: string, categoryIndex: number) => void
 }
-
-// Default categories that match the schema definition
-const DEFAULT_CATEGORIES = [
-  {
-    id: 'beginner-friendly',
-    name: 'Beginner-Friendly',
-    image: '/images/golden-pothos.jpg',
-    link: '/plants?care-level=beginner',
-    plantCount: 12,
-    description: 'Perfect for new plant parents - low maintenance, forgiving varieties'
-  },
-  {
-    id: 'houseplants',
-    name: 'Houseplants',
-    image: '/images/snake-plant.jpg',
-    link: '/plants?category=houseplants',
-    plantCount: 25,
-    description: 'Transform indoor spaces with air-purifying and decorative plants'
-  },
-  {
-    id: 'outdoor',
-    name: 'Outdoor Specimens',
-    image: '/images/japanese-maple.jpg',
-    link: '/plants?category=outdoor',
-    plantCount: 18,
-    description: 'Hardy outdoor plants for landscaping and garden design'
-  },
-  {
-    id: 'succulents',
-    name: 'Succulents & Cacti',
-    image: '/images/fiddle-leaf-fig.jpg',
-    link: '/plants?category=succulents',
-    plantCount: 15,
-    description: 'Drought-tolerant beauties perfect for sunny spots and xeriscaping'
-  }
-]
 
 export function CategoriesPreview({
   section,
