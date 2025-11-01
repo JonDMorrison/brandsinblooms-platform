@@ -426,7 +426,7 @@ export function CreateContentModal({
     <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-left pb-6 border-b">
-          <DialogTitle className="text-2xl font-bold">Create New Content</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Create New Page</DialogTitle>
           <DialogDescription>
             Step {step} of 3: {
               step === 1 ? 'Page Details' :
