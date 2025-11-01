@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Plus, Globe, Calendar, Settings, ExternalLink, Loader2, Sparkles, CheckCircle2, AlertCircle, Upload, ArrowRight, ArrowLeft, Check, Image as ImageIcon, Edit3, Copy } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/src/components/ui/card'
@@ -42,6 +42,7 @@ interface GenerationStatus {
 export default function DashboardSitesPage() {
   const { user } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { switchSite } = useSiteSwitcher()
   const { refreshUserSites } = useSiteContext()
   const { sites: userSites, loading: sitesLoading, error: sitesError, refresh: refreshSites } = useUserSites()
@@ -83,6 +84,17 @@ export default function DashboardSitesPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Auto-open create modal if 'create' URL parameter is present
+  useEffect(() => {
+    const shouldCreate = searchParams.get('create')
+    if (shouldCreate === 'true' && !isCreateModalOpen) {
+      setIsCreateModalOpen(true)
+      // Clean up URL parameter
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, [searchParams, isCreateModalOpen])
 
   // URL validation function
   const validateWebsiteUrl = (url: string): string | null => {
