@@ -324,7 +324,7 @@ export function CustomerSiteSection({
                   {String(sectionData.headline || 'Growing Together, Sustainably')}
                 </h2>
                 <div
-                  className={`text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed ${
+                  className={`prose text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed ${
                     backgroundSetting === 'primary' ? 'text-white/90' : ''
                   } [&_p:not(:first-child)]:mt-2`}
                   style={{
