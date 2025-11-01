@@ -28,13 +28,38 @@ interface FAQItem {
   order?: number
 }
 
+/**
+ * Parse FAQ data with backward compatibility for stringified JSON
+ * Handles legacy data that was incorrectly saved as JSON strings
+ */
+function parseFAQData(data: unknown): FAQItem[] {
+  // Case 1: Already an array (correct format)
+  if (Array.isArray(data)) {
+    return data as FAQItem[]
+  }
+
+  // Case 2: Stringified JSON (corrupted format from bug)
+  if (typeof data === 'string' && data.trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(data)
+      if (Array.isArray(parsed)) {
+        console.warn('[FAQEditor] Auto-migrating stringified FAQ data to array format')
+        return parsed as FAQItem[]
+      }
+    } catch (error) {
+      console.error('[FAQEditor] Failed to parse stringified FAQ data:', error)
+    }
+  }
+
+  // Case 3: Invalid or missing data
+  return []
+}
+
 export function FAQEditor({ section, sectionKey, onUpdate }: FAQEditorProps) {
   const { data } = section
 
-  // Ensure FAQs is an array
-  const faqs: FAQItem[] = Array.isArray(data.faqs)
-    ? (data.faqs as unknown as FAQItem[])
-    : []
+  // Parse FAQ data with backward compatibility for stringified JSON
+  const faqs: FAQItem[] = parseFAQData(data.faqs)
 
   const handleDataChange = (newData: Partial<ContentSection['data']>) => {
     onUpdate(sectionKey, {

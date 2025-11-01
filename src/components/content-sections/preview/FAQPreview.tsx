@@ -15,6 +15,7 @@ interface FAQPreviewProps {
   sectionKey: string
   className?: string
   onContentUpdate?: (sectionKey: string, fieldPath: string, content: string) => void
+  onFAQUpdate?: (sectionKey: string, faqIndex: number, updatedFAQ: Record<string, unknown>) => void
 }
 
 interface FAQItem {
@@ -24,20 +25,46 @@ interface FAQItem {
   order?: number
 }
 
+/**
+ * Parse FAQ data with backward compatibility for stringified JSON
+ * Handles legacy data that was incorrectly saved as JSON strings
+ */
+function parseFAQData(data: unknown): FAQItem[] {
+  // Case 1: Already an array (correct format)
+  if (Array.isArray(data)) {
+    return data as FAQItem[]
+  }
+
+  // Case 2: Stringified JSON (corrupted format from bug)
+  if (typeof data === 'string' && data.trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(data)
+      if (Array.isArray(parsed)) {
+        console.warn('[FAQPreview] Auto-migrating stringified FAQ data to array format')
+        return parsed as FAQItem[]
+      }
+    } catch (error) {
+      console.error('[FAQPreview] Failed to parse stringified FAQ data:', error)
+    }
+  }
+
+  // Case 3: Invalid or missing data
+  return []
+}
+
 export function FAQPreview({
   section,
   sectionKey,
   className = '',
-  onContentUpdate
+  onContentUpdate,
+  onFAQUpdate
 }: FAQPreviewProps) {
   const { data, settings } = section
   const isPreview = isPreviewMode(onContentUpdate)
   const responsive = createResponsiveClassHelper(isPreview)
 
-  // Ensure FAQs is an array
-  const faqs: FAQItem[] = Array.isArray(data.faqs)
-    ? (data.faqs as unknown as FAQItem[])
-    : []
+  // Parse FAQ data with backward compatibility for stringified JSON
+  const faqs: FAQItem[] = parseFAQData(data.faqs)
 
   return (
     <section
@@ -113,14 +140,18 @@ export function FAQPreview({
               <InlineTextEditor
                 content={textToHtml(String(faq.question || ''))}
                 onUpdate={(htmlContent) => {
-                  if (onContentUpdate) {
-                    const textContent = htmlToText(htmlContent)
+                  const textContent = htmlToText(htmlContent)
+                  if (onFAQUpdate) {
+                    // Use new FAQ-specific handler (correct way)
+                    onFAQUpdate(sectionKey, index, { question: textContent })
+                  } else if (onContentUpdate) {
+                    // Fallback for backward compatibility
                     const newFAQs = [...faqs]
                     newFAQs[index] = { ...newFAQs[index], question: textContent }
                     onContentUpdate(sectionKey, 'data.faqs', JSON.stringify(newFAQs))
                   }
                 }}
-                isEnabled={Boolean(onContentUpdate)}
+                isEnabled={Boolean(onContentUpdate || onFAQUpdate)}
                 fieldPath={`data.faqs.${index}.question`}
                 format="simple-toolbar"
                 className="text-lg font-semibold mb-3"
@@ -135,14 +166,18 @@ export function FAQPreview({
               <InlineTextEditor
                 content={textToHtml(String(faq.answer || ''))}
                 onUpdate={(htmlContent) => {
-                  if (onContentUpdate) {
-                    const textContent = htmlToText(htmlContent)
+                  const textContent = htmlToText(htmlContent)
+                  if (onFAQUpdate) {
+                    // Use new FAQ-specific handler (correct way)
+                    onFAQUpdate(sectionKey, index, { answer: textContent })
+                  } else if (onContentUpdate) {
+                    // Fallback for backward compatibility
                     const newFAQs = [...faqs]
                     newFAQs[index] = { ...newFAQs[index], answer: textContent }
                     onContentUpdate(sectionKey, 'data.faqs', JSON.stringify(newFAQs))
                   }
                 }}
-                isEnabled={Boolean(onContentUpdate)}
+                isEnabled={Boolean(onContentUpdate || onFAQUpdate)}
                 fieldPath={`data.faqs.${index}.answer`}
                 format="simple-toolbar"
                 className="text-sm"
