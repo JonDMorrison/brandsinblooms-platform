@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react'
 import { useFullSiteEditor } from '@/src/contexts/FullSiteEditorContext'
+import { useSiteEditorAutoSave } from '@/src/hooks/useSiteEditorAutoSave'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { Button } from '@/src/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
@@ -32,16 +33,15 @@ import {
   Smartphone,
   Edit3,
   MousePointer,
-  Save,
   Clock,
   FileText,
   Plus,
   Home,
   LogOut,
   ChevronDown,
-  RotateCcw,
   AlertCircle,
-  Settings
+  Settings,
+  Check
 } from 'lucide-react'
 import { cn } from '@/src/lib/utils'
 import { format } from 'date-fns'
@@ -65,14 +65,16 @@ export function FullSiteEditorBar() {
     toggleEditorMode,
     setViewportSize,
     savePage,
-    discardChanges,
     exitEditor
   } = useFullSiteEditor()
 
   const { user, signOut } = useAuth()
 
-  // State for discard confirmation modal
-  const [showDiscardModal, setShowDiscardModal] = useState(false)
+  // Enable autosave with 2-second debounce
+  useSiteEditorAutoSave({
+    enabled: true,
+    delay: 2000
+  })
 
   // State for page settings modal
   const [showPageSettingsModal, setShowPageSettingsModal] = useState(false)
@@ -112,17 +114,6 @@ export function FullSiteEditorBar() {
       console.error('Sign out error:', error)
       toast.error('Failed to sign out')
     }
-  }
-
-  // Handle discard changes - opens confirmation modal
-  const handleDiscard = () => {
-    setShowDiscardModal(true)
-  }
-
-  // Confirm and execute discard
-  const confirmDiscard = () => {
-    discardChanges()
-    setShowDiscardModal(false)
   }
 
   // Handle navigation after creating new page - stay on customer site in edit mode
@@ -238,26 +229,9 @@ export function FullSiteEditorBar() {
           )}
         </div>
 
-        {/* Right: Save & Exit */}
+        {/* Right: Autosave Status & Actions */}
         <div className="flex items-center gap-3">
-          {/* Last Saved */}
-          {lastSaved && !hasUnsavedChanges && (
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <Clock className="w-3.5 h-3.5" />
-              <span>
-                Saved {format(lastSaved, 'HH:mm')}
-              </span>
-            </div>
-          )}
-
-          {/* Unsaved changes indicator */}
-          {hasUnsavedChanges && !isSaving && (
-            <div className="text-xs text-amber-600 font-medium">
-              Unsaved changes
-            </div>
-          )}
-
-          {/* Saving indicator */}
+          {/* Autosave Status Indicator */}
           {isSaving && (
             <div className="text-xs font-medium flex items-center gap-1.5" style={{ color: 'var(--theme-primary)' }}>
               <div className="w-3 h-3 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--theme-primary)' }} />
@@ -265,40 +239,19 @@ export function FullSiteEditorBar() {
             </div>
           )}
 
-          {/* Discard Button - Only when unsaved changes exist */}
-          {hasUnsavedChanges && !isSaving && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleDiscard}
-              className={cn(
-                'gap-1.5',
-                'border-gray-300 text-gray-600',
-                'hover:border-red-500 hover:text-red-600 hover:bg-red-50',
-                'transition-colors'
-              )}
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Discard Changes</span>
-              <span className="sm:hidden">Discard</span>
-            </Button>
+          {!isSaving && hasUnsavedChanges && (
+            <div className="text-xs text-gray-500 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              Autosaving...
+            </div>
           )}
 
-          {/* Save Button */}
-          <Button
-            size="sm"
-            onClick={savePage}
-            disabled={!hasUnsavedChanges || isSaving}
-            className={cn(
-              'gap-1.5',
-              hasUnsavedChanges
-                ? 'bg-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/90 text-white'
-                : 'bg-gray-300 cursor-not-allowed'
-            )}
-          >
-            <Save className="w-3.5 h-3.5" />
-            Save
-          </Button>
+          {!isSaving && !hasUnsavedChanges && (
+            <div className="text-xs font-medium flex items-center gap-1.5 text-green-600">
+              <Check className="w-3.5 h-3.5" />
+              Autosave
+            </div>
+          )}
 
           {/* Page Settings Button */}
           <Button
@@ -372,35 +325,6 @@ export function FullSiteEditorBar() {
           }
         }
       `}</style>
-
-      {/* Discard Changes Confirmation Modal */}
-      <Dialog open={showDiscardModal} onOpenChange={setShowDiscardModal}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Discard Changes?</DialogTitle>
-            <DialogDescription>
-              This will revert all changes since your last save. This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-3 sm:gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowDiscardModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={confirmDiscard}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              Discard Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Page Settings Modal */}
       <PageSettingsModal
