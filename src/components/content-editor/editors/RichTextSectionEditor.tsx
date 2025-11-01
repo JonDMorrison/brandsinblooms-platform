@@ -7,7 +7,7 @@ import React from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { RichTextEditor } from '@/src/components/content-editor'
 import { BackgroundToggle } from '@/src/components/content-editor/editors/shared/background-toggle'
-import { useFullSiteEditor } from '@/src/contexts/FullSiteEditorContext'
+import { useSiteContext } from '@/src/contexts/SiteContext'
 
 interface RichTextSectionEditorProps {
   section: ContentSection
@@ -17,7 +17,8 @@ interface RichTextSectionEditorProps {
 
 export function RichTextSectionEditor({ section, sectionKey, onUpdate }: RichTextSectionEditorProps) {
   const { data, type } = section
-  const { siteId } = useFullSiteEditor()
+  const { currentSite } = useSiteContext()
+  const siteId = currentSite?.id || ''
 
   const handleDataChange = (newData: Partial<ContentSection['data']>) => {
     onUpdate(sectionKey, {
