@@ -12,9 +12,19 @@ interface AuthModalProps {
   onOpenChange: (open: boolean) => void
   mode: 'signin' | 'signup'
   onModeChange: (mode: 'signin' | 'signup') => void
+  // Optional: Override context values for edit mode flow
+  returnUrl?: string
+  enableEdit?: boolean
 }
 
-export default function AuthModal({ open, onOpenChange, mode, onModeChange }: AuthModalProps) {
+export default function AuthModal({
+  open,
+  onOpenChange,
+  mode,
+  onModeChange,
+  returnUrl,
+  enableEdit
+}: AuthModalProps) {
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -46,12 +56,16 @@ export default function AuthModal({ open, onOpenChange, mode, onModeChange }: Au
         <VisuallyHidden>
           <DialogTitle>{mode === 'signup' ? 'Create an Account' : 'Sign In'}</DialogTitle>
           <DialogDescription>
-            {mode === 'signup' 
-              ? 'Join Brands in Blooms to start creating beautiful websites' 
+            {mode === 'signup'
+              ? 'Join Brands in Blooms to start creating beautiful websites'
               : 'Sign in to your Brands in Blooms account'}
           </DialogDescription>
         </VisuallyHidden>
-        {mode === 'signup' ? <SignUp /> : <SignIn />}
+        {mode === 'signup' ? (
+          <SignUp />
+        ) : (
+          <SignIn returnUrlProp={returnUrl} enableEditProp={enableEdit} />
+        )}
       </DialogContent>
     </Dialog>
   )

@@ -29,6 +29,7 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { editSessionUtils } from '@/src/lib/site-editor/edit-session-client'
+import { useAuthModal } from '@/src/contexts/AuthModalContext'
 
 interface FooterColumn {
   title: string
@@ -99,6 +100,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
   const { currentSite: site } = useSiteContext()
   const { data: designSettings } = useDesignSettings()
   const { user } = useAuth()
+  const { openAuthModal } = useAuthModal()
   const [email, setEmail] = useState('')
   const [subscribing, setSubscribing] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -107,6 +109,15 @@ export function SiteFooter({ className }: SiteFooterProps) {
   React.useEffect(() => {
     setIsEditMode(editSessionUtils.isEditModeEnabled())
   }, [])
+
+  // Handler for opening auth modal for site editing
+  const handleOpenAuthForEdit = () => {
+    openAuthModal({
+      mode: 'signin',
+      returnUrl: window.location.pathname,
+      enableEdit: true
+    })
+  }
   
   // Get footer configuration from theme settings
   const theme = designSettings
@@ -160,7 +171,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
           {!isEditMode && (
             <div className="mt-4 pt-4 border-t text-center">
               <button
-                onClick={() => editSessionUtils.enableEditMode(window.location.pathname)}
+                onClick={handleOpenAuthForEdit}
                 className="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
               >
                 {user ? (
@@ -237,7 +248,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
             {!isEditMode && (
               <div className="text-center">
                 <button
-                  onClick={() => editSessionUtils.enableEditMode(window.location.pathname)}
+                  onClick={handleOpenAuthForEdit}
                   className="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   {user ? (
@@ -316,7 +327,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
           {!isEditMode && (
             <div className="pt-4 border-t text-center" style={{ borderColor: 'rgba(var(--theme-primary-rgb), 0.125)' }}>
               <button
-                onClick={() => editSessionUtils.enableEditMode(window.location.pathname)}
+                onClick={handleOpenAuthForEdit}
                 className="text-xs text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
               >
                 {user ? (

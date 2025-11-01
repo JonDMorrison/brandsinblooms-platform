@@ -158,12 +158,26 @@ export async function getEditModeSession(): Promise<EditSession | null> {
 
 /**
  * Clear edit mode session
+ * IMPORTANT: Must delete cookies with the same domain they were set with
  */
 export async function clearEditModeSession(): Promise<void> {
   try {
     const cookieStore = await cookies()
-    cookieStore.delete(EDIT_MODE_COOKIE)
-    cookieStore.delete(EDIT_SESSION_COOKIE)
+    const cookieDomain = getSharedCookieDomain()
+
+    // Delete cookies with same domain used when setting them
+    // This is critical for proper cookie deletion across subdomains
+    // Next.js cookies().delete() requires options in a specific format
+    cookieStore.delete({
+      name: EDIT_MODE_COOKIE,
+      domain: cookieDomain,
+      path: '/'
+    })
+    cookieStore.delete({
+      name: EDIT_SESSION_COOKIE,
+      domain: cookieDomain,
+      path: '/'
+    })
   } catch (error) {
     console.error('Error clearing edit mode session:', error)
   }

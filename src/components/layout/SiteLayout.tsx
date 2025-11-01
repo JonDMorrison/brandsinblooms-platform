@@ -15,6 +15,7 @@ import AuthModal from '@/src/components/auth/AuthModal'
 import Link from 'next/link'
 import { EditableHeaderWrapper } from '@/src/components/site-editor/EditableHeaderWrapper'
 import { EditableFooterWrapper } from '@/src/components/site-editor/EditableFooterWrapper'
+import { AuthModalProvider, useAuthModal } from '@/src/contexts/AuthModalContext'
 
 interface SiteLayoutProps {
   children: React.ReactNode
@@ -32,10 +33,6 @@ export function SiteLayout({
   const { site, loading, error } = useCurrentSite()
   const { user, loading: authLoading, signOut } = useAuth()
   const { hasAccess, canEdit, canManage } = useSitePermissions()
-
-  // Auth modal state
-  const [authModalOpen, setAuthModalOpen] = useState(false)
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
 
   // Show loading state
   if (loading || authLoading) {
@@ -58,38 +55,54 @@ export function SiteLayout({
   }
 
   return (
-    <SiteThemeProvider applyToDocument={true}>
-      <CartProvider>
-        <ThemeWrapper className="min-h-screen flex flex-col">
-          {/* Site Navigation */}
-          {showNavigation && (
-            <EditableHeaderWrapper>
-              <SiteNavigation />
-            </EditableHeaderWrapper>
-          )}
+    <AuthModalProvider>
+      <SiteThemeProvider applyToDocument={true}>
+        <CartProvider>
+          <ThemeWrapper className="min-h-screen flex flex-col">
+            {/* Site Navigation */}
+            {showNavigation && (
+              <EditableHeaderWrapper>
+                <SiteNavigation />
+              </EditableHeaderWrapper>
+            )}
 
-          {/* Main Content */}
-          <main className="flex-1">
-            {children}
-          </main>
+            {/* Main Content */}
+            <main className="flex-1">
+              {children}
+            </main>
 
-          {/* Site Footer */}
-          {showNavigation && (
-            <EditableFooterWrapper>
-              <SiteFooter />
-            </EditableFooterWrapper>
-          )}
+            {/* Site Footer */}
+            {showNavigation && (
+              <EditableFooterWrapper>
+                <SiteFooter />
+              </EditableFooterWrapper>
+            )}
 
-          {/* Auth Modal */}
-          <AuthModal
-            open={authModalOpen}
-            onOpenChange={setAuthModalOpen}
-            mode={authMode}
-            onModeChange={setAuthMode}
-          />
-        </ThemeWrapper>
-      </CartProvider>
-    </SiteThemeProvider>
+            {/* Auth Modal - controlled by context */}
+            <SiteAuthModal />
+          </ThemeWrapper>
+        </CartProvider>
+      </SiteThemeProvider>
+    </AuthModalProvider>
+  )
+}
+
+/**
+ * Auth modal component that uses AuthModalContext
+ * Separated to allow use of useAuthModal hook
+ */
+function SiteAuthModal() {
+  const { isOpen, mode, closeAuthModal, setMode, returnUrl, enableEdit } = useAuthModal()
+
+  return (
+    <AuthModal
+      open={isOpen}
+      onOpenChange={closeAuthModal}
+      mode={mode}
+      onModeChange={setMode}
+      returnUrl={returnUrl}
+      enableEdit={enableEdit}
+    />
   )
 }
 

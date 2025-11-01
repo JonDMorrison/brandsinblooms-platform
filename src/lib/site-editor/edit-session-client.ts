@@ -25,13 +25,26 @@ export const editSessionUtils = {
   },
 
   /**
-   * Enable edit mode (redirect to login)
+   * Enable edit mode (redirect to login on main app domain)
    * @param returnUrl - URL to return to after login
+   *
+   * Note: This is a fallback method. Components should prefer using
+   * useAuthModal() context to open an in-place modal instead of redirecting.
    */
   enableEditMode: (returnUrl?: string): void => {
-    const url = new URL('/login', window.location.origin)
+    // Get main app domain from environment
+    const mainAppDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'
+    const protocol = window.location.protocol
+
+    // Create URL pointing to main app login page
+    const url = new URL(`${protocol}//${mainAppDomain}/login`)
+
     if (returnUrl) {
-      url.searchParams.set('returnUrl', returnUrl)
+      // If returnUrl is a path, prepend current origin to make it absolute
+      const absoluteReturnUrl = returnUrl.startsWith('http')
+        ? returnUrl
+        : `${window.location.origin}${returnUrl.startsWith('/') ? returnUrl : '/' + returnUrl}`
+      url.searchParams.set('returnUrl', absoluteReturnUrl)
     }
     url.searchParams.set('enableEdit', 'true')
     window.location.href = url.toString()
