@@ -267,7 +267,7 @@ export default function ContentPage() {
             onClick={() => setCreateModalOpen(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Create New
+            Create New Page
           </Button>
         </div>
       </div>
