@@ -207,19 +207,28 @@ export default function DashboardPage() {
             Welcome back, {user?.email?.split('@')[0]}! Here&apos;s what&apos;s happening with {currentSite?.business_name || 'your site'}.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            if (currentSite) {
-              window.open(getCustomerSiteFullUrl(currentSite), '_blank')
-            }
-          }}
-          disabled={!currentSite}
-          className="flex items-center gap-2 w-full sm:w-auto"
-          variant="outline"
-        >
-          <Eye className="h-4 w-4" />
-          <span>View Site</span>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button
+            onClick={() => router.push('/dashboard/sites?create=true')}
+            className="btn-gradient-primary flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Create A New Site</span>
+          </Button>
+          <Button
+            onClick={() => {
+              if (currentSite) {
+                window.open(getCustomerSiteFullUrl(currentSite), '_blank')
+              }
+            }}
+            disabled={!currentSite}
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <Eye className="h-4 w-4" />
+            <span>View Site</span>
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Cards */}
