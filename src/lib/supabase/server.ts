@@ -7,8 +7,6 @@ export async function createClient() {
   const cookieStore = await cookies()
   const cookieDomain = getSharedCookieDomain()
 
-  console.log('🍪 [SERVER CLIENT] Creating Supabase client with cookie domain:', cookieDomain)
-
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -25,20 +23,12 @@ export async function createClient() {
                 ...options,
                 domain: cookieDomain,
               }
-              console.log('🍪 [SERVER CLIENT] Setting cookie:', {
-                name,
-                domain: cookieOptions.domain,
-                path: cookieOptions.path,
-                sameSite: cookieOptions.sameSite,
-                httpOnly: cookieOptions.httpOnly
-              })
               cookieStore.set(name, value, cookieOptions)
             })
-          } catch (error) {
+          } catch {
             // The `set` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
             // user sessions.
-            console.log('🍪 [SERVER CLIENT] Cookie set failed (expected in Server Components):', error)
           }
         },
       },

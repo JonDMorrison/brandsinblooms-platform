@@ -28,18 +28,11 @@
 export function getSharedCookieDomain(): string | undefined {
   const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'
 
-  console.log('🍪 [DOMAIN-CONFIG] getSharedCookieDomain called:', {
-    NEXT_PUBLIC_APP_DOMAIN: process.env.NEXT_PUBLIC_APP_DOMAIN,
-    appDomain,
-    includesLocalhost: appDomain.includes('localhost')
-  })
-
   // Handle localhost development
   if (appDomain.includes('localhost')) {
     // '.localhost' allows cookies to be shared across:
     // - localhost:3001 (main site)
     // - *.localhost:3001 (all customer subdomains)
-    console.log('🍪 [DOMAIN-CONFIG] Returning .localhost for cookie domain')
     return '.localhost'
   }
 

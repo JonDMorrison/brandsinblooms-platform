@@ -5,8 +5,6 @@ import { getSharedCookieDomain } from '@/lib/cookies/domain-config'
 // Get shared cookie domain for cross-subdomain authentication
 const cookieDomain = getSharedCookieDomain()
 
-console.log('🍪 [BROWSER CLIENT] Initializing with cookie domain:', cookieDomain)
-
 // Cookie options for browser client
 const cookieOptions = {
   domain: cookieDomain,
@@ -38,13 +36,6 @@ export function createClient() {
             ...options,
             ...cookieOptions,
           }
-
-          console.log('🍪 [BROWSER CLIENT] Setting cookie:', {
-            name,
-            domain: finalOptions.domain,
-            path: finalOptions.path,
-            sameSite: finalOptions.sameSite
-          })
 
           // Build cookie string
           let cookie = `${name}=${value}`
@@ -97,13 +88,6 @@ export const supabase = createBrowserClient<Database>(
           ...options,
           ...cookieOptions,
         }
-
-        console.log('🍪 [BROWSER CLIENT] Setting cookie:', {
-          name,
-          domain: finalOptions.domain,
-          path: finalOptions.path,
-          sameSite: finalOptions.sameSite
-        })
 
         let cookie = `${name}=${value}`
         if (finalOptions.domain) cookie += `; domain=${finalOptions.domain}`
