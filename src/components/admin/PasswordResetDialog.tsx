@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Copy, Check, AlertTriangle } from 'lucide-react'
+import { copyToClipboard } from '@/lib/utils/clipboard'
 
 interface PasswordResetDialogProps {
   open: boolean
@@ -59,10 +60,15 @@ export function PasswordResetDialog({ open, onOpenChange, userId }: PasswordRese
 
   const handleCopyPassword = async () => {
     if (tempPassword) {
-      await navigator.clipboard.writeText(tempPassword)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-      toast.success('Password copied to clipboard')
+      const result = await copyToClipboard(tempPassword)
+
+      if (result.success) {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+        toast.success('Password copied to clipboard')
+      } else {
+        toast.error(result.error || 'Failed to copy password. Please copy manually.')
+      }
     }
   }
 

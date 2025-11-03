@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Copy, Check } from 'lucide-react'
+import { copyToClipboard } from '@/lib/utils/clipboard'
 
 interface CreateUserDialogProps {
   open: boolean
@@ -95,10 +96,15 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
 
   const handleCopyPassword = async () => {
     if (tempPassword) {
-      await navigator.clipboard.writeText(tempPassword)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-      toast.success('Password copied to clipboard')
+      const result = await copyToClipboard(tempPassword)
+
+      if (result.success) {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+        toast.success('Password copied to clipboard')
+      } else {
+        toast.error(result.error || 'Failed to copy password. Please copy manually.')
+      }
     }
   }
 
