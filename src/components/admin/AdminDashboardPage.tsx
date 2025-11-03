@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   Users,
   Search,
@@ -41,6 +40,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { CreateUserDialog } from './CreateUserDialog'
+import { EditUserModal } from './EditUserModal'
 import { PasswordResetDialog } from './PasswordResetDialog'
 import { format } from 'date-fns'
 
@@ -64,7 +64,6 @@ interface UserStats {
 }
 
 export function AdminDashboardPage() {
-  const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -74,8 +73,10 @@ export function AdminDashboardPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const [passwordResetDialogOpen, setPasswordResetDialogOpen] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [editUserId, setEditUserId] = useState<string | null>(null)
   const [stats, setStats] = useState<UserStats>({
     total: 0,
     active: 0,
@@ -171,6 +172,11 @@ export function AdminDashboardPage() {
     }
   }
 
+  const handleEditUser = (userId: string) => {
+    setEditUserId(userId)
+    setEditModalOpen(true)
+  }
+
   const handlePasswordReset = (userId: string) => {
     setSelectedUserId(userId)
     setPasswordResetDialogOpen(true)
@@ -179,6 +185,11 @@ export function AdminDashboardPage() {
   const handleUserCreated = () => {
     fetchUsers()
     fetchUserStats() // Refresh stats after user creation
+  }
+
+  const handleUserEdited = () => {
+    fetchUsers()
+    fetchUserStats() // Refresh stats after user edit
   }
 
   const getRoleBadgeVariant = (role: string) => {
@@ -413,7 +424,7 @@ export function AdminDashboardPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => router.push(`/admin/users/${user.user_id}`)}
+                            onClick={() => handleEditUser(user.user_id)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -481,6 +492,13 @@ export function AdminDashboardPage() {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onSuccess={handleUserCreated}
+      />
+
+      <EditUserModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        userId={editUserId}
+        onSuccess={handleUserEdited}
       />
 
       {selectedUserId && (
