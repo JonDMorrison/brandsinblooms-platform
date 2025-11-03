@@ -184,7 +184,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
               {isAdmin && (
                 <>
                   <DropdownMenuItem asChild>
-                    <Link href="/admin" className="flex items-center">
+                    <Link href="/dashboard/admin" className="flex items-center">
                       <Shield className="mr-2 h-4 w-4" />
                       Admin Panel
                     </Link>
