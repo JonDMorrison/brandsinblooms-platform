@@ -11,31 +11,46 @@
  * - Auth operations that bypass RLS
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { Database } from '@/lib/database/types'
 
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
-}
-
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error('Missing env.SUPABASE_SERVICE_ROLE_KEY - This is required for admin operations')
-}
+/**
+ * Lazy-initialized Supabase admin client
+ * Created on first use to avoid requiring env vars at build time
+ */
+let _supabaseAdmin: SupabaseClient<Database> | null = null
 
 /**
- * Service role client for admin operations
+ * Get the service role client for admin operations
  * Uses service_role key which bypasses RLS
+ *
+ * This function uses lazy initialization to avoid requiring
+ * environment variables at build time (Next.js static analysis)
  */
-export const supabaseAdmin = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
+function getSupabaseAdmin(): SupabaseClient<Database> {
+  if (!_supabaseAdmin) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
     }
+
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Missing env.SUPABASE_SERVICE_ROLE_KEY - This is required for admin operations')
+    }
+
+    _supabaseAdmin = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
   }
-)
+
+  return _supabaseAdmin
+}
 
 /**
  * Admin User Management Functions
@@ -60,6 +75,7 @@ export interface UpdateUserPasswordParams {
  */
 export async function createUser(params: CreateUserParams) {
   const { email, password, full_name, role = 'user' } = params
+  const supabaseAdmin = getSupabaseAdmin()
 
   // Create auth user
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -107,6 +123,7 @@ export async function createUser(params: CreateUserParams) {
  */
 export async function updateUserPassword(params: UpdateUserPasswordParams) {
   const { userId, newPassword } = params
+  const supabaseAdmin = getSupabaseAdmin()
 
   const { data, error } = await supabaseAdmin.auth.admin.updateUserById(
     userId,
@@ -125,6 +142,7 @@ export async function updateUserPassword(params: UpdateUserPasswordParams) {
  * Permanently deletes user and cascades to profiles/memberships
  */
 export async function deleteUser(userId: string) {
+  const supabaseAdmin = getSupabaseAdmin()
   const { error } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
   if (error) {
@@ -139,6 +157,7 @@ export async function deleteUser(userId: string) {
  * Returns full user details from auth.users
  */
 export async function getUserById(userId: string) {
+  const supabaseAdmin = getSupabaseAdmin()
   const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId)
 
   if (error) {
@@ -153,6 +172,7 @@ export async function getUserById(userId: string) {
  * Returns paginated list of users from auth.users
  */
 export async function listUsers(page = 1, perPage = 1000) {
+  const supabaseAdmin = getSupabaseAdmin()
   const { data, error } = await supabaseAdmin.auth.admin.listUsers({
     page,
     perPage,
