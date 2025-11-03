@@ -4,18 +4,20 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { preloadOnHover, preloadCriticalChunks, addResourceHints } from '@/src/lib/preloader'
-import { 
-  Home, 
-  FileText, 
-  Palette, 
-  Package, 
-  ShoppingCart, 
+import {
+  Home,
+  FileText,
+  Palette,
+  Package,
+  ShoppingCart,
   Settings,
   Flower,
-  X
+  X,
+  Shield
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Separator } from '@/src/components/ui/separator'
+import { useAdminAuth } from '@/src/contexts/AdminAuthContext'
 
 interface DashboardSidebarProps {
   onClose?: () => void
@@ -26,24 +28,29 @@ const allNavigationItems = [
   { name: 'Content', href: '/dashboard/content', icon: FileText },
   { name: 'Design', href: '/dashboard/design', icon: Palette },
   { name: 'Products', href: '/dashboard/products', icon: Package },
+  { name: 'Admin', href: '/dashboard/admin', icon: Shield, adminOnly: true },
   { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart, adminOnly: true },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings }, // Always show Settings
 ]
 
-// Filter navigation items based on environment variable
-const isDevFeaturesEnabled = process.env.NEXT_PUBLIC_ENABLE_DEV_FEATURES === 'true'
-const navigationItems = allNavigationItems.filter(item => {
-  // Always hide Orders from main site navigation (keep Settings visible)
-  if (item.name === 'Orders') {
-    return false
-  }
-  // For other adminOnly items, check feature flag
-  return !item.adminOnly || isDevFeaturesEnabled
-})
-
 export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const { isAdmin } = useAdminAuth()
+
+  // Filter navigation items based on admin status
+  const navigationItems = allNavigationItems.filter(item => {
+    // Always hide Orders and Settings from main site navigation
+    if (item.name === 'Orders' || item.name === 'Settings') {
+      return false
+    }
+    // Show Admin item only to admins
+    if (item.name === 'Admin') {
+      return isAdmin
+    }
+    // Show all other items
+    return true
+  })
 
   // Initialize performance optimizations
   useEffect(() => {

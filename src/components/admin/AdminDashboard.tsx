@@ -1,35 +1,76 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  Globe, 
-  Users, 
-  Settings, 
-  LogOut, 
-  BarChart3, 
-  Database,
+import {
+  Users,
+  LogOut,
   Shield,
-  Plus,
-  Palette,
-  Edit,
-  Activity,
-  TrendingUp
+  UserPlus,
+  UserCheck,
+  UserX,
+  Activity
 } from 'lucide-react'
-import { Button } from '@/src/components/ui/button'
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/src/components/ui/card'
-import { useAdminAuth } from '@/src/contexts/AdminAuthContext'
-import { ActiveImpersonationSessions } from './ActiveImpersonationSessions'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card'
+import { useAdminAuth } from '@/contexts/AdminAuthContext'
+import { Badge } from '@/components/ui/badge'
+
+interface UserStats {
+  total: number
+  active: number
+  inactive: number
+  admins: number
+  siteOwners: number
+  users: number
+}
 
 export function AdminDashboard() {
   const { user, signOut, isLoading } = useAdminAuth()
   const router = useRouter()
+  const [stats, setStats] = useState<UserStats>({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    admins: 0,
+    siteOwners: 0,
+    users: 0
+  })
+  const [loadingStats, setLoadingStats] = useState(true)
+
+  useEffect(() => {
+    fetchUserStats()
+  }, [])
+
+  const fetchUserStats = async () => {
+    try {
+      setLoadingStats(true)
+      const response = await fetch('/api/admin/users?limit=1000')
+      const result = await response.json()
+
+      if (response.ok && result.data) {
+        const users = result.data.users
+        setStats({
+          total: result.data.pagination.total,
+          active: users.filter((u: any) => u.is_active).length,
+          inactive: users.filter((u: any) => !u.is_active).length,
+          admins: users.filter((u: any) => u.role === 'admin').length,
+          siteOwners: users.filter((u: any) => u.role === 'site_owner').length,
+          users: users.filter((u: any) => u.role === 'user').length
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching user stats:', error)
+    } finally {
+      setLoadingStats(false)
+    }
+  }
 
   const handleSignOut = async () => {
     try {
@@ -46,9 +87,9 @@ export function AdminDashboard() {
           <div className="animate-pulse">
             <div className="h-8 w-48 bg-muted rounded mb-2"></div>
             <div className="h-4 w-32 bg-muted rounded mb-8"></div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-48 bg-muted rounded-xl"></div>
+                <div key={i} className="h-32 bg-muted rounded-xl"></div>
               ))}
             </div>
           </div>
@@ -65,14 +106,14 @@ export function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Platform Admin Dashboard
+                Admin Dashboard
               </h1>
               <p className="text-sm text-gray-500 mt-1">
                 Welcome back, {user?.email}
               </p>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleSignOut}
               className="gap-2"
             >
@@ -86,194 +127,41 @@ export function AdminDashboard() {
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-6 py-8">
         {/* Quick Actions */}
-        <div className="mb-8 flex flex-wrap gap-3">
-          <Button onClick={() => router.push('/admin/sites/new')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create New Site
-          </Button>
-          <Button variant="outline" onClick={() => router.push('/admin/sites/templates')}>
-            <Palette className="h-4 w-4 mr-2" />
-            Browse Templates
-          </Button>
-          <Button variant="outline" onClick={() => router.push('/admin/sites/health')}>
-            <Shield className="h-4 w-4 mr-2" />
-            Platform Health
+        <div className="mb-8">
+          <Button
+            size="lg"
+            onClick={() => router.push('/admin/users')}
+            className="gap-2"
+          >
+            <Users className="h-5 w-5" />
+            Manage Users
           </Button>
         </div>
 
-        {/* Dashboard Cards Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {/* Sites Management Card */}
-          <Card className="group hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 ">
-                  <Globe className="h-5 w-5 text-blue-600 " />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Sites Management</CardTitle>
-                  <CardDescription>
-                    Create and manage customer sites
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <p className="text-sm text-gray-500">
-                  Create new sites using templates, manage existing sites, and 
-                  configure domain settings.
-                </p>
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => router.push('/admin/sites/new')}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Create Site
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => router.push('/admin/sites/templates')}
-                  >
-                    <Palette className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* User Management Card */}
-          <Card className="group hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 ">
-                  <Users className="h-5 w-5 text-green-600 " />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">User Management</CardTitle>
-                  <CardDescription>
-                    Manage platform users and permissions
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <p className="text-sm text-gray-500">
-                  View user accounts, manage permissions, and handle support 
-                  requests. Monitor user activity and engagement.
-                </p>
-                <div className="flex gap-2">
-                  <Button size="sm" className="flex-1">
-                    View Users
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Shield className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Analytics & Monitoring Card */}
-          <Card className="group hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 ">
-                  <Activity className="h-5 w-5 text-indigo-600 " />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Analytics & Monitoring</CardTitle>
-                  <CardDescription>
-                    Site analytics and health monitoring
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <p className="text-sm text-gray-500">
-                  Monitor site performance, health status, and comprehensive 
-                  analytics across the platform.
-                </p>
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => router.push('/admin/sites/health')}
-                  >
-                    <Shield className="h-4 w-4 mr-1" />
-                    Health
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => router.push('/admin/analytics')}
-                  >
-                    <TrendingUp className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Platform Settings Card */}
-          <Card className="group hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 ">
-                  <Settings className="h-5 w-5 text-purple-600 " />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Platform Settings</CardTitle>
-                  <CardDescription>
-                    Configure global platform settings
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <p className="text-sm text-gray-500">
-                  Manage system-wide configurations, security settings, and 
-                  platform maintenance options.
-                </p>
-                <div className="flex gap-2">
-                  <Button size="sm" className="flex-1">
-                    View Settings
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Database className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Stats Section */}
-        <div className="mt-12">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Platform Overview
+        {/* User Statistics */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            User Statistics
           </h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* Total Users */}
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500">
-                      Total Sites
+                      Total Users
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">--</p>
+                    <p className="text-3xl font-bold text-gray-900 mt-1">
+                      {loadingStats ? '--' : stats.total}
+                    </p>
                   </div>
-                  <Globe className="h-8 w-8 text-gray-500" />
+                  <Users className="h-10 w-10 text-blue-600" />
                 </div>
               </CardContent>
             </Card>
 
+            {/* Active Users */}
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -281,63 +169,171 @@ export function AdminDashboard() {
                     <p className="text-sm font-medium text-gray-500">
                       Active Users
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">--</p>
+                    <p className="text-3xl font-bold text-green-600 mt-1">
+                      {loadingStats ? '--' : stats.active}
+                    </p>
                   </div>
-                  <Users className="h-8 w-8 text-gray-500" />
+                  <UserCheck className="h-10 w-10 text-green-600" />
                 </div>
               </CardContent>
             </Card>
 
+            {/* Inactive Users */}
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500">
-                      System Health
+                      Inactive Users
                     </p>
-                    <p className="text-sm font-medium text-green-600">Healthy</p>
+                    <p className="text-3xl font-bold text-gray-600 mt-1">
+                      {loadingStats ? '--' : stats.inactive}
+                    </p>
                   </div>
-                  <Shield className="h-8 w-8 text-green-600" />
+                  <UserX className="h-10 w-10 text-gray-600" />
                 </div>
               </CardContent>
             </Card>
 
+            {/* Admins */}
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-500">
-                      Uptime
+                      Administrators
                     </p>
-                    <p className="text-sm font-medium text-green-600">99.9%</p>
+                    <p className="text-3xl font-bold text-purple-600 mt-1">
+                      {loadingStats ? '--' : stats.admins}
+                    </p>
                   </div>
-                  <BarChart3 className="h-8 w-8 text-green-600" />
+                  <Shield className="h-10 w-10 text-purple-600" />
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* Active Impersonation Sessions */}
-        <div className="mt-12">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Active Sessions
+        {/* User Breakdown by Role */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Users by Role
           </h2>
-          <ActiveImpersonationSessions />
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <Badge variant="destructive">Admin</Badge>
+                  <span className="text-2xl font-bold">
+                    {loadingStats ? '--' : stats.admins}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Full platform access and user management
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <Badge variant="default">Site Owner</Badge>
+                  <span className="text-2xl font-bold">
+                    {loadingStats ? '--' : stats.siteOwners}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Can create and manage their own sites
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <Badge variant="secondary">User</Badge>
+                  <span className="text-2xl font-bold">
+                    {loadingStats ? '--' : stats.users}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Basic users with site access permissions
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        {/* Recent Activity Section (Placeholder) */}
-        <div className="mt-12">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Recent Activity
+        {/* User Management Actions */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Quick Actions
+          </h2>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
+                  <Users className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">User Management</CardTitle>
+                  <CardDescription>
+                    Manage all platform users, roles, and permissions
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600">
+                  View all registered users, create new accounts, update user information,
+                  manage roles and permissions, reset passwords, and activate or deactivate accounts.
+                </p>
+                <div className="flex flex-wrap gap-3 pt-2">
+                  <Button
+                    onClick={() => router.push('/admin/users')}
+                    className="gap-2"
+                  >
+                    <Users className="h-4 w-4" />
+                    View All Users
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push('/admin/users')}
+                    className="gap-2"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Create New User
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push('/admin/users?role=admin')}
+                    className="gap-2"
+                  >
+                    <Shield className="h-4 w-4" />
+                    Manage Admins
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* System Status */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            System Status
           </h2>
           <Card>
             <CardContent className="p-6">
-              <div className="text-center py-12">
-                <Database className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                <p className="text-gray-500">
-                  Activity tracking will be implemented soon
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                  <Activity className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">All Systems Operational</p>
+                  <p className="text-sm text-gray-600">User management system is running smoothly</p>
+                </div>
               </div>
             </CardContent>
           </Card>

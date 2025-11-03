@@ -159,11 +159,42 @@ export const updateUserMetadata = async (metadata: Record<string, any>) => {
   const { data, error } = await supabase.auth.updateUser({
     data: metadata,
   })
-  
+
   if (error) {
     console.error('Error updating user metadata:', error)
     throw error
   }
-  
+
   return data.user
 }
+
+/**
+ * Require user to have one of the specified roles.
+ * Returns user and profile data if authorized, null otherwise.
+ * Use this for role-based access control in layouts and pages.
+ */
+export const requireRole = cache(async (allowedRoles: string[]) => {
+  const user = await requireAuth()
+
+  const supabase = await createClient()
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('user_id', user.id)
+    .single()
+
+  if (error || !profile) {
+    console.error('Error fetching profile for role check:', error)
+    return null
+  }
+
+  const userRole = profile.role
+
+  // Check if user has an allowed role
+  if (!allowedRoles.includes(userRole)) {
+    console.log(`User ${user.id} with role '${userRole}' denied access. Required: ${allowedRoles.join(', ')}`)
+    return null
+  }
+
+  return { user, profile, role: userRole }
+})

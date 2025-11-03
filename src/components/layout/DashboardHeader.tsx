@@ -3,14 +3,15 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
-import { 
-  Menu, 
-  Search, 
-  User, 
-  Settings, 
+import {
+  Menu,
+  Search,
+  User,
+  Settings,
   LogOut,
   HelpCircle,
-  ChevronDown
+  ChevronDown,
+  Shield
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
@@ -26,6 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/src/components/ui/tooltip'
 // ThemeToggle removed - light mode only
 import { useAuth } from '@/src/contexts/AuthContext'
+import { useAdminAuth } from '@/src/contexts/AdminAuthContext'
 import { toast } from 'sonner'
 import { CompactSiteSwitcher } from '@/src/components/site/SiteSwitcher'
 import { GlobalSearch, GlobalSearchDialog } from '@/src/components/search'
@@ -37,10 +39,11 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const { user, signOut } = useAuth()
+  const { isAdmin } = useAdminAuth()
   const router = useRouter()
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const searchInputRef = useRef<HTMLDivElement>(null)
-  
+
   // Check if dev features are enabled
   const isDevFeaturesEnabled = process.env.NEXT_PUBLIC_ENABLE_DEV_FEATURES === 'true'
 
@@ -177,6 +180,18 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {/* Admin Panel Link */}
+              {isAdmin && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/admin" className="flex items-center">
+                      <Shield className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               {/* Development-only menu items */}
               {isDevFeaturesEnabled && (
                 <>

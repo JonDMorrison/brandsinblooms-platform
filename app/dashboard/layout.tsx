@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
-import { requireAuth } from '@/src/lib/auth/server'
+import { requireAuth, requireRole } from '@/src/lib/auth/server'
 import { DashboardLayoutClient } from './dashboard-layout-client'
+import { AccessRestricted } from '@/src/components/dashboard/AccessRestricted'
 
 export const metadata: Metadata = {
   title: {
@@ -21,5 +22,14 @@ export default async function DashboardLayout({
 }) {
   await requireAuth()
 
+  // Check if user has site_owner or admin role
+  const authData = await requireRole(['site_owner', 'admin'])
+
+  // If user doesn't have required role, show access restricted message
+  if (!authData) {
+    return <AccessRestricted />
+  }
+
+  // User has required role - show dashboard normally
   return <DashboardLayoutClient>{children}</DashboardLayoutClient>
 }

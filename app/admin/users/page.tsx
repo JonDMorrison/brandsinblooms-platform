@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-export default function AdminPage() {
+export default function AdminUsersPage() {
   useEffect(() => {
     // Force full page reload to ensure proper provider initialization
     window.location.replace('/dashboard/admin')
