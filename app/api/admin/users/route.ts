@@ -4,6 +4,9 @@ import { createUser, generateTempPassword } from '@/lib/supabase/service-client'
 import { getAllUsers, validateEmail, validatePassword } from '@/lib/admin/users'
 import { apiSuccess, apiError, ApiResult } from '@/lib/types/api'
 
+// Force dynamic rendering for admin routes with service role access
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/admin/users
  * List all users with search, filtering, and pagination

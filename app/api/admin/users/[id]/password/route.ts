@@ -4,6 +4,9 @@ import { updateUserPassword, generateTempPassword } from '@/lib/supabase/service
 import { validatePassword } from '@/lib/admin/users'
 import { apiSuccess, apiError } from '@/lib/types/api'
 
+// Force dynamic rendering for admin routes with service role access
+export const dynamic = 'force-dynamic'
+
 interface RouteParams {
   params: Promise<{
     id: string
