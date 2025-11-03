@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/src/lib/supabase/client'
 import { Profile } from '@/src/lib/database/aliases'
+import { validateUserSession, InactiveUserError } from '@/src/lib/auth/session-validator'
 
 interface AdminAuthContextType {
   user: User | null
@@ -125,19 +126,39 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null)
       setIsLoading(true)
-      
-      const { error } = await supabase.auth.signInWithPassword({
+
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
-      
+
       if (error) {
         setError(error.message)
         throw error
       }
+
+      // Validate that the user account is active
+      if (data?.user) {
+        const validation = await validateUserSession(supabase, data.user.id)
+
+        if (!validation.isActive) {
+          // User is deactivated - sign them out immediately
+          await supabase.auth.signOut()
+
+          const errorMessage = validation.reason || 'Your account has been deactivated. Please contact an administrator.'
+          setError(errorMessage)
+          throw new InactiveUserError(errorMessage)
+        }
+
+        // User is active - fetch their admin profile
+        await fetchAdminProfile(data.user.id)
+      }
     } catch (err) {
       console.error('Sign in error:', err)
-      if (err instanceof Error) {
+      if (err instanceof InactiveUserError) {
+        // Already set error message above
+        throw err
+      } else if (err instanceof Error) {
         setError(err.message)
       } else {
         setError('Sign in failed')
@@ -146,7 +167,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [fetchAdminProfile])
 
   // Sign out admin user
   const signOut = useCallback(async () => {
@@ -180,7 +201,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       try {
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession()
-        
+
         if (error) {
           console.error('Error getting session:', error)
           setError('Failed to get session')
@@ -188,15 +209,30 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (mounted) {
-          setSession(session)
-          setUser(session?.user ?? null)
-          
           // Check admin existence on load
           await checkAdminExists()
-          
-          // If user is signed in, check if they're an admin
+
+          // If user is signed in, validate their session
           if (session?.user) {
-            await fetchAdminProfile(session.user.id)
+            const validation = await validateUserSession(supabase, session.user.id)
+
+            if (!validation.isActive) {
+              // User is deactivated - sign them out
+              console.warn('[AdminAuth] Deactivated user detected during init, signing out')
+              await supabase.auth.signOut()
+              setSession(null)
+              setUser(null)
+              setAdminProfile(null)
+              setError('Your account has been deactivated. Please contact an administrator.')
+            } else {
+              // User is active - set session and fetch profile
+              setSession(session)
+              setUser(session.user)
+              await fetchAdminProfile(session.user.id)
+            }
+          } else {
+            setSession(session)
+            setUser(session?.user ?? null)
           }
         }
       } catch (err) {
@@ -217,20 +253,34 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return
-        
+
         // Wrap everything in setTimeout to prevent deadlock
         setTimeout(async () => {
-          setSession(session)
-          setUser(session?.user ?? null)
-          
           if (session?.user) {
-            // User signed in - check if they're an admin
-            await fetchAdminProfile(session.user.id)
+            // User signed in - validate their session
+            const validation = await validateUserSession(supabase, session.user.id)
+
+            if (!validation.isActive) {
+              // User is deactivated - sign them out
+              console.warn('[AdminAuth] Deactivated user detected in auth state change, signing out')
+              await supabase.auth.signOut()
+              setSession(null)
+              setUser(null)
+              setAdminProfile(null)
+              setError('Your account has been deactivated. Please contact an administrator.')
+            } else {
+              // User is active - set session and fetch profile
+              setSession(session)
+              setUser(session.user)
+              await fetchAdminProfile(session.user.id)
+            }
           } else {
             // User signed out - clear admin profile
+            setSession(session)
+            setUser(null)
             setAdminProfile(null)
           }
-          
+
           setIsLoading(false)
         }, 0)
       }

@@ -179,6 +179,46 @@ export async function middleware(request: NextRequest) {
     // Get user for authentication checks
     const { data: { user } } = await supabase.auth.getUser()
 
+    // Validate user session if authenticated
+    if (user) {
+      try {
+        // Use RPC function to bypass RLS and check user status
+        const { data: statusData, error: statusError } = await supabase.rpc(
+          'check_user_active_status',
+          { target_user_id: user.id }
+        )
+
+        // Get first result from array
+        const profile = Array.isArray(statusData) ? statusData[0] : statusData
+
+        // If user is deactivated, clear their session and redirect to login
+        if (statusError || !profile || profile.is_active === false) {
+          console.warn('🚫 [MIDDLEWARE] Deactivated user detected, clearing session:', {
+            userId: user.id,
+            email: user.email,
+            statusError: statusError?.message,
+            isActive: profile?.is_active
+          })
+
+          // Sign out the user
+          await supabase.auth.signOut()
+
+          // Clear auth cookies manually
+          supabaseResponse.cookies.delete('sb-access-token')
+          supabaseResponse.cookies.delete('sb-refresh-token')
+
+          // Redirect to login with message
+          const loginUrl = createRedirectUrl(request, APP_DOMAIN, '/login')
+          loginUrl.searchParams.set('message', 'account_deactivated')
+          loginUrl.searchParams.set('reason', 'Your account has been deactivated')
+          return NextResponse.redirect(loginUrl)
+        }
+      } catch (error) {
+        console.error('🚫 [MIDDLEWARE] Error checking user status:', error)
+        // Continue without blocking if validation fails - will be caught at next check
+      }
+    }
+
     // ALWAYS LOG authentication status (console.log always shows)
     const allCookies = request.cookies.getAll()
     const authCookies = allCookies.filter(c => c.name.startsWith('sb-'))

@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/src/lib/supabase/client'
+import { validateUserSession, InactiveUserError } from '@/src/lib/auth/session-validator'
 
 interface AuthContextType {
   user: User | null
@@ -22,9 +23,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      // Validate session if user is signed in
+      if (session?.user) {
+        const validation = await validateUserSession(supabase, session.user.id)
+
+        if (!validation.isActive) {
+          // User is deactivated - sign them out
+          console.warn('[Auth] Deactivated user detected during init, signing out')
+          await supabase.auth.signOut()
+          setSession(null)
+          setUser(null)
+        } else {
+          setSession(session)
+          setUser(session.user)
+        }
+      } else {
+        setSession(session)
+        setUser(session?.user ?? null)
+      }
       setLoading(false)
     }).catch((error) => {
       console.error('[AuthContext] Error getting session:', error)
@@ -34,9 +51,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         // Wrap state updates in setTimeout to prevent deadlock
-        setTimeout(() => {
-          setSession(session)
-          setUser(session?.user ?? null)
+        setTimeout(async () => {
+          // Validate session if user is signed in
+          if (session?.user) {
+            const validation = await validateUserSession(supabase, session.user.id)
+
+            if (!validation.isActive) {
+              // User is deactivated - sign them out
+              console.warn('[Auth] Deactivated user detected in auth state change, signing out')
+              await supabase.auth.signOut()
+              setSession(null)
+              setUser(null)
+            } else {
+              setSession(session)
+              setUser(session.user)
+            }
+          } else {
+            setSession(session)
+            setUser(session?.user ?? null)
+          }
           setLoading(false)
         }, 0)
       }
@@ -46,11 +79,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
     if (error) throw error
+
+    // Validate that the user account is active
+    if (data?.user) {
+      const validation = await validateUserSession(supabase, data.user.id)
+
+      if (!validation.isActive) {
+        // User is deactivated - sign them out immediately
+        await supabase.auth.signOut()
+        const errorMessage = validation.reason || 'Your account has been deactivated. Please contact an administrator.'
+        throw new InactiveUserError(errorMessage)
+      }
+    }
   }
 
   const signUp = async (email: string, password: string) => {
