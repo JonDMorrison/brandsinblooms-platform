@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/src/lib/supabase/client'
 import { validateUserSession, InactiveUserError } from '@/src/lib/auth/session-validator'
@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -50,8 +50,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        // Wrap state updates in setTimeout to prevent deadlock
-        setTimeout(async () => {
+        // Debounce auth state changes to prevent token refresh storms
+        // Clear any pending timer
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current)
+        }
+
+        // Set new debounced timer (1000ms delay)
+        debounceTimerRef.current = setTimeout(async () => {
           // Validate session if user is signed in
           if (session?.user) {
             const validation = await validateUserSession(supabase, session.user.id)
@@ -71,11 +77,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(session?.user ?? null)
           }
           setLoading(false)
-        }, 0)
+        }, 1000)
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      // Clean up debounce timer and subscription
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+      subscription.unsubscribe()
+    }
   }, [])
 
   const signIn = async (email: string, password: string) => {

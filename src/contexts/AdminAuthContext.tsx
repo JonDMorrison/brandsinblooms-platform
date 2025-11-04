@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/src/lib/supabase/client'
 import { Profile } from '@/src/lib/database/aliases'
@@ -32,6 +32,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [adminExists, setAdminExists] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const isAdmin = Boolean(adminProfile?.role === 'admin')
 
@@ -254,8 +255,14 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       (event, session) => {
         if (!mounted) return
 
-        // Wrap everything in setTimeout to prevent deadlock
-        setTimeout(async () => {
+        // Debounce auth state changes to prevent token refresh storms
+        // Clear any pending timer
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current)
+        }
+
+        // Set new debounced timer (1000ms delay)
+        debounceTimerRef.current = setTimeout(async () => {
           if (session?.user) {
             // User signed in - validate their session
             const validation = await validateUserSession(supabase, session.user.id)
@@ -282,12 +289,16 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           setIsLoading(false)
-        }, 0)
+        }, 1000)
       }
     )
 
     return () => {
       mounted = false
+      // Clean up debounce timer and subscription
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
       subscription.unsubscribe()
     }
   }, [checkAdminExists, fetchAdminProfile])

@@ -176,8 +176,12 @@ export async function middleware(request: NextRequest) {
       supabaseResponse.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
     }
 
-    // Get user for authentication checks
-    const { data: { user } } = await supabase.auth.getUser()
+    // Get user for authentication checks (cache for reuse in this request)
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    // Store cached user data for reuse throughout this request to avoid multiple getUser() calls
+    const cachedUser = user
+    const cachedUserError = userError
 
     // Validate user session if authenticated
     if (user) {
@@ -754,9 +758,9 @@ async function handleSiteDomain(
   // Check if site is published (for non-authenticated users)
   if (!site.is_published) {
     debug.middleware(`⚠️ Site is unpublished, checking user access...`)
-    // Check if user is authenticated and has access to this site
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    // Reuse cached user data from earlier in middleware
+    const user = cachedUser
+
     if (!user) {
       logDomainResolution(hostname, site.id, 'SITE_UNPUBLISHED', Date.now() - start)
       return handleUnpublishedSite(request, site)
@@ -808,8 +812,8 @@ async function handleSiteDomain(
   console.log('🔧 [AUTO-ENABLE] Edit mode currently active?', editModeActive)
 
   if (!editModeActive) {
-    // Get user to check if they should have edit access
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    // Reuse cached user data from earlier in middleware
+    const currentUser = cachedUser
     console.log('🔧 [AUTO-ENABLE] User check:', {
       hasUser: !!currentUser,
       userId: currentUser?.id || 'none',
