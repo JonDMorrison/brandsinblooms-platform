@@ -136,9 +136,7 @@ export default function ContentPage() {
         type: item.content_type === 'blog_post' ? 'blog' : 'page',
         layout: layout,
         status: item.is_published ? 'published' : 'draft',
-        lastModified: new Date(item.updated_at),
-        views: item.view_count || 0,
-        author: item.author?.full_name || 'Unknown'
+        lastModified: new Date(item.updated_at)
       }
     })
   }, [content])

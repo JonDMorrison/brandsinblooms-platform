@@ -269,7 +269,6 @@ export function useCreateContent() {
           id: crypto.randomUUID(),
           site_id: siteId!,
           author_id: '', // Will be set by server
-          view_count: 0,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         } as Content;

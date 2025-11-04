@@ -1,7 +1,7 @@
 'use client'
 
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { ArrowUpDown, Calendar, Eye, MoreHorizontal, Edit, Trash2, User } from 'lucide-react'
+import { ArrowUpDown, Calendar, MoreHorizontal, Edit, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from '@/src/components/ui/button'
@@ -34,8 +34,6 @@ export interface ContentItem {
   layout?: 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact' | 'other'
   status: 'published' | 'draft' | 'archived'
   lastModified: Date
-  views: number
-  author: string
 }
 
 const getStatusColor = (status: ContentItem['status']) => {
@@ -266,51 +264,6 @@ export const createContentColumns = (
         <Badge className={getStatusColor(status)}>
           {status}
         </Badge>
-      )
-    },
-  },
-  {
-    accessorKey: "author",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Author
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      return (
-        <div className="flex items-center gap-2">
-          <User className="h-4 w-4 text-gray-500" />
-          {row.getValue("author")}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "views",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Views
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      const views = row.getValue("views") as number
-      return (
-        <div className="flex items-center gap-2">
-          <Eye className="h-4 w-4 text-gray-500" />
-          {views.toLocaleString()}
-        </div>
       )
     },
   },
