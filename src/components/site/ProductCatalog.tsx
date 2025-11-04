@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { useCartContext } from '@/src/contexts/CartContext'
 import { useSupabase } from '@/hooks/useSupabase'
@@ -52,18 +53,22 @@ interface ProductCatalogProps {
   className?: string
 }
 
-export function ProductCatalog({ 
-  categoryId, 
-  featured, 
+export function ProductCatalog({
+  categoryId,
+  featured,
   limit,
-  className 
+  className
 }: ProductCatalogProps) {
   const { currentSite: site } = useSiteContext()
   const { addItem } = useCartContext()
   const supabase = useSupabase()
-  
+  const searchParams = useSearchParams()
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState(() => {
+    // Initialize search query from URL parameter 'q'
+    return searchParams.get('q') || ''
+  })
   const [sortBy, setSortBy] = useState('name')
   const [filterCategory, setFilterCategory] = useState(categoryId || 'all')
   
