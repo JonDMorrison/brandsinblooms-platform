@@ -35,11 +35,19 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
           enableSystem={false}
           disableTransitionOnChange
         >
-          {/* Only provide SiteContext for non-admin routes */}
-          {!isAdminRoute ? (
-            <AdminAuthProvider>
-              <AdminImpersonationProvider>
-                <SiteProvider 
+          {/*
+            Provider hierarchy:
+            - AuthProvider: Core Supabase auth (shared across all routes)
+            - AdminAuthProvider: Admin-specific auth context (for both admin routes and impersonation)
+            - AdminImpersonationProvider: Impersonation session management (for both admin routes and customer sites)
+            - SiteProvider: Customer site context (only for non-admin routes)
+
+            Note: Admin routes do NOT re-wrap with these providers in their layout - they inherit from here.
+          */}
+          <AdminAuthProvider>
+            <AdminImpersonationProvider>
+              {!isAdminRoute ? (
+                <SiteProvider
                   initialHostname={initialHostname}
                   initialSiteData={initialSiteData}
                 >
@@ -49,15 +57,13 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
                   )}
                   {children}
                 </SiteProvider>
-              </AdminImpersonationProvider>
-            </AdminAuthProvider>
-          ) : (
-            <AdminAuthProvider>
-              {children}
-            </AdminAuthProvider>
-          )}
-          <Toaster 
-            position="top-right" 
+              ) : (
+                children
+              )}
+            </AdminImpersonationProvider>
+          </AdminAuthProvider>
+          <Toaster
+            position="top-right"
             duration={4000}
           />
           </ThemeProvider>

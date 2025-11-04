@@ -77,7 +77,7 @@ export const supabase = createBrowserClient<Database>(
       persistSession: true,
       detectSessionInUrl: true,
       flowType: 'pkce',
-      debug: process.env.NODE_ENV === 'development',
+      debug: false, // Disabled to reduce console noise from GoTrueClient
     },
     cookies: {
       get(name: string) {
