@@ -23,5 +23,4 @@ export const NAVIGATION_OPTIONS = [
   { value: 'home', label: 'Home', required: false },
   { value: 'about', label: 'About', required: false },
   { value: 'contact', label: 'Contact', required: false },
-  { value: 'blog', label: 'Blog', required: false },
 ] as const
