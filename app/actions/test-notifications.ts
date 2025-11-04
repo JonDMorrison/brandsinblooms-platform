@@ -125,7 +125,15 @@ export async function createTestNotification(formData: FormData) {
           sale_price: null,
           slug: 'test-product',
           subcategory: null,
-          unit_of_measure: null
+          unit_of_measure: null,
+          primary_category_id: null,
+          favorite_count: null,
+          width: null,
+          height: null,
+          depth: null,
+          dimension_unit: null,
+          weight: null,
+          weight_unit: null
         }
 
         result = await createLowStockNotification(siteId, mockProduct, 2, 5)
@@ -511,7 +519,15 @@ export async function createLowStockTestScenario() {
       sale_price: null,
       slug: `test-product-${productData.sku.toLowerCase()}`,
       subcategory: null,
-      unit_of_measure: null
+      unit_of_measure: null,
+      primary_category_id: null,
+      favorite_count: null,
+      width: null,
+      height: null,
+      depth: null,
+      dimension_unit: null,
+      weight: null,
+      weight_unit: null
     }
 
     try {

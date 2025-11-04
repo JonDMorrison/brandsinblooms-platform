@@ -97,6 +97,12 @@ export function ProductForm({
       low_stock_threshold: 10,
       is_active: true,
       is_featured: false,
+      width: null,
+      height: null,
+      depth: null,
+      dimension_unit: 'in',
+      weight: null,
+      weight_unit: 'lb',
       ...initialData,
     },
   });

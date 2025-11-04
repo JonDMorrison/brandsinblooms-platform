@@ -54,6 +54,8 @@ import {
   DollarSign,
   Sparkles,
   Plus,
+  Ruler,
+  Weight,
 } from 'lucide-react'
 import { ImageUploadS3 } from '@/src/components/products/ImageUploadS3'
 import { QuickAddCategoryDialog } from '@/src/components/products/QuickAddCategoryDialog'
@@ -113,6 +115,12 @@ export function CreateProductModal({
       is_active: true,
       is_featured: false,
       meta_description: '',
+      width: null,
+      height: null,
+      depth: null,
+      dimension_unit: 'in',
+      weight: null,
+      weight_unit: 'lb',
     }
   })
 
@@ -805,6 +813,158 @@ export function CreateProductModal({
                       )}
                     />
                   </div>
+                </div>
+
+                {/* Dimensions & Weight Section */}
+                <div className="border-t pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Ruler className="h-5 w-5 text-gray-600" />
+                    <h3 className="text-lg font-semibold">Dimensions & Weight</h3>
+                  </div>
+
+                  {/* Dimension Unit Selector */}
+                  <FormField
+                    control={form.control}
+                    name="dimension_unit"
+                    render={({ field }) => (
+                      <FormItem className="mb-4">
+                        <FormLabel>Dimension Unit</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="w-[200px]">
+                              <SelectValue placeholder="Select unit" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="in">Inches (in)</SelectItem>
+                            <SelectItem value="cm">Centimeters (cm)</SelectItem>
+                            <SelectItem value="mm">Millimeters (mm)</SelectItem>
+                            <SelectItem value="ft">Feet (ft)</SelectItem>
+                            <SelectItem value="m">Meters (m)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Dimensions */}
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <FormField
+                      control={form.control}
+                      name="width"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Width</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="height"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Height</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="depth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Depth</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Weight */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="weight"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Weight</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="weight_unit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Weight Unit</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select unit" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="lb">Pounds (lb)</SelectItem>
+                              <SelectItem value="kg">Kilograms (kg)</SelectItem>
+                              <SelectItem value="oz">Ounces (oz)</SelectItem>
+                              <SelectItem value="g">Grams (g)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <p className="text-xs text-gray-500 mt-3">
+                    Optional: These fields can be used for shipping calculations and product specifications
+                  </p>
                 </div>
 
                 <div className="flex justify-between pt-6 border-t">

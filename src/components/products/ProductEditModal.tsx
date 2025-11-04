@@ -121,6 +121,12 @@ export function ProductEditModal({
       is_active: product.is_active ?? true,
       is_featured: product.is_featured ?? false,
       meta_description: product.meta_description || '',
+      width: product.width || null,
+      height: product.height || null,
+      depth: product.depth || null,
+      dimension_unit: product.dimension_unit || 'in',
+      weight: product.weight || null,
+      weight_unit: product.weight_unit || 'lb',
     };
   }, [product?.id]); // Only recreate when product ID changes
 

@@ -31,6 +31,14 @@ export const productFormSchema = z.object({
       message: 'Slug cannot start or end with a hyphen',
     }),
   meta_description: z.string().optional(),
+  // Product dimensions
+  width: z.coerce.number().min(0, 'Width must be positive').optional().nullable(),
+  height: z.coerce.number().min(0, 'Height must be positive').optional().nullable(),
+  depth: z.coerce.number().min(0, 'Depth must be positive').optional().nullable(),
+  dimension_unit: z.enum(['in', 'cm', 'mm', 'ft', 'm']).default('in'),
+  // Product weight
+  weight: z.coerce.number().min(0, 'Weight must be positive').optional().nullable(),
+  weight_unit: z.enum(['lb', 'kg', 'oz', 'g']).default('lb'),
 });
 
 /**
