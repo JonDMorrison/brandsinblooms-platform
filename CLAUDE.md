@@ -40,9 +40,55 @@ pnpm deploy:production # Deploy to production
 
 ## Database Schema
 - `auth.users` → `public.profiles` (1:1)
-- `sites` → `profiles` (many:1) 
+- `sites` → `profiles` (many:1)
 - `content` → `sites` (many:1)
 - Domain verification via `site_domains` table
+
+## Database Seed Data
+
+### Overview
+The database is seeded with **Soul Bloom Sanctuary**, a complete plant store with realistic product data for local development.
+
+**Seed File**: `supabase/seed-soul-bloom.sql`
+**Reset Command**: `pnpm supabase:reset`
+
+### Default Users (password: `password123`)
+```
+Admin User:
+- Email: admin@test.com
+- Role: admin
+- Access: Site owner
+
+Owner User:
+- Email: owner@test.com
+- Role: site_owner
+- Access: Site owner
+
+Regular User:
+- Email: user@test.com
+- Role: user
+- Access: Site viewer
+```
+
+### Soul Bloom Sanctuary Site
+- **Subdomain**: `soul-bloom-sanctuary`
+- **Local URL**: `http://soul-bloom-sanctuary.blooms.local:3001`
+- **Site ID**: `aaaaaaaa-bbbb-cccc-dddd-111111111111`
+
+### Seeded Data
+- **5 Product Categories**: Indoor Plants, Outdoor Plants, Succulents & Cacti, Herbs, Plant Care
+- **18 Products**: Complete with SKUs, pricing, care instructions, ratings, inventory
+- **5 Content Pages**: Home, About, Contact, Privacy Policy, Terms of Service
+- **Design Settings**: Pre-configured theme with plant-themed colors and typography
+- **Social Media**: Example Instagram and Facebook links
+
+### Maintaining Seed Data
+When you update the site content or products, update `supabase/seed-soul-bloom.sql` to keep it in sync:
+1. Edit the seed file with your changes
+2. Run `pnpm supabase:reset` to apply changes
+3. Commit the updated seed file
+
+The seed file is the single source of truth for local development data.
 
 ## Current Branch: feat/site-domains
 Working on domain-based site routing implementation with site context and domain verification.
