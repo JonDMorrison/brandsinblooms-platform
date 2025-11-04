@@ -118,16 +118,23 @@ const ProductsPageContent = memo(() => {
     }));
   }, [products, getCategoryName, getProductImage, getStockStatus]);
 
-  // Categories for filter
+  // Categories for filter with product counts
   const categories = useMemo(() => {
+    // Calculate product counts per category
+    const categoryCounts: Record<string, number> = {};
+    displayProducts.forEach((product) => {
+      const categoryName = product.category;
+      categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1;
+    });
+
     const categoryOptions = (categoriesData || []).map((cat) => ({
       value: cat.name,
       label: cat.name,
-      count: cat.count,
+      count: categoryCounts[cat.name] || 0,
     }));
 
     return [{ value: 'All', label: 'All', count: totalProductCount }, ...categoryOptions];
-  }, [categoriesData, totalProductCount]);
+  }, [categoriesData, totalProductCount, displayProducts]);
 
   // Filter products
   const filteredProducts = useMemo(() => {

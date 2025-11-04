@@ -69,6 +69,7 @@ export function ProductCatalog({
   
   const [products, setProducts] = useState<ProductWithImages[]>([])
   const [categories, setCategories] = useState<Tables<'product_categories'>[]>([])
+  const [categoryProductCounts, setCategoryProductCounts] = useState<Record<string, number>>({})
   const [isLoading, setIsLoading] = useState(true)
 
   // Fetch products and categories when dependencies change
@@ -174,7 +175,44 @@ export function ProductCatalog({
 
     fetchData()
   }, [site?.id, filterCategory, featured, sortBy, limit])
-  
+
+  // Fetch product counts for category dropdown
+  useEffect(() => {
+    const fetchProductCounts = async () => {
+      if (!site?.id) {
+        setCategoryProductCounts({})
+        return
+      }
+
+      try {
+        // Fetch lightweight product data for counting (only id and category_id)
+        const { data: productsData, error } = await supabase
+          .from('products')
+          .select('id, primary_category_id')
+          .eq('site_id', site.id)
+          .eq('is_active', true)
+
+        if (error) throw error
+
+        // Count products per category
+        const counts: Record<string, number> = {}
+        productsData?.forEach((product) => {
+          if (product.primary_category_id) {
+            const categoryId = product.primary_category_id
+            counts[categoryId] = (counts[categoryId] || 0) + 1
+          }
+        })
+
+        setCategoryProductCounts(counts)
+      } catch (error) {
+        console.error('Failed to fetch product counts:', error)
+        setCategoryProductCounts({})
+      }
+    }
+
+    fetchProductCounts()
+  }, [site?.id, supabase])
+
   // Filter products by search query (includes name, description, and category)
   const filteredProducts = filterProductsBySearch(
     products || [],
@@ -219,10 +257,12 @@ export function ProductCatalog({
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="all">
+                All Categories ({Object.values(categoryProductCounts).reduce((sum, count) => sum + count, 0)})
+              </SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+                  {category.name} ({categoryProductCounts[category.id] || 0})
                 </SelectItem>
               ))}
             </SelectContent>
