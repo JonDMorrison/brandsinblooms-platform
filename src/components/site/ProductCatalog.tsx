@@ -6,6 +6,7 @@ import { useCartContext } from '@/src/contexts/CartContext'
 import { useSupabase } from '@/hooks/useSupabase'
 import { Tables } from '@/src/lib/database/types'
 import { Product } from '@/src/lib/database/aliases'
+import { filterProductsBySearch } from '@/src/lib/products/search-utils'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import {
@@ -37,9 +38,11 @@ import { formatPrice } from '@/src/lib/utils/format'
 import { toast } from 'sonner'
 
 type ProductImage = Tables<'product_images'>
+type ProductCategory = Tables<'product_categories'>
 
 interface ProductWithImages extends Product {
   product_images?: ProductImage[]
+  primary_category?: ProductCategory | null
 }
 
 interface ProductCatalogProps {
@@ -80,7 +83,7 @@ export function ProductCatalog({
       
       setIsLoading(true)
       try {
-        // Fetch products with images
+        // Fetch products with images and category
         let query = supabase
           .from('products')
           .select(`
@@ -91,6 +94,11 @@ export function ProductCatalog({
               position,
               is_primary,
               alt_text
+            ),
+            primary_category:product_categories!products_primary_category_id_fkey (
+              id,
+              name,
+              slug
             )
           `)
           .eq('site_id', site.id)
@@ -167,15 +175,12 @@ export function ProductCatalog({
     fetchData()
   }, [site?.id, filterCategory, featured, sortBy, limit])
   
-  // Filter products by search query
-  const filteredProducts = products?.filter(product => {
-    if (!searchQuery) return true
-    const query = searchQuery.toLowerCase()
-    return (
-      product.name?.toLowerCase().includes(query) ||
-      product.description?.toLowerCase().includes(query)
-    )
-  }) || []
+  // Filter products by search query (includes name, description, and category)
+  const filteredProducts = filterProductsBySearch(
+    products || [],
+    searchQuery,
+    (product) => product.primary_category?.name || ''
+  )
   
   const handleAddToCart = async (product: ProductWithImages) => {
     try {

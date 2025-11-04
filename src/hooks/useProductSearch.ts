@@ -4,12 +4,15 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSupabase } from '@/hooks/useSupabase'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { Tables } from '@/src/lib/database/types'
+import { filterProductsBySearch } from '@/src/lib/products/search-utils'
 
 type Product = Tables<'products'>
 type ProductImage = Tables<'product_images'>
+type ProductCategory = Tables<'product_categories'>
 
-interface ProductWithImages extends Product {
+interface ProductWithImagesAndCategory extends Product {
   product_images?: ProductImage[]
+  primary_category?: ProductCategory | null
 }
 
 interface UseProductSearchOptions {
@@ -24,7 +27,8 @@ export function useProductSearch(options: UseProductSearchOptions = {}) {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
-  const [products, setProducts] = useState<ProductWithImages[]>([])
+  const [products, setProducts] = useState<ProductWithImagesAndCategory[]>([])
+  const [totalCount, setTotalCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -42,6 +46,7 @@ export function useProductSearch(options: UseProductSearchOptions = {}) {
     const fetchProducts = async () => {
       if (!site?.id) {
         setProducts([])
+        setTotalCount(0)
         setIsLoading(false)
         return
       }
@@ -49,6 +54,7 @@ export function useProductSearch(options: UseProductSearchOptions = {}) {
       // Don't search if query is empty or too short
       if (!debouncedQuery || debouncedQuery.trim().length < 2) {
         setProducts([])
+        setTotalCount(0)
         setIsLoading(false)
         return
       }
@@ -59,7 +65,8 @@ export function useProductSearch(options: UseProductSearchOptions = {}) {
       try {
         const query = debouncedQuery.toLowerCase().trim()
 
-        // Search in name and description using ilike for case-insensitive search
+        // Fetch products with category data
+        // We fetch more than the limit to ensure we have enough after filtering by category
         const { data, error: searchError } = await supabase
           .from('products')
           .select(`
@@ -70,13 +77,18 @@ export function useProductSearch(options: UseProductSearchOptions = {}) {
               position,
               is_primary,
               alt_text
+            ),
+            primary_category:product_categories!products_primary_category_id_fkey (
+              id,
+              name,
+              slug
             )
           `)
           .eq('site_id', site.id)
           .eq('is_active', true)
           .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
           .order('name', { ascending: true })
-          .limit(limit)
+          .limit(100) // Fetch more to account for category filtering
 
         if (searchError) throw searchError
 
@@ -92,11 +104,24 @@ export function useProductSearch(options: UseProductSearchOptions = {}) {
           return product
         })
 
-        setProducts(productsWithSortedImages)
+        // Client-side filter to include category name matches
+        const filteredProducts = filterProductsBySearch(
+          productsWithSortedImages,
+          query,
+          (product) => product.primary_category?.name || ''
+        )
+
+        // Track total count before applying limit
+        setTotalCount(filteredProducts.length)
+
+        // Apply display limit
+        const limitedProducts = filteredProducts.slice(0, limit)
+        setProducts(limitedProducts)
       } catch (err) {
         console.error('Product search error:', err)
         setError('Failed to search products')
         setProducts([])
+        setTotalCount(0)
       } finally {
         setIsLoading(false)
       }
@@ -109,6 +134,7 @@ export function useProductSearch(options: UseProductSearchOptions = {}) {
     setSearchQuery('')
     setDebouncedQuery('')
     setProducts([])
+    setTotalCount(0)
     setError(null)
   }, [])
 
@@ -116,6 +142,8 @@ export function useProductSearch(options: UseProductSearchOptions = {}) {
     searchQuery,
     setSearchQuery,
     products,
+    totalCount,
+    displayedCount: products.length,
     isLoading,
     error,
     hasResults: products.length > 0,

@@ -2,10 +2,8 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState, useEffect, useRef } from 'react'
 import {
   Menu,
-  Search,
   User,
   Settings,
   LogOut,
@@ -30,7 +28,6 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useAdminAuth } from '@/src/contexts/AdminAuthContext'
 import { toast } from 'sonner'
 import { CompactSiteSwitcher } from '@/src/components/site/SiteSwitcher'
-import { GlobalSearch, GlobalSearchDialog } from '@/src/components/search'
 import { NotificationCenter } from '@/src/components/notifications'
 
 interface DashboardHeaderProps {
@@ -41,32 +38,9 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const { user, signOut } = useAuth()
   const { isAdmin } = useAdminAuth()
   const router = useRouter()
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
-  const searchInputRef = useRef<HTMLDivElement>(null)
 
   // Check if dev features are enabled
   const isDevFeaturesEnabled = process.env.NEXT_PUBLIC_ENABLE_DEV_FEATURES === 'true'
-
-  // Keyboard shortcut for search (⌘K)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault()
-        // Focus the search input by clicking on it
-        const searchContainer = searchInputRef.current
-        if (searchContainer) {
-          const input = searchContainer.querySelector('input')
-          if (input) {
-            input.focus()
-            input.click()
-          }
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
 
   const handleSignOut = async () => {
     try {
@@ -113,24 +87,10 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           <div className="hidden lg:block">
             <CompactSiteSwitcher />
           </div>
-
-          {/* Search */}
-          <div className="hidden md:block" ref={searchInputRef}>
-            <GlobalSearch placeholder="Search... (⌘K)" />
-          </div>
         </div>
 
         {/* Right section */}
         <div className="flex items-center space-x-4">
-          {/* Search button for mobile */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="md:hidden"
-            onClick={() => setMobileSearchOpen(true)}
-          >
-            <Search className="h-4 w-4" />
-          </Button>
 
           {/* Notifications - Hidden for now */}
           {/* <NotificationCenter /> */}
@@ -225,13 +185,6 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           </DropdownMenu>
         </div>
       </div>
-
-      {/* Mobile Search Dialog */}
-      <GlobalSearchDialog 
-        open={mobileSearchOpen} 
-        onOpenChange={setMobileSearchOpen}
-        placeholder="Search content..."
-      />
     </header>
   )
 }

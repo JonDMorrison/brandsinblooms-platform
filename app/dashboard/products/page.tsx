@@ -9,6 +9,7 @@ import { useProductStats } from '@/src/hooks/useProductStats';
 import { useSitePermissions, useSiteContext } from '@/src/contexts/SiteContext';
 import { useProductEdit } from '@/src/hooks/useProductEdit';
 import { ProductEditModal } from '@/src/components/products/ProductEditModal';
+import { filterProductsBySearch } from '@/src/lib/products/search-utils';
 import type { Tables } from '@/src/lib/database/types';
 
 // Import our new components
@@ -139,13 +140,12 @@ const ProductsPageContent = memo(() => {
       filtered = filtered.filter((product) => product.category === selectedCategory);
     }
 
-    // Search filter
+    // Search filter (includes name, description, and category)
     if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchLower) ||
-          product.description.toLowerCase().includes(searchLower)
+      filtered = filterProductsBySearch(
+        filtered,
+        searchQuery,
+        (product) => product.category
       );
     }
 

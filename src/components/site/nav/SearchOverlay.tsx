@@ -21,7 +21,7 @@ interface SearchOverlayProps {
 }
 
 export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
-  const { searchQuery, setSearchQuery, products, isLoading, hasResults, clearSearch } = useProductSearch({ limit: 8 })
+  const { searchQuery, setSearchQuery, products, totalCount, displayedCount, isLoading, hasResults, clearSearch } = useProductSearch({ limit: 8 })
   const { addItem } = useCartContext()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -121,7 +121,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                       Start typing to search for products
                     </p>
                     <p className="text-sm text-gray-400">
-                      Try searching for plant names, categories, or descriptions
+                      Search by product name, category, or description
                     </p>
                   </div>
                 )}
@@ -150,14 +150,19 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-gray-600">
-                        Found {products.length} product{products.length !== 1 ? 's' : ''}
+                        {totalCount > displayedCount
+                          ? `Showing ${displayedCount} of ${totalCount} product${totalCount !== 1 ? 's' : ''}`
+                          : `Found ${displayedCount} product${displayedCount !== 1 ? 's' : ''}`
+                        }
                       </p>
-                      <Button asChild variant="ghost" size="sm">
-                        <Link href={`/products?q=${encodeURIComponent(searchQuery)}`} onClick={handleClose}>
-                          View all results
-                          <ArrowRight className="h-4 w-4 ml-2" />
-                        </Link>
-                      </Button>
+                      {totalCount > displayedCount && (
+                        <Button asChild variant="ghost" size="sm">
+                          <Link href={`/products?q=${encodeURIComponent(searchQuery)}`} onClick={handleClose}>
+                            View all results
+                            <ArrowRight className="h-4 w-4 ml-2" />
+                          </Link>
+                        </Button>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
