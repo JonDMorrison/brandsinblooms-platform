@@ -1,9 +1,8 @@
 'use client';
 
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
-import { 
+import {
   getSiteStatistics,
-  getDashboardMetrics,
   getRevenueAnalytics,
   getContentAnalytics,
   getProductAnalytics,
@@ -11,25 +10,6 @@ import {
 } from '@/lib/queries/domains/sites';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { supabase } from '@/lib/supabase/client';
-
-// Main dashboard metrics
-export function useDashboardMetrics() {
-  const siteId = useSiteId();
-  
-  return useSupabaseQuery(
-    async (signal) => {
-      if (!siteId) throw new Error('Site ID is required');
-      return getDashboardMetrics(supabase, siteId);
-    },
-    {
-      enabled: !!siteId,
-      staleTime: 60 * 1000, // 1 minute
-      refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
-      persistKey: siteId ? `dashboard-metrics-${siteId}` : undefined,
-    },
-    [siteId] // Re-fetch when siteId changes
-  );
-}
 
 // Site statistics (overall stats)
 export function useSiteStats() {
@@ -123,23 +103,23 @@ export function useCustomerAnalytics() {
 
 // Combined dashboard data hook for easy consumption
 export function useDashboardData() {
-  const metrics = useDashboardMetrics();
+  const stats = useSiteStats();
   const revenue = useRevenueAnalytics();
   const content = useContentAnalytics();
   const products = useProductAnalytics();
-  
-  const isLoading = metrics.loading || revenue.loading || content.loading || products.loading;
-  const isError = !!(metrics.error || revenue.error || content.error || products.error);
-  
+
+  const isLoading = stats.loading || revenue.loading || content.loading || products.loading;
+  const isError = !!(stats.error || revenue.error || content.error || products.error);
+
   return {
-    metrics: metrics.data,
+    stats: stats.data,
     revenue: revenue.data,
     content: content.data,
     products: products.data,
     isLoading,
     isError,
     refetch: () => {
-      metrics.refresh();
+      stats.refresh();
       revenue.refresh();
       content.refresh();
       products.refresh();

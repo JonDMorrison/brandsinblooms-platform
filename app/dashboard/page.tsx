@@ -7,22 +7,20 @@ import { Button } from '@/src/components/ui/button'
 import {
   FileText,
   Package,
-  ShoppingCart,
-  Eye,
   Plus,
   Palette,
   ArrowUpRight,
+  Folder,
+  Star,
+  Eye,
 } from 'lucide-react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useSite } from '@/src/hooks/useSite'
-import { useDashboardMetrics, useSiteStats } from '@/src/hooks/useStats'
+import { useSiteStats } from '@/src/hooks/useStats'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { DashboardStats, type DashboardStat } from '@/src/components/DashboardStats'
 import { debug } from '@/src/lib/utils/debug'
 import { getCustomerSiteFullUrl } from '@/src/lib/site/url-utils'
-
-// Import MetricsChart for actual data visualization
-import { MetricsChart } from '@/src/components/charts/MetricsChart'
 
 // const ActivityFeed = dynamic(
 //   () => import('@/src/components/ActivityFeed').then(mod => mod.ActivityFeed),
@@ -107,14 +105,12 @@ export default function DashboardPage() {
   const router = useRouter()
   const { site: currentSite, loading: siteLoading } = useSite()
   const { data: siteStats, loading: statsLoading } = useSiteStats()
-  const { data: metrics, loading: metricsLoading } = useDashboardMetrics()
 
   debug.dashboard('Dashboard page render:', {
     user: !!user,
     currentSite: !!currentSite,
     siteLoading,
     statsLoading,
-    metricsLoading,
     siteId: currentSite?.id,
     siteName: currentSite?.name
   })
@@ -125,7 +121,6 @@ export default function DashboardPage() {
       id: '1',
       title: 'Content',
       count: siteStats?.totalContent || 0,
-      trend: `${metrics?.contentGrowth || 0}% this week`,
       icon: <FileText className="h-6 w-6" />,
       color: 'text-blue-600'
     },
@@ -133,29 +128,26 @@ export default function DashboardPage() {
       id: '2',
       title: 'Products',
       count: siteStats?.totalProducts || 0,
-      trend: `${metrics?.productGrowth || 0}% this month`,
       icon: <Package className="h-6 w-6" />,
       color: 'text-green-600'
     },
     {
       id: '3',
-      title: 'Orders',
-      count: metrics?.totalOrders || 0,
-      trend: `+${metrics?.newOrdersToday || 0} today`,
-      icon: <ShoppingCart className="h-6 w-6" />,
+      title: 'Categories',
+      count: siteStats?.totalCategories || 0,
+      icon: <Folder className="h-6 w-6" />,
       color: 'text-purple-600'
     },
     {
       id: '4',
-      title: 'Site Views',
-      count: metrics?.totalViews || 0,
-      trend: `${metrics?.viewsGrowth || 0}% this week`,
-      icon: <Eye className="h-6 w-6" />,
+      title: 'Featured Products',
+      count: siteStats?.featuredProducts || 0,
+      icon: <Star className="h-6 w-6" />,
       color: 'text-orange-600'
     }
-  ], [siteStats, metrics])
+  ], [siteStats])
 
-  const isLoading = statsLoading || metricsLoading
+  const isLoading = statsLoading
 
   // Enhanced loading detection for site switching scenarios
   const isCriticalLoading = siteLoading || !user || (!currentSite && !siteLoading)
@@ -268,20 +260,6 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Charts Section */}
-      <div className="grid gap-6 lg:grid-cols-2 fade-in-up" style={{ animationDelay: '0.8s' }}>
-        <MetricsChart
-          title="Site Views"
-          description="Daily site views over the last 30 days"
-          type="views"
-        />
-        <MetricsChart
-          title="Order Volume"
-          description="Daily orders over the last 30 days"
-          type="orders"
-        />
-      </div>
 
       {/* Activity Feed and Performance Metrics - Hidden for now */}
       {/* <div className="grid gap-6 lg:grid-cols-2 fade-in-up" style={{ animationDelay: '0.9s' }}>

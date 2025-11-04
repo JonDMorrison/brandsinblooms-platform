@@ -456,94 +456,25 @@ export async function getSiteStatistics(
 ): Promise<{
   totalProducts: number;
   totalContent: number;
+  totalCategories: number;
+  featuredProducts: number;
   activeCustomers: number;
   monthlyRevenue: number;
 }> {
-  const [products, content] = await Promise.all([
+  const [products, content, categories, featuredProducts] = await Promise.all([
     supabase.from('products').select('id', { count: 'exact' }).eq('site_id', siteId),
-    supabase.from('content').select('id', { count: 'exact' }).eq('site_id', siteId)
+    supabase.from('content').select('id', { count: 'exact' }).eq('site_id', siteId),
+    supabase.from('product_categories').select('id', { count: 'exact' }).eq('site_id', siteId),
+    supabase.from('products').select('id', { count: 'exact' }).eq('site_id', siteId).eq('is_featured', true)
   ]);
 
   return {
     totalProducts: products.count || 0,
     totalContent: content.count || 0,
+    totalCategories: categories.count || 0,
+    featuredProducts: featuredProducts.count || 0,
     activeCustomers: 0, // TODO: Implement when customer table exists
     monthlyRevenue: 0, // TODO: Implement when orders table exists
-  };
-}
-
-/**
- * Get dashboard metrics
- */
-export async function getDashboardMetrics(
-  supabase: SupabaseClient<Database>,
-  siteId: string
-): Promise<{
-  totalOrders: number;
-  newOrdersToday: number;
-  totalViews: number;
-  viewsGrowth: number;
-  contentGrowth: number;
-  productGrowth: number;
-}> {
-  const today = new Date().toISOString().split('T')[0];
-  const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-  // Get total views from site_metrics
-  const { data: viewsData } = await supabase
-    .from('site_metrics')
-    .select('page_views')
-    .eq('site_id', siteId)
-    .gte('metric_date', lastWeek);
-
-  const totalViews = viewsData?.reduce((sum, item) => sum + (item.page_views || 0), 0) || 0;
-
-  // Get views growth by comparing last week to previous week
-  const { data: previousWeekViews } = await supabase
-    .from('site_metrics')
-    .select('page_views')
-    .eq('site_id', siteId)
-    .gte('metric_date', twoWeeksAgo)
-    .lt('metric_date', lastWeek);
-
-  const previousTotal = previousWeekViews?.reduce((sum, item) => sum + (item.page_views || 0), 0) || 0;
-  const viewsGrowth = previousTotal > 0 ? Math.round(((totalViews - previousTotal) / previousTotal) * 100) : 0;
-
-  // Get content and product growth
-  const { data: latestMetrics } = await supabase
-    .from('site_metrics')
-    .select('content_count, product_count')
-    .eq('site_id', siteId)
-    .order('metric_date', { ascending: false })
-    .limit(1)
-    .single();
-
-  const { data: weekAgoMetrics } = await supabase
-    .from('site_metrics')
-    .select('content_count, product_count')
-    .eq('site_id', siteId)
-    .lte('metric_date', lastWeek)
-    .order('metric_date', { ascending: false })
-    .limit(1)
-    .single();
-
-  const contentGrowth = weekAgoMetrics?.content_count 
-    ? Math.round(((latestMetrics?.content_count || 0) - weekAgoMetrics.content_count) / weekAgoMetrics.content_count * 100)
-    : 0;
-
-  const productGrowth = weekAgoMetrics?.product_count
-    ? Math.round(((latestMetrics?.product_count || 0) - weekAgoMetrics.product_count) / weekAgoMetrics.product_count * 100)
-    : 0;
-
-  // For now, return 0 for orders until we have order data
-  return {
-    totalOrders: 0,
-    newOrdersToday: 0,
-    totalViews,
-    viewsGrowth,
-    contentGrowth,
-    productGrowth,
   };
 }
 

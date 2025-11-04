@@ -60,9 +60,5 @@ export function ProductsStats() {
     ];
   }, [productStats]);
 
-  if (isLoading) {
-    return null; // Or a skeleton loader
-  }
-
-  return <DashboardStats stats={dashboardStats} />;
+  return <DashboardStats stats={dashboardStats} isLoading={isLoading} />;
 }

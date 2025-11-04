@@ -9,7 +9,7 @@ export interface DashboardStat {
   id: string
   title: string
   count: number
-  trend: string
+  trend?: string // Optional trend text
   icon: React.ReactNode
   color: string
   showTrendIcon?: boolean // Optional flag to show/hide the trending icon
@@ -61,12 +61,14 @@ export function DashboardStats({
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.count.toLocaleString()}</div>
-              <div className="flex items-center text-xs text-gray-500">
-                {stat.showTrendIcon !== false && (
-                  <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-                )}
-                {stat.trend}
-              </div>
+              {stat.trend && (
+                <div className="flex items-center text-xs text-gray-500">
+                  {stat.showTrendIcon !== false && (
+                    <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
+                  )}
+                  {stat.trend}
+                </div>
+              )}
             </CardContent>
           </Card>
         ))
