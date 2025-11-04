@@ -65,8 +65,8 @@ export function useProductSearch(options: UseProductSearchOptions = {}) {
       try {
         const query = debouncedQuery.toLowerCase().trim()
 
-        // Fetch products with category data
-        // We fetch more than the limit to ensure we have enough after filtering by category
+        // Fetch ALL active products with category data
+        // We do filtering entirely client-side to ensure category name matches are found
         const { data, error: searchError } = await supabase
           .from('products')
           .select(`
@@ -86,9 +86,7 @@ export function useProductSearch(options: UseProductSearchOptions = {}) {
           `)
           .eq('site_id', site.id)
           .eq('is_active', true)
-          .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
           .order('name', { ascending: true })
-          .limit(100) // Fetch more to account for category filtering
 
         if (searchError) throw searchError
 
