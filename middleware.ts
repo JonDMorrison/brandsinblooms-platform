@@ -293,7 +293,7 @@ export async function middleware(request: NextRequest) {
 
     // This is a site domain - resolve site and handle site-specific logic
     console.log('🚀 [MIDDLEWARE] Calling handleSiteDomain for:', hostname)
-    return await handleSiteDomain(request, supabase, supabaseResponse, hostname, start)
+    return await handleSiteDomain(request, supabase, supabaseResponse, hostname, start, cachedUser, cachedUserError)
 
   } catch (error) {
     console.error('Middleware error:', error)
@@ -653,7 +653,9 @@ async function handleSiteDomain(
   supabase: SupabaseClient,
   supabaseResponse: NextResponse,
   hostname: string,
-  start: number
+  start: number,
+  cachedUser: User | null,
+  cachedUserError: unknown
 ): Promise<NextResponse> {
   console.log('📍 [handleSiteDomain] ENTERED - hostname:', hostname)
 

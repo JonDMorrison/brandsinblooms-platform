@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           clearTimeout(debounceTimerRef.current)
         }
 
-        // Set new debounced timer (1000ms delay)
+        // Set new debounced timer (150ms delay - enough to prevent storms, fast enough to be imperceptible)
         debounceTimerRef.current = setTimeout(async () => {
           // Validate session if user is signed in
           if (session?.user) {
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(session?.user ?? null)
           }
           setLoading(false)
-        }, 1000)
+        }, 150)
       }
     )
 

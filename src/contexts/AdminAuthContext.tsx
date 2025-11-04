@@ -261,7 +261,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
           clearTimeout(debounceTimerRef.current)
         }
 
-        // Set new debounced timer (1000ms delay)
+        // Set new debounced timer (150ms delay - enough to prevent storms, fast enough to be imperceptible)
         debounceTimerRef.current = setTimeout(async () => {
           if (session?.user) {
             // User signed in - validate their session
@@ -289,7 +289,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           setIsLoading(false)
-        }, 1000)
+        }, 150)
       }
     )
 
