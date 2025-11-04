@@ -80,8 +80,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Copy Supabase migrations and scripts for production
-COPY --from=builder --chown=nextjs:nodejs /app/supabase ./supabase
+# Copy Supabase migrations and config for production (exclude seeds - dev only)
+COPY --from=builder --chown=nextjs:nodejs /app/supabase/migrations ./supabase/migrations
+COPY --from=builder --chown=nextjs:nodejs /app/supabase/config.toml ./supabase/config.toml
 COPY --chown=nextjs:nodejs scripts/run-migrations.sh scripts/docker-entrypoint.sh scripts/migration-monitor.sh scripts/migration-batch-processor.sh ./scripts/
 RUN chmod +x ./scripts/*.sh
 

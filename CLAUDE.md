@@ -49,7 +49,7 @@ pnpm deploy:production # Deploy to production
 ### Overview
 The database is seeded with **Soul Bloom Sanctuary**, a complete plant store with realistic product data for local development.
 
-**Seed File**: `supabase/seed-soul-bloom.sql`
+**Seed File**: `supabase/seeds/local-dev-seed.sql` (local development only - excluded from production)
 **Reset Command**: `pnpm supabase:reset`
 
 ### Default Users (password: `password123`)
@@ -83,12 +83,12 @@ Regular User:
 - **Social Media**: Example Instagram and Facebook links
 
 ### Maintaining Seed Data
-When you update the site content or products, update `supabase/seed-soul-bloom.sql` to keep it in sync:
+When you update the site content or products, update `supabase/seeds/local-dev-seed.sql` to keep it in sync:
 1. Edit the seed file with your changes
 2. Run `pnpm supabase:reset` to apply changes
 3. Commit the updated seed file
 
-The seed file is the single source of truth for local development data.
+**Important**: The seed file is for local development only. It is excluded from production deployments via the Dockerfile to prevent data loss. Production databases receive migrations only, preserving existing data.
 
 ## Current Branch: feat/site-domains
 Working on domain-based site routing implementation with site context and domain verification.
