@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useProduct } from '@/src/hooks/useProduct'
 import { useRelatedProducts } from '@/src/hooks/useRelatedProducts'
 import { useCartContext } from '@/src/contexts/CartContext'
@@ -8,6 +8,7 @@ import { ProductImageGallery } from '@/src/components/products/ProductImageGalle
 import { QuantitySelector } from '@/src/components/products/QuantitySelector'
 import { StockBadge } from '@/src/components/products/StockBadge'
 import { Breadcrumbs, BreadcrumbItem } from '@/src/components/products/Breadcrumbs'
+import { ProductCard } from '@/src/components/ProductCard'
 import { Button } from '@/src/components/ui/button'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { Card, CardContent } from '@/src/components/ui/card'
@@ -16,10 +17,12 @@ import { Separator } from '@/src/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { ShoppingCart, Package, Ruler, Weight } from 'lucide-react'
 import { formatPrice } from '@/src/lib/utils/format'
+import { transformProductForDisplay } from '@/src/lib/utils/product-transformer'
 import { toast } from 'sonner'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Tables } from '@/src/lib/database/types'
+import { ProductWithTags } from '@/src/lib/database/aliases'
 
 interface ProductDetailPageClientProps {
   slug: string
@@ -36,6 +39,21 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
 
   const [quantity, setQuantity] = useState(1)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
+
+  // Add theme-based tab styling
+  React.useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      [data-theme-active="true"][data-state="active"] {
+        background: var(--theme-primary) !important;
+        color: white !important;
+      }
+    `
+    document.head.appendChild(style)
+    return () => {
+      document.head.removeChild(style)
+    }
+  }, [])
 
   const handleAddToCart = async () => {
     if (!product) return
@@ -121,11 +139,20 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
                 </div>
 
                 {/* Price - More Prominent */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
+                <div
+                  className="rounded-xl p-4 border-2"
+                  style={{
+                    background: 'linear-gradient(135deg, color-mix(in srgb, var(--theme-primary) 8%, transparent) 0%, color-mix(in srgb, var(--theme-accent) 5%, transparent) 100%)',
+                    borderColor: 'color-mix(in srgb, var(--theme-primary) 30%, transparent)'
+                  }}
+                >
                   <div className="flex items-baseline gap-3">
                     <span
-                      className="text-4xl font-bold text-gray-900"
-                      style={{ fontFamily: 'var(--theme-font-heading)' }}
+                      className="text-4xl font-bold"
+                      style={{
+                        fontFamily: 'var(--theme-font-heading)',
+                        color: 'var(--theme-text)'
+                      }}
                     >
                       {formatPrice(product.price || 0)}
                     </span>
@@ -138,7 +165,10 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
                   </div>
                   {product.compare_at_price &&
                     product.compare_at_price > (product.price || 0) && (
-                      <p className="text-sm text-green-600 font-semibold mt-1">
+                      <p
+                        className="text-sm font-semibold mt-1"
+                        style={{ color: 'var(--theme-accent)' }}
+                      >
                         Save{' '}
                         {formatPrice(product.compare_at_price - (product.price || 0))}
                         {' '}
@@ -159,10 +189,42 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
 
                 {/* Product Details Tabs */}
                 <Tabs defaultValue="description" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="description">Description</TabsTrigger>
-                    <TabsTrigger value="care">Care</TabsTrigger>
-                    <TabsTrigger value="specs">Specifications</TabsTrigger>
+                  <TabsList
+                    className="grid w-full grid-cols-3"
+                    style={{
+                      background: 'color-mix(in srgb, var(--theme-primary) 5%, var(--muted))'
+                    }}
+                  >
+                    <TabsTrigger
+                      value="description"
+                      style={{
+                        '--tw-ring-color': 'var(--theme-primary)'
+                      } as React.CSSProperties}
+                      className="data-[state=active]:text-white"
+                      data-theme-active="true"
+                    >
+                      Description
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="care"
+                      style={{
+                        '--tw-ring-color': 'var(--theme-primary)'
+                      } as React.CSSProperties}
+                      className="data-[state=active]:text-white"
+                      data-theme-active="true"
+                    >
+                      Care
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="specs"
+                      style={{
+                        '--tw-ring-color': 'var(--theme-primary)'
+                      } as React.CSSProperties}
+                      className="data-[state=active]:text-white"
+                      data-theme-active="true"
+                    >
+                      Specifications
+                    </TabsTrigger>
                   </TabsList>
 
                   {/* Description Tab */}
@@ -212,30 +274,48 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
                         {(product.width || product.height || product.depth) && (
                           <div>
                             <div className="flex items-center gap-2 mb-3">
-                              <Ruler className="h-4 w-4 text-gray-600" />
+                              <Ruler className="h-4 w-4" style={{ color: 'var(--theme-primary)' }} />
                               <h4 className="font-semibold text-sm">Dimensions</h4>
                             </div>
                             <dl className="grid grid-cols-3 gap-4 text-sm">
                               {product.width && (
-                                <div className="border rounded-lg p-3 bg-gray-50">
+                                <div
+                                  className="rounded-lg p-3 border"
+                                  style={{
+                                    background: 'color-mix(in srgb, var(--theme-accent) 10%, transparent)',
+                                    borderColor: 'color-mix(in srgb, var(--theme-accent) 20%, transparent)'
+                                  }}
+                                >
                                   <dt className="text-gray-600 text-xs mb-1">Width</dt>
-                                  <dd className="font-semibold text-gray-900">
+                                  <dd className="font-semibold" style={{ color: 'var(--theme-text)' }}>
                                     {product.width} {product.dimension_unit || 'in'}
                                   </dd>
                                 </div>
                               )}
                               {product.height && (
-                                <div className="border rounded-lg p-3 bg-gray-50">
+                                <div
+                                  className="rounded-lg p-3 border"
+                                  style={{
+                                    background: 'color-mix(in srgb, var(--theme-accent) 10%, transparent)',
+                                    borderColor: 'color-mix(in srgb, var(--theme-accent) 20%, transparent)'
+                                  }}
+                                >
                                   <dt className="text-gray-600 text-xs mb-1">Height</dt>
-                                  <dd className="font-semibold text-gray-900">
+                                  <dd className="font-semibold" style={{ color: 'var(--theme-text)' }}>
                                     {product.height} {product.dimension_unit || 'in'}
                                   </dd>
                                 </div>
                               )}
                               {product.depth && (
-                                <div className="border rounded-lg p-3 bg-gray-50">
+                                <div
+                                  className="rounded-lg p-3 border"
+                                  style={{
+                                    background: 'color-mix(in srgb, var(--theme-accent) 10%, transparent)',
+                                    borderColor: 'color-mix(in srgb, var(--theme-accent) 20%, transparent)'
+                                  }}
+                                >
                                   <dt className="text-gray-600 text-xs mb-1">Depth</dt>
-                                  <dd className="font-semibold text-gray-900">
+                                  <dd className="font-semibold" style={{ color: 'var(--theme-text)' }}>
                                     {product.depth} {product.dimension_unit || 'in'}
                                   </dd>
                                 </div>
@@ -248,11 +328,17 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
                         {product.weight && (
                           <div>
                             <div className="flex items-center gap-2 mb-3">
-                              <Weight className="h-4 w-4 text-gray-600" />
+                              <Weight className="h-4 w-4" style={{ color: 'var(--theme-primary)' }} />
                               <h4 className="font-semibold text-sm">Weight</h4>
                             </div>
-                            <div className="border rounded-lg p-3 bg-gray-50 inline-block">
-                              <dd className="font-semibold text-gray-900">
+                            <div
+                              className="rounded-lg p-3 border inline-block"
+                              style={{
+                                background: 'color-mix(in srgb, var(--theme-accent) 10%, transparent)',
+                                borderColor: 'color-mix(in srgb, var(--theme-accent) 20%, transparent)'
+                              }}
+                            >
+                              <dd className="font-semibold" style={{ color: 'var(--theme-text)' }}>
                                 {product.weight} {product.weight_unit || 'lb'}
                               </dd>
                             </div>
@@ -282,7 +368,12 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
                 <Separator />
 
                 {/* Add to Cart Section */}
-                <div className="bg-white border-2 border-gray-200 rounded-xl p-5 space-y-4">
+                <div
+                  className="bg-white border-2 rounded-xl p-5 space-y-4"
+                  style={{
+                    borderColor: 'color-mix(in srgb, var(--theme-primary) 40%, transparent)'
+                  }}
+                >
                   <div>
                     <label className="text-sm font-semibold mb-3 block text-gray-700">
                       Quantity
@@ -313,13 +404,20 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
 
                 {/* Category */}
                 {product.primary_category && (
-                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4 border border-gray-200">
+                  <div
+                    className="flex items-center justify-between rounded-lg p-4 border"
+                    style={{
+                      background: 'color-mix(in srgb, var(--theme-secondary) 8%, transparent)',
+                      borderColor: 'color-mix(in srgb, var(--theme-secondary) 25%, transparent)'
+                    }}
+                  >
                     <span className="text-sm font-medium text-gray-600">
                       Category
                     </span>
                     <Link
                       href={`/category/${product.primary_category.slug}`}
-                      className="text-primary hover:underline font-semibold transition-colors"
+                      className="font-semibold transition-colors hover:underline"
+                      style={{ color: 'var(--theme-primary)' }}
                     >
                       {product.primary_category.name}
                     </Link>
@@ -340,11 +438,11 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
                 >
                   Related Products
                 </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
                   {relatedProducts.map((relatedProduct) => (
                     <RelatedProductCard
                       key={relatedProduct.id}
-                      product={relatedProduct}
+                      product={relatedProduct as ProductWithTags}
                     />
                   ))}
                 </div>
@@ -357,34 +455,33 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
 }
 
 // Related Product Card Component
-function RelatedProductCard({ product }: { product: any }) {
-  const firstImage =
-    product.product_images && product.product_images.length > 0
-      ? product.product_images[0]
-      : null
+function RelatedProductCard({ product }: { product: ProductWithTags }) {
+  const { addItem } = useCartContext()
+  const [isAdding, setIsAdding] = useState(false)
+
+  const handleAddToCart = async (productId: string) => {
+    setIsAdding(true)
+    try {
+      await addItem(product, 1)
+      toast.success(`${product.name} added to cart`)
+    } catch {
+      toast.error('Failed to add to cart')
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
+  // Transform database product to display format
+  const displayProduct = transformProductForDisplay(product)
 
   return (
-    <Link href={`/products/${product.slug}`}>
-      <Card className="group cursor-pointer overflow-hidden hover:shadow-lg transition-shadow">
-        <div className="relative aspect-square bg-muted">
-          {firstImage ? (
-            <Image
-              src={firstImage.url}
-              alt={firstImage.alt_text || product.name}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <ShoppingCart className="h-12 w-12 text-gray-400" />
-            </div>
-          )}
-        </div>
-        <CardContent className="p-4">
-          <h3 className="font-medium line-clamp-2 mb-2">{product.name}</h3>
-          <p className="font-semibold">{formatPrice(product.price || 0)}</p>
-        </CardContent>
-      </Card>
+    <Link href={`/products/${product.slug}`} className="block">
+      <ProductCard
+        product={displayProduct}
+        showAddToCart={true}
+        onAddToCart={handleAddToCart}
+        isAddingToCart={isAdding}
+      />
     </Link>
   )
 }

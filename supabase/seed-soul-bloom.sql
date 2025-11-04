@@ -395,6 +395,7 @@ INSERT INTO products (
     is_featured,
     in_stock,
     inventory_count,
+    low_stock_threshold,
     stock_status,
     rating,
     review_count,
@@ -428,6 +429,7 @@ VALUES
     true,
     true,
     25,
+    10,
     'in-stock',
     4.8,
     127,
@@ -458,6 +460,7 @@ VALUES
     false,
     true,
     40,
+    15,
     'in-stock',
     4.9,
     203,
@@ -488,6 +491,7 @@ VALUES
     true,
     true,
     32,
+    10,
     'in-stock',
     4.7,
     156,
@@ -518,6 +522,7 @@ VALUES
     false,
     true,
     28,
+    10,
     'in-stock',
     4.6,
     89,
@@ -532,7 +537,7 @@ VALUES
     NOW()
 ),
 
--- 5. Fiddle Leaf Fig
+-- 5. Fiddle Leaf Fig (OUT OF STOCK)
 (
     'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
     'Fiddle Leaf Fig',
@@ -546,9 +551,10 @@ VALUES
     'Water weekly when top inch is dry. Bright, indirect light. Rotate weekly. Wipe leaves to prevent dust buildup.',
     true,
     true,
-    true,
-    15,
-    'in-stock',
+    false,
+    0,
+    5,
+    'out-of-stock',
     4.5,
     72,
     'each',
@@ -578,6 +584,7 @@ VALUES
     false,
     true,
     22,
+    10,
     'in-stock',
     4.8,
     134,
@@ -610,6 +617,7 @@ VALUES
     true,
     true,
     35,
+    15,
     'in-stock',
     4.7,
     98,
@@ -624,7 +632,7 @@ VALUES
     NOW()
 ),
 
--- 8. Hydrangea
+-- 8. Blue Hydrangea (LOW STOCK)
 (
     'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
     'Blue Hydrangea',
@@ -639,8 +647,9 @@ VALUES
     true,
     true,
     true,
-    18,
-    'in-stock',
+    5,
+    10,
+    'low-stock',
     4.6,
     76,
     'each',
@@ -654,7 +663,7 @@ VALUES
     NOW()
 ),
 
--- 9. Japanese Maple
+-- 9. Japanese Maple (LOW STOCK)
 (
     'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
     'Japanese Maple Tree',
@@ -669,8 +678,9 @@ VALUES
     true,
     true,
     true,
-    12,
-    'in-stock',
+    8,
+    5,
+    'low-stock',
     4.9,
     45,
     'each',
@@ -684,7 +694,7 @@ VALUES
     NOW()
 ),
 
--- 10. Hostas
+-- 10. Mixed Hosta Collection (INACTIVE - dormant season)
 (
     'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
     'Mixed Hosta Collection',
@@ -696,10 +706,11 @@ VALUES
     'Outdoor Plants',
     'c2222222-2222-2222-2222-222222222222'::uuid,
     'Shade to partial shade. Keep soil moist. Slug control important. Divide every 3-4 years. Hardy perennial.',
-    true,
+    false,
     false,
     true,
     30,
+    10,
     'in-stock',
     4.5,
     67,
@@ -732,6 +743,7 @@ VALUES
     true,
     true,
     45,
+    20,
     'in-stock',
     4.8,
     187,
@@ -762,6 +774,7 @@ VALUES
     false,
     true,
     38,
+    15,
     'in-stock',
     4.7,
     142,
@@ -776,7 +789,7 @@ VALUES
     NOW()
 ),
 
--- 13. Echeveria Mix
+-- 13. Echeveria Mix (OUT OF STOCK)
 (
     'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
     'Echeveria Succulent Mix',
@@ -790,9 +803,10 @@ VALUES
     'Bright light to full sun. Water every 2-3 weeks. Excellent drainage required. Avoid water on leaves.',
     true,
     false,
-    true,
-    50,
-    'in-stock',
+    false,
+    0,
+    10,
+    'out-of-stock',
     4.6,
     95,
     'each',
@@ -806,7 +820,7 @@ VALUES
     NOW()
 ),
 
--- 14. Barrel Cactus
+-- 14. Golden Barrel Cactus (LOW STOCK)
 (
     'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
     'Golden Barrel Cactus',
@@ -821,8 +835,9 @@ VALUES
     true,
     false,
     true,
-    20,
-    'in-stock',
+    3,
+    5,
+    'low-stock',
     4.7,
     58,
     'each',
@@ -838,7 +853,7 @@ VALUES
 
 -- ==================== HERBS (3 products) ====================
 
--- 15. Basil
+-- 15. Sweet Basil (INACTIVE - dormant season)
 (
     'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
     'Sweet Basil Plant',
@@ -850,10 +865,11 @@ VALUES
     'Herbs',
     'c4444444-4444-4444-4444-444444444444'::uuid,
     'Full sun 6-8 hours. Water regularly, keep moist. Pinch flowers to encourage leaf growth. Harvest regularly.',
-    true,
-    true,
+    false,
+    false,
     true,
     48,
+    15,
     'in-stock',
     4.8,
     164,
@@ -884,6 +900,7 @@ VALUES
     false,
     true,
     35,
+    10,
     'in-stock',
     4.7,
     112,
@@ -898,7 +915,7 @@ VALUES
     NOW()
 ),
 
--- 17. Mint
+-- 17. Peppermint (LOW STOCK)
 (
     'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
     'Peppermint Plant',
@@ -913,8 +930,9 @@ VALUES
     true,
     false,
     true,
-    42,
-    'in-stock',
+    7,
+    10,
+    'low-stock',
     4.6,
     128,
     'each',
@@ -946,6 +964,7 @@ VALUES
     false,
     true,
     50,
+    15,
     'in-stock',
     4.9,
     215,
