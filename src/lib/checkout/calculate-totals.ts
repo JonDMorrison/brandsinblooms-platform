@@ -7,11 +7,9 @@
 import { createClient } from '@/src/lib/supabase/server'
 
 export interface CartItem {
-  id: string
   productId: string
   quantity: number
   price: number
-  subtotal: number
 }
 
 export interface ShippingAddress {
@@ -37,8 +35,8 @@ export async function calculateOrderTotals(
   cartItems: CartItem[],
   shippingAddress?: ShippingAddress
 ): Promise<OrderTotals> {
-  // Calculate subtotal
-  const subtotal = cartItems.reduce((sum, item) => sum + item.subtotal, 0)
+  // Calculate subtotal from quantity * price
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.quantity * item.price), 0)
 
   // Get site payment settings
   const supabase = await createClient()

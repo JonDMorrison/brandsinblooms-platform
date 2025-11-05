@@ -176,6 +176,12 @@ INSERT INTO sites (
     social_media,
     is_active,
     is_published,
+    stripe_account_id,
+    stripe_account_status,
+    stripe_charges_enabled,
+    stripe_payouts_enabled,
+    stripe_onboarding_completed,
+    stripe_connected_at,
     created_at,
     updated_at
 )
@@ -240,6 +246,12 @@ VALUES (
     ]'::jsonb,
     true,
     true,
+    'acct_1QRzABCDEFGHIJKL', -- Mock Stripe Connect account for local dev
+    'active',
+    true,
+    true,
+    true,
+    NOW(),
     NOW(),
     NOW()
 );
@@ -1274,6 +1286,12 @@ BEGIN
     RAISE NOTICE '  - 5 product categories created';
     RAISE NOTICE '  - 18 products created';
     RAISE NOTICE '  - 5 content pages created';
+    RAISE NOTICE '';
+    RAISE NOTICE 'PAYMENTS:';
+    RAISE NOTICE '  - Stripe Connect: ENABLED (mock account for local dev)';
+    RAISE NOTICE '  - Account Status: active';
+    RAISE NOTICE '  - Charges Enabled: true';
+    RAISE NOTICE '  - Checkout flow ready to test';
     RAISE NOTICE '';
     RAISE NOTICE 'To update this seed data, edit: supabase/seed-soul-bloom.sql';
     RAISE NOTICE '========================================';
