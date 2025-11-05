@@ -13,7 +13,10 @@ import { z } from 'zod'
 export const shippingAddressSchema = z.object({
   fullName: z.string().min(2, 'Full name is required').max(100),
   email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits').max(20),
+  phone: z.string().refine(
+    (val) => !val || (val.length >= 10 && val.length <= 20),
+    { message: 'Phone number must be 10-20 characters if provided' }
+  ).optional(),
   addressLine1: z.string().min(5, 'Street address is required').max(200),
   addressLine2: z.string().max(200).optional(),
   city: z.string().min(2, 'City is required').max(100),
@@ -76,7 +79,7 @@ export const createOrderSchema = z.object({
   shippingAddress: z.object({
     fullName: z.string(),
     email: z.string().email(),
-    phone: z.string(),
+    phone: z.string().optional(),
     addressLine1: z.string(),
     addressLine2: z.string().optional(),
     city: z.string(),
