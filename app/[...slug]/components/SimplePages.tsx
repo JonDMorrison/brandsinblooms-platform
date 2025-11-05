@@ -237,30 +237,15 @@ export async function CartPage() {
 
 export async function CheckoutPage() {
   const { siteId } = await getSiteHeaders()
-  
+  const { CheckoutPageClient } = await import('./CheckoutPageClient')
+
   return (
-    <SiteRenderer 
+    <SiteRenderer
       siteId={siteId}
       mode="live"
       showNavigation={true}
     >
-      <div className="brand-container py-12">
-        <h1 className="text-4xl font-bold mb-8" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-          Checkout
-        </h1>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-xl font-semibold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-              Billing Information
-            </h2>
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-              Order Summary
-            </h2>
-          </div>
-        </div>
-      </div>
+      <CheckoutPageClient />
     </SiteRenderer>
   )
 }

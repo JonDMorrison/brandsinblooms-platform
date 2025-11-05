@@ -101,6 +101,12 @@ dependencies:
   '@radix-ui/react-tooltip':
     specifier: ^1.2.7
     version: 1.2.7(@types/react-dom@19.1.7)(@types/react@19.1.9)(react-dom@19.1.1)(react@19.1.1)
+  '@stripe/react-stripe-js':
+    specifier: ^5.3.0
+    version: 5.3.0(@stripe/stripe-js@8.3.0)(react-dom@19.1.1)(react@19.1.1)
+  '@stripe/stripe-js':
+    specifier: ^8.3.0
+    version: 8.3.0
   '@supabase/ssr':
     specifier: ^0.6.1
     version: 0.6.1(@supabase/supabase-js@2.53.0)
@@ -221,6 +227,9 @@ dependencies:
   sonner:
     specifier: ^2.0.6
     version: 2.0.6(react-dom@19.1.1)(react@19.1.1)
+  stripe:
+    specifier: ^19.2.1
+    version: 19.2.1(@types/node@24.1.0)
   supabase-cli:
     specifier: ^0.0.21
     version: 0.0.21
@@ -5473,6 +5482,24 @@ packages:
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
     dev: false
 
+  /@stripe/react-stripe-js@5.3.0(@stripe/stripe-js@8.3.0)(react-dom@19.1.1)(react@19.1.1):
+    resolution: {integrity: sha512-q9Wl6JKg9JUU9zRcQyx4rkKauiM4Il+/ohJemQkLa4SsFEvcXVzX9X89cRLiaAEiNOaJ/2EQML+aWNSHc0EXBw==}
+    peerDependencies:
+      '@stripe/stripe-js': '>=8.0.0 <9.0.0'
+      react: '>=16.8.0 <20.0.0'
+      react-dom: '>=16.8.0 <20.0.0'
+    dependencies:
+      '@stripe/stripe-js': 8.3.0
+      prop-types: 15.8.1
+      react: 19.1.1
+      react-dom: 19.1.1(react@19.1.1)
+    dev: false
+
+  /@stripe/stripe-js@8.3.0:
+    resolution: {integrity: sha512-hmC3u0anySPI+As+wFGrKG38pXnXAUqyiitnYeYknEOslcDM96AkBdMNxKYOopecuP/v1HMbclUEq8/DKKn+6w==}
+    engines: {node: '>=12.16'}
+    dev: false
+
   /@supabase/auth-js@2.71.1:
     resolution: {integrity: sha512-mMIQHBRc+SKpZFRB2qtupuzulaUhFYupNyxqDj5Jp/LyPvcWvjaJzZzObv6URtL/O6lPxkanASnotGtNpS3H2Q==}
     dependencies:
@@ -6332,7 +6359,6 @@ packages:
     resolution: {integrity: sha512-ut5FthK5moxFKH2T1CUOC6ctR67rQRvvHdFLCD2Ql6KXmMuCrjsSsRI9UsLCm9M18BMwClv4pn327UvB7eeO1w==}
     dependencies:
       undici-types: 7.8.0
-    dev: true
 
   /@types/phoenix@1.6.6:
     resolution: {integrity: sha512-PIzZZlEppgrpoT2QgbnDU+MMzuR6BbCjllj0bM70lWoejMeNJAxCchxnv7J3XFkI8MpygtRpzXrIlmWUBclP5A==}
@@ -10924,6 +10950,13 @@ packages:
     resolution: {integrity: sha512-oTUZM/NAZS8p7ANR3SHh30kXB+zK2r2BPcEn/awJIbOvq82WoMN4p62AWWp3Hhw50G0xMsw1mhIBLqHw64EcNQ==}
     dev: true
 
+  /qs@6.14.0:
+    resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
+    engines: {node: '>=0.6'}
+    dependencies:
+      side-channel: 1.1.0
+    dev: false
+
   /queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -11686,6 +11719,19 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
+  /stripe@19.2.1(@types/node@24.1.0):
+    resolution: {integrity: sha512-eRc2T413316D7fAjSSEgPbJJ+4a8KY9rOTOb27aXd7bkw9ADO/3OxmIk7YWDhWvHgvxnEZ/29YjcmBBOu4mhrw==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      '@types/node': '>=16'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+    dependencies:
+      '@types/node': 24.1.0
+      qs: 6.14.0
+    dev: false
+
   /strnum@2.1.1:
     resolution: {integrity: sha512-7ZvoFTiCnGxBtDqJ//Cu6fWtZtc7Y3x+QOirG15wztbdngGSkht27o2pyGWrVy0b4WAy3jbKmnoK6g5VlVNUUw==}
     dev: false
@@ -12079,7 +12125,6 @@ packages:
 
   /undici-types@7.8.0:
     resolution: {integrity: sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==}
-    dev: true
 
   /undici@7.16.0:
     resolution: {integrity: sha512-QEg3HPMll0o3t2ourKwOeUAZ159Kn9mx5pnzHRQO8+Wixmh88YdZRiIwat0iNzNNXn0yoEtXJqFpyW7eM8BV7g==}

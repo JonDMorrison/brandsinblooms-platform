@@ -17,3 +17,11 @@ export function isCategoryRoute(path: string): boolean {
 export function extractSlugFromPath(path: string, prefix: string): string {
   return path.replace(`${prefix}/`, '')
 }
+
+export function isOrderConfirmationRoute(path: string): boolean {
+  return path.startsWith('order-confirmation/')
+}
+
+export function extractOrderIdFromPath(path: string): string {
+  return path.replace('order-confirmation/', '')
+}
