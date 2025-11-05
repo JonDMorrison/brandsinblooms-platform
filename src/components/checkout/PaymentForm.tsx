@@ -107,6 +107,11 @@ export function PaymentForm({ onSuccess, onError, amount }: PaymentFormProps) {
         className="w-full"
         disabled={!stripe || isProcessing}
         size="lg"
+        style={{
+          backgroundColor: 'var(--theme-primary)',
+          color: 'white',
+          border: 'none'
+        }}
       >
         {isProcessing ? (
           <>

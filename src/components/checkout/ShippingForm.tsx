@@ -168,6 +168,11 @@ export function ShippingForm({ onSubmit, defaultValues, isSubmitting = false }: 
         type="submit"
         className="w-full"
         disabled={isSubmitting}
+        style={{
+          backgroundColor: 'var(--theme-primary)',
+          color: 'white',
+          border: 'none'
+        }}
       >
         Continue to Payment
       </Button>

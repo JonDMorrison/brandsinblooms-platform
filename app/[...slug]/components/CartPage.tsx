@@ -147,6 +147,11 @@ export function CartPageClient() {
                     size="lg"
                     className="w-full"
                     onClick={handleCheckout}
+                    style={{
+                      backgroundColor: 'var(--theme-primary)',
+                      color: 'white',
+                      border: 'none'
+                    }}
                   >
                     Proceed to Checkout
                   </Button>
