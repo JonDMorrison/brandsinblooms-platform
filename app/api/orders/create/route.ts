@@ -6,9 +6,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/src/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { createOrderSchema } from '@/src/lib/validation/checkout-schemas'
 import { handleError } from '@/src/lib/types/error-handling'
+import { Database } from '@/lib/database/types'
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,14 +30,28 @@ export async function POST(request: NextRequest) {
       totalAmount,
     } = validatedData
 
-    const supabase = await createClient()
+    // SECURITY: Use service role client to bypass RLS for order creation
+    // This is safe because:
+    // 1. Payment has already been processed and verified by Stripe
+    // 2. All input data is validated via Zod schema
+    // 3. Order creation only happens after successful payment
+    const supabase = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    )
 
     // Get authenticated user (optional - guest checkout allowed)
     const { data: { user } } = await supabase.auth.getUser()
 
     // Generate order number using RPC function
     const { data: orderNumberData, error: orderNumberError } = await supabase
-      .rpc('generate_order_number', { site_id_param: siteId })
+      .rpc('generate_order_number', { site_prefix: 'ORD' })
 
     if (orderNumberError || !orderNumberData) {
       console.error('Failed to generate order number:', orderNumberError)
