@@ -368,6 +368,8 @@ export function SiteProvider({
    * Fetches fresh user from Supabase to avoid race conditions with React state
    */
   const refreshUserSites = useCallback(async () => {
+    debug.site('refreshUserSites - Starting')
+
     // Cancel any previous user sites load operation
     userSitesAbortRef.current?.abort()
     userSitesAbortRef.current = new AbortController()
@@ -377,23 +379,40 @@ export function SiteProvider({
       // Fetch fresh user from Supabase to avoid race conditions with React state
       const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
 
+      debug.site('refreshUserSites - Auth check:', {
+        hasUser: !!currentUser,
+        userId: currentUser?.id,
+        authError: authError?.message
+      })
+
       if (authError || !currentUser?.id) {
+        debug.site('refreshUserSites - No authenticated user, clearing sites')
         setUserSites([])
+        setUserSitesLoading(false)
         return
       }
 
       setUserSitesLoading(true)
       setUserSitesError(null)
 
+      debug.site('refreshUserSites - Calling getUserSites for user:', currentUser.id)
       const result = await getUserSites(currentUser.id)
 
       // Check if request was aborted
       if (abortSignal.aborted) {
+        debug.site('refreshUserSites - Request was aborted')
         return
       }
 
+      debug.site('refreshUserSites - Query result:', {
+        hasError: !!result.error,
+        sitesCount: result.data?.length || 0,
+        errorCode: result.error?.code
+      })
+
       if (result.error) {
         if (!abortSignal.aborted) {
+          debug.site('refreshUserSites - Setting error state:', result.error)
           setUserSitesError(result.error)
           setUserSites([])
         }
@@ -402,9 +421,11 @@ export function SiteProvider({
 
       // Final check before updating state
       if (!abortSignal.aborted) {
+        debug.site('refreshUserSites - Setting sites state:', result.data?.length || 0, 'sites')
         setUserSites(result.data || [])
       }
     } catch (err) {
+      debug.site('refreshUserSites - Exception caught:', err)
       setUserSitesError({
         code: 'LOAD_FAILED',
         message: 'Failed to load user sites',
@@ -412,6 +433,7 @@ export function SiteProvider({
       })
       setUserSites([])
     } finally {
+      debug.site('refreshUserSites - Completed, setting loading to false')
       setUserSitesLoading(false)
     }
   }, [])
@@ -569,15 +591,30 @@ export function SiteProvider({
 
   // Load user sites when user changes
   useEffect(() => {
+    debug.site('User sites effect triggered:', {
+      authLoading,
+      hasUser: !!user,
+      userId: user?.id
+    })
+
     if (!authLoading && user?.id) {
+      debug.site('User sites effect - Auth ready, scheduling sites load')
+
+      // Set loading state immediately to prevent race condition
+      // This ensures sitesLoading is true during the initialization delay
+      setUserSitesLoading(true)
+
+      // Small delay to ensure Supabase client is fully initialized with auth context
       setTimeout(() => {
         refreshUserSites()
-      }, 0)
-    } else if (!user?.id) {
+      }, 150)
+    } else if (!authLoading && !user?.id) {
+      debug.site('User sites effect - No user, clearing sites')
       setUserSites([])
       setUserAccess(null)
       setCanEdit(false)
       setCanManage(false)
+      setUserSitesLoading(false)
     }
   }, [user?.id, authLoading]) // Remove function dependencies to prevent infinite loops
 
