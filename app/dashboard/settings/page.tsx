@@ -5,10 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { ProfileSettings } from '@/src/components/settings/ProfileSettings'
 import { SiteSettings } from '@/src/components/settings/SiteSettings'
-import { NotificationSettings } from '@/src/components/settings/NotificationSettings'
 import { SecuritySettings } from '@/src/components/settings/SecuritySettings'
-import { BillingSettings } from '@/src/components/settings/BillingSettings'
-import { User, Globe, Bell, Shield, CreditCard } from 'lucide-react'
+import { User, Globe, Shield } from 'lucide-react'
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile')
@@ -25,7 +23,7 @@ export default function SettingsPage() {
       <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader>
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Profile
@@ -34,17 +32,9 @@ export default function SettingsPage() {
                 <Globe className="h-4 w-4" />
                 Site
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
-                <Bell className="h-4 w-4" />
-                Notifications
-              </TabsTrigger>
               <TabsTrigger value="security" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
                 Security
-              </TabsTrigger>
-              <TabsTrigger value="billing" className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                Billing
               </TabsTrigger>
             </TabsList>
           </CardHeader>
@@ -70,16 +60,6 @@ export default function SettingsPage() {
               <SiteSettings />
             </TabsContent>
 
-            <TabsContent value="notifications" className="space-y-6">
-              <div>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>
-                  Manage how and when you receive notifications.
-                </CardDescription>
-              </div>
-              <NotificationSettings />
-            </TabsContent>
-
             <TabsContent value="security" className="space-y-6">
               <div>
                 <CardTitle>Security Settings</CardTitle>
@@ -88,16 +68,6 @@ export default function SettingsPage() {
                 </CardDescription>
               </div>
               <SecuritySettings />
-            </TabsContent>
-
-            <TabsContent value="billing" className="space-y-6">
-              <div>
-                <CardTitle>Billing & Subscription</CardTitle>
-                <CardDescription>
-                  Manage your subscription, payment methods, and invoices.
-                </CardDescription>
-              </div>
-              <BillingSettings />
             </TabsContent>
           </CardContent>
         </Tabs>
