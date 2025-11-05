@@ -10,16 +10,20 @@ import { useState, useEffect, useMemo } from 'react'
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { useCart } from '@/src/contexts/CartContext'
-import { useSiteContext } from '@/src/contexts/SiteContext'
 import { ShippingForm } from '@/src/components/checkout/ShippingForm'
 import { OrderSummary } from '@/src/components/checkout/OrderSummary'
 import { PaymentForm } from '@/src/components/checkout/PaymentForm'
 import { ShippingAddress } from '@/src/lib/validation/checkout-schemas'
 import { Button } from '@/src/components/ui/button'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
-import { ArrowLeft, ShoppingCart, AlertCircle } from 'lucide-react'
+import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import {
+  loadShippingAddress,
+  saveShippingAddress,
+  clearShippingAddress,
+} from '@/src/lib/utils/checkout-storage'
 
 interface CheckoutPageClientProps {
   siteId: string
@@ -53,6 +57,22 @@ export function CheckoutPageClient({ siteId, stripeAccountId }: CheckoutPageClie
   const [isCreatingIntent, setIsCreatingIntent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Redirect if cart is empty (only after cart has hydrated to prevent race condition)
+  useEffect(() => {
+    if (isHydrated && items.length === 0) {
+      router.push('/cart')
+    }
+  }, [isHydrated, items.length, router])
+
+  // Load saved shipping address from storage on mount
+  useEffect(() => {
+    if (!siteId) return
+    const savedAddress = loadShippingAddress(siteId)
+    if (savedAddress) {
+      setShippingAddress(savedAddress)
+    }
+  }, [siteId])
+
   // Validate required props
   if (!siteId || !stripeAccountId) {
     console.error('[CheckoutPageClient] Missing required props:', { siteId, stripeAccountId })
@@ -70,15 +90,12 @@ export function CheckoutPageClient({ siteId, stripeAccountId }: CheckoutPageClie
     )
   }
 
-  // Redirect if cart is empty (only after cart has hydrated to prevent race condition)
-  useEffect(() => {
-    if (isHydrated && items.length === 0) {
-      router.push('/cart')
-    }
-  }, [isHydrated, items.length, router])
-
   const handleShippingSubmit = async (address: ShippingAddress) => {
     setShippingAddress(address)
+
+    // Save shipping address to localStorage with 1-hour TTL
+    saveShippingAddress(siteId, address)
+
     setIsCreatingIntent(true)
     setError(null)
 
@@ -151,8 +168,9 @@ export function CheckoutPageClient({ siteId, stripeAccountId }: CheckoutPageClie
         throw new Error(data.error || 'Failed to create order')
       }
 
-      // Clear cart
+      // Clear cart and saved shipping address
       await clearCart()
+      clearShippingAddress(siteId)
 
       // Redirect to confirmation page
       router.push(`/order-confirmation/${data.orderId}`)
@@ -210,6 +228,7 @@ export function CheckoutPageClient({ siteId, stripeAccountId }: CheckoutPageClie
                 <h2 className="text-2xl font-semibold mb-6">Shipping Information</h2>
                 <ShippingForm
                   onSubmit={handleShippingSubmit}
+                  defaultValues={shippingAddress || undefined}
                   isSubmitting={isCreatingIntent}
                 />
               </div>
