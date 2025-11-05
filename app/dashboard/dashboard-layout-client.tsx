@@ -26,30 +26,14 @@ export function DashboardLayoutClient({
   // Wait for auth to stabilize before making decisions about sites
   // This prevents race conditions where we query sites before auth is ready
   useEffect(() => {
-    console.log('[DashboardLayoutClient] Auth state:', {
-      authLoading,
-      hasUser: !!user,
-      userId: user?.id
-    });
-
     if (!authLoading && user) {
       // Add a small delay to ensure Supabase client has fully initialized
       const timer = setTimeout(() => {
-        console.log('[DashboardLayoutClient] Auth is stable, proceeding with site checks');
         setIsAuthStable(true);
       }, 100);
       return () => clearTimeout(timer);
     }
   }, [authLoading, user]);
-
-  console.log('[DashboardLayoutClient] Render state:', {
-    authLoading,
-    sitesLoading,
-    isAuthStable,
-    sitesCount: sites.length,
-    hasUser: !!user,
-    pathname
-  });
 
   // Check if user has no sites - but only after auth is stable
   const hasNoSites = isAuthStable && !sitesLoading && sites.length === 0;
@@ -71,7 +55,6 @@ export function DashboardLayoutClient({
   // Show create first site screen if user has no sites
   // BUT allow them to access the sites page where they can create one
   if (hasNoSites && pathname !== '/dashboard/sites') {
-    console.log('[DashboardLayoutClient] Showing create first site screen');
     return (
       <div className='flex h-screen items-center justify-center bg-gradient-subtle'>
         <CreateFirstSite />

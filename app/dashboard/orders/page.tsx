@@ -10,9 +10,8 @@ import { OrderFilters } from '@/src/components/orders/OrderFilters'
 import { OptimizedTable } from '@/src/components/ui/optimized-table'
 import { optimizedOrderColumns } from '@/src/components/orders/optimized-order-columns'
 import { OrderStats } from '@/src/components/OrderStats'
-import { BulkActionsToolbar } from '@/src/components/orders/BulkActionsToolbar'
 import { OrderEmptyState } from '@/src/components/orders/OrderEmptyState'
-import { exportOrdersToCSV, exportOrdersToJSON } from '@/src/lib/utils/export'
+import { exportOrdersToCSV } from '@/src/lib/utils/export'
 import { toast } from 'sonner'
 import type { OrderWithCustomer } from '@/lib/queries/domains/orders'
 
@@ -28,7 +27,6 @@ interface OrderFilters {
 const OrdersPageComponent = () => {
   const [filters, setFilters] = useState<OrderFilters>({})
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [selectedOrders, setSelectedOrders] = useState<OrderWithCustomer[]>([])
 
   // Fetch orders with real data - memoized hook call
   const {
@@ -73,15 +71,6 @@ const OrdersPageComponent = () => {
     try {
       await exportOrdersToCSV(orders)
       toast.success('Orders exported to CSV successfully')
-    } catch (error) {
-      toast.error('Failed to export orders')
-    }
-  }
-
-  const handleExportJSON = async () => {
-    try {
-      await exportOrdersToJSON(orders)
-      toast.success('Orders exported to JSON successfully')
     } catch (error) {
       toast.error('Failed to export orders')
     }
@@ -161,10 +150,6 @@ const OrdersPageComponent = () => {
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
-          <Button variant="outline" onClick={handleExportJSON} disabled={orders.length === 0}>
-            <Download className="h-4 w-4 mr-2" />
-            Export JSON
-          </Button>
           <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
@@ -180,20 +165,6 @@ const OrdersPageComponent = () => {
         <OrderFilters onFiltersChange={handleFiltersChange} />
       </div>
 
-      {/* Bulk Actions Toolbar */}
-      {selectedOrders.length > 0 && (
-        <div className="fade-in-up" style={{ animationDelay: '0.6s' }}>
-          <BulkActionsToolbar
-            selectedOrders={selectedOrders}
-            onClearSelection={() => setSelectedOrders([])}
-            onOrdersUpdated={() => {
-              refetch()
-              setSelectedOrders([])
-            }}
-          />
-        </div>
-      )}
-
       {/* Main Content */}
       <Card className="fade-in-up" style={{ animationDelay: '0.8s' }}>
         <CardHeader>
@@ -206,13 +177,11 @@ const OrdersPageComponent = () => {
             loading={isLoading && !data}
             searchable={true}
             sortable={true}
-            selectable={true}
             pagination={true}
             pageSize={20}
-            onRowSelect={setSelectedOrders}
             emptyState={
-              <OrderEmptyState 
-                hasFilters={Object.keys(filters).some(key => filters[key as keyof OrderFilters])} 
+              <OrderEmptyState
+                hasFilters={Object.keys(filters).some(key => filters[key as keyof OrderFilters])}
                 onClearFilters={() => setFilters({})}
               />
             }

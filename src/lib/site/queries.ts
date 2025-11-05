@@ -212,17 +212,10 @@ export async function getUserSites(
   _useServer = false
 ): Promise<SiteQueryResult<UserSiteAccess[]>> {
   try {
-    console.log('[getUserSites] Starting query for userId:', userId)
-
     const supabase = browserSupabase
 
     // Check if we have an authenticated session
     const { data: { session } } = await supabase.auth.getSession()
-    console.log('[getUserSites] Auth session check:', {
-      hasSession: !!session,
-      sessionUserId: session?.user?.id,
-      matchesUserId: session?.user?.id === userId
-    })
 
     const { data, error } = await supabase
       .from('site_memberships')
@@ -238,13 +231,6 @@ export async function getUserSites(
       .eq('is_active', true)
       .order('created_at', { ascending: false })
 
-    console.log('[getUserSites] Query result:', {
-      success: !error,
-      membershipCount: data?.length || 0,
-      error: error?.message,
-      errorCode: error?.code
-    })
-
     if (error) {
       return {
         data: null,
@@ -258,19 +244,12 @@ export async function getUserSites(
 
     // Now fetch the sites for each membership
     const siteIds = (data || []).map(m => m.site_id)
-    console.log('[getUserSites] Fetching sites for IDs:', siteIds)
 
     const { data: sites, error: sitesError } = await supabase
       .from('sites')
       .select('*')
       .in('id', siteIds)
       .eq('is_active', true)
-
-    console.log('[getUserSites] Sites query result:', {
-      success: !sitesError,
-      sitesCount: sites?.length || 0,
-      error: sitesError?.message
-    })
 
     if (sitesError) {
       return {
@@ -306,14 +285,8 @@ export async function getUserSites(
       })
       .filter(Boolean) as UserSiteAccess[]
 
-    console.log('[getUserSites] Final result:', {
-      userSitesCount: userSites.length,
-      siteNames: userSites.map(us => us.site.name)
-    })
-
     return { data: userSites, error: null }
   } catch (err) {
-    console.error('[getUserSites] Exception caught:', err)
     return {
       data: null,
       error: {
