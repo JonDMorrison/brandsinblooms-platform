@@ -188,6 +188,24 @@ const nextConfig = {
   },
   // Security headers with multi-domain support
   async headers() {
+    // Environment-aware CSP configuration
+    const isDevelopment = process.env.NODE_ENV === 'development'
+
+    // Build connect-src directive based on environment
+    const connectSrc = isDevelopment
+      ? "connect-src 'self' https://api.stripe.com https://m.stripe.network wss: https: http://localhost:* http://127.0.0.1:*"
+      : "connect-src 'self' https://api.stripe.com https://m.stripe.network wss: https:"
+
+    const cspValue = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network",
+      connectSrc,
+      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https: blob:",
+      "font-src 'self' data:"
+    ].join('; ')
+
     return [
       {
         source: '/:path*',
@@ -218,7 +236,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network; connect-src 'self' https://api.stripe.com https://m.stripe.network; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:;"
+            value: cspValue
           },
           // Production performance headers
           {
