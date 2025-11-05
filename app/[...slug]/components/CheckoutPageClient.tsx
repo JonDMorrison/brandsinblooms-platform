@@ -6,7 +6,7 @@
  * Multi-step checkout flow with shipping, payment, and order confirmation
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { useCart } from '@/src/contexts/CartContext'
@@ -21,13 +21,23 @@ import { ArrowLeft, ShoppingCart, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-
 interface CheckoutPageClientProps {
   siteId: string
+  stripeAccountId: string
 }
 
-export function CheckoutPageClient({ siteId }: CheckoutPageClientProps) {
+export function CheckoutPageClient({ siteId, stripeAccountId }: CheckoutPageClientProps) {
+  // Load Stripe with the connected account ID
+  const stripePromise = useMemo(() => {
+    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+      console.error('[Checkout] Stripe publishable key not configured')
+      return null
+    }
+
+    return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, {
+      stripeAccount: stripeAccountId,
+    })
+  }, [stripeAccountId])
   const router = useRouter()
   const { items, clearCart, isHydrated } = useCart()
   const [step, setStep] = useState<'shipping' | 'payment'>('shipping')
@@ -43,16 +53,16 @@ export function CheckoutPageClient({ siteId }: CheckoutPageClientProps) {
   const [isCreatingIntent, setIsCreatingIntent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Validate siteId is provided
-  if (!siteId) {
-    console.error('[CheckoutPageClient] Missing siteId prop')
+  // Validate required props
+  if (!siteId || !stripeAccountId) {
+    console.error('[CheckoutPageClient] Missing required props:', { siteId, stripeAccountId })
     return (
       <div className="brand-container py-12">
         <div className="max-w-6xl mx-auto">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Unable to load checkout. Site configuration is missing. Please try again or contact support.
+              Unable to load checkout. Payment configuration is missing. Please contact the site owner.
             </AlertDescription>
           </Alert>
         </div>

@@ -246,7 +246,7 @@ VALUES (
     ]'::jsonb,
     true,
     true,
-    'acct_1QRzABCDEFGHIJKL', -- Mock Stripe Connect account for local dev
+    'acct_1SQCqyGSULmlT5WJ', -- Stripe Connect test account (payments & payouts active)
     'active',
     true,
     true,
