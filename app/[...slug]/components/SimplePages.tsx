@@ -245,7 +245,7 @@ export async function CheckoutPage() {
       mode="live"
       showNavigation={true}
     >
-      <CheckoutPageClient />
+      <CheckoutPageClient siteId={siteId} />
     </SiteRenderer>
   )
 }

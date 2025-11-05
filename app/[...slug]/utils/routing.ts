@@ -2,7 +2,7 @@ import { headers } from 'next/headers'
 
 export async function getSiteHeaders() {
   const headersList = await headers()
-  const siteId = headersList.get('x-site-id') || '00000000-0000-0000-0000-000000000001'
+  const siteId = headersList.get('x-site-id') || 'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'
   return { siteId, headersList }
 }
 

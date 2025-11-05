@@ -23,10 +23,13 @@ import Link from 'next/link'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
-export function CheckoutPageClient() {
+interface CheckoutPageClientProps {
+  siteId: string
+}
+
+export function CheckoutPageClient({ siteId }: CheckoutPageClientProps) {
   const router = useRouter()
   const { items, clearCart, isHydrated } = useCart()
-  const { currentSite } = useSiteContext()
   const [step, setStep] = useState<'shipping' | 'payment'>('shipping')
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
@@ -39,6 +42,23 @@ export function CheckoutPageClient() {
   } | null>(null)
   const [isCreatingIntent, setIsCreatingIntent] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Validate siteId is provided
+  if (!siteId) {
+    console.error('[CheckoutPageClient] Missing siteId prop')
+    return (
+      <div className="brand-container py-12">
+        <div className="max-w-6xl mx-auto">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Unable to load checkout. Site configuration is missing. Please try again or contact support.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    )
+  }
 
   // Redirect if cart is empty (only after cart has hydrated to prevent race condition)
   useEffect(() => {
@@ -58,7 +78,7 @@ export function CheckoutPageClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          siteId: currentSite?.id,
+          siteId,
           cartItems: items.map(item => ({
             productId: item.productId,
             quantity: item.quantity,
@@ -95,7 +115,7 @@ export function CheckoutPageClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          siteId: currentSite?.id,
+          siteId,
           stripePaymentIntentId: paymentIntentId,
           cartItems: items.map(item => ({
             productId: item.productId,
