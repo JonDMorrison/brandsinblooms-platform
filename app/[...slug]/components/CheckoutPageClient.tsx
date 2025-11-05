@@ -25,7 +25,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 export function CheckoutPageClient() {
   const router = useRouter()
-  const { items, clearCart } = useCart()
+  const { items, clearCart, isHydrated } = useCart()
   const { currentSite } = useSiteContext()
   const [step, setStep] = useState<'shipping' | 'payment'>('shipping')
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress | null>(null)
@@ -40,12 +40,12 @@ export function CheckoutPageClient() {
   const [isCreatingIntent, setIsCreatingIntent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Redirect if cart is empty
+  // Redirect if cart is empty (only after cart has hydrated to prevent race condition)
   useEffect(() => {
-    if (items.length === 0) {
+    if (isHydrated && items.length === 0) {
       router.push('/cart')
     }
-  }, [items.length, router])
+  }, [isHydrated, items.length, router])
 
   const handleShippingSubmit = async (address: ShippingAddress) => {
     setShippingAddress(address)
@@ -136,6 +136,18 @@ export function CheckoutPageClient() {
     setError(errorMessage)
   }
 
+  // Show loading state while cart is hydrating
+  if (!isHydrated) {
+    return (
+      <div className="brand-container py-12">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-gray-500">Loading checkout...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // This will be caught by the useEffect redirect, but prevents flash of content
   if (items.length === 0) {
     return null
   }
