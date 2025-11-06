@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/ta
 import { ProfileSettings } from '@/src/components/settings/ProfileSettings'
 import { SiteSettings } from '@/src/components/settings/SiteSettings'
 import { SecuritySettings } from '@/src/components/settings/SecuritySettings'
-import { User, Globe, Shield } from 'lucide-react'
+import { PaymentSettings } from '@/src/components/settings/PaymentSettings'
+import { User, Globe, Shield, CreditCard } from 'lucide-react'
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile')
@@ -23,7 +24,7 @@ export default function SettingsPage() {
       <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Profile
@@ -35,6 +36,10 @@ export default function SettingsPage() {
               <TabsTrigger value="security" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
                 Security
+              </TabsTrigger>
+              <TabsTrigger value="payments" className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                Payments
               </TabsTrigger>
             </TabsList>
           </CardHeader>
@@ -68,6 +73,16 @@ export default function SettingsPage() {
                 </CardDescription>
               </div>
               <SecuritySettings />
+            </TabsContent>
+
+            <TabsContent value="payments" className="space-y-6">
+              <div>
+                <CardTitle>Payment Settings</CardTitle>
+                <CardDescription>
+                  Configure payment processing, tax rates, and shipping options for your site.
+                </CardDescription>
+              </div>
+              <PaymentSettings />
             </TabsContent>
           </CardContent>
         </Tabs>
