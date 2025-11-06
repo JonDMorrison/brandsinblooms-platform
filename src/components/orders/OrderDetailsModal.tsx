@@ -17,7 +17,6 @@ import {
 } from '@/src/components/ui/dialog'
 import { useOrderDetails } from '@/src/hooks/useOrderDetails'
 import { OrderStatusBadge } from '@/src/components/OrderStatusBadge'
-import { OrderActionsDropdown } from '@/src/components/orders/OrderActionsDropdown'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -215,11 +214,10 @@ export function OrderDetailsModal({ orderId, open, onOpenChange }: OrderDetailsM
               Created {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
             </DialogDescription>
           </DialogHeader>
-          <div className="absolute top-6 right-6 flex gap-2">
+          <div className="absolute top-6 right-14">
             <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
-            <OrderActionsDropdown order={order} />
           </div>
         </div>
 
