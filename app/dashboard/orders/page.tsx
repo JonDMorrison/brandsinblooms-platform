@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo, memo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Skeleton } from '@/src/components/ui/skeleton'
@@ -8,9 +9,10 @@ import { RefreshCw, Download } from 'lucide-react'
 import { useOrders } from '@/src/hooks/useOrders'
 import { OrderFilters } from '@/src/components/orders/OrderFilters'
 import { OptimizedTable } from '@/src/components/ui/optimized-table'
-import { optimizedOrderColumns } from '@/src/components/orders/optimized-order-columns'
+import { createOptimizedOrderColumns } from '@/src/components/orders/optimized-order-columns'
 import { OrderStats } from '@/src/components/OrderStats'
 import { OrderEmptyState } from '@/src/components/orders/OrderEmptyState'
+import { OrderDetailsModal } from '@/src/components/orders/OrderDetailsModal'
 import { exportOrdersToCSV } from '@/src/lib/utils/export'
 import { toast } from 'sonner'
 import type { OrderWithCustomer } from '@/lib/queries/domains/orders'
@@ -25,8 +27,29 @@ interface OrderFilters {
 
 // Memoized orders page component for better performance
 const OrdersPageComponent = () => {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [filters, setFilters] = useState<OrderFilters>({})
   const [isRefreshing, setIsRefreshing] = useState(false)
+
+  // Modal state management via URL
+  const selectedOrderId = searchParams.get('order')
+  const isModalOpen = !!selectedOrderId
+
+  const handleViewOrder = useCallback((orderId: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set('order', orderId)
+    router.push(`?${params.toString()}`)
+  }, [router, searchParams])
+
+  const handleCloseModal = useCallback(() => {
+    const params = new URLSearchParams(searchParams)
+    params.delete('order')
+    router.push(`?${params.toString()}`)
+  }, [router, searchParams])
+
+  // Create columns with view order callback - memoized
+  const orderColumns = useMemo(() => createOptimizedOrderColumns(handleViewOrder), [handleViewOrder])
 
   // Fetch orders with real data - memoized hook call
   const {
@@ -173,7 +196,7 @@ const OrdersPageComponent = () => {
         <CardContent>
           <OptimizedTable
             data={orders}
-            columns={optimizedOrderColumns}
+            columns={orderColumns}
             loading={isLoading && !data}
             searchable={true}
             sortable={true}
@@ -209,6 +232,15 @@ const OrdersPageComponent = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal
+        orderId={selectedOrderId}
+        open={isModalOpen}
+        onOpenChange={(open) => {
+          if (!open) handleCloseModal()
+        }}
+      />
     </div>
   )
 }

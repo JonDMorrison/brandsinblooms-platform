@@ -57,7 +57,7 @@ const PaymentStatus = ({ status }: { status: string }) => {
   )
 }
 
-export const optimizedOrderColumns: ColumnDef<OrderWithCustomer>[] = [
+export const createOptimizedOrderColumns = (onViewOrder?: (orderId: string) => void): ColumnDef<OrderWithCustomer>[] => [
   {
     id: 'order_number',
     header: 'Order',
@@ -144,10 +144,12 @@ export const optimizedOrderColumns: ColumnDef<OrderWithCustomer>[] = [
     width: 100,
     cell: (order) => (
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
-          <a href={`/dashboard/orders/${order.id}`}>
-            <Eye className="h-4 w-4" />
-          </a>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onViewOrder?.(order.id)}
+        >
+          <Eye className="h-4 w-4" />
         </Button>
         <Button variant="ghost" size="sm">
           <MoreHorizontal className="h-4 w-4" />
@@ -156,3 +158,6 @@ export const optimizedOrderColumns: ColumnDef<OrderWithCustomer>[] = [
     )
   }
 ]
+
+// For backward compatibility
+export const optimizedOrderColumns = createOptimizedOrderColumns()
