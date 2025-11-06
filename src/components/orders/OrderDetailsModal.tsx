@@ -224,9 +224,8 @@ export function OrderDetailsModal({ orderId, open, onOpenChange }: OrderDetailsM
         </div>
 
         <div className="overflow-y-auto flex-1 px-6 pb-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-4">
+          <div className="space-y-4">
+            {/* Order Status and Items */}
               {/* Order Status */}
               <Card>
                 <CardHeader>
@@ -342,10 +341,7 @@ export function OrderDetailsModal({ orderId, open, onOpenChange }: OrderDetailsM
                   )}
                 </CardContent>
               </Card>
-            </div>
 
-            {/* Sidebar */}
-            <div className="space-y-4">
               {/* Customer Information */}
               <Card>
                 <CardHeader>
@@ -446,7 +442,6 @@ export function OrderDetailsModal({ orderId, open, onOpenChange }: OrderDetailsM
                   </div>
                 </CardContent>
               </Card>
-            </div>
           </div>
         </div>
       </DialogContent>
