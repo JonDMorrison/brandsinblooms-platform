@@ -15,7 +15,6 @@ import { ContactPage } from './components/ContactPage'
 import { PrivacyPage } from './components/PrivacyPage'
 import { TermsPage } from './components/TermsPage'
 import { DynamicContentPage } from './components/DynamicContentPage'
-import { OrderConfirmationPage } from './components/OrderConfirmationPage'
 import {
   ProductsPage,
   CartPage,
@@ -23,7 +22,8 @@ import {
   AccountPage,
   OrdersPage,
   ProductDetailPage,
-  CategoryPage
+  CategoryPage,
+  OrderConfirmationPageWrapper
 } from './components/SimplePages'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug?: string[] }> }): Promise<Metadata> {
@@ -96,7 +96,7 @@ export default async function SitePage({ params }: SitePageProps) {
         pageComponent = <CategoryPage slug={categorySlug} />
       } else if (isOrderConfirmationRoute(path)) {
         const orderId = extractOrderIdFromPath(path)
-        pageComponent = <OrderConfirmationPage orderId={orderId} />
+        pageComponent = <OrderConfirmationPageWrapper orderId={orderId} />
       } else {
         // Try to find content in database with this slug
         pageComponent = <DynamicContentPage slug={path} isEditMode={editModeStatus.isEditMode} />

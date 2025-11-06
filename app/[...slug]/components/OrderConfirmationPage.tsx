@@ -7,13 +7,12 @@
  */
 
 import { useEffect, useState } from 'react'
-import { CheckCircle2, Package, Mail, MapPin } from 'lucide-react'
+import { CheckCircle2, Package, MapPin } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Separator } from '@/src/components/ui/separator'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import Link from 'next/link'
-import Image from 'next/image'
 
 interface OrderConfirmationPageProps {
   orderId: string
@@ -202,34 +201,10 @@ export function OrderConfirmationPage({ orderId }: OrderConfirmationPageProps) {
           </CardContent>
         </Card>
 
-        {/* Next Steps */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              What's Next?
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm">
-              <strong>1.</strong> You'll receive an order confirmation email shortly
-            </p>
-            <p className="text-sm">
-              <strong>2.</strong> We'll send you a shipping notification when your order ships
-            </p>
-            <p className="text-sm">
-              <strong>3.</strong> Track your order status in your account
-            </p>
-          </CardContent>
-        </Card>
-
         {/* Actions */}
-        <div className="flex gap-4 justify-center">
+        <div className="flex justify-center">
           <Link href="/">
             <Button variant="outline">Continue Shopping</Button>
-          </Link>
-          <Link href="/account/orders">
-            <Button>View Order History</Button>
           </Link>
         </div>
       </div>

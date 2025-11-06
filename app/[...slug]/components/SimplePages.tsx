@@ -348,3 +348,18 @@ export async function CategoryPage({ slug }: { slug: string }) {
     </SiteRenderer>
   )
 }
+
+export async function OrderConfirmationPageWrapper({ orderId }: { orderId: string }) {
+  const { siteId } = await getSiteHeaders()
+  const { OrderConfirmationPage } = await import('./OrderConfirmationPage')
+
+  return (
+    <SiteRenderer
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <OrderConfirmationPage orderId={orderId} />
+    </SiteRenderer>
+  )
+}
