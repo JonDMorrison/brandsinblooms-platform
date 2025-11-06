@@ -56,13 +56,15 @@ export function CheckoutPageClient({ siteId, stripeAccountId }: CheckoutPageClie
   } | null>(null)
   const [isCreatingIntent, setIsCreatingIntent] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isCompletingOrder, setIsCompletingOrder] = useState(false)
 
   // Redirect if cart is empty (only after cart has hydrated to prevent race condition)
+  // Do NOT redirect if we're in the process of completing an order
   useEffect(() => {
-    if (isHydrated && items.length === 0) {
+    if (isHydrated && items.length === 0 && !isCompletingOrder) {
       router.push('/cart')
     }
-  }, [isHydrated, items.length, router])
+  }, [isHydrated, items.length, router, isCompletingOrder])
 
   // Load saved shipping address from storage on mount
   useEffect(() => {
@@ -136,6 +138,9 @@ export function CheckoutPageClient({ siteId, stripeAccountId }: CheckoutPageClie
   const handlePaymentSuccess = async (paymentIntentId: string) => {
     if (!shippingAddress || !totals) return
 
+    // Set flag to prevent empty cart redirect during order completion
+    setIsCompletingOrder(true)
+
     try {
       // Create order in database
       const response = await fetch('/api/orders/create', {
@@ -177,6 +182,8 @@ export function CheckoutPageClient({ siteId, stripeAccountId }: CheckoutPageClie
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred'
       setError(message)
+      // Reset flag on error to allow retry
+      setIsCompletingOrder(false)
     }
   }
 
