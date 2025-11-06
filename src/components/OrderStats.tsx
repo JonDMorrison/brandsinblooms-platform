@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@/src/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { 
   ShoppingCart, 
@@ -156,16 +156,19 @@ export function OrderStats({ className }: OrderStatsProps) {
   return (
     <div className={`space-y-4 ${className || ''}`}>
       {/* Main Stats */}
-      <DashboardStats 
+      <DashboardStats
         stats={dashboardStats}
         isLoading={false}
         animationDelay={0.2}
+        className="hidden"
       />
 
       {/* Status Breakdown */}
       <Card className="fade-in-up" style={{ animationDelay: '1s' }}>
-        <CardContent className="p-4">
-          <h3 className="font-semibold mb-4">Order Status Breakdown</h3>
+        <CardHeader>
+          <CardTitle>Order Status Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {statusStats.map((stat, index) => {
               const Icon = stat.icon

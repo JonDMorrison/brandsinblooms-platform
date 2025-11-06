@@ -161,7 +161,7 @@ const OrdersPageComponent = () => {
       <OrderStats className="fade-in-up" />
 
       {/* Filters */}
-      <div className="fade-in-up" style={{ animationDelay: '0.4s' }}>
+      <div className="fade-in-up hidden" style={{ animationDelay: '0.4s' }}>
         <OrderFilters onFiltersChange={handleFiltersChange} />
       </div>
 
