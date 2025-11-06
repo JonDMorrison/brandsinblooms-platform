@@ -89,6 +89,8 @@ export function OrderDetailsModal({ orderId, open, onOpenChange }: OrderDetailsM
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
+            <DialogTitle className="sr-only">Loading Order Details</DialogTitle>
+            <DialogDescription className="sr-only">Please wait while we load the order information</DialogDescription>
             <Skeleton className="h-7 w-48" />
             <Skeleton className="h-4 w-64" />
           </DialogHeader>
@@ -136,6 +138,7 @@ export function OrderDetailsModal({ orderId, open, onOpenChange }: OrderDetailsM
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Error Loading Order</DialogTitle>
+            <DialogDescription>Unable to load order details</DialogDescription>
           </DialogHeader>
           <div className="text-center py-8">
             <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -165,6 +168,7 @@ export function OrderDetailsModal({ orderId, open, onOpenChange }: OrderDetailsM
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Order Not Found</DialogTitle>
+            <DialogDescription>The requested order could not be found</DialogDescription>
           </DialogHeader>
           <div className="text-center py-8">
             <Package className="h-12 w-12 text-gray-500 mx-auto mb-4" />
@@ -204,20 +208,20 @@ export function OrderDetailsModal({ orderId, open, onOpenChange }: OrderDetailsM
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 space-y-2">
-          <div className="flex items-center justify-between gap-4">
-            <DialogTitle className="text-xl">Order #{order.order_number}</DialogTitle>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              </Button>
-              <OrderActionsDropdown order={order} />
-            </div>
+        <div className="relative">
+          <DialogHeader className="px-6 pt-6 pb-4 space-y-2">
+            <DialogTitle className="text-xl pr-24">Order #{order.order_number}</DialogTitle>
+            <DialogDescription>
+              Created {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="absolute top-6 right-6 flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+            <OrderActionsDropdown order={order} />
           </div>
-          <DialogDescription>
-            Created {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
-          </DialogDescription>
-        </DialogHeader>
+        </div>
 
         <div className="overflow-y-auto flex-1 px-6 pb-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
