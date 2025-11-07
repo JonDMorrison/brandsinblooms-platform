@@ -122,7 +122,7 @@ export const createOptimizedOrderColumns = (onViewOrder?: (orderId: string) => v
     width: 80,
     cell: (order) => (
       <div className="text-center">
-        {Array.isArray(order.order_items) ? order.order_items.length : 0}
+        {order.items_count || 0}
       </div>
     )
   },
