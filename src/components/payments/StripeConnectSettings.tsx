@@ -11,7 +11,7 @@ import { Button } from '@/src/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
-import { Loader2, CheckCircle2, AlertCircle, ExternalLink, Link as LinkIcon } from 'lucide-react'
+import { Loader2, CheckCircle2, AlertCircle, ExternalLink, Link as LinkIcon, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface StripeConnectSettingsProps {
@@ -35,6 +35,7 @@ export function StripeConnectSettings({
   const [isConnecting, setIsConnecting] = useState(false)
   const [isDisconnecting, setIsDisconnecting] = useState(false)
   const [isDashboardLoading, setIsDashboardLoading] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const isConnected = !!stripeAccountId
   const isActive = stripeAccountStatus === 'active' && chargesEnabled && payoutsEnabled
@@ -92,6 +93,28 @@ export function StripeConnectSettings({
     }
   }
 
+  const handleRefreshStatus = async () => {
+    setIsRefreshing(true)
+    try {
+      const response = await fetch(`/api/stripe/connect/refresh-status?siteId=${siteId}`)
+      const data = await response.json()
+
+      if (response.ok) {
+        // Preserve the payments tab by setting URL parameter before reload
+        const url = new URL(window.location.href)
+        url.searchParams.set('tab', 'payments')
+        window.location.href = url.toString()
+      } else {
+        alert(data.error || 'Failed to refresh status. Please try again.')
+      }
+    } catch (error) {
+      console.error('Refresh status error:', error)
+      alert('Failed to refresh status. Please try again.')
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
   const getStatusBadge = () => {
     if (!isConnected) {
       return <Badge variant="outline">Not Connected</Badge>
@@ -103,9 +126,9 @@ export function StripeConnectSettings({
       case 'pending':
         return <Badge variant="secondary">Pending</Badge>
       case 'restricted':
-        return <Badge variant="destructive">Restricted</Badge>
+        return <Badge className="bg-red-100 text-red-800">Restricted</Badge>
       case 'disabled':
-        return <Badge variant="destructive">Disabled</Badge>
+        return <Badge className="bg-red-100 text-red-800">Disabled</Badge>
       default:
         return <Badge variant="outline">{stripeAccountStatus}</Badge>
     }
@@ -145,7 +168,7 @@ export function StripeConnectSettings({
             <Button
               onClick={handleConnect}
               disabled={isConnecting}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto btn-gradient-primary"
             >
               {isConnecting ? (
                 <>
@@ -217,6 +240,7 @@ export function StripeConnectSettings({
                   onClick={handleConnect}
                   variant="default"
                   disabled={isConnecting}
+                  className="btn-gradient-primary"
                 >
                   {isConnecting ? (
                     <>
@@ -225,6 +249,26 @@ export function StripeConnectSettings({
                     </>
                   ) : (
                     'Complete Stripe Setup'
+                  )}
+                </Button>
+              )}
+
+              {!isActive && (
+                <Button
+                  onClick={handleRefreshStatus}
+                  variant="outline"
+                  disabled={isRefreshing}
+                >
+                  {isRefreshing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Refreshing...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Refresh Status
+                    </>
                   )}
                 </Button>
               )}
@@ -251,6 +295,7 @@ export function StripeConnectSettings({
                 onClick={handleDisconnect}
                 variant="destructive"
                 disabled={isDisconnecting}
+                className="bg-red-600 text-white hover:bg-red-700"
               >
                 {isDisconnecting ? (
                   <>
