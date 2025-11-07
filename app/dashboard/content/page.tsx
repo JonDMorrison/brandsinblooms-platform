@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect, Suspense } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
@@ -14,7 +13,6 @@ import {
   Files,
   Edit,
   Eye,
-  X,
 } from 'lucide-react'
 import { useContent, useContentStats } from '@/src/hooks/useContent'
 import type { ContentType } from '@/src/lib/queries/domains/content'
@@ -27,16 +25,7 @@ import { debug } from '@/src/lib/utils/debug'
 import type { PaginationState } from '@tanstack/react-table'
 import { useContentChangeListener } from '@/src/lib/events/content-events'
 import { supabase } from '@/src/lib/supabase/client'
-import { useDesignSettings } from '@/src/hooks/useDesignSettings'
-
-// Dynamic import for DesignPreview component
-const DesignPreview = dynamic(
-  () => import('@/src/components/design/DesignPreview').then(mod => mod.DesignPreview),
-  {
-    loading: () => <Skeleton className="h-[600px] w-full" />,
-    ssr: false
-  }
-)
+import { getCustomerSiteFullUrl } from '@/src/lib/site/url-utils'
 
 
 
@@ -47,10 +36,8 @@ export default function ContentPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [homepageId, setHomepageId] = useState<string | null>(null)
-  const [previewMode, setPreviewMode] = useState(false)
   const siteId = useSiteId()
   const { loading: siteLoading, currentSite } = useSiteContext()
-  const { data: designSettings } = useDesignSettings()
 
   debug.content('Content page render:', {
     siteId,
@@ -251,14 +238,19 @@ export default function ContentPage() {
             Edit Homepage
           </Button>
           <Button
-            onClick={() => setPreviewMode(!previewMode)}
-            className="flex items-center gap-2 text-white"
+            onClick={() => {
+              if (currentSite) {
+                window.open(getCustomerSiteFullUrl(currentSite), '_blank')
+              }
+            }}
+            disabled={!currentSite}
+            className="flex items-center gap-2 text-white w-full sm:w-auto"
             style={{
               background: 'linear-gradient(135deg, hsl(152 45% 40%) 0%, hsl(145 35% 60%) 100%)'
             }}
           >
             <Eye className="h-4 w-4" />
-            {previewMode ? 'Exit Preview' : 'Live Preview'}
+            <span className="sm:inline">View Site</span>
           </Button>
           <Button
             className="btn-gradient-primary"
@@ -360,39 +352,6 @@ export default function ContentPage() {
           refetchStats()
         }}
       />
-
-      {/* Live Preview Modal */}
-      {previewMode && designSettings && (
-        <div className="fixed inset-0 z-50 bg-black/50 overflow-auto">
-          <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
-            <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] flex flex-col my-2 sm:my-4">
-              <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
-                <h2 className="text-base sm:text-lg font-semibold">Site Preview</h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setPreviewMode(false)}
-                  className="h-8 w-8 sm:h-10 sm:w-10"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex-1 overflow-hidden relative bg-white flex items-center justify-center">
-                <Suspense fallback={
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <Eye className="h-8 w-8 animate-pulse text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Loading preview...</p>
-                    </div>
-                  </div>
-                }>
-                  <DesignPreview settings={designSettings} className="h-full w-full border-0 shadow-none" />
-                </Suspense>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
