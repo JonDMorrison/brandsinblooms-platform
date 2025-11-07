@@ -8,41 +8,56 @@ import { Textarea } from '@/src/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/src/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
-import { Badge } from '@/src/components/ui/badge'
-import { Separator } from '@/src/components/ui/separator'
 import { toast } from 'sonner'
-import { Globe, ExternalLink, Eye } from 'lucide-react'
+import { Globe } from 'lucide-react'
 import { useCurrentSite, useSitePermissions } from '@/src/hooks/useSite'
 import { useUpdateSiteSettings } from '@/src/hooks/useSiteSettings'
 import { DomainConfiguration } from '@/src/components/site/DomainConfiguration'
-import { SitePreview } from '@/src/components/site/SitePreview'
-import { DangerZone } from '@/src/components/settings/DangerZone'
 
-const siteSchema = z.object({
+// Site Information Schema
+const siteInfoSchema = z.object({
   siteName: z.string().min(1, 'Site name is required').max(100, 'Site name must be less than 100 characters'),
   siteDescription: z.string().max(500, 'Description must be less than 500 characters').optional(),
   subdomain: z.string().min(3, 'Subdomain must be at least 3 characters').regex(/^[a-zA-Z0-9-]+$/, 'Subdomain can only contain letters, numbers, and hyphens'),
   timezone: z.string().optional(),
+})
+
+// Business Information Schema
+const businessInfoSchema = z.object({
   businessName: z.string().optional(),
   businessEmail: z.string().email('Invalid email format').optional().or(z.literal('')),
   businessPhone: z.string().optional(),
   businessAddress: z.string().optional(),
 })
 
-type SiteFormData = z.infer<typeof siteSchema>
+type SiteInfoFormData = z.infer<typeof siteInfoSchema>
+type BusinessInfoFormData = z.infer<typeof businessInfoSchema>
 
 export function SiteSettings() {
   const { site, loading: siteLoading } = useCurrentSite()
   const { canManage, canEdit } = useSitePermissions()
   const updateSiteSettings = useUpdateSiteSettings()
 
-  const form = useForm<SiteFormData>({
-    resolver: zodResolver(siteSchema),
+  // Get the app domain for display
+  const appDomain = typeof window !== 'undefined'
+    ? window.location.host
+    : process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'
+
+  // Site Information Form
+  const siteInfoForm = useForm<SiteInfoFormData>({
+    resolver: zodResolver(siteInfoSchema),
     defaultValues: {
       siteName: site?.name || 'My Site',
       siteDescription: site?.description || '',
       subdomain: site?.subdomain || '',
       timezone: site?.timezone || 'America/New_York',
+    },
+  })
+
+  // Business Information Form
+  const businessInfoForm = useForm<BusinessInfoFormData>({
+    resolver: zodResolver(businessInfoSchema),
+    defaultValues: {
       businessName: site?.business_name || '',
       businessEmail: site?.business_email || '',
       businessPhone: site?.business_phone || '',
@@ -50,23 +65,26 @@ export function SiteSettings() {
     },
   })
 
-  // Update form when site data loads
+  // Update forms when site data loads
   React.useEffect(() => {
     if (site) {
-      form.reset({
+      siteInfoForm.reset({
         siteName: site.name || 'My Site',
         siteDescription: site.description || '',
         subdomain: site.subdomain || '',
         timezone: site.timezone || 'America/New_York',
+      })
+      businessInfoForm.reset({
         businessName: site.business_name || '',
         businessEmail: site.business_email || '',
         businessPhone: site.business_phone || '',
         businessAddress: site.business_address || '',
       })
     }
-  }, [site, form])
+  }, [site, siteInfoForm, businessInfoForm])
 
-  const onSubmit = async (data: SiteFormData) => {
+  // Submit handler for Site Information
+  const onSubmitSiteInfo = async (data: SiteInfoFormData) => {
     if (!canManage) {
       toast.error('You do not have permission to update site settings.')
       return
@@ -77,6 +95,28 @@ export function SiteSettings() {
       description: data.siteDescription,
       subdomain: data.subdomain,
       timezone: data.timezone,
+      // Preserve current business information (convert null to undefined)
+      business_name: site?.business_name ?? undefined,
+      business_email: site?.business_email ?? undefined,
+      business_phone: site?.business_phone ?? undefined,
+      business_address: site?.business_address ?? undefined,
+    })
+  }
+
+  // Submit handler for Business Information
+  const onSubmitBusinessInfo = async (data: BusinessInfoFormData) => {
+    if (!canManage) {
+      toast.error('You do not have permission to update site settings.')
+      return
+    }
+
+    updateSiteSettings.mutate({
+      // Preserve current site information (convert null to undefined)
+      name: site?.name || 'My Site',
+      description: site?.description ?? undefined,
+      subdomain: site?.subdomain || '',
+      timezone: site?.timezone ?? undefined,
+      // Update business information
       business_name: data.businessName,
       business_email: data.businessEmail,
       business_phone: data.businessPhone,
@@ -124,249 +164,214 @@ export function SiteSettings() {
 
   return (
     <div className="space-y-6">
-      {/* Site Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">{site.name}</h3>
-          <p className="text-sm text-gray-500">
-            Configure your site settings and business information
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {!canManage && (
-            <Badge variant="secondary">
-              {canEdit ? 'Editor' : 'Viewer'}
-            </Badge>
-          )}
-          <SitePreview 
-            showAsDialog 
-            triggerButton={
-              <Button variant="outline" size="sm">
-                <Eye className="h-4 w-4 mr-2" />
-                Preview
-              </Button>
-            }
-          />
-          {site.custom_domain && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.open(`https://${site.custom_domain}`, '_blank')}
-            >
-              <ExternalLink className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
+      {/* Site Information Form */}
+      <Form {...siteInfoForm}>
+        <form onSubmit={siteInfoForm.handleSubmit(onSubmitSiteInfo)}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Site Information
+              </CardTitle>
+              <CardDescription>
+                Configure your site&apos;s basic information.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={siteInfoForm.control}
+                name="siteName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Site Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your site name" {...field} disabled={!canManage} />
+                    </FormControl>
+                    <FormDescription>
+                      This will appear in your site&apos;s title and navigation.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      <Separator />
+              <FormField
+                control={siteInfoForm.control}
+                name="siteDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Site Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe what your site is about..."
+                        className="resize-none"
+                        rows={3}
+                        {...field}
+                        disabled={!canManage}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      A brief description of your site&apos;s purpose.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      {/* Site Settings Form */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Basic Site Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Globe className="h-5 w-5" />
-                    Site Information
-                  </CardTitle>
-                  <CardDescription>
-                    Configure your site&apos;s basic information.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="siteName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Site Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter your site name" {...field} disabled={!canManage} />
-                        </FormControl>
-                        <FormDescription>
-                          This will appear in your site&apos;s title and navigation.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <FormField
+                control={siteInfoForm.control}
+                name="subdomain"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subdomain</FormLabel>
+                    <FormControl>
+                      <div className="flex">
+                        <Input
+                          placeholder="mysite"
+                          {...field}
+                          disabled={!canManage}
+                          className="rounded-r-none"
+                        />
+                        <div className="flex items-center px-3 border border-l-0 rounded-r-md bg-muted text-gray-500 text-sm">
+                          .{appDomain}
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Choose a unique subdomain for your site.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <FormField
-                    control={form.control}
-                    name="siteDescription"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Site Description</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Describe what your site is about..."
-                            className="resize-none"
-                            rows={3}
-                            {...field}
-                            disabled={!canManage}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          A brief description of your site&apos;s purpose.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="subdomain"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subdomain</FormLabel>
-                        <FormControl>
-                          <div className="flex">
-                            <Input 
-                              placeholder="mysite" 
-                              {...field} 
-                              disabled={!canManage}
-                              className="rounded-r-none"
-                            />
-                            <div className="flex items-center px-3 border border-l-0 rounded-r-md bg-muted text-gray-500 text-sm">
-                              .blooms.cc
-                            </div>
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Choose a unique subdomain for your site.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="timezone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Timezone</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!canManage}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select timezone" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {timezones.map((tz) => (
-                              <SelectItem key={tz} value={tz}>
-                                {tz.replace('_', ' ')}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Used for displaying dates and times.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Business Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Business Information</CardTitle>
-                  <CardDescription>
-                    Optional business details for your site.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="businessName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Business Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your business name" {...field} disabled={!canManage} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="businessEmail"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Business Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="contact@yourbusiness.com" {...field} disabled={!canManage} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="businessPhone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Business Phone</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+1 (555) 123-4567" {...field} disabled={!canManage} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="businessAddress"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Business Address</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="123 Main St, City, State, ZIP"
-                            className="resize-none"
-                            rows={2}
-                            {...field}
-                            disabled={!canManage}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
+              <FormField
+                control={siteInfoForm.control}
+                name="timezone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Timezone</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!canManage}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select timezone" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {timezones.map((tz) => (
+                          <SelectItem key={tz} value={tz}>
+                            {tz.replace('_', ' ')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Used for displaying dates and times.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {canManage && (
-                <div className="flex justify-end">
-                  <Button type="submit" disabled={updateSiteSettings.isPending}>
-                    {updateSiteSettings.isPending ? 'Saving...' : 'Save Changes'}
+                <div className="flex justify-end pt-4">
+                  <Button type="submit" disabled={updateSiteSettings.loading} className="btn-gradient-primary">
+                    {updateSiteSettings.loading ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </div>
               )}
-            </form>
-          </Form>
-        </div>
+            </CardContent>
+          </Card>
+        </form>
+      </Form>
 
-        {/* Domain Configuration */}
-        <div className="space-y-6">
-          <DomainConfiguration />
-        </div>
-      </div>
+      {/* Business Information Form */}
+      <Form {...businessInfoForm}>
+        <form onSubmit={businessInfoForm.handleSubmit(onSubmitBusinessInfo)}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Business Information</CardTitle>
+              <CardDescription>
+                Optional business details for your site.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={businessInfoForm.control}
+                name="businessName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your business name" {...field} disabled={!canManage} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      {/* Danger Zone - Full Width Below Other Settings */}
-      {canManage && <DangerZone />}
+              <FormField
+                control={businessInfoForm.control}
+                name="businessEmail"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="contact@yourbusiness.com" {...field} disabled={!canManage} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={businessInfoForm.control}
+                name="businessPhone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Phone</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+1 (555) 123-4567" {...field} disabled={!canManage} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={businessInfoForm.control}
+                name="businessAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Address</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="123 Main St, City, State, ZIP"
+                        className="resize-none"
+                        rows={2}
+                        {...field}
+                        disabled={!canManage}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {canManage && (
+                <div className="flex justify-end pt-4">
+                  <Button type="submit" disabled={updateSiteSettings.loading} className="btn-gradient-primary">
+                    {updateSiteSettings.loading ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </form>
+      </Form>
+
+      {/* Domain Configuration */}
+      <DomainConfiguration />
     </div>
   )
 }

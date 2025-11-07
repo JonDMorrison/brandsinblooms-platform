@@ -7,6 +7,7 @@ import { ProductDetailPageClient } from './ProductDetailPage'
 import { CategoryPageClient } from './CategoryPage'
 import { CartPageClient } from './CartPage'
 import { ProductsPageClient } from './ProductsPageComponent'
+import { createClient } from '@/src/lib/supabase/server'
 
 // Simple page wrapper component
 interface SimplePageProps {
@@ -237,30 +238,25 @@ export async function CartPage() {
 
 export async function CheckoutPage() {
   const { siteId } = await getSiteHeaders()
-  
+  const { CheckoutPageClient } = await import('./CheckoutPageClient')
+
+  // Fetch site's Stripe account ID for payment processing
+  const supabase = await createClient()
+  const { data: site } = await supabase
+    .from('sites')
+    .select('stripe_account_id')
+    .eq('id', siteId)
+    .single()
+
+  const stripeAccountId = site?.stripe_account_id || ''
+
   return (
-    <SiteRenderer 
+    <SiteRenderer
       siteId={siteId}
       mode="live"
       showNavigation={true}
     >
-      <div className="brand-container py-12">
-        <h1 className="text-4xl font-bold mb-8" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-          Checkout
-        </h1>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-xl font-semibold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-              Billing Information
-            </h2>
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-              Order Summary
-            </h2>
-          </div>
-        </div>
-      </div>
+      <CheckoutPageClient siteId={siteId} stripeAccountId={stripeAccountId} />
     </SiteRenderer>
   )
 }
@@ -349,6 +345,21 @@ export async function CategoryPage({ slug }: { slug: string }) {
       showNavigation={true}
     >
       <CategoryPageClient slug={slug} />
+    </SiteRenderer>
+  )
+}
+
+export async function OrderConfirmationPageWrapper({ orderId }: { orderId: string }) {
+  const { siteId } = await getSiteHeaders()
+  const { OrderConfirmationPage } = await import('./OrderConfirmationPage')
+
+  return (
+    <SiteRenderer
+      siteId={siteId}
+      mode="live"
+      showNavigation={true}
+    >
+      <OrderConfirmationPage orderId={orderId} />
     </SiteRenderer>
   )
 }

@@ -3,7 +3,7 @@
 import { Badge } from '@/src/components/ui/badge'
 import { Button } from '@/src/components/ui/button'
 import { formatCurrency, formatDate } from '@/src/lib/utils'
-import { Eye, MoreHorizontal } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { ColumnDef } from '@/src/components/ui/optimized-table'
 import type { OrderWithCustomer } from '@/lib/queries/domains/orders'
 
@@ -57,7 +57,7 @@ const PaymentStatus = ({ status }: { status: string }) => {
   )
 }
 
-export const optimizedOrderColumns: ColumnDef<OrderWithCustomer>[] = [
+export const createOptimizedOrderColumns = (onViewOrder?: (orderId: string) => void): ColumnDef<OrderWithCustomer>[] => [
   {
     id: 'order_number',
     header: 'Order',
@@ -122,7 +122,7 @@ export const optimizedOrderColumns: ColumnDef<OrderWithCustomer>[] = [
     width: 80,
     cell: (order) => (
       <div className="text-center">
-        {Array.isArray(order.order_items) ? order.order_items.length : 0}
+        {order.items_count || 0}
       </div>
     )
   },
@@ -143,16 +143,16 @@ export const optimizedOrderColumns: ColumnDef<OrderWithCustomer>[] = [
     header: 'Actions',
     width: 100,
     cell: (order) => (
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
-          <a href={`/dashboard/orders/${order.id}`}>
-            <Eye className="h-4 w-4" />
-          </a>
-        </Button>
-        <Button variant="ghost" size="sm">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onViewOrder?.(order.id)}
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
     )
   }
 ]
+
+// For backward compatibility
+export const optimizedOrderColumns = createOptimizedOrderColumns()

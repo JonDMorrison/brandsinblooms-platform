@@ -55,6 +55,7 @@ export function useOrderStats(options: UseOrderStatsOptions = {}) {
       enabled: !!siteId && enabled,
       staleTime,
       refetchInterval,
+      persistKey: siteId ? `order-stats-${siteId}` : undefined,
     }
   );
 }
@@ -80,7 +81,7 @@ export function useOrderTrends(
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(endDate.getDate() - days);
-      
+
       const { data, error } = await client
         .from('orders')
         .select('created_at, total_amount, status')
@@ -88,31 +89,31 @@ export function useOrderTrends(
         .gte('created_at', startDate.toISOString())
         .lte('created_at', endDate.toISOString())
         .order('created_at', { ascending: true });
-      
+
       if (error) throw error;
-      
+
       // Group by date
       const trendsMap = new Map<string, { orders: number; revenue: number }>();
-      
+
       data?.forEach(order => {
         const date = new Date(order.created_at).toISOString().split('T')[0];
         const existing = trendsMap.get(date) || { orders: 0, revenue: 0 };
-        
+
         existing.orders += 1;
         if (order.status !== 'cancelled') {
           existing.revenue += Number(order.total_amount);
         }
-        
+
         trendsMap.set(date, existing);
       });
-      
+
       // Convert to array and fill missing dates
       const trends: OrderTrendData[] = [];
       for (let i = 0; i < days; i++) {
         const date = new Date();
         date.setDate(endDate.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
-        
+
         const data = trendsMap.get(dateStr) || { orders: 0, revenue: 0 };
         trends.unshift({
           date: dateStr,
@@ -120,13 +121,14 @@ export function useOrderTrends(
           revenue: data.revenue,
         });
       }
-      
+
       return trends;
     },
     {
       enabled: !!siteId && enabled,
       staleTime,
       refetchInterval,
+      persistKey: siteId ? `order-trends-${siteId}-${days}` : undefined,
     }
   );
 }
@@ -147,23 +149,23 @@ export function useOrderMetrics(options: UseOrderStatsOptions = {}) {
   const metricsQuery = useSupabaseQuery(
     async (signal) => {
       if (!stats.data || !trends.data) return null;
-      
+
       // Use monthly periods (last 30 days vs previous 30 days)
       const currentPeriodTrends = trends.data.slice(-30); // Last 30 days (current month)
       const previousPeriodTrends = trends.data.slice(-60, -30); // Previous 30 days (last month)
-      
+
       const currentOrders = currentPeriodTrends.reduce((sum, day) => sum + day.orders, 0);
       const previousOrders = previousPeriodTrends.reduce((sum, day) => sum + day.orders, 0);
       const currentRevenue = currentPeriodTrends.reduce((sum, day) => sum + day.revenue, 0);
       const previousRevenue = previousPeriodTrends.reduce((sum, day) => sum + day.revenue, 0);
-      
-      const orderGrowth = previousOrders > 0 
+
+      const orderGrowth = previousOrders > 0
         ? ((currentOrders - previousOrders) / previousOrders) * 100
         : 0;
-      const revenueGrowth = previousRevenue > 0 
+      const revenueGrowth = previousRevenue > 0
         ? ((currentRevenue - previousRevenue) / previousRevenue) * 100
         : 0;
-      
+
       const metrics: OrderMetrics = {
         ...stats.data,
         trends: trends.data,
@@ -172,17 +174,18 @@ export function useOrderMetrics(options: UseOrderStatsOptions = {}) {
           revenue: Math.round(revenueGrowth * 100) / 100,
         },
         // Simplified conversion rate calculation
-        conversionRate: stats.data.totalOrders > 0 
+        conversionRate: stats.data.totalOrders > 0
           ? (stats.data.deliveredOrders / stats.data.totalOrders) * 100
           : 0,
       };
-      
+
       return metrics;
     },
     {
       enabled: !!stats.data && !!trends.data && enabled,
       staleTime,
-    }
+    },
+    [stats.data, trends.data] // Re-calculate when stats or trends change
   );
   
   return {

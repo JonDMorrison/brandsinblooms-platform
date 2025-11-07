@@ -13,12 +13,6 @@ type ProfileUpdate = TablesUpdate<'profiles'>;
 
 export interface ProfileFormData {
   fullName: string;
-  username: string;
-  email: string;
-  bio?: string;
-  website?: string;
-  location?: string;
-  avatar_url?: string;
 }
 
 export function useUpdateProfile() {
@@ -34,10 +28,6 @@ export function useUpdateProfile() {
       // Prepare the profile data
       const profileData: ProfileUpdate = {
         full_name: data.fullName,
-        username: data.username,
-        email: data.email,
-        bio: data.bio || null,
-        avatar_url: data.avatar_url || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -54,14 +44,8 @@ export function useUpdateProfile() {
 
       // Update auth.users metadata
       const { error: authError } = await supabase.auth.updateUser({
-        email: data.email,
         data: {
           full_name: data.fullName,
-          username: data.username,
-          bio: data.bio,
-          website: data.website,
-          location: data.location,
-          avatar_url: data.avatar_url,
         }
       });
 

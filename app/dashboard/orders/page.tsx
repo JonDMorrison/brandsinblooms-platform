@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo, memo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Skeleton } from '@/src/components/ui/skeleton'
@@ -8,11 +9,11 @@ import { RefreshCw, Download } from 'lucide-react'
 import { useOrders } from '@/src/hooks/useOrders'
 import { OrderFilters } from '@/src/components/orders/OrderFilters'
 import { OptimizedTable } from '@/src/components/ui/optimized-table'
-import { optimizedOrderColumns } from '@/src/components/orders/optimized-order-columns'
+import { createOptimizedOrderColumns } from '@/src/components/orders/optimized-order-columns'
 import { OrderStats } from '@/src/components/OrderStats'
-import { BulkActionsToolbar } from '@/src/components/orders/BulkActionsToolbar'
 import { OrderEmptyState } from '@/src/components/orders/OrderEmptyState'
-import { exportOrdersToCSV, exportOrdersToJSON } from '@/src/lib/utils/export'
+import { OrderDetailsModal } from '@/src/components/orders/OrderDetailsModal'
+import { exportOrdersToCSV } from '@/src/lib/utils/export'
 import { toast } from 'sonner'
 import type { OrderWithCustomer } from '@/lib/queries/domains/orders'
 
@@ -26,9 +27,29 @@ interface OrderFilters {
 
 // Memoized orders page component for better performance
 const OrdersPageComponent = () => {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [filters, setFilters] = useState<OrderFilters>({})
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [selectedOrders, setSelectedOrders] = useState<OrderWithCustomer[]>([])
+
+  // Modal state management via URL
+  const selectedOrderId = searchParams.get('order')
+  const isModalOpen = !!selectedOrderId
+
+  const handleViewOrder = useCallback((orderId: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set('order', orderId)
+    router.push(`?${params.toString()}`)
+  }, [router, searchParams])
+
+  const handleCloseModal = useCallback(() => {
+    const params = new URLSearchParams(searchParams)
+    params.delete('order')
+    router.push(`?${params.toString()}`)
+  }, [router, searchParams])
+
+  // Create columns with view order callback - memoized
+  const orderColumns = useMemo(() => createOptimizedOrderColumns(handleViewOrder), [handleViewOrder])
 
   // Fetch orders with real data - memoized hook call
   const {
@@ -73,15 +94,6 @@ const OrdersPageComponent = () => {
     try {
       await exportOrdersToCSV(orders)
       toast.success('Orders exported to CSV successfully')
-    } catch (error) {
-      toast.error('Failed to export orders')
-    }
-  }
-
-  const handleExportJSON = async () => {
-    try {
-      await exportOrdersToJSON(orders)
-      toast.success('Orders exported to JSON successfully')
     } catch (error) {
       toast.error('Failed to export orders')
     }
@@ -161,10 +173,6 @@ const OrdersPageComponent = () => {
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
-          <Button variant="outline" onClick={handleExportJSON} disabled={orders.length === 0}>
-            <Download className="h-4 w-4 mr-2" />
-            Export JSON
-          </Button>
           <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
@@ -176,23 +184,9 @@ const OrdersPageComponent = () => {
       <OrderStats className="fade-in-up" />
 
       {/* Filters */}
-      <div className="fade-in-up" style={{ animationDelay: '0.4s' }}>
+      <div className="fade-in-up hidden" style={{ animationDelay: '0.4s' }}>
         <OrderFilters onFiltersChange={handleFiltersChange} />
       </div>
-
-      {/* Bulk Actions Toolbar */}
-      {selectedOrders.length > 0 && (
-        <div className="fade-in-up" style={{ animationDelay: '0.6s' }}>
-          <BulkActionsToolbar
-            selectedOrders={selectedOrders}
-            onClearSelection={() => setSelectedOrders([])}
-            onOrdersUpdated={() => {
-              refetch()
-              setSelectedOrders([])
-            }}
-          />
-        </div>
-      )}
 
       {/* Main Content */}
       <Card className="fade-in-up" style={{ animationDelay: '0.8s' }}>
@@ -202,17 +196,15 @@ const OrdersPageComponent = () => {
         <CardContent>
           <OptimizedTable
             data={orders}
-            columns={optimizedOrderColumns}
+            columns={orderColumns}
             loading={isLoading && !data}
             searchable={true}
             sortable={true}
-            selectable={true}
             pagination={true}
             pageSize={20}
-            onRowSelect={setSelectedOrders}
             emptyState={
-              <OrderEmptyState 
-                hasFilters={Object.keys(filters).some(key => filters[key as keyof OrderFilters])} 
+              <OrderEmptyState
+                hasFilters={Object.keys(filters).some(key => filters[key as keyof OrderFilters])}
                 onClearFilters={() => setFilters({})}
               />
             }
@@ -240,6 +232,15 @@ const OrdersPageComponent = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal
+        orderId={selectedOrderId}
+        open={isModalOpen}
+        onOpenChange={(open) => {
+          if (!open) handleCloseModal()
+        }}
+      />
     </div>
   )
 }

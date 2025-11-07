@@ -10,8 +10,10 @@ import { ShoppingCart, ArrowLeft } from 'lucide-react'
 import { formatPrice } from '@/src/lib/utils/format'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export function CartPageClient() {
+  const router = useRouter()
   const {
     items,
     total,
@@ -40,9 +42,7 @@ export function CartPageClient() {
   }
 
   const handleCheckout = () => {
-    toast.info('Will open payment integration', {
-      description: 'Payment processing will be implemented in a future update',
-    })
+    router.push('/checkout')
   }
 
   return (
@@ -147,6 +147,11 @@ export function CartPageClient() {
                     size="lg"
                     className="w-full"
                     onClick={handleCheckout}
+                    style={{
+                      backgroundColor: 'var(--theme-primary)',
+                      color: 'white',
+                      border: 'none'
+                    }}
                   >
                     Proceed to Checkout
                   </Button>

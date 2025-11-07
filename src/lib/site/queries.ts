@@ -213,7 +213,10 @@ export async function getUserSites(
 ): Promise<SiteQueryResult<UserSiteAccess[]>> {
   try {
     const supabase = browserSupabase
-    
+
+    // Check if we have an authenticated session
+    const { data: { session } } = await supabase.auth.getSession()
+
     const { data, error } = await supabase
       .from('site_memberships')
       .select(`
@@ -241,12 +244,13 @@ export async function getUserSites(
 
     // Now fetch the sites for each membership
     const siteIds = (data || []).map(m => m.site_id)
+
     const { data: sites, error: sitesError } = await supabase
       .from('sites')
       .select('*')
       .in('id', siteIds)
       .eq('is_active', true)
-    
+
     if (sitesError) {
       return {
         data: null,

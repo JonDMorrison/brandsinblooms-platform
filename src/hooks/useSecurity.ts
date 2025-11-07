@@ -4,11 +4,6 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { handleError } from '@/lib/types/error-handling'
 
-interface PasswordChangeData {
-  currentPassword: string
-  newPassword: string
-}
-
 interface MFAEnrollmentData {
   id: string
   type: 'totp'
@@ -31,31 +26,15 @@ interface MFAFactor {
 export function useChangePassword() {
   const supabase = createClient()
 
-  return useSupabaseMutation<{ success: boolean }, PasswordChangeData>(
-    async ({ currentPassword, newPassword }: PasswordChangeData, signal: AbortSignal) => {
-      // First verify the current password by attempting to sign in
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.email) {
-        throw new Error('User email not found')
-      }
-
-      // Verify current password
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword
-      })
-
-      if (signInError) {
-        throw new Error('Current password is incorrect')
-      }
-
-      // Update to new password
-      const { error: updateError } = await supabase.auth.updateUser({
+  return useSupabaseMutation<{ success: boolean }, string>(
+    async (newPassword: string, signal: AbortSignal) => {
+      // Update password directly (secure_password_change = false in config)
+      const { error } = await supabase.auth.updateUser({
         password: newPassword
       })
 
-      if (updateError) {
-        throw updateError
+      if (error) {
+        throw error
       }
 
       return { success: true }

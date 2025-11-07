@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { generatePageMetadata } from './utils/metadata'
-import { isProductRoute, isCategoryRoute, extractSlugFromPath } from './utils/routing'
+import { isProductRoute, isCategoryRoute, extractSlugFromPath, isOrderConfirmationRoute, extractOrderIdFromPath } from './utils/routing'
 import { SitePageProps } from './types'
 import { getEditModeStatus } from '@/src/lib/site-editor/server-utils'
 import { ClientSiteEditorWrapper } from '@/src/components/site-editor/ClientSiteEditorWrapper'
@@ -22,7 +22,8 @@ import {
   AccountPage,
   OrdersPage,
   ProductDetailPage,
-  CategoryPage
+  CategoryPage,
+  OrderConfirmationPageWrapper
 } from './components/SimplePages'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug?: string[] }> }): Promise<Metadata> {
@@ -93,6 +94,9 @@ export default async function SitePage({ params }: SitePageProps) {
       } else if (isCategoryRoute(path)) {
         const categorySlug = extractSlugFromPath(path, 'category')
         pageComponent = <CategoryPage slug={categorySlug} />
+      } else if (isOrderConfirmationRoute(path)) {
+        const orderId = extractOrderIdFromPath(path)
+        pageComponent = <OrderConfirmationPageWrapper orderId={orderId} />
       } else {
         // Try to find content in database with this slug
         pageComponent = <DynamicContentPage slug={path} isEditMode={editModeStatus.isEditMode} />

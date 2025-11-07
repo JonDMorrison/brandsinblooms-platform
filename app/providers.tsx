@@ -65,6 +65,7 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
           <Toaster
             position="top-right"
             duration={4000}
+            offset="72px"
           />
           </ThemeProvider>
         </ProfileProvider>

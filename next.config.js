@@ -67,7 +67,8 @@ const nextConfig = {
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Allow SVG images - no script execution needed
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; sandbox;",
   },
   typescript: {
     ignoreBuildErrors: true,
@@ -187,6 +188,24 @@ const nextConfig = {
   },
   // Security headers with multi-domain support
   async headers() {
+    // Environment-aware CSP configuration
+    const isDevelopment = process.env.NODE_ENV === 'development'
+
+    // Build connect-src directive based on environment
+    const connectSrc = isDevelopment
+      ? "connect-src 'self' https://api.stripe.com https://m.stripe.network wss: https: http://localhost:* http://127.0.0.1:*"
+      : "connect-src 'self' https://api.stripe.com https://m.stripe.network wss: https:"
+
+    const cspValue = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network",
+      connectSrc,
+      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https: blob:",
+      "font-src 'self' data:"
+    ].join('; ')
+
     return [
       {
         source: '/:path*',
@@ -213,7 +232,11 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), payment=()'
+            value: 'camera=(), microphone=(), geolocation=()'
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: cspValue
           },
           // Production performance headers
           {

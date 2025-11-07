@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import DashboardSidebar from '@/src/components/layout/DashboardSidebar';
 import DashboardHeader from '@/src/components/layout/DashboardHeader';
 import { useUserSites } from '@/src/hooks/useSite';
+import { useAuth } from '@/src/contexts/AuthContext';
 import { CreateFirstSite } from '@/src/components/dashboard/CreateFirstSite';
 import { Skeleton } from '@/src/components/ui/skeleton';
 
@@ -14,17 +15,32 @@ export function DashboardLayoutClient({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isAuthStable, setIsAuthStable] = useState(false);
   const pathname = usePathname();
   const { sites, loading: sitesLoading } = useUserSites();
+  const { user, loading: authLoading } = useAuth();
 
   // Check if we're on the content editor page
   const isContentEditor = pathname?.includes('/dashboard/content/editor');
 
-  // Check if user has no sites
-  const hasNoSites = !sitesLoading && sites.length === 0;
+  // Wait for auth to stabilize before making decisions about sites
+  // This prevents race conditions where we query sites before auth is ready
+  useEffect(() => {
+    if (!authLoading && user) {
+      // Add a small delay to ensure Supabase client has fully initialized
+      const timer = setTimeout(() => {
+        setIsAuthStable(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [authLoading, user]);
 
-  // Show loading state while checking sites
-  if (sitesLoading) {
+  // Check if user has no sites - but only after auth is stable
+  const hasNoSites = isAuthStable && !sitesLoading && sites.length === 0;
+
+  // Show loading state while checking auth or sites
+  // Don't proceed until auth is stable
+  if (authLoading || !isAuthStable || sitesLoading) {
     return (
       <div className='flex h-screen items-center justify-center bg-gradient-subtle'>
         <div className='space-y-4 w-full max-w-md px-4'>

@@ -144,7 +144,7 @@ WHERE user_id = '11111111-1111-1111-1111-111111111111';
 UPDATE profiles SET
     full_name = 'Site Owner',
     username = 'owner',
-    role = 'admin',
+    role = 'site_owner',
     bio = 'Owner of Soul Bloom Sanctuary'
 WHERE user_id = '22222222-2222-2222-2222-222222222222';
 
@@ -176,11 +176,17 @@ INSERT INTO sites (
     social_media,
     is_active,
     is_published,
+    stripe_account_id,
+    stripe_account_status,
+    stripe_charges_enabled,
+    stripe_payouts_enabled,
+    stripe_onboarding_completed,
+    stripe_connected_at,
     created_at,
     updated_at
 )
 VALUES (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'soul-bloom-sanctuary',
     'Soul Bloom Sanctuary',
     'Your sanctuary for beautiful, healthy plants. We offer premium indoor plants, outdoor specimens, succulents, and expert care guidance to help your garden thrive.',
@@ -240,6 +246,12 @@ VALUES (
     ]'::jsonb,
     true,
     true,
+    'acct_1SQCqyGSULmlT5WJ', -- Stripe Connect test account (payments & payouts active)
+    'active',
+    true,
+    true,
+    true,
+    NOW(),
     NOW(),
     NOW()
 );
@@ -253,7 +265,7 @@ VALUES
     -- Admin has owner access
     (
         '11111111-1111-1111-1111-111111111111'::uuid,
-        'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+        'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
         'owner',
         true,
         NOW()
@@ -261,7 +273,7 @@ VALUES
     -- Owner has owner access
     (
         '22222222-2222-2222-2222-222222222222'::uuid,
-        'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+        'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
         'owner',
         true,
         NOW()
@@ -269,7 +281,7 @@ VALUES
     -- User has viewer access
     (
         '33333333-3333-3333-3333-333333333333'::uuid,
-        'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+        'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
         'viewer',
         true,
         NOW()
@@ -298,7 +310,7 @@ VALUES
     -- Indoor Plants
     (
         'c1111111-1111-1111-1111-111111111111'::uuid,
-        'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+        'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
         'Indoor Plants',
         'indoor-plants',
         'Bring life to your indoor spaces with our beautiful selection of houseplants. Perfect for homes, offices, and any interior environment.',
@@ -314,7 +326,7 @@ VALUES
     -- Outdoor Plants
     (
         'c2222222-2222-2222-2222-222222222222'::uuid,
-        'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+        'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
         'Outdoor Plants',
         'outdoor-plants',
         'Hardy plants perfect for gardens, patios, and outdoor spaces. Transform your landscape with our curated selection.',
@@ -330,7 +342,7 @@ VALUES
     -- Succulents & Cacti
     (
         'c3333333-3333-3333-3333-333333333333'::uuid,
-        'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+        'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
         'Succulents & Cacti',
         'succulents-cacti',
         'Low-maintenance desert beauties that thrive with minimal care. Perfect for beginners and busy plant lovers.',
@@ -346,7 +358,7 @@ VALUES
     -- Herbs
     (
         'c4444444-4444-4444-4444-444444444444'::uuid,
-        'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+        'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
         'Herbs',
         'herbs',
         'Fresh culinary and medicinal herbs for your kitchen garden. Grow your own flavorful seasonings at home.',
@@ -362,7 +374,7 @@ VALUES
     -- Plant Care
     (
         'c5555555-5555-5555-5555-555555555555'::uuid,
-        'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+        'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
         'Plant Care',
         'plant-care',
         'Everything you need to keep your plants thriving. Quality soil, fertilizers, pots, and accessories.',
@@ -415,7 +427,7 @@ VALUES
 
 -- 1. Monstera Deliciosa
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Monstera Deliciosa',
     'monstera-deliciosa',
     'The iconic Swiss Cheese Plant with stunning split leaves. A statement piece that adds tropical vibes to any room. Grows large and impressive with proper care.',
@@ -446,7 +458,7 @@ VALUES
 
 -- 2. Golden Pothos
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Golden Pothos',
     'golden-pothos',
     'Nearly indestructible trailing plant perfect for beginners. Beautiful heart-shaped leaves with golden variegation. Excellent air purifier.',
@@ -477,7 +489,7 @@ VALUES
 
 -- 3. Snake Plant (Sansevieria)
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Snake Plant (Sansevieria)',
     'snake-plant-sansevieria',
     'Architectural beauty with upright sword-like leaves. One of the best air-purifying plants. Thrives on neglect - perfect for busy people.',
@@ -508,7 +520,7 @@ VALUES
 
 -- 4. Peace Lily
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Peace Lily',
     'peace-lily',
     'Elegant plant with glossy leaves and beautiful white flowers. Excellent air purifier. Tells you when it needs water by drooping slightly.',
@@ -539,7 +551,7 @@ VALUES
 
 -- 5. Fiddle Leaf Fig (OUT OF STOCK)
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Fiddle Leaf Fig',
     'fiddle-leaf-fig',
     'The designer favorite with large, violin-shaped leaves. Makes a dramatic statement in modern interiors. Premium quality, ready to become your centerpiece.',
@@ -570,7 +582,7 @@ VALUES
 
 -- 6. ZZ Plant
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'ZZ Plant (Zamioculcas)',
     'zz-plant-zamioculcas',
     'Glossy, waxy leaves that look almost artificial. Extremely drought tolerant and low maintenance. Perfect for offices or low-light spaces.',
@@ -603,7 +615,7 @@ VALUES
 
 -- 7. Lavender Plant
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'English Lavender',
     'english-lavender',
     'Fragrant purple blooms and silvery foliage. Attracts pollinators and repels pests. Perfect for borders, containers, or herb gardens.',
@@ -634,7 +646,7 @@ VALUES
 
 -- 8. Blue Hydrangea (LOW STOCK)
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Blue Hydrangea',
     'blue-hydrangea',
     'Stunning blue blooms that create a show-stopping display. Large flower clusters perfect for cutting. Color intensity depends on soil pH.',
@@ -665,7 +677,7 @@ VALUES
 
 -- 9. Japanese Maple (LOW STOCK)
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Japanese Maple Tree',
     'japanese-maple-tree',
     'Ornamental tree with delicate lace-like leaves. Stunning fall color transformation. Perfect focal point for any garden or large container.',
@@ -696,7 +708,7 @@ VALUES
 
 -- 10. Mixed Hosta Collection (INACTIVE - dormant season)
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Mixed Hosta Collection',
     'mixed-hosta-collection',
     'Shade-loving perennials with gorgeous foliage. Mix of green and variegated varieties. Perfect for filling in shady spots under trees.',
@@ -729,7 +741,7 @@ VALUES
 
 -- 11. Aloe Vera
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Aloe Vera Plant',
     'aloe-vera-plant',
     'Medicinal succulent known for soothing properties. Easy care and fast growing. Gel inside leaves great for minor burns and skin care.',
@@ -760,7 +772,7 @@ VALUES
 
 -- 12. Jade Plant
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Jade Plant (Money Tree)',
     'jade-plant-money-tree',
     'Classic succulent with thick, glossy leaves. Symbol of good luck and prosperity. Grows into a beautiful miniature tree with age.',
@@ -791,7 +803,7 @@ VALUES
 
 -- 13. Echeveria Mix (OUT OF STOCK)
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Echeveria Succulent Mix',
     'echeveria-succulent-mix',
     'Collection of colorful rosette-shaped succulents. Perfect for arrangements, terrariums, or individual pots. Stunning variety of colors.',
@@ -822,7 +834,7 @@ VALUES
 
 -- 14. Golden Barrel Cactus (LOW STOCK)
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Golden Barrel Cactus',
     'golden-barrel-cactus',
     'Spherical cactus with golden spines creating a stunning geometric form. Slow-growing desert beauty. Perfect statement piece.',
@@ -855,7 +867,7 @@ VALUES
 
 -- 15. Sweet Basil (INACTIVE - dormant season)
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Sweet Basil Plant',
     'sweet-basil-plant',
     'Essential culinary herb with aromatic leaves. Perfect for Italian cooking, pesto, and salads. Grows quickly and produces abundantly.',
@@ -886,7 +898,7 @@ VALUES
 
 -- 16. Rosemary
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Rosemary Plant',
     'rosemary-plant',
     'Fragrant Mediterranean herb with needle-like leaves. Perfect for cooking, teas, and aromatherapy. Can be trained as topiary.',
@@ -917,7 +929,7 @@ VALUES
 
 -- 17. Peppermint (LOW STOCK)
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Peppermint Plant',
     'peppermint-plant',
     'Refreshing herb perfect for teas, mojitos, and desserts. Vigorous grower with cool, minty fragrance. Best grown in containers to control spread.',
@@ -950,7 +962,7 @@ VALUES
 
 -- 18. Premium Potting Mix
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     'Premium Potting Mix',
     'premium-potting-mix',
     'Professional-grade soil blend for all indoor plants. Rich in organic matter with perfect drainage. Contains perlite, peat moss, and worm castings.',
@@ -1001,7 +1013,7 @@ VALUES
 
 -- Home Page (Landing)
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     '11111111-1111-1111-1111-111111111111'::uuid,
     'landing',
     'Home',
@@ -1066,7 +1078,7 @@ VALUES
 
 -- About Page
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     '11111111-1111-1111-1111-111111111111'::uuid,
     'about',
     'About',
@@ -1116,7 +1128,7 @@ VALUES
 
 -- Contact Page
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     '11111111-1111-1111-1111-111111111111'::uuid,
     'contact',
     'Contact',
@@ -1173,7 +1185,7 @@ VALUES
 
 -- Privacy Policy
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     '11111111-1111-1111-1111-111111111111'::uuid,
     'other',
     'Privacy Policy',
@@ -1211,7 +1223,7 @@ VALUES
 
 -- Terms of Service
 (
-    'aaaaaaaa-bbbb-cccc-dddd-111111111111'::uuid,
+    'aaaaaaaa-bbbb-4ccc-8ddd-111111111111'::uuid,
     '11111111-1111-1111-1111-111111111111'::uuid,
     'other',
     'Terms of Service',
@@ -1258,7 +1270,7 @@ BEGIN
     RAISE NOTICE '========================================';
     RAISE NOTICE '';
     RAISE NOTICE 'SITE INFORMATION:';
-    RAISE NOTICE '  Site ID: aaaaaaaa-bbbb-cccc-dddd-111111111111';
+    RAISE NOTICE '  Site ID: aaaaaaaa-bbbb-4ccc-8ddd-111111111111';
     RAISE NOTICE '  Subdomain: soul-bloom-sanctuary';
     RAISE NOTICE '  Local URL: http://soul-bloom-sanctuary.blooms.local:3001';
     RAISE NOTICE '';
@@ -1274,6 +1286,12 @@ BEGIN
     RAISE NOTICE '  - 5 product categories created';
     RAISE NOTICE '  - 18 products created';
     RAISE NOTICE '  - 5 content pages created';
+    RAISE NOTICE '';
+    RAISE NOTICE 'PAYMENTS:';
+    RAISE NOTICE '  - Stripe Connect: ENABLED (mock account for local dev)';
+    RAISE NOTICE '  - Account Status: active';
+    RAISE NOTICE '  - Charges Enabled: true';
+    RAISE NOTICE '  - Checkout flow ready to test';
     RAISE NOTICE '';
     RAISE NOTICE 'To update this seed data, edit: supabase/seed-soul-bloom.sql';
     RAISE NOTICE '========================================';

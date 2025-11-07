@@ -379,6 +379,7 @@ export function SiteProvider({
 
       if (authError || !currentUser?.id) {
         setUserSites([])
+        setUserSitesLoading(false)
         return
       }
 
@@ -570,14 +571,20 @@ export function SiteProvider({
   // Load user sites when user changes
   useEffect(() => {
     if (!authLoading && user?.id) {
+      // Set loading state immediately to prevent race condition
+      // This ensures sitesLoading is true during the initialization delay
+      setUserSitesLoading(true)
+
+      // Small delay to ensure Supabase client is fully initialized with auth context
       setTimeout(() => {
         refreshUserSites()
-      }, 0)
-    } else if (!user?.id) {
+      }, 150)
+    } else if (!authLoading && !user?.id) {
       setUserSites([])
       setUserAccess(null)
       setCanEdit(false)
       setCanManage(false)
+      setUserSitesLoading(false)
     }
   }, [user?.id, authLoading]) // Remove function dependencies to prevent infinite loops
 

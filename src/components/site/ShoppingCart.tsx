@@ -111,11 +111,16 @@ export function ShoppingCart({ open, onOpenChange, className }: ShoppingCartProp
               
               {/* Actions */}
               <div className="space-y-2">
-                <Button 
-                  asChild 
-                  className="w-full" 
+                <Button
+                  asChild
+                  className="w-full"
                   size="lg"
                   disabled={isLoading}
+                  style={{
+                    backgroundColor: 'var(--theme-primary)',
+                    color: 'white',
+                    border: 'none'
+                  }}
                 >
                   <Link href="/checkout" onClick={() => onOpenChange(false)}>
                     Proceed to Checkout

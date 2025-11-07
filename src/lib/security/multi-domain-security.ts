@@ -569,14 +569,15 @@ export function applySecurityHeaders(
 
     const cspDirectives = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Adjust based on your needs
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       `img-src ${imgSrcSources.join(' ')}`,
       "font-src 'self' data: https://fonts.gstatic.com",
-      // Allow local development connections to Supabase
+      // Allow local development connections to Supabase + Stripe
       process.env.NODE_ENV === 'development'
-        ? "connect-src 'self' wss: https: http://localhost:* http://127.0.0.1:*"
-        : "connect-src 'self' wss: https:",
+        ? "connect-src 'self' https://api.stripe.com https://m.stripe.network wss: https: http://localhost:* http://127.0.0.1:*"
+        : "connect-src 'self' https://api.stripe.com https://m.stripe.network wss: https:",
+      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
       `frame-ancestors ${allowedFrameAncestors}`,
       "base-uri 'self'",
       "form-action 'self'",

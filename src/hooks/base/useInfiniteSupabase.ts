@@ -254,6 +254,23 @@ export function useInfiniteSupabase<T>(
     }
   }, [persistKey]) // Run only on mount
 
+  // Listen for order status changes to refresh list
+  useEffect(() => {
+    if (typeof window === 'undefined' || !persistKey) return
+
+    const handleOrderStatusChange = (event: CustomEvent) => {
+      // Trigger refresh to reload the entire list
+      refresh().catch(error => {
+        console.error('Failed to refresh after order status change:', error)
+      })
+    }
+
+    window.addEventListener('orderStatusChanged', handleOrderStatusChange as EventListener)
+    return () => {
+      window.removeEventListener('orderStatusChanged', handleOrderStatusChange as EventListener)
+    }
+  }, [persistKey, refresh])
+
   return {
     data,
     loading,

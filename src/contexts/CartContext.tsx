@@ -29,6 +29,7 @@ export interface CartContextType {
   total: number
   itemCount: number
   isLoading: boolean
+  isHydrated: boolean
   error: Error | null
 
   // Actions
@@ -301,6 +302,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     total,
     itemCount,
     isLoading,
+    isHydrated,
     error,
     addItem,
     updateQuantity,

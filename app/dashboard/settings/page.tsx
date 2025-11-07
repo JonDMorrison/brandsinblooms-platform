@@ -1,17 +1,63 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { ProfileSettings } from '@/src/components/settings/ProfileSettings'
 import { SiteSettings } from '@/src/components/settings/SiteSettings'
-import { NotificationSettings } from '@/src/components/settings/NotificationSettings'
 import { SecuritySettings } from '@/src/components/settings/SecuritySettings'
-import { BillingSettings } from '@/src/components/settings/BillingSettings'
-import { User, Globe, Bell, Shield, CreditCard } from 'lucide-react'
+import { PaymentSettings } from '@/src/components/settings/PaymentSettings'
+import { Alert, AlertDescription, AlertTitle } from '@/src/components/ui/alert'
+import { User, Globe, Shield, CreditCard, CheckCircle2, AlertCircle } from 'lucide-react'
 
 export default function SettingsPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState('profile')
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  // Handle URL parameters for tab and notifications
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    const success = searchParams.get('success')
+    const error = searchParams.get('error')
+
+    // Set active tab from URL
+    if (tab && ['profile', 'site', 'security', 'payments'].includes(tab)) {
+      setActiveTab(tab)
+    }
+
+    // Show success notification
+    if (success) {
+      let message = 'Stripe account connected successfully!'
+      if (success === 'stripe_active') {
+        message = 'Your Stripe account is active and ready to accept payments!'
+      } else if (success === 'stripe_pending') {
+        message = 'Stripe account connected. Please complete any pending verifications to activate payments.'
+      }
+      setNotification({ type: 'success', message })
+    }
+
+    // Show error notification
+    if (error) {
+      let message = 'An error occurred. Please try again.'
+      if (error === 'missing_site_id') {
+        message = 'Missing site ID. Please try again from your site settings.'
+      } else if (error === 'no_stripe_account') {
+        message = 'No Stripe account found. Please try connecting again.'
+      } else {
+        message = decodeURIComponent(error)
+      }
+      setNotification({ type: 'error', message })
+    }
+
+    // Clear URL parameters after reading them
+    if (tab || success || error) {
+      const newUrl = '/dashboard/settings'
+      router.replace(newUrl, { scroll: false })
+    }
+  }, [searchParams, router])
 
   return (
     <div className="space-y-6">
@@ -22,10 +68,23 @@ export default function SettingsPage() {
         </p>
       </div>
 
+      {/* Notification Alert */}
+      {notification && (
+        <Alert variant={notification.type === 'error' ? 'destructive' : 'default'} className="fade-in-up">
+          {notification.type === 'success' ? (
+            <CheckCircle2 className="h-4 w-4" />
+          ) : (
+            <AlertCircle className="h-4 w-4" />
+          )}
+          <AlertTitle>{notification.type === 'success' ? 'Success' : 'Error'}</AlertTitle>
+          <AlertDescription>{notification.message}</AlertDescription>
+        </Alert>
+      )}
+
       <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader>
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Profile
@@ -34,17 +93,13 @@ export default function SettingsPage() {
                 <Globe className="h-4 w-4" />
                 Site
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
-                <Bell className="h-4 w-4" />
-                Notifications
-              </TabsTrigger>
               <TabsTrigger value="security" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
                 Security
               </TabsTrigger>
-              <TabsTrigger value="billing" className="flex items-center gap-2">
+              <TabsTrigger value="payments" className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
-                Billing
+                Payments
               </TabsTrigger>
             </TabsList>
           </CardHeader>
@@ -70,16 +125,6 @@ export default function SettingsPage() {
               <SiteSettings />
             </TabsContent>
 
-            <TabsContent value="notifications" className="space-y-6">
-              <div>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>
-                  Manage how and when you receive notifications.
-                </CardDescription>
-              </div>
-              <NotificationSettings />
-            </TabsContent>
-
             <TabsContent value="security" className="space-y-6">
               <div>
                 <CardTitle>Security Settings</CardTitle>
@@ -90,14 +135,14 @@ export default function SettingsPage() {
               <SecuritySettings />
             </TabsContent>
 
-            <TabsContent value="billing" className="space-y-6">
+            <TabsContent value="payments" className="space-y-6">
               <div>
-                <CardTitle>Billing & Subscription</CardTitle>
+                <CardTitle>Payment Settings</CardTitle>
                 <CardDescription>
-                  Manage your subscription, payment methods, and invoices.
+                  Configure payment processing, tax rates, and shipping options for your site.
                 </CardDescription>
               </div>
-              <BillingSettings />
+              <PaymentSettings />
             </TabsContent>
           </CardContent>
         </Tabs>

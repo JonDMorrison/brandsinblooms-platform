@@ -396,6 +396,11 @@ export function ProductDetailPageClient({ slug }: ProductDetailPageClientProps) 
                       product.inventory_count === 0 ||
                       isAddingToCart
                     }
+                    style={{
+                      backgroundColor: 'var(--theme-primary)',
+                      color: 'white',
+                      border: 'none'
+                    }}
                   >
                     <ShoppingCart className="h-5 w-5 mr-2" />
                     {isAddingToCart ? 'Adding to Cart...' : 'Add to Cart'}

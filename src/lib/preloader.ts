@@ -64,11 +64,10 @@ export class ComponentPreloader {
   // Preload order-related components
   async preloadOrderComponents() {
     const components = [
-      () => import('@/src/components/orders/BulkActionsToolbar'),
       () => import('@/src/components/orders/OrderEmptyState'),
     ]
 
-    const promises = components.map(importFn => 
+    const promises = components.map(importFn =>
       this.safeImport('order-components', importFn)
     )
 
