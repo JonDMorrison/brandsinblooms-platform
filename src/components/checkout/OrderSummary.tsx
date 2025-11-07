@@ -32,8 +32,8 @@ export function OrderSummary({
 
   // Use provided totals or fall back to cart total
   const subtotal = propSubtotal ?? cartTotal
-  const tax = propTax ?? 0
-  const shipping = propShipping ?? 0
+  const tax = propTax // Keep as undefined if not calculated yet
+  const shipping = propShipping // Keep as undefined if not calculated yet
   const total = propTotal ?? subtotal
 
   return (
@@ -90,6 +90,8 @@ export function OrderSummary({
           <span className="text-muted-foreground">Shipping</span>
           {isCalculating ? (
             <Skeleton className="h-4 w-16" />
+          ) : shipping === undefined ? (
+            <span className="text-muted-foreground">Calculated in next step</span>
           ) : shipping === 0 ? (
             <span className="text-green-600">FREE</span>
           ) : (
@@ -101,6 +103,8 @@ export function OrderSummary({
           <span className="text-muted-foreground">Tax</span>
           {isCalculating ? (
             <Skeleton className="h-4 w-16" />
+          ) : tax === undefined ? (
+            <span className="text-muted-foreground">Calculated in next step</span>
           ) : (
             <span>${tax.toFixed(2)}</span>
           )}
