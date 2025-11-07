@@ -275,7 +275,7 @@ export function SiteSettings() {
 
               {canManage && (
                 <div className="flex justify-end pt-4">
-                  <Button type="submit" disabled={updateSiteSettings.loading}>
+                  <Button type="submit" disabled={updateSiteSettings.loading} className="btn-gradient-primary">
                     {updateSiteSettings.loading ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </div>
@@ -360,7 +360,7 @@ export function SiteSettings() {
 
               {canManage && (
                 <div className="flex justify-end pt-4">
-                  <Button type="submit" disabled={updateSiteSettings.loading}>
+                  <Button type="submit" disabled={updateSiteSettings.loading} className="btn-gradient-primary">
                     {updateSiteSettings.loading ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </div>

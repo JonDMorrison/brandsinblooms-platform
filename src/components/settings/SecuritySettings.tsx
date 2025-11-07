@@ -158,7 +158,7 @@ export function SecuritySettings() {
               />
 
               <div className="flex justify-end">
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading} className="btn-gradient-primary">
                   {isLoading ? 'Changing Password...' : 'Change Password'}
                 </Button>
               </div>

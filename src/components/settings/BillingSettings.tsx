@@ -177,7 +177,7 @@ export function BillingSettings() {
       case 'pending':
         return <Badge variant="secondary">Pending</Badge>
       case 'failed':
-        return <Badge variant="destructive">Failed</Badge>
+        return <Badge className="bg-red-100 text-red-800">Failed</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -288,7 +288,7 @@ export function BillingSettings() {
                   </ul>
 
                   <Button
-                    className="w-full"
+                    className={`w-full ${!plan.current ? 'btn-gradient-primary' : ''}`}
                     variant={plan.current ? "secondary" : "default"}
                     disabled={plan.current || isLoading}
                     onClick={() => changePlan(plan.id)}

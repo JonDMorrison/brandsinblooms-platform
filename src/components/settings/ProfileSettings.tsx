@@ -79,7 +79,7 @@ export function ProfileSettings() {
               </div>
 
               <div className="flex justify-end">
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading} className="btn-gradient-primary">
                   {isLoading ? 'Saving...' : 'Save Changes'}
                 </Button>
               </div>

@@ -174,7 +174,7 @@ export function ShippingSettings({ siteId, settings, canManage }: ShippingSettin
 
           {/* Save Button */}
           <div className="flex justify-end pt-4 border-t">
-            <Button type="submit" disabled={!canManage || isLoading}>
+            <Button type="submit" disabled={!canManage || isLoading} className="btn-gradient-primary">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

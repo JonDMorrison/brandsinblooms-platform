@@ -590,6 +590,7 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
                 <Button
                   type="submit"
                   disabled={updateSiteSettings.loading || !canManage}
+                  className="btn-gradient-primary"
                 >
                   {updateSiteSettings.loading ? (
                     <>
