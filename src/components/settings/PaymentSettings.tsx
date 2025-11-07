@@ -129,7 +129,6 @@ export function PaymentSettings() {
             taxEnabled: paymentSettings.tax_enabled,
             defaultTaxRate: paymentSettings.default_tax_rate,
             taxByState: paymentSettings.tax_by_state,
-            taxInclusive: paymentSettings.tax_inclusive,
           }}
           canManage={canManage}
         />

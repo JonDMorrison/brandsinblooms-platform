@@ -26,7 +26,6 @@ import { useRouter } from 'next/navigation'
 const taxSettingsSchema = z.object({
   taxEnabled: z.boolean(),
   defaultTaxRate: z.number().min(0).max(100),
-  taxInclusive: z.boolean(),
 })
 
 interface TaxSettingsProps {
@@ -35,7 +34,6 @@ interface TaxSettingsProps {
     taxEnabled: boolean
     defaultTaxRate: number
     taxByState: Record<string, number>
-    taxInclusive: boolean
   }
   canManage: boolean
 }
@@ -55,7 +53,6 @@ export function TaxSettings({ siteId, settings, canManage }: TaxSettingsProps) {
     defaultValues: {
       taxEnabled: settings.taxEnabled,
       defaultTaxRate: settings.defaultTaxRate,
-      taxInclusive: settings.taxInclusive,
     },
   })
 
@@ -121,27 +118,10 @@ export function TaxSettings({ siteId, settings, canManage }: TaxSettingsProps) {
             />
           </div>
 
-          {/* Tax Inclusive Toggle */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="tax-inclusive">Prices Include Tax</Label>
-              <p className="text-sm text-muted-foreground">
-                Product prices already include tax (shown separately at checkout)
-              </p>
-            </div>
-            <Switch
-              id="tax-inclusive"
-              checked={watch('taxInclusive')}
-              onCheckedChange={(checked) => setValue('taxInclusive', checked)}
-              disabled={!canManage || !taxEnabled}
-            />
-          </div>
-
-          {/* Default Tax Rate */}
+          {/* Tax Rate */}
           <div className="space-y-2">
             <Label htmlFor="default-tax-rate">
-              Default Tax Rate
-              <span className="text-muted-foreground ml-1">(applies to all states unless overridden)</span>
+              Tax Rate
             </Label>
             <div className="relative">
               <Input
