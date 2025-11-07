@@ -13,6 +13,7 @@ import {
   FeaturesPreview,
   ValuesPreview,
   CtaPreview,
+  MissionPreview,
   TextPreview,
   DefaultPreview,
   FAQPreview,
@@ -72,6 +73,9 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
 
     case 'cta':
       return <CtaPreview {...commonProps} />
+
+    case 'mission':
+      return <MissionPreview {...commonProps} />
 
     case 'richText':
     case 'text':

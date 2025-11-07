@@ -63,7 +63,7 @@ export function SectionEditorRenderer({
   const renderSectionContent = useCallback(() => {
     // Common props for all editor components
     const commonProps = { section, onUpdate: handleDataChange }
-    
+
     // Component delegation pattern
     switch (section.type) {
       case 'hero':
