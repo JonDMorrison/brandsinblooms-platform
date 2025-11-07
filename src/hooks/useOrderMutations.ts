@@ -100,20 +100,33 @@ export function useUpdateOrderStatus() {
     {
       onSuccess: (updatedOrder, { status, orderId }) => {
         const statusMessages: Record<OrderStatus, string> = {
+          pending: 'Order marked as pending',
           processing: 'Order marked as processing',
           shipped: 'Order marked as shipped',
           delivered: 'Order marked as delivered',
           cancelled: 'Order cancelled',
+          refunded: 'Order refunded',
         };
-        
-        // Clear localStorage caches
+
+        // Clear localStorage caches (including all order-related cache keys)
         if (typeof window !== 'undefined' && siteId) {
           const keysToRemove = [
             `orders-${siteId}`,
             `order-${siteId}-${orderId}`,
+            `order-details-${orderId}`, // Used by useOrderDetails hook
+            `order-items-${orderId}`,
+            `order-status-history-${orderId}`, // Status history changes on status update
+            `order-payments-${orderId}`,
+            `order-shipments-${orderId}`,
             `order-stats-${siteId}`,
+            `dashboard-stats-${siteId}`,
           ];
           keysToRemove.forEach(key => localStorage.removeItem(key));
+
+          // Dispatch custom event to trigger refetch of all cached queries
+          window.dispatchEvent(new CustomEvent('orderStatusChanged', {
+            detail: { orderId, status, siteId }
+          }));
         }
       },
       showSuccessToast: false, // We handle success toast in onSuccess

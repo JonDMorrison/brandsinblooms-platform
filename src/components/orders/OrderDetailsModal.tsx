@@ -17,6 +17,8 @@ import {
 } from '@/src/components/ui/dialog'
 import { useOrderDetails } from '@/src/hooks/useOrderDetails'
 import { OrderStatusBadge } from '@/src/components/OrderStatusBadge'
+import { OrderStatusUpdateButton } from '@/src/components/orders/OrderStatusUpdateButton'
+import { OrderStatus } from '@/lib/database/aliases'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -206,7 +208,7 @@ export function OrderDetailsModal({ orderId, open, onOpenChange }: OrderDetailsM
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0" showCloseButton={false}>
         <div className="relative">
           <DialogHeader className="px-6 pt-6 pb-4 space-y-2">
             <DialogTitle className="text-xl pr-24">Order #{order.order_number}</DialogTitle>
@@ -214,7 +216,7 @@ export function OrderDetailsModal({ orderId, open, onOpenChange }: OrderDetailsM
               Created {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
             </DialogDescription>
           </DialogHeader>
-          <div className="absolute top-6 right-14">
+          <div className="absolute top-6 right-6">
             <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
@@ -245,6 +247,15 @@ export function OrderDetailsModal({ orderId, open, onOpenChange }: OrderDetailsM
                       <p className="text-xs text-gray-500">Total Amount</p>
                     </div>
                   </div>
+
+                  {/* Status Update Button */}
+                  <OrderStatusUpdateButton
+                    orderId={order.id}
+                    currentStatus={order.status as OrderStatus}
+                    onSuccess={handleRefresh}
+                    variant="outline"
+                    size="default"
+                  />
 
                   {/* Status Timeline */}
                   <div className="space-y-3">

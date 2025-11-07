@@ -229,6 +229,26 @@ export function useSupabaseQuery<T>(
     }
   }, [persistKey, initialData])
 
+  // Listen for order status changes to invalidate order-related caches
+  useEffect(() => {
+    if (typeof window === 'undefined' || !persistKey) return
+
+    const handleOrderStatusChange = (event: CustomEvent) => {
+      debug.cache('Received orderStatusChanged event, triggering refresh for:', persistKey)
+
+      // Trigger a background refresh (keep existing data visible during refetch)
+      const hasCurrentData = data !== null && data !== undefined
+      execute(hasCurrentData).catch(error => {
+        debug.cache('Failed to refresh after order status change:', error)
+      })
+    }
+
+    window.addEventListener('orderStatusChanged', handleOrderStatusChange as EventListener)
+    return () => {
+      window.removeEventListener('orderStatusChanged', handleOrderStatusChange as EventListener)
+    }
+  }, [persistKey, execute, data])
+
   // Track if this is the first render to prevent duplicate initial fetches
   const isFirstRenderRef = useRef(true)
 

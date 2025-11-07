@@ -32,7 +32,7 @@ export type OrderInsert = Tables['orders']['Insert'];
 export type OrderUpdate = Tables['orders']['Update'];
 
 // Order status enum (derived from check constraint)
-export type OrderStatus = 'processing' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
 
 // Order item types
 export type OrderItem = Tables['order_items']['Row'];

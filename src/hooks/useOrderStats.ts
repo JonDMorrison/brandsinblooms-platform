@@ -55,6 +55,7 @@ export function useOrderStats(options: UseOrderStatsOptions = {}) {
       enabled: !!siteId && enabled,
       staleTime,
       refetchInterval,
+      persistKey: siteId ? `order-stats-${siteId}` : undefined,
     }
   );
 }
