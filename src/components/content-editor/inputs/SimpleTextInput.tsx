@@ -153,14 +153,18 @@ export function SimpleTextInput<
           maxLength={maxLength}
           onChange={(e) => {
             setCurrentLength(e.target.value.length);
-            props.onChange?.(e);
+            // Pass the value, not the event, to match controlled version behavior
+            if (props.onChange) {
+              // Cast to any to handle both event and value signatures
+              (props.onChange as unknown as (value: string) => void)(e.target.value);
+            }
           }}
           className={cn(
             error && "border-destructive focus-visible:ring-destructive/20",
           )}
           aria-invalid={!!error}
           aria-describedby={
-            error ? `${name}-error` : 
+            error ? `${name}-error` :
             helperText ? `${name}-description` : undefined
           }
         />
