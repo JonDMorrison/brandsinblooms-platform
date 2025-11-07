@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     if (!siteId) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/payments?error=missing_site_id`
+        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?tab=payments&error=missing_site_id`
       )
     }
 
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/login?redirect=/dashboard/settings/payments`
+        `${process.env.NEXT_PUBLIC_APP_URL}/login?redirect=/dashboard/settings?tab=payments`
       )
     }
 
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     if (siteError || !site || !site.stripe_account_id) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/payments?error=no_stripe_account`
+        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?tab=payments&error=no_stripe_account`
       )
     }
 
@@ -73,14 +73,14 @@ export async function GET(request: NextRequest) {
 
     // Redirect to payment settings page with success message
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/payments?success=${message}&siteId=${siteId}`
+      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?tab=payments&success=${message}&siteId=${siteId}`
     )
   } catch (error) {
     console.error('Stripe Connect callback error:', error)
     const errorMessage = handleError(error)
 
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/payments?error=${encodeURIComponent(errorMessage)}`
+      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?tab=payments&error=${encodeURIComponent(errorMessage.message)}`
     )
   }
 }

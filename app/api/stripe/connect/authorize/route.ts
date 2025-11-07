@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     if (site.stripe_account_id) {
       // Site already connected - create account update link instead
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
-      const refreshUrl = `${appUrl}/dashboard/settings/payments?reconnect=true&siteId=${siteId}`
+      const refreshUrl = `${appUrl}/dashboard/settings?tab=payments&reconnect=true&siteId=${siteId}`
       const returnUrl = `${appUrl}/api/stripe/connect/callback?siteId=${siteId}`
 
       const accountLink = await createAccountLink(
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
 
     // Create account link for onboarding
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
-    const refreshUrl = `${appUrl}/dashboard/settings/payments?refresh=true&siteId=${siteId}`
+    const refreshUrl = `${appUrl}/dashboard/settings?tab=payments&refresh=true&siteId=${siteId}`
     const returnUrl = `${appUrl}/api/stripe/connect/callback?siteId=${siteId}`
 
     const accountLink = await createAccountLink(
