@@ -2,7 +2,7 @@
 
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { useSupabase } from '@/hooks/useSupabase';
-import { useSiteId } from '@/src/contexts/SiteContext';
+import { useSiteId, useSiteContext } from '@/src/contexts/SiteContext';
 import { useSitePermissions } from '@/hooks/useSite';
 import { updateSite } from '@/lib/queries/domains/sites';
 import { isSubdomainAvailable } from '@/lib/site/queries';
@@ -17,6 +17,7 @@ export interface SiteSettingsData {
   name: string;
   description?: string;
   subdomain: string;
+  custom_domain?: string;
   timezone?: string;
   business_name?: string;
   business_email?: string;
@@ -28,6 +29,7 @@ export function useUpdateSiteSettings() {
   const supabase = useSupabase();
   const siteId = useSiteId();
   const { canManage } = useSitePermissions();
+  const { refreshSite } = useSiteContext();
 
   return useSupabaseMutation(
     async (settings: SiteSettingsData, signal: AbortSignal) => {
@@ -44,6 +46,7 @@ export function useUpdateSiteSettings() {
         name: settings.name,
         description: settings.description || null,
         subdomain: settings.subdomain,
+        custom_domain: settings.custom_domain || null,
         timezone: settings.timezone || null,
         business_name: settings.business_name || null,
         business_email: settings.business_email || null,
@@ -92,12 +95,14 @@ export function useUpdateSiteSettings() {
     },
     {
       showSuccessToast: 'Site settings saved successfully',
-      onSuccess: () => {
-        // Only clear specific cache keys instead of all site-related data
+      onSuccess: async () => {
+        // Refresh site data to update UI
+        await refreshSite();
+
+        // Clear specific cache keys
         if (typeof window !== 'undefined' && siteId) {
-          // Only clear the specific settings cache, not all site data
           localStorage.removeItem(`site-settings-${siteId}`)
-          localStorage.removeItem('user-sites') // Only clear user sites list
+          localStorage.removeItem('user-sites')
         }
       }
     }

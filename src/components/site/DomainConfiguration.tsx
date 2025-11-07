@@ -55,6 +55,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCurrentSite, useSitePermissions } from '@/src/hooks/useSite'
+import { useUpdateSiteSettings } from '@/src/hooks/useSiteSettings'
 import {
   validateDomainFormat,
   validateSubdomainFormat,
@@ -81,10 +82,15 @@ interface DomainConfigurationProps {
 export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps) {
   const { site, loading: siteLoading } = useCurrentSite()
   const { canManage } = useSitePermissions()
-  
+  const updateSiteSettings = useUpdateSiteSettings()
+
   // Form state
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState('subdomain')
+
+  // Get the app domain for display
+  const appDomain = typeof window !== 'undefined'
+    ? window.location.host
+    : process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'
   
   // Verification state
   const [verificationResult, setVerificationResult] = useState<DomainVerificationResult | null>(null)
@@ -193,44 +199,43 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
       return
     }
 
-    setIsSubmitting(true)
-    try {
-      // Validate domains
-      if (data.customDomain) {
-        const validation = validateDomainFormat(data.customDomain)
-        if (!validation.isValid) {
-          toast.error(`Custom domain error: ${validation.errors.join(', ')}`)
-          return
-        }
+    // Validate domains
+    if (data.customDomain) {
+      const validation = validateDomainFormat(data.customDomain)
+      if (!validation.isValid) {
+        toast.error(`Custom domain error: ${validation.errors.join(', ')}`)
+        return
       }
+    }
 
-      if (data.subdomain) {
-        const validation = validateSubdomainFormat(data.subdomain)
-        if (!validation.isValid) {
-          toast.error(`Subdomain error: ${validation.errors.join(', ')}`)
-          return
-        }
+    if (data.subdomain) {
+      const validation = validateSubdomainFormat(data.subdomain)
+      if (!validation.isValid) {
+        toast.error(`Subdomain error: ${validation.errors.join(', ')}`)
+        return
       }
+    }
 
-      // In a real implementation, this would update the site in the database
-      console.log('Updating domains:', data)
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      toast.success('Domain settings updated successfully!')
-      
-      // Notify parent component
-      if (data.customDomain && onDomainUpdate) {
-        onDomainUpdate(data.customDomain, 'custom')
-      } else if (data.subdomain && onDomainUpdate) {
-        onDomainUpdate(data.subdomain, 'subdomain')
-      }
-      
-    } catch (error) {
-      toast.error('Failed to update domain settings')
-    } finally {
-      setIsSubmitting(false)
+    // Update site settings using the hook
+    updateSiteSettings.mutate({
+      // Preserve current site information
+      name: site?.name || 'My Site',
+      description: site?.description ?? undefined,
+      timezone: site?.timezone ?? undefined,
+      business_name: site?.business_name ?? undefined,
+      business_email: site?.business_email ?? undefined,
+      business_phone: site?.business_phone ?? undefined,
+      business_address: site?.business_address ?? undefined,
+      // Update domain information
+      subdomain: data.subdomain,
+      custom_domain: data.customDomain,
+    })
+
+    // Notify parent component
+    if (data.customDomain && onDomainUpdate) {
+      onDomainUpdate(data.customDomain, 'custom')
+    } else if (data.subdomain && onDomainUpdate) {
+      onDomainUpdate(data.subdomain, 'subdomain')
     }
   }
 
@@ -300,7 +305,7 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
                               disabled={!canManage}
                             />
                             <span className="ml-2 text-sm text-gray-500">
-                              .blooms.cc
+                              .{appDomain}
                             </span>
                           </div>
                         </FormControl>
@@ -360,7 +365,7 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
                         <div>
                           <p className="font-medium">Current Subdomain</p>
                           <p className="text-sm text-gray-500">
-                            https://{site.subdomain}.blooms.cc
+                            https://{site.subdomain}.{appDomain}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -371,7 +376,7 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(`https://${site.subdomain}.blooms.cc`, '_blank')}
+                            onClick={() => window.open(`https://${site.subdomain}.${appDomain}`, '_blank')}
                           >
                             <ExternalLink className="h-4 w-4" />
                           </Button>
@@ -582,11 +587,11 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
               </Tabs>
 
               <div className="flex justify-end">
-                <Button 
-                  type="submit" 
-                  disabled={isSubmitting || !canManage}
+                <Button
+                  type="submit"
+                  disabled={updateSiteSettings.loading || !canManage}
                 >
-                  {isSubmitting ? (
+                  {updateSiteSettings.loading ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                       Saving...
