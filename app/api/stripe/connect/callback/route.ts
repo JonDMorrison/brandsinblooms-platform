@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       .from('sites')
       .update({
         stripe_account_status: status.status,
-        stripe_onboarding_completed: status.detailsSubmitted,
+        stripe_onboarding_completed: status.status === 'active',
         stripe_charges_enabled: status.chargesEnabled,
         stripe_payouts_enabled: status.payoutsEnabled,
       })

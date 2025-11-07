@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/src/lib/supabase/server'
-import { createConnectAccount, createAccountLink } from '@/src/lib/stripe/connect'
+import { createConnectAccount, createAccountLink, retrieveConnectAccount, getAccountStatus } from '@/src/lib/stripe/connect'
 import { handleError } from '@/src/lib/types/error-handling'
 
 export async function GET(request: NextRequest) {
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     // Get site details
     const { data: site, error: siteError } = await supabase
       .from('sites')
-      .select('id, name, subdomain, stripe_account_id')
+      .select('id, name, subdomain, stripe_account_id, stripe_onboarding_completed')
       .eq('id', siteId)
       .single()
 
@@ -64,7 +64,16 @@ export async function GET(request: NextRequest) {
 
     // Check if site already has a Stripe account
     if (site.stripe_account_id) {
-      // Site already connected - create account update link instead
+      // Fetch current status from Stripe (source of truth, not database)
+      const account = await retrieveConnectAccount(site.stripe_account_id)
+      const status = getAccountStatus(account)
+
+      // Determine the correct link type based on ACTUAL current status from Stripe
+      // Only use 'account_update' if account is fully active, otherwise resume onboarding
+      const linkType = status.status === 'active'
+        ? 'account_update'      // Account fully operational → allow updates
+        : 'account_onboarding'  // Account needs more info → resume onboarding
+
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
       const refreshUrl = `${appUrl}/dashboard/settings?tab=payments&reconnect=true&siteId=${siteId}`
       const returnUrl = `${appUrl}/api/stripe/connect/callback?siteId=${siteId}`
@@ -73,7 +82,7 @@ export async function GET(request: NextRequest) {
         site.stripe_account_id,
         refreshUrl,
         returnUrl,
-        'account_update'
+        linkType
       )
 
       return NextResponse.redirect(accountLink.url)
