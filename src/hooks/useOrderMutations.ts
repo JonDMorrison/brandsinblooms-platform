@@ -119,6 +119,7 @@ export function useUpdateOrderStatus() {
             `order-payments-${orderId}`,
             `order-shipments-${orderId}`,
             `order-stats-${siteId}`,
+            `order-trends-${siteId}-60`, // Trends cache (useOrderMetrics uses 60 days)
             `dashboard-stats-${siteId}`,
           ];
           keysToRemove.forEach(key => localStorage.removeItem(key));
