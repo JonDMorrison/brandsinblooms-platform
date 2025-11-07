@@ -11,22 +11,46 @@ import { loadStripe, Stripe as StripeJS } from '@stripe/stripe-js'
 // SERVER-SIDE STRIPE CLIENT
 // =============================================
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set in environment variables')
-}
+/**
+ * Memoized Stripe client instance
+ * Lazy initialization to avoid build-time errors
+ */
+let stripeInstance: Stripe | null = null
 
 /**
- * Server-side Stripe client
+ * Get server-side Stripe client (lazy initialization)
  * DO NOT use this in client components - it contains secret keys
+ *
+ * @throws Error if STRIPE_SECRET_KEY is not configured
+ * @returns Stripe client instance
  */
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-12-18.acacia',
-  typescript: true,
-  appInfo: {
-    name: 'Brands in Blooms Platform',
-    version: '0.1.0',
-  },
-})
+export function getServerStripe(): Stripe {
+  // Return cached instance if available
+  if (stripeInstance) {
+    return stripeInstance
+  }
+
+  // Validate environment variable at runtime
+  const secretKey = process.env.STRIPE_SECRET_KEY
+  if (!secretKey) {
+    throw new Error(
+      'STRIPE_SECRET_KEY is not set in environment variables. ' +
+      'Please configure your Stripe secret key to process payments.'
+    )
+  }
+
+  // Create and cache Stripe instance
+  stripeInstance = new Stripe(secretKey, {
+    apiVersion: '2024-12-18.acacia',
+    typescript: true,
+    appInfo: {
+      name: 'Brands in Blooms Platform',
+      version: '0.1.0',
+    },
+  })
+
+  return stripeInstance
+}
 
 // =============================================
 // CLIENT-SIDE STRIPE INSTANCE
@@ -109,5 +133,5 @@ export const STRIPE_CONFIG = {
 // TYPE EXPORTS
 // =============================================
 
-export type StripeClient = typeof stripe
+export type StripeClient = Stripe
 export type StripeJSClient = StripeJS

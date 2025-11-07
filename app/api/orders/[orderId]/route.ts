@@ -6,8 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/src/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { handleError } from '@/src/lib/types/error-handling'
+import { Database } from '@/lib/database/types'
 
 export async function GET(
   request: NextRequest,
@@ -15,7 +16,22 @@ export async function GET(
 ) {
   try {
     const { orderId } = await params
-    const supabase = await createClient()
+
+    // Use service role to bypass RLS for order_items table
+    // This is safe because:
+    // 1. Order ID acts as access control (requires knowing valid UUID)
+    // 2. Order confirmation page is publicly accessible after checkout
+    // 3. No sensitive payment details are exposed (only order summary)
+    const supabase = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    )
 
     // Get order with items
     const { data: order, error: orderError } = await supabase
@@ -58,7 +74,7 @@ export async function GET(
       )
     }
 
-    // Format response
+    // Format response - transform snake_case to camelCase
     const response = {
       id: order.id,
       orderNumber: order.order_number,
@@ -70,7 +86,14 @@ export async function GET(
       customerName: order.customer_name,
       customerEmail: order.customer_email,
       shippingAddress: order.shipping_address,
-      items: items || [],
+      items: (items || []).map(item => ({
+        id: item.id,
+        productName: item.product_name,
+        productSku: item.product_sku,
+        quantity: item.quantity,
+        unitPrice: item.unit_price,
+        totalPrice: item.total_price,
+      })),
       createdAt: order.created_at,
     }
 

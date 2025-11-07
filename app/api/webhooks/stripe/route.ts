@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe, STRIPE_CONFIG } from '@/src/lib/stripe/config'
+import { STRIPE_CONFIG } from '@/src/lib/stripe/config'
 import { constructWebhookEvent } from '@/src/lib/stripe/helpers'
 import { handleAccountUpdatedEvent, handleAccountDeauthorizedEvent } from '@/src/lib/stripe/connect'
 import { createClient } from '@/src/lib/supabase/server'

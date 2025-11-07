@@ -4,7 +4,7 @@
  * Handle Stripe Connect account onboarding and management
  */
 
-import { stripe, STRIPE_CONFIG } from './config'
+import { getServerStripe, STRIPE_CONFIG } from './config'
 import Stripe from 'stripe'
 
 // =============================================
@@ -25,7 +25,7 @@ export async function createConnectAccount(params: {
 }): Promise<Stripe.Account> {
   const { email, businessName, country = 'US', metadata } = params
 
-  const account = await stripe.accounts.create({
+  const account = await getServerStripe().accounts.create({
     type: STRIPE_CONFIG.connectAccountType,
     email,
     country,
@@ -61,7 +61,7 @@ export async function createAccountLink(
   returnUrl: string,
   type: 'account_onboarding' | 'account_update' = 'account_onboarding'
 ): Promise<Stripe.AccountLink> {
-  const accountLink = await stripe.accountLinks.create({
+  const accountLink = await getServerStripe().accountLinks.create({
     account: accountId,
     refresh_url: refreshUrl,
     return_url: returnUrl,
@@ -80,7 +80,7 @@ export async function createAccountLink(
 export async function retrieveConnectAccount(
   accountId: string
 ): Promise<Stripe.Account> {
-  return await stripe.accounts.retrieve(accountId)
+  return await getServerStripe().accounts.retrieve(accountId)
 }
 
 /**
@@ -92,7 +92,7 @@ export async function retrieveConnectAccount(
 export async function deleteConnectAccount(
   accountId: string
 ): Promise<Stripe.DeletedAccount> {
-  return await stripe.accounts.del(accountId)
+  return await getServerStripe().accounts.del(accountId)
 }
 
 // =============================================
@@ -179,7 +179,7 @@ export function getAccountStatus(account: Stripe.Account): {
 export async function createAccountLoginLink(
   accountId: string
 ): Promise<Stripe.LoginLink> {
-  return await stripe.accounts.createLoginLink(accountId)
+  return await getServerStripe().accounts.createLoginLink(accountId)
 }
 
 // =============================================
@@ -195,7 +195,7 @@ export async function createAccountLoginLink(
 export async function getAccountBalance(
   accountId: string
 ): Promise<Stripe.Balance> {
-  return await stripe.balance.retrieve({
+  return await getServerStripe().balance.retrieve({
     stripeAccount: accountId,
   })
 }
@@ -211,7 +211,7 @@ export async function listAccountPayouts(
   accountId: string,
   limit: number = 10
 ): Promise<Stripe.ApiList<Stripe.Payout>> {
-  return await stripe.payouts.list(
+  return await getServerStripe().payouts.list(
     { limit },
     { stripeAccount: accountId }
   )

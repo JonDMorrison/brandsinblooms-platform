@@ -4,7 +4,7 @@
  * Utility functions for working with Stripe API
  */
 
-import { stripe, STRIPE_CONFIG } from './config'
+import { getServerStripe, STRIPE_CONFIG } from './config'
 import Stripe from 'stripe'
 
 // =============================================
@@ -80,7 +80,7 @@ export async function createConnectedAccountPaymentIntent(params: {
   }
 
   // Create PaymentIntent on connected account
-  const paymentIntent = await stripe.paymentIntents.create(
+  const paymentIntent = await getServerStripe().paymentIntents.create(
     {
       amount,
       currency: currency.toLowerCase(),
@@ -112,7 +112,7 @@ export async function retrieveConnectedAccountPaymentIntent(
   paymentIntentId: string,
   connectedAccountId: string
 ): Promise<Stripe.PaymentIntent> {
-  return await stripe.paymentIntents.retrieve(
+  return await getServerStripe().paymentIntents.retrieve(
     paymentIntentId,
     {
       stripeAccount: connectedAccountId,
@@ -145,7 +145,7 @@ export async function createConnectedAccountRefund(params: {
     metadata,
   } = params
 
-  return await stripe.refunds.create(
+  return await getServerStripe().refunds.create(
     {
       payment_intent: paymentIntentId,
       ...(amount ? { amount } : {}),
@@ -176,7 +176,7 @@ export function constructWebhookEvent(
   webhookSecret: string
 ): Stripe.Event {
   try {
-    return stripe.webhooks.constructEvent(payload, signature, webhookSecret)
+    return getServerStripe().webhooks.constructEvent(payload, signature, webhookSecret)
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(`Webhook signature verification failed: ${error.message}`)
