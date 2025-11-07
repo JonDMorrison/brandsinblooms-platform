@@ -156,7 +156,7 @@ export function SimpleTextInput<
             // Pass the value, not the event, to match controlled version behavior
             if (props.onChange) {
               // Cast to any to handle both event and value signatures
-              (props.onChange as (value: string) => void)(e.target.value);
+              (props.onChange as unknown as (value: string) => void)(e.target.value);
             }
           }}
           className={cn(
