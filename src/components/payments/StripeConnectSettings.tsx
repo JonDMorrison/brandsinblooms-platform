@@ -11,6 +11,16 @@ import { Button } from '@/src/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { Badge } from '@/src/components/ui/badge'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/src/components/ui/alert-dialog'
 import { Loader2, CheckCircle2, AlertCircle, ExternalLink, Link as LinkIcon, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -36,6 +46,7 @@ export function StripeConnectSettings({
   const [isDisconnecting, setIsDisconnecting] = useState(false)
   const [isDashboardLoading, setIsDashboardLoading] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false)
 
   const isConnected = !!stripeAccountId
   const isActive = stripeAccountStatus === 'active' && chargesEnabled && payoutsEnabled
@@ -47,10 +58,7 @@ export function StripeConnectSettings({
   }
 
   const handleDisconnect = async () => {
-    if (!confirm('Are you sure you want to disconnect your Stripe account? You will no longer be able to accept payments.')) {
-      return
-    }
-
+    setShowDisconnectDialog(false) // Close the modal
     setIsDisconnecting(true)
     try {
       const response = await fetch('/api/stripe/connect/disconnect', {
@@ -63,7 +71,10 @@ export function StripeConnectSettings({
         throw new Error('Failed to disconnect Stripe account')
       }
 
-      router.refresh()
+      // Reload page with payments tab to show disconnected state
+      const url = new URL(window.location.href)
+      url.searchParams.set('tab', 'payments')
+      window.location.href = url.toString()
     } catch (error) {
       console.error('Disconnect error:', error)
       alert('Failed to disconnect Stripe account. Please try again.')
@@ -292,7 +303,7 @@ export function StripeConnectSettings({
               </Button>
 
               <Button
-                onClick={handleDisconnect}
+                onClick={() => setShowDisconnectDialog(true)}
                 variant="destructive"
                 disabled={isDisconnecting}
                 className="bg-red-600 text-white hover:bg-red-700"
@@ -310,6 +321,27 @@ export function StripeConnectSettings({
           </>
         )}
       </CardContent>
+
+      {/* Disconnect Confirmation Dialog */}
+      <AlertDialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disconnect Stripe Account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to disconnect your Stripe account? You will no longer be able to accept payments on your site. You can reconnect at any time.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDisconnect}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              Disconnect Stripe
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   )
 }
