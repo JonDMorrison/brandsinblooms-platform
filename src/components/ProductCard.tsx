@@ -8,6 +8,7 @@ import { ProductImage } from '@/src/components/ui/product-image'
 import { cn } from '@/src/lib/utils'
 import { shouldShowCompareAtPrice } from '@/src/lib/products/utils/pricing'
 import { ShoppingCart } from 'lucide-react'
+import { useProductCartQuantity } from '@/src/hooks/useProductCartQuantity'
 
 interface Product {
   id: string
@@ -43,7 +44,10 @@ export function ProductCard({
   isAddingToCart = false
 }: ProductCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
-  
+
+  // Get current cart quantity for this product
+  const cartQuantity = useProductCartQuantity(product.id)
+
   // Memoize placeholder config to prevent recreation on every render
   const placeholderConfig = useMemo(() => ({
     type: 'gradient' as const,
@@ -188,16 +192,26 @@ export function ProductCard({
             </div>
 
             {showAddToCart && onAddToCart && (
-              <Button
-                size="icon"
-                variant="default"
-                className="h-8 w-8 flex-shrink-0"
-                onClick={handleAddToCart}
-                disabled={isAddingToCart || product.stock === 'out-of-stock'}
-                aria-label={`Add ${product.name} to cart`}
-              >
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
+              <div className="relative">
+                <Button
+                  size="icon"
+                  variant="default"
+                  className="h-8 w-8 flex-shrink-0"
+                  onClick={handleAddToCart}
+                  disabled={isAddingToCart || product.stock === 'out-of-stock'}
+                  aria-label={cartQuantity > 0 ? `${cartQuantity} in cart - Add ${product.name} to cart` : `Add ${product.name} to cart`}
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                </Button>
+                {cartQuantity > 0 && (
+                  <Badge
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full text-xs p-0 border-2 border-white bg-[var(--theme-primary)] text-white"
+                    aria-hidden="true"
+                  >
+                    {cartQuantity}
+                  </Badge>
+                )}
+              </div>
             )}
           </div>
 
