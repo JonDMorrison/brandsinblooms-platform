@@ -9,6 +9,7 @@ import { FeaturedPreview } from '@/src/components/content-sections/preview/Featu
 import { CategoriesPreview } from '@/src/components/content-sections/preview/CategoriesPreview'
 import { FeaturesPreview } from '@/src/components/content-sections/preview/FeaturesPreview'
 import { CtaPreview } from '@/src/components/content-sections/preview/CtaPreview'
+import { MissionPreview } from '@/src/components/content-sections/preview/MissionPreview'
 import { ValuesPreview } from '@/src/components/content-sections/preview/ValuesPreview'
 import { FAQPreview } from '@/src/components/content-sections/preview/FAQPreview'
 import { TextPreview } from '@/src/components/content-sections/preview/TextPreview'
@@ -37,7 +38,7 @@ export const sectionPreviewMap: Record<string, ComponentType<PreviewComponentPro
   categories: CategoriesPreview,
   features: FeaturesPreview,
   cta: CtaPreview,
-  mission: TextPreview, // mission sections use TextPreview
+  mission: MissionPreview, // mission sections use dedicated MissionPreview
   values: ValuesPreview,
   team: ValuesPreview, // team sections can use ValuesPreview format
   faq: FAQPreview,
