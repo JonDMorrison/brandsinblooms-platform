@@ -48,13 +48,14 @@ const statusConfig = {
 } as const
 
 // Business rules for allowed status transitions
+// Focus on fulfillment statuses only - payment statuses (pending/refunded) managed separately
 const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
-  pending: ['processing', 'shipped', 'delivered', 'cancelled'],
+  pending: [], // Payment status - not managed here
   processing: ['shipped', 'delivered', 'cancelled'],
-  shipped: ['delivered', 'cancelled'],
-  delivered: [], // Terminal state - cannot be changed
-  cancelled: [], // Terminal state - cannot be changed
-  refunded: [], // Terminal state - typically system-managed
+  shipped: ['processing', 'delivered', 'cancelled'],
+  delivered: ['processing', 'shipped', 'cancelled'],
+  cancelled: ['processing', 'shipped', 'delivered'],
+  refunded: [], // Payment status - not managed here
 }
 
 export function OrderStatusUpdateButton({
@@ -70,7 +71,10 @@ export function OrderStatusUpdateButton({
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   const { updateStatus } = useOrderMutations()
-  const availableStatuses = allowedTransitions[currentStatus]
+  // Filter out current status from available options (no need to change to same status)
+  const availableStatuses = allowedTransitions[currentStatus].filter(
+    status => status !== currentStatus
+  )
   const isTerminal = availableStatuses.length === 0
 
   const handleStatusChange = async () => {
@@ -111,7 +115,7 @@ export function OrderStatusUpdateButton({
     await performUpdate()
   }
 
-  // Don't render if order is in a terminal state
+  // Don't render button for payment-related statuses (pending/refunded)
   if (isTerminal) {
     return null
   }
