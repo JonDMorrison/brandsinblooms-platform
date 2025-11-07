@@ -459,6 +459,10 @@ export default function DashboardSitesPage() {
           console.log('[SITE CREATION] Refreshing sites before navigation...')
           await refreshSites()
 
+          // Switch to the newly created site
+          console.log('[SITE CREATION] Switching to new site:', siteId)
+          await switchSite(siteId)
+
           // Navigate to the editor with the home page ID
           const editorUrl = `/dashboard/content/editor?id=${homePage.id}`
           console.log('[SITE CREATION] Navigating to:', editorUrl)
@@ -1026,12 +1030,12 @@ export default function DashboardSitesPage() {
               {sourceMode === 'duplicate' ? (
                 <>
                   <Copy className="h-5 w-5 text-purple-600" />
-                  Duplicate Existing Site
+                  Copy one of your sites
                 </>
               ) : sourceMode === 'scrape' ? (
                 <>
                   <Globe className="h-5 w-5 text-blue-600" />
-                  Import from Website
+                  Duplicate Existing Site
                 </>
               ) : (
                 <>
@@ -1196,8 +1200,8 @@ export default function DashboardSitesPage() {
                   </div>
 
                   {/* Option Cards */}
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {/* Import from Website Card */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Duplicate Existing Site Card */}
                     <Card
                       className={`cursor-pointer transition-all ${
                         sourceMode === 'scrape'
@@ -1215,7 +1219,7 @@ export default function DashboardSitesPage() {
                           </div>
                           <div>
                             <h4 className="font-semibold text-sm mb-1">
-                              Import from Website
+                              Duplicate Existing Site
                             </h4>
                             <p className="text-xs text-gray-600 leading-snug">
                               Let AI analyze an existing website and extract branding, content, and contact info.
@@ -1253,8 +1257,11 @@ export default function DashboardSitesPage() {
                       </CardContent>
                     </Card>
 
-                    {/* Duplicate Existing Site Card */}
-                    <Card
+                    {/* Copy one of your sites Card - HIDDEN
+                        Note: This feature was built when a duplicate existing site feature was requested,
+                        but it turned out to be just a renaming of the AI scraper site generator.
+                        Not needed at the moment. */}
+                    {/* <Card
                       className={`cursor-pointer transition-all ${
                         sourceMode === 'duplicate'
                           ? 'ring-2 ring-primary border-primary bg-primary/5'
@@ -1271,7 +1278,7 @@ export default function DashboardSitesPage() {
                           </div>
                           <div>
                             <h4 className="font-semibold text-sm mb-1">
-                              Duplicate Existing Site
+                              Copy one of your sites
                             </h4>
                             <p className="text-xs text-gray-600 leading-snug">
                               Create a copy of one of your existing sites with all content and settings.
@@ -1279,7 +1286,7 @@ export default function DashboardSitesPage() {
                           </div>
                         </div>
                       </CardContent>
-                    </Card>
+                    </Card> */}
                   </div>
 
                   {/* Website URL Input (conditional) */}
