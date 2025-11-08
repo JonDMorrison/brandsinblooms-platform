@@ -203,6 +203,9 @@ export function useContentEditor({
         await onSave(content)
       } else {
         // Default save implementation
+        // Note: For blog posts and other public content, prefer using the
+        // updateContentWithRevalidation server action from app/actions/content.ts
+        // to ensure cache invalidation. This fallback is mainly for internal/draft content.
         await updateContent(
           supabase,
           siteId,

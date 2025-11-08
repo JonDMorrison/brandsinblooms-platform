@@ -8,6 +8,12 @@ import { ClientSiteEditorWrapper } from '@/src/components/site-editor/ClientSite
 import { FullSiteEditorBar } from '@/src/components/site-editor/FullSiteEditorBar'
 import { getSiteHeaders } from './utils/routing'
 
+// Force dynamic rendering for all pages to ensure fresh content
+// This is necessary because content can be updated at any time via the editor
+// Cache revalidation is handled by the updateContentWithRevalidation server action
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // Page Components
 import { HomePage } from './components/HomePage'
 import { AboutPage } from './components/AboutPage'

@@ -33,6 +33,7 @@ import { useContentEditorData } from '@/src/hooks/useContentEditorData';
 // Database
 import { supabase } from '@/src/lib/supabase/client';
 import { updateContent } from '@/src/lib/queries/domains/content';
+import { updateContentWithRevalidation } from '@/app/actions/content';
 
 // Types
 type LayoutType =
@@ -186,7 +187,8 @@ function PageEditorContent() {
         }
       );
 
-      const result = await updateContent(supabase, currentSite.id, contentId, {
+      // Use server action with cache revalidation to ensure updates appear immediately
+      const result = await updateContentWithRevalidation(currentSite.id, contentId, {
         title: pageData.title || '',
         meta_data: JSON.parse(JSON.stringify(metaData)),
         content: contentData,
