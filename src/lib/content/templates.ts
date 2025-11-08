@@ -143,11 +143,12 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
           }
         },
         content: {
-          type: 'content',
+          type: 'richText',
           visible: true,
           order: 2,
           data: {
-            richText: `<h2>Introduction</h2><p>Start your blog post with an engaging introduction that captures your reader's attention.</p><h2>Main Content</h2><p>This is where you'll add the main body of your blog post. Use headings, paragraphs, lists, and images to structure your content effectively.</p><h2>Conclusion</h2><p>Wrap up your post with a strong conclusion that summarizes your key points and encourages reader engagement.</p>`
+            content: `<h2>Introduction</h2><p>Start your blog post with an engaging introduction that captures your reader's attention.</p><h2>Main Content</h2><p>This is where you'll add the main body of your blog post. Use headings, paragraphs, lists, and images to structure your content effectively.</p><h2>Conclusion</h2><p>Wrap up your post with a strong conclusion that summarizes your key points and encourages reader engagement.</p>`,
+            json: null
           }
         }
       }
