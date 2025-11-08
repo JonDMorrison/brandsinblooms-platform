@@ -28,20 +28,21 @@ import {
 interface CheckoutPageClientProps {
   siteId: string
   stripeAccountId: string
+  stripePublishableKey: string | null
 }
 
-export function CheckoutPageClient({ siteId, stripeAccountId }: CheckoutPageClientProps) {
+export function CheckoutPageClient({ siteId, stripeAccountId, stripePublishableKey }: CheckoutPageClientProps) {
   // Load Stripe with the connected account ID
   const stripePromise = useMemo(() => {
-    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+    if (!stripePublishableKey) {
       console.error('[Checkout] Stripe publishable key not configured')
       return null
     }
 
-    return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, {
+    return loadStripe(stripePublishableKey, {
       stripeAccount: stripeAccountId,
     })
-  }, [stripeAccountId])
+  }, [stripeAccountId, stripePublishableKey])
   const router = useRouter()
   const { items, clearCart, isHydrated } = useCart()
   const [step, setStep] = useState<'shipping' | 'payment'>('shipping')

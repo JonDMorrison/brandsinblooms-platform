@@ -250,13 +250,21 @@ export async function CheckoutPage() {
 
   const stripeAccountId = site?.stripe_account_id || ''
 
+  // Read Stripe publishable key at runtime (server-side) to avoid build-time bundling issues
+  // This ensures the env var is available even if it wasn't set during the build phase
+  const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || null
+
   return (
     <SiteRenderer
       siteId={siteId}
       mode="live"
       showNavigation={true}
     >
-      <CheckoutPageClient siteId={siteId} stripeAccountId={stripeAccountId} />
+      <CheckoutPageClient
+        siteId={siteId}
+        stripeAccountId={stripeAccountId}
+        stripePublishableKey={stripePublishableKey}
+      />
     </SiteRenderer>
   )
 }
