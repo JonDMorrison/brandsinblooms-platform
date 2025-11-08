@@ -454,7 +454,15 @@ const FloatingToolbarComponent = ({
           'animate-in fade-in-0 zoom-in-95 duration-150',
           'max-w-fit'
         )}
-        onMouseDown={(e) => e.preventDefault()} // Prevent editor blur
+        onMouseDown={(e) => {
+          // Only prevent default if not clicking inside a dialog
+          // This allows dialog inputs to receive focus
+          const target = e.target as HTMLElement;
+          const isDialogElement = target.closest('[data-slot="dialog-overlay"], [data-slot="dialog-content"], [data-slot="dialog-portal"]');
+          if (!isDialogElement) {
+            e.preventDefault();
+          }
+        }}
         onKeyDown={handleKeyDown}
         data-state="open"
         role="toolbar"

@@ -206,7 +206,10 @@ const InlineRichTextEditorComponent = ({
         const isToolbarFocused = elementRef.current?.querySelector('.floating-toolbar')?.contains(activeElement);
         const isEditorFocused = elementRef.current?.contains(activeElement);
 
-        if (!isToolbarFocused && !isEditorFocused) {
+        // Check if focus is inside a Dialog portal (like ImageUploadDialog)
+        const isDialogFocused = activeElement?.closest('[data-slot="dialog-overlay"], [data-slot="dialog-content"], [data-slot="dialog-portal"]');
+
+        if (!isToolbarFocused && !isDialogFocused && !isEditorFocused) {
           setIsEditing(false);
           setShowFloatingToolbar(false);
         }

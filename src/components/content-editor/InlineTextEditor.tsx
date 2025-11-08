@@ -208,12 +208,15 @@ const InlineTextEditorComponent = ({
       if (toolbarTimeoutRef.current) {
         clearTimeout(toolbarTimeoutRef.current);
       }
-      
+
       toolbarTimeoutRef.current = setTimeout(() => {
         const activeElement = document.activeElement;
         const isToolbarFocused = elementRef.current?.querySelector('.inline-toolbar')?.contains(activeElement);
-        
-        if (!isToolbarFocused && !elementRef.current?.contains(activeElement)) {
+
+        // Check if focus is inside a Dialog portal (like ImageUploadDialog)
+        const isDialogFocused = activeElement?.closest('[data-slot="dialog-overlay"], [data-slot="dialog-content"], [data-slot="dialog-portal"]');
+
+        if (!isToolbarFocused && !isDialogFocused && !elementRef.current?.contains(activeElement)) {
           setIsEditing(false);
           setShowFloatingToolbar(false);
         }
