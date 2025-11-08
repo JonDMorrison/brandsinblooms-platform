@@ -274,7 +274,8 @@ export function CreateContentModal({
   })
 
   // Get current template options based on selected page type
-  const currentTemplateOptions =
+  // In blog mode, always use blog templates regardless of selectedPageType state
+  const currentTemplateOptions = isBlogPostMode ? blogTemplateOptions :
     selectedPageType === 'about' ? aboutTemplateOptions :
     selectedPageType === 'contact' ? contactTemplateOptions :
     selectedPageType === 'other' ? otherTemplateOptions :
@@ -832,7 +833,7 @@ export function CreateContentModal({
                   </div>
                 </div>
 
-                <div className={`flex pt-4 ${isBlogPostMode || step === 2 ? 'justify-between' : 'justify-end'}`}>
+                <div className={`flex pt-6 border-t ${!isBlogPostMode && step === 2 ? 'justify-between' : 'justify-end'}`}>
                   {/* Show back button in page mode step 2, or don't show in blog mode step 1 */}
                   {!isBlogPostMode && step === 2 && (
                     <Button
