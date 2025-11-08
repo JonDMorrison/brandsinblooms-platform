@@ -18,6 +18,7 @@ import { SearchBar } from './SearchBar'
 import { CartButton } from './CartButton'
 import { UserMenu } from './UserMenu'
 import { SearchOverlay } from './SearchOverlay'
+import { getDefaultNavItems } from './utils'
 import type { SiteNavigationProps } from './types'
 
 export function SiteNavigation({ className }: SiteNavigationProps) {
@@ -48,13 +49,10 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   ]
 
   // Use all configured navigation items from theme settings
+  // If no theme config, use default items (which includes Blog link)
   const optionalNavItems = configuredNavItems.length > 0
     ? configuredNavItems
-    : [
-        { label: 'Home', href: '/home' },
-        { label: 'About', href: '/about' },
-        { label: 'Contact', href: '/contact' }
-      ]
+    : getDefaultNavItems().filter(item => item.label !== 'Products') // Exclude Products since it's in requiredNavItems
 
   // Combine required items (Products) with optional items
   const allNavItems = [...requiredNavItems, ...optionalNavItems]
