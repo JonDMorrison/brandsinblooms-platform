@@ -124,14 +124,17 @@ export function HeroPreview({
 
   const handleLinkSave = (url: string, style?: ButtonStyleVariant) => {
     if (editingLinkField && onContentUpdate) {
-      // Update URL
+      // Update URL first
       const linkFieldPath = editingLinkField === 'cta' ? 'data.ctaLink' : 'data.secondaryCtaLink'
       onContentUpdate(sectionKey, linkFieldPath, url)
 
-      // Update style if provided
+      // Update style after the next animation frame to ensure URL update has been processed
+      // This prevents race conditions where both updates read from the same initial state
       if (style) {
         const styleFieldPath = editingLinkField === 'cta' ? 'data.ctaStyle' : 'data.secondaryCtaStyle'
-        onContentUpdate(sectionKey, styleFieldPath, style)
+        requestAnimationFrame(() => {
+          onContentUpdate(sectionKey, styleFieldPath, style)
+        })
       }
     }
   }
