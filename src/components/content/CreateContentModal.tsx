@@ -48,14 +48,14 @@ import {
 
 const createContentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  layout: z.enum(['landing', 'about', 'contact', 'other']),
+  layout: z.enum(['landing', 'about', 'contact', 'other', 'blog_post']),
   template: z.string().optional()
 })
 
 type CreateContentForm = z.infer<typeof createContentSchema>
 
 interface PageTypeOption {
-  id: 'landing' | 'about' | 'contact' | 'other'
+  id: 'landing' | 'about' | 'contact' | 'other' | 'blog_post'
   name: string
   description: string
   preview: string
@@ -112,6 +112,18 @@ const pageTypeOptions: PageTypeOption[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
     )
+  },
+  {
+    id: 'blog_post',
+    name: 'Blog Post',
+    description: 'Article page for blogging with rich content',
+    preview: 'Header, Featured Image, Content, Author Bio, and Related Posts',
+    icon: ({ className }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+      </svg>
+    ),
+    recommended: false
   }
 ]
 
@@ -183,6 +195,23 @@ const otherTemplateOptions: TemplateOption[] = [
   }
 ]
 
+const blogTemplateOptions: TemplateOption[] = [
+  {
+    id: 'full-blog-post',
+    name: 'Full Blog Post',
+    description: 'Complete blog post with all sections',
+    preview: 'Header, Featured Image, Rich Content, Author Bio, and Related Posts',
+    recommended: true
+  },
+  {
+    id: 'minimal-blog-post',
+    name: 'Minimal Blog Post',
+    description: 'Simple blog post with essential sections',
+    preview: 'Header and Rich Content sections only',
+    recommended: false
+  }
+]
+
 interface CreateContentModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -204,7 +233,7 @@ export function CreateContentModal({
   // Use override site ID if provided, otherwise use site context
   const activeSiteId = siteIdOverride || currentSite?.id
   const [step, setStep] = useState(1)
-  const [selectedPageType, setSelectedPageType] = useState<'landing' | 'about' | 'contact' | 'other'>('landing')
+  const [selectedPageType, setSelectedPageType] = useState<'landing' | 'about' | 'contact' | 'other' | 'blog_post'>('landing')
   const [selectedTemplate, setSelectedTemplate] = useState<string>('home-page')
   const [isCreating, setIsCreating] = useState(false)
   const [useMockData, setUseMockData] = useState(true)
@@ -229,9 +258,10 @@ export function CreateContentModal({
     selectedPageType === 'about' ? aboutTemplateOptions :
     selectedPageType === 'contact' ? contactTemplateOptions :
     selectedPageType === 'other' ? otherTemplateOptions :
+    selectedPageType === 'blog_post' ? blogTemplateOptions :
     landingTemplateOptions
 
-  const handlePageTypeSelect = (pageType: 'landing' | 'about' | 'contact' | 'other') => {
+  const handlePageTypeSelect = (pageType: 'landing' | 'about' | 'contact' | 'other' | 'blog_post') => {
     setSelectedPageType(pageType)
     form.setValue('layout', pageType, { shouldValidate: true })
 
@@ -240,6 +270,7 @@ export function CreateContentModal({
       pageType === 'about' ? 'full-about' :
       pageType === 'contact' ? 'full-contact' :
       pageType === 'other' ? 'privacy-policy' :
+      pageType === 'blog_post' ? 'full-blog-post' :
       'home-page'
     setSelectedTemplate(defaultTemplate)
     form.setValue('template', defaultTemplate, { shouldValidate: true })
@@ -673,21 +704,26 @@ export function CreateContentModal({
                       <h3 className={`font-semibold ${
                         selectedPageType === 'about' ? 'text-blue-900' :
                         selectedPageType === 'contact' ? 'text-purple-900' :
+                        selectedPageType === 'blog_post' ? 'text-orange-900' :
                         'text-green-900'
                       }`}>
                         {selectedPageType === 'about' ? 'About Page' :
                          selectedPageType === 'contact' ? 'Contact Page' :
+                         selectedPageType === 'blog_post' ? 'Blog Post' :
                          'Landing Page'}
                       </h3>
                       <p className={`text-sm ${
                         selectedPageType === 'about' ? 'text-blue-700' :
                         selectedPageType === 'contact' ? 'text-purple-700' :
+                        selectedPageType === 'blog_post' ? 'text-orange-700' :
                         'text-green-700'
                       }`}>
                         {selectedPageType === 'about'
                           ? 'Includes: Header, Mission, Values, Features, Story, and CTA blocks'
                           : selectedPageType === 'contact'
                           ? 'Includes: Header, Business Info, Rich Text, and FAQ blocks'
+                          : selectedPageType === 'blog_post'
+                          ? 'Includes: Header, Featured Image, Content, Author Bio, and Related Posts'
                           : 'Includes: Hero, Featured, Categories, Features, and CTA blocks'
                         }
                       </p>
@@ -701,6 +737,7 @@ export function CreateContentModal({
                     Select a template for your {
                       selectedPageType === 'about' ? 'About Page' :
                       selectedPageType === 'contact' ? 'Contact Page' :
+                      selectedPageType === 'blog_post' ? 'Blog Post' :
                       'Landing Page'
                     }. You can customize all content later.
                   </p>

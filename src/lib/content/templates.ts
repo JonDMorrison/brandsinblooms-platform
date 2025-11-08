@@ -532,6 +532,10 @@ export function getTemplateContent(
       return getPrivacyPolicyTemplate(title, subtitle, config)
     case 'terms-of-service':
       return getTermsOfServiceTemplate(title, subtitle, config)
+    case 'full-blog-post':
+      return enhanceBlogTemplate(title, subtitle, config)
+    case 'minimal-blog-post':
+      return getMinimalBlogTemplate(title, subtitle, config)
     default:
       return enhanceLandingTemplate(title, subtitle, config)
   }
@@ -1690,6 +1694,48 @@ function enhanceBlogTemplate(
         order: 1,
         data: {
           content: richContent
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Minimal blog page template with essential sections only
+ */
+function getMinimalBlogTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
+): PageContent {
+  const minimalContent = `<h2>Introduction</h2>
+<p>Start your blog post with an engaging introduction that captures your reader's attention.</p>
+
+<h2>Main Content</h2>
+<p>This is where you'll add the main body of your blog post. Use headings, paragraphs, lists, and images to structure your content effectively.</p>
+
+<h2>Conclusion</h2>
+<p>Wrap up your post with a strong conclusion that summarizes your key points.</p>`
+
+  return {
+    version: '1.0',
+    layout: 'blog',
+    sections: {
+      header: {
+        type: 'hero',
+        visible: true,
+        order: 0,
+        data: {
+          content: `<h1>${title || 'Blog Post Title'}</h1>
+<p class="text-xl text-gray-600">${subtitle || 'A brief description of your blog post'}</p>`
+        }
+      },
+      content: {
+        type: 'richText',
+        visible: true,
+        order: 1,
+        data: {
+          content: minimalContent
         }
       }
     }

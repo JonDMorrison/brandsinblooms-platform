@@ -259,6 +259,14 @@ export default function ContentPage() {
             <Plus className="h-4 w-4 mr-2" />
             Create New Page
           </Button>
+          <Button
+            variant="outline"
+            className="border-orange-600 text-orange-600 hover:bg-orange-50"
+            onClick={() => setCreateModalOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Blog Post
+          </Button>
         </div>
       </div>
 
