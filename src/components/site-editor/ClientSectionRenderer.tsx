@@ -6,12 +6,14 @@
  * Ensures sections re-render and reorder when context state changes
  */
 
-import React, { useMemo } from 'react'
-import { ContentSection } from '@/src/lib/content/schema'
+import React, { useMemo, useState } from 'react'
+import { ContentSection, ContentSectionType } from '@/src/lib/content/schema'
 import { useFullSiteEditor } from '@/src/contexts/FullSiteEditorContext'
 import { getLayoutSections } from '@/src/lib/preview/section-renderers'
 import { EditableCustomerSiteSection } from './EditableCustomerSiteSection'
 import { CustomerSiteSection } from '@/src/components/customer-site/CustomerSiteSection'
+import { SectionInsertButton } from './SectionInsertButton'
+import { AddSectionModal } from './AddSectionModal'
 
 interface ClientSectionRendererProps {
   // Section data mapping from server (for data that's not in pageContent)
@@ -32,7 +34,9 @@ export function ClientSectionRenderer({
   sectionDataMap,
   fallbackContent
 }: ClientSectionRendererProps) {
-  const { pageContent, layout } = useFullSiteEditor()
+  const { pageContent, layout, editorMode, addSection } = useFullSiteEditor()
+  const [showAddSectionModal, setShowAddSectionModal] = useState(false)
+  const [isEndButtonHovered, setIsEndButtonHovered] = useState(false)
 
   // Compute ordered sections from context (not server state)
   // This ensures re-renders when context.pageContent changes
@@ -47,6 +51,11 @@ export function ClientSectionRenderer({
     return getLayoutSections(pageContent.sections, layout)
   }, [pageContent?.sections, layout])
 
+  // Handle adding section at end of page
+  const handleAddSectionAtEnd = (sectionType: ContentSectionType, variant?: string) => {
+    addSection(sectionType, variant) // No position = adds at end
+  }
+
   // If no sections available, show fallback
   if (orderedSections.length === 0) {
     return <>{fallbackContent}</>
@@ -56,9 +65,23 @@ export function ClientSectionRenderer({
     <>
       {orderedSections.map(({ key, section }) => {
         const sectionInfo = sectionDataMap[key as keyof typeof sectionDataMap]
+        const typedSection = section as ContentSection
 
-        // Only render if section has data and is available
-        if (!sectionInfo || sectionInfo.status !== 'available' || !sectionInfo.data) {
+        // Determine data source and background setting
+        // Priority: sectionDataMap (server data) > section.data (newly added sections)
+        let sectionData: unknown
+        let backgroundSetting: string
+
+        if (sectionInfo && sectionInfo.status === 'available' && sectionInfo.data) {
+          // Use server data if available
+          sectionData = sectionInfo.data
+          backgroundSetting = sectionInfo.backgroundSetting
+        } else if (typedSection.data) {
+          // Use section's own data (for newly added sections)
+          sectionData = typedSection.data
+          backgroundSetting = String(typedSection.settings?.backgroundColor || 'default')
+        } else {
+          // No data available - skip rendering
           return null
         }
 
@@ -66,18 +89,43 @@ export function ClientSectionRenderer({
           <EditableCustomerSiteSection
             key={key}
             sectionKey={key}
-            section={section as ContentSection}
-            sectionData={sectionInfo.data}
+            section={typedSection}
+            sectionData={sectionData}
           >
             <CustomerSiteSection
-              section={section as ContentSection}
+              section={typedSection}
               sectionKey={key}
-              sectionData={sectionInfo.data}
-              backgroundSetting={sectionInfo.backgroundSetting}
+              sectionData={sectionData}
+              backgroundSetting={backgroundSetting}
             />
           </EditableCustomerSiteSection>
         )
       })}
+
+      {/* End of page insert button - only in edit mode */}
+      {editorMode === 'edit' && orderedSections.length > 0 && (
+        <div
+          className="relative"
+          onMouseEnter={() => setIsEndButtonHovered(true)}
+          onMouseLeave={() => setIsEndButtonHovered(false)}
+        >
+          <SectionInsertButton
+            position="below"
+            onInsert={() => setShowAddSectionModal(true)}
+            visible={true}
+            className="my-8"
+          />
+        </div>
+      )}
+
+      {/* Add Section Modal for end-of-page insertion */}
+      <AddSectionModal
+        isOpen={showAddSectionModal}
+        onClose={() => setShowAddSectionModal(false)}
+        currentLayout={layout}
+        existingSections={pageContent ? Object.keys(pageContent.sections) : []}
+        onAddSection={handleAddSectionAtEnd}
+      />
     </>
   )
 }

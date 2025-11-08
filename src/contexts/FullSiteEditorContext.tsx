@@ -119,7 +119,7 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   deleteSection: (sectionKey: string) => void
   reorderSection: (sectionKey: string, direction: 'up' | 'down') => void
   reorderSections: (sections: Array<{ key: string; section: ContentSection }>) => void
-  addSection: (sectionType: ContentSectionType, variant?: string) => void
+  addSection: (sectionType: ContentSectionType, variant?: string, position?: { after?: string; before?: string }) => void
   updateSection: (sectionKey: string, section: ContentSection) => void
   duplicateSection: (sectionKey: string) => void
 
@@ -999,7 +999,11 @@ export function FullSiteEditorProvider({
   }, [state.layout, state.pageContent])
 
   // Add new section
-  const addSection = useCallback((sectionType: ContentSectionType, variant?: string) => {
+  const addSection = useCallback((
+    sectionType: ContentSectionType,
+    variant?: string,
+    position?: { after?: string; before?: string }
+  ) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
@@ -1027,6 +1031,10 @@ export function FullSiteEditorProvider({
 
       // Deep clone the default section
       const newSection = JSON.parse(JSON.stringify(defaultSection)) as ContentSection
+
+      // Override visibility - newly added sections should always be visible!
+      // Default templates may have visible: false for optional sections
+      newSection.visible = true
 
       // For Rich Text sections with variant, use appropriate template content
       if (sectionType === 'richText' && variant) {
@@ -1059,14 +1067,43 @@ export function FullSiteEditorProvider({
         }
       }
 
-      // Calculate order value (place at end)
-      const existingSectionKeys = Object.keys(prev.pageContent.sections)
-      const maxOrder = existingSectionKeys.reduce((max, key) => {
-        const order = prev.pageContent.sections[key].order || 0
-        return Math.max(max, order)
-      }, 0)
+      // Calculate order value based on position
+      let targetOrder: number
 
-      newSection.order = maxOrder + 1
+      if (position?.after && prev.pageContent) {
+        // Insert after specified section
+        const afterSection = prev.pageContent.sections[position.after]
+        if (afterSection && afterSection.order !== undefined) {
+          targetOrder = afterSection.order + 0.5 // Use fractional order for insertion
+        } else {
+          // Fallback: place at end
+          const existingSectionKeys = Object.keys(prev.pageContent.sections)
+          const maxOrder = existingSectionKeys.reduce((max, key) => {
+            const order = prev.pageContent?.sections[key].order || 0
+            return Math.max(max, order)
+          }, 0)
+          targetOrder = maxOrder + 1
+        }
+      } else if (position?.before && prev.pageContent) {
+        // Insert before specified section
+        const beforeSection = prev.pageContent.sections[position.before]
+        if (beforeSection && beforeSection.order !== undefined) {
+          targetOrder = beforeSection.order - 0.5 // Use fractional order for insertion
+        } else {
+          // Fallback: place at beginning
+          targetOrder = 0.5
+        }
+      } else {
+        // No position specified: place at end
+        const existingSectionKeys = Object.keys(prev.pageContent?.sections || {})
+        const maxOrder = existingSectionKeys.reduce((max, key) => {
+          const order = prev.pageContent?.sections[key].order || 0
+          return Math.max(max, order)
+        }, 0)
+        targetOrder = maxOrder + 1
+      }
+
+      newSection.order = targetOrder
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
@@ -1076,7 +1113,8 @@ export function FullSiteEditorProvider({
         }
       }
 
-      toast.success('Section added')
+      // Toast notification is now handled by the UI layer (modal/button)
+      // to prevent duplicate toasts when called multiple times
 
       return {
         ...prev,

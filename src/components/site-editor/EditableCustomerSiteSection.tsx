@@ -14,6 +14,8 @@ import { SectionControls } from './SectionControls'
 import { getPreviewComponent } from './section-preview-map'
 import { SectionSettingsModal } from './modals/SectionSettingsModal'
 import { DeleteSectionModal } from './modals/DeleteSectionModal'
+import { SectionInsertButton } from './SectionInsertButton'
+import { AddSectionModal } from './AddSectionModal'
 
 interface EditableCustomerSiteSectionProps {
   children: ReactNode
@@ -35,6 +37,8 @@ export function EditableCustomerSiteSection({
   const [isHovered, setIsHovered] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showAddSectionModal, setShowAddSectionModal] = useState(false)
+  const [insertPosition, setInsertPosition] = useState<'above' | 'below'>('below')
 
   // If not in edit mode or no context available, just render children (CustomerSiteSection)
   if (!isEditMode || !context) {
@@ -62,7 +66,9 @@ export function EditableCustomerSiteSection({
     deleteFAQItem,
     addFeaturedContent,
     addCategoryContent,
+    addSection,
     pageContent,
+    layout,
     siteId
   } = context
 
@@ -143,6 +149,21 @@ export function EditableCustomerSiteSection({
     context.deleteSection(sectionKey)
   }
 
+  // Handle insert section button click
+  const handleInsertClick = (position: 'above' | 'below') => {
+    setInsertPosition(position)
+    setShowAddSectionModal(true)
+  }
+
+  // Handle section type selection from modal
+  const handleAddSection = (sectionType: string, variant?: string) => {
+    const positionParam = insertPosition === 'above'
+      ? { before: sectionKey }
+      : { after: sectionKey }
+
+    addSection(sectionType as any, variant, positionParam)
+  }
+
   // Get fresh section data from context (includes staged/unsaved changes)
   // This ensures both Edit and Navigate modes show the same staged content
   const contextSectionData = pageContent?.sections?.[sectionKey]
@@ -196,19 +217,32 @@ export function EditableCustomerSiteSection({
     return (
       <>
       <div
-        className={`relative ${className} ${isHidden ? 'opacity-50' : ''}`}
+        className="relative"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={() => setActiveSection(sectionKey)}
-        data-section-key={sectionKey}
-        data-edit-mode="edit"
-        data-section-hidden={isHidden}
-        style={{
-          outline: isHovered ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
-          outlineOffset: '4px',
-          transition: 'outline 0.2s ease, opacity 0.2s ease'
-        }}
       >
+        {/* Insert Above Button */}
+        {editorMode === 'edit' && (
+          <SectionInsertButton
+            position="above"
+            relativeTo={sectionKey}
+            onInsert={() => handleInsertClick('above')}
+            visible={isHovered}
+          />
+        )}
+
+        <div
+          className={`relative ${className} ${isHidden ? 'opacity-50' : ''}`}
+          onClick={() => setActiveSection(sectionKey)}
+          data-section-key={sectionKey}
+          data-edit-mode="edit"
+          data-section-hidden={isHidden}
+          style={{
+            outline: isHovered ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
+            outlineOffset: '4px',
+            transition: 'outline 0.2s ease, opacity 0.2s ease'
+          }}
+        >
         {/* Hidden Section Badge */}
         {isHidden && (
           <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-gray-900 text-white text-xs font-medium rounded shadow-lg">
@@ -237,14 +271,25 @@ export function EditableCustomerSiteSection({
           onFeatureUpdate={(key, featureIndex, field, value) => {
             updateFeatureContent(key, featureIndex, field, value)
           }}
-          onFeaturedUpdate={(key, itemIndex, updatedItem) => {
+          onFeaturedUpdate={(key: string, itemIndex: number, updatedItem: Record<string, unknown>) => {
             updateFeaturedContent(key, itemIndex, updatedItem)
           }}
-          onFeaturedDelete={(key, itemIndex) => {
+          onFeaturedDelete={(key: string, itemIndex: number) => {
             deleteFeaturedContent(key, itemIndex)
           }}
         />
       </div>
+
+      {/* Insert Below Button */}
+      {editorMode === 'edit' && (
+        <SectionInsertButton
+          position="below"
+          relativeTo={sectionKey}
+          onInsert={() => handleInsertClick('below')}
+          visible={isHovered}
+        />
+      )}
+    </div>
 
       {/* Settings Modal - rendered outside conditional to prevent unmounting on hover loss */}
       <SectionSettingsModal
@@ -265,6 +310,15 @@ export function EditableCustomerSiteSection({
         sectionKey={sectionKey}
         sectionType={mergedSection.type}
         onConfirm={handleDeleteSection}
+      />
+
+      {/* Add Section Modal - for inserting sections above/below */}
+      <AddSectionModal
+        isOpen={showAddSectionModal}
+        onClose={() => setShowAddSectionModal(false)}
+        currentLayout={layout}
+        existingSections={pageContent ? Object.keys(pageContent.sections) : []}
+        onAddSection={handleAddSection}
       />
     </>
     )
@@ -289,19 +343,32 @@ export function EditableCustomerSiteSection({
   return (
     <>
       <div
-        className={`relative ${className} ${isFallbackHidden ? 'opacity-50' : ''}`}
+        className="relative"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={() => setActiveSection(sectionKey)}
-        data-section-key={sectionKey}
-        data-edit-mode="true"
-        data-section-hidden={isFallbackHidden}
-        style={{
-          outline: showControls ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
-          outlineOffset: '4px',
-          transition: 'outline 0.2s ease, opacity 0.2s ease'
-        }}
       >
+        {/* Insert Above Button */}
+        {editorMode === 'edit' && (
+          <SectionInsertButton
+            position="above"
+            relativeTo={sectionKey}
+            onInsert={() => handleInsertClick('above')}
+            visible={isHovered}
+          />
+        )}
+
+        <div
+          className={`relative ${className} ${isFallbackHidden ? 'opacity-50' : ''}`}
+          onClick={() => setActiveSection(sectionKey)}
+          data-section-key={sectionKey}
+          data-edit-mode="true"
+          data-section-hidden={isFallbackHidden}
+          style={{
+            outline: showControls ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
+            outlineOffset: '4px',
+            transition: 'outline 0.2s ease, opacity 0.2s ease'
+          }}
+        >
         {/* Hidden Section Badge */}
         {isFallbackHidden && (
           <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-gray-900 text-white text-xs font-medium rounded shadow-lg">
@@ -323,6 +390,17 @@ export function EditableCustomerSiteSection({
         {children}
       </div>
 
+      {/* Insert Below Button */}
+      {editorMode === 'edit' && (
+        <SectionInsertButton
+          position="below"
+          relativeTo={sectionKey}
+          onInsert={() => handleInsertClick('below')}
+          visible={isHovered}
+        />
+      )}
+    </div>
+
       {/* Settings Modal - rendered outside conditional to prevent unmounting on hover loss */}
       <SectionSettingsModal
         isOpen={showSettingsModal}
@@ -342,6 +420,15 @@ export function EditableCustomerSiteSection({
         sectionKey={sectionKey}
         sectionType={section.type}
         onConfirm={handleDeleteSection}
+      />
+
+      {/* Add Section Modal - for inserting sections above/below */}
+      <AddSectionModal
+        isOpen={showAddSectionModal}
+        onClose={() => setShowAddSectionModal(false)}
+        currentLayout={layout}
+        existingSections={pageContent ? Object.keys(pageContent.sections) : []}
+        onAddSection={handleAddSection}
       />
     </>
   )
