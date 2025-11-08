@@ -51,9 +51,16 @@ export function useVisualEditorHelpers({
     highlightElement,
     getElementByPath
   } = visualEditor
-  
+
   const registeredElements = useRef<Set<string>>(new Set())
-  
+  // Use a ref to track the latest content to avoid stale closure issues
+  const contentRef = useRef(content)
+
+  // Update contentRef whenever content changes
+  useEffect(() => {
+    contentRef.current = content
+  }, [content])
+
   // Handle element clicks for editing
   const handleElementClick = useCallback((event: MouseEvent, element: EditableElement) => {
     event.preventDefault()
@@ -73,43 +80,45 @@ export function useVisualEditorHelpers({
   
   // Update content and propagate changes
   const updateContent = useCallback((fieldPath: string, newContent: string) => {
-    if (!content || !onContentChange) return
-    
+    // Use contentRef.current to get the latest content, avoiding stale closure issues
+    const currentContent = contentRef.current
+    if (!currentContent || !onContentChange) return
+
     // Parse field path (e.g., "sections.hero.data.title")
     const pathParts = fieldPath.split('.')
-    
+
     if (pathParts[0] === 'sections' && pathParts.length >= 4) {
       const sectionKey = pathParts[1]
       const dataField = pathParts[3]
-      
+
       const updatedContent: PageContent = {
-        ...content,
+        ...currentContent,
         sections: {
-          ...content.sections,
+          ...currentContent.sections,
           [sectionKey]: {
-            ...content.sections[sectionKey],
+            ...currentContent.sections[sectionKey],
             data: {
-              ...content.sections[sectionKey]?.data,
+              ...currentContent.sections[sectionKey]?.data,
               [dataField]: newContent
             }
           }
         }
       }
-      
+
       onContentChange(updatedContent)
     } else if (pathParts.length === 1) {
       // Top-level field like "title"
       const updatedContent = {
-        ...content,
+        ...currentContent,
         [fieldPath]: newContent
       } as PageContent
-      
+
       onContentChange(updatedContent)
     }
-    
+
     // Also update through visual editor for debounced auto-save
     updateElementContent(fieldPath, newContent)
-  }, [content, onContentChange, updateElementContent])
+  }, [onContentChange, updateElementContent])
   
   // Create consistent element IDs
   const createElementId = useCallback((sectionKey: string, fieldPath: string) => {
