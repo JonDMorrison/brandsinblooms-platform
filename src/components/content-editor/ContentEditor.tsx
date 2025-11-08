@@ -17,6 +17,7 @@ import { toast } from 'sonner'
 // Import all section editor components from centralized index
 import {
   HeroEditor,
+  HeaderEditor,
   FeaturedEditor,
   CategoriesEditor,
   RichTextSectionEditor,
@@ -103,6 +104,7 @@ const SectionEditor = function SectionEditor({
   const getSectionIcon = (type: ContentSectionType) => {
     const iconMap = {
       hero: '🦸',
+      header: '📌',
       richText: '📝',
       text: '📄',
       image: '🖼️',
@@ -142,6 +144,9 @@ const SectionEditor = function SectionEditor({
     switch (section.type) {
       case 'hero':
         return <HeroEditor {...commonProps} />
+
+      case 'header':
+        return <HeaderEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
 
       case 'blogHeader':
         return <BlogHeaderEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />

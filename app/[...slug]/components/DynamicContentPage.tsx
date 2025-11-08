@@ -239,10 +239,13 @@ export async function DynamicContentPage({ slug, isEditMode = false }: DynamicCo
                     <style dangerouslySetInnerHTML={{
                       __html: `
                         .blog-article-content h1 {
-                          margin-top: 2rem !important;
+                          margin-top: 3rem !important;
                         }
                         .blog-article-content h2 {
                           margin-top: 1rem !important;
+                        }
+                        .blog-article-content p {
+                          margin-bottom: 1rem !important;
                         }
                       `
                     }} />
