@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -159,6 +159,14 @@ function PageEditorContent() {
     setHasUnsavedChanges(true);
   }, []);
 
+  // Ref to track the latest pageData for synchronous access in save handlers
+  const pageDataRef = useRef<PageData | null>(null);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    pageDataRef.current = pageData;
+  }, [pageData]);
+
   // Memoized callback for EditorSidebar to prevent infinite re-renders
   const handleSidebarContentChange = useCallback((content: PageContent, hasChanges: boolean) => {
     // Sync blogHeader.data.title to content.title for blog posts
@@ -216,9 +224,12 @@ function PageEditorContent() {
         }
       );
 
+      // Use ref to get the latest title value to avoid race condition with async state updates
+      const currentTitle = pageDataRef.current?.title || pageData.title || '';
+
       // Use server action with cache revalidation to ensure updates appear immediately
       const result = await updateContentWithRevalidation(currentSite.id, contentId, {
-        title: pageData.title || '',
+        title: currentTitle,
         meta_data: JSON.parse(JSON.stringify(metaData)),
         content: contentData,
         content_type: mapLayoutToContentType(unifiedContent.layout),
