@@ -723,8 +723,8 @@ export function CreateContentModal({
                   )}
                 />
 
-                {/* Blog Post Metadata Fields */}
-                {selectedPageType === 'blog_post' && (
+                {/* Blog Post Metadata Fields - Hidden in blog mode (Step 1 only asks for title) */}
+                {selectedPageType === 'blog_post' && !isBlogPostMode && (
                   <div className="space-y-4 mt-6 pt-6 border-t">
                     <p className="text-sm font-semibold text-gray-700">Blog Post Metadata</p>
 
