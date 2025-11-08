@@ -16,7 +16,8 @@ import { Link as LinkIcon, Palette } from 'lucide-react'
 import { ButtonLinkField } from '@/src/components/content-editor/editors/shared/ButtonLinkField'
 import { isExternalUrl, normalizeUrl } from '@/src/lib/utils/links'
 import { ButtonStyleVariant } from '@/src/lib/content/schema'
-import { getButtonStyleDescription } from '@/src/lib/utils/button-styles'
+import { getButtonStyleDescription, getButtonStyles, getButtonClassName } from '@/src/lib/utils/button-styles'
+import { useSiteTheme } from '@/src/hooks/useSiteTheme'
 
 interface LinkEditModalProps {
   isOpen: boolean
@@ -41,6 +42,7 @@ export function LinkEditModal({
 }: LinkEditModalProps) {
   const [url, setUrl] = useState(currentUrl)
   const [style, setStyle] = useState<ButtonStyleVariant>(currentStyle)
+  const { theme } = useSiteTheme()
 
   // Reset URL and style when modal opens
   useEffect(() => {
@@ -49,6 +51,11 @@ export function LinkEditModal({
       setStyle(currentStyle || 'primary')
     }
   }, [isOpen, currentUrl, currentStyle])
+
+  // Get theme colors with fallbacks
+  const primaryColor = theme?.colors?.primary || '#4F46E5'
+  const secondaryColor = theme?.colors?.secondary || '#10B981'
+  const accentColor = theme?.colors?.accent || '#F59E0B'
 
   const handleSave = () => {
     // Normalize URL for external links
@@ -134,7 +141,10 @@ export function LinkEditModal({
                 <RadioGroup value={style} onValueChange={(value) => setStyle(value as ButtonStyleVariant)}>
                   <div className="space-y-2">
                     {/* Primary Button Option */}
-                    <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors">
+                    <div
+                      className="flex items-start space-x-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => setStyle('primary')}
+                    >
                       <RadioGroupItem value="primary" id="style-primary" className="mt-0.5" />
                       <div className="flex-1">
                         <Label htmlFor="style-primary" className="font-semibold cursor-pointer">
@@ -146,8 +156,9 @@ export function LinkEditModal({
                         <div
                           className="mt-2 inline-block px-4 py-2 rounded-md text-sm font-semibold"
                           style={{
-                            backgroundColor: 'var(--theme-primary)',
-                            color: 'white'
+                            backgroundColor: primaryColor,
+                            color: 'white',
+                            border: 'none'
                           }}
                         >
                           Preview
@@ -156,7 +167,10 @@ export function LinkEditModal({
                     </div>
 
                     {/* Secondary Button Option */}
-                    <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors">
+                    <div
+                      className="flex items-start space-x-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => setStyle('secondary')}
+                    >
                       <RadioGroupItem value="secondary" id="style-secondary" className="mt-0.5" />
                       <div className="flex-1">
                         <Label htmlFor="style-secondary" className="font-semibold cursor-pointer">
@@ -166,11 +180,11 @@ export function LinkEditModal({
                           {getButtonStyleDescription('secondary')}
                         </p>
                         <div
-                          className="mt-2 inline-block px-4 py-2 rounded-md text-sm font-semibold border-2"
+                          className="mt-2 inline-block px-4 py-2 rounded-md text-sm font-semibold"
                           style={{
-                            borderColor: 'var(--theme-secondary)',
-                            color: 'var(--theme-secondary)',
-                            backgroundColor: 'transparent'
+                            backgroundColor: 'transparent',
+                            color: secondaryColor,
+                            border: `2px solid ${secondaryColor}`
                           }}
                         >
                           Preview
@@ -179,7 +193,10 @@ export function LinkEditModal({
                     </div>
 
                     {/* Accent Button Option */}
-                    <div className="flex items-start space-x-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors">
+                    <div
+                      className="flex items-start space-x-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => setStyle('accent')}
+                    >
                       <RadioGroupItem value="accent" id="style-accent" className="mt-0.5" />
                       <div className="flex-1">
                         <Label htmlFor="style-accent" className="font-semibold cursor-pointer">
@@ -191,8 +208,9 @@ export function LinkEditModal({
                         <div
                           className="mt-2 inline-block px-4 py-2 rounded-md text-sm font-semibold"
                           style={{
-                            backgroundColor: 'var(--theme-accent)',
-                            color: 'white'
+                            backgroundColor: accentColor,
+                            color: 'white',
+                            border: 'none'
                           }}
                         >
                           Preview
