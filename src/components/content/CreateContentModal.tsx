@@ -273,6 +273,37 @@ export function CreateContentModal({
     }
   })
 
+  // Reset form and state when modal opens or defaultPageType changes
+  useEffect(() => {
+    if (open) {
+      const pageType = defaultPageType || 'landing'
+      const template = defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page'
+
+      // Update state
+      setSelectedPageType(pageType)
+      setSelectedTemplate(template)
+      setStep(1)
+
+      // Reset form with correct defaultPageType
+      form.reset({
+        title: '',
+        layout: pageType,
+        template: template,
+        subtitle: '',
+        featured_image: '',
+        author_id: user?.id || '',
+        publish_date: undefined
+      })
+
+      // Reset validation state
+      setSlugValidationStatus('idle')
+      setSlugValidationMessage('')
+      setGeneratedSlug('')
+      setIsValidatingSlug(false)
+      setUseMockData(true)
+    }
+  }, [open, defaultPageType, user?.id, form])
+
   // Get current template options based on selected page type
   // In blog mode, always use blog templates regardless of selectedPageType state
   const currentTemplateOptions = isBlogPostMode ? blogTemplateOptions :
@@ -400,30 +431,9 @@ export function CreateContentModal({
     }
   }
 
-  const resetModal = () => {
-    setStep(1)
-    setSelectedPageType(defaultPageType || 'landing')
-    setSelectedTemplate(defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page')
-    setUseMockData(true)
-    setSlugValidationStatus('idle')
-    setSlugValidationMessage('')
-    setIsValidatingSlug(false)
-    setGeneratedSlug('')
-    form.reset({
-      title: '',
-      layout: defaultPageType || 'landing',
-      template: defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page',
-      subtitle: '',
-      featured_image: '',
-      author_id: user?.id || '',
-      publish_date: undefined
-    })
-  }
-
   const handleModalClose = (open: boolean) => {
-    if (!open) {
-      resetModal()
-    }
+    // Reset is now handled by useEffect when modal opens
+    // No need to reset on close since useEffect will reset on next open
     onOpenChange(open)
   }
 
