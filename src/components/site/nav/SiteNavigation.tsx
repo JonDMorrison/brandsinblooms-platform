@@ -33,6 +33,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   // Check if site has published blog posts
   const { data: hasBlogPosts, isLoading: isLoadingBlogCheck } = useHasBlogPosts(site?.id)
 
+
   // Get navigation configuration from theme settings
   const theme = designSettings
   const menuStyle = theme?.layout?.menuStyle || 'horizontal'
@@ -74,7 +75,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
 
       // Show blog items only if posts exist OR user can edit
       // (editors should see blog nav even without posts)
-      return hasBlogPosts || canEdit;
+      return hasBlogPosts === true || canEdit;
     });
   }, [allNavItems, hasBlogPosts, canEdit, isLoadingBlogCheck])
   
