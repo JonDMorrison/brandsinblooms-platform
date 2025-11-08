@@ -132,7 +132,7 @@ export async function BlogIndexPage() {
                       <div className="flex-1">
                         {htmlContent ? (
                           <div
-                            className="prose prose-lg max-w-none prose-headings:mt-8 prose-headings:mb-4 prose-h1:mt-10 prose-h2:mt-8 prose-h3:mt-6"
+                            className="blog-article-content prose prose-lg max-w-none"
                             style={{
                               fontFamily: 'var(--theme-font-body)',
                               color: 'var(--theme-text)'
@@ -147,6 +147,16 @@ export async function BlogIndexPage() {
                             No content available
                           </div>
                         )}
+                        <style dangerouslySetInnerHTML={{
+                          __html: `
+                            .blog-article-content h1 {
+                              margin-top: 2rem !important;
+                            }
+                            .blog-article-content h2 {
+                              margin-top: 1rem !important;
+                            }
+                          `
+                        }} />
                       </div>
                     </article>
                   )
