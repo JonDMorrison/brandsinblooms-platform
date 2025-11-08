@@ -130,20 +130,24 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
       version: '1.0',
       layout: 'blog',
       sections: {
-        header: {
-          type: 'hero',
-          visible: true,
-          order: 0,
-          data: {
-            content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p class="text-sm text-gray-500">Published on ${new Date().toLocaleDateString()}</p>`
-          }
-        },
-        content: {
-          type: 'richText',
+        blogHeader: {
+          type: 'blogHeader',
           visible: true,
           order: 1,
           data: {
-            content: `<h2>Introduction</h2><p>Start your blog post with an engaging introduction that captures your reader's attention.</p><h2>Main Content</h2><p>This is where you'll add the main body of your blog post. Use headings, paragraphs, lists, and images to structure your content effectively.</p><h2>Conclusion</h2><p>Wrap up your post with a strong conclusion that summarizes your key points and encourages reader engagement.</p>`
+            title: title || '',
+            subtitle: subtitle || '',
+            author: '',
+            publishedDate: new Date().toISOString().split('T')[0],
+            image: ''
+          }
+        },
+        content: {
+          type: 'content',
+          visible: true,
+          order: 2,
+          data: {
+            richText: `<h2>Introduction</h2><p>Start your blog post with an engaging introduction that captures your reader's attention.</p><h2>Main Content</h2><p>This is where you'll add the main body of your blog post. Use headings, paragraphs, lists, and images to structure your content effectively.</p><h2>Conclusion</h2><p>Wrap up your post with a strong conclusion that summarizes your key points and encourages reader engagement.</p>`
           }
         }
       }
@@ -511,7 +515,16 @@ export function getTemplateContent(
   // If simple complexity is requested, return basic template regardless of template choice
   if (config.complexity === 'simple') {
     // Determine layout based on template ID
-    const layout = templateId.includes('about') ? 'about' : 'landing'
+    let layout: LayoutType = 'landing'
+    if (templateId.includes('about')) {
+      layout = 'about'
+    } else if (templateId.includes('blog')) {
+      layout = 'blog'
+    } else if (templateId.includes('contact')) {
+      layout = 'contact'
+    } else if (templateId.includes('portfolio')) {
+      layout = 'portfolio'
+    }
     return getBasicLayoutTemplate(layout, title, subtitle)
   }
 
