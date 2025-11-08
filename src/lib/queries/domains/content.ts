@@ -416,10 +416,7 @@ export async function getContentByType(
 ): Promise<ContentWithTags[]> {
   const query = supabase
     .from('content')
-    .select(`
-      *,
-      author:profiles!author_id(id, full_name, avatar_url)
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('content_type', contentType)
     .order('created_at', { ascending: false });
@@ -428,6 +425,7 @@ export async function getContentByType(
   return data.map((item: any) => ({
     ...item,
     tags: [],
+    author: null,
   }));
 }
 
@@ -441,10 +439,7 @@ export async function getPublishedContent(
 ): Promise<ContentWithTags[]> {
   let query = supabase
     .from('content')
-    .select(`
-      *,
-      author:profiles!author_id(id, full_name, avatar_url)
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('is_published', true)
     .order('published_at', { ascending: false });
@@ -457,6 +452,7 @@ export async function getPublishedContent(
   return data.map((item: any) => ({
     ...item,
     tags: [],
+    author: null,
   }));
 }
 
@@ -493,10 +489,7 @@ export async function searchContent(
 ): Promise<ContentWithTags[]> {
   const query = supabase
     .from('content')
-    .select(`
-      *,
-      author:profiles!author_id(id, full_name, avatar_url)
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .ilike('title', `%${searchQuery}%`)
     .order('created_at', { ascending: false });
@@ -505,6 +498,7 @@ export async function searchContent(
   return data.map((item: any) => ({
     ...item,
     tags: [],
+    author: null,
   }));
 }
 
