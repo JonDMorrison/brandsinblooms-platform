@@ -1678,14 +1678,16 @@ function enhanceBlogTemplate(
     version: '1.0',
     layout: 'blog',
     sections: {
-      header: {
-        type: 'hero',
+      blogHeader: {
+        type: 'blogHeader',
         visible: true,
         order: 0,
         data: {
-          content: `<h1>${title || 'Digital Transformation: A Strategic Guide'}</h1>
-<p class="text-xl text-gray-600">${subtitle || 'Insights and strategies for navigating the modern business landscape'}</p>
-<p class="text-sm text-gray-500">Published on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} · 8 min read</p>`
+          title: title || 'Digital Transformation: A Strategic Guide',
+          subtitle: subtitle || 'Insights and strategies for navigating the modern business landscape',
+          author: 'Admin',
+          publishedDate: new Date().toISOString(),
+          image: ''
         }
       },
       content: {
@@ -1721,13 +1723,16 @@ function getMinimalBlogTemplate(
     version: '1.0',
     layout: 'blog',
     sections: {
-      header: {
-        type: 'hero',
+      blogHeader: {
+        type: 'blogHeader',
         visible: true,
         order: 0,
         data: {
-          content: `<h1>${title || 'Blog Post Title'}</h1>
-<p class="text-xl text-gray-600">${subtitle || 'A brief description of your blog post'}</p>`
+          title: title || 'Blog Post Title',
+          subtitle: subtitle || 'A brief description of your blog post',
+          author: 'Admin',
+          publishedDate: new Date().toISOString(),
+          image: ''
         }
       },
       content: {

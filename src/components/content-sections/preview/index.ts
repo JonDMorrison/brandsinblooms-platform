@@ -8,6 +8,7 @@ export { PlantShopPreview, useResponsivePlantGrid, usePreviewThemeInjection } fr
 // Core section preview components
 export { HeroPreview } from './HeroPreview'
 export { HeaderPreview } from './HeaderPreview'
+export { BlogHeaderPreview } from './BlogHeaderPreview'
 export { FeaturedPreview } from './FeaturedPreview'
 export { CategoriesPreview } from './CategoriesPreview'
 export { FeaturesPreview } from './FeaturesPreview'

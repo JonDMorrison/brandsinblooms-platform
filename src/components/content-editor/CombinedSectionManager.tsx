@@ -156,6 +156,7 @@ function ExpandableSectionCard({
     const iconMap: Record<string, string> = {
       hero: '🦸',
       header: '📋',
+      blogHeader: '📰',
       richText: '📝',
       text: '📄',
       image: '🖼️',
@@ -460,6 +461,7 @@ function AddSectionCard({ sectionType, onAddSection }: AddSectionCardProps) {
     const iconMap: Record<string, string> = {
       hero: '🦸',
       header: '📋',
+      blogHeader: '📰',
       richText: '📝',
       text: '📄',
       image: '🖼️',

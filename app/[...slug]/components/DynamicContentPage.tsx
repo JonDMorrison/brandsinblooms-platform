@@ -8,7 +8,6 @@ import { getLayoutSections } from '@/src/lib/preview/section-renderers'
 import { CustomerSiteSection } from '@/src/components/customer-site/CustomerSiteSection'
 import { EditableCustomerSiteSection } from '@/src/components/site-editor/EditableCustomerSiteSection'
 import { ContentSection } from '@/src/lib/content/schema'
-import { BlogPostHeader } from './BlogPostHeader'
 
 interface DynamicContentPageProps {
   slug: string
@@ -81,29 +80,12 @@ export async function DynamicContentPage({ slug, isEditMode = false }: DynamicCo
     })
   }
   
-  // Check if this is a blog post
-  const isBlogPost = contentResult.content_type === 'blog_post'
-
-  // Extract metadata for blog posts
-  const metaData = contentResult.meta_data as Record<string, unknown> | null
-
   return (
     <SiteRenderer
       siteId={siteId}
       mode="live"
       showNavigation={true}
     >
-      {/* Render blog post header for blog posts */}
-      {isBlogPost && (
-        <BlogPostHeader
-          title={contentResult.title}
-          subtitle={metaData?.subtitle as string | undefined}
-          featuredImage={metaData?.featured_image as string | undefined}
-          author={contentResult.author as { full_name: string; avatar_url?: string } | null | undefined}
-          publishedAt={contentResult.published_at}
-        />
-      )}
-
       {/* Render sections in database order */}
       {orderedSections.map(({ key, section }) => {
         const sectionInfo = sectionDataMap[key]

@@ -6,6 +6,7 @@
 // New extracted inline editor components
 export { HeroEditor } from './HeroEditor'
 export { HeaderEditor } from './HeaderEditor'
+export { BlogHeaderEditor } from './BlogHeaderEditor'
 export { FeaturedEditor } from './FeaturedEditor'
 export { CategoriesEditor } from './CategoriesEditor'
 export { RichTextSectionEditor } from './RichTextSectionEditor'
