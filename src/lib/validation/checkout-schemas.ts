@@ -7,6 +7,32 @@
 import { z } from 'zod'
 
 // =============================================
+// UUID VALIDATORS
+// =============================================
+
+/**
+ * Test/Development UUID pattern
+ * Allows special test UUIDs like 00000000-0000-0000-0000-000000000001
+ * These are used in seed data and development environments
+ */
+const testUuidPattern = /^00000000-0000-0000-0000-00000000000[01]$/
+
+/**
+ * Relaxed UUID validator that accepts:
+ * - Standard RFC 4122 UUIDs
+ * - Test/development UUIDs (all zeros with trailing 0 or 1)
+ */
+const uuidOrTestUuid = z.string().refine(
+  (val) => {
+    // Accept test UUIDs
+    if (testUuidPattern.test(val)) return true
+    // Accept standard UUIDs using Zod's built-in validator
+    return z.string().uuid().safeParse(val).success
+  },
+  { message: 'Must be a valid UUID or test UUID' }
+)
+
+// =============================================
 // SHIPPING ADDRESS SCHEMA
 // =============================================
 
@@ -44,10 +70,10 @@ export type CheckoutFormData = z.infer<typeof checkoutFormSchema>
 // =============================================
 
 export const createPaymentIntentSchema = z.object({
-  siteId: z.string().uuid(),
+  siteId: uuidOrTestUuid,
   cartItems: z.array(
     z.object({
-      productId: z.string().uuid(),
+      productId: uuidOrTestUuid,
       quantity: z.number().int().positive(),
       price: z.number().positive(),
     })
@@ -62,11 +88,11 @@ export type CreatePaymentIntentData = z.infer<typeof createPaymentIntentSchema>
 // =============================================
 
 export const createOrderSchema = z.object({
-  siteId: z.string().uuid(),
+  siteId: uuidOrTestUuid,
   stripePaymentIntentId: z.string().startsWith('pi_'),
   cartItems: z.array(
     z.object({
-      productId: z.string().uuid(),
+      productId: uuidOrTestUuid,
       productName: z.string(),
       productSku: z.string().optional(),
       quantity: z.number().int().positive(),
