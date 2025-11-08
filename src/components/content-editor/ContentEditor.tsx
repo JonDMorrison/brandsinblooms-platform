@@ -40,7 +40,8 @@ import {
   PlantComparisonEditor,
   CareCalendarEditor,
   PlantBenefitsEditor,
-  SoilGuideEditor
+  SoilGuideEditor,
+  BlogHeaderEditor
 } from './editors'
 
 // Import the CTAEditor component
@@ -117,6 +118,7 @@ const SectionEditor = function SectionEditor({
       mission: '🎯',
       values: '💎',
       specifications: '📋',
+      blogHeader: '📰',
       // Plant shop specific icons
       plant_showcase: '🌟',
       plant_grid: '🌿',
@@ -140,7 +142,10 @@ const SectionEditor = function SectionEditor({
     switch (section.type) {
       case 'hero':
         return <HeroEditor {...commonProps} />
-        
+
+      case 'blogHeader':
+        return <BlogHeaderEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
+
       case 'featured':
         return <FeaturedEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         
