@@ -257,7 +257,16 @@ function PageEditorContent() {
             contentEditorRef={contentEditorRef}
             onLayoutChange={handleLayoutChange}
             onContentSave={handleContentSave}
-            onContentChange={handleContentChange}
+            onContentChange={(content, hasChanges) => {
+              // Sync blogHeader.data.title to content.title for blog posts
+              if (pageData?.layout === 'blog' && content.sections.blogHeader?.data?.title) {
+                const blogHeaderTitle = content.sections.blogHeader.data.title as string
+                if (pageData.title !== blogHeaderTitle) {
+                  handlePageTitleChange(blogHeaderTitle)
+                }
+              }
+              handleContentChange(content, hasChanges)
+            }}
             onTitleChange={handleTitleChange}
             onPageTitleChange={handlePageTitleChange}
             onSectionClick={setActiveSectionKey}
@@ -294,6 +303,13 @@ function PageEditorContent() {
                 : pageData.subtitle
             }
             onContentChange={(content) => {
+              // Sync blogHeader.data.title to content.title for blog posts
+              if (pageData?.layout === 'blog' && content.sections.blogHeader?.data?.title) {
+                const blogHeaderTitle = content.sections.blogHeader.data.title as string
+                if (pageData.title !== blogHeaderTitle) {
+                  handlePageTitleChange(blogHeaderTitle)
+                }
+              }
               handleContentChange(content, true);
             }}
             onTitleChange={handleTitleChange}
