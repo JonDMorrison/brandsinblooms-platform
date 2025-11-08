@@ -47,7 +47,7 @@ export async function BlogIndexPage() {
             </p>
           </div>
 
-          {/* Blog Posts Grid */}
+          {/* Blog Posts Layout */}
           {blogPosts.length === 0 ? (
             <div className="text-center py-12">
               <p
@@ -58,91 +58,168 @@ export async function BlogIndexPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {blogPosts.map((post: ContentWithTags) => {
-                const meta = (post.meta_data as BlogPostMeta) || {}
-                const excerpt = meta.excerpt || 'Read more...'
-                const postWithAuthor = post as ContentWithTags & { author?: { full_name?: string } }
-                const author = postWithAuthor.author?.full_name || meta.author || 'Anonymous'
-                const publishedDate = post.published_at
-                  ? new Date(post.published_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })
-                  : 'Recently'
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Latest Post - 2/3 width */}
+              <div className="lg:col-span-2">
+                {(() => {
+                  const latestPost = blogPosts[0]
+                  const meta = (latestPost.meta_data as BlogPostMeta) || {}
 
-                return (
-                  <Card
-                    key={post.id}
-                    className="flex flex-col hover:shadow-lg transition-shadow duration-300"
-                  >
-                    {/* Featured Image */}
-                    {meta.featured_image && (
-                      <div className="aspect-video w-full overflow-hidden rounded-t-lg relative">
+                  // Extract excerpt (first 300 chars from content or use meta excerpt)
+                  const getExcerpt = () => {
+                    if (meta.excerpt) return meta.excerpt
+                    if (latestPost.content && typeof latestPost.content === 'string') {
+                      const plainText = latestPost.content.replace(/<[^>]*>/g, '').trim()
+                      return plainText.length > 300
+                        ? plainText.substring(0, 300) + '...'
+                        : plainText
+                    }
+                    return 'Read more...'
+                  }
+
+                  const excerpt = getExcerpt()
+                  const postWithAuthor = latestPost as ContentWithTags & { author?: { full_name?: string } }
+                  const author = postWithAuthor.author?.full_name || meta.author || 'Anonymous'
+                  const publishedDate = latestPost.published_at
+                    ? new Date(latestPost.published_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
+                    : 'Recently'
+
+                  // Use featured image or placeholder
+                  const featuredImage = meta.featured_image || `https://picsum.photos/seed/${latestPost.id}/1200/675`
+
+                  return (
+                    <Card className="flex flex-col hover:shadow-xl transition-shadow duration-300">
+                      {/* Large Featured Image */}
+                      <div className="aspect-[16/9] w-full overflow-hidden rounded-t-lg relative">
                         <Image
-                          src={meta.featured_image}
-                          alt={post.title}
+                          src={featuredImage}
+                          alt={latestPost.title}
                           fill
                           className="object-cover hover:scale-105 transition-transform duration-300"
                         />
                       </div>
-                    )}
 
-                    <CardHeader>
-                      <div className="flex items-center gap-2 mb-3">
-                        {post.is_featured && (
-                          <Badge variant="secondary">Featured</Badge>
-                        )}
-                        {meta.reading_time && (
-                          <span className="text-xs text-gray-500">
-                            {meta.reading_time}
-                          </span>
-                        )}
-                      </div>
-                      <h2
-                        className="text-2xl font-bold line-clamp-2 hover:opacity-70 transition-opacity"
-                        style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)' }}
-                      >
-                        <Link href={`/${post.slug}`}>
-                          {post.title}
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Badge variant="default">Latest Post</Badge>
+                          {latestPost.is_featured && (
+                            <Badge variant="secondary">Featured</Badge>
+                          )}
+                          {meta.reading_time && (
+                            <span className="text-xs text-gray-500">
+                              {meta.reading_time}
+                            </span>
+                          )}
+                        </div>
+                        <h2
+                          className="text-3xl font-bold hover:opacity-70 transition-opacity"
+                          style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)' }}
+                        >
+                          <Link href={`/${latestPost.slug}`}>
+                            {latestPost.title}
+                          </Link>
+                        </h2>
+                      </CardHeader>
+
+                      <CardContent className="flex-1">
+                        {/* Full excerpt */}
+                        <p
+                          className="text-gray-600 mb-6 leading-relaxed"
+                          style={{ fontFamily: 'var(--theme-font-body)' }}
+                        >
+                          {excerpt}
+                        </p>
+
+                        {/* Author and Date */}
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <User className="w-4 h-4" />
+                            <span>{author}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>{publishedDate}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+
+                      <CardFooter>
+                        <Link
+                          href={`/${latestPost.slug}`}
+                          className="flex items-center gap-2 font-medium text-lg hover:opacity-70 transition-opacity"
+                          style={{ color: 'var(--theme-primary)' }}
+                        >
+                          Read More
+                          <ArrowRight className="w-5 h-5" />
                         </Link>
-                      </h2>
-                    </CardHeader>
+                      </CardFooter>
+                    </Card>
+                  )
+                })()}
+              </div>
 
-                    <CardContent className="flex-1">
+              {/* Past Posts List - 1/3 width */}
+              <div className="lg:col-span-1">
+                <Card className="h-full">
+                  <CardHeader>
+                    <h3
+                      className="text-xl font-bold"
+                      style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)' }}
+                    >
+                      Past Posts
+                    </h3>
+                  </CardHeader>
+                  <CardContent>
+                    {blogPosts.length > 1 ? (
+                      <div className="space-y-4">
+                        {blogPosts.slice(1).map((post: ContentWithTags) => {
+                          const publishedDate = post.published_at
+                            ? new Date(post.published_at).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })
+                            : 'Recently'
+
+                          return (
+                            <div
+                              key={post.id}
+                              className="pb-4 border-b border-gray-200 last:border-0 last:pb-0"
+                            >
+                              <Link
+                                href={`/${post.slug}`}
+                                className="group block"
+                              >
+                                <h4
+                                  className="font-semibold mb-1 group-hover:opacity-70 transition-opacity line-clamp-2"
+                                  style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)' }}
+                                >
+                                  {post.title}
+                                </h4>
+                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                  <Calendar className="w-3 h-3" />
+                                  <span>{publishedDate}</span>
+                                </div>
+                              </Link>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
                       <p
-                        className="text-gray-600 line-clamp-3 mb-4"
+                        className="text-sm text-gray-500"
                         style={{ fontFamily: 'var(--theme-font-body)' }}
                       >
-                        {excerpt}
+                        No other posts yet.
                       </p>
-
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>{publishedDate}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <User className="w-4 h-4" />
-                          <span>{author}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-
-                    <CardFooter>
-                      <Link
-                        href={`/${post.slug}`}
-                        className="flex items-center gap-2 font-medium hover:opacity-70 transition-opacity"
-                        style={{ color: 'var(--theme-primary)' }}
-                      >
-                        Read More
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </CardFooter>
-                  </Card>
-                )
-              })}
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
 

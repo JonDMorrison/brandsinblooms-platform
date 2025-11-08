@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { createContent, generateUniqueContentSlug } from '@/src/lib/queries/domains/content'
 import { supabase } from '@/src/lib/supabase/client'
 import { useSiteContext } from '@/src/contexts/SiteContext'
+import { useAuth } from '@/src/contexts/AuthContext'
 import { getTemplateContent } from '@/src/lib/content/templates'
 import { MOCK_DATA_PRESETS } from '@/src/lib/content/mock-data'
 import { serializePageContent } from '@/src/lib/content'
@@ -16,6 +17,9 @@ import { getDisplayErrorMessage } from '@/src/lib/queries/errors'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
+import { Textarea } from '@/src/components/ui/textarea'
+import { Calendar } from '@/src/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/src/components/ui/popover'
 import {
   Dialog,
   DialogContent,
@@ -34,6 +38,8 @@ import {
 import { Badge } from '@/src/components/ui/badge'
 import { Switch } from '@/src/components/ui/switch'
 import { toast } from 'sonner'
+import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 import {
   ArrowRight,
   Check,
@@ -41,13 +47,19 @@ import {
   Sparkles,
   Wand2,
   ArrowLeft,
-  Loader2
+  Loader2,
+  CalendarIcon
 } from 'lucide-react'
 
 const createContentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   layout: z.enum(['landing', 'about', 'contact', 'other', 'blog_post']),
-  template: z.string().optional()
+  template: z.string().optional(),
+  // Blog-specific metadata fields
+  subtitle: z.string().optional(),
+  featured_image: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  author_id: z.string().optional(),
+  publish_date: z.date().optional()
 })
 
 type CreateContentForm = z.infer<typeof createContentSchema>
@@ -229,6 +241,7 @@ export function CreateContentModal({
 }: CreateContentModalProps) {
   const router = useRouter()
   const { currentSite } = useSiteContext()
+  const { user } = useAuth()
 
   // Use override site ID if provided, otherwise use site context
   const activeSiteId = siteIdOverride || currentSite?.id
@@ -249,7 +262,11 @@ export function CreateContentModal({
     defaultValues: {
       title: '',
       layout: defaultPageType || 'landing',
-      template: defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page'
+      template: defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page',
+      subtitle: '',
+      featured_image: '',
+      author_id: user?.id || '',
+      publish_date: undefined
     }
   })
 
@@ -274,6 +291,21 @@ export function CreateContentModal({
       'home-page'
     setSelectedTemplate(defaultTemplate)
     form.setValue('template', defaultTemplate, { shouldValidate: true })
+
+    // Reset blog-specific fields when switching to/from blog_post
+    if (pageType === 'blog_post') {
+      // Initialize blog fields with defaults
+      form.setValue('author_id', user?.id || '')
+      form.setValue('subtitle', '')
+      form.setValue('featured_image', '')
+      form.setValue('publish_date', undefined)
+    } else {
+      // Clear blog fields when switching to other types
+      form.setValue('subtitle', '')
+      form.setValue('featured_image', '')
+      form.setValue('author_id', '')
+      form.setValue('publish_date', undefined)
+    }
   }
 
   const handleTemplateSelect = (templateId: string) => {
@@ -362,7 +394,11 @@ export function CreateContentModal({
     form.reset({
       title: '',
       layout: defaultPageType || 'landing',
-      template: defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page'
+      template: defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page',
+      subtitle: '',
+      featured_image: '',
+      author_id: user?.id || '',
+      publish_date: undefined
     })
   }
 
@@ -413,9 +449,15 @@ export function CreateContentModal({
         content: serializedContent,
         is_published: false,
         is_featured: false,
+        author_id: isBlogPost && data.author_id ? data.author_id : null,
+        published_at: isBlogPost && data.publish_date ? data.publish_date.toISOString() : null,
         meta_data: {
           layout: layoutValue,
-          template: selectedTemplateName
+          template: selectedTemplateName,
+          ...(isBlogPost && {
+            subtitle: data.subtitle || null,
+            featured_image: data.featured_image || null
+          })
         }
       }
 
@@ -546,6 +588,102 @@ export function CreateContentModal({
                   )}
                 />
 
+                {/* Blog Post Metadata Fields */}
+                {selectedPageType === 'blog_post' && (
+                  <div className="space-y-4 mt-6 pt-6 border-t">
+                    <p className="text-sm font-semibold text-gray-700">Blog Post Metadata</p>
+
+                    {/* Subtitle */}
+                    <FormField
+                      control={form.control}
+                      name="subtitle"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subtitle (Optional)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Enter a brief description or subtitle for your blog post"
+                              className="min-h-[80px] resize-none"
+                              {...field}
+                            />
+                          </FormControl>
+                          <p className="text-xs text-gray-500">
+                            Used as the blog post description/excerpt
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Featured Image URL */}
+                    <FormField
+                      control={form.control}
+                      name="featured_image"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Featured Image URL (Optional)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://example.com/image.jpg"
+                              {...field}
+                            />
+                          </FormControl>
+                          <p className="text-xs text-gray-500">
+                            Enter a URL to an image that will be displayed in the blog index and post header
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Publish Date */}
+                    <FormField
+                      control={form.control}
+                      name="publish_date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Scheduled Publish Date (Optional)</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    'w-full pl-3 text-left font-normal',
+                                    !field.value && 'text-muted-foreground'
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, 'PPP')
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date < new Date(new Date().setHours(0, 0, 0, 0))
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <p className="text-xs text-gray-500">
+                            Set when this post should be published (only applies when published)
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
 
                 <div className="p-6 border rounded-xl bg-gradient-to-br from-blue-50 to-emerald-50 border-green-200">
                   <div className="flex items-center justify-between">

@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Search, ShoppingCart } from 'lucide-react'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { useCartContext } from '@/src/contexts/CartContext'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useDesignSettings } from '@/src/hooks/useDesignSettings'
+import { useHasBlogPosts } from '@/src/hooks/useHasBlogPosts'
 import { useIsEditModeActive } from '@/src/contexts/FullSiteEditorContext'
 import { Button } from '@/src/components/ui/button'
 import { cn } from '@/src/lib/utils'
@@ -27,6 +28,9 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const isEditMode = useIsEditModeActive()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+
+  // Check if site has published blog posts
+  const { data: hasBlogPosts, isLoading: isLoadingBlogCheck } = useHasBlogPosts(site?.id)
 
   // Get navigation configuration from theme settings
   const theme = designSettings
@@ -53,7 +57,28 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
       ]
 
   // Combine required items (Products) with optional items
-  const navItems = [...requiredNavItems, ...optionalNavItems]
+  const allNavItems = [...requiredNavItems, ...optionalNavItems]
+
+  // Filter out Blog navigation if no published blog posts exist
+  // Only filter during normal operation, not while loading
+  const navItems = useMemo(() => {
+    // During loading, show all items to prevent layout shift
+    if (isLoadingBlogCheck) {
+      return allNavItems;
+    }
+
+    // Filter out blog navigation if no posts exist
+    return allNavItems.filter((item) => {
+      // Keep non-blog items
+      if (!item.href.includes('/blog')) {
+        return true;
+      }
+
+      // Show blog items only if posts exist OR user can edit
+      // (editors should see blog nav even without posts)
+      return hasBlogPosts || canEdit;
+    });
+  }, [allNavItems, hasBlogPosts, canEdit, isLoadingBlogCheck])
   
   // Get branding configuration
   const brandingType = theme?.logo?.displayType || 'text'

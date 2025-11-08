@@ -46,6 +46,11 @@ export interface ContentWithTags extends Content {
     name: string;
     slug: string;
   }>;
+  author?: {
+    id: string;
+    full_name: string;
+    avatar_url?: string | null;
+  } | null;
 }
 
 /**
@@ -172,7 +177,10 @@ export async function getContentBySlug(
   // First try to get the most recent published version
   let response = await supabase
     .from('content')
-    .select('*')
+    .select(`
+      *,
+      author:profiles!author_id(id, full_name, avatar_url)
+    `)
     .eq('site_id', siteId)
     .eq('slug', slug)
     .eq('is_published', true)
@@ -186,7 +194,10 @@ export async function getContentBySlug(
   if (!data && !response.error) {
     response = await supabase
       .from('content')
-      .select('*')
+      .select(`
+        *,
+        author:profiles!author_id(id, full_name, avatar_url)
+      `)
       .eq('site_id', siteId)
       .eq('slug', slug)
       .order('updated_at', { ascending: false })
@@ -204,12 +215,15 @@ export async function getContentBySlug(
   if (!data) {
     return null as any; // Return null when content is not found instead of throwing error
   }
-  
-  // Transform tags (empty for now)
+
+  // Transform tags and author (empty tags for now, author from join)
   return {
     ...data,
     tags: [],
-  };
+    author: Array.isArray(data.author) && data.author.length > 0
+      ? data.author[0]
+      : data.author || null,
+  } as ContentWithTags;
 }
 
 /**
@@ -452,6 +466,29 @@ export async function getPublishedContent(
     ...item,
     tags: [],
   }));
+}
+
+/**
+ * Check if a site has any published blog posts
+ * Optimized query that only checks for existence (limit 1)
+ */
+export async function hasPublishedBlogPosts(
+  supabase: SupabaseClient<Database>,
+  siteId: string
+): Promise<boolean> {
+  const { count, error } = await supabase
+    .from('content')
+    .select('*', { count: 'exact', head: true })
+    .eq('site_id', siteId)
+    .eq('content_type', 'blog_post')
+    .eq('is_published', true);
+
+  if (error) {
+    console.error('Error checking for published blog posts:', error);
+    return false;
+  }
+
+  return (count ?? 0) > 0;
 }
 
 /**
