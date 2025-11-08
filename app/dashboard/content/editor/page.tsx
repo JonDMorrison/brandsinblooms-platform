@@ -153,17 +153,46 @@ function PageEditorContent() {
     setHasUnsavedChanges(true);
   };
 
-  const handlePageTitleChange = (title: string) => {
-    if (!pageData) return;
-    setPageData({ ...pageData, title });
-    if (unifiedContent) {
-      setUnifiedContent({
-        ...unifiedContent,
-        title
+  const handlePageTitleChange = useCallback((title: string) => {
+    setPageData((prev) => (prev ? { ...prev, title } : null));
+    setUnifiedContent((prev) => (prev ? { ...prev, title } : prev));
+    setHasUnsavedChanges(true);
+  }, []);
+
+  // Memoized callback for EditorSidebar to prevent infinite re-renders
+  const handleSidebarContentChange = useCallback((content: PageContent, hasChanges: boolean) => {
+    // Sync blogHeader.data.title to content.title for blog posts
+    if (content.sections.blogHeader?.data?.title) {
+      const blogHeaderTitle = content.sections.blogHeader.data.title as string;
+      setPageData((prev) => {
+        if (prev && prev.layout === 'blog' && prev.title !== blogHeaderTitle) {
+          return { ...prev, title: blogHeaderTitle };
+        }
+        return prev;
       });
     }
+    handleContentChange(content, hasChanges);
+  }, [handleContentChange]);
+
+  // Memoized callback for VisualEditor to prevent infinite re-renders
+  const handleVisualEditorContentChange = useCallback((content: PageContent) => {
+    // Sync blogHeader.data.title to content.title for blog posts
+    if (content.sections.blogHeader?.data?.title) {
+      const blogHeaderTitle = content.sections.blogHeader.data.title as string;
+      setPageData((prev) => {
+        if (prev && prev.layout === 'blog' && prev.title !== blogHeaderTitle) {
+          return { ...prev, title: blogHeaderTitle };
+        }
+        return prev;
+      });
+    }
+    handleContentChange(content, true);
+  }, [handleContentChange]);
+
+  const handleSubtitleChange = useCallback((subtitle: string) => {
+    setPageData((prev) => (prev ? { ...prev, subtitle } : null));
     setHasUnsavedChanges(true);
-  };
+  }, []);
 
   const handleSave = async () => {
     if (!contentId || !currentSite?.id || !unifiedContent || !pageData) {
@@ -257,16 +286,7 @@ function PageEditorContent() {
             contentEditorRef={contentEditorRef}
             onLayoutChange={handleLayoutChange}
             onContentSave={handleContentSave}
-            onContentChange={(content, hasChanges) => {
-              // Sync blogHeader.data.title to content.title for blog posts
-              if (pageData?.layout === 'blog' && content.sections.blogHeader?.data?.title) {
-                const blogHeaderTitle = content.sections.blogHeader.data.title as string
-                if (pageData.title !== blogHeaderTitle) {
-                  handlePageTitleChange(blogHeaderTitle)
-                }
-              }
-              handleContentChange(content, hasChanges)
-            }}
+            onContentChange={handleSidebarContentChange}
             onTitleChange={handleTitleChange}
             onPageTitleChange={handlePageTitleChange}
             onSectionClick={setActiveSectionKey}
@@ -302,21 +322,9 @@ function PageEditorContent() {
                 ? pageContent.sections.header.data.subtitle
                 : pageData.subtitle
             }
-            onContentChange={(content) => {
-              // Sync blogHeader.data.title to content.title for blog posts
-              if (pageData?.layout === 'blog' && content.sections.blogHeader?.data?.title) {
-                const blogHeaderTitle = content.sections.blogHeader.data.title as string
-                if (pageData.title !== blogHeaderTitle) {
-                  handlePageTitleChange(blogHeaderTitle)
-                }
-              }
-              handleContentChange(content, true);
-            }}
+            onContentChange={handleVisualEditorContentChange}
             onTitleChange={handleTitleChange}
-            onSubtitleChange={(subtitle) => {
-              setPageData((prev) => (prev ? { ...prev, subtitle } : null));
-              setHasUnsavedChanges(true);
-            }}
+            onSubtitleChange={handleSubtitleChange}
             viewport={activeViewport}
             className='h-full w-full'
           />
