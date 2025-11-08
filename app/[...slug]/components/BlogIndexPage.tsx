@@ -49,9 +49,36 @@ export async function BlogIndexPage() {
                   const latestPost = blogPosts[0]
                   const meta = (latestPost.meta_data as BlogPostMeta) || {}
 
-                  const postWithAuthor = latestPost as ContentWithTags & { author?: { full_name?: string } }
-                  const author = postWithAuthor.author?.full_name || meta.author || 'Anonymous'
-                  const publishedDate = latestPost.published_at
+                  // Extract blog header data from JSONB structure
+                  type BlogHeaderSections = {
+                    sections?: {
+                      blogHeader?: {
+                        data?: {
+                          title?: string
+                          subtitle?: string
+                          author?: string
+                          publishedDate?: string
+                          image?: string
+                        }
+                      }
+                    }
+                  }
+                  const contentData = latestPost.content
+                  const blogHeaderData = (contentData as BlogHeaderSections)?.sections?.blogHeader?.data || {}
+
+                  // Extract metadata from blogHeader section (preferred) or fallback to meta_data
+                  const subtitle = blogHeaderData.subtitle || meta.subtitle
+                  const author = blogHeaderData.author || meta.author || 'Anonymous'
+                  const featuredImage = blogHeaderData.image || meta.featured_image
+
+                  // Format published date from blogHeader or published_at
+                  const publishedDate = blogHeaderData.publishedDate
+                    ? new Date(blogHeaderData.publishedDate).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
+                    : latestPost.published_at
                     ? new Date(latestPost.published_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -61,7 +88,6 @@ export async function BlogIndexPage() {
 
                   // Extract HTML content from JSONB structure
                   // Structure: { sections: { content: { data: { content: "<html>" } } } }
-                  const contentData = latestPost.content
                   let htmlContent = ''
 
                   if (typeof contentData === 'string') {
@@ -78,10 +104,10 @@ export async function BlogIndexPage() {
                   return (
                     <article className="flex flex-col">
                       {/* Featured Image - only if exists */}
-                      {meta.featured_image && (
+                      {featuredImage && (
                         <div className="aspect-[16/9] w-full overflow-hidden rounded-lg relative mb-6">
                           <Image
-                            src={meta.featured_image}
+                            src={featuredImage}
                             alt={latestPost.title}
                             fill
                             className="object-cover"
@@ -106,12 +132,12 @@ export async function BlogIndexPage() {
                         >
                           {latestPost.title}
                         </h1>
-                        {meta.subtitle && (
+                        {subtitle && (
                           <p
                             className="text-xl mb-4"
                             style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)' }}
                           >
-                            {meta.subtitle}
+                            {subtitle}
                           </p>
                         )}
 
@@ -186,11 +212,34 @@ export async function BlogIndexPage() {
                     {blogPosts.length > 1 ? (
                       <nav className="space-y-6">
                         {blogPosts.slice(1).map((post: ContentWithTags) => {
+                          // Extract blog header data for each past post
+                          type BlogHeaderSections = {
+                            sections?: {
+                              blogHeader?: {
+                                data?: {
+                                  title?: string
+                                  subtitle?: string
+                                  author?: string
+                                  publishedDate?: string
+                                  image?: string
+                                }
+                              }
+                            }
+                          }
+                          const postContentData = post.content
+                          const postBlogHeaderData = (postContentData as BlogHeaderSections)?.sections?.blogHeader?.data || {}
                           const postMeta = (post.meta_data as BlogPostMeta) || {}
-                          const postWithAuthor = post as ContentWithTags & { author?: { full_name?: string } }
-                          const postAuthor = postWithAuthor.author?.full_name || postMeta.author
 
-                          const publishedDate = post.published_at
+                          const postSubtitle = postBlogHeaderData.subtitle || postMeta.subtitle
+                          const postAuthor = postBlogHeaderData.author || postMeta.author
+
+                          const publishedDate = postBlogHeaderData.publishedDate
+                            ? new Date(postBlogHeaderData.publishedDate).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })
+                            : post.published_at
                             ? new Date(post.published_at).toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'short',
@@ -216,12 +265,12 @@ export async function BlogIndexPage() {
                                 >
                                   {post.title}
                                 </h3>
-                                {postMeta.subtitle && (
+                                {postSubtitle && (
                                   <p
                                     className="text-sm mb-2 line-clamp-2"
                                     style={{ color: 'var(--theme-background)', opacity: 0.9, fontFamily: 'var(--theme-font-body)' }}
                                   >
-                                    {postMeta.subtitle}
+                                    {postSubtitle}
                                   </p>
                                 )}
                                 <div className="flex flex-col gap-1 text-xs" style={{ color: 'var(--theme-background)', opacity: 0.8 }}>
