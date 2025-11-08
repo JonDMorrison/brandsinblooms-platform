@@ -245,7 +245,10 @@ export function CreateContentModal({
 
   // Use override site ID if provided, otherwise use site context
   const activeSiteId = siteIdOverride || currentSite?.id
-  const [step, setStep] = useState(1)
+
+  // Determine if we're in blog post mode - if defaultPageType is blog_post, skip type selection
+  const isBlogPostMode = defaultPageType === 'blog_post'
+  const [step, setStep] = useState(isBlogPostMode ? 1 : 1) // Start at step 1 in both cases (type selection is now first)
   const [selectedPageType, setSelectedPageType] = useState<'landing' | 'about' | 'contact' | 'other' | 'blog_post'>(defaultPageType || 'landing')
   const [selectedTemplate, setSelectedTemplate] = useState<string>(defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page')
   const [isCreating, setIsCreating] = useState(false)
@@ -364,15 +367,29 @@ export function CreateContentModal({
   }, [form.watch('title'), validateSlugAvailability])
 
   const nextStep = () => {
-    if (step === 1) {
-      form.trigger(['title']).then((isValid) => {
-        // Just validate the title field, don't block on slug
-        if (isValid) {
-          setStep(2)
-        }
-      })
-    } else if (step === 2) {
-      setStep(3)
+    // If in blog post mode, we skip the type selection step
+    if (isBlogPostMode) {
+      // Step 1 (details) -> Step 2 (template)
+      if (step === 1) {
+        form.trigger(['title']).then((isValid) => {
+          if (isValid) {
+            setStep(2)
+          }
+        })
+      }
+    } else {
+      // Normal mode: Step 1 (type) -> Step 2 (details) -> Step 3 (template)
+      if (step === 1) {
+        // Type selection -> Details
+        setStep(2)
+      } else if (step === 2) {
+        // Details -> Template (validate title first)
+        form.trigger(['title']).then((isValid) => {
+          if (isValid) {
+            setStep(3)
+          }
+        })
+      }
     }
   }
 
@@ -510,30 +527,38 @@ export function CreateContentModal({
     <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-left pb-6 border-b">
-          <DialogTitle className="text-2xl font-bold">Create New Page</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            {isBlogPostMode ? 'Create New Blog Post' : 'Create New Page'}
+          </DialogTitle>
           <DialogDescription>
-            Step {step} of 3: {
-              step === 1 ? 'Page Details' :
-              step === 2 ? 'Page Type' :
-              'Choose Template'
-            }
+            {isBlogPostMode ? (
+              // Blog post mode: 2 steps (details, template)
+              `Step ${step} of 2: ${step === 1 ? 'Blog Post Details' : 'Choose Template'}`
+            ) : (
+              // Page mode: 3 steps (type, details, template)
+              `Step ${step} of 3: ${
+                step === 1 ? 'Page Type' :
+                step === 2 ? 'Page Details' :
+                'Choose Template'
+              }`
+            )}
           </DialogDescription>
         </DialogHeader>
 
         {/* Progress Indicator */}
         <div className="flex items-center justify-center space-x-4 py-4">
-          {[1, 2, 3].map((stepNumber) => (
+          {(isBlogPostMode ? [1, 2] : [1, 2, 3]).map((stepNumber) => (
             <div key={stepNumber} className="flex items-center">
               <div className={`
                 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
-                ${step >= stepNumber 
-                  ? 'bg-green-600 text-white shadow-lg' 
+                ${step >= stepNumber
+                  ? 'bg-green-600 text-white shadow-lg'
                   : 'bg-gray-200 text-gray-600'
                 }
               `}>
                 {step > stepNumber ? <Check className="h-4 w-4" /> : stepNumber}
               </div>
-              {stepNumber < 3 && (
+              {stepNumber < (isBlogPostMode ? 2 : 3) && (
                 <div className={`
                   w-12 h-1 mx-2 rounded-full transition-all
                   ${step > stepNumber ? 'bg-green-600' : 'bg-gray-200'}
@@ -545,19 +570,118 @@ export function CreateContentModal({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Step 1: Page Details */}
-            {step === 1 && (
+            {/* BLOG POST MODE: Step 1 = Details (skip type selection) */}
+            {/* PAGE MODE: Step 1 = Type Selection, Step 2 = Details, Step 3 = Template */}
+
+            {/* Step 1: Page Type Selection (only shown in page mode, not blog mode) */}
+            {!isBlogPostMode && step === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <Label className="text-base font-semibold mb-4 block">Choose Page Type</Label>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Select the type of page you want to create. Each type has different sections and layouts.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Filter out blog_post option for regular page creation */}
+                    {pageTypeOptions.filter(pageType => pageType.id !== 'blog_post').map((pageType) => {
+                      const IconComponent = pageType.icon
+                      return (
+                        <div
+                          key={pageType.id}
+                          className={`
+                            relative p-6 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md
+                            ${selectedPageType === pageType.id
+                              ? 'border-green-600 bg-green-50 shadow-lg'
+                              : 'border-gray-200 hover:border-gray-300'
+                            }
+                          `}
+                          onClick={() => handlePageTypeSelect(pageType.id)}
+                        >
+                          {pageType.recommended && (
+                            <Badge className="absolute top-2 right-2 bg-yellow-500 text-yellow-900 text-xs">
+                              <Sparkles className="h-3 w-3 mr-1" />
+                              Recommended
+                            </Badge>
+                          )}
+
+                          <div className="flex items-start gap-4">
+                            <div className={`
+                              p-3 rounded-md transition-colors
+                              ${selectedPageType === pageType.id
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-100 text-gray-600'
+                              }
+                            `}>
+                              <IconComponent className="h-6 w-6" />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <h3 className={`text-lg font-semibold mb-2 ${
+                                selectedPageType === pageType.id ? 'text-green-900' : 'text-gray-900'
+                              }`}>{pageType.name}</h3>
+                              <p className={`text-sm mb-3 ${
+                                selectedPageType === pageType.id
+                                  ? 'text-green-800'
+                                  : 'text-gray-600'
+                              }`}>
+                                {pageType.description}
+                              </p>
+                              <p className={`text-xs leading-relaxed ${
+                                selectedPageType === pageType.id
+                                  ? 'text-green-700'
+                                  : 'text-gray-500'
+                              }`}>
+                                {pageType.preview}
+                              </p>
+                            </div>
+
+                            {selectedPageType === pageType.id && (
+                              <div className="absolute top-2 left-2">
+                                <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                                  <Check className="h-3 w-3 text-white" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-6 border-t">
+                  <Button
+                    type="button"
+                    onClick={nextStep}
+                    size="lg"
+                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8"
+                  >
+                    Continue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2 in Page Mode OR Step 1 in Blog Mode: Details */}
+            {((isBlogPostMode && step === 1) || (!isBlogPostMode && step === 2)) && (
               <div className="space-y-6">
                 <FormField
                   control={form.control}
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Page Title *</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        {isBlogPostMode ? 'Blog Post Title *' : 'Page Title *'}
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
-                            placeholder="Enter a descriptive title for your page"
+                            placeholder={isBlogPostMode
+                              ? "Enter a descriptive title for your blog post"
+                              : "Enter a descriptive title for your page"
+                            }
                             className="h-12 text-lg pr-10"
                             {...field}
                           />
@@ -708,9 +832,22 @@ export function CreateContentModal({
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-4">
-                  <Button 
-                    type="button" 
+                <div className={`flex pt-4 ${isBlogPostMode || step === 2 ? 'justify-between' : 'justify-end'}`}>
+                  {/* Show back button in page mode step 2, or don't show in blog mode step 1 */}
+                  {!isBlogPostMode && step === 2 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={prevStep}
+                      size="lg"
+                      className="px-8"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
                     onClick={nextStep}
                     size="lg"
                     className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8"
@@ -722,8 +859,9 @@ export function CreateContentModal({
               </div>
             )}
 
+            {/* OLD Step 2 - NOW REMOVED, moved to Step 1 above */}
             {/* Step 2: Page Type Selection */}
-            {step === 2 && (
+            {false && step === 2 && (
               <div className="space-y-6">
                 <div>
                   <Label className="text-base font-semibold mb-4 block">Choose Page Type</Label>
@@ -822,8 +960,8 @@ export function CreateContentModal({
               </div>
             )}
 
-            {/* Step 3: Template Selection */}
-            {step === 3 && (
+            {/* Step 3 in Page Mode OR Step 2 in Blog Mode: Template Selection */}
+            {((isBlogPostMode && step === 2) || (!isBlogPostMode && step === 3)) && (
               <div className="space-y-6">
                 {/* Page Type Display */}
                 <div className={`p-4 rounded-lg border ${
