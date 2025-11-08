@@ -1,0 +1,43 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - navigation [ref=e4]:
+        - generic [ref=e5]:
+          - generic [ref=e6]:
+            - img [ref=e8]
+            - heading "Brands in Blooms" [level=1] [ref=e16]
+          - generic [ref=e17]:
+            - button "My Sites" [ref=e18] [cursor=pointer]
+            - button "Sign Out" [ref=e19] [cursor=pointer]
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - img [ref=e26]
+          - generic [ref=e33]:
+            - heading "Soul Bloom Sanctuary" [level=2] [ref=e34]
+            - paragraph [ref=e35]: Soul Bloom Sanctuary LLC
+        - paragraph [ref=e36]: Currently selected site
+      - generic [ref=e37]:
+        - heading "Welcome back to Soul Bloom Sanctuary!" [level=1] [ref=e38]
+        - paragraph [ref=e39]: Hello owner, ready to continue?
+      - generic [ref=e40]:
+        - generic [ref=e42] [cursor=pointer]:
+          - img [ref=e44]
+          - heading "Go to Dashboard" [level=3] [ref=e47]
+          - paragraph [ref=e48]: Manage Soul Bloom Sanctuary
+        - generic [ref=e50] [cursor=pointer]:
+          - img [ref=e52]
+          - heading "My Sites" [level=3] [ref=e55]
+          - paragraph [ref=e56]: Manage your 1 site
+        - generic [ref=e58] [cursor=pointer]:
+          - img [ref=e60]
+          - heading "Customize Design" [level=3] [ref=e63]
+          - paragraph [ref=e64]: Update your site's appearance
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e70] [cursor=pointer]:
+    - img [ref=e71]
+  - alert [ref=e74]
+```

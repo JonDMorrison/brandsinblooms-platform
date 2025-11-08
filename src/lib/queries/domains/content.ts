@@ -177,10 +177,7 @@ export async function getContentBySlug(
   // First try to get the most recent published version
   let response = await supabase
     .from('content')
-    .select(`
-      *,
-      author:profiles!author_id(id, full_name, avatar_url)
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('slug', slug)
     .eq('is_published', true)
@@ -194,10 +191,7 @@ export async function getContentBySlug(
   if (!data && !response.error) {
     response = await supabase
       .from('content')
-      .select(`
-        *,
-        author:profiles!author_id(id, full_name, avatar_url)
-      `)
+      .select('*')
       .eq('site_id', siteId)
       .eq('slug', slug)
       .order('updated_at', { ascending: false })
@@ -216,13 +210,11 @@ export async function getContentBySlug(
     return null as any; // Return null when content is not found instead of throwing error
   }
 
-  // Transform tags and author (empty tags for now, author from join)
+  // Transform tags and author (no author join for now, can be added later if needed)
   return {
     ...data,
     tags: [],
-    author: Array.isArray(data.author) && data.author.length > 0
-      ? data.author[0]
-      : data.author || null,
+    author: null,
   } as ContentWithTags;
 }
 

@@ -28,7 +28,7 @@ password: password123
   - Image (Optional)
 - Should have a "Content" (Required) type of section
 
-## Public Site
+## Public Site (http://soul-bloom-sanctuary.localhost:3001/home)
 
 - Must show a "Blog" link if any blog items exist
 
