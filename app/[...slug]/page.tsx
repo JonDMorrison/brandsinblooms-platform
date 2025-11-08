@@ -15,6 +15,7 @@ import { ContactPage } from './components/ContactPage'
 import { PrivacyPage } from './components/PrivacyPage'
 import { TermsPage } from './components/TermsPage'
 import { DynamicContentPage } from './components/DynamicContentPage'
+import { BlogIndexPage } from './components/BlogIndexPage'
 import {
   ProductsPage,
   CartPage,
@@ -64,6 +65,10 @@ export default async function SitePage({ params }: SitePageProps) {
 
     case 'terms':
       pageComponent = <TermsPage />
+      break
+
+    case 'blog':
+      pageComponent = <BlogIndexPage />
       break
 
     case 'products':

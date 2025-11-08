@@ -33,6 +33,7 @@ export default function ContentPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('all')
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [defaultPageType, setDefaultPageType] = useState<'landing' | 'about' | 'contact' | 'other' | 'blog_post' | undefined>(undefined)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [homepageId, setHomepageId] = useState<string | null>(null)
@@ -254,7 +255,10 @@ export default function ContentPage() {
           </Button>
           <Button
             className="btn-gradient-primary"
-            onClick={() => setCreateModalOpen(true)}
+            onClick={() => {
+              setDefaultPageType(undefined)
+              setCreateModalOpen(true)
+            }}
           >
             <Plus className="h-4 w-4 mr-2" />
             Create New Page
@@ -262,7 +266,10 @@ export default function ContentPage() {
           <Button
             variant="outline"
             className="border-orange-600 text-orange-600 hover:bg-orange-50"
-            onClick={() => setCreateModalOpen(true)}
+            onClick={() => {
+              setDefaultPageType('blog_post')
+              setCreateModalOpen(true)
+            }}
           >
             <Plus className="h-4 w-4 mr-2" />
             New Blog Post
@@ -355,6 +362,7 @@ export default function ContentPage() {
       <CreateContentModal
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
+        defaultPageType={defaultPageType}
         onContentCreated={() => {
           refetch()
           refetchStats()

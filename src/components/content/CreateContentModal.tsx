@@ -16,7 +16,6 @@ import { getDisplayErrorMessage } from '@/src/lib/queries/errors'
 import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
-import { Textarea } from '@/src/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
@@ -42,7 +41,6 @@ import {
   Sparkles,
   Wand2,
   ArrowLeft,
-  AlertCircle,
   Loader2
 } from 'lucide-react'
 
@@ -218,6 +216,7 @@ interface CreateContentModalProps {
   onContentCreated?: () => void
   siteIdOverride?: string
   onNavigateAfterCreate?: (newContent: { id: string; slug: string; title: string }) => void
+  defaultPageType?: 'landing' | 'about' | 'contact' | 'other' | 'blog_post'
 }
 
 export function CreateContentModal({
@@ -225,7 +224,8 @@ export function CreateContentModal({
   onOpenChange,
   onContentCreated,
   siteIdOverride,
-  onNavigateAfterCreate
+  onNavigateAfterCreate,
+  defaultPageType
 }: CreateContentModalProps) {
   const router = useRouter()
   const { currentSite } = useSiteContext()
@@ -233,8 +233,8 @@ export function CreateContentModal({
   // Use override site ID if provided, otherwise use site context
   const activeSiteId = siteIdOverride || currentSite?.id
   const [step, setStep] = useState(1)
-  const [selectedPageType, setSelectedPageType] = useState<'landing' | 'about' | 'contact' | 'other' | 'blog_post'>('landing')
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('home-page')
+  const [selectedPageType, setSelectedPageType] = useState<'landing' | 'about' | 'contact' | 'other' | 'blog_post'>(defaultPageType || 'landing')
+  const [selectedTemplate, setSelectedTemplate] = useState<string>(defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page')
   const [isCreating, setIsCreating] = useState(false)
   const [useMockData, setUseMockData] = useState(true)
 
@@ -248,8 +248,8 @@ export function CreateContentModal({
     resolver: zodResolver(createContentSchema),
     defaultValues: {
       title: '',
-      layout: 'landing',
-      template: 'home-page'
+      layout: defaultPageType || 'landing',
+      template: defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page'
     }
   })
 
@@ -352,14 +352,18 @@ export function CreateContentModal({
 
   const resetModal = () => {
     setStep(1)
-    setSelectedPageType('landing')
-    setSelectedTemplate('home-page')
+    setSelectedPageType(defaultPageType || 'landing')
+    setSelectedTemplate(defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page')
     setUseMockData(true)
     setSlugValidationStatus('idle')
     setSlugValidationMessage('')
     setIsValidatingSlug(false)
     setGeneratedSlug('')
-    form.reset()
+    form.reset({
+      title: '',
+      layout: defaultPageType || 'landing',
+      template: defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page'
+    })
   }
 
   const handleModalClose = (open: boolean) => {
@@ -394,16 +398,23 @@ export function CreateContentModal({
         : getTemplateContent(selectedTemplateName, data.title, undefined, { ...MOCK_DATA_PRESETS.technology, complexity: 'simple' })
       const serializedContent = serializePageContent(templateContent)
 
+      // Map layout to correct content_type and meta_data.layout
+      // For blog_post: content_type='blog_post' and layout='blog'
+      // For other types: content_type=layout and layout=same value
+      const isBlogPost = data.layout === 'blog_post'
+      const contentType = isBlogPost ? 'blog_post' : data.layout
+      const layoutValue = isBlogPost ? 'blog' : data.layout
+
       const contentData = {
         site_id: activeSiteId,
         title: data.title,
         slug,
-        content_type: data.layout,
+        content_type: contentType,
         content: serializedContent,
         is_published: false,
         is_featured: false,
         meta_data: {
-          layout: data.layout,
+          layout: layoutValue,
           template: selectedTemplateName
         }
       }
