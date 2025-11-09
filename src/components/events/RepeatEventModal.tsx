@@ -290,7 +290,7 @@ export function RepeatEventModal({
                     className={cn(
                       'flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all border-2',
                       selectedDays.includes(day.value)
-                        ? 'bg-primary text-primary-foreground border-primary shadow-md scale-105'
+                        ? 'btn-gradient-primary border-transparent shadow-md scale-105'
                         : 'bg-white text-gray-600 border-gray-300 hover:border-primary/50 hover:bg-gray-50'
                     )}
                   >
@@ -390,7 +390,7 @@ export function RepeatEventModal({
           <Button
             onClick={handleGenerate}
             disabled={previewCount === 0}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="btn-gradient-primary"
           >
             Generate {previewCount} Occurrence{previewCount !== 1 ? 's' : ''}
           </Button>
