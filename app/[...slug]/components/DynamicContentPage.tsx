@@ -163,66 +163,67 @@ export async function DynamicContentPage({ slug, isEditMode = false }: DynamicCo
         <div className="brand-container py-12">
           <div className="max-w-6xl mx-auto">
             {/* Blog Post Layout with Sidebar */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="flex flex-col lg:flex-row gap-8">
               {/* Current Blog Post - 2/3 width */}
-              <div className="lg:col-span-2">
-                <article className="flex flex-col">
-                  {/* Featured Image - only if exists */}
-                  {featuredImage && (
-                    <div className="aspect-[16/9] w-full overflow-hidden rounded-lg relative mb-6">
-                      <Image
-                        src={featuredImage}
-                        alt={title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
+              <div className="lg:w-2/3">
+                {/* Featured Image - only if exists */}
+                {featuredImage && (
+                  <div className="aspect-[16/9] w-full overflow-hidden rounded-lg relative mb-6">
+                    <Image
+                      src={featuredImage}
+                      alt={title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+
+                <header className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    {contentResult.is_featured && (
+                      <Badge variant="secondary">Featured</Badge>
+                    )}
+                    {meta.reading_time && (
+                      <span className="text-xs text-gray-500">
+                        {meta.reading_time}
+                      </span>
+                    )}
+                  </div>
+                  <h1
+                    className="text-3xl font-bold mb-2"
+                    style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)' }}
+                  >
+                    {title}
+                  </h1>
+                  {subtitle && (
+                    <p
+                      className="text-xl mb-4"
+                      style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)' }}
+                    >
+                      {subtitle}
+                    </p>
                   )}
 
-                  <header className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      {contentResult.is_featured && (
-                        <Badge variant="secondary">Featured</Badge>
-                      )}
-                      {meta.reading_time && (
-                        <span className="text-xs text-gray-500">
-                          {meta.reading_time}
-                        </span>
-                      )}
+                  {/* Author and Date */}
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-1">
+                      <User className="w-4 h-4" />
+                      <span>{author}</span>
                     </div>
-                    <h1
-                      className="text-3xl font-bold mb-2"
-                      style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)' }}
-                    >
-                      {title}
-                    </h1>
-                    {subtitle && (
-                      <p
-                        className="text-xl mb-4"
-                        style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)' }}
-                      >
-                        {subtitle}
-                      </p>
-                    )}
-
-                    {/* Author and Date */}
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <User className="w-4 h-4" />
-                        <span>{author}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>{publishedDate}</span>
-                      </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>{publishedDate}</span>
                     </div>
-                  </header>
+                  </div>
+                </header>
 
+                {/* Content section that aligns with sidebar */}
+                <div>
                   {/* Associated Events Section */}
                   <AssociatedEventsSection contentId={contentResult.id} />
 
                   {/* Full Content */}
-                  <div className="flex-1">
+                  <article className="flex-1">
                     {htmlContent ? (
                       <div
                         className="blog-article-content prose prose-lg max-w-none"
@@ -253,12 +254,12 @@ export async function DynamicContentPage({ slug, isEditMode = false }: DynamicCo
                         }
                       `
                     }} />
-                  </div>
-                </article>
+                  </article>
+                </div>
               </div>
 
               {/* Past Posts Sidebar - 1/3 width */}
-              <aside className="lg:col-span-1">
+              <aside className="lg:w-1/3">
                 <div
                   className="h-full p-6 rounded-lg"
                   style={{
