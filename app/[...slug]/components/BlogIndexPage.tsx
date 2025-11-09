@@ -43,120 +43,121 @@ export async function BlogIndexPage() {
               </p>
             </div>
           ) : (
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* Latest Post - 2/3 width */}
-              <div className="lg:w-2/3">
-                {(() => {
-                  const latestPost = blogPosts[0]
-                  const meta = (latestPost.meta_data as BlogPostMeta) || {}
+            <>
+              {/* Latest Post Content */}
+              {(() => {
+                const latestPost = blogPosts[0]
+                const meta = (latestPost.meta_data as BlogPostMeta) || {}
 
-                  // Extract blog header data from JSONB structure
-                  type BlogHeaderSections = {
-                    sections?: {
-                      blogHeader?: {
-                        data?: {
-                          title?: string
-                          subtitle?: string
-                          author?: string
-                          publishedDate?: string
-                          image?: string
-                        }
+                // Extract blog header data from JSONB structure
+                type BlogHeaderSections = {
+                  sections?: {
+                    blogHeader?: {
+                      data?: {
+                        title?: string
+                        subtitle?: string
+                        author?: string
+                        publishedDate?: string
+                        image?: string
                       }
                     }
                   }
-                  const contentData = latestPost.content
-                  const blogHeaderData = (contentData as BlogHeaderSections)?.sections?.blogHeader?.data || {}
+                }
+                const contentData = latestPost.content
+                const blogHeaderData = (contentData as BlogHeaderSections)?.sections?.blogHeader?.data || {}
 
-                  // Extract metadata from blogHeader section (preferred) or fallback to meta_data
-                  const subtitle = blogHeaderData.subtitle || meta.subtitle
-                  const author = blogHeaderData.author || meta.author || 'Anonymous'
-                  const featuredImage = blogHeaderData.image || meta.featured_image
+                // Extract metadata from blogHeader section (preferred) or fallback to meta_data
+                const subtitle = blogHeaderData.subtitle || meta.subtitle
+                const author = blogHeaderData.author || meta.author || 'Anonymous'
+                const featuredImage = blogHeaderData.image || meta.featured_image
 
-                  // Format published date from blogHeader or published_at
-                  const publishedDate = blogHeaderData.publishedDate
-                    ? new Date(blogHeaderData.publishedDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })
-                    : latestPost.published_at
-                    ? new Date(latestPost.published_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })
-                    : 'Recently'
+                // Format published date from blogHeader or published_at
+                const publishedDate = blogHeaderData.publishedDate
+                  ? new Date(blogHeaderData.publishedDate).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })
+                  : latestPost.published_at
+                  ? new Date(latestPost.published_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })
+                  : 'Recently'
 
-                  // Extract HTML content from JSONB structure
-                  // Structure: { sections: { content: { data: { content: "<html>" } } } }
-                  let htmlContent = ''
+                // Extract HTML content from JSONB structure
+                // Structure: { sections: { content: { data: { content: "<html>" } } } }
+                let htmlContent = ''
 
-                  if (typeof contentData === 'string') {
-                    // If content is already a string, use it directly
-                    htmlContent = contentData
-                  } else if (contentData && typeof contentData === 'object') {
-                    // Extract from JSONB structure: sections.content.data.content
-                    const sections = (contentData as any).sections
-                    if (sections && sections.content && sections.content.data) {
-                      htmlContent = sections.content.data.content || ''
-                    }
+                if (typeof contentData === 'string') {
+                  // If content is already a string, use it directly
+                  htmlContent = contentData
+                } else if (contentData && typeof contentData === 'object') {
+                  // Extract from JSONB structure: sections.content.data.content
+                  const sections = (contentData as any).sections
+                  if (sections && sections.content && sections.content.data) {
+                    htmlContent = sections.content.data.content || ''
                   }
+                }
 
-                  return (
-                    <>
-                      {/* Featured Image - only if exists */}
-                      {featuredImage && (
-                        <div className="aspect-[16/9] w-full overflow-hidden rounded-lg relative mb-6">
-                          <Image
-                            src={featuredImage}
-                            alt={latestPost.title}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
+                return (
+                  <>
+                    {/* Featured Image - only if exists */}
+                    {featuredImage && (
+                      <div className="aspect-[16/9] w-full overflow-hidden rounded-lg relative mb-6">
+                        <Image
+                          src={featuredImage}
+                          alt={latestPost.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+
+                    <header className="mb-8">
+                      <div className="flex items-center gap-2 mb-3">
+                        {latestPost.is_featured && (
+                          <Badge variant="secondary">Featured</Badge>
+                        )}
+                        {meta.reading_time && (
+                          <span className="text-xs text-gray-500">
+                            {meta.reading_time}
+                          </span>
+                        )}
+                      </div>
+                      <h1
+                        className="text-3xl font-bold mb-2"
+                        style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)' }}
+                      >
+                        {latestPost.title}
+                      </h1>
+                      {subtitle && (
+                        <p
+                          className="text-xl mb-4"
+                          style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)' }}
+                        >
+                          {subtitle}
+                        </p>
                       )}
 
-                      <header className="mb-6">
-                        <div className="flex items-center gap-2 mb-3">
-                          {latestPost.is_featured && (
-                            <Badge variant="secondary">Featured</Badge>
-                          )}
-                          {meta.reading_time && (
-                            <span className="text-xs text-gray-500">
-                              {meta.reading_time}
-                            </span>
-                          )}
+                      {/* Author and Date */}
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <User className="w-4 h-4" />
+                          <span>{author}</span>
                         </div>
-                        <h1
-                          className="text-3xl font-bold mb-2"
-                          style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)' }}
-                        >
-                          {latestPost.title}
-                        </h1>
-                        {subtitle && (
-                          <p
-                            className="text-xl mb-4"
-                            style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)' }}
-                          >
-                            {subtitle}
-                          </p>
-                        )}
-
-                        {/* Author and Date */}
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <User className="w-4 h-4" />
-                            <span>{author}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            <span>{publishedDate}</span>
-                          </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{publishedDate}</span>
                         </div>
-                      </header>
+                      </div>
+                    </header>
 
-                      {/* Content section that aligns with sidebar */}
-                      <div>
+                    {/* Content and Sidebar Layout - Sidebar aligns with content */}
+                    <div className="flex flex-col lg:flex-row gap-8">
+                      {/* Content - 2/3 width */}
+                      <div className="lg:w-2/3">
                         {/* Associated Events Section */}
                         <AssociatedEventsSection contentId={latestPost.id} />
 
@@ -194,13 +195,9 @@ export async function BlogIndexPage() {
                           }} />
                         </article>
                       </div>
-                    </>
-                  )
-                })()}
-              </div>
 
-              {/* Past Posts List - 1/3 width */}
-              <aside className="lg:w-1/3">
+                      {/* Past Posts Sidebar - 1/3 width */}
+                      <aside className="lg:w-1/3">
                 <div
                   className="h-full p-6 rounded-lg"
                   style={{
@@ -307,8 +304,12 @@ export async function BlogIndexPage() {
                     )}
                   </div>
                 </div>
-              </aside>
-            </div>
+                      </aside>
+                    </div>
+                  </>
+                )
+              })()}
+            </>
           )}
 
           {/* Pagination placeholder - can be added later if needed */}
