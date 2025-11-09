@@ -162,63 +162,62 @@ export async function DynamicContentPage({ slug, isEditMode = false }: DynamicCo
       >
         <div className="brand-container py-12">
           <div className="max-w-6xl mx-auto">
-            {/* Blog Post Layout with Sidebar */}
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* Current Blog Post - 2/3 width */}
-              <div className="lg:w-2/3">
-                {/* Featured Image - only if exists */}
-                {featuredImage && (
-                  <div className="aspect-[16/9] w-full overflow-hidden rounded-lg relative mb-6">
-                    <Image
-                      src={featuredImage}
-                      alt={title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+            {/* Featured Image - full width, outside flex */}
+            {featuredImage && (
+              <div className="aspect-[16/9] w-full overflow-hidden rounded-lg relative mb-6">
+                <Image
+                  src={featuredImage}
+                  alt={title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            )}
+
+            {/* Header - full width, outside flex */}
+            <header className="mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                {contentResult.is_featured && (
+                  <Badge variant="secondary">Featured</Badge>
                 )}
+                {meta.reading_time && (
+                  <span className="text-xs text-gray-500">
+                    {meta.reading_time}
+                  </span>
+                )}
+              </div>
+              <h1
+                className="text-3xl font-bold mb-2"
+                style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)' }}
+              >
+                {title}
+              </h1>
+              {subtitle && (
+                <p
+                  className="text-xl mb-4"
+                  style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)' }}
+                >
+                  {subtitle}
+                </p>
+              )}
 
-                <header className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    {contentResult.is_featured && (
-                      <Badge variant="secondary">Featured</Badge>
-                    )}
-                    {meta.reading_time && (
-                      <span className="text-xs text-gray-500">
-                        {meta.reading_time}
-                      </span>
-                    )}
-                  </div>
-                  <h1
-                    className="text-3xl font-bold mb-2"
-                    style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)' }}
-                  >
-                    {title}
-                  </h1>
-                  {subtitle && (
-                    <p
-                      className="text-xl mb-4"
-                      style={{ color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)' }}
-                    >
-                      {subtitle}
-                    </p>
-                  )}
+              {/* Author and Date */}
+              <div className="flex items-center gap-4 text-sm text-gray-500">
+                <div className="flex items-center gap-1">
+                  <User className="w-4 h-4" />
+                  <span>{author}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>{publishedDate}</span>
+                </div>
+              </div>
+            </header>
 
-                  {/* Author and Date */}
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      <span>{author}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{publishedDate}</span>
-                    </div>
-                  </div>
-                </header>
-
-                {/* Content section that aligns with sidebar */}
-                <div>
+            {/* Content and Sidebar - flex container */}
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Content - 2/3 width */}
+              <div className="lg:w-2/3">
                   {/* Associated Events Section */}
                   <AssociatedEventsSection contentId={contentResult.id} />
 
@@ -255,7 +254,6 @@ export async function DynamicContentPage({ slug, isEditMode = false }: DynamicCo
                       `
                     }} />
                   </article>
-                </div>
               </div>
 
               {/* Past Posts Sidebar - 1/3 width */}
