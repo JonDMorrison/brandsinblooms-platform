@@ -290,7 +290,7 @@ export function RepeatEventModal({
                         {endDate ? format(endDate, 'PPP') : 'Pick a date'}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 bg-white border shadow-md" align="start">
                       <Calendar
                         mode="single"
                         selected={endDate}

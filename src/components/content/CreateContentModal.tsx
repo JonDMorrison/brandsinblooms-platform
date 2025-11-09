@@ -798,7 +798,7 @@ export function CreateContentModal({
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
+                            <PopoverContent className="w-auto p-0 bg-white border shadow-md" align="start">
                               <Calendar
                                 mode="single"
                                 selected={field.value}

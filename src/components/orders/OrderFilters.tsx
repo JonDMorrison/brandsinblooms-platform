@@ -221,8 +221,8 @@ export function OrderFilters({ onFiltersChange }: OrderFiltersProps) {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <div className="p-4 space-y-4">
+                <PopoverContent className="w-auto p-0 bg-white border shadow-md" align="end">
+                  <div className="p-4 space-y-4 bg-white">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">From Date</label>
                       <CalendarComponent
