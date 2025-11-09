@@ -96,20 +96,6 @@ export async function EventsListPage() {
               </div>
 
               <div className="p-6 flex-1 flex flex-col">
-                {/* Date Badge */}
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span
-                    className="text-sm text-gray-600"
-                    style={{ fontFamily: 'var(--theme-font-body)' }}
-                  >
-                    {format(new Date(event.start_datetime), 'PPP')}
-                  </span>
-                  {event.is_all_day && (
-                    <Badge variant="outline" className="ml-2">All Day</Badge>
-                  )}
-                </div>
-
                 {/* Title */}
                 <h2
                   className="text-xl font-bold mb-2 group-hover:text-green-600 transition-colors"
@@ -127,6 +113,20 @@ export async function EventsListPage() {
                     {event.subtitle}
                   </p>
                 )}
+
+                {/* Date */}
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <span
+                    className="text-sm text-gray-600"
+                    style={{ fontFamily: 'var(--theme-font-body)' }}
+                  >
+                    {format(new Date(event.start_datetime), 'PPP')}
+                  </span>
+                  {event.is_all_day && (
+                    <Badge variant="outline" className="ml-2">All Day</Badge>
+                  )}
+                </div>
 
                 {/* Time */}
                 {!event.is_all_day && event.occurrences?.[0]?.start_datetime && (
