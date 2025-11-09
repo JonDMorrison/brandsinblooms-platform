@@ -162,9 +162,9 @@ export type EventMediaUpdate = Tables['event_media']['Update'];
 export type EventAttachment = Tables['event_attachments']['Row'];
 export type EventAttachmentInsert = Tables['event_attachments']['Insert'];
 export type EventAttachmentUpdate = Tables['event_attachments']['Update'];
-export type EventAssociation = Tables['event_associations']['Row'];
-export type EventAssociationInsert = Tables['event_associations']['Insert'];
-export type EventAssociationUpdate = Tables['event_associations']['Update'];
+export type EventAssociation = Tables['event_content_associations']['Row'];
+export type EventAssociationInsert = Tables['event_content_associations']['Insert'];
+export type EventAssociationUpdate = Tables['event_content_associations']['Update'];
 
 // Event status type
 export type EventStatus = 'draft' | 'published' | 'unpublished';

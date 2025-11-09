@@ -25,7 +25,7 @@ type InsertEvent = InsertType<'events'>;
 type UpdateEvent = UpdateType<'events'>;
 type EventMedia = RowType<'event_media'>;
 type EventAttachment = RowType<'event_attachments'>;
-type EventAssociation = RowType<'event_associations'>;
+type EventAssociation = RowType<'event_content_associations'>;
 type EventOccurrence = RowType<'event_occurrences'>;
 type InsertEventOccurrence = InsertType<'event_occurrences'>;
 type UpdateEventOccurrence = UpdateType<'event_occurrences'>;
@@ -212,7 +212,7 @@ export async function getEventById(
     ),
     handleQueryResponse(
       await supabase
-        .from('event_associations')
+        .from('event_content_associations')
         .select('*')
         .eq('event_id', eventId)
     )
@@ -278,7 +278,7 @@ export async function getEventBySlug(
     ),
     handleQueryResponse(
       await supabase
-        .from('event_associations')
+        .from('event_content_associations')
         .select('*')
         .eq('event_id', event.id)
     ),
@@ -804,7 +804,7 @@ export async function addEventAssociation(
   relatedId: string
 ): Promise<EventAssociation> {
   const response = await supabase
-    .from('event_associations')
+    .from('event_content_associations')
     .insert({ event_id: eventId, related_type: relatedType, related_id: relatedId })
     .select()
     .single();
@@ -817,7 +817,7 @@ export async function removeEventAssociation(
   associationId: string
 ): Promise<void> {
   const { error } = await supabase
-    .from('event_associations')
+    .from('event_content_associations')
     .delete()
     .eq('id', associationId);
 
