@@ -3,6 +3,8 @@
  * Extracts site information from hostnames for multi-tenant architecture
  */
 
+import { getAppDomain } from '@/lib/env/app-domain'
+
 export interface SiteResolution {
   type: 'subdomain' | 'custom_domain'
   value: string
@@ -87,13 +89,41 @@ export function parseHostname(hostname: string): HostParseResult {
 }
 
 /**
+ * Check if hostname is the main platform domain (not a customer site)
+ */
+function isMainPlatformDomain(hostname: string): boolean {
+  const appDomain = getAppDomain()
+  const appDomainWithoutPort = appDomain.split(':')[0]
+
+  // Remove port from hostname for comparison
+  const hostnameWithoutPort = hostname.split(':')[0]
+
+  return (
+    hostnameWithoutPort === appDomain ||
+    hostnameWithoutPort === appDomainWithoutPort ||
+    hostname.endsWith('.vercel.app') ||
+    hostname.endsWith('.railway.app')
+  )
+}
+
+/**
  * Resolves site information from a given hostname
  * Returns the type of resolution (subdomain/custom_domain) and the value to query
  */
 export function resolveSiteFromHost(hostname: string): SiteResolution {
   const parsed = parseHostname(hostname)
-  
+
   if (!parsed.isValidFormat) {
+    return {
+      type: 'subdomain',
+      value: '',
+      isValid: false
+    }
+  }
+
+  // IMPORTANT: If this is the main platform domain, it's NOT a site domain
+  // This prevents infinite redirect loops when accessing blooms.cc directly
+  if (isMainPlatformDomain(hostname)) {
     return {
       type: 'subdomain',
       value: '',
@@ -113,7 +143,7 @@ export function resolveSiteFromHost(hostname: string): SiteResolution {
         isValid: true
       }
     }
-    
+
     // Default to a development subdomain
     return {
       type: 'subdomain',

@@ -12,6 +12,7 @@ import {
   X
 } from 'lucide-react'
 import { SEOSettings } from '@/src/lib/content/schema'
+import { getAppDomain } from '@/lib/env/app-domain'
 
 interface SEOTabProps {
   seoSettings: SEOSettings
@@ -179,7 +180,7 @@ export function SEOTab({ seoSettings, onSEOChange, pageTitle, slug }: SEOTabProp
               {seoSettings.title || pageTitle || 'Page Title'}
             </div>
             <div className="text-xs text-green-600">
-              {process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'}/{slug || 'page-url'}
+              {getAppDomain()}/{slug || 'page-url'}
             </div>
             <div className="text-xs text-gray-600 line-clamp-2">
               {seoSettings.description || 'Meta description will appear here...'}

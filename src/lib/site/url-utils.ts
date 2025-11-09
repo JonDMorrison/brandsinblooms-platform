@@ -1,4 +1,5 @@
 import { Site } from '@/src/lib/database/aliases'
+import { getAppDomain } from '@/lib/env/app-domain'
 
 /**
  * Builds the customer-facing site URL from site data
@@ -6,7 +7,7 @@ import { Site } from '@/src/lib/database/aliases'
  * Only includes port for localhost development - staging/production domains are clean
  */
 export function buildCustomerSiteUrl(site: Site): string {
-  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'
+  const appDomain = getAppDomain()
   const isLocalhost = appDomain.includes('localhost')
 
   // If site has a custom domain, use that
