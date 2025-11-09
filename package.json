@@ -1,14 +1,20 @@
 {
-  "name": "brands-in-blooms",
+  "name": "@brands-in-blooms/root",
   "version": "0.1.0",
   "description": "Brands in Blooms platform",
   "scripts": {
     "dev": "next dev -p 3001",
+    "dev:proxy": "pnpm --filter custom-domain-proxy dev",
     "dev:all": "node scripts/dev.js",
     "build": "next build",
+    "build:proxy": "pnpm --filter custom-domain-proxy build",
+    "build:all": "pnpm build && pnpm build:proxy",
     "start": "next start",
     "lint": "next lint",
+    "lint:proxy": "pnpm --filter custom-domain-proxy lint",
     "typecheck": "tsc --noEmit",
+    "typecheck:proxy": "pnpm --filter custom-domain-proxy type-check",
+    "typecheck:all": "pnpm typecheck && pnpm typecheck:proxy",
     "type-coverage": "npx type-coverage --strict",
     "type-coverage:report": "npx type-coverage --strict --detail",
     "analyze": "ANALYZE=true next build",
@@ -28,6 +34,7 @@
     "test:unit": "jest tests/unit",
     "test:integration": "node tests/integration/setup.ts && jest tests/integration",
     "test:all": "pnpm test:unit && pnpm test:integration",
+    "test:proxy": "pnpm --filter custom-domain-proxy test",
     "test:visual-editor": "jest --config jest.visual-editor.config.js",
     "test:visual-editor:watch": "jest --config jest.visual-editor.config.js --watch",
     "test:visual-editor:coverage": "jest --config jest.visual-editor.config.js --coverage",
@@ -50,7 +57,10 @@
     "railway:deploy:staging": "bash scripts/railway-deploy.sh staging",
     "railway:deploy:production": "bash scripts/railway-deploy.sh production",
     "railway:logs": "railway logs --tail",
-    "railway:status": "railway status"
+    "railway:status": "railway status",
+    "proxy:deploy": "pnpm --filter custom-domain-proxy deploy",
+    "proxy:deploy:staging": "pnpm --filter custom-domain-proxy deploy:staging",
+    "proxy:deploy:production": "pnpm --filter custom-domain-proxy deploy:production"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.873.0",
