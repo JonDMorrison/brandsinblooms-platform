@@ -5,16 +5,16 @@ compatibility_flags = ["nodejs_compat"]
 
 # Production environment
 [env.production]
-name = "custom-domain-proxy-production"
+name = "client-brands-in-blooms-proxy-production"
 vars = { ENVIRONMENT = "production" }
 
 # Staging environment
 [env.staging]
-name = "custom-domain-proxy-staging"
+name = "client-brands-in-blooms-proxy-staging"
 vars = { ENVIRONMENT = "staging" }
 
 # Secrets (set via: wrangler secret put <SECRET_NAME>)
-# - ORIGIN_ENDPOINT: The origin server URL (e.g., https://your-app.railway.app)
+# - ORIGIN_ENDPOINT: The origin server URL (e.g., https://blooms-staging.cc or https://blooms.cc)
 #
 # Example:
 # wrangler secret put ORIGIN_ENDPOINT --env production

@@ -53,19 +53,28 @@ const authRoutes = ['/login', '/signup']
 
 /**
  * Extracts hostname from request, properly handling proxy headers from Cloudflare/Railway
+ * Prioritizes x-blooms-custom-domain header for custom domain proxy routing
  */
 function extractHostname(request: NextRequest): string {
-  // Check for original hostname from proxy headers (Cloudflare/Railway)
-  const forwardedHost = request.headers.get('x-forwarded-host') || 
+  // PRIORITY 1: Check for custom domain header from Cloudflare Worker proxy
+  // This is set when requests come through the custom-domain-proxy
+  const customDomain = request.headers.get('x-blooms-custom-domain')
+  if (customDomain) {
+    // Remove port if present and return clean hostname
+    return customDomain.split(':')[0]
+  }
+
+  // PRIORITY 2: Check for original hostname from proxy headers (Cloudflare/Railway)
+  const forwardedHost = request.headers.get('x-forwarded-host') ||
                        request.headers.get('x-original-host') ||
                        request.headers.get('host')
-  
+
   if (forwardedHost) {
     // Remove port if present and return clean hostname
     return forwardedHost.split(':')[0]
   }
-  
-  // Fallback to request URL hostname
+
+  // PRIORITY 3: Fallback to request URL hostname
   const url = new URL(request.url)
   return url.hostname
 }
@@ -938,28 +947,132 @@ function handleInvalidDomain(request: NextRequest, hostname: string): NextRespon
  * Handles site not found scenarios
  */
 function handleSiteNotFound(
-  request: NextRequest, 
-  hostname: string, 
+  request: NextRequest,
+  hostname: string,
   siteResolution: SiteResolution
 ): NextResponse {
-  // For subdomain not found, offer to create site
+  // Check if this request came through the custom domain proxy
+  const isProxiedCustomDomain = request.headers.get('x-blooms-custom-domain') !== null
+
+  // For custom domains that came through the proxy, we CANNOT redirect
+  // because that would break the custom domain experience.
+  // Instead, return a 404 response directly.
+  if (isProxiedCustomDomain && siteResolution.type === 'custom_domain') {
+    return new NextResponse(
+      `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Not Configured - ${hostname}</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 48px;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      font-size: 24px;
+      color: #1a202c;
+      margin: 0 0 16px 0;
+    }
+    p {
+      color: #4a5568;
+      line-height: 1.6;
+      margin: 0 0 24px 0;
+    }
+    .domain {
+      background: #f7fafc;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      color: #2d3748;
+      margin: 24px 0;
+    }
+    .steps {
+      text-align: left;
+      margin: 24px 0;
+    }
+    .steps ol {
+      padding-left: 20px;
+    }
+    .steps li {
+      margin: 8px 0;
+      color: #4a5568;
+    }
+    .footer {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 14px;
+      color: #718096;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌐 No Site Configured</h1>
+    <p>This domain is pointing to Brands in Blooms, but no site has been configured for it yet.</p>
+
+    <div class="domain">${hostname}</div>
+
+    <div class="steps">
+      <p><strong>To set up this domain:</strong></p>
+      <ol>
+        <li>Log into your Brands in Blooms dashboard</li>
+        <li>Go to your site settings</li>
+        <li>Add this domain as your custom domain</li>
+        <li>Wait a few minutes for changes to take effect</li>
+      </ol>
+    </div>
+
+    <div class="footer">
+      If you're not the site owner, please contact them to set up this domain.
+    </div>
+  </div>
+</body>
+</html>`,
+      {
+        status: 404,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
+      }
+    )
+  }
+
+  // For subdomain not found (not through proxy), offer to create site
   if (siteResolution.type === 'subdomain' && isValidSubdomain(siteResolution.value)) {
     const url = createRedirectUrl(request, APP_DOMAIN, '/create-site')
     url.searchParams.set('subdomain', siteResolution.value)
     return NextResponse.redirect(url)
   }
-  
-  // For custom domain not found, show setup instructions
+
+  // For custom domain not found (not through proxy), show setup instructions
   if (siteResolution.type === 'custom_domain' && isValidCustomDomain(siteResolution.value)) {
     const url = createRedirectUrl(request, APP_DOMAIN, '/domain-setup')
     url.searchParams.set('domain', siteResolution.value)
     return NextResponse.redirect(url)
   }
-  
+
   // General site not found
   const url = createRedirectUrl(request, APP_DOMAIN, '/site-not-found')
   url.searchParams.set('hostname', hostname)
-  
+
   return NextResponse.redirect(url)
 }
 

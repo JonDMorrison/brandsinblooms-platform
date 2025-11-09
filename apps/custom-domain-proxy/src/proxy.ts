@@ -24,7 +24,7 @@ export async function createProxyRequest(
   headers.set('Host', originHostname);
 
   // Add custom domain header
-  headers.set('x-custom-domain', customDomain);
+  headers.set('x-blooms-custom-domain', customDomain);
 
   // Add forwarding headers for better traceability
   headers.set('x-forwarded-host', customDomain);

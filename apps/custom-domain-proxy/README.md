@@ -7,7 +7,7 @@ Cloudflare Worker that acts as a transparent proxy for custom domains, routing r
 This worker receives requests on custom domains and proxies them to the origin server (Next.js app) with the following behavior:
 
 - **Host Header**: Set to the origin server's hostname
-- **x-custom-domain Header**: Added with the original request domain
+- **x-blooms-custom-domain Header**: Added with the original request domain
 - **Transparent Proxying**: Preserves request method, body, and most headers
 
 ## Architecture
@@ -17,7 +17,7 @@ Custom Domain Request → Cloudflare Worker → Origin Server (Railway)
                        ↓
                    Header Manipulation:
                    - Host: origin.railway.app
-                   - x-custom-domain: custom-domain.com
+                   - x-blooms-custom-domain: custom-domain.com
                    - x-forwarded-host: custom-domain.com
                    - x-forwarded-proto: https
 ```
@@ -184,7 +184,7 @@ All other requests are transparently proxied to the origin server.
 The worker adds the following headers to proxied requests:
 
 - `Host`: Origin server hostname
-- `x-custom-domain`: Original request domain
+- `x-blooms-custom-domain`: Original request domain
 - `x-forwarded-host`: Original request domain
 - `x-forwarded-proto`: Original request protocol (usually `https`)
 
@@ -257,7 +257,7 @@ wrangler types
 ### Why Separate Headers?
 
 - `Host`: Required for origin routing
-- `x-custom-domain`: Allows origin to identify the custom domain
+- `x-blooms-custom-domain`: Allows origin to identify the custom domain
 - `x-forwarded-*`: Standard forwarding headers for traceability
 
 ## Future Enhancements
