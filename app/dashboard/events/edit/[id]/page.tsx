@@ -45,6 +45,7 @@ import {
 import { useEvent, useUpdateEvent, useAddEventMedia, useDeleteEventMedia, useAddEventAttachment, useDeleteEventAttachment } from '@/src/hooks/useEvents'
 import { useSiteId } from '@/src/contexts/SiteContext'
 import { RichTextEditor } from '@/src/components/content-editor/RichTextEditor'
+import { PageAssociationsTab } from '@/src/components/events/PageAssociationsTab'
 import type { EventStatus } from '@/src/lib/queries/domains/events'
 import { createEventOccurrence, updateEventOccurrence, setEventFeaturedImage } from '@/src/lib/queries/domains/events'
 import { supabase } from '@/lib/supabase/client'
@@ -716,10 +717,11 @@ export default function EditEventPage({ params }: EditEventPageProps) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="dates">Event Dates</TabsTrigger>
               <TabsTrigger value="media">Media</TabsTrigger>
+              <TabsTrigger value="associations">Page Associations</TabsTrigger>
             </TabsList>
 
             {/* Details Tab */}
@@ -1410,6 +1412,13 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Page Associations Tab */}
+            <TabsContent value="associations">
+              {eventId && siteId && (
+                <PageAssociationsTab eventId={eventId} siteId={siteId} />
+              )}
             </TabsContent>
           </Tabs>
 
