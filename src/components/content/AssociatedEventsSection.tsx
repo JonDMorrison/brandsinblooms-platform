@@ -75,7 +75,7 @@ export async function AssociatedEventsSection({ contentId }: AssociatedEventsSec
                 )}
 
                 {/* Featured Image - Takes ~40% width on desktop */}
-                <div className="relative overflow-hidden bg-gray-100 h-64 md:h-full md:w-2/5 flex-shrink-0">
+                <div className="relative overflow-hidden bg-gray-100 h-64 md:h-80 md:w-2/5 flex-shrink-0">
                   {featuredImage ? (
                     <Image
                       src={featuredImage}
