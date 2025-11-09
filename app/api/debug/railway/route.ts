@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getAppDomain } from '@/lib/env/app-domain'
 
 /**
  * Debug endpoint to check Railway configuration and port settings
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
     },
     nextConfig: {
       basePath: process.env.NEXT_PUBLIC_BASE_PATH || 'not set',
-      appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN || 'not set',
+      appDomain: getAppDomain(),
     },
     process: {
       pid: process.pid,

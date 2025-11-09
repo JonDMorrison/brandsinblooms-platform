@@ -3,6 +3,7 @@ import { SiteHomepage } from '@/src/components/site/SiteHomepage'
 import HomePlatform from './home-platform'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
+import { getAppDomain } from '@/lib/env/app-domain'
 
 interface HomePageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -16,7 +17,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const searchParamsData = await searchParams
 
   // Get app domain from environment
-  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN
+  const appDomain = getAppDomain()
   const isSubdomain = host.includes('.') && host !== appDomain && !host.startsWith('localhost:')
 
   if (isSubdomain) {

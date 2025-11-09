@@ -22,9 +22,10 @@ import {
 } from '@/src/lib/site-editor/middleware-helpers'
 import { getSharedCookieDomain } from '@/lib/cookies/domain-config'
 import { autoEnableEditModeInMiddleware } from '@/src/lib/site-editor/middleware-auto-enable'
+import { getAppDomain } from '@/lib/env/app-domain'
 
 // Environment configuration
-const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+const APP_DOMAIN = getAppDomain()
 const USE_REDIS_CACHE = process.env.REDIS_URL && process.env.NODE_ENV === 'production'
 const ENABLE_ANALYTICS = process.env.ANALYTICS_ENABLED !== 'false'
 const ENABLE_SECURITY = process.env.SECURITY_ENABLED !== 'false'
@@ -109,7 +110,7 @@ export async function middleware(request: NextRequest) {
       pathname,
       requestUrl: request.url,
       nextUrl: request.nextUrl.toString(),
-      APP_DOMAIN: process.env.NEXT_PUBLIC_APP_DOMAIN,
+      APP_DOMAIN,
       NODE_ENV: process.env.NODE_ENV,
       headers: {
         'x-forwarded-host': request.headers.get('x-forwarded-host'),
