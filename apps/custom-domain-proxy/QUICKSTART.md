@@ -39,10 +39,6 @@ wrangler login
 # Set origin endpoint (your Railway app URL)
 wrangler secret put ORIGIN_ENDPOINT --env production
 # Enter: https://your-app.railway.app
-
-# Optional: Set allowed domains
-wrangler secret put ALLOWED_DOMAINS --env production
-# Enter: ["example.com", "www.example.com"]
 ```
 
 ## 4. Deploy to Cloudflare
@@ -89,9 +85,9 @@ You should see:
 ## Next Steps
 
 - [Read the full README](./README.md) for detailed documentation
-- [Configure domain allowlist](#3-configure-secrets) for security
 - Set up monitoring with `wrangler tail --env production`
 - Add custom domains in Cloudflare Dashboard
+- Configure rate limiting rules in Cloudflare for security
 
 ## Troubleshooting
 

@@ -56,10 +56,6 @@ cd apps/custom-domain-proxy
 # Set origin endpoint (required)
 wrangler secret put ORIGIN_ENDPOINT --env production
 # Enter: https://your-app.railway.app
-
-# Set allowed domains (optional - JSON array)
-wrangler secret put ALLOWED_DOMAINS --env production
-# Enter: ["custom1.com", "custom2.com", "www.custom1.com"]
 ```
 
 #### 2. Configure Routes
@@ -157,7 +153,6 @@ pnpm deploy:staging
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
 | `ORIGIN_ENDPOINT` | Yes | Origin server URL | `https://app.railway.app` |
-| `ALLOWED_DOMAINS` | No | JSON array of allowed domains | `["example.com", "www.example.com"]` |
 | `ENVIRONMENT` | No | Environment name (auto-set) | `production` |
 
 ## API Endpoints
@@ -207,17 +202,6 @@ In non-production environments, additional headers are added:
 
 The worker validates that `ORIGIN_ENDPOINT` is HTTPS to ensure secure communication.
 
-### Domain Allowlist
-
-Use `ALLOWED_DOMAINS` to restrict which custom domains can use the proxy:
-
-```bash
-wrangler secret put ALLOWED_DOMAINS --env production
-# Enter: ["trusted-domain.com", "www.trusted-domain.com"]
-```
-
-If not set, all domains are allowed.
-
 ### Rate Limiting
 
 Consider implementing Cloudflare's rate limiting rules in the dashboard to prevent abuse.
@@ -246,12 +230,6 @@ View request metrics in the Cloudflare Dashboard:
 1. Check routes are configured in Cloudflare Dashboard
 2. Verify DNS points to Cloudflare (orange cloud)
 3. Check `ORIGIN_ENDPOINT` is set correctly
-
-### 403 Domain Not Allowed
-
-The domain is not in `ALLOWED_DOMAINS`:
-1. Check the allowlist includes the domain
-2. Update with `wrangler secret put ALLOWED_DOMAINS`
 
 ### 502 Proxy Error
 

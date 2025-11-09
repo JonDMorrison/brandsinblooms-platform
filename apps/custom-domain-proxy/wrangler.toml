@@ -15,11 +15,9 @@ vars = { ENVIRONMENT = "staging" }
 
 # Secrets (set via: wrangler secret put <SECRET_NAME>)
 # - ORIGIN_ENDPOINT: The origin server URL (e.g., https://your-app.railway.app)
-# - ALLOWED_DOMAINS (optional): JSON array of allowed custom domains
 #
 # Example:
 # wrangler secret put ORIGIN_ENDPOINT --env production
-# wrangler secret put ALLOWED_DOMAINS --env production
 
 # Routes will be configured via Cloudflare dashboard
 # after domain is added to your Cloudflare account

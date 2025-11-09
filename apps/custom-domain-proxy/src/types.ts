@@ -8,12 +8,6 @@ export interface Env {
   ORIGIN_ENDPOINT: string;
 
   /**
-   * Optional JSON array of allowed custom domains
-   * If not set, all domains are allowed
-   */
-  ALLOWED_DOMAINS?: string;
-
-  /**
    * Environment name (production, staging, etc.)
    */
   ENVIRONMENT?: string;
@@ -24,6 +18,5 @@ export interface Env {
  */
 export interface ProxyConfig {
   originEndpoint: string;
-  allowedDomains?: string[];
   environment: string;
 }

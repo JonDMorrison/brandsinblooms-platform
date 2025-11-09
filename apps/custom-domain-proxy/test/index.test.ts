@@ -36,20 +36,4 @@ describe('Custom Domain Proxy', () => {
 
     env.ORIGIN_ENDPOINT = originalEndpoint;
   });
-
-  it('should respect domain allowlist', async () => {
-    const originalEndpoint = env.ORIGIN_ENDPOINT;
-    env.ORIGIN_ENDPOINT = 'https://origin.example.com';
-    env.ALLOWED_DOMAINS = JSON.stringify(['allowed.com']);
-
-    const allowedResponse = await SELF.fetch('https://allowed.com/');
-    expect(allowedResponse.status).not.toBe(403);
-
-    const deniedResponse = await SELF.fetch('https://denied.com/');
-    expect(deniedResponse.status).toBe(403);
-
-    env.ORIGIN_ENDPOINT = originalEndpoint;
-    // @ts-expect-error - Testing cleanup
-    env.ALLOWED_DOMAINS = undefined;
-  });
 });
