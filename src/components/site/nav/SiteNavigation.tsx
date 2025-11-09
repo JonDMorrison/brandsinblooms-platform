@@ -8,6 +8,7 @@ import { useCartContext } from '@/src/contexts/CartContext'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useDesignSettings } from '@/src/hooks/useDesignSettings'
 import { useHasBlogPosts } from '@/src/hooks/useHasBlogPosts'
+import { useHasEvents } from '@/src/hooks/useHasEvents'
 import { useIsEditModeActive } from '@/src/contexts/FullSiteEditorContext'
 import { Button } from '@/src/components/ui/button'
 import { cn } from '@/src/lib/utils'
@@ -31,7 +32,10 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const [searchOpen, setSearchOpen] = useState(false)
 
   // Check if site has published blog posts
-  const { data: hasBlogPosts, isLoading: isLoadingBlogCheck } = useHasBlogPosts(site?.id)
+  const { data: hasBlogPosts, loading: isLoadingBlogCheck } = useHasBlogPosts(site?.id)
+
+  // Check if site has published events
+  const { data: hasEvents, loading: isLoadingEventsCheck } = useHasEvents(site?.id)
 
 
   // Get navigation configuration from theme settings
@@ -58,26 +62,34 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   // Combine required items (Products) with optional items
   const allNavItems = [...requiredNavItems, ...optionalNavItems]
 
-  // Filter out Blog navigation if no published blog posts exist
+  // Filter out Blog and Events navigation if no published content exists
   // Only filter during normal operation, not while loading
   const navItems = useMemo(() => {
     // During loading, show all items to prevent layout shift
-    if (isLoadingBlogCheck) {
+    if (isLoadingBlogCheck || isLoadingEventsCheck) {
       return allNavItems;
     }
 
-    // Filter out blog navigation if no posts exist
+    // Filter out blog and events navigation if no content exists
     return allNavItems.filter((item) => {
-      // Keep non-blog items
-      if (!item.href.includes('/blog')) {
-        return true;
+      // Filter blog navigation
+      if (item.href.includes('/blog')) {
+        // Show blog items only if posts exist OR user can edit
+        // (editors should see blog nav even without posts)
+        return hasBlogPosts === true || canEdit;
       }
 
-      // Show blog items only if posts exist OR user can edit
-      // (editors should see blog nav even without posts)
-      return hasBlogPosts === true || canEdit;
+      // Filter events navigation
+      if (item.href.includes('/events')) {
+        // Show events items only if events exist OR user can edit
+        // (editors should see events nav even without events)
+        return hasEvents === true || canEdit;
+      }
+
+      // Keep all other items
+      return true;
     });
-  }, [allNavItems, hasBlogPosts, canEdit, isLoadingBlogCheck])
+  }, [allNavItems, hasBlogPosts, hasEvents, canEdit, isLoadingBlogCheck, isLoadingEventsCheck])
   
   // Get branding configuration
   const brandingType = theme?.logo?.displayType || 'text'

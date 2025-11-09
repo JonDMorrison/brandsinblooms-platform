@@ -1,12 +1,14 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { generatePageMetadata } from './utils/metadata'
-import { isProductRoute, isCategoryRoute, extractSlugFromPath, isOrderConfirmationRoute, extractOrderIdFromPath } from './utils/routing'
+import { isProductRoute, isCategoryRoute, extractSlugFromPath, isOrderConfirmationRoute, extractOrderIdFromPath, isEventsIndexRoute, isEventDetailRoute, extractEventSlugFromPath } from './utils/routing'
 import { SitePageProps } from './types'
 import { getEditModeStatus } from '@/src/lib/site-editor/server-utils'
 import { ClientSiteEditorWrapper } from '@/src/components/site-editor/ClientSiteEditorWrapper'
 import { FullSiteEditorBar } from '@/src/components/site-editor/FullSiteEditorBar'
 import { getSiteHeaders } from './utils/routing'
+import { getEventBySlug } from '@/src/lib/queries/domains/events'
+import { createClient } from '@/src/lib/supabase/server'
 
 // Force dynamic rendering for all pages to ensure fresh content
 // This is necessary because content can be updated at any time via the editor
@@ -22,6 +24,8 @@ import { PrivacyPage } from './components/PrivacyPage'
 import { TermsPage } from './components/TermsPage'
 import { DynamicContentPage } from './components/DynamicContentPage'
 import { BlogIndexPage } from './components/BlogIndexPage'
+import { EventsListPage } from './components/EventsListPage'
+import { EventDetailPage } from './components/EventDetailPage'
 import {
   ProductsPage,
   CartPage,
@@ -77,6 +81,10 @@ export default async function SitePage({ params }: SitePageProps) {
       pageComponent = <BlogIndexPage />
       break
 
+    case 'events':
+      pageComponent = <EventsListPage />
+      break
+
     case 'products':
       pageComponent = <ProductsPage />
       break
@@ -108,6 +116,16 @@ export default async function SitePage({ params }: SitePageProps) {
       } else if (isOrderConfirmationRoute(path)) {
         const orderId = extractOrderIdFromPath(path)
         pageComponent = <OrderConfirmationPageWrapper orderId={orderId} />
+      } else if (isEventDetailRoute(path)) {
+        const eventSlug = extractEventSlugFromPath(path)
+        const supabase = await createClient()
+        let event
+        try {
+          event = await getEventBySlug(supabase, siteId, eventSlug)
+        } catch {
+          notFound()
+        }
+        pageComponent = <EventDetailPage event={event} siteId={siteId} />
       } else {
         // Try to find content in database with this slug
         pageComponent = <DynamicContentPage slug={path} isEditMode={editModeStatus.isEditMode} />

@@ -132,14 +132,14 @@ export default function DashboardPage() {
       color: 'text-green-600'
     },
     {
-      id: '3',
+      id: '4',
       title: 'Categories',
       count: siteStats?.totalCategories || 0,
       icon: <Folder className="h-6 w-6" />,
       color: 'text-purple-600'
     },
     {
-      id: '4',
+      id: '5',
       title: 'Featured Products',
       count: siteStats?.featuredProducts || 0,
       icon: <Star className="h-6 w-6" />,

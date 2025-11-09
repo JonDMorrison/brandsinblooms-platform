@@ -196,13 +196,22 @@ const nextConfig = {
       ? "connect-src 'self' https://api.stripe.com https://m.stripe.network wss: https: http://localhost:* http://127.0.0.1:*"
       : "connect-src 'self' https://api.stripe.com https://m.stripe.network wss: https:"
 
+    // Build img-src directive based on environment
+    const imgSrc = isDevelopment
+      ? "img-src 'self' data: https: http: blob:"
+      : "img-src 'self' data: https: blob:"
+
+    const frameSrc = "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.youtube.com https://www.youtube-nocookie.com"
+
     const cspValue = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network",
       connectSrc,
-      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+      frameSrc,
+      // child-src is used as fallback for frame-src in some browsers
+      "child-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https: blob:",
+      imgSrc,
       "font-src 'self' data:"
     ].join('; ')
 

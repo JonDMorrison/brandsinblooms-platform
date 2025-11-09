@@ -152,6 +152,30 @@ export type SiteWithTemplate = Site & {
   template?: SiteTemplate;
 };
 
+// Event types
+export type Event = Tables['events']['Row'];
+export type EventInsert = Tables['events']['Insert'];
+export type EventUpdate = Tables['events']['Update'];
+export type EventMedia = Tables['event_media']['Row'];
+export type EventMediaInsert = Tables['event_media']['Insert'];
+export type EventMediaUpdate = Tables['event_media']['Update'];
+export type EventAttachment = Tables['event_attachments']['Row'];
+export type EventAttachmentInsert = Tables['event_attachments']['Insert'];
+export type EventAttachmentUpdate = Tables['event_attachments']['Update'];
+export type EventAssociation = Tables['event_associations']['Row'];
+export type EventAssociationInsert = Tables['event_associations']['Insert'];
+export type EventAssociationUpdate = Tables['event_associations']['Update'];
+
+// Event status type
+export type EventStatus = 'draft' | 'published' | 'unpublished';
+
+// Extended event types
+export type EventWithRelations = Event & {
+  media?: EventMedia[];
+  attachments?: EventAttachment[];
+  associations?: EventAssociation[];
+};
+
 // Role types
 export type SiteMembershipRole = 'owner' | 'editor' | 'viewer';
 export type UserRole = 'platform_admin' | 'site_owner' | 'customer';

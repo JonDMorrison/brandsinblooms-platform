@@ -25,3 +25,15 @@ export function isOrderConfirmationRoute(path: string): boolean {
 export function extractOrderIdFromPath(path: string): string {
   return path.replace('order-confirmation/', '')
 }
+
+export function isEventsIndexRoute(path: string): boolean {
+  return path === 'events'
+}
+
+export function isEventDetailRoute(path: string): boolean {
+  return path.startsWith('events/') && path.split('/').length === 2
+}
+
+export function extractEventSlugFromPath(path: string): string {
+  return path.replace('events/', '')
+}

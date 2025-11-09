@@ -13,7 +13,8 @@ import {
   Settings,
   Flower,
   X,
-  Shield
+  Shield,
+  Calendar
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Separator } from '@/src/components/ui/separator'
@@ -28,6 +29,7 @@ const allNavigationItems = [
   { name: 'Content', href: '/dashboard/content', icon: FileText },
   { name: 'Design', href: '/dashboard/design', icon: Palette },
   { name: 'Products', href: '/dashboard/products', icon: Package },
+  { name: 'Events', href: '/dashboard/events', icon: Calendar },
   { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   { name: 'Admin', href: '/dashboard/admin', icon: Shield, adminOnly: true },
