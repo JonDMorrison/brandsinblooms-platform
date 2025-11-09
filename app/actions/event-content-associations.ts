@@ -151,3 +151,52 @@ export async function getContentWithAssociations(
 
   return contentWithStatus;
 }
+
+/**
+ * Get all published events associated with a specific content item
+ * Returns upcoming events sorted by start_datetime
+ */
+export async function getContentEvents(contentId: string) {
+  const supabase = await createClient();
+
+  // Get all event associations for this content
+  const { data: associations, error: assocError } = await supabase
+    .from('event_content_associations')
+    .select('event_id')
+    .eq('content_id', contentId);
+
+  if (assocError) {
+    console.error('Error fetching event associations:', assocError);
+    return [];
+  }
+
+  // If no associations, return empty array
+  if (!associations || associations.length === 0) {
+    return [];
+  }
+
+  // Get event IDs
+  const eventIds = associations.map(a => a.event_id);
+
+  // Fetch published upcoming events with featured images
+  const now = new Date().toISOString();
+  const { data: events, error: eventsError } = await supabase
+    .from('events')
+    .select(`
+      *,
+      featured_image:event_media!events_featured_image_id_fkey(*),
+      occurrences:event_occurrences(*)
+    `)
+    .in('id', eventIds)
+    .eq('status', 'published')
+    .gte('start_datetime', now)
+    .is('deleted_at', null)
+    .order('start_datetime', { ascending: true });
+
+  if (eventsError) {
+    console.error('Error fetching events:', eventsError);
+    return [];
+  }
+
+  return events || [];
+}

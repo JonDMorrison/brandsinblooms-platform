@@ -12,6 +12,7 @@ import { EditableCustomerSiteSection } from '@/src/components/site-editor/Editab
 import { ContentSection } from '@/src/lib/content/schema'
 import { Calendar, User } from 'lucide-react'
 import { Badge } from '@/src/components/ui/badge'
+import { AssociatedEventsSection } from '@/src/components/content/AssociatedEventsSection'
 
 interface BlogPostMeta {
   excerpt?: string
@@ -216,6 +217,9 @@ export async function DynamicContentPage({ slug, isEditMode = false }: DynamicCo
                       </div>
                     </div>
                   </header>
+
+                  {/* Associated Events Section */}
+                  <AssociatedEventsSection contentId={contentResult.id} />
 
                   {/* Full Content */}
                   <div className="flex-1">
