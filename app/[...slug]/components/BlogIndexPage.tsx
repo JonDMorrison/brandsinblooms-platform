@@ -6,6 +6,7 @@ import { getPublishedContent } from '@/src/lib/queries/domains/content'
 import { createClient } from '@/src/lib/supabase/server'
 import { Calendar, User, ArrowRight } from 'lucide-react'
 import { Badge } from '@/src/components/ui/badge'
+import { AssociatedEventsSection } from '@/src/components/content/AssociatedEventsSection'
 import type { ContentWithTags } from '@/src/lib/queries/domains/content'
 
 interface BlogPostMeta {
@@ -153,6 +154,9 @@ export async function BlogIndexPage() {
                           </div>
                         </div>
                       </header>
+
+                      {/* Associated Events Section */}
+                      <AssociatedEventsSection contentId={latestPost.id} />
 
                       {/* Full Content */}
                       <div className="flex-1">
