@@ -46,7 +46,7 @@ export async function AssociatedEventsSection({ contentId }: AssociatedEventsSec
   const isSingleEvent = eventsWithOccurrenceCounts.length === 1
 
   return (
-    <section className="my-8">
+    <section>
       {isSingleEvent ? (
         // Single event: horizontal layout
         eventsWithOccurrenceCounts.map(({ event, hasMultipleDates }) => {
@@ -216,40 +216,43 @@ export async function AssociatedEventsSection({ contentId }: AssociatedEventsSec
                       </p>
                     )}
 
-                    {/* Date */}
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="h-4 w-4 text-gray-500" />
-                      <span
-                        className="text-sm text-gray-600"
-                        style={{ fontFamily: 'var(--theme-font-body)' }}
-                      >
-                        {format(new Date(event.start_datetime), 'PPP')}
-                      </span>
-                      {event.is_all_day && (
-                        <Badge variant="outline" className="ml-2">All Day</Badge>
+                    {/* Bottom metadata - pushed to bottom with mt-auto */}
+                    <div className="mt-auto space-y-2">
+                      {/* Date */}
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <span
+                          className="text-sm text-gray-600"
+                          style={{ fontFamily: 'var(--theme-font-body)' }}
+                        >
+                          {format(new Date(event.start_datetime), 'PPP')}
+                        </span>
+                        {event.is_all_day && (
+                          <Badge variant="outline" className="ml-2">All Day</Badge>
+                        )}
+                      </div>
+
+                      {/* Time */}
+                      {!event.is_all_day && event.occurrences?.[0]?.start_datetime && (
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <Clock className="h-4 w-4" />
+                          <span style={{ fontFamily: 'var(--theme-font-body)' }}>
+                            {format(new Date(event.occurrences[0].start_datetime), 'p')}
+                            {event.occurrences[0].end_datetime && ` - ${format(new Date(event.occurrences[0].end_datetime), 'p')}`}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Location */}
+                      {event.location && (
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <MapPin className="h-4 w-4" />
+                          <span style={{ fontFamily: 'var(--theme-font-body)' }}>
+                            {event.location}
+                          </span>
+                        </div>
                       )}
                     </div>
-
-                    {/* Time */}
-                    {!event.is_all_day && event.occurrences?.[0]?.start_datetime && (
-                      <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                        <Clock className="h-4 w-4" />
-                        <span style={{ fontFamily: 'var(--theme-font-body)' }}>
-                          {format(new Date(event.occurrences[0].start_datetime), 'p')}
-                          {event.occurrences[0].end_datetime && ` - ${format(new Date(event.occurrences[0].end_datetime), 'p')}`}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Location */}
-                    {event.location && (
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <MapPin className="h-4 w-4" />
-                        <span style={{ fontFamily: 'var(--theme-font-body)' }}>
-                          {event.location}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </article>
               </EventCardLink>
