@@ -1543,6 +1543,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
           onOpenChange={setIsRepeatModalOpen}
           onGenerate={handleRepeatEvent}
           baseOccurrence={workingOccurrences[workingOccurrences.length - 1]}
+          existingOccurrences={workingOccurrences}
         />
       )}
     </div>

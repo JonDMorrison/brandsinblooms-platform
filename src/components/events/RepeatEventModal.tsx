@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { format, addDays, addWeeks, addMonths, addYears, isBefore, isAfter } from 'date-fns'
+import { format, addDays, addWeeks, addMonths, addYears, isBefore, isAfter, isSameDay } from 'date-fns'
 import { CalendarIcon, Repeat } from 'lucide-react'
 import {
   Dialog,
@@ -40,6 +40,7 @@ interface RepeatEventModalProps {
     is_all_day: boolean
     location: string | null
   }
+  existingOccurrences?: Array<{ start_datetime: string }>
 }
 
 export interface GeneratedOccurrence {
@@ -66,6 +67,7 @@ export function RepeatEventModal({
   onOpenChange,
   onGenerate,
   baseOccurrence,
+  existingOccurrences = [],
 }: RepeatEventModalProps) {
   // Calculate default start date: next event date from today
   const getDefaultStartDate = () => {
@@ -176,7 +178,20 @@ export function RepeatEventModal({
       }
     }
 
-    return occurrences
+    // Filter out duplicates - check if any existing occurrence is on the same day
+    const filteredOccurrences = occurrences.filter(newOcc => {
+      const newOccDate = new Date(newOcc.start_datetime)
+
+      // Check if this date already exists in the existing occurrences
+      const isDuplicate = existingOccurrences.some(existingOcc => {
+        const existingDate = new Date(existingOcc.start_datetime)
+        return isSameDay(newOccDate, existingDate)
+      })
+
+      return !isDuplicate
+    })
+
+    return filteredOccurrences
   }
 
   const handleGenerate = () => {
