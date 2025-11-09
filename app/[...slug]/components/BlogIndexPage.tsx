@@ -43,9 +43,9 @@ export async function BlogIndexPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="flex flex-col lg:flex-row gap-8">
               {/* Latest Post - 2/3 width */}
-              <div className="lg:col-span-2">
+              <div className="lg:w-2/3">
                 {(() => {
                   const latestPost = blogPosts[0]
                   const meta = (latestPost.meta_data as BlogPostMeta) || {}
@@ -103,7 +103,7 @@ export async function BlogIndexPage() {
                   }
 
                   return (
-                    <article className="flex flex-col">
+                    <>
                       {/* Featured Image - only if exists */}
                       {featuredImage && (
                         <div className="aspect-[16/9] w-full overflow-hidden rounded-lg relative mb-6">
@@ -155,49 +155,52 @@ export async function BlogIndexPage() {
                         </div>
                       </header>
 
-                      {/* Associated Events Section */}
-                      <AssociatedEventsSection contentId={latestPost.id} />
+                      {/* Content section that aligns with sidebar */}
+                      <div>
+                        {/* Associated Events Section */}
+                        <AssociatedEventsSection contentId={latestPost.id} />
 
-                      {/* Full Content */}
-                      <div className="flex-1">
-                        {htmlContent ? (
-                          <div
-                            className="blog-article-content prose prose-lg max-w-none"
-                            style={{
-                              fontFamily: 'var(--theme-font-body)',
-                              color: 'var(--theme-text)'
-                            }}
-                            dangerouslySetInnerHTML={{ __html: htmlContent }}
-                          />
-                        ) : (
-                          <div
-                            className="text-gray-600 leading-relaxed"
-                            style={{ fontFamily: 'var(--theme-font-body)' }}
-                          >
-                            No content available
-                          </div>
-                        )}
-                        <style dangerouslySetInnerHTML={{
-                          __html: `
-                            .blog-article-content h1 {
-                              margin-top: 3rem !important;
-                            }
-                            .blog-article-content h2 {
-                              margin-top: 1rem !important;
-                            }
-                            .blog-article-content p {
-                              margin-bottom: 1rem !important;
-                            }
-                          `
-                        }} />
+                        {/* Full Content */}
+                        <article className="flex-1">
+                          {htmlContent ? (
+                            <div
+                              className="blog-article-content prose prose-lg max-w-none"
+                              style={{
+                                fontFamily: 'var(--theme-font-body)',
+                                color: 'var(--theme-text)'
+                              }}
+                              dangerouslySetInnerHTML={{ __html: htmlContent }}
+                            />
+                          ) : (
+                            <div
+                              className="text-gray-600 leading-relaxed"
+                              style={{ fontFamily: 'var(--theme-font-body)' }}
+                            >
+                              No content available
+                            </div>
+                          )}
+                          <style dangerouslySetInnerHTML={{
+                            __html: `
+                              .blog-article-content h1 {
+                                margin-top: 3rem !important;
+                              }
+                              .blog-article-content h2 {
+                                margin-top: 1rem !important;
+                              }
+                              .blog-article-content p {
+                                margin-bottom: 1rem !important;
+                              }
+                            `
+                          }} />
+                        </article>
                       </div>
-                    </article>
+                    </>
                   )
                 })()}
               </div>
 
               {/* Past Posts List - 1/3 width */}
-              <aside className="lg:col-span-1">
+              <aside className="lg:w-1/3">
                 <div
                   className="h-full p-6 rounded-lg"
                   style={{
