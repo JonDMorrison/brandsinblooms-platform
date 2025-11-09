@@ -62,7 +62,9 @@ export default function HomePlatform() {
     window.history.replaceState({}, '', url.toString());
   };
 
-  if (loading) {
+  // Only show loading spinner if we have a user and still loading
+  // This prevents blocking the public landing page while auth initializes
+  if (loading && user) {
     return (
       <div className='min-h-screen bg-gradient-hero flex items-center justify-center'>
         <div className='flex items-center space-x-2 sm:space-x-3'>
