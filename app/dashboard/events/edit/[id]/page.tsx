@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { ArrowLeft, Calendar as CalendarIcon, Loader2, X, Upload, Clock, Check, ChevronsUpDown, Star } from 'lucide-react'
+import { ArrowLeft, Calendar as CalendarIcon, Loader2, X, Upload, Clock, Check, ChevronsUpDown, Star, Repeat } from 'lucide-react'
 import { format, addDays } from 'date-fns'
 import { useDropzone } from 'react-dropzone'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/src/components/ui/card'
@@ -46,6 +46,7 @@ import { useEvent, useUpdateEvent, useAddEventMedia, useDeleteEventMedia, useAdd
 import { useSiteId } from '@/src/contexts/SiteContext'
 import { RichTextEditor } from '@/src/components/content-editor/RichTextEditor'
 import { PageAssociationsTab } from '@/src/components/events/PageAssociationsTab'
+import { RepeatEventModal, type GeneratedOccurrence } from '@/src/components/events/RepeatEventModal'
 import type { EventStatus } from '@/src/lib/queries/domains/events'
 import { createEventOccurrence, updateEventOccurrence, setEventFeaturedImage } from '@/src/lib/queries/domains/events'
 import { supabase } from '@/lib/supabase/client'
@@ -72,6 +73,11 @@ interface EventOccurrence {
   location: string | null
 }
 
+type OccurrenceChange =
+  | { type: 'add'; occurrence: Omit<EventOccurrence, 'id'> & { tempId: string } }
+  | { type: 'update'; id: string; occurrence: Partial<EventOccurrence> }
+  | { type: 'delete'; id: string }
+
 interface EditEventPageProps {
   params: Promise<{
     id: string
@@ -84,9 +90,17 @@ export default function EditEventPage({ params }: EditEventPageProps) {
   const [isUpdating, setIsUpdating] = useState(false)
   const [eventId, setEventId] = useState<string | null>(null)
   const [currentStatus, setCurrentStatus] = useState<EventStatus>('draft')
-  const [occurrences, setOccurrences] = useState<EventOccurrence[]>([])
+
+  // Saved state (from database)
+  const [savedOccurrences, setSavedOccurrences] = useState<EventOccurrence[]>([])
+
+  // Working state (client-side changes)
+  const [stagedChanges, setStagedChanges] = useState<OccurrenceChange[]>([])
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set())
+
   const [isLoadingOccurrences, setIsLoadingOccurrences] = useState(false)
   const [isAddingDate, setIsAddingDate] = useState(false)
+  const [isRepeatModalOpen, setIsRepeatModalOpen] = useState(false)
   const [videoUrl, setVideoUrl] = useState('')
   const [isUploadingMedia, setIsUploadingMedia] = useState(false)
   const [isUploadingAttachment, setIsUploadingAttachment] = useState(false)
@@ -125,6 +139,38 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
   const isAllDay = form.watch('is_all_day')
 
+  // Compute working occurrences (saved + staged changes)
+  const workingOccurrences = (() => {
+    // Start with saved occurrences
+    let result = [...savedOccurrences]
+
+    // Apply staged changes
+    for (const change of stagedChanges) {
+      if (change.type === 'delete') {
+        result = result.filter(o => o.id !== change.id)
+      } else if (change.type === 'update') {
+        result = result.map(o =>
+          o.id === change.id ? { ...o, ...change.occurrence } : o
+        )
+      } else if (change.type === 'add') {
+        result.push({
+          id: change.occurrence.tempId,
+          start_datetime: change.occurrence.start_datetime,
+          end_datetime: change.occurrence.end_datetime,
+          is_all_day: change.occurrence.is_all_day,
+          location: change.occurrence.location,
+        })
+      }
+    }
+
+    // Filter out deleting items (for animation)
+    result = result.filter(o => !deletingIds.has(o.id))
+
+    return result.sort((a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime())
+  })()
+
+  const hasUnsavedChanges = stagedChanges.length > 0
+
   const loadOccurrences = useCallback(async () => {
     if (!eventId) return
 
@@ -139,7 +185,8 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
       if (error) throw error
 
-      setOccurrences(data || [])
+      setSavedOccurrences(data || [])
+      setStagedChanges([]) // Reset staged changes when loading fresh from DB
     } catch (error) {
       console.error('Failed to load occurrences:', error)
       toast.error('Failed to load event dates')
@@ -176,7 +223,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
   const onSubmit = async (data: EventFormData) => {
     setIsUpdating(true)
-    const toastId = toast.loading('Updating event...')
+    const toastId = toast.loading('Saving changes...')
 
     try {
       if (!eventId) {
@@ -195,6 +242,34 @@ export default function EditEventPage({ params }: EditEventPageProps) {
         status: data.status,
       })
 
+      // Apply staged occurrence changes to database
+      for (const change of stagedChanges) {
+        if (change.type === 'delete') {
+          await supabase
+            .from('event_occurrences')
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('id', change.id)
+        } else if (change.type === 'update') {
+          await supabase
+            .from('event_occurrences')
+            .update(change.occurrence)
+            .eq('id', change.id)
+        } else if (change.type === 'add') {
+          await supabase
+            .from('event_occurrences')
+            .insert({
+              event_id: eventId,
+              start_datetime: change.occurrence.start_datetime,
+              end_datetime: change.occurrence.end_datetime,
+              is_all_day: change.occurrence.is_all_day,
+              location: change.occurrence.location,
+            })
+        }
+      }
+
+      // Reload occurrences from database
+      await loadOccurrences()
+
       toast.success('Event updated successfully!', { id: toastId })
     } catch (error) {
       console.error('Failed to update event:', error)
@@ -204,134 +279,122 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     }
   }
 
-  const updateAllOccurrencesAllDay = async (isAllDay: boolean) => {
-    if (!eventId) return
+  const updateAllOccurrencesAllDay = (isAllDay: boolean) => {
+    // Stage updates for all occurrences
+    const updates: OccurrenceChange[] = workingOccurrences.map(occ => ({
+      type: 'update' as const,
+      id: occ.id,
+      occurrence: { is_all_day: isAllDay }
+    }))
 
-    try {
-      const { error } = await supabase
-        .from('event_occurrences')
-        .update({ is_all_day: isAllDay })
-        .eq('event_id', eventId)
-
-      if (error) throw error
-
-      // Reload occurrences
-      await loadOccurrences()
-      toast.success('Updated all event dates to ' + (isAllDay ? 'all-day' : 'timed'))
-    } catch (error) {
-      console.error('Failed to update occurrences:', error)
-      toast.error('Failed to update event dates')
-    }
+    setStagedChanges(prev => [...prev, ...updates])
   }
 
-  const addOccurrence = async () => {
-    if (!eventId) return
-
-    try {
-      const now = new Date()
-      now.setHours(9, 0, 0, 0)
-
-      const newOccurrence = {
-        event_id: eventId,
-        start_datetime: now.toISOString(),
-        end_datetime: new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString(), // +8 hours
-        is_all_day: isAllDay,
-        location: form.getValues('location') || null,
+  const stageAddOccurrence = (newOccurrence: Omit<EventOccurrence, 'id'>) => {
+    const tempId = `temp-${Date.now()}-${Math.random()}`
+    setStagedChanges(prev => [
+      ...prev,
+      {
+        type: 'add',
+        occurrence: {
+          tempId,
+          ...newOccurrence
+        }
       }
-
-      const { error } = await supabase
-        .from('event_occurrences')
-        .insert(newOccurrence)
-
-      if (error) throw error
-
-      await loadOccurrences()
-      toast.success('Event date added')
-    } catch (error) {
-      console.error('Failed to add occurrence:', error)
-      toast.error('Failed to add event date')
-    }
+    ])
   }
 
-  const addOccurrenceWithOffset = async (daysOffset: number) => {
-    if (!eventId || occurrences.length === 0) {
+  const addOccurrenceWithOffset = (daysOffset: number) => {
+    if (workingOccurrences.length === 0) {
       toast.error('Please add at least one event date first')
       return
     }
 
-    try {
-      // Get the latest occurrence
-      const latestOccurrence = occurrences[occurrences.length - 1]
-      const latestStart = new Date(latestOccurrence.start_datetime)
-      const latestEnd = latestOccurrence.end_datetime ? new Date(latestOccurrence.end_datetime) : null
+    // Get the latest occurrence
+    const latestOccurrence = workingOccurrences[workingOccurrences.length - 1]
+    const latestStart = new Date(latestOccurrence.start_datetime)
+    const latestEnd = latestOccurrence.end_datetime ? new Date(latestOccurrence.end_datetime) : null
 
-      // Add offset days
-      const newStart = addDays(latestStart, daysOffset)
-      const newEnd = latestEnd ? addDays(latestEnd, daysOffset) : null
+    // Add offset days
+    const newStart = addDays(latestStart, daysOffset)
+    const newEnd = latestEnd ? addDays(latestEnd, daysOffset) : null
 
-      const newOccurrence = {
-        event_id: eventId,
-        start_datetime: newStart.toISOString(),
-        end_datetime: newEnd ? newEnd.toISOString() : null,
-        is_all_day: latestOccurrence.is_all_day,
-        location: latestOccurrence.location,
+    stageAddOccurrence({
+      start_datetime: newStart.toISOString(),
+      end_datetime: newEnd ? newEnd.toISOString() : null,
+      is_all_day: latestOccurrence.is_all_day,
+      location: latestOccurrence.location,
+    })
+  }
+
+  const deleteOccurrence = (occurrenceId: string) => {
+    // Add to deleting set for animation
+    setDeletingIds(prev => new Set([...prev, occurrenceId]))
+
+    // Wait for animation to complete
+    setTimeout(() => {
+      // Check if this is a temp ID (staged add)
+      const isTemp = occurrenceId.startsWith('temp-')
+
+      if (isTemp) {
+        // Remove from staged changes
+        setStagedChanges(prev => prev.filter(
+          change => !(change.type === 'add' && change.occurrence.tempId === occurrenceId)
+        ))
+      } else {
+        // Stage deletion
+        setStagedChanges(prev => [...prev, { type: 'delete', id: occurrenceId }])
       }
 
-      const { error } = await supabase
-        .from('event_occurrences')
-        .insert(newOccurrence)
-
-      if (error) throw error
-
-      await loadOccurrences()
-      toast.success(`Event date added ${daysOffset} days ahead`)
-    } catch (error) {
-      console.error('Failed to add occurrence:', error)
-      toast.error('Failed to add event date')
-    }
+      // Remove from deleting set
+      setDeletingIds(prev => {
+        const next = new Set(prev)
+        next.delete(occurrenceId)
+        return next
+      })
+    }, 300) // Match animation duration
   }
 
-  const deleteOccurrence = async (occurrenceId: string) => {
-    try {
-      const { error } = await supabase
-        .from('event_occurrences')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', occurrenceId)
-
-      if (error) throw error
-
-      await loadOccurrences()
-      toast.success('Event date deleted')
-    } catch (error) {
-      console.error('Failed to delete occurrence:', error)
-      toast.error('Failed to delete event date')
-    }
-  }
-
-  const updateTime = async (
+  const updateTime = (
     occurrence: EventOccurrence,
     field: 'start' | 'end',
     hour: string,
     minute: string
   ) => {
-    try {
-      // Get the current datetime
-      const currentDatetime = field === 'start' ? occurrence.start_datetime : (occurrence.end_datetime || occurrence.start_datetime)
-      const currentDate = new Date(currentDatetime)
+    // Get the current datetime
+    const currentDatetime = field === 'start' ? occurrence.start_datetime : (occurrence.end_datetime || occurrence.start_datetime)
+    const currentDate = new Date(currentDatetime)
 
-      // Create a new date with updated time
-      const newDate = new Date(currentDate)
-      newDate.setHours(parseInt(hour, 10), parseInt(minute, 10), 0, 0)
+    // Create a new date with updated time
+    const newDate = new Date(currentDate)
+    newDate.setHours(parseInt(hour, 10), parseInt(minute, 10), 0, 0)
 
-      await updateEventOccurrence(supabase, occurrence.id, {
-        [field === 'start' ? 'start_datetime' : 'end_datetime']: newDate.toISOString()
-      })
-      await loadOccurrences()
-      toast.success(`${field === 'start' ? 'Start' : 'End'} time updated`)
-    } catch (error) {
-      console.error('Failed to update time:', error)
-      toast.error('Failed to update time')
+    // Stage the update
+    setStagedChanges(prev => [
+      ...prev,
+      {
+        type: 'update',
+        id: occurrence.id,
+        occurrence: {
+          [field === 'start' ? 'start_datetime' : 'end_datetime']: newDate.toISOString()
+        }
+      }
+    ])
+  }
+
+  const handleRepeatEvent = (generatedOccurrences: GeneratedOccurrence[]) => {
+    // Stage all generated occurrences
+    for (const occ of generatedOccurrences) {
+      stageAddOccurrence(occ)
     }
+
+    toast.success(`${generatedOccurrences.length} occurrence${generatedOccurrences.length !== 1 ? 's' : ''} added`)
+  }
+
+  const handleCancelChanges = () => {
+    setStagedChanges([])
+    setDeletingIds(new Set())
+    toast.info('Changes discarded')
   }
 
   // Handle time selection (no auto-save, only on Apply button)
@@ -348,7 +411,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
   }
 
   // Handle Apply button click
-  const handleApplyTime = async (occurrence: EventOccurrence, field: 'start' | 'end') => {
+  const handleApplyTime = (occurrence: EventOccurrence, field: 'start' | 'end') => {
     if (!editingTime) return
 
     // Get current time as defaults if not selected
@@ -358,7 +421,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     const hour = editingTime.selectedHour || format(currentDate, 'HH')
     const minute = editingTime.selectedMinute || format(currentDate, 'mm')
 
-    await updateTime(occurrence, field, hour, minute)
+    updateTime(occurrence, field, hour, minute)
     setEditingTime(null)
   }
 
@@ -590,7 +653,13 @@ export default function EditEventPage({ params }: EditEventPageProps) {
   }
 
   const handleCancel = () => {
-    router.push('/dashboard/events')
+    if (hasUnsavedChanges) {
+      if (confirm('You have unsaved changes. Are you sure you want to leave?')) {
+        router.push('/dashboard/events')
+      }
+    } else {
+      router.push('/dashboard/events')
+    }
   }
 
   const handleStatusToggle = async (checked: boolean) => {
@@ -907,7 +976,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                   />
 
                   {/* Add Date Buttons */}
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Popover open={isAddingDate} onOpenChange={setIsAddingDate}>
                       <PopoverTrigger asChild>
                         <Button
@@ -923,28 +992,19 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                         <Calendar
                           mode="single"
                           selected={undefined}
-                          onSelect={async (date) => {
+                          onSelect={(date) => {
                             if (date && eventId) {
                               const newDate = new Date(date)
                               newDate.setHours(9, 0, 0, 0) // Default 9am start
 
-                              try {
-                                await createEventOccurrence(supabase, {
-                                  event_id: eventId,
-                                  start_datetime: newDate.toISOString(),
-                                  end_datetime: new Date(newDate.getTime() + 8 * 60 * 60 * 1000).toISOString(), // 8 hours later
-                                  is_all_day: isAllDay,
-                                  location: form.getValues('location') || null,
-                                  meta_data: {}
-                                })
+                              stageAddOccurrence({
+                                start_datetime: newDate.toISOString(),
+                                end_datetime: new Date(newDate.getTime() + 8 * 60 * 60 * 1000).toISOString(), // 8 hours later
+                                is_all_day: isAllDay,
+                                location: form.getValues('location') || null,
+                              })
 
-                                setIsAddingDate(false)
-                                await loadOccurrences()
-                                toast.success('Event date added')
-                              } catch (error) {
-                                console.error('Failed to add occurrence:', error)
-                                toast.error('Failed to add event date')
-                              }
+                              setIsAddingDate(false)
                             }
                           }}
                           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
@@ -957,7 +1017,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => addOccurrenceWithOffset(7)}
-                      disabled={occurrences.length === 0}
+                      disabled={workingOccurrences.length === 0}
                     >
                       +7 Days
                     </Button>
@@ -966,9 +1026,19 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => addOccurrenceWithOffset(30)}
-                      disabled={occurrences.length === 0}
+                      disabled={workingOccurrences.length === 0}
                     >
                       +30 Days
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsRepeatModalOpen(true)}
+                      disabled={workingOccurrences.length === 0}
+                    >
+                      <Repeat className="h-4 w-4 mr-2" />
+                      Repeat Event
                     </Button>
                   </div>
 
@@ -977,7 +1047,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     </div>
-                  ) : occurrences.length === 0 ? (
+                  ) : workingOccurrences.length === 0 ? (
                     <div className="text-center py-8 border rounded-lg bg-muted/50">
                       <CalendarIcon className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
                       <p className="text-sm text-muted-foreground">
@@ -986,11 +1056,19 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {occurrences.map((occurrence) => (
-                        <div
-                          key={occurrence.id}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                        >
+                      {workingOccurrences.map((occurrence) => {
+                        const isDeleting = deletingIds.has(occurrence.id)
+                        const isNewlyAdded = occurrence.id.startsWith('temp-')
+
+                        return (
+                          <div
+                            key={occurrence.id}
+                            className={cn(
+                              "flex items-center justify-between p-4 border rounded-lg transition-all duration-300",
+                              isDeleting ? "opacity-0 scale-95 h-0 p-0 my-0 overflow-hidden" : "hover:bg-muted/50 opacity-100 scale-100",
+                              isNewlyAdded && "animate-in fade-in slide-in-from-bottom-2"
+                            )}
+                          >
                           <div className="flex items-center gap-3 flex-1">
                             <CalendarIcon className="h-5 w-5 text-muted-foreground" />
                             <div className="flex-1">
@@ -1172,7 +1250,8 @@ export default function EditEventPage({ params }: EditEventPageProps) {
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </CardContent>
@@ -1423,32 +1502,49 @@ export default function EditEventPage({ params }: EditEventPageProps) {
           </Tabs>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isUpdating}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isUpdating}
-              className="btn-gradient-primary"
-            >
-              {isUpdating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
+          <div className="flex items-center justify-between gap-3">
+            {hasUnsavedChanges && (
+              <Badge variant="secondary" className="text-sm">
+                {stagedChanges.length} unsaved change{stagedChanges.length !== 1 ? 's' : ''}
+              </Badge>
+            )}
+            <div className="flex gap-3 ml-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancelChanges}
+                disabled={isUpdating || !hasUnsavedChanges}
+              >
+                Discard Changes
+              </Button>
+              <Button
+                type="submit"
+                disabled={isUpdating}
+                className="btn-gradient-primary"
+              >
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </Form>
+
+      {/* Repeat Event Modal */}
+      {workingOccurrences.length > 0 && (
+        <RepeatEventModal
+          open={isRepeatModalOpen}
+          onOpenChange={setIsRepeatModalOpen}
+          onGenerate={handleRepeatEvent}
+          baseOccurrence={workingOccurrences[workingOccurrences.length - 1]}
+        />
+      )}
     </div>
   )
 }
