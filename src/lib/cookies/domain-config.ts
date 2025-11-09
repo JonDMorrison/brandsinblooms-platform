@@ -15,6 +15,8 @@
  * - Cookies set with leading dot (.) are accessible to all subdomains
  */
 
+import { getAppDomain } from '@/lib/env/app-domain'
+
 /**
  * Get the cookie domain for sharing authentication across main app and customer sites
  *
@@ -26,7 +28,7 @@
  * - blooms.cc -> '.blooms.cc' (shares to *.blooms.cc)
  */
 export function getSharedCookieDomain(): string | undefined {
-  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'
+  const appDomain = getAppDomain()
 
   // Handle localhost development
   if (appDomain.includes('localhost')) {
@@ -65,7 +67,7 @@ export function getSharedCookieDomain(): string | undefined {
  * - www.blooms.cc -> 'blooms.cc'
  */
 export function getBaseDomain(): string {
-  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'
+  const appDomain = getAppDomain()
 
   if (appDomain.includes('localhost')) {
     return 'localhost'

@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { SiteThemeProvider, ThemeWrapper } from '@/src/components/theme/ThemeProvider'
 import { SiteLayout } from '@/src/components/layout/SiteLayout'
 import { ProductCatalog } from '@/src/components/site/ProductCatalog'
+import { getAppDomain } from '@/lib/env/app-domain'
 
 interface SiteHomepageProps {
   fallbackContent?: React.ReactNode
@@ -40,7 +41,7 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
     (window.location.hostname.includes('staging') && !window.location.hostname.includes('.')) ||
     window.location.hostname.includes('.vercel.app') ||
     window.location.hostname.includes('.railway.app') ||
-    window.location.hostname === process.env.NEXT_PUBLIC_APP_DOMAIN
+    window.location.hostname === getAppDomain()
   )
 
   // On main domain, always show the fallback content (HomePlatform)

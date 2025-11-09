@@ -56,6 +56,7 @@ import {
 import { toast } from 'sonner'
 import { useCurrentSite, useSitePermissions } from '@/src/hooks/useSite'
 import { useUpdateSiteSettings } from '@/src/hooks/useSiteSettings'
+import { getAppDomain } from '@/lib/env/app-domain'
 import {
   validateDomainFormat,
   validateSubdomainFormat,
@@ -90,7 +91,7 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
   // Get the app domain for display
   const appDomain = typeof window !== 'undefined'
     ? window.location.host
-    : process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'
+    : getAppDomain()
   
   // Verification state
   const [verificationResult, setVerificationResult] = useState<DomainVerificationResult | null>(null)

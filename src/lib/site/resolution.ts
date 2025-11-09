@@ -3,6 +3,8 @@
  * Extracts site information from hostnames for multi-tenant architecture
  */
 
+import { getAppDomain } from '@/lib/env/app-domain'
+
 export interface SiteResolution {
   type: 'subdomain' | 'custom_domain'
   value: string
@@ -90,7 +92,7 @@ export function parseHostname(hostname: string): HostParseResult {
  * Check if hostname is the main platform domain (not a customer site)
  */
 function isMainPlatformDomain(hostname: string): boolean {
-  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'
+  const appDomain = getAppDomain()
   const appDomainWithoutPort = appDomain.split(':')[0]
 
   // Remove port from hostname for comparison

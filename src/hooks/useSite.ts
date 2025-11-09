@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react'
 import { Site } from '@/lib/database/aliases'
+import { getAppDomain } from '@/lib/env/app-domain'
 
 // Import hooks from SiteContext
 import {
@@ -121,7 +122,7 @@ export function useSite(): UseSiteResult {
     }
     
     if (site.subdomain) {
-      const baseDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+      const baseDomain = getAppDomain()
       return `${protocol}://${site.subdomain}.${baseDomain}${cleanPath}`
     }
 

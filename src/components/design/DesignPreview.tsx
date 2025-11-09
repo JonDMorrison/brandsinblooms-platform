@@ -8,6 +8,7 @@ import { Monitor, Tablet, Smartphone, RefreshCw, ExternalLink } from 'lucide-rea
 import { ThemeSettings } from '@/src/lib/queries/domains/theme'
 import { useSiteId, useCurrentSite } from '@/contexts/SiteContext'
 import { useThemeCSS } from '@/hooks/useThemeCSS'
+import { getAppDomain } from '@/lib/env/app-domain'
 
 interface DesignPreviewProps {
   settings: ThemeSettings
@@ -29,7 +30,7 @@ function getPreviewUrl(site: any): string {
   // 🔍 COMPREHENSIVE ENVIRONMENT VARIABLE DEBUGGING
   console.log('[IFRAME_DEBUG] Environment Variables Analysis:', {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-    NEXT_PUBLIC_APP_DOMAIN: process.env.NEXT_PUBLIC_APP_DOMAIN,
+    NEXT_PUBLIC_APP_DOMAIN: getAppDomain(),
     NODE_ENV: process.env.NODE_ENV,
     allNextPublicVars: Object.keys(process.env || {}).filter(key => key.startsWith('NEXT_PUBLIC_')),
     allEnvVarsCount: Object.keys(process.env || {}).length,

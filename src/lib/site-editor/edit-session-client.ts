@@ -33,7 +33,8 @@ export const editSessionUtils = {
    */
   enableEditMode: (returnUrl?: string): void => {
     // Get main app domain from environment
-    const mainAppDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3001'
+    const { getAppDomain } = require('@/lib/env/app-domain')
+    const mainAppDomain = getAppDomain()
     const protocol = window.location.protocol
 
     // Create URL pointing to main app login page

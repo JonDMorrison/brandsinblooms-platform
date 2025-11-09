@@ -27,6 +27,7 @@ import {
   SiteResolution
 } from '@/src/lib/site/resolution'
 import { debug } from '@/src/lib/utils/debug'
+import { getAppDomain } from '@/lib/env/app-domain'
 
 export interface SiteContextType {
   // Current site state
@@ -165,7 +166,7 @@ export function SiteProvider({
       debug.site('resolveSiteFromUrl - Extracted hostname:', hostname);
       
       // Check if this is the main app domain - if so, don't try to resolve it as a site
-      const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+      const appDomain = getAppDomain()
       const appDomainWithoutPort = appDomain.split(':')[0]
 
       const isMainDomain = hostname === appDomain ||
@@ -178,8 +179,7 @@ export function SiteProvider({
         hostname,
         appDomain,
         appDomainWithoutPort,
-        isMainDomain,
-        envDomain: process.env.NEXT_PUBLIC_APP_DOMAIN
+        isMainDomain
       });
 
       if (isMainDomain) {
@@ -532,7 +532,7 @@ export function SiteProvider({
     } else if (typeof window !== 'undefined') {
       // Check if we're on the main app domain
       const hostname = window.location.hostname
-      const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+      const appDomain = getAppDomain()
       // Strip port from appDomain for comparison
       const appDomainWithoutPort = appDomain.split(':')[0]
 
@@ -594,8 +594,8 @@ export function SiteProvider({
     if (typeof window === 'undefined') return
     
     const hostname = window.location.hostname
-    const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
-    
+    const appDomain = getAppDomain()
+
     // Skip if we're on a site-specific domain
     if (!hostname.includes(appDomain) && !hostname.includes('localhost') && !hostname.includes('staging')) {
       return

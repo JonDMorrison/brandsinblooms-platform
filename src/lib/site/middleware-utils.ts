@@ -113,9 +113,10 @@ export function isAllowedHostname(hostname: string): boolean {
  * Gets list of allowed domains from environment configuration
  */
 function getAllowedDomains(): string[] {
-  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'blooms.cc'
+  const { getAppDomain } = require('@/lib/env/app-domain')
+  const appDomain = getAppDomain()
   const additionalDomains = process.env.ALLOWED_DOMAINS?.split(',') || []
-  
+
   return [
     appDomain,
     ...additionalDomains,
@@ -282,18 +283,19 @@ export function getSecurityHeaders(site: Site, hostname: string): Record<string,
 
   // Determine allowed frame ancestors for preview functionality
   function getAllowedFrameAncestors(): string {
+    const { getAppDomain } = require('@/lib/env/app-domain')
     const isDevelopment = process.env.NODE_ENV === 'development'
+    const appDomain = getAppDomain()
     const isStaging = process.env.NEXT_PUBLIC_APP_URL?.includes('staging') ||
-                     process.env.NEXT_PUBLIC_APP_DOMAIN?.includes('staging')
+                     appDomain.includes('staging')
 
     // Allow frame ancestors in development AND staging for preview functionality
     if (!isDevelopment && !isStaging) {
       return "'self'"
     }
-    
+
     // Derive dashboard URL from app domain
-    const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'http://localhost:3001'
-    const appUrl = new URL(appDomain)
+    const appUrl = new URL(appDomain.startsWith('http') ? appDomain : `http://${appDomain}`)
     const dashboardUrls: string[] = []
     
     if (appUrl.hostname === 'localhost') {

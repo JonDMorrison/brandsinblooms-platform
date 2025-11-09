@@ -458,9 +458,11 @@ export function applySecurityHeaders(
   if (config.headers.csp) {
     // Determine allowed frame ancestors for preview functionality
     function getAllowedFrameAncestors(): string {
+      const { getAppDomain } = require('@/lib/env/app-domain')
       const isDevelopment = process.env.NODE_ENV === 'development'
+      const appDomain = getAppDomain()
       const isStaging = process.env.NEXT_PUBLIC_APP_URL?.includes('staging') ||
-                       process.env.NEXT_PUBLIC_APP_DOMAIN?.includes('staging')
+                       appDomain.includes('staging')
 
       // Allow frame ancestors in development AND staging for preview functionality
       if (!isDevelopment && !isStaging) {
