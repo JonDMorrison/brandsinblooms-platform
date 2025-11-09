@@ -27,7 +27,7 @@ import { Calendar } from '@/src/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/src/components/ui/popover'
 import { cn } from '@/lib/utils'
 
-type FrequencyType = 'daily' | 'weekly' | 'monthly' | 'yearly'
+type FrequencyType = 'daily' | 'weekly' | 'monthly'
 type EndType = 'date' | 'count'
 
 interface RepeatEventModalProps {
@@ -67,6 +67,17 @@ export function RepeatEventModal({
   onGenerate,
   baseOccurrence,
 }: RepeatEventModalProps) {
+  // Calculate default start date: next event date from today
+  const getDefaultStartDate = () => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const baseDate = new Date(baseOccurrence.start_datetime)
+    baseDate.setHours(0, 0, 0, 0)
+
+    // If base occurrence is in the future, use it; otherwise use today
+    return baseDate > today ? baseDate : today
+  }
+
   const [frequency, setFrequency] = useState<FrequencyType>('weekly')
   const [interval, setInterval] = useState(1)
   const [endType, setEndType] = useState<EndType>('count')
@@ -74,6 +85,8 @@ export function RepeatEventModal({
   const [occurrenceCount, setOccurrenceCount] = useState(10)
   const [selectedDays, setSelectedDays] = useState<number[]>([new Date(baseOccurrence.start_datetime).getDay()])
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [startDate, setStartDate] = useState<Date>(getDefaultStartDate())
+  const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false)
 
   const handleDayToggle = (day: number) => {
     setSelectedDays(prev =>
@@ -87,10 +100,14 @@ export function RepeatEventModal({
     const baseEnd = baseOccurrence.end_datetime ? new Date(baseOccurrence.end_datetime) : null
     const duration = baseEnd ? baseEnd.getTime() - baseStart.getTime() : 0
 
-    // Calculate the maximum date (6 months from base)
-    const maxDate = addMonths(baseStart, MAX_MONTHS)
+    // Calculate the maximum date (6 months from today)
+    const today = new Date()
+    const maxDate = addMonths(today, MAX_MONTHS)
 
-    let currentDate = new Date(baseStart)
+    let currentDate = new Date(startDate)
+    // Preserve the time from base occurrence
+    currentDate.setHours(baseStart.getHours(), baseStart.getMinutes(), baseStart.getSeconds())
+
     let count = 0
 
     // Determine end condition
@@ -156,9 +173,6 @@ export function RepeatEventModal({
         case 'monthly':
           currentDate = addMonths(currentDate, interval)
           break
-        case 'yearly':
-          currentDate = addYears(currentDate, interval)
-          break
       }
     }
 
@@ -182,6 +196,7 @@ export function RepeatEventModal({
     setEndDate(undefined)
     setOccurrenceCount(10)
     setSelectedDays([new Date(baseOccurrence.start_datetime).getDay()])
+    setStartDate(getDefaultStartDate())
   }
 
   const previewCount = calculateOccurrences().length
@@ -195,11 +210,48 @@ export function RepeatEventModal({
             Repeat Event
           </DialogTitle>
           <DialogDescription>
-            Create multiple occurrences based on a repeating pattern. Maximum {MAX_MONTHS} months from the base date.
+            Create multiple occurrences based on a repeating pattern.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Starts On */}
+          <div className="space-y-2">
+            <Label>Starts on</Label>
+            <Popover open={isStartCalendarOpen} onOpenChange={setIsStartCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    'w-full justify-start text-left font-normal',
+                    !startDate && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, 'PPP') : 'Pick a date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-white border shadow-md" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setStartDate(date)
+                    }
+                    setIsStartCalendarOpen(false)
+                  }}
+                  disabled={(date) => {
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+                    return isBefore(date, today)
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
           {/* Frequency */}
           <div className="space-y-2">
             <Label>Repeat every</Label>
@@ -220,7 +272,6 @@ export function RepeatEventModal({
                   <SelectItem value="daily">Day{interval > 1 ? 's' : ''}</SelectItem>
                   <SelectItem value="weekly">Week{interval > 1 ? 's' : ''}</SelectItem>
                   <SelectItem value="monthly">Month{interval > 1 ? 's' : ''}</SelectItem>
-                  <SelectItem value="yearly">Year{interval > 1 ? 's' : ''}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -237,10 +288,10 @@ export function RepeatEventModal({
                     type="button"
                     onClick={() => handleDayToggle(day.value)}
                     className={cn(
-                      'flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors',
+                      'flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all border-2',
                       selectedDays.includes(day.value)
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        ? 'bg-primary text-primary-foreground border-primary shadow-md scale-105'
+                        : 'bg-white text-gray-600 border-gray-300 hover:border-primary/50 hover:bg-gray-50'
                     )}
                   >
                     {day.label}
@@ -299,10 +350,11 @@ export function RepeatEventModal({
                           setEndType('date')
                           setIsCalendarOpen(false)
                         }}
-                        disabled={(date) =>
-                          isBefore(date, new Date(baseOccurrence.start_datetime)) ||
-                          isAfter(date, addMonths(new Date(baseOccurrence.start_datetime), MAX_MONTHS))
-                        }
+                        disabled={(date) => {
+                          const today = new Date()
+                          return isBefore(date, startDate) ||
+                            isAfter(date, addMonths(today, MAX_MONTHS))
+                        }}
                         initialFocus
                       />
                     </PopoverContent>
@@ -313,17 +365,20 @@ export function RepeatEventModal({
           </div>
 
           {/* Preview */}
-          <div className="rounded-lg bg-muted p-3">
+          <div className="rounded-lg bg-muted p-3 space-y-2">
             <p className="text-sm text-muted-foreground">
               Will create <span className="font-semibold text-foreground">{previewCount}</span> occurrence{previewCount !== 1 ? 's' : ''}
               {previewCount > 0 && (
                 <>
-                  {' '}from <span className="font-semibold text-foreground">{format(new Date(baseOccurrence.start_datetime), 'PP')}</span>
+                  {' '}from <span className="font-semibold text-foreground">{format(startDate, 'PP')}</span>
                   {' '}to <span className="font-semibold text-foreground">
                     {format(new Date(calculateOccurrences()[previewCount - 1].start_datetime), 'PP')}
                   </span>
                 </>
               )}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Events can only be created up to {MAX_MONTHS} months from today
             </p>
           </div>
         </div>
@@ -332,7 +387,11 @@ export function RepeatEventModal({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleGenerate} disabled={previewCount === 0}>
+          <Button
+            onClick={handleGenerate}
+            disabled={previewCount === 0}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
             Generate {previewCount} Occurrence{previewCount !== 1 ? 's' : ''}
           </Button>
         </DialogFooter>
