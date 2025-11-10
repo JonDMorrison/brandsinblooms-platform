@@ -508,7 +508,7 @@ export function useDeleteEventMedia() {
 
   return useSupabaseMutation<void, { mediaId: string; eventId: string }>(
     ({ mediaId }, signal) =>
-      deleteEventMedia(supabase, mediaId),
+      deleteEventMedia(supabase, mediaId, siteId || undefined),
     {
       showSuccessToast: 'Media deleted successfully',
       onSuccess: (_, variables) => {
@@ -557,7 +557,7 @@ export function useDeleteEventAttachment() {
 
   return useSupabaseMutation<void, { attachmentId: string; eventId: string }>(
     ({ attachmentId }, signal) =>
-      deleteEventAttachment(supabase, attachmentId),
+      deleteEventAttachment(supabase, attachmentId, siteId || undefined),
     {
       showSuccessToast: 'Attachment deleted successfully',
       onSuccess: (_, variables) => {

@@ -48,6 +48,9 @@ pnpm-debug.log*
 
 # Misc
 .npm
+
+# Migration logs
+migration-log.json
 .eslintcache
 
 .claude/

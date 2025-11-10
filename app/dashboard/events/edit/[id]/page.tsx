@@ -48,8 +48,9 @@ import { RichTextEditor } from '@/src/components/content-editor/RichTextEditor'
 import { PageAssociationsTab } from '@/src/components/events/PageAssociationsTab'
 import { RepeatEventModal, type GeneratedOccurrence } from '@/src/components/events/RepeatEventModal'
 import type { EventStatus } from '@/src/lib/queries/domains/events'
-import { createEventOccurrence, updateEventOccurrence, setEventFeaturedImage } from '@/src/lib/queries/domains/events'
+import { setEventFeaturedImage } from '@/src/lib/queries/domains/events'
 import { supabase } from '@/lib/supabase/client'
+import { EventStorageAdapter } from '@/src/lib/storage/event-storage'
 import { TIMEZONES, getUserTimezone } from '@/src/lib/timezones'
 import { cn } from '@/lib/utils'
 
@@ -429,6 +430,10 @@ export default function EditEventPage({ params }: EditEventPageProps) {
   const onDropImages = useCallback(async (acceptedFiles: File[]) => {
     if (!eventId) return
     if (acceptedFiles.length === 0) return
+    if (!siteId) {
+      toast.error('Site ID not available')
+      return
+    }
 
     // Validate file sizes (5MB max per file)
     const maxSize = 5 * 1024 * 1024
@@ -444,18 +449,12 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
     try {
       const uploadPromises = acceptedFiles.map(async (file, index) => {
-        // Upload to storage
-        const fileName = `${eventId}/${Date.now()}-${index}-${file.name}`
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('event-media')
-          .upload(fileName, file)
-
-        if (uploadError) throw uploadError
-
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('event-media')
-          .getPublicUrl(fileName)
+        // Always use R2 storage with EventStorageAdapter
+        const adapter = new EventStorageAdapter({
+          siteId,
+          eventId,
+        })
+        const publicUrl = await adapter.uploadEventMedia(file, eventId, siteId)
 
         // Create media record
         await addMediaMutation.mutateAsync({
@@ -481,7 +480,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     } finally {
       setIsUploadingMedia(false)
     }
-  }, [eventId, event?.media?.length, addMediaMutation, refreshEvent])
+  }, [eventId, event?.media?.length, addMediaMutation, refreshEvent, siteId])
 
   const { getRootProps: getImageRootProps, getInputProps: getImageInputProps, isDragActive: isImageDragActive } = useDropzone({
     onDrop: onDropImages,
@@ -499,6 +498,10 @@ export default function EditEventPage({ params }: EditEventPageProps) {
   const onDropAttachments = useCallback(async (acceptedFiles: File[]) => {
     if (!eventId) return
     if (acceptedFiles.length === 0) return
+    if (!siteId) {
+      toast.error('Site ID not available')
+      return
+    }
 
     // Validate file sizes (10MB max per file)
     const maxSize = 10 * 1024 * 1024
@@ -514,16 +517,12 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
     try {
       const uploadPromises = acceptedFiles.map(async (file, index) => {
-        const fileName = `${eventId}/${Date.now()}-${index}-${file.name}`
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('event-attachments')
-          .upload(fileName, file)
-
-        if (uploadError) throw uploadError
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('event-attachments')
-          .getPublicUrl(fileName)
+        // Always use R2 storage with EventStorageAdapter
+        const adapter = new EventStorageAdapter({
+          siteId,
+          eventId,
+        })
+        const publicUrl = await adapter.uploadEventAttachment(file, eventId, siteId)
 
         await addAttachmentMutation.mutateAsync({
           eventId,
@@ -546,7 +545,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     } finally {
       setIsUploadingAttachment(false)
     }
-  }, [eventId, addAttachmentMutation, refreshEvent])
+  }, [eventId, addAttachmentMutation, refreshEvent, siteId])
 
   const { getRootProps: getAttachmentRootProps, getInputProps: getAttachmentInputProps, isDragActive: isAttachmentDragActive } = useDropzone({
     onDrop: onDropAttachments,

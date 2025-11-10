@@ -705,8 +705,45 @@ export async function addEventMedia(
 
 export async function deleteEventMedia(
   supabase: SupabaseClient<Database>,
-  mediaId: string
+  mediaId: string,
+  siteId?: string
 ): Promise<void> {
+  // First get the media record to get the URL
+  const { data: media, error: fetchError } = await supabase
+    .from('event_media')
+    .select('media_url, thumbnail_url, event_id')
+    .eq('id', mediaId)
+    .single();
+
+  if (fetchError) {
+    throw SupabaseError.fromPostgrestError(fetchError);
+  }
+
+  // Delete the actual file from R2 if we have siteId
+  if (media && siteId) {
+    try {
+      const { EventStorageAdapter } = await import('@/lib/storage/event-storage');
+      const adapter = new EventStorageAdapter({
+        siteId,
+        eventId: media.event_id,
+      });
+
+      // Delete from R2
+      if (media.media_url) {
+        await adapter.deleteEventFile(media.media_url);
+      }
+
+      // Also delete thumbnail if different from main URL
+      if (media.thumbnail_url && media.thumbnail_url !== media.media_url) {
+        await adapter.deleteEventFile(media.thumbnail_url);
+      }
+    } catch (error) {
+      console.error('Failed to delete media file from storage:', error);
+      // Continue with soft delete even if file deletion fails
+    }
+  }
+
+  // Soft delete the database record
   const { error } = await supabase
     .from('event_media')
     .update({ deleted_at: new Date().toISOString() })
@@ -781,8 +818,40 @@ export async function addEventAttachment(
 
 export async function deleteEventAttachment(
   supabase: SupabaseClient<Database>,
-  attachmentId: string
+  attachmentId: string,
+  siteId?: string
 ): Promise<void> {
+  // First get the attachment record to get the URL
+  const { data: attachment, error: fetchError } = await supabase
+    .from('event_attachments')
+    .select('file_url, event_id')
+    .eq('id', attachmentId)
+    .single();
+
+  if (fetchError) {
+    throw SupabaseError.fromPostgrestError(fetchError);
+  }
+
+  // Delete the actual file from R2 if we have siteId
+  if (attachment && siteId) {
+    try {
+      const { EventStorageAdapter } = await import('@/lib/storage/event-storage');
+      const adapter = new EventStorageAdapter({
+        siteId,
+        eventId: attachment.event_id,
+      });
+
+      // Delete from R2
+      if (attachment.file_url) {
+        await adapter.deleteEventFile(attachment.file_url);
+      }
+    } catch (error) {
+      console.error('Failed to delete attachment file from storage:', error);
+      // Continue with soft delete even if file deletion fails
+    }
+  }
+
+  // Soft delete the database record
   const { error } = await supabase
     .from('event_attachments')
     .update({ deleted_at: new Date().toISOString() })

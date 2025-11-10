@@ -18,6 +18,24 @@ export const STORAGE_CONFIG = {
     maxFileSize: 5 * 1024 * 1024, // 5MB
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'] as string[],
     allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.avif'] as string[],
+  },
+  eventMedia: {
+    maxFileSize: 5 * 1024 * 1024, // 5MB
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'video/mp4', 'video/webm'] as string[],
+    allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.avif', '.mp4', '.webm'] as string[],
+  },
+  eventAttachments: {
+    maxFileSize: 10 * 1024 * 1024, // 10MB
+    allowedTypes: [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ] as string[],
+    allowedExtensions: ['.pdf', '.doc', '.docx', '.txt', '.csv', '.xls', '.xlsx'] as string[],
   }
 } as const;
 
@@ -133,6 +151,43 @@ export function validateImageFile(file: File): {
     return {
       isValid: false,
       error: `File extension ${extension} is not supported. Allowed extensions: ${STORAGE_CONFIG.productImages.allowedExtensions.join(', ')}`,
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Validates event files before upload (media or attachments)
+ */
+export function validateEventFile(file: File, uploadType: 'event-media' | 'event-attachment'): {
+  isValid: boolean;
+  error?: string;
+} {
+  const config = uploadType === 'event-media' ? STORAGE_CONFIG.eventMedia : STORAGE_CONFIG.eventAttachments;
+
+  // Check file size
+  if (file.size > config.maxFileSize) {
+    return {
+      isValid: false,
+      error: `File size must be less than ${config.maxFileSize / 1024 / 1024}MB`,
+    };
+  }
+
+  // Check file type
+  if (!config.allowedTypes.includes(file.type)) {
+    return {
+      isValid: false,
+      error: `File type ${file.type} is not supported. Allowed types: ${config.allowedTypes.join(', ')}`,
+    };
+  }
+
+  // Check file extension
+  const extension = `.${file.name.split('.').pop()?.toLowerCase()}`;
+  if (!config.allowedExtensions.includes(extension)) {
+    return {
+      isValid: false,
+      error: `File extension ${extension} is not supported. Allowed extensions: ${config.allowedExtensions.join(', ')}`,
     };
   }
 

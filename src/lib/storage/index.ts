@@ -73,8 +73,8 @@ export function validateFile(file: File): StorageResult<void> {
  * Generate unique file path with site isolation
  */
 export function generateFilePath(
-  originalName: string, 
-  siteId: string, 
+  originalName: string,
+  siteId: string,
   folder: string = 'images',
   productId?: string
 ): string {
@@ -84,12 +84,33 @@ export function generateFilePath(
   const baseName = originalName.split('.')[0]
     .replace(/[^a-zA-Z0-9]/g, '_')
     .substring(0, 20);
-  
+
   if (productId) {
     return `${siteId}/${folder}/products/${productId}/${baseName}_${timestamp}_${random}.${extension}`;
   }
-  
+
   return `${siteId}/${folder}/${baseName}_${timestamp}_${random}.${extension}`;
+}
+
+/**
+ * Generate unique file path for event uploads
+ */
+export function generateEventFilePath(
+  originalName: string,
+  siteId: string,
+  eventId: string,
+  uploadType: 'event-media' | 'event-attachment'
+): string {
+  const timestamp = Date.now();
+  const hash = Math.random().toString(36).substring(2, 8);
+  const extension = originalName.split('.').pop()?.toLowerCase() || '';
+  const sanitizedName = originalName.split('.')[0]
+    .replace(/[^a-zA-Z0-9]/g, '-')
+    .toLowerCase()
+    .substring(0, 30);
+
+  const folder = uploadType === 'event-media' ? 'media' : 'attachments';
+  return `${siteId}/events/${eventId}/${folder}/${timestamp}-${hash}-${sanitizedName}.${extension}`;
 }
 
 /**
