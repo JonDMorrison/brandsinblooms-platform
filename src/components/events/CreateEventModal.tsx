@@ -126,7 +126,7 @@ export function CreateEventModal({ open, onOpenChange, onEventCreated }: CreateE
         meta_data: {}
       })
 
-      toast.success('Event created successfully!', { id: toastId })
+      toast.dismiss(toastId)
       onOpenChange(false)
       onEventCreated?.()
 
