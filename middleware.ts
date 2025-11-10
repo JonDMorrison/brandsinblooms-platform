@@ -974,7 +974,7 @@ function handleSiteNotFound(
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
     }
     .container {
       background: white;
