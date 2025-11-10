@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useCallback } from 'react'
-import { ThemeSettings } from '@/lib/queries/domains/theme'
+import { ThemeSettings } from '@/src/lib/queries/domains/theme'
 import { useThemeCSS } from './useThemeCSS'
 import { 
   PLANT_THEME_PRESETS, 

@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from '@jest/globals';
 import { hasPublishedBlogPosts } from '../content';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/database/types';
+import { Database } from '@/src/lib/database/types';
 
 describe('hasPublishedBlogPosts', () => {
   let mockSupabase: SupabaseClient<Database>;

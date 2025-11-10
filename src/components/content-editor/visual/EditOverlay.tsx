@@ -7,7 +7,7 @@ import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEdit
 import { Edit2, Move, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { cn } from '@/src/lib/utils'
 
 interface EditOverlayProps {
   containerRef: React.RefObject<HTMLDivElement>

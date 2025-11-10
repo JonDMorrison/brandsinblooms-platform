@@ -19,7 +19,7 @@ import {
 } from './setup';
 import { EnhancedVisualEditor } from '@/src/components/content-editor/visual/EnhancedVisualEditor';
 import { useVisualEditor } from '@/src/contexts/VisualEditorContext';
-import { PageContent, LayoutType } from '@/lib/content/schema';
+import { PageContent, LayoutType } from '@/src/lib/content/schema';
 
 // Mock components for testing
 const TestVisualEditor = ({ 

@@ -11,7 +11,7 @@
  * This module validates content AFTER generation and BEFORE storing in the database.
  */
 
-import type { GeneratedSiteData, ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
+import type { GeneratedSiteData, ScrapedWebsiteContext } from '@/src/lib/types/site-generation-jobs';
 
 // Feature flag to enable/disable moderation (disabled by default)
 const CONTENT_MODERATION_ENABLED = process.env.CONTENT_MODERATION_ENABLED === 'true';

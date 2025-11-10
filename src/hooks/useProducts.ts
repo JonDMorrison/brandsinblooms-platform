@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { 
@@ -18,10 +18,10 @@ import {
   checkSkuAvailability,
   generateUniqueSlug,
   ProductFilters
-} from '@/lib/queries/domains/products';
+} from '@/src/lib/queries/domains/products';
 import { checkAndCreateLowStockNotification } from '../../app/actions/low-stock-notification';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { Product, ProductInsert, ProductUpdate } from '@/lib/database/aliases';
+import { Product, ProductInsert, ProductUpdate } from '@/src/lib/database/aliases';
 
 // Main products query hook
 export function useProducts(filters?: ProductFilters) {

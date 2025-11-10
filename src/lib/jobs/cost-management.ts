@@ -11,9 +11,9 @@
  * This module helps control expenses and provide transparency to users.
  */
 
-import { createClient } from '@/lib/supabase/server';
-import { handleError } from '@/lib/types/error-handling';
-import type { TokenUsage } from '@/lib/types/site-generation-jobs';
+import { createClient } from '@/src/lib/supabase/server';
+import { handleError } from '@/src/lib/types/error-handling';
+import type { TokenUsage } from '@/src/lib/types/site-generation-jobs';
 
 /**
  * Budget constants (in cents)

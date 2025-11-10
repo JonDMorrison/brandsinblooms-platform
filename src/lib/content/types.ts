@@ -3,7 +3,7 @@
  * Extends base database types with content-specific functionality
  */
 
-import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types'
+import { Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types'
 import { 
   PageContent, 
   ContentSection, 

@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { cn } from '@/src/lib/utils'
-import { Tables } from '@/lib/database/types'
+import { Tables } from '@/src/lib/database/types'
 
 type ProductImage = Tables<'product_images'>
 

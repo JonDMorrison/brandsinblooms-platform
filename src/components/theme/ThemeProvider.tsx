@@ -4,7 +4,7 @@ import React, { createContext, useContext, ReactNode, useEffect } from 'react'
 import { useSiteTheme } from '@/hooks/useSiteTheme'
 import { useApplyTheme, useThemeCSS } from '@/hooks/useThemeCSS'
 import { usePreviewModeOptional } from '@/src/components/preview/PreviewModeProvider'
-import { ThemeSettings } from '@/lib/queries/domains/theme'
+import { ThemeSettings } from '@/src/lib/queries/domains/theme'
 import { debug } from '@/src/lib/utils/debug'
 
 interface SiteThemeContextType {

@@ -15,7 +15,7 @@
  * - Cookies set with leading dot (.) are accessible to all subdomains
  */
 
-import { getAppDomain } from '@/lib/env/app-domain'
+import { getAppDomain } from '@/src/lib/env/app-domain'
 
 /**
  * Get the cookie domain for sharing authentication across main app and customer sites

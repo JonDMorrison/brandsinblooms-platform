@@ -15,10 +15,10 @@ import {
   removeTagsFromProduct,
   getTagsForContent,
   getTagsForProduct
-} from '@/lib/queries/domains/tags';
+} from '@/src/lib/queries/domains/tags';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { Tag, TagInsert, TagUpdate } from '@/lib/database/aliases';
-import { supabase } from '@/lib/supabase/client';
+import { Tag, TagInsert, TagUpdate } from '@/src/lib/database/aliases';
+import { supabase } from '@/src/lib/supabase/client';
 
 // Get all tags for the site
 export function useTags() {

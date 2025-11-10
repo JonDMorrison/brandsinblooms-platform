@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { handleError } from '@/lib/types/error-handling'
+import { handleError } from '@/src/lib/types/error-handling'
 import { debug } from '@/src/lib/utils/debug'
 
 export interface UseSupabaseQueryOptions<T> {

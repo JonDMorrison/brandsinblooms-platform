@@ -4,8 +4,8 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/database/types';
-import { handleError } from '@/lib/types/error-handling';
+import { Database } from '@/src/lib/database/types';
+import { handleError } from '@/src/lib/types/error-handling';
 
 type DatabaseClient = SupabaseClient<Database>;
 

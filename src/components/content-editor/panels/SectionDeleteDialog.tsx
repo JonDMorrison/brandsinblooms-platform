@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { ContentSection, ContentSectionType } from '@/lib/content/schema'
+import { ContentSection, ContentSectionType } from '@/src/lib/content/schema'
 import { Trash2, AlertTriangle } from 'lucide-react'
 
 interface SectionDeleteDialogProps {

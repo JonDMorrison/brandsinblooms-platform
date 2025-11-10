@@ -4,9 +4,9 @@ import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { updateProduct } from '@/lib/queries/domains/products';
-import { ProductUpdate, Product } from '@/lib/database/aliases';
-import { handleError } from '@/lib/types/error-handling';
+import { updateProduct } from '@/src/lib/queries/domains/products';
+import { ProductUpdate, Product } from '@/src/lib/database/aliases';
+import { handleError } from '@/src/lib/types/error-handling';
 
 interface ProductEditData extends ProductUpdate {
   id: string;

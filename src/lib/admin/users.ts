@@ -10,7 +10,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@/lib/database/types'
+import type { Database } from '@/src/lib/database/types'
 
 // Type definitions for user management
 export interface UserProfile {

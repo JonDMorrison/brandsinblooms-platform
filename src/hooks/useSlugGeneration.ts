@@ -2,11 +2,11 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useDebounceCallback } from '@/hooks/useDebounce';
-import { generateUniqueSlug, validateSlug, sanitizeSlug } from '@/lib/utils/slug';
-import { handleError } from '@/lib/types/error-handling';
+import { generateUniqueSlug, validateSlug, sanitizeSlug } from '@/src/lib/utils/slug';
+import { handleError } from '@/src/lib/types/error-handling';
 
 interface SlugGenerationOptions {
   name: string;

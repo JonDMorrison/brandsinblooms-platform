@@ -27,7 +27,7 @@ jest.mock('@/lib/utils/slug', () => ({
 }))
 
 // Import after mocks are set up
-import { generateUniqueSlug, validateSlug } from '@/lib/utils/slug'
+import { generateUniqueSlug, validateSlug } from '@/src/lib/utils/slug'
 
 const mockSupabase = {
   from: jest.fn(),

@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ContentSection } from '@/lib/content/schema';
+import { ContentSection } from '@/src/lib/content/schema';
 import { VisualEditorSkeleton } from './LoadingStates';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 
 /**
  * Virtual scrolling configuration

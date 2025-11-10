@@ -11,9 +11,9 @@ import { Card } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { useProductReviews, useMarkReviewHelpful, useDeleteReview } from '@/hooks/useProductReviews';
-import { ReviewWithProfile, ReviewFilters } from '@/lib/queries/domains/reviews';
+import { ReviewWithProfile, ReviewFilters } from '@/src/lib/queries/domains/reviews';
 import { toast } from 'sonner';
 
 interface ReviewsListProps {

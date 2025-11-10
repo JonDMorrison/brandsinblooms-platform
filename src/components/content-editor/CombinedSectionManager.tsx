@@ -53,7 +53,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { restrictToVerticalAxis, restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers'
-import { cn } from '@/lib/utils'
+import { cn } from '@/src/lib/utils'
 
 import { 
   PageContent, 

@@ -8,9 +8,9 @@ import {
   uploadMedia, 
   deleteMediaWithStorage,
   getMediaStats
-} from '@/lib/queries/domains/media';
+} from '@/src/lib/queries/domains/media';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 
 // Get all media files
 export function useMediaFiles(type?: 'image' | 'video' | 'document') {

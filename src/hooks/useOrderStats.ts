@@ -9,7 +9,7 @@ import { useSiteId } from '@/src/contexts/SiteContext';
 import {
   getOrderStats,
   OrderStats,
-} from '@/lib/queries/domains/orders';
+} from '@/src/lib/queries/domains/orders';
 
 export interface UseOrderStatsOptions {
   enabled?: boolean;

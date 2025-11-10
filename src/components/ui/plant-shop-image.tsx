@@ -2,7 +2,7 @@
 
 import React, { useState, forwardRef, useCallback } from 'react';
 import { ProductImage, type ProductImageProps } from '@/src/components/ui/product-image';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { Flower, Leaf, TreePine, User, MapPin, ImageIcon } from 'lucide-react';
 
 /**

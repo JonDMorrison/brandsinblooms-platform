@@ -7,7 +7,7 @@
 
 import React, { memo, useEffect, useState } from 'react';
 import { Loader2, Check, AlertCircle, Cloud, CloudOff } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { useEditMode } from '@/contexts/EditModeContext';
 
 interface SaveIndicatorProps {

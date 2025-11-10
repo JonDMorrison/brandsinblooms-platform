@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { handleError } from '@/lib/types/error-handling'
+import { handleError } from '@/src/lib/types/error-handling'
 
 export interface UseInfiniteSupabaseOptions<T> {
   enabled?: boolean

@@ -28,14 +28,14 @@
  * ```
  */
 
-import { generateWithOpenRouter } from '@/lib/ai/openrouter-client';
+import { generateWithOpenRouter } from '@/src/lib/ai/openrouter-client';
 import {
   SITE_FOUNDATION_SYSTEM_PROMPT,
   PAGE_GENERATION_SYSTEM_PROMPT,
   buildFoundationPrompt,
   buildFoundationPromptWithContext,
   buildPagePrompt
-} from '@/lib/ai/prompts/site-generation-prompts';
+} from '@/src/lib/ai/prompts/site-generation-prompts';
 import {
   parseFoundationResponse,
   parseAboutSectionResponse,
@@ -46,7 +46,7 @@ import {
   parseTestimonialsSectionResponse,
   parseContactSectionResponse,
   type FoundationData
-} from '@/lib/ai/response-parser';
+} from '@/src/lib/ai/response-parser';
 import {
   type BusinessInfo,
   type GeneratedSiteData,
@@ -61,9 +61,9 @@ import {
   type SiteBranding,
   type ScrapedWebsiteContext,
   type CustomPageSection
-} from '@/lib/types/site-generation-jobs';
-import { handleError } from '@/lib/types/error-handling';
-import { isOpenRouterError } from '@/lib/types/openrouter';
+} from '@/src/lib/types/site-generation-jobs';
+import { handleError } from '@/src/lib/types/error-handling';
+import { isOpenRouterError } from '@/src/lib/types/openrouter';
 
 /**
  * Pricing information for cost calculation

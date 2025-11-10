@@ -18,7 +18,7 @@ import {
 import { useOrderDetails } from '@/src/hooks/useOrderDetails'
 import { OrderStatusBadge } from '@/src/components/OrderStatusBadge'
 import { OrderStatusUpdateButton } from '@/src/components/orders/OrderStatusUpdateButton'
-import { OrderStatus } from '@/lib/database/aliases'
+import { OrderStatus } from '@/src/lib/database/aliases'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 

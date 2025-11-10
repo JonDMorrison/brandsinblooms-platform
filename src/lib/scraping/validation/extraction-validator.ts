@@ -5,7 +5,7 @@
  */
 
 import { VALIDATION_PATTERNS } from '../llm-extractor-config';
-import type { ValidationResult } from '@/lib/types/extraction-schemas';
+import type { ValidationResult } from '@/src/lib/types/extraction-schemas';
 
 /**
  * Validate brand colors

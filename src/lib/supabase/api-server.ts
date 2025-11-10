@@ -1,7 +1,7 @@
 import { createClient as createBrowserClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from './server'
 import type { NextRequest } from 'next/server'
-import type { Database } from '@/lib/database/types'
+import type { Database } from '@/src/lib/database/types'
 
 /**
  * Creates a Supabase client from a NextRequest that supports both:

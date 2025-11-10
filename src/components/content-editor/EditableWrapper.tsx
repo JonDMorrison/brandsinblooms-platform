@@ -6,7 +6,7 @@
  */
 
 import React, { ReactNode, useState, useCallback, memo } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { Edit2, Lock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 

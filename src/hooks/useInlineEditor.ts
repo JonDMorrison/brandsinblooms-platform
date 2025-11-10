@@ -6,7 +6,7 @@
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { useEditMode } from '@/contexts/EditModeContext';
 import { useDebounceCallback } from '@/hooks/useDebounce';
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 
 interface UseInlineEditorOptions {
   initialContent?: string;

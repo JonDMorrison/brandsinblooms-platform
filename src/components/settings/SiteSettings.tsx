@@ -13,7 +13,7 @@ import { Globe } from 'lucide-react'
 import { useCurrentSite, useSitePermissions } from '@/src/hooks/useSite'
 import { useUpdateSiteSettings } from '@/src/hooks/useSiteSettings'
 import { DomainConfiguration } from '@/src/components/site/DomainConfiguration'
-import { getAppDomain } from '@/lib/env/app-domain'
+import { getAppDomain } from '@/src/lib/env/app-domain'
 
 // Site Information Schema
 const siteInfoSchema = z.object({

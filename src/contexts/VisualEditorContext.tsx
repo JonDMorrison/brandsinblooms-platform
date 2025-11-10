@@ -7,7 +7,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
 import { useEditMode } from './EditModeContext';
-import { ContentSection } from '@/lib/content/schema';
+import { ContentSection } from '@/src/lib/content/schema';
 
 export interface EditableElement {
   id: string;

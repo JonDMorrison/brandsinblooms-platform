@@ -1,5 +1,5 @@
 import { Site } from '@/src/lib/database/aliases'
-import { getAppDomain } from '@/lib/env/app-domain'
+import { getAppDomain } from '@/src/lib/env/app-domain'
 
 /**
  * Builds the customer-facing site URL from site data

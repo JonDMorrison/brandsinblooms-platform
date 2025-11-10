@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ImageIcon, ExternalLink, AlertCircle, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { ImageInputProps, ImageData, ImagePreviewState, UrlValidationOptions } from '@/types/content-editor';
 
 /**

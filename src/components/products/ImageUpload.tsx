@@ -28,7 +28,7 @@ import {
   Edit3,
   Check,
 } from 'lucide-react';
-import { validateImageFile } from '@/lib/supabase/storage';
+import { validateImageFile } from '@/src/lib/supabase/storage';
 import { ProductImage as ProductImageComponent } from '@/src/components/ui/product-image';
 
 /**

@@ -8,10 +8,10 @@
  * Falls back to algorithmic extraction on failure.
  */
 
-import { generateWithVision, generateWithOpenRouter } from '@/lib/ai/openrouter-client';
-import type { VisionMessage } from '@/lib/ai/openrouter-client';
+import { generateWithVision, generateWithOpenRouter } from '@/src/lib/ai/openrouter-client';
+import type { VisionMessage } from '@/src/lib/ai/openrouter-client';
 import { extractBusinessInfo, type ExtractedBusinessInfo } from './content-extractor';
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 import {
   preprocessHtmlForVision,
   preprocessHtmlForText,
@@ -57,14 +57,14 @@ import type {
   ImageExtractionResponse,
   SocialMediaExtractionResponse,
   ExtractionMetadata
-} from '@/lib/types/extraction-schemas';
+} from '@/src/lib/types/extraction-schemas';
 import {
   hasMinimumBrandData,
   hasMinimumContactData,
   hasMinimumContentData,
   hasMinimumImageData,
   hasMinimumSocialMediaData
-} from '@/lib/types/extraction-schemas';
+} from '@/src/lib/types/extraction-schemas';
 
 /**
  * Main entry point for LLM-based extraction

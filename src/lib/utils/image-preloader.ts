@@ -3,7 +3,7 @@
  * Optimized for performance with priority-based loading and resource management
  */
 
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 import { validateImageUrl, type RetryConfig, DEFAULT_RETRY_CONFIG } from './image-helpers';
 
 /**

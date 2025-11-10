@@ -3,8 +3,8 @@
  * Provides comprehensive health monitoring, automated checks, and alerting
  */
 
-import { supabase } from '@/lib/supabase/client'
-import type { Json } from '@/lib/database/types'
+import { supabase } from '@/src/lib/supabase/client'
+import type { Json } from '@/src/lib/database/types'
 
 // Types for health monitoring
 export interface SiteHealthCheck {

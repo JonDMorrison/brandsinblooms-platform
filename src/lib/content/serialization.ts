@@ -3,7 +3,7 @@
  * Handles conversion between database format and editor format
  */
 
-import { Json } from '@/lib/database/types'
+import { Json } from '@/src/lib/database/types'
 import { 
   PageContent, 
   ContentSection, 

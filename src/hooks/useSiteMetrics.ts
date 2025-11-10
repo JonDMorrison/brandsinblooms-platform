@@ -11,9 +11,9 @@ import {
   compareMetrics,
   batchUpdateMetrics,
   generateSampleMetrics,
-} from '@/lib/queries/domains/metrics';
-import type { SiteMetrics } from '@/lib/database/aliases';
-import type { MetricsHistory as MetricsHistoryType } from '@/lib/queries/domains/metrics';
+} from '@/src/lib/queries/domains/metrics';
+import type { SiteMetrics } from '@/src/lib/database/aliases';
+import type { MetricsHistory as MetricsHistoryType } from '@/src/lib/queries/domains/metrics';
 import { toast } from 'sonner';
 
 // Hook for current metrics

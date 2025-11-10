@@ -12,8 +12,8 @@ import {
   SVG_ICONS,
   validateDimensions,
   PLACEHOLDER_CONSTRAINTS,
-} from '@/lib/types/placeholder';
-import { handleError } from '@/lib/types/error-handling';
+} from '@/src/lib/types/placeholder';
+import { handleError } from '@/src/lib/types/error-handling';
 
 /**
  * Cache configuration for placeholder generation

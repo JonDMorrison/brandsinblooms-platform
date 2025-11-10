@@ -1,4 +1,4 @@
-import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
+import { Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types';
 
 // Notification database types
 export type Notification = Tables<'notifications'>;

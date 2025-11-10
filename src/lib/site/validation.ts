@@ -12,7 +12,7 @@ import {
   isSubdomainAvailable, 
   isCustomDomainAvailable
 } from './queries'
-import { SiteInsert, SiteUpdate } from '@/lib/database/aliases'
+import { SiteInsert, SiteUpdate } from '@/src/lib/database/aliases'
 
 export interface ValidationError {
   field: string

@@ -10,15 +10,15 @@ import { toast } from 'sonner'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useSiteContext } from '@/src/contexts/SiteContext'
-import { signInSchema, type SignInData } from '@/lib/validations/auth'
+import { signInSchema, type SignInData } from '@/src/lib/validations/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { signInWithProvider, signInWithMagicLink, handleAuthError } from '@/lib/auth/client'
+import { signInWithProvider, signInWithMagicLink, handleAuthError } from '@/src/lib/auth/client'
 import { AuthError } from '@supabase/supabase-js'
-import { handleError } from '@/lib/types/error-handling'
+import { handleError } from '@/src/lib/types/error-handling'
 import { AlertCircle } from 'lucide-react'
 
 interface SignInProps {

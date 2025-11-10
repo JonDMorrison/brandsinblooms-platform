@@ -3,7 +3,7 @@
  * Extracts site information from hostnames for multi-tenant architecture
  */
 
-import { getAppDomain } from '@/lib/env/app-domain'
+import { getAppDomain } from '@/src/lib/env/app-domain'
 
 export interface SiteResolution {
   type: 'subdomain' | 'custom_domain'

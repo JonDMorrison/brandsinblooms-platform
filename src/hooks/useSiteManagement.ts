@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { Tables } from '@/lib/database/types';
+import type { Tables } from '@/src/lib/database/types';
 
 type Site = Tables<'sites'>;
 

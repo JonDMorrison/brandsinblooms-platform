@@ -5,8 +5,8 @@
  * All functions require admin privileges and include proper error handling.
  */
 
-import { supabase } from '@/lib/supabase/client'
-import type { Database } from '@/lib/database/types'
+import { supabase } from '@/src/lib/supabase/client'
+import type { Database } from '@/src/lib/database/types'
 
 // Type definitions for audit logging
 export interface AdminAction {

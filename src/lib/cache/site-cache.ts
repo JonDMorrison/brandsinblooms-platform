@@ -3,8 +3,8 @@
  * Provides in-memory caching with TTL support for site data
  */
 
-import { Site } from '@/lib/database/aliases'
-import { generateSiteCacheKey, getSiteCacheTTL } from '@/lib/site/middleware-utils'
+import { Site } from '@/src/lib/database/aliases'
+import { generateSiteCacheKey, getSiteCacheTTL } from '@/src/lib/site/middleware-utils'
 import { debug } from '@/src/lib/utils/debug'
 
 interface CacheEntry {

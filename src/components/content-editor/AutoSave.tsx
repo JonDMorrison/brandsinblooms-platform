@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
-import { handleError } from '@/lib/types/error-handling'
+import { handleError } from '@/src/lib/types/error-handling'
 
 export type AutoSaveStatus = 'idle' | 'saving' | 'saved' | 'failed'
 

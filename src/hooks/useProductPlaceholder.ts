@@ -3,11 +3,11 @@
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { useMemo, useCallback } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useTheme } from 'next-themes';
-import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
-import { handleError } from '@/lib/types/error-handling';
+import { Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types';
+import { handleError } from '@/src/lib/types/error-handling';
 import {
   type PlaceholderParams,
   type PlaceholderConfig,
@@ -16,11 +16,11 @@ import {
   COLOR_PALETTES,
   PLACEHOLDER_CONSTRAINTS,
   validateDimensions,
-} from '@/lib/types/placeholder';
+} from '@/src/lib/types/placeholder';
 import {
   generatePlaceholderSVG,
   createCacheKey,
-} from '@/lib/utils/placeholder-generator';
+} from '@/src/lib/utils/placeholder-generator';
 
 type Product = Tables<'products'>;
 

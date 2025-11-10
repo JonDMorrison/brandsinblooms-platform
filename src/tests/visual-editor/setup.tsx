@@ -9,7 +9,7 @@ import { ReactElement } from 'react';
 import { VisualEditorProvider } from '@/contexts/VisualEditorContext';
 import { EditModeProvider } from '@/contexts/EditModeContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { PageContent, LayoutType } from '@/lib/content/schema';
+import { PageContent, LayoutType } from '@/src/lib/content/schema';
 
 // Mock data for testing
 export const mockPageContent: PageContent = {

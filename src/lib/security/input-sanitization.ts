@@ -10,7 +10,7 @@
  * This module serves as the first line of defense before sending data to LLMs.
  */
 
-import type { BusinessInfo } from '@/lib/types/site-generation-jobs';
+import type { BusinessInfo } from '@/src/lib/types/site-generation-jobs';
 
 /**
  * Maximum allowed length for user prompts (characters)

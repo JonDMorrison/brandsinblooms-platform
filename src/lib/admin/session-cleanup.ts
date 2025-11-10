@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client'
+import { supabase } from '@/src/lib/supabase/client'
 
 /**
  * Client-side session cleanup utilities

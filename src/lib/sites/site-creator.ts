@@ -7,10 +7,10 @@
  * AI-First Approach: Maximizes use of AI-generated data with minimal hardcoded defaults.
  */
 
-import { createClient } from '@/lib/supabase/server';
-import { handleError } from '@/lib/types/error-handling';
-import type { GeneratedSiteData, CustomPageSection } from '@/lib/types/site-generation-jobs';
-import type { Database } from '@/lib/database/types';
+import { createClient } from '@/src/lib/supabase/server';
+import { handleError } from '@/src/lib/types/error-handling';
+import type { GeneratedSiteData, CustomPageSection } from '@/src/lib/types/site-generation-jobs';
+import type { Database } from '@/src/lib/database/types';
 
 type ContentInsert = Database['public']['Tables']['content']['Insert'];
 

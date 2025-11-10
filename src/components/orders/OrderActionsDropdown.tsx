@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/src/components/ui/alert-dialog'
-import { Order } from '@/lib/queries/domains/orders'
+import { Order } from '@/src/lib/queries/domains/orders'
 import { useOrderMutations } from '@/hooks/useOrderMutations'
 import { toast } from 'sonner'
 

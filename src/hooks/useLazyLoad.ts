@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 
 /**
  * Configuration options for lazy loading

@@ -4,7 +4,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database, Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
+import { Database, Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types';
 import { 
   handleQueryResponse, 
   handleSingleResponse,

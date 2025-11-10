@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { ActivityLogWithUser } from '@/lib/queries/domains/activity';
+import { ActivityLogWithUser } from '@/src/lib/queries/domains/activity';
 import { toast } from 'sonner';
 
 interface UseActivityRealtimeOptions {

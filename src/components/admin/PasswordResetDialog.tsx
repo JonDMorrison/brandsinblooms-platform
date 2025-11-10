@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Copy, Check, AlertTriangle } from 'lucide-react'
-import { copyToClipboard } from '@/lib/utils/clipboard'
+import { copyToClipboard } from '@/src/lib/utils/clipboard'
 
 interface PasswordResetDialogProps {
   open: boolean

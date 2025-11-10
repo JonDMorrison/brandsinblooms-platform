@@ -15,7 +15,7 @@ import {
   getContentWithAssociations,
   toggleEventContentAssociation
 } from '@/app/actions/event-content-associations'
-import type { Tables } from '@/lib/database/types'
+import type { Tables } from '@/src/lib/database/types'
 
 type Content = Tables<'content'> & {
   isAssociated: boolean

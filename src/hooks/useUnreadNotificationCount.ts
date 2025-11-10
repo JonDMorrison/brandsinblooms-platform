@@ -4,7 +4,7 @@ import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { getUnreadNotificationCount } from '@/lib/queries/domains/notifications';
+import { getUnreadNotificationCount } from '@/src/lib/queries/domains/notifications';
 import { useEffect, useCallback } from 'react';
 
 // Hook for unread notification count with aggressive caching

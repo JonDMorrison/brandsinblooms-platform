@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useProductRating } from '@/hooks/useProductReviews';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 
 interface RatingSummaryProps {
   productId: string;

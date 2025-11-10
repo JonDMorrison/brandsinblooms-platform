@@ -48,7 +48,7 @@ import {
 import { useProductSelection } from '@/contexts/ProductSelectionContext';
 import { useProductBulkOperations } from '@/hooks/useProductBulkOperations';
 import { useProductCategories } from '@/hooks/useProducts';
-import { BulkPriceUpdate } from '@/lib/queries/domains/products-bulk';
+import { BulkPriceUpdate } from '@/src/lib/queries/domains/products-bulk';
 import { toast } from 'sonner';
 
 interface BulkActionsToolbarProps {

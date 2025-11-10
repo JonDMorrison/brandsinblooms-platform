@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/src/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { cache } from 'react'
 

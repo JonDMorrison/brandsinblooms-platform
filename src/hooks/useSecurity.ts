@@ -1,8 +1,8 @@
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation'
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/src/lib/supabase/client'
 import { toast } from 'sonner'
-import { handleError } from '@/lib/types/error-handling'
+import { handleError } from '@/src/lib/types/error-handling'
 
 interface MFAEnrollmentData {
   id: string

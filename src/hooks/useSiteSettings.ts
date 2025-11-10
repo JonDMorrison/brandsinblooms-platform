@@ -4,11 +4,11 @@ import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId, useSiteContext } from '@/src/contexts/SiteContext';
 import { useSitePermissions } from '@/hooks/useSite';
-import { updateSite } from '@/lib/queries/domains/sites';
-import { isSubdomainAvailable } from '@/lib/site/queries';
-import { validateSiteForUpdate } from '@/lib/site/validation';
-import { handleError } from '@/lib/types/error-handling';
-import { Tables, TablesUpdate } from '@/lib/database/types';
+import { updateSite } from '@/src/lib/queries/domains/sites';
+import { isSubdomainAvailable } from '@/src/lib/site/queries';
+import { validateSiteForUpdate } from '@/src/lib/site/validation';
+import { handleError } from '@/src/lib/types/error-handling';
+import { Tables, TablesUpdate } from '@/src/lib/database/types';
 
 type Site = Tables<'sites'>;
 type SiteUpdate = TablesUpdate<'sites'>;

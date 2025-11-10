@@ -3,10 +3,10 @@
  * Provides standardized notification creation for different scenarios
  */
 
-import { createClient } from '@/lib/supabase/server'
-import { getUser } from '@/lib/auth/server'
-import { CreateNotificationData } from '@/lib/types/notifications'
-import { Tables } from '@/lib/database/types'
+import { createClient } from '@/src/lib/supabase/server'
+import { getUser } from '@/src/lib/auth/server'
+import { CreateNotificationData } from '@/src/lib/types/notifications'
+import { Tables } from '@/src/lib/database/types'
 
 type Product = Tables<'products'>
 type User = Tables<'profiles'>

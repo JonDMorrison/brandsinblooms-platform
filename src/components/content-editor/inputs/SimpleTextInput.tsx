@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Controller, FieldValues, FieldPath } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { SimpleTextInputProps } from '@/types/content-editor';
 
 /**

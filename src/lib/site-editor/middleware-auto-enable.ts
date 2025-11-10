@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { getEditSession } from './middleware-helpers'
-import { getSharedCookieDomain } from '@/lib/cookies/domain-config'
+import { getSharedCookieDomain } from '@/src/lib/cookies/domain-config'
 import { debug } from '@/src/lib/utils/debug'
 
 const EDIT_MODE_COOKIE = 'x-site-edit-mode'

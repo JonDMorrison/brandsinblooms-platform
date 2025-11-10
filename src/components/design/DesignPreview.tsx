@@ -8,7 +8,7 @@ import { Monitor, Tablet, Smartphone, RefreshCw, ExternalLink } from 'lucide-rea
 import { ThemeSettings } from '@/src/lib/queries/domains/theme'
 import { useSiteId, useCurrentSite } from '@/contexts/SiteContext'
 import { useThemeCSS } from '@/hooks/useThemeCSS'
-import { getAppDomain } from '@/lib/env/app-domain'
+import { getAppDomain } from '@/src/lib/env/app-domain'
 
 interface DesignPreviewProps {
   settings: ThemeSettings

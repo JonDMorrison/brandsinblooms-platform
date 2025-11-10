@@ -4,7 +4,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database, Tables, TablesUpdate } from '@/lib/database/types';
+import { Database, Tables, TablesUpdate } from '@/src/lib/database/types';
 import { 
   handleQueryResponse, 
   handleSingleResponse,
@@ -12,7 +12,7 @@ import {
   withRetry
 } from '../base';
 import { SupabaseError } from '../errors';
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 
 type Product = Tables<'products'>;
 type UpdateProduct = TablesUpdate<'products'>;

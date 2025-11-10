@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 import { debug } from '@/src/lib/utils/debug';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
@@ -18,10 +18,10 @@ import {
   getContentStats,
   ContentFilters,
   ContentSortOptions
-} from '@/lib/queries/domains/content';
+} from '@/src/lib/queries/domains/content';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { Content, InsertContent, ContentUpdate } from '@/lib/database/aliases';
-import { handleError } from '@/lib/types/error-handling';
+import { Content, InsertContent, ContentUpdate } from '@/src/lib/database/aliases';
+import { handleError } from '@/src/lib/types/error-handling';
 import { emitContentChange } from '@/src/lib/events/content-events';
 
 // Cache management utilities

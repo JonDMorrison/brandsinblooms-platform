@@ -40,7 +40,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCurrentSite, useSitePermissions, useSiteContext } from '@/src/hooks/useSite'
-import { getAppDomain } from '@/lib/env/app-domain'
+import { getAppDomain } from '@/src/lib/env/app-domain'
 import { validateDomainFormat } from '@/src/lib/site/domain-verification'
 import { DNS_PROVIDERS } from '@/src/lib/dns/types'
 import {

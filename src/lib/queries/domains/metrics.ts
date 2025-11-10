@@ -1,9 +1,9 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/database/types';
+import { Database } from '@/src/lib/database/types';
 import { 
   SiteMetrics, 
   SiteMetricsInsert
-} from '@/lib/database/aliases';
+} from '@/src/lib/database/aliases';
 import { SupabaseError } from '../errors';
 
 export interface MetricsHistory {

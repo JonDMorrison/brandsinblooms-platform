@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, FileText, PenSquare, Calendar, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import styles from './GlobalSearch.module.css';
 import { useGlobalSearchWithKeyboard, SearchResult } from '@/hooks/useGlobalSearch';
 import {

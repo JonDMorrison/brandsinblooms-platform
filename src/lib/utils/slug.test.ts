@@ -1,7 +1,7 @@
 // Jest globals are available globally, no import needed
 import { sanitizeSlug, generateUniqueSlug, validateSlug, isReservedWord } from './slug'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@/lib/database/types'
+import type { Database } from '@/src/lib/database/types'
 
 // Mock Supabase client
 const mockSupabase = {

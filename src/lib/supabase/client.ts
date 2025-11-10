@@ -1,6 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr'
-import { Database } from '@/lib/database/types'
-import { getSharedCookieDomain } from '@/lib/cookies/domain-config'
+import { Database } from '@/src/lib/database/types'
+import { getSharedCookieDomain } from '@/src/lib/cookies/domain-config'
 
 // Get shared cookie domain for cross-subdomain authentication
 const cookieDomain = getSharedCookieDomain()

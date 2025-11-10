@@ -10,12 +10,12 @@
  * 3. Automatically enabling edit mode session if they do
  */
 
-import { getUser } from '@/lib/auth/server'
+import { getUser } from '@/src/lib/auth/server'
 import {
   checkEditPermissions,
   setEditModeSession,
   getEditModeSession
-} from '@/lib/site-editor/edit-session'
+} from '@/src/lib/site-editor/edit-session'
 
 /**
  * Automatically enable edit mode if the user is authenticated and has edit permissions

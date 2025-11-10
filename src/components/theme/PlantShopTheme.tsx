@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { PLANT_THEME_PRESETS, type PlantThemePresetKey } from '@/src/lib/theme/plant-shop-variables'
-import { ThemeSettings } from '@/lib/queries/domains/theme'
+import { ThemeSettings } from '@/src/lib/queries/domains/theme'
 
 interface PlantShopThemeProps {
   preset?: PlantThemePresetKey

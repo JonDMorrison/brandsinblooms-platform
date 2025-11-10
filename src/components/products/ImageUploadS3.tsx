@@ -30,7 +30,7 @@ import {
   Cloud,
 } from 'lucide-react';
 import { ProductImage as ProductImageComponent } from '@/src/components/ui/product-image';
-import { formatFileSize } from '@/lib/utils';
+import { formatFileSize } from '@/src/lib/utils';
 
 /**
  * Product image data structure

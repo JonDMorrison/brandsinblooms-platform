@@ -29,7 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import type { Editor } from '@tiptap/react';
 
 interface FloatingToolbarProps {

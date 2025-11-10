@@ -9,12 +9,12 @@ import { EditorContent } from '@tiptap/react';
 import { useRichTextEditor, type UseRichTextEditorOptions } from '@/hooks/useRichTextEditor';
 import { EditorToolbar } from './EditorToolbar';
 import { ImageBubbleMenu } from './ImageBubbleMenu';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { EditorContent as EditorContentType } from '@/lib/editor/tiptap-config';
+import type { EditorContent as EditorContentType } from '@/src/lib/editor/tiptap-config';
 
 export interface RichTextEditorProps extends UseRichTextEditorOptions {
   className?: string;

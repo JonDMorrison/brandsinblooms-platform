@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getSharedCookieDomain } from '@/lib/cookies/domain-config'
+import { getSharedCookieDomain } from '@/src/lib/cookies/domain-config'
 
 const EDIT_MODE_COOKIE = 'x-site-edit-mode'
 const EDIT_SESSION_COOKIE = 'x-site-edit-session'

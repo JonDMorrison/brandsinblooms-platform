@@ -25,7 +25,7 @@ import { RadioGroup, RadioGroupItem } from '@/src/components/ui/radio-group'
 import { Checkbox } from '@/src/components/ui/checkbox'
 import { Calendar } from '@/src/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/src/components/ui/popover'
-import { cn } from '@/lib/utils'
+import { cn } from '@/src/lib/utils'
 
 type FrequencyType = 'daily' | 'weekly' | 'monthly'
 type EndType = 'date' | 'count'

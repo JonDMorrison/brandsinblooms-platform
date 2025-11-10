@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { ThemeSettings } from '@/lib/queries/domains/theme'
+import { ThemeSettings } from '@/src/lib/queries/domains/theme'
 import { generatePlantThemeCSS } from '@/src/lib/theme/plant-shop-variables'
 import { debug } from '@/src/lib/utils/debug'
 

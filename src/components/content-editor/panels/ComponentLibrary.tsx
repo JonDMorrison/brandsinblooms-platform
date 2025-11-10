@@ -22,8 +22,8 @@ import {
   getTemplatesByCategory,
   getAllCategories,
   searchTemplates
-} from '@/lib/content/section-templates'
-import { ContentSection } from '@/lib/content/schema'
+} from '@/src/lib/content/section-templates'
+import { ContentSection } from '@/src/lib/content/schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'

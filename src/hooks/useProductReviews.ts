@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import {
@@ -19,9 +19,9 @@ import {
   ReviewFilters,
   ReviewWithProfile,
   ProductRatingAggregation
-} from '@/lib/queries/domains/reviews';
+} from '@/src/lib/queries/domains/reviews';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
+import { Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types';
 
 type ProductReview = Tables<'product_reviews'>;
 type ReviewInsert = TablesInsert<'product_reviews'>;

@@ -6,7 +6,7 @@
  * Prevents XSS attacks while preserving safe HTML formatting
  */
 
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 
 // Configuration for allowed HTML tags and attributes
 interface SanitizationConfig {

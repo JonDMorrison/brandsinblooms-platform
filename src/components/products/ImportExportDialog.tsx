@@ -23,7 +23,7 @@ import {
   Info,
 } from 'lucide-react';
 import { useExportProducts, useImportProducts } from '@/hooks/useProductBulkOperations';
-import { ImportResult, ImportError } from '@/lib/queries/domains/products-bulk';
+import { ImportResult, ImportError } from '@/src/lib/queries/domains/products-bulk';
 import { toast } from 'sonner';
 
 interface ImportExportDialogProps {

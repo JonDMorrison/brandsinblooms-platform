@@ -20,11 +20,11 @@ import {
 import { Input } from '@/src/components/ui/input';
 import { Label } from '@/src/components/ui/label';
 import { Alert, AlertDescription } from '@/src/components/ui/alert';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { useDeleteSite } from '@/src/hooks/useSiteManagement';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import type { Tables } from '@/lib/database/types';
+import type { Tables } from '@/src/lib/database/types';
 
 type Site = Tables<'sites'>;
 

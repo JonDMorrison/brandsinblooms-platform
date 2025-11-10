@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
-import { handleError } from '@/lib/types/error-handling'
+import { handleError } from '@/src/lib/types/error-handling'
 import { toast } from 'sonner'
 
 export interface UseSupabaseMutationOptions<TData, TVariables> {

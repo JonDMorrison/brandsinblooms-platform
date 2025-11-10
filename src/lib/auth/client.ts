@@ -1,6 +1,6 @@
 'use client'
 
-import { supabase } from '@/lib/supabase/client'
+import { supabase } from '@/src/lib/supabase/client'
 import { AuthError, User, Session, Provider } from '@supabase/supabase-js'
 
 /**

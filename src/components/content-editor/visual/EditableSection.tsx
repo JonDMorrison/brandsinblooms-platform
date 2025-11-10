@@ -2,9 +2,9 @@
 
 import React, { useRef, useEffect, forwardRef, ReactNode } from 'react'
 import { useVisualEditorHelpers } from '@/hooks/useVisualEditor'
-import { ContentSection } from '@/lib/content/schema'
+import { ContentSection } from '@/src/lib/content/schema'
 import { useIsVisualEditingEnabled } from '@/contexts/VisualEditorContext'
-import { cn } from '@/lib/utils'
+import { cn } from '@/src/lib/utils'
 
 interface EditableSectionProps {
   sectionKey: string

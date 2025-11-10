@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Copy, Check } from 'lucide-react'
-import { copyToClipboard } from '@/lib/utils/clipboard'
+import { copyToClipboard } from '@/src/lib/utils/clipboard'
 
 interface CreateUserDialogProps {
   open: boolean

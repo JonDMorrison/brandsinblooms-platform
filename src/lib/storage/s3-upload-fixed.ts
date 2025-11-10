@@ -3,7 +3,7 @@
  * This file contains the corrected getPresignedUploadUrl function
  */
 
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 
 /**
  * Presigned URL configuration

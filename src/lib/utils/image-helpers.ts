@@ -3,7 +3,7 @@
  * Provides URL validation, retry logic, and loading state management
  */
 
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 
 /**
  * Image loading states

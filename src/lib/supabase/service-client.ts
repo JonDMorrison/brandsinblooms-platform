@@ -12,7 +12,7 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { Database } from '@/lib/database/types'
+import { Database } from '@/src/lib/database/types'
 
 /**
  * Lazy-initialized Supabase admin client

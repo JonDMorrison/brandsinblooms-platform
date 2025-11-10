@@ -10,7 +10,7 @@ import { useFloating, autoUpdate, offset, flip, shift, arrow } from '@floating-u
 import { Bold, Italic, Link, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import type { Editor } from '@tiptap/react';
 
 interface SimpleFloatingToolbarProps {

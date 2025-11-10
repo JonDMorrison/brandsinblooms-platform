@@ -1,6 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/database/types';
-import { Site } from '@/lib/database/aliases';
+import { Database } from '@/src/lib/database/types';
+import { Site } from '@/src/lib/database/aliases';
 import { debug } from '@/src/lib/utils/debug';
 // No longer need executeQuery imports - using direct Supabase queries
 

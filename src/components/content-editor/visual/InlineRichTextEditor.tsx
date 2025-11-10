@@ -15,7 +15,7 @@ import Highlight from '@tiptap/extension-highlight';
 import Underline from '@tiptap/extension-underline';
 import Strike from '@tiptap/extension-strike';
 import { useDebounceCallback } from '@/hooks/useDebounce';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { FloatingToolbar } from './FloatingToolbar';
 import { useVisualEditor } from '@/src/contexts/VisualEditorContext';
 

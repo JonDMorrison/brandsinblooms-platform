@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Star, StarHalf } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 
 interface StarRatingProps {
   /** Current rating value (0-5) */

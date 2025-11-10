@@ -3,8 +3,8 @@
  * Handles S3 presigned URLs, multipart uploads, and direct S3 operations
  */
 
-import { handleError } from '@/lib/types/error-handling';
-import { Tables } from '@/lib/database/types';
+import { handleError } from '@/src/lib/types/error-handling';
+import { Tables } from '@/src/lib/database/types';
 
 type MediaFile = Tables<'media_files'>;
 

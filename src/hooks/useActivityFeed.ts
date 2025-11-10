@@ -12,8 +12,8 @@ import {
   getUserActivityTimeline,
   ActivityFilters,
   ActivityLogWithUser,
-} from '@/lib/queries/domains/activity';
-import { ActivityLogInsert } from '@/lib/database/aliases';
+} from '@/src/lib/queries/domains/activity';
+import { ActivityLogInsert } from '@/src/lib/database/aliases';
 
 // Hook for paginated activity feed
 export function useActivityFeed(filters?: ActivityFilters) {

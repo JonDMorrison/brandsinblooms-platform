@@ -1,7 +1,7 @@
 'use client';
 
 import React, { memo, useMemo, useCallback, useState, useEffect } from 'react';
-import { PageContent, LayoutType } from '@/lib/content/schema';
+import { PageContent, LayoutType } from '@/src/lib/content/schema';
 
 // Import all the components we've created for Milestone 5
 import { VisualEditorErrorBoundary, ContentRenderErrorBoundary } from './ErrorBoundary';
@@ -31,7 +31,7 @@ import {
 
 // Import existing components
 import { useSiteTheme } from '@/src/hooks/useSiteTheme';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { Toaster } from '@/src/components/ui/toaster';
 
 /**

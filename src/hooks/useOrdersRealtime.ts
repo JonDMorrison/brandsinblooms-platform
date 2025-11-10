@@ -3,7 +3,7 @@
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { OrderWithCustomer } from '@/lib/queries/domains/orders';
+import { OrderWithCustomer } from '@/src/lib/queries/domains/orders';
 import { toast } from 'sonner';
 
 interface UseOrdersRealtimeOptions {

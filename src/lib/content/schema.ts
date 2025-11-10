@@ -3,7 +3,7 @@
  * Supports versioned content structure with layout-specific sections
  */
 
-import { Json } from '@/lib/database/types'
+import { Json } from '@/src/lib/database/types'
 
 /**
  * Layout types supported by the content system

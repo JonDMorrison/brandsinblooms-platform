@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
-import { ThemeSettings } from '@/lib/queries/domains/theme'
+import { ThemeSettings } from '@/src/lib/queries/domains/theme'
 import { useThemeCSS } from '@/src/hooks/useThemeCSS'
 import { PlantThemePresetSelector, type PlantThemePresetKey } from '@/src/components/theme/PlantShopTheme'
 import { PLANT_THEME_PRESETS } from '@/src/lib/theme/plant-shop-variables'

@@ -5,7 +5,7 @@ import { Button } from '@/src/components/ui/button'
 import { formatCurrency, formatDate } from '@/src/lib/utils'
 import { Eye } from 'lucide-react'
 import { ColumnDef } from '@/src/components/ui/optimized-table'
-import type { OrderWithCustomer } from '@/lib/queries/domains/orders'
+import type { OrderWithCustomer } from '@/src/lib/queries/domains/orders'
 
 // Optimized order status component
 const OrderStatus = ({ status }: { status: string }) => {

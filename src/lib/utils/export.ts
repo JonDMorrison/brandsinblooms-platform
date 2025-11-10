@@ -3,7 +3,7 @@
  * Provides CSV and JSON export functionality
  */
 
-import type { OrderWithCustomer } from '@/lib/queries/domains/orders'
+import type { OrderWithCustomer } from '@/src/lib/queries/domains/orders'
 
 /**
  * Convert data to CSV format and trigger download

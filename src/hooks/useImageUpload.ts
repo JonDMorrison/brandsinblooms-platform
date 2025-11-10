@@ -9,8 +9,8 @@ import {
   uploadFileToS3,
   validateFileForS3,
   type UploadProgressCallback
-} from '@/lib/storage/s3-upload';
-import { handleError } from '@/lib/types/error-handling';
+} from '@/src/lib/storage/s3-upload';
+import { handleError } from '@/src/lib/types/error-handling';
 
 export interface ImageUploadState {
   isUploading: boolean;

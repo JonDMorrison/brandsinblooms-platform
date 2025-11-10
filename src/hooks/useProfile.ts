@@ -4,9 +4,9 @@ import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { uploadMedia } from '@/lib/queries/domains/media';
-import { handleError } from '@/lib/types/error-handling';
-import { Tables, TablesUpdate } from '@/lib/database/types';
+import { uploadMedia } from '@/src/lib/queries/domains/media';
+import { handleError } from '@/src/lib/types/error-handling';
+import { Tables, TablesUpdate } from '@/src/lib/database/types';
 
 type Profile = Tables<'profiles'>;
 type ProfileUpdate = TablesUpdate<'profiles'>;

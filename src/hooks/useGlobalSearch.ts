@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useDebounce } from '@/hooks/useDebounce';
-import { searchContentEnhanced, EnhancedSearchResult } from '@/lib/queries/domains/content';
-import { handleError } from '@/lib/types/error-handling';
+import { searchContentEnhanced, EnhancedSearchResult } from '@/src/lib/queries/domains/content';
+import { handleError } from '@/src/lib/types/error-handling';
 
 // Re-export the search result interface for consumers
 export type { EnhancedSearchResult as SearchResult };

@@ -15,7 +15,7 @@ import {
   reorderCategories,
   assignProductsToCategory,
   getCategoryProducts,
-} from '@/lib/queries/domains/categories';
+} from '@/src/lib/queries/domains/categories';
 import type {
   CategoryHierarchy,
   CategoryFilters,
@@ -24,9 +24,9 @@ import type {
   UpdateCategoryInput,
   ReorderCategoriesInput,
   BulkAssignInput,
-} from '@/lib/validations/categories';
-import type { TablesInsert, TablesUpdate } from '@/lib/database/types';
-import { emitCategoryChange, useCategoryChangeListener } from '@/lib/events/category-events';
+} from '@/src/lib/validations/categories';
+import type { TablesInsert, TablesUpdate } from '@/src/lib/database/types';
+import { emitCategoryChange, useCategoryChangeListener } from '@/src/lib/events/category-events';
 
 /**
  * Hook to fetch categories hierarchy

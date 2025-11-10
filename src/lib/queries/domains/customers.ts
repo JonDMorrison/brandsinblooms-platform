@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/database/types';
-import { executeQuery } from '@/lib/queries/utils/execute-query';
-import { SupabaseError } from '@/lib/queries/errors';
+import { Database } from '@/src/lib/database/types';
+import { executeQuery } from '@/src/lib/queries/utils/execute-query';
+import { SupabaseError } from '@/src/lib/queries/errors';
 
 // Customer stats interface (typically from a view or computed)
 export interface CustomerStats {

@@ -11,7 +11,7 @@ import {
   getOrdersInfinite,
   OrderFilters,
   OrderWithCustomer,
-} from '@/lib/queries/domains/orders';
+} from '@/src/lib/queries/domains/orders';
 
 export interface UseOrdersOptions extends Omit<OrderFilters, 'cursor' | 'limit'> {
   enabled?: boolean;

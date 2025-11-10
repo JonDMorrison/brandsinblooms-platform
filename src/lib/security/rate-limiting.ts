@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 
 /**
  * Rate limit configuration

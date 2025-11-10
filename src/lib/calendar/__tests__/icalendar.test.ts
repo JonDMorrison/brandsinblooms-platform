@@ -3,7 +3,7 @@
  */
 
 import { generateICalendar, getICalendarFilename } from '../icalendar';
-import { EventWithRelations } from '@/lib/queries/domains/events';
+import { EventWithRelations } from '@/src/lib/queries/domains/events';
 
 describe('iCalendar generation', () => {
   const mockEvent: EventWithRelations = {

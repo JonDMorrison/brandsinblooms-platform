@@ -1,7 +1,7 @@
 'use client';
 
 import React, { memo, useMemo, useCallback, useRef, useEffect, useState } from 'react';
-import { ContentSection } from '@/lib/content/schema';
+import { ContentSection } from '@/src/lib/content/schema';
 import { useVisualEditor } from '@/contexts/VisualEditorContext';
 import { VisualEditorSkeleton } from './LoadingStates';
 

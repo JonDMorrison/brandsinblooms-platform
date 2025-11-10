@@ -15,7 +15,7 @@ import {
   NotificationWithUser,
   NotificationStats,
   PaginatedNotifications,
-} from '@/lib/queries/domains/notifications';
+} from '@/src/lib/queries/domains/notifications';
 import type { PageData } from '@/hooks/base/useInfiniteSupabase';
 
 // Hook for paginated notifications with infinite scroll

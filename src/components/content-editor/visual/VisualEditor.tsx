@@ -1,7 +1,7 @@
 'use client'
 
 import React, { memo } from 'react'
-import { PageContent, LayoutType } from '@/lib/content/schema'
+import { PageContent, LayoutType } from '@/src/lib/content/schema'
 import { useVisualEditorHelpers } from '@/hooks/useVisualEditor'
 import { useSiteTheme } from '@/hooks/useSiteTheme'
 

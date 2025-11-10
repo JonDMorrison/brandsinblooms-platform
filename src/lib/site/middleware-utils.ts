@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server'
-import { Site } from '@/lib/database/aliases'
+import { Site } from '@/src/lib/database/aliases'
 
 export interface DomainResolutionLog {
   hostname: string

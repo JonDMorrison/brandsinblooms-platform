@@ -5,8 +5,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useEditor, Editor } from '@tiptap/react';
 import { useDebounceCallback } from '@/hooks/useDebounce';
-import { getTiptapConfig, exportEditorContent, isValidContent, type EditorContent } from '@/lib/editor/tiptap-config';
-import { handleError } from '@/lib/types/error-handling';
+import { getTiptapConfig, exportEditorContent, isValidContent, type EditorContent } from '@/src/lib/editor/tiptap-config';
+import { handleError } from '@/src/lib/types/error-handling';
 
 export interface UseRichTextEditorOptions {
   initialContent?: string | object;

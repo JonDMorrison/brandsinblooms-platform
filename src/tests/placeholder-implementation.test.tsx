@@ -16,7 +16,7 @@ import {
   generatePlaceholderSVG,
   parseUrlParams,
   getPlaceholderHeaders
-} from '@/lib/utils/placeholder-generator';
+} from '@/src/lib/utils/placeholder-generator';
 import {
   validateImageUrl,
   calculateRetryDelay,
@@ -25,7 +25,7 @@ import {
   generatePlaceholderUrl,
   preloadImage,
   generateResponsiveSizes
-} from '@/lib/utils/image-helpers';
+} from '@/src/lib/utils/image-helpers';
 import {
   ImagePreloader,
   preloadImages,
@@ -34,7 +34,7 @@ import {
   preloadFeaturedProducts,
   clearPreloadCache,
   getPreloadMetrics
-} from '@/lib/utils/image-preloader';
+} from '@/src/lib/utils/image-preloader';
 import {
   PlaceholderType,
   validateDimensions,
@@ -42,7 +42,7 @@ import {
   PLACEHOLDER_CONSTRAINTS,
   DEFAULT_CONFIGS,
   COLOR_PALETTES
-} from '@/lib/types/placeholder';
+} from '@/src/lib/types/placeholder';
 
 describe('Product Placeholder Images Implementation', () => {
   describe('Milestone 1: Placeholder Infrastructure', () => {

@@ -22,7 +22,7 @@ import {
   isTeamSection,
   isTestimonialsSection,
   isContactSection
-} from '@/lib/types/type-guards';
+} from '@/src/lib/types/type-guards';
 import {
   type AboutSection,
   type ValuesSection,
@@ -34,12 +34,12 @@ import {
   type HeroSection,
   type SiteBranding,
   type SeoMetadata
-} from '@/lib/types/site-generation-jobs';
-import { handleError } from '@/lib/types/error-handling';
+} from '@/src/lib/types/site-generation-jobs';
+import { handleError } from '@/src/lib/types/error-handling';
 import {
   validateFoundationData,
   validateSection
-} from '@/lib/validation/validation-helpers';
+} from '@/src/lib/validation/validation-helpers';
 import {
   AboutSectionSchema,
   ValuesSectionSchema,
@@ -49,8 +49,8 @@ import {
   TestimonialsSectionSchema,
   ContactSectionSchema,
   FoundationDataSchema
-} from '@/lib/validation/site-generation-schemas';
-import { recoverFromValidationError } from '@/lib/ai/error-recovery';
+} from '@/src/lib/validation/site-generation-schemas';
+import { recoverFromValidationError } from '@/src/lib/ai/error-recovery';
 
 /**
  * Type guard to check if value is a plain object

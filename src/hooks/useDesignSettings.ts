@@ -10,8 +10,8 @@ import {
   updateSiteTheme,
   ThemeSettings,
   getDefaultTheme
-} from '@/lib/queries/domains/theme';
-import { handleError } from '@/lib/types/error-handling';
+} from '@/src/lib/queries/domains/theme';
+import { handleError } from '@/src/lib/types/error-handling';
 
 export function useDesignSettings() {
   const supabase = useSupabase();

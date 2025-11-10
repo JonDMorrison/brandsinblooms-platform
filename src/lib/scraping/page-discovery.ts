@@ -1,6 +1,6 @@
 import { scrapeUrl, scrapeMultipleUrls } from './scraping-client';
 import { extractNavigationLinks, prioritizeLinksForScraping } from './link-extractor';
-import { scrapingConfig, validateScrapingConfig } from '@/lib/config/scraping';
+import { scrapingConfig, validateScrapingConfig } from '@/src/lib/config/scraping';
 
 export interface DiscoveredPage {
   url: string;

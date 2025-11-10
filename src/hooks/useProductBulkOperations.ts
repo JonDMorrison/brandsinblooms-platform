@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 import {
   bulkUpdateProducts,
   bulkDeleteProducts,
@@ -23,9 +23,9 @@ import {
   BulkPriceUpdate,
   ProductExportData,
   ImportResult
-} from '@/lib/queries/domains/products-bulk';
-import { Product } from '@/lib/database/aliases';
-import { filterUndefined } from '@/lib/queries/base';
+} from '@/src/lib/queries/domains/products-bulk';
+import { Product } from '@/src/lib/database/aliases';
+import { filterUndefined } from '@/src/lib/queries/base';
 
 /**
  * Operation progress tracking interface

@@ -4,9 +4,9 @@
  * Compatible with theme CSS custom properties and designed for future CMS integration
  */
 
-import { Json } from '@/lib/database/types'
+import { Json } from '@/src/lib/database/types'
 import { ContentSection, ContentItem, FormField } from '@/src/lib/content/schema'
-import { ThemeSettings } from '@/lib/queries/domains/theme'
+import { ThemeSettings } from '@/src/lib/queries/domains/theme'
 
 // ==========================================
 // PLANT-SPECIFIC DATA TYPES

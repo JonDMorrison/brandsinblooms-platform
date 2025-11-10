@@ -7,9 +7,9 @@ import {
   getContentAnalytics,
   getProductAnalytics,
   getCustomerAnalytics
-} from '@/lib/queries/domains/sites';
+} from '@/src/lib/queries/domains/sites';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 
 // Site statistics (overall stats)
 export function useSiteStats() {

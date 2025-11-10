@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import React, { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase/client'
+import { supabase } from '@/src/lib/supabase/client'
 import { useSiteId } from '@/contexts/SiteContext'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { TrendingUp, TrendingDown } from 'lucide-react'

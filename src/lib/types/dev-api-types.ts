@@ -5,14 +5,14 @@
 
 import type {
   ExtractedBusinessInfo
-} from '@/lib/scraping/content-extractor';
+} from '@/src/lib/scraping/content-extractor';
 import type {
   PageDiscoveryResult,
   DiscoveredPage
-} from '@/lib/scraping/page-discovery';
+} from '@/src/lib/scraping/page-discovery';
 import type {
   ScrapedWebsiteContext
-} from '@/lib/types/site-generation-jobs';
+} from '@/src/lib/types/site-generation-jobs';
 
 /**
  * Request body for scraper preview endpoint

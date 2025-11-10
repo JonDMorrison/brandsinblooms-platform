@@ -19,7 +19,7 @@ import {
   Trash2,
   Edit,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import {
   Popover,
   PopoverContent,

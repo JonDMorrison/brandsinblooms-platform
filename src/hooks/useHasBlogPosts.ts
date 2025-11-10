@@ -2,7 +2,7 @@
 
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabase } from '@/hooks/useSupabase';
-import { hasPublishedBlogPosts } from '@/lib/queries/domains/content';
+import { hasPublishedBlogPosts } from '@/src/lib/queries/domains/content';
 
 /**
  * Hook to check if the current site has any published blog posts

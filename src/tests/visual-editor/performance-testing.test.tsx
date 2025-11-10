@@ -17,7 +17,7 @@ import {
   NetworkSimulator
 } from './setup';
 import { EnhancedVisualEditor } from '@/src/components/content-editor/visual/EnhancedVisualEditor';
-import { PageContent } from '@/lib/content/schema';
+import { PageContent } from '@/src/lib/content/schema';
 
 // Performance benchmarks
 const PERFORMANCE_THRESHOLDS = {

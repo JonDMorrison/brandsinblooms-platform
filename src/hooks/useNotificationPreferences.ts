@@ -5,8 +5,8 @@ import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { handleError } from '@/lib/types/error-handling';
-import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
+import { handleError } from '@/src/lib/types/error-handling';
+import { Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types';
 
 type NotificationPreferences = Tables<'notification_preferences'>;
 type NotificationPreferencesInsert = TablesInsert<'notification_preferences'>;

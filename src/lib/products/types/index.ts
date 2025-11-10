@@ -4,7 +4,7 @@
  * Centralized type definitions for products across the application.
  */
 
-import type { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
+import type { Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types';
 import type { ProductFormData, ProductEditData } from '../validation/schemas';
 
 // Base product types from database

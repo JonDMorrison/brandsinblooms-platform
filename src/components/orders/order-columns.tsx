@@ -10,7 +10,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/src/components/ui/avatar'
 import { OrderStatusBadge } from '@/src/components/OrderStatusBadge'
 import { OrderActionsDropdown } from './OrderActionsDropdown'
 import { formatDistanceToNow } from 'date-fns'
-import { OrderWithCustomer } from '@/lib/queries/domains/orders'
+import { OrderWithCustomer } from '@/src/lib/queries/domains/orders'
 
 // Payment status badge component
 function PaymentStatusBadge({ status }: { status: string | null }) {

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { SectionEditorProps } from '@/types/content-editor';
 import { SectionHeader } from './SectionHeader';
 

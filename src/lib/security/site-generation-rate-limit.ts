@@ -17,9 +17,9 @@ import {
   checkRateLimit,
   RateLimitResult,
   rateLimitStore,
-} from '@/lib/security/rate-limiting';
-import { createClient } from '@/lib/supabase/server';
-import { handleError } from '@/lib/types/error-handling';
+} from '@/src/lib/security/rate-limiting';
+import { createClient } from '@/src/lib/supabase/server';
+import { handleError } from '@/src/lib/types/error-handling';
 
 /**
  * Rate limit entry structure (internal)

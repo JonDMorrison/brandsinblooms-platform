@@ -1,8 +1,8 @@
 'use client';
 
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
-import { supabase } from '@/lib/supabase/client';
-import { getProductStats } from '@/lib/queries/domains/products';
+import { supabase } from '@/src/lib/supabase/client';
+import { getProductStats } from '@/src/lib/queries/domains/products';
 import { useSiteId } from '@/src/contexts/SiteContext';
 
 export interface ProductStats {

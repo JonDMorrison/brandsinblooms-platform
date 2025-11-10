@@ -5,9 +5,9 @@
  * All functions require admin privileges and include proper error handling.
  */
 
-import { supabase } from '@/lib/supabase/client'
-import type { Database, Json } from '@/lib/database/types'
-import { ThemeSettings, BusinessHours } from '@/lib/database/json-types'
+import { supabase } from '@/src/lib/supabase/client'
+import type { Database, Json } from '@/src/lib/database/types'
+import { ThemeSettings, BusinessHours } from '@/src/lib/database/json-types'
 
 // Type definitions for site templates
 export interface SiteTemplate {

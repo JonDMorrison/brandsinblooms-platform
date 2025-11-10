@@ -3,8 +3,8 @@
  * Provides distributed caching with automatic failover to memory cache
  */
 
-import { Site } from '@/lib/database/aliases'
-import { generateSiteCacheKey, getSiteCacheTTL } from '@/lib/site/middleware-utils'
+import { Site } from '@/src/lib/database/aliases'
+import { generateSiteCacheKey, getSiteCacheTTL } from '@/src/lib/site/middleware-utils'
 import { MemorySiteCache } from './site-cache'
 
 interface RedisCacheConfig {

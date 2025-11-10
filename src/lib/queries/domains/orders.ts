@@ -1,13 +1,13 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database, Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
+import { Database, Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types';
 
 // Type aliases for order-related tables
 export type OrderPayment = Tables<'order_payments'>;
 export type OrderShipment = Tables<'order_shipments'>;
 export type OrderStatusHistory = Tables<'order_status_history'>;
-import { Order, OrderInsert, OrderUpdate, OrderItem, OrderStatus } from '@/lib/database/aliases';
-import { SupabaseError } from '@/lib/queries/errors';
-import { handleError } from '@/lib/types/error-handling';
+import { Order, OrderInsert, OrderUpdate, OrderItem, OrderStatus } from '@/src/lib/database/aliases';
+import { SupabaseError } from '@/src/lib/queries/errors';
+import { handleError } from '@/src/lib/types/error-handling';
 
 export interface OrderFilters {
   status?: OrderStatus;

@@ -1,9 +1,9 @@
 'use client'
 
-import { supabase } from '@/lib/supabase/client'
+import { supabase } from '@/src/lib/supabase/client'
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery'
 import { useSiteId } from '@/src/contexts/SiteContext'
-import { Tables } from '@/lib/database/types'
+import { Tables } from '@/src/lib/database/types'
 import { handleSingleResponse } from '@/src/lib/queries/base'
 
 type Category = Tables<'product_categories'>

@@ -1,4 +1,4 @@
-import type { Database } from '@/lib/database/types';
+import type { Database } from '@/src/lib/database/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Reserved words that can't be used as slugs (routes)

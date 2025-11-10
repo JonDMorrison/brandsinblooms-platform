@@ -15,7 +15,7 @@ import {
   bulkNotificationAction,
   CreateNotificationData,
   BulkNotificationAction,
-} from '@/lib/queries/domains/notifications';
+} from '@/src/lib/queries/domains/notifications';
 
 // Hook for marking a single notification as read
 export function useMarkNotificationAsRead() {

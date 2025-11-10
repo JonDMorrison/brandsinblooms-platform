@@ -3,7 +3,7 @@
  * Handles various types of content updates and transformations
  */
 
-import { PageContent } from '@/lib/content/schema'
+import { PageContent } from '@/src/lib/content/schema'
 
 /**
  * Feature item structure for hero and other sections

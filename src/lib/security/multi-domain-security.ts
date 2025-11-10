@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { Site } from '@/lib/database/aliases'
-import { handleError } from '@/lib/types/error-handling'
+import { Site } from '@/src/lib/database/aliases'
+import { handleError } from '@/src/lib/types/error-handling'
 import { debug } from '@/src/lib/utils/debug'
 
 // Security configuration

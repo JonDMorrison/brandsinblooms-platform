@@ -11,8 +11,8 @@
  * foundational security operations.
  */
 
-import { createClient } from '@/lib/supabase/server';
-import { handleError } from '@/lib/types/error-handling';
+import { createClient } from '@/src/lib/supabase/server';
+import { handleError } from '@/src/lib/types/error-handling';
 import { randomBytes, randomUUID } from 'crypto';
 
 /**

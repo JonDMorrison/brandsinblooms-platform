@@ -3,7 +3,7 @@
  * Generates RFC 5545 compliant iCalendar format for events
  */
 
-import { EventWithRelations, EventOccurrence } from '@/lib/queries/domains/events';
+import { EventWithRelations, EventOccurrence } from '@/src/lib/queries/domains/events';
 
 /**
  * Format a Date to iCalendar DATETIME format (UTC)

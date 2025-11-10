@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Search, ChevronDown, Package, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { IconPickerProps, IconOption } from '@/types/content-editor';
 
 // Common icon categories with keywords for better search

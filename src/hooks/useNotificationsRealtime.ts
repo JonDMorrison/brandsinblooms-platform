@@ -6,7 +6,7 @@ import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useRealtimeSubscription } from './useRealtime';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { NotificationWithUser } from '@/lib/types/notifications';
+import { NotificationWithUser } from '@/src/lib/types/notifications';
 import { toast } from 'sonner';
 
 interface UseNotificationsRealtimeOptions {

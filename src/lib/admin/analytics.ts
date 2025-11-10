@@ -3,11 +3,11 @@
  * Provides comprehensive analytics, performance metrics, and reporting
  */
 
-import { supabase } from '@/lib/supabase/client'
+import { supabase } from '@/src/lib/supabase/client'
 import { 
   assertAuditLogResponse,
   AuditLogResponse 
-} from '@/lib/database/rpc-types'
+} from '@/src/lib/database/rpc-types'
 
 // Types for analytics
 export interface PerformanceMetrics {

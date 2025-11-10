@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react'
-import { PageContent, LayoutType } from '@/lib/content/schema'
+import { PageContent, LayoutType } from '@/src/lib/content/schema'
 import { VisualEditorWithLibrary } from './VisualEditorWithLibrary'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

@@ -8,7 +8,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useVisualEditor } from '@/src/contexts/VisualEditorContext';
 import { InlineRichTextEditor } from './InlineRichTextEditor';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 
 interface EditableRichTextProps {
   /** Section key for organization */

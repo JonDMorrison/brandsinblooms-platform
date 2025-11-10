@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/supabase/client'
-import { Json } from '@/lib/database/types'
+import { supabase } from '@/src/lib/supabase/client'
+import { Json } from '@/src/lib/database/types'
 
 // Audit action types
 export type AuditActionType = 

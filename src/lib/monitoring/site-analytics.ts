@@ -3,8 +3,8 @@
  * Tracks performance, errors, and usage metrics per site
  */
 
-import { Site } from '@/lib/database/aliases'
-import { handleError } from '@/lib/types/error-handling'
+import { Site } from '@/src/lib/database/aliases'
+import { handleError } from '@/src/lib/types/error-handling'
 
 // Analytics event types
 interface BaseEvent {

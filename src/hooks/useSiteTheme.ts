@@ -11,8 +11,8 @@ import {
   importTheme,
   generateThemeFromBrandColor,
   themePresets,
-} from '@/lib/queries/domains/theme';
-import { ThemeSettings } from '@/lib/queries/domains/theme';
+} from '@/src/lib/queries/domains/theme';
+import { ThemeSettings } from '@/src/lib/queries/domains/theme';
 import { toast } from 'sonner';
 
 // Hook for site theme

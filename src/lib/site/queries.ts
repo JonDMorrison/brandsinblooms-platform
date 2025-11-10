@@ -3,8 +3,8 @@
  * Handles site retrieval, validation, and user membership checks
  */
 
-import { supabase as browserSupabase } from '@/lib/supabase/client'
-import { Site, SiteWithMemberships, SiteMembership, SiteMembershipRole } from '@/lib/database/aliases'
+import { supabase as browserSupabase } from '@/src/lib/supabase/client'
+import { Site, SiteWithMemberships, SiteMembership, SiteMembershipRole } from '@/src/lib/database/aliases'
 
 export interface SiteQueryError {
   code: string

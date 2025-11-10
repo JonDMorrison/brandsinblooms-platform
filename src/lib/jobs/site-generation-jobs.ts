@@ -3,8 +3,8 @@
  * Manages job lifecycle for LLM-powered site generation
  */
 
-import { createClient } from '@/lib/supabase/server';
-import { handleError } from '@/lib/types/error-handling';
+import { createClient } from '@/src/lib/supabase/server';
+import { handleError } from '@/src/lib/types/error-handling';
 import type {
   SiteGenerationJob,
   JobStatus,
@@ -14,7 +14,7 @@ import type {
   UpdateJobErrorParams,
   GetUserJobsOptions,
   JobStatistics,
-} from '@/lib/types/site-generation-jobs';
+} from '@/src/lib/types/site-generation-jobs';
 
 /**
  * Creates a new site generation job

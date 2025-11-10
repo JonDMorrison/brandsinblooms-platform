@@ -14,13 +14,13 @@ import {
   bulkUpdateOrderStatus,
   OrderWithCustomer,
   OrderWithDetails,
-} from '@/lib/queries/domains/orders';
+} from '@/src/lib/queries/domains/orders';
 import { 
   OrderInsert, 
   OrderUpdate, 
   OrderStatus, 
   Order 
-} from '@/lib/database/aliases';
+} from '@/src/lib/database/aliases';
 
 /**
  * Hook for creating new orders

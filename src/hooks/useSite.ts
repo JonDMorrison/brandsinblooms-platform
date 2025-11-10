@@ -6,8 +6,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Site } from '@/lib/database/aliases'
-import { getAppDomain } from '@/lib/env/app-domain'
+import { Site } from '@/src/lib/database/aliases'
+import { getAppDomain } from '@/src/lib/env/app-domain'
 
 // Import hooks from SiteContext
 import {
@@ -29,7 +29,7 @@ export type {
   Site, 
   SiteMembership, 
   SiteMembershipRole
-} from '@/lib/database/aliases'
+} from '@/src/lib/database/aliases'
 
 export interface UseSiteResult {
   // Current site data

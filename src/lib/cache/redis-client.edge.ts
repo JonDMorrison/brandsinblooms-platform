@@ -3,7 +3,7 @@
  * Uses HTTP-based Redis commands for edge runtime compatibility
  */
 
-import { Site } from '@/lib/database/aliases'
+import { Site } from '@/src/lib/database/aliases'
 
 interface RedisHTTPConfig {
   url: string

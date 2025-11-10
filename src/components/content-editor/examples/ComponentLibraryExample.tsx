@@ -6,14 +6,14 @@
  */
 
 import React, { useState } from 'react'
-import { PageContent, LayoutType } from '@/lib/content/schema'
+import { PageContent, LayoutType } from '@/src/lib/content/schema'
 import { VisualEditorWithLibrary } from '../visual/VisualEditorWithLibrary'
 import { 
   SECTION_TEMPLATES, 
   createSectionFromTemplate,
   getTemplatesByCategory,
   getAllCategories
-} from '@/lib/content/section-templates'
+} from '@/src/lib/content/section-templates'
 
 export function ComponentLibraryExample() {
   // Example content

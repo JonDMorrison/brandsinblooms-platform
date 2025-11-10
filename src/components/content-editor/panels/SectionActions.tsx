@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ContentSection } from '@/lib/content/schema'
+import { ContentSection } from '@/src/lib/content/schema'
 import SectionDeleteDialog from './SectionDeleteDialog'
 
 interface SectionActionsProps {

@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback, forwardRef, useMemo } from 'react'
 import Image from 'next/image'
-import { cn } from '@/lib/utils'
+import { cn } from '@/src/lib/utils'
 import { useTheme } from '@/hooks/useTheme'
 import { useLazyLoad } from '@/hooks/useLazyLoad'
-import { useImagePreloader } from '@/lib/utils/image-preloader'
+import { useImagePreloader } from '@/src/lib/utils/image-preloader'
 import { ImageSkeleton } from '@/components/ui/skeleton'
 import { Package, ImageIcon, User } from 'lucide-react'
 import {
@@ -18,12 +18,12 @@ import {
   DEFAULT_RETRY_CONFIG,
   type ImageLoadingState,
   type RetryConfig,
-} from '@/lib/utils/image-helpers'
+} from '@/src/lib/utils/image-helpers'
 import {
   generatePlaceholderSVGCached,
   type PlaceholderMetrics,
-} from '@/lib/utils/placeholder-generator'
-import { handleError } from '@/lib/types/error-handling'
+} from '@/src/lib/utils/placeholder-generator'
+import { handleError } from '@/src/lib/types/error-handling'
 
 /**
  * Placeholder configuration for ProductImage

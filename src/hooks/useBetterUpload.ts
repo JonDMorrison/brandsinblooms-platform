@@ -4,16 +4,16 @@ import { useState, useCallback, useRef } from 'react';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { toast } from 'sonner';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 import { 
   uploadFileToS3, 
   validateFileForS3,
   type UploadProgressCallback,
   type S3UploadResult,
   type S3MultipartUploadResult
-} from '@/lib/storage/s3-upload';
-import { Tables, TablesInsert } from '@/lib/database/types';
-import { supabase } from '@/lib/supabase/client';
+} from '@/src/lib/storage/s3-upload';
+import { Tables, TablesInsert } from '@/src/lib/database/types';
+import { supabase } from '@/src/lib/supabase/client';
 
 type MediaFile = Tables<'media_files'>;
 type MediaFileInsert = TablesInsert<'media_files'>;

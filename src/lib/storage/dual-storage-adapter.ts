@@ -4,9 +4,9 @@
  * Supports fallback scenarios and environment-based storage selection
  */
 
-import { handleError } from '@/lib/types/error-handling';
-import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
-import { supabase } from '@/lib/supabase/client';
+import { handleError } from '@/src/lib/types/error-handling';
+import { Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types';
+import { supabase } from '@/src/lib/supabase/client';
 
 // Supabase storage functions
 import {
@@ -15,7 +15,7 @@ import {
   getProductImageUrl as getSupabaseImageUrl,
   validateImageFile as validateSupabaseFile,
   type StorageResult as SupabaseStorageResult
-} from '@/lib/supabase/storage';
+} from '@/src/lib/supabase/storage';
 
 // S3 storage functions
 import {
@@ -28,7 +28,7 @@ import {
   type S3UploadResult,
   type S3MultipartUploadResult,
   type S3DeleteResult
-} from '@/lib/storage/s3-upload';
+} from '@/src/lib/storage/s3-upload';
 
 type MediaFile = Tables<'media_files'>;
 type MediaFileInsert = TablesInsert<'media_files'>;

@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
-import { scrapingConfig, validateScrapingConfig } from '@/lib/config/scraping';
-import { handleError } from '@/lib/types/error-handling';
+import { scrapingConfig, validateScrapingConfig } from '@/src/lib/config/scraping';
+import { handleError } from '@/src/lib/types/error-handling';
 
 interface ScrapingResponse {
   success: boolean;

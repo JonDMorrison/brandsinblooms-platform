@@ -5,8 +5,8 @@
  * for the two-phase hybrid extraction approach.
  */
 
-import type { GenerationOptions } from '@/lib/types/openrouter';
-import { MODELS, MODEL_PRICING as PRICING } from '@/lib/ai/model-config';
+import type { GenerationOptions } from '@/src/lib/types/openrouter';
+import { MODELS, MODEL_PRICING as PRICING } from '@/src/lib/ai/model-config';
 
 /**
  * Model configurations for different extraction phases

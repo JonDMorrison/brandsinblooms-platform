@@ -39,7 +39,7 @@ import { Badge } from '@/src/components/ui/badge'
 import { Switch } from '@/src/components/ui/switch'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
+import { cn } from '@/src/lib/utils'
 import {
   ArrowRight,
   Check,

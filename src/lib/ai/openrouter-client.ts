@@ -16,7 +16,7 @@
  */
 
 import OpenAI from 'openai';
-import { handleError } from '@/lib/types/error-handling';
+import { handleError } from '@/src/lib/types/error-handling';
 import {
   type OpenRouterConfig,
   type GenerationOptions,
@@ -24,7 +24,7 @@ import {
   OpenRouterErrorType,
   createOpenRouterError,
   type OpenRouterError
-} from '@/lib/types/openrouter';
+} from '@/src/lib/types/openrouter';
 import { MODELS } from './model-config';
 
 /**

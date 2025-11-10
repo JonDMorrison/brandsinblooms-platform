@@ -2,7 +2,7 @@
 
 import { checkSlugAvailability } from '@/src/lib/queries/domains/content'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@/lib/database/types'
+import type { Database } from '@/src/lib/database/types'
 
 export interface SlugValidationResult {
   isValid: boolean

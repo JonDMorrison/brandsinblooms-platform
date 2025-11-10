@@ -3,7 +3,7 @@
  * Type definitions for LLM-powered site generation job queue system
  */
 
-import type { Tables, Json } from '@/lib/database/types';
+import type { Tables, Json } from '@/src/lib/database/types';
 
 /**
  * Site generation job from database

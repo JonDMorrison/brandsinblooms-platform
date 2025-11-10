@@ -10,7 +10,7 @@
  *   HeroSectionSchema,
  *   validateFoundationData,
  *   recoverFromValidationError
- * } from '@/lib/validation';
+ * } from '@/src/lib/validation';
  * ```
  */
 

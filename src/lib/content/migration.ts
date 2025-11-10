@@ -3,7 +3,7 @@
  * Handles backward compatibility and data structure migrations
  */
 
-import { Json } from '@/lib/database/types'
+import { Json } from '@/src/lib/database/types'
 import { 
   PageContent, 
   LegacyContent, 
@@ -18,7 +18,7 @@ import {
   LegacyContentSchema,
   ValidationHelpers
 } from './validation'
-import { handleError } from '@/lib/types/error-handling'
+import { handleError } from '@/src/lib/types/error-handling'
 
 /**
  * Migration result type

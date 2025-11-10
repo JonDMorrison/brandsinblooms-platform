@@ -11,7 +11,7 @@ import {
   getCustomerInsights,
   CustomerFilters,
   CustomerWithStats,
-} from '@/lib/queries/domains/customers';
+} from '@/src/lib/queries/domains/customers';
 
 // Hook for paginated customers list
 export function useCustomers(filters?: CustomerFilters) {

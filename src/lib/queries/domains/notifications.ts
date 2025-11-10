@@ -1,5 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/database/types';
+import { Database } from '@/src/lib/database/types';
 import { 
   Notification, 
   NotificationInsert, 
@@ -10,7 +10,7 @@ import {
   NotificationStats,
   CreateNotificationData,
   BulkNotificationAction
-} from '@/lib/types/notifications';
+} from '@/src/lib/types/notifications';
 import { SupabaseError } from '../errors';
 
 // Re-export types for convenience

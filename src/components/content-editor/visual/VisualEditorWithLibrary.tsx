@@ -6,14 +6,14 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react'
-import { PageContent, ContentSection, LayoutType } from '@/lib/content/schema'
+import { PageContent, ContentSection, LayoutType } from '@/src/lib/content/schema'
 import { VisualEditorProvider } from '@/contexts/VisualEditorContext'
 import { VisualEditorToolbar } from './VisualEditorToolbar'
 import { ComponentLibrary } from '../panels/ComponentLibrary'
 import { EditableSection } from './EditableSection'
 import { SectionDragDrop } from './SectionDragDrop'
 import { SectionActions } from '../panels/SectionActions'
-import { createSectionFromTemplate } from '@/lib/content/section-templates'
+import { createSectionFromTemplate } from '@/src/lib/content/section-templates'
 import { toast } from '@/components/ui/use-toast'
 
 interface VisualEditorWithLibraryProps {

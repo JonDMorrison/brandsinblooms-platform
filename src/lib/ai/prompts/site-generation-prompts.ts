@@ -12,7 +12,7 @@
  * - Content is tailored for garden centers, plant shops, and floral businesses
  */
 
-import { type BusinessInfo, type SiteBranding, type ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
+import { type BusinessInfo, type SiteBranding, type ScrapedWebsiteContext } from '@/src/lib/types/site-generation-jobs';
 
 /**
  * System prompt for generating site foundation (metadata + theme + hero)

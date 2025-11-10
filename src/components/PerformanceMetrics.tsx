@@ -6,7 +6,7 @@ import { Badge } from '@/src/components/ui/badge'
 import { Skeleton } from '@/src/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import { TrendingUp, TrendingDown, Minus, AlertCircle } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
+import { supabase } from '@/src/lib/supabase/client'
 import { useSiteId } from '@/contexts/SiteContext'
 import { useMemo, useEffect, useState } from 'react'
 

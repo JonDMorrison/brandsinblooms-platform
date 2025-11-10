@@ -12,8 +12,8 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Tables } from '@/lib/database/types';
+import { cn } from '@/src/lib/utils';
+import { Tables } from '@/src/lib/database/types';
 import * as LucideIcons from 'lucide-react';
 import {
   DropdownMenu,

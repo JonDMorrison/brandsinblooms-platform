@@ -11,7 +11,7 @@ import { Bold, Italic, Link, Type, Check, X, AlignLeft, AlignCenter, AlignRight,
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import type { Editor } from '@tiptap/react';
 import { ImageUploadDialog } from './ImageUploadDialog';
 

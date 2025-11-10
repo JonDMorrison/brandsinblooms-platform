@@ -24,7 +24,7 @@ import {
 import { Label } from '@/src/components/ui/label'
 import { Textarea } from '@/src/components/ui/textarea'
 import { RadioGroup, RadioGroupItem } from '@/src/components/ui/radio-group'
-import { OrderStatus } from '@/lib/database/aliases'
+import { OrderStatus } from '@/src/lib/database/aliases'
 import { useOrderMutations } from '@/hooks/useOrderMutations'
 import { toast } from 'sonner'
 import { Package, Truck, CheckCircle, XCircle, Clock, DollarSign } from 'lucide-react'

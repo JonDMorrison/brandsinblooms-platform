@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import { useVisualEditor, EditableElement } from '@/contexts/VisualEditorContext'
-import { PageContent, ContentSection } from '@/lib/content/schema'
+import { PageContent, ContentSection } from '@/src/lib/content/schema'
 
 interface UseVisualEditorProps {
   content?: PageContent

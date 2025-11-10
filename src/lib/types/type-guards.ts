@@ -29,7 +29,7 @@ import {
   type SiteBranding,
   type SeoMetadata,
   type GeneratedSiteData
-} from '@/lib/types/site-generation-jobs';
+} from '@/src/lib/types/site-generation-jobs';
 
 /**
  * Helper: Check if value is a non-null object

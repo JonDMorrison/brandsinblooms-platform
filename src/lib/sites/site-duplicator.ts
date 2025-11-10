@@ -5,9 +5,9 @@
  * Creates a complete copy of an existing site with a new name and subdomain.
  */
 
-import { createClient } from '@/lib/supabase/server';
-import { handleError } from '@/lib/types/error-handling';
-import type { Database } from '@/lib/database/types';
+import { createClient } from '@/src/lib/supabase/server';
+import { handleError } from '@/src/lib/types/error-handling';
+import type { Database } from '@/src/lib/database/types';
 
 type Site = Database['public']['Tables']['sites']['Row'];
 type Content = Database['public']['Tables']['content']['Row'];

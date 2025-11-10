@@ -13,7 +13,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Heading from '@tiptap/extension-heading';
 import { useDebounceCallback } from '@/hooks/useDebounce';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 import { FloatingToolbar } from './FloatingToolbar';
 import { SimpleFloatingToolbar } from './SimpleFloatingToolbar';
 import { ImageBubbleMenu } from './ImageBubbleMenu';

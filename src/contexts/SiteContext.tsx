@@ -27,7 +27,7 @@ import {
   SiteResolution
 } from '@/src/lib/site/resolution'
 import { debug } from '@/src/lib/utils/debug'
-import { getAppDomain } from '@/lib/env/app-domain'
+import { getAppDomain } from '@/src/lib/env/app-domain'
 
 export interface SiteContextType {
   // Current site state

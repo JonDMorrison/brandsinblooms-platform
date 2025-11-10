@@ -22,7 +22,7 @@ import {
   CloudflareErrorCodes,
   isCloudflareErrorCode,
 } from './errors';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/src/lib/supabase/server';
 
 /**
  * Cloudflare Service for managing custom domains

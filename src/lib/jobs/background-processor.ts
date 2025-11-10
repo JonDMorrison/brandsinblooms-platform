@@ -11,13 +11,13 @@
  */
 
 import { getJob, updateJobStatus, updateJobResult, updateJobError } from './site-generation-jobs';
-import { generateSiteContent } from '@/lib/ai/site-generator-service';
-import { moderateStructuredContent, isContentModerationEnabled } from '@/lib/security/content-moderation';
+import { generateSiteContent } from '@/src/lib/ai/site-generator-service';
+import { moderateStructuredContent, isContentModerationEnabled } from '@/src/lib/security/content-moderation';
 import { calculateActualCost } from './cost-management';
-import { createSiteFromGenerated, getSiteUrl } from '@/lib/sites/site-creator';
-import { handleError } from '@/lib/types/error-handling';
-import { logSecurityEvent } from '@/lib/security/security-utils';
-import type { ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
+import { createSiteFromGenerated, getSiteUrl } from '@/src/lib/sites/site-creator';
+import { handleError } from '@/src/lib/types/error-handling';
+import { logSecurityEvent } from '@/src/lib/security/security-utils';
+import type { ScrapedWebsiteContext } from '@/src/lib/types/site-generation-jobs';
 
 /**
  * Processing result

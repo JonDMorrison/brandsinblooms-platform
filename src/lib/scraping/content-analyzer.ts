@@ -3,7 +3,7 @@ import { extractBusinessInfo, type ExtractedBusinessInfo } from './content-extra
 import { extractBusinessInfoWithLLM } from './llm-extractor';
 import { isLLMExtractionReady } from './llm-extractor-config';
 import { load } from 'cheerio';
-import type { ScrapedWebsiteContext } from '@/lib/types/site-generation-jobs';
+import type { ScrapedWebsiteContext } from '@/src/lib/types/site-generation-jobs';
 
 export interface AnalyzedWebsite {
   baseUrl: string;

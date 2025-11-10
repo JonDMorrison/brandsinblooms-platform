@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { toast } from 'sonner';
 import {
@@ -36,7 +36,7 @@ import {
   UpdateEventOccurrence,
   EventMedia,
   EventAttachment
-} from '@/lib/queries/domains/events';
+} from '@/src/lib/queries/domains/events';
 
 // Cache management utilities
 const clearEventCaches = (siteId: string) => {

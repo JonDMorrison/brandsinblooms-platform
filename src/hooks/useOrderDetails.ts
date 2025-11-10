@@ -12,7 +12,7 @@ import {
   getOrderItems,
   OrderWithDetails,
   OrderWithCustomer,
-} from '@/lib/queries/domains/orders';
+} from '@/src/lib/queries/domains/orders';
 
 export interface UseOrderDetailsOptions {
   enabled?: boolean;

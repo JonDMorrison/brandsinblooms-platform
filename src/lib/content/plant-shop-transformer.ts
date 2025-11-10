@@ -4,7 +4,7 @@
  * Milestone 2: Content Transformation Scripts
  */
 
-import { Json } from '@/lib/database/types'
+import { Json } from '@/src/lib/database/types'
 import { 
   PageContent, 
   ContentSection, 
@@ -16,7 +16,7 @@ import {
   FormField,
   LayoutType
 } from './schema'
-import { handleError } from '@/lib/types/error-handling'
+import { handleError } from '@/src/lib/types/error-handling'
 import { 
   plantShopContent, 
   plantsData, 

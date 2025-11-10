@@ -12,7 +12,7 @@ import {
   X
 } from 'lucide-react'
 import { SEOSettings } from '@/src/lib/content/schema'
-import { getAppDomain } from '@/lib/env/app-domain'
+import { getAppDomain } from '@/src/lib/env/app-domain'
 
 interface SEOTabProps {
   seoSettings: SEOSettings

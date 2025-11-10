@@ -2,17 +2,17 @@
 
 import { useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/src/lib/supabase/client';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import {
   uploadProductImage,
   uploadMultipleProductImages,
   deleteProductImage
-} from '@/lib/supabase/storage';
+} from '@/src/lib/supabase/storage';
 import { useSiteId } from '@/src/contexts/SiteContext';
-import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types';
-import { handleError } from '@/lib/types/error-handling';
+import { Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types';
+import { handleError } from '@/src/lib/types/error-handling';
 import {
   useProductPlaceholder,
   useProductPlaceholderUrl,

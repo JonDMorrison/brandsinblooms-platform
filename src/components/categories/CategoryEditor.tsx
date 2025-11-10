@@ -37,11 +37,11 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import { Tables } from '@/lib/database/types';
-import { categorySchema, type CategoryData } from '@/lib/validations/categories';
-import { sanitizeSlug } from '@/lib/utils/slug';
-import { checkCategorySlugAvailability } from '@/lib/queries/domains/categories';
+import { cn } from '@/src/lib/utils';
+import { Tables } from '@/src/lib/database/types';
+import { categorySchema, type CategoryData } from '@/src/lib/validations/categories';
+import { sanitizeSlug } from '@/src/lib/utils/slug';
+import { checkCategorySlugAvailability } from '@/src/lib/queries/domains/categories';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useDeleteCategory } from '@/hooks/useCategories';

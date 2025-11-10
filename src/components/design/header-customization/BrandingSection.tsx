@@ -21,7 +21,7 @@ import { cn } from '@/src/lib/utils'
 import { toast } from 'sonner'
 import { useSupabase } from '@/hooks/useSupabase'
 import { useSiteId } from '@/contexts/SiteContext'
-import { handleError } from '@/lib/types/error-handling'
+import { handleError } from '@/src/lib/types/error-handling'
 import { HeaderCustomizationProps, BrandingType } from './types'
 
 interface BrandingSectionProps extends Pick<HeaderCustomizationProps, 'value' | 'onChange'> {
