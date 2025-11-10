@@ -23,7 +23,7 @@ import {
   Shield,
 } from 'lucide-react'
 import { useCurrentSite, useSitePermissions } from '@/src/hooks/useSite'
-import { DomainConfiguration } from '@/src/components/site/DomainConfiguration'
+import { DomainConfigurationIntegrated } from '@/src/components/site/DomainConfigurationIntegrated'
 import { SitePreview } from '@/src/components/site/SitePreview'
 import { SiteSwitcher } from '@/src/components/site/SiteSwitcher'
 
@@ -44,22 +44,13 @@ export default function DomainsPage() {
 
   if (!site) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Domain Settings</h1>
-          <p className="text-gray-500">
-            Configure your site domains and preview functionality.
-          </p>
-        </div>
-        
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>No Site Selected</AlertTitle>
-          <AlertDescription>
-            Please select a site to configure domain settings. You can switch sites using the site switcher in the header.
-          </AlertDescription>
-        </Alert>
-      </div>
+      <Alert className="fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>No Site Selected</AlertTitle>
+        <AlertDescription>
+          Please select a site to configure domain settings. You can switch sites using the site switcher in the header.
+        </AlertDescription>
+      </Alert>
     )
   }
 
@@ -85,27 +76,18 @@ export default function DomainsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Domain Settings</h1>
-          <p className="text-gray-500">
-            Configure your site domains and preview functionality.
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <SiteSwitcher />
-          <SitePreview 
-            showAsDialog 
-            triggerButton={
-              <Button variant="outline">
-                <Eye className="h-4 w-4 mr-2" />
-                Preview Site
-              </Button>
-            }
-          />
-        </div>
+      {/* Header Actions */}
+      <div className="flex items-center justify-end gap-3">
+        <SiteSwitcher />
+        <SitePreview
+          showAsDialog
+          triggerButton={
+            <Button variant="outline">
+              <Eye className="h-4 w-4 mr-2" />
+              Preview Site
+            </Button>
+          }
+        />
       </div>
 
       {/* Site Info Card */}
@@ -249,7 +231,7 @@ export default function DomainsPage() {
                 <Separator className="mb-6" />
               </div>
               
-              <DomainConfiguration 
+              <DomainConfigurationIntegrated
                 onDomainUpdate={(domain, type) => {
                   // Handle domain update
                   console.log('Domain updated:', domain, type)
