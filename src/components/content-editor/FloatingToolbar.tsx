@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/src/lib/utils';
 import type { Editor } from '@tiptap/react';
 import { ImageUploadDialog } from './ImageUploadDialog';
+import { ColorPicker } from './ColorPicker';
 
 interface FloatingToolbarProps {
   editor: Editor | null;
@@ -211,6 +212,17 @@ export const FloatingToolbar = ({
           >
             <Italic className="h-3.5 w-3.5" />
           </Button>
+
+          {/* Color Picker - available in rich mode */}
+          {format === 'rich' && (
+            <>
+              {/* Separator */}
+              <div className="w-px h-5 bg-border mx-0.5" />
+
+              {/* Color Picker */}
+              <ColorPicker editor={editor} size="sm" variant="ghost" />
+            </>
+          )}
 
           {format === 'rich' && (
             <>

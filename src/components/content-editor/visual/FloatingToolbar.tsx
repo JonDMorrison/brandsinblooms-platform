@@ -31,6 +31,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/src/lib/utils';
 import type { Editor } from '@tiptap/react';
+import { ColorPicker } from '../ColorPicker';
 
 interface FloatingToolbarProps {
   /** The Tiptap editor instance */
@@ -536,6 +537,13 @@ const FloatingToolbarComponent = ({
                     <button.icon className="h-3.5 w-3.5" />
                   </Button>
                 ))}
+                {/* Add ColorPicker after the first section (basic formatting) */}
+                {sectionIndex === 0 && (
+                  <>
+                    <Separator orientation="vertical" className="h-6 mx-1" />
+                    <ColorPicker editor={editor} size="sm" variant="ghost" />
+                  </>
+                )}
                 {section.separator && sectionIndex < toolbarSections.length - 1 && (
                   <Separator orientation="vertical" className="h-6 mx-1" />
                 )}

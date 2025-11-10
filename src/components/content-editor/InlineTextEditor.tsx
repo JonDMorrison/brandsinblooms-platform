@@ -12,6 +12,8 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Heading from '@tiptap/extension-heading';
+import Color from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
 import { useDebounceCallback } from '@/hooks/useDebounce';
 import { cn } from '@/src/lib/utils';
 import { FloatingToolbar } from './FloatingToolbar';
@@ -76,21 +78,29 @@ const InlineTextEditorComponent = ({
               }
             }
           }),
+          TextStyle,
+          Color.configure({
+            types: ['textStyle'],
+          }),
           Placeholder.configure({
             placeholder,
             showOnlyWhenEditable: true,
             showOnlyCurrent: false,
           })
         ]
-      : format === 'plain' 
+      : format === 'plain'
       ? [
-          StarterKit.configure({ 
-            heading: false, 
+          StarterKit.configure({
+            heading: false,
             codeBlock: false,
             blockquote: false,
             horizontalRule: false,
             dropcursor: false,
             gapcursor: false
+          }),
+          TextStyle,
+          Color.configure({
+            types: ['textStyle'],
           }),
           Placeholder.configure({
             placeholder,
@@ -122,6 +132,10 @@ const InlineTextEditorComponent = ({
             HTMLAttributes: {
               class: 'inline-editor-image',
             },
+          }),
+          TextStyle,
+          Color.configure({
+            types: ['textStyle'],
           }),
           Placeholder.configure({
             placeholder,
@@ -160,6 +174,10 @@ const InlineTextEditorComponent = ({
             HTMLAttributes: {
               class: 'inline-editor-image',
             },
+          }),
+          TextStyle,
+          Color.configure({
+            types: ['textStyle'],
           }),
           Placeholder.configure({
             placeholder,

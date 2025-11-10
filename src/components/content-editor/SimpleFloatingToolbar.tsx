@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/src/lib/utils';
 import type { Editor } from '@tiptap/react';
+import { ColorPicker } from './ColorPicker';
 
 interface SimpleFloatingToolbarProps {
   editor: Editor | null;
@@ -202,6 +203,12 @@ export const SimpleFloatingToolbar = ({
           >
             <Link className="h-3.5 w-3.5" />
           </Button>
+
+          {/* Separator */}
+          <div className="w-px h-5 bg-gray-300 mx-0.5" />
+
+          {/* Color Picker */}
+          <ColorPicker editor={editor} size="sm" variant="ghost" />
         </>
       ) : (
         /* Link input form */

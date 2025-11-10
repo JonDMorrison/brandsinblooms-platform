@@ -27,6 +27,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ImageUploadDialog } from './ImageUploadDialog';
+import { ColorPicker } from './ColorPicker';
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -139,6 +140,11 @@ export function EditorToolbar({ editor, disabled = false, siteId }: EditorToolba
       >
         <Italic className="h-3.5 w-3.5" />
       </Button>
+
+      <Separator orientation="vertical" className="h-6" />
+
+      {/* Color Picker */}
+      <ColorPicker editor={editor} size="sm" variant="ghost" disabled={disabled} />
 
       <Separator orientation="vertical" className="h-6" />
 

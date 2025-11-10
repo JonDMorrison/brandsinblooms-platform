@@ -9,6 +9,8 @@ import TextAlign from '@tiptap/extension-text-align';
 import Heading from '@tiptap/extension-heading';
 import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
+import Color from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
 
 /**
  * Default Tiptap editor configuration
@@ -77,6 +79,12 @@ export const getTiptapConfig = (placeholder?: string): Extensions => {
       },
     }),
 
+    // Text color support
+    TextStyle,
+    Color.configure({
+      types: ['textStyle'],
+    }),
+
     // Placeholder text
     Placeholder.configure({
       placeholder: placeholder || 'Start writing...',
@@ -84,7 +92,7 @@ export const getTiptapConfig = (placeholder?: string): Extensions => {
       showOnlyCurrent: false,
     }),
   ];
-  
+
   return extensions;
 };
 

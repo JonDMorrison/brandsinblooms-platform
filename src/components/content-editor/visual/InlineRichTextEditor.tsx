@@ -10,7 +10,8 @@ import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import TextStyle from '@tiptap/extension-text-style';
+import { TextStyle } from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import Underline from '@tiptap/extension-underline';
 import Strike from '@tiptap/extension-strike';
@@ -100,7 +101,10 @@ const InlineRichTextEditorComponent = ({
         showOnlyWhenEditable: true,
         showOnlyCurrent: false,
       }),
-      TextStyle
+      TextStyle,
+      Color.configure({
+        types: ['textStyle'],
+      })
     ];
 
     // Add rich text extensions for 'rich' format
