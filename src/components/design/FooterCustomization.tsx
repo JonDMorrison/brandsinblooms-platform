@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/src/components/ui/card'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/src/components/ui/collapsible'
 import { ThemeSettings, FooterColumn, SocialLink } from '@/src/lib/queries/domains/theme'
-import { 
+import {
   Layout,
   Plus,
   Trash2,
@@ -27,12 +27,16 @@ import {
   Share2,
   MessageSquare,
   Copyright,
-  Navigation
+  Navigation,
+  ExternalLink
 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useDebounceCallback } from '@/src/hooks/useDebounce'
 import { cn } from '@/src/lib/utils'
 import { toast } from 'sonner'
+import { ButtonLinkField } from '@/src/components/content-editor/editors/shared/ButtonLinkField'
+import { useSiteContext } from '@/src/contexts/SiteContext'
+import { getCustomerSiteFullUrl } from '@/src/lib/site/url-utils'
 
 interface FooterCustomizationProps {
   value: ThemeSettings
@@ -114,6 +118,61 @@ const DEFAULT_FOOTER_COLUMNS: FooterColumn[] = [
     ]
   }
 ]
+
+// Footer link item component with clickable preview
+function FooterLinkItem({
+  link,
+  onRemove
+}: {
+  link: { label: string; href: string }
+  onRemove: () => void
+}) {
+  const { currentSite } = useSiteContext()
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (!currentSite) {
+      toast.error('Site information not available')
+      return
+    }
+
+    // Check if internal or external
+    const isExternal = link.href.startsWith('http://') || link.href.startsWith('https://')
+
+    if (isExternal) {
+      // External link - just open it
+      window.open(link.href, '_blank')
+    } else {
+      // Internal link - build customer site URL
+      const baseUrl = getCustomerSiteFullUrl(currentSite)
+      const pageUrl = !link.href || link.href === '/' ? baseUrl : `${baseUrl}${link.href}`
+      window.open(pageUrl, '_blank')
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between text-sm bg-muted/50 rounded p-2">
+      <span className="font-medium">{link.label}</span>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={handleLinkClick}
+          className="group flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+          title="Open link in new tab"
+        >
+          <span>{link.href}</span>
+          <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onRemove}
+        >
+          <Trash2 className="h-3 w-3" />
+        </Button>
+      </div>
+    </div>
+  )
+}
 
 export function FooterCustomization({ value, colors, typography, onChange }: FooterCustomizationProps) {
   const [previewOpen, setPreviewOpen] = useState(true)
@@ -712,43 +771,36 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
                     {/* Column Links */}
                     <div className="space-y-2">
                       {column.links.map((link, linkIndex) => (
-                        <div key={linkIndex} className="flex items-center justify-between text-sm bg-muted/50 rounded p-2">
-                          <span className="font-medium">{link.label}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">{link.href}</span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => removeLinkFromColumn(columnIndex, linkIndex)}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
+                        <FooterLinkItem
+                          key={linkIndex}
+                          link={link}
+                          onRemove={() => removeLinkFromColumn(columnIndex, linkIndex)}
+                        />
                       ))}
                       
                       {/* Add new link */}
                       {editingColumn === columnIndex && (
-                        <div className="flex gap-2 pt-2 border-t">
+                        <div className="flex flex-col gap-2 pt-2 border-t">
                           <Input
                             placeholder="Link label"
                             value={newLink.label}
                             onChange={(e) => setNewLink({ ...newLink, label: e.target.value })}
-                            className="flex-1"
                           />
-                          <Input
-                            placeholder="URL"
-                            value={newLink.href}
-                            onChange={(e) => setNewLink({ ...newLink, href: e.target.value })}
-                            className="flex-1"
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => addLinkToColumn(columnIndex)}
-                            disabled={!newLink.label || !newLink.href}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-2">
+                            <ButtonLinkField
+                              value={newLink.href}
+                              onChange={(href) => setNewLink({ ...newLink, href })}
+                              placeholder="Select page or enter URL"
+                              className="flex-1"
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => addLinkToColumn(columnIndex)}
+                              disabled={!newLink.label || !newLink.href}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
