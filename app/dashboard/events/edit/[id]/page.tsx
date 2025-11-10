@@ -50,8 +50,12 @@ import { RepeatEventModal, type GeneratedOccurrence } from '@/src/components/eve
 import type { EventStatus } from '@/src/lib/queries/domains/events'
 import { createEventOccurrence, updateEventOccurrence, setEventFeaturedImage } from '@/src/lib/queries/domains/events'
 import { supabase } from '@/lib/supabase/client'
+import { EventStorageAdapter } from '@/src/lib/storage/event-storage'
 import { TIMEZONES, getUserTimezone } from '@/src/lib/timezones'
 import { cn } from '@/lib/utils'
+
+// Feature flag for R2 storage
+const USE_R2_STORAGE = process.env.NEXT_PUBLIC_EVENT_STORAGE_R2 === 'true'
 
 const eventFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -429,6 +433,10 @@ export default function EditEventPage({ params }: EditEventPageProps) {
   const onDropImages = useCallback(async (acceptedFiles: File[]) => {
     if (!eventId) return
     if (acceptedFiles.length === 0) return
+    if (!siteId) {
+      toast.error('Site ID not available')
+      return
+    }
 
     // Validate file sizes (5MB max per file)
     const maxSize = 5 * 1024 * 1024
@@ -444,18 +452,31 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
     try {
       const uploadPromises = acceptedFiles.map(async (file, index) => {
-        // Upload to storage
-        const fileName = `${eventId}/${Date.now()}-${index}-${file.name}`
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('event-media')
-          .upload(fileName, file)
+        let publicUrl: string
 
-        if (uploadError) throw uploadError
+        if (USE_R2_STORAGE) {
+          // Use R2 storage with EventStorageAdapter
+          const adapter = new EventStorageAdapter({
+            siteId,
+            eventId,
+          })
+          publicUrl = await adapter.uploadEventMedia(file, eventId, siteId)
+        } else {
+          // Use Supabase storage (legacy)
+          const fileName = `${eventId}/${Date.now()}-${index}-${file.name}`
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('event-media')
+            .upload(fileName, file)
 
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('event-media')
-          .getPublicUrl(fileName)
+          if (uploadError) throw uploadError
+
+          // Get public URL
+          const { data: { publicUrl: url } } = supabase.storage
+            .from('event-media')
+            .getPublicUrl(fileName)
+
+          publicUrl = url
+        }
 
         // Create media record
         await addMediaMutation.mutateAsync({
@@ -481,7 +502,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     } finally {
       setIsUploadingMedia(false)
     }
-  }, [eventId, event?.media?.length, addMediaMutation, refreshEvent])
+  }, [eventId, event?.media?.length, addMediaMutation, refreshEvent, siteId])
 
   const { getRootProps: getImageRootProps, getInputProps: getImageInputProps, isDragActive: isImageDragActive } = useDropzone({
     onDrop: onDropImages,
@@ -499,6 +520,10 @@ export default function EditEventPage({ params }: EditEventPageProps) {
   const onDropAttachments = useCallback(async (acceptedFiles: File[]) => {
     if (!eventId) return
     if (acceptedFiles.length === 0) return
+    if (!siteId) {
+      toast.error('Site ID not available')
+      return
+    }
 
     // Validate file sizes (10MB max per file)
     const maxSize = 10 * 1024 * 1024
@@ -514,16 +539,30 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
     try {
       const uploadPromises = acceptedFiles.map(async (file, index) => {
-        const fileName = `${eventId}/${Date.now()}-${index}-${file.name}`
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('event-attachments')
-          .upload(fileName, file)
+        let publicUrl: string
 
-        if (uploadError) throw uploadError
+        if (USE_R2_STORAGE) {
+          // Use R2 storage with EventStorageAdapter
+          const adapter = new EventStorageAdapter({
+            siteId,
+            eventId,
+          })
+          publicUrl = await adapter.uploadEventAttachment(file, eventId, siteId)
+        } else {
+          // Use Supabase storage (legacy)
+          const fileName = `${eventId}/${Date.now()}-${index}-${file.name}`
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('event-attachments')
+            .upload(fileName, file)
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('event-attachments')
-          .getPublicUrl(fileName)
+          if (uploadError) throw uploadError
+
+          const { data: { publicUrl: url } } = supabase.storage
+            .from('event-attachments')
+            .getPublicUrl(fileName)
+
+          publicUrl = url
+        }
 
         await addAttachmentMutation.mutateAsync({
           eventId,
@@ -546,7 +585,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     } finally {
       setIsUploadingAttachment(false)
     }
-  }, [eventId, addAttachmentMutation, refreshEvent])
+  }, [eventId, addAttachmentMutation, refreshEvent, siteId])
 
   const { getRootProps: getAttachmentRootProps, getInputProps: getAttachmentInputProps, isDragActive: isAttachmentDragActive } = useDropzone({
     onDrop: onDropAttachments,

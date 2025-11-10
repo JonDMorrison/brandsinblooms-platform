@@ -705,8 +705,61 @@ export async function addEventMedia(
 
 export async function deleteEventMedia(
   supabase: SupabaseClient<Database>,
-  mediaId: string
+  mediaId: string,
+  siteId?: string
 ): Promise<void> {
+  // First get the media record to get the URL
+  const { data: media, error: fetchError } = await supabase
+    .from('event_media')
+    .select('media_url, thumbnail_url, event_id')
+    .eq('id', mediaId)
+    .single();
+
+  if (fetchError) {
+    throw SupabaseError.fromPostgrestError(fetchError);
+  }
+
+  // Delete the actual file if we have the feature flag enabled
+  if (process.env.NEXT_PUBLIC_EVENT_STORAGE_R2 === 'true' && media && siteId) {
+    try {
+      const { EventStorageAdapter } = await import('@/lib/storage/event-storage');
+      const adapter = new EventStorageAdapter({
+        siteId,
+        eventId: media.event_id,
+      });
+
+      // Check if this is a CDN URL (new) or Supabase URL (legacy)
+      if (media.media_url && !adapter.isSupabaseUrl(media.media_url)) {
+        // Delete from R2
+        await adapter.deleteEventFile(media.media_url);
+      } else if (media.media_url && adapter.isSupabaseUrl(media.media_url)) {
+        // Delete from Supabase Storage (legacy)
+        const urlParts = media.media_url.split('/storage/v1/object/public/event-media/');
+        if (urlParts.length === 2) {
+          const filePath = urlParts[1];
+          await supabase.storage.from('event-media').remove([filePath]);
+        }
+      }
+
+      // Also delete thumbnail if different from main URL
+      if (media.thumbnail_url && media.thumbnail_url !== media.media_url) {
+        if (!adapter.isSupabaseUrl(media.thumbnail_url)) {
+          await adapter.deleteEventFile(media.thumbnail_url);
+        } else {
+          const thumbParts = media.thumbnail_url.split('/storage/v1/object/public/event-media/');
+          if (thumbParts.length === 2) {
+            const thumbPath = thumbParts[1];
+            await supabase.storage.from('event-media').remove([thumbPath]);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete media file from storage:', error);
+      // Continue with soft delete even if file deletion fails
+    }
+  }
+
+  // Soft delete the database record
   const { error } = await supabase
     .from('event_media')
     .update({ deleted_at: new Date().toISOString() })
@@ -781,8 +834,48 @@ export async function addEventAttachment(
 
 export async function deleteEventAttachment(
   supabase: SupabaseClient<Database>,
-  attachmentId: string
+  attachmentId: string,
+  siteId?: string
 ): Promise<void> {
+  // First get the attachment record to get the URL
+  const { data: attachment, error: fetchError } = await supabase
+    .from('event_attachments')
+    .select('file_url, event_id')
+    .eq('id', attachmentId)
+    .single();
+
+  if (fetchError) {
+    throw SupabaseError.fromPostgrestError(fetchError);
+  }
+
+  // Delete the actual file if we have the feature flag enabled
+  if (process.env.NEXT_PUBLIC_EVENT_STORAGE_R2 === 'true' && attachment && siteId) {
+    try {
+      const { EventStorageAdapter } = await import('@/lib/storage/event-storage');
+      const adapter = new EventStorageAdapter({
+        siteId,
+        eventId: attachment.event_id,
+      });
+
+      // Check if this is a CDN URL (new) or Supabase URL (legacy)
+      if (attachment.file_url && !adapter.isSupabaseUrl(attachment.file_url)) {
+        // Delete from R2
+        await adapter.deleteEventFile(attachment.file_url);
+      } else if (attachment.file_url && adapter.isSupabaseUrl(attachment.file_url)) {
+        // Delete from Supabase Storage (legacy)
+        const urlParts = attachment.file_url.split('/storage/v1/object/public/event-attachments/');
+        if (urlParts.length === 2) {
+          const filePath = urlParts[1];
+          await supabase.storage.from('event-attachments').remove([filePath]);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete attachment file from storage:', error);
+      // Continue with soft delete even if file deletion fails
+    }
+  }
+
+  // Soft delete the database record
   const { error } = await supabase
     .from('event_attachments')
     .update({ deleted_at: new Date().toISOString() })

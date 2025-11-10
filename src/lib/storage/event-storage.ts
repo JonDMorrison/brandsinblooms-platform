@@ -84,6 +84,7 @@ export class EventStorageAdapter {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Ensure cookies are sent
         body: JSON.stringify(request),
       });
 
@@ -192,12 +193,13 @@ export class EventStorageAdapter {
       // Remove leading slash if present
       const key = pathParts[0] === '' ? pathParts.slice(1).join('/') : pathParts.join('/');
 
-      // Call delete API endpoint (to be implemented)
+      // Call delete API endpoint (cookies are automatically sent)
       const response = await fetch('/api/storage/delete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Ensure cookies are sent
         body: JSON.stringify({
           key,
           siteId: this.config.siteId,
