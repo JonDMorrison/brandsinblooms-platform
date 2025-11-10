@@ -280,14 +280,18 @@ export function CustomerSiteSection({
         <section className="py-16" style={backgroundStyle}>
           <div className="brand-container">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                {String(sectionData.headline || 'Essential Plant Care Features')}
-              </h2>
+              <h2
+                className="text-3xl md:text-4xl font-bold mb-4"
+                style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+                dangerouslySetInnerHTML={{
+                  __html: stripParagraphTags(String(sectionData.headline || 'Essential Plant Care Features'))
+                }}
+              />
               <div
                 className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
                 style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
                 dangerouslySetInnerHTML={{
-                  __html: textToHtml(String(sectionData.description || 'Master these key practices for healthy, thriving plants year-round'))
+                  __html: String(sectionData.description || '<p>Master these key practices for healthy, thriving plants year-round</p>')
                 }}
               />
             </div>
@@ -306,7 +310,13 @@ export function CustomerSiteSection({
                     <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto" style={{backgroundColor: 'var(--theme-primary)'}}>
                       {IconComponent && <IconComponent className="w-6 h-6 text-white" />}
                     </div>
-                    <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{featureText}</p>
+                    <p
+                      className="text-sm font-medium"
+                      style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}
+                      dangerouslySetInnerHTML={{
+                        __html: stripParagraphTags(featureText)
+                      }}
+                    />
                   </div>
                 );
               })}

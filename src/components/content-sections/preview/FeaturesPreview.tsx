@@ -6,7 +6,6 @@
 import React, { useState } from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
-import { textToHtml, htmlToText } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared'
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
 import { isPreviewMode, createResponsiveClassHelper } from '@/src/lib/utils/responsive-classes'
@@ -130,21 +129,22 @@ export function FeaturesPreview({
               fontFamily: 'var(--theme-font-heading)'
             }}
             placeholder="Enter headline..."
-            showToolbar={false}
+            showToolbar={true}
+            debounceDelay={0}
           />
           
           {/* Rich text description with HTML conversion */}
           <InlineTextEditor
-            content={textToHtml(String(data.description || ''))}
+            content={data.description || ''}
             onUpdate={(htmlContent) => {
               if (onContentUpdate) {
-                const textContent = htmlToText(htmlContent)
-                onContentUpdate(sectionKey, 'data.description', textContent)
+                onContentUpdate(sectionKey, 'data.description', htmlContent)
               }
             }}
             isEnabled={Boolean(onContentUpdate)}
             fieldPath="data.description"
             format="simple-toolbar"
+            singleLine={false}
             className="text-lg max-w-2xl mx-auto"
             style={{
               color: 'var(--theme-text)',
@@ -152,6 +152,8 @@ export function FeaturesPreview({
               fontFamily: 'var(--theme-font-body)'
             }}
             placeholder="Enter description..."
+            showToolbar={true}
+            debounceDelay={0}
           />
         </div>
         
@@ -209,7 +211,8 @@ export function FeaturesPreview({
                     fontFamily: 'var(--theme-font-body)'
                   }}
                   placeholder="Enter feature description..."
-                  showToolbar={false}
+                  showToolbar={true}
+                  debounceDelay={0}
                 />
               </div>
             )
