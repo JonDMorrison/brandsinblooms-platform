@@ -5,6 +5,7 @@ import { isSubdomainAvailable, isCustomDomainAvailable } from '@/src/lib/site/qu
 import { handleError } from '@/lib/types/error-handling'
 import { getAppDomain } from '@/lib/env/app-domain'
 import { CloudflareService } from '@/src/lib/cloudflare/service'
+import { isCloudflareConfigured } from '@/src/lib/cloudflare/config'
 import type { Json } from '@/lib/database/types'
 
 interface DomainUpdateRequest {
@@ -260,16 +261,22 @@ export async function PATCH(
               } else if (availabilityResult.data === false) {
                 errors.push('Custom domain is already in use by another site')
               } else {
-                // Setup new domain with Cloudflare
-                console.log(`[PATCH] Setting up new custom domain with Cloudflare: ${validation.normalizedDomain}`)
-                const setupResult = await CloudflareService.setupCustomDomain(
-                  validation.normalizedDomain,
-                  siteId
-                )
-
-                if (!setupResult.success || !setupResult.data) {
-                  errors.push(setupResult.error || 'Failed to setup custom domain with Cloudflare')
+                // Check if Cloudflare is configured before attempting setup
+                if (!isCloudflareConfigured()) {
+                  errors.push(
+                    'Custom domain feature is not configured. Please contact support to enable custom domains.'
+                  )
                 } else {
+                  // Setup new domain with Cloudflare
+                  console.log(`[PATCH] Setting up new custom domain with Cloudflare: ${validation.normalizedDomain}`)
+                  const setupResult = await CloudflareService.setupCustomDomain(
+                    validation.normalizedDomain,
+                    siteId
+                  )
+
+                  if (!setupResult.success || !setupResult.data) {
+                    errors.push(setupResult.error || 'Failed to setup custom domain with Cloudflare')
+                  } else {
                   // Update with new domain and Cloudflare configuration
                   updates.custom_domain = validation.normalizedDomain
                   updates.custom_domain_status = 'pending_dns'
@@ -289,6 +296,7 @@ export async function PATCH(
 
                   // Store result for response
                   cloudflareResult = setupResult.data
+                  }
                 }
               }
             }

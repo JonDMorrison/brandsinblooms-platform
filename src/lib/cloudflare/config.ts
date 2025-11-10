@@ -7,6 +7,7 @@ import type { CloudflareConfig } from './types';
 
 /**
  * Validates that all required environment variables are present
+ * Note: Only validates when actually used (runtime), not at build time
  */
 function validateEnvironment(): CloudflareConfig {
   const requiredVars = [
@@ -25,8 +26,17 @@ function validateEnvironment(): CloudflareConfig {
   }
 
   if (missing.length > 0) {
+    // Log warning for debugging but don't crash the server
+    console.warn(
+      `[Cloudflare Config] Missing environment variables: ${missing.join(', ')}. ` +
+      `Custom domain features will not be available.`
+    );
+
+    // Throw error only if Cloudflare functionality is actually being used
+    // This allows the server to start even if Cloudflare isn't configured
     throw new Error(
-      `Missing required Cloudflare environment variables: ${missing.join(', ')}`
+      `Cloudflare custom domain feature is not configured. Missing: ${missing.join(', ')}. ` +
+      `Set these environment variables to enable custom domain support.`
     );
   }
 
@@ -53,20 +63,38 @@ function validateEnvironment(): CloudflareConfig {
  * Lazy initialization to avoid errors during build time
  */
 let _config: CloudflareConfig | null = null;
+let _configError: Error | null = null;
 
 /**
  * Get Cloudflare configuration
  * Validates environment on first access
+ * @throws Error if required environment variables are missing
  */
 export function getCloudflareConfig(): CloudflareConfig {
-  if (!_config) {
-    _config = validateEnvironment();
+  // Return cached config if available
+  if (_config) {
+    return _config;
   }
-  return _config;
+
+  // Return cached error if validation previously failed
+  if (_configError) {
+    throw _configError;
+  }
+
+  // Attempt validation
+  try {
+    _config = validateEnvironment();
+    return _config;
+  } catch (error) {
+    // Cache the error to avoid re-validating on every call
+    _configError = error as Error;
+    throw error;
+  }
 }
 
 /**
- * Check if Cloudflare is configured
+ * Check if Cloudflare is configured without throwing errors
+ * @returns true if all required environment variables are set
  */
 export function isCloudflareConfigured(): boolean {
   try {
