@@ -55,7 +55,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCurrentSite, useSitePermissions } from '@/src/hooks/useSite'
-import { useUpdateSiteSettings } from '@/src/hooks/useSiteSettings'
 import { getAppDomain } from '@/lib/env/app-domain'
 import {
   validateDomainFormat,
@@ -83,10 +82,10 @@ interface DomainConfigurationProps {
 export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps) {
   const { site, loading: siteLoading } = useCurrentSite()
   const { canManage } = useSitePermissions()
-  const updateSiteSettings = useUpdateSiteSettings()
 
   // Form state
   const [activeTab, setActiveTab] = useState('subdomain')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Get the app domain for display
   const appDomain = typeof window !== 'undefined'
@@ -200,6 +199,11 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
       return
     }
 
+    if (!site?.id) {
+      toast.error('No site ID available')
+      return
+    }
+
     // Validate domains
     if (data.customDomain) {
       const validation = validateDomainFormat(data.customDomain)
@@ -217,26 +221,49 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
       }
     }
 
-    // Update site settings using the hook
-    updateSiteSettings.mutate({
-      // Preserve current site information
-      name: site?.name || 'My Site',
-      description: site?.description ?? undefined,
-      timezone: site?.timezone ?? undefined,
-      business_name: site?.business_name ?? undefined,
-      business_email: site?.business_email ?? undefined,
-      business_phone: site?.business_phone ?? undefined,
-      business_address: site?.business_address ?? undefined,
-      // Update domain information
-      subdomain: data.subdomain,
-      custom_domain: data.customDomain,
-    })
+    setIsSubmitting(true)
+    try {
+      // Call dedicated domain configuration API endpoint
+      const response = await fetch(`/api/sites/${site.id}/domain`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subdomain: data.subdomain,
+          custom_domain: data.customDomain || null,
+        }),
+      })
 
-    // Notify parent component
-    if (data.customDomain && onDomainUpdate) {
-      onDomainUpdate(data.customDomain, 'custom')
-    } else if (data.subdomain && onDomainUpdate) {
-      onDomainUpdate(data.subdomain, 'subdomain')
+      const result = await response.json()
+
+      if (!response.ok) {
+        if (result.details && Array.isArray(result.details)) {
+          toast.error(`Validation failed: ${result.details.join(', ')}`)
+        } else {
+          toast.error(result.error || 'Failed to update domain settings')
+        }
+        return
+      }
+
+      toast.success('Domain settings saved successfully')
+
+      // Refresh site data
+      if (typeof window !== 'undefined') {
+        window.location.reload()
+      }
+
+      // Notify parent component
+      if (data.customDomain && onDomainUpdate) {
+        onDomainUpdate(data.customDomain, 'custom')
+      } else if (data.subdomain && onDomainUpdate) {
+        onDomainUpdate(data.subdomain, 'subdomain')
+      }
+    } catch (error) {
+      toast.error('Failed to update domain settings')
+      console.error('Domain update error:', error)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -590,10 +617,10 @@ export function DomainConfiguration({ onDomainUpdate }: DomainConfigurationProps
               <div className="flex justify-end">
                 <Button
                   type="submit"
-                  disabled={updateSiteSettings.loading || !canManage}
+                  disabled={isSubmitting || !canManage}
                   className="btn-gradient-primary"
                 >
-                  {updateSiteSettings.loading ? (
+                  {isSubmitting ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                       Saving...
