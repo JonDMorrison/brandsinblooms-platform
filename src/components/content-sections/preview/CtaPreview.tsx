@@ -7,7 +7,6 @@
 import React, { useState } from 'react'
 import { ContentSection, ButtonStyleVariant } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
-import { textToHtml, htmlToText } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
 import { isPreviewMode, createResponsiveClassHelper } from '@/src/lib/utils/responsive-classes'
 import { SmartLink } from '@/src/components/ui/smart-link'
@@ -96,21 +95,22 @@ export function CtaPreview({
               fontFamily: 'var(--theme-font-heading)'
             }}
             placeholder="Enter CTA headline..."
-            showToolbar={false}
+            showToolbar={true}
+            debounceDelay={0}
           />
           
           {/* Rich text description with HTML conversion */}
           <InlineTextEditor
-            content={textToHtml(String(data.description || 'Our mission is to help you create thriving plant sanctuaries while protecting our planet for future generations.'))}
+            content={data.description || 'Our mission is to help you create thriving plant sanctuaries while protecting our planet for future generations.'}
             onUpdate={(htmlContent) => {
               if (onContentUpdate) {
-                const textContent = htmlToText(htmlContent)
-                onContentUpdate(sectionKey, 'data.description', textContent)
+                onContentUpdate(sectionKey, 'data.description', htmlContent)
               }
             }}
             isEnabled={Boolean(onContentUpdate)}
             fieldPath="data.description"
             format="simple-toolbar"
+            singleLine={false}
             className={`${responsive.typography.heroSubheadline} mb-8 max-w-2xl mx-auto leading-relaxed`}
             style={{
               color: descriptionColor,
@@ -118,6 +118,8 @@ export function CtaPreview({
               fontFamily: 'var(--theme-font-body)'
             }}
             placeholder="Enter CTA description..."
+            showToolbar={true}
+            debounceDelay={0}
           />
 
           {/* CTA Buttons with responsive layout */}
@@ -148,7 +150,8 @@ export function CtaPreview({
                         fontFamily: 'var(--theme-font-body)'
                       }}
                       placeholder="Button text..."
-                      showToolbar={false}
+                      showToolbar={true}
+                      debounceDelay={0}
                     />
                     {/* Link Settings Icon */}
                     {onContentUpdate && (
@@ -188,7 +191,8 @@ export function CtaPreview({
                         fontFamily: 'var(--theme-font-body)'
                       }}
                       placeholder="Button text..."
-                      showToolbar={false}
+                      showToolbar={true}
+                      debounceDelay={0}
                     />
                   </SmartLink>
                 )}
@@ -221,7 +225,8 @@ export function CtaPreview({
                         fontFamily: 'var(--theme-font-body)'
                       }}
                       placeholder="Button text..."
-                      showToolbar={false}
+                      showToolbar={true}
+                      debounceDelay={0}
                     />
                     {/* Link Settings Icon */}
                     {onContentUpdate && (
@@ -261,7 +266,8 @@ export function CtaPreview({
                         fontFamily: 'var(--theme-font-body)'
                       }}
                       placeholder="Button text..."
-                      showToolbar={false}
+                      showToolbar={true}
+                      debounceDelay={0}
                     />
                   </SmartLink>
                 )}

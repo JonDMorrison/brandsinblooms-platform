@@ -335,14 +335,18 @@ export function CustomerSiteSection({
           >
             <div className="brand-container">
               <div className="max-w-4xl mx-auto text-center">
-                <h2 className={`text-4xl md:text-6xl font-bold mb-6 leading-tight ${
-                  backgroundSetting === 'primary' ? 'text-white' : ''
-                }`} style={{
-                  fontFamily: 'var(--theme-font-heading)',
-                  color: backgroundSetting === 'primary' ? 'white' : 'var(--theme-text)'
-                }}>
-                  {String(sectionData.headline || 'Growing Together, Sustainably')}
-                </h2>
+                <h2
+                  className={`text-4xl md:text-6xl font-bold mb-6 leading-tight ${
+                    backgroundSetting === 'primary' ? 'text-white' : ''
+                  }`}
+                  style={{
+                    fontFamily: 'var(--theme-font-heading)',
+                    color: backgroundSetting === 'primary' ? 'white' : 'var(--theme-text)'
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html: stripParagraphTags(String(sectionData.headline || 'Growing Together, Sustainably'))
+                  }}
+                />
                 <div
                   className={`prose text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed ${
                     backgroundSetting === 'primary' ? 'text-white/90' : ''
@@ -353,7 +357,7 @@ export function CustomerSiteSection({
                     opacity: backgroundSetting === 'primary' ? 1 : '0.7'
                   }}
                   dangerouslySetInnerHTML={{
-                    __html: textToHtml(String(sectionData.description || 'Our mission is to help you create thriving plant sanctuaries while protecting our planet for future generations.'))
+                    __html: String(sectionData.description || '<p>Our mission is to help you create thriving plant sanctuaries while protecting our planet for future generations.</p>')
                   }}
                 />
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -364,7 +368,9 @@ export function CustomerSiteSection({
                       className={getButtonClassName((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', backgroundSetting === 'primary')}
                       style={getButtonStyles((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', backgroundSetting === 'primary')}
                     >
-                      {String(sectionData.ctaText || 'Shop Plants')}
+                      <span dangerouslySetInnerHTML={{
+                        __html: stripParagraphTags(String(sectionData.ctaText || 'Shop Plants'))
+                      }} />
                     </SmartLink>
                   )}
 
@@ -375,7 +381,9 @@ export function CustomerSiteSection({
                       className={getButtonClassName((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', backgroundSetting === 'primary')}
                       style={getButtonStyles((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', backgroundSetting === 'primary')}
                     >
-                      {String(sectionData.secondaryCtaText || 'Browse Plants')}
+                      <span dangerouslySetInnerHTML={{
+                        __html: stripParagraphTags(String(sectionData.secondaryCtaText || 'Browse Plants'))
+                      }} />
                     </SmartLink>
                   )}
                 </div>
