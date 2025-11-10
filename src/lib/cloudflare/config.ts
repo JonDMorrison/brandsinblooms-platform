@@ -13,7 +13,7 @@ function validateEnvironment(): CloudflareConfig {
     'CLOUDFLARE_API_TOKEN',
     'CLOUDFLARE_ZONE_ID',
     'CLOUDFLARE_ACCOUNT_ID',
-    'PLATFORM_DOMAIN',
+    'NEXT_PUBLIC_APP_DOMAIN',
     'CLOUDFLARE_WORKER_NAME',
   ] as const;
 
@@ -30,11 +30,15 @@ function validateEnvironment(): CloudflareConfig {
     );
   }
 
+  // Strip *.  prefix from NEXT_PUBLIC_APP_DOMAIN if present
+  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN!;
+  const platformDomain = appDomain.startsWith('*.') ? appDomain.slice(2) : appDomain;
+
   return {
     apiToken: process.env.CLOUDFLARE_API_TOKEN!,
     zoneId: process.env.CLOUDFLARE_ZONE_ID!,
     accountId: process.env.CLOUDFLARE_ACCOUNT_ID!,
-    platformDomain: process.env.PLATFORM_DOMAIN!,
+    platformDomain,
     proxySubdomain: process.env.PLATFORM_PROXY_SUBDOMAIN || 'site-proxy',
     workerName: process.env.CLOUDFLARE_WORKER_NAME!,
     apiBaseUrl: process.env.CLOUDFLARE_API_URL || 'https://api.cloudflare.com/client/v4',

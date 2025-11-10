@@ -91,7 +91,8 @@ CLOUDFLARE_ZONE_ID=your-zone-id
 CLOUDFLARE_ACCOUNT_ID=your-account-id
 
 # Platform configuration
-PLATFORM_DOMAIN=yourdomain.com
+# Note: Uses NEXT_PUBLIC_APP_DOMAIN (strips *. prefix if present)
+NEXT_PUBLIC_APP_DOMAIN=yourdomain.com
 PLATFORM_PROXY_SUBDOMAIN=site-proxy # Optional, defaults to 'site-proxy'
 CLOUDFLARE_WORKER_NAME=custom-domain-proxy
 
