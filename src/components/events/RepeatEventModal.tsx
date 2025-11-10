@@ -111,8 +111,17 @@ export function RepeatEventModal({
     currentDate.setHours(baseStart.getHours(), baseStart.getMinutes(), baseStart.getSeconds())
 
     let count = 0
+    let iterations = 0 // Safety counter for total iterations
 
-    // Determine end condition
+    // Helper function to check if a date is a duplicate
+    const isDuplicateDate = (checkDate: Date): boolean => {
+      return existingOccurrences.some(existingOcc => {
+        const existingDate = new Date(existingOcc.start_datetime)
+        return isSameDay(checkDate, existingDate)
+      })
+    }
+
+    // Determine end condition - now based on number of NEW occurrences added
     const shouldContinue = () => {
       if (isAfter(currentDate, maxDate)) return false
       if (endType === 'count') return count < occurrenceCount
@@ -120,7 +129,8 @@ export function RepeatEventModal({
       return false
     }
 
-    while (shouldContinue() && count < 365) { // Safety limit
+    while (shouldContinue() && iterations < 365) { // Safety limit on iterations
+      iterations++
       let shouldAdd = true
 
       if (frequency === 'weekly' && selectedDays.length > 0) {
@@ -130,16 +140,24 @@ export function RepeatEventModal({
 
       if (shouldAdd) {
         const newStart = new Date(currentDate)
-        const newEnd = baseEnd ? new Date(newStart.getTime() + duration) : null
 
-        occurrences.push({
-          start_datetime: newStart.toISOString(),
-          end_datetime: newEnd ? newEnd.toISOString() : null,
-          is_all_day: baseOccurrence.is_all_day,
-          location: baseOccurrence.location,
-        })
+        // Check if this date is a duplicate
+        const isDuplicate = isDuplicateDate(newStart)
 
-        count++
+        if (!isDuplicate) {
+          // Only add and count if it's NOT a duplicate
+          const newEnd = baseEnd ? new Date(newStart.getTime() + duration) : null
+
+          occurrences.push({
+            start_datetime: newStart.toISOString(),
+            end_datetime: newEnd ? newEnd.toISOString() : null,
+            is_all_day: baseOccurrence.is_all_day,
+            location: baseOccurrence.location,
+          })
+
+          count++
+        }
+        // If it IS a duplicate, we skip it and continue to the next iteration
       }
 
       // Move to next occurrence
@@ -178,20 +196,7 @@ export function RepeatEventModal({
       }
     }
 
-    // Filter out duplicates - check if any existing occurrence is on the same day
-    const filteredOccurrences = occurrences.filter(newOcc => {
-      const newOccDate = new Date(newOcc.start_datetime)
-
-      // Check if this date already exists in the existing occurrences
-      const isDuplicate = existingOccurrences.some(existingOcc => {
-        const existingDate = new Date(existingOcc.start_datetime)
-        return isSameDay(newOccDate, existingDate)
-      })
-
-      return !isDuplicate
-    })
-
-    return filteredOccurrences
+    return occurrences
   }
 
   const handleGenerate = () => {
