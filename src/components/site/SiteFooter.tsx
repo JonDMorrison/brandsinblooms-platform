@@ -9,6 +9,7 @@ import { Input } from '@/src/components/ui/input'
 import { Separator } from '@/src/components/ui/separator'
 import Link from 'next/link'
 import { cn } from '@/src/lib/utils'
+import { useIsVisualEditMode } from '@/src/contexts/FullSiteEditorContext'
 import {
   Facebook,
   Instagram,
@@ -101,14 +102,9 @@ export function SiteFooter({ className }: SiteFooterProps) {
   const { data: designSettings } = useDesignSettings()
   const { user } = useAuth()
   const { openAuthModal } = useAuthModal()
+  const isVisualEditMode = useIsVisualEditMode()
   const [email, setEmail] = useState('')
   const [subscribing, setSubscribing] = useState(false)
-  const [isEditMode, setIsEditMode] = useState(false)
-
-  // Check if we're in edit mode
-  React.useEffect(() => {
-    setIsEditMode(editSessionUtils.isEditModeEnabled())
-  }, [])
 
   // Handler for opening auth modal for site editing
   const handleOpenAuthForEdit = () => {
@@ -150,7 +146,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
     return (
       <footer className={cn('w-full border-t bg-white', className)}>
         <div className="brand-container mx-auto px-4 py-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className={isVisualEditMode ? "flex flex-col @sm:flex-row items-center justify-between gap-4" : "flex flex-col sm:flex-row items-center justify-between gap-4"}>
             <p className="text-sm text-gray-500">{copyright}</p>
             <div className="flex items-center gap-4">
               {socialLinks.map((link) => (
@@ -168,7 +164,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
           </div>
 
           {/* Site Editor Login/Access Link */}
-          {!isEditMode && (
+          {!isVisualEditMode && (
             <div className="mt-4 pt-4 border-t text-center">
               <button
                 onClick={handleOpenAuthForEdit}
@@ -245,7 +241,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
             </div>
 
             {/* Site Editor Login/Access Link */}
-            {!isEditMode && (
+            {!isVisualEditMode && (
               <div className="text-center">
                 <button
                   onClick={handleOpenAuthForEdit}
@@ -278,7 +274,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
         <div className="space-y-4">
           <div className="space-y-6">
             {/* Footer Columns */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className={isVisualEditMode ? "grid grid-cols-1 @md:grid-cols-3 gap-6" : "grid grid-cols-1 md:grid-cols-3 gap-6"}>
               {columns.slice(0, 3).map((column, index) => (
                 <div key={index} className="space-y-2">
                   <h4 className="font-semibold text-sm" style={{ color: 'var(--theme-primary)' }}>
@@ -302,7 +298,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
             </div>
 
             {/* Bottom section with copyright and social icons */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t" style={{ borderColor: 'rgba(var(--theme-primary-rgb), 0.125)' }}>
+            <div className={isVisualEditMode ? "flex flex-col @sm:flex-row items-center justify-between gap-4 pt-4 border-t" : "flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t"} style={{ borderColor: 'rgba(var(--theme-primary-rgb), 0.125)' }}>
               <p className="text-xs" style={{ color: '#6b7280' }}>
                 {copyright}
               </p>
@@ -324,7 +320,7 @@ export function SiteFooter({ className }: SiteFooterProps) {
           </div>
 
           {/* Site Editor Login/Access Link */}
-          {!isEditMode && (
+          {!isVisualEditMode && (
             <div className="pt-4 border-t text-center" style={{ borderColor: 'rgba(var(--theme-primary-rgb), 0.125)' }}>
               <button
                 onClick={handleOpenAuthForEdit}

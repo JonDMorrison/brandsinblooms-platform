@@ -9,7 +9,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useDesignSettings } from '@/src/hooks/useDesignSettings'
 import { useHasBlogPosts } from '@/src/hooks/useHasBlogPosts'
 import { useHasEvents } from '@/src/hooks/useHasEvents'
-import { useIsEditModeActive } from '@/src/contexts/FullSiteEditorContext'
+import { useIsVisualEditMode } from '@/src/contexts/FullSiteEditorContext'
 import { Button } from '@/src/components/ui/button'
 import { cn } from '@/src/lib/utils'
 import { BrandLogo } from './BrandLogo'
@@ -27,7 +27,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const { data: designSettings } = useDesignSettings()
   const { itemCount } = useCartContext()
   const { user } = useAuth()
-  const isEditMode = useIsEditModeActive()
+  const isVisualEditMode = useIsVisualEditMode()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -111,20 +111,20 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const rightSection = (
     <div className="flex items-center gap-2">
       {/* Search */}
-      <div className="hidden sm:block">
+      <div className={isVisualEditMode ? "hidden @sm:block" : "hidden sm:block"}>
         <SearchBar searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
       </div>
-      
+
       {/* User Account */}
       <UserMenu user={user} canEdit={canEdit} />
-      
+
       {/* Shopping Cart */}
       <CartButton itemCount={itemCount} />
 
       {/* CTA Button */}
       {ctaButton?.text && (
         <Button
-          className="hidden md:inline-flex ml-2 btn-theme-primary"
+          className={isVisualEditMode ? "hidden @md:inline-flex ml-2 btn-theme-primary" : "hidden md:inline-flex ml-2 btn-theme-primary"}
           asChild
         >
           <Link href={ctaButton.href || '#'}>
@@ -139,7 +139,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
     <header
       className={cn(
         'w-full bg-white border-b transition-all duration-200',
-        stickyHeader && (isEditMode ? 'sticky top-14 z-30' : 'sticky top-0 z-50'),
+        stickyHeader && (isVisualEditMode ? 'sticky top-14 z-30' : 'sticky top-0 z-50'),
         headerStyle === 'classic' ? '' : headerStyle === 'modern' || headerStyle === 'minimal' ? 'py-3' : heightClass,
         className
       )}
@@ -159,7 +159,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                 logoSize={logoSize}
               />
               {/* Desktop Navigation - Only show on large screens */}
-              <div className="hidden lg:block">
+              <div className={isVisualEditMode ? "hidden @lg:block" : "hidden lg:block"}>
                 {menuStyle === 'horizontal' && (
                   <nav className="flex gap-4 text-sm items-center" style={{ fontFamily: 'var(--theme-font-body)' }}>
                     {navItems.map((item) => (
@@ -178,7 +178,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
             </div>
             <div className="flex items-center gap-3">
               {/* Desktop Icons */}
-              <div className="hidden lg:flex items-center gap-3">
+              <div className={isVisualEditMode ? "hidden @lg:flex items-center gap-3" : "hidden lg:flex items-center gap-3"}>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -200,7 +200,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                 )}
               </div>
               {/* Mobile Icons - Only on Mobile/Tablet */}
-              <div className="flex lg:hidden items-center gap-2">
+              <div className={isVisualEditMode ? "flex @lg:hidden items-center gap-2" : "flex lg:hidden items-center gap-2"}>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -235,7 +235,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
         {headerStyle === 'classic' && (
           <div className="space-y-2">
             {/* Desktop Layout */}
-            <div className="hidden md:block text-center space-y-2">
+            <div className={isVisualEditMode ? "hidden @md:block text-center space-y-2" : "hidden md:block text-center space-y-2"}>
               <BrandLogo 
                 brandingType={brandingType}
                 logoUrl={logoUrl}
@@ -282,9 +282,9 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                 </div>
               )}
             </div>
-            
+
             {/* Mobile Layout */}
-            <div className="md:hidden">
+            <div className={isVisualEditMode ? "@md:hidden" : "md:hidden"}>
               <div className="flex items-center justify-between">
                 <BrandLogo
                   brandingType={brandingType}

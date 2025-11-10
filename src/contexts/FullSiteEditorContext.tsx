@@ -1555,3 +1555,24 @@ export function useCanEdit() {
   const context = useContext(FullSiteEditorContext)
   return context?.permissions.canEdit ?? false
 }
+
+/**
+ * Hook to get current viewport size in edit mode
+ * Returns null when not in edit mode
+ */
+export function useEditorViewport(): ViewportSize | null {
+  const context = useContext(FullSiteEditorContext)
+  if (!context?.isEditMode) return null
+  return context.viewportSize
+}
+
+/**
+ * Hook to check if in visual edit mode (not navigate mode)
+ * Returns true only when editorMode === 'edit' AND isEditMode === true
+ * Returns false when in navigate mode or not in edit mode at all
+ */
+export function useIsVisualEditMode(): boolean {
+  const context = useContext(FullSiteEditorContext)
+  if (!context?.isEditMode) return false
+  return context.editorMode === 'edit'
+}
