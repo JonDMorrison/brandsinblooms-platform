@@ -167,36 +167,39 @@ export const SimpleFloatingToolbar = ({
             size="sm"
             variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
             onClick={handleBold}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 text-foreground"
+            style={{ color: 'hsl(var(--foreground))' }}
             title="Bold (Ctrl+B)"
             aria-label="Bold"
             aria-pressed={editor.isActive('bold')}
           >
             <Bold className="h-3.5 w-3.5" />
           </Button>
-          
+
           {/* Italic Button */}
           <Button
             size="sm"
             variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
             onClick={handleItalic}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 text-foreground"
+            style={{ color: 'hsl(var(--foreground))' }}
             title="Italic (Ctrl+I)"
             aria-label="Italic"
             aria-pressed={editor.isActive('italic')}
           >
             <Italic className="h-3.5 w-3.5" />
           </Button>
-          
+
           {/* Separator */}
           <div className="w-px h-5 bg-gray-300 mx-0.5" />
-          
+
           {/* Link Button */}
           <Button
             size="sm"
             variant={editor.isActive('link') ? 'secondary' : 'ghost'}
             onClick={handleLink}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 text-foreground"
+            style={{ color: 'hsl(var(--foreground))' }}
             title="Link (Ctrl+K)"
             aria-label="Link"
             aria-pressed={editor.isActive('link')}

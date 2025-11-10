@@ -140,10 +140,11 @@ export function ColorPicker({ editor, size = 'sm', variant = 'ghost', disabled =
         onClick={() => setIsOpen(true)}
         disabled={disabled || !editor}
         className={cn(
-          'relative',
+          'relative text-foreground',
           size === 'sm' && 'h-8 w-8 p-0',
           size === 'md' && 'h-9 w-9 p-0'
         )}
+        style={{ color: 'hsl(var(--foreground))' }}
         title="Text color"
         aria-label="Text color"
         aria-pressed={isActive}

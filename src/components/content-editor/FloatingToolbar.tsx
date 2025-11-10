@@ -197,7 +197,8 @@ export const FloatingToolbar = ({
             size="sm"
             variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
             onClick={handleBold}
-            className="h-7 w-7 p-0"
+            className="h-7 w-7 p-0 text-foreground"
+            style={{ color: 'hsl(var(--foreground))' }}
             title="Bold (Ctrl+B)"
           >
             <Bold className="h-3.5 w-3.5" />
@@ -207,22 +208,21 @@ export const FloatingToolbar = ({
             size="sm"
             variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
             onClick={handleItalic}
-            className="h-7 w-7 p-0"
+            className="h-7 w-7 p-0 text-foreground"
+            style={{ color: 'hsl(var(--foreground))' }}
             title="Italic (Ctrl+I)"
           >
             <Italic className="h-3.5 w-3.5" />
           </Button>
 
-          {/* Color Picker - available in rich mode */}
-          {format === 'rich' && (
-            <>
-              {/* Separator */}
-              <div className="w-px h-5 bg-border mx-0.5" />
+          {/* Color Picker - available in plain and rich mode */}
+          <>
+            {/* Separator */}
+            <div className="w-px h-5 bg-border mx-0.5" />
 
-              {/* Color Picker */}
-              <ColorPicker editor={editor} size="sm" variant="ghost" />
-            </>
-          )}
+            {/* Color Picker */}
+            <ColorPicker editor={editor} size="sm" variant="ghost" />
+          </>
 
           {format === 'rich' && (
             <>
@@ -234,7 +234,8 @@ export const FloatingToolbar = ({
                 size="sm"
                 variant={!editor.isActive('heading') ? 'secondary' : 'ghost'}
                 onClick={handleParagraph}
-                className="h-7 w-7 p-0 text-xs font-medium"
+                className="h-7 w-7 p-0 text-xs font-medium text-foreground"
+                style={{ color: 'hsl(var(--foreground))' }}
                 title="Paragraph"
               >
                 P
@@ -244,7 +245,8 @@ export const FloatingToolbar = ({
                 size="sm"
                 variant={editor.isActive('heading', { level: 1 }) ? 'secondary' : 'ghost'}
                 onClick={handleHeading1}
-                className="h-7 w-8 p-0 text-xs font-medium"
+                className="h-7 w-8 p-0 text-xs font-medium text-foreground"
+                style={{ color: 'hsl(var(--foreground))' }}
                 title="Heading 1"
               >
                 H1
@@ -254,7 +256,8 @@ export const FloatingToolbar = ({
                 size="sm"
                 variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'}
                 onClick={handleHeading2}
-                className="h-7 w-8 p-0 text-xs font-medium"
+                className="h-7 w-8 p-0 text-xs font-medium text-foreground"
+                style={{ color: 'hsl(var(--foreground))' }}
                 title="Heading 2"
               >
                 H2
@@ -268,7 +271,8 @@ export const FloatingToolbar = ({
                 size="sm"
                 variant={editor.isActive({ textAlign: 'left' }) || (!editor.isActive({ textAlign: 'center' }) && !editor.isActive({ textAlign: 'right' })) ? 'secondary' : 'ghost'}
                 onClick={handleAlignLeft}
-                className="h-7 w-7 p-0"
+                className="h-7 w-7 p-0 text-foreground"
+                style={{ color: 'hsl(var(--foreground))' }}
                 title="Align Left"
               >
                 <AlignLeft className="h-3.5 w-3.5" />
@@ -278,7 +282,8 @@ export const FloatingToolbar = ({
                 size="sm"
                 variant={editor.isActive({ textAlign: 'center' }) ? 'secondary' : 'ghost'}
                 onClick={handleAlignCenter}
-                className="h-7 w-7 p-0"
+                className="h-7 w-7 p-0 text-foreground"
+                style={{ color: 'hsl(var(--foreground))' }}
                 title="Align Center"
               >
                 <AlignCenter className="h-3.5 w-3.5" />
@@ -288,7 +293,8 @@ export const FloatingToolbar = ({
                 size="sm"
                 variant={editor.isActive({ textAlign: 'right' }) ? 'secondary' : 'ghost'}
                 onClick={handleAlignRight}
-                className="h-7 w-7 p-0"
+                className="h-7 w-7 p-0 text-foreground"
+                style={{ color: 'hsl(var(--foreground))' }}
                 title="Align Right"
               >
                 <AlignRight className="h-3.5 w-3.5" />
@@ -302,7 +308,8 @@ export const FloatingToolbar = ({
                 size="sm"
                 variant={editor.isActive('link') ? 'secondary' : 'ghost'}
                 onClick={handleLink}
-                className="h-7 w-7 p-0"
+                className="h-7 w-7 p-0 text-foreground"
+                style={{ color: 'hsl(var(--foreground))' }}
                 title="Link (Ctrl+K)"
               >
                 <Link className="h-3.5 w-3.5" />
@@ -318,7 +325,8 @@ export const FloatingToolbar = ({
                     size="sm"
                     variant={editor.isActive('image') ? 'secondary' : 'ghost'}
                     onClick={() => setImageDialogOpen(true)}
-                    className="h-7 w-7 p-0"
+                    className="h-7 w-7 p-0 text-foreground"
+                    style={{ color: 'hsl(var(--foreground))' }}
                     title="Insert Image"
                   >
                     <ImageIcon className="h-3.5 w-3.5" />
