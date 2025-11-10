@@ -9,7 +9,6 @@ import React, { useState, useMemo } from 'react'
 import { Dialog, DialogContent, DialogTitle, DialogHeader } from '@/src/components/ui/dialog'
 import { Input } from '@/src/components/ui/input'
 import { Button } from '@/src/components/ui/button'
-import { ScrollArea } from '@/src/components/ui/scroll-area'
 import { Search, X } from 'lucide-react'
 import { ContentSectionType, LAYOUT_SECTIONS, LayoutType } from '@/src/lib/content/schema'
 import { cn } from '@/src/lib/utils'
@@ -149,8 +148,8 @@ export function AddSectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] p-0">
-        <DialogHeader className="p-6 pb-4 border-b">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] p-0 flex flex-col" showCloseButton={false}>
+        <DialogHeader className="p-6 pb-4 border-b flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold text-gray-900">
               Add Section
@@ -177,7 +176,7 @@ export function AddSectionModal({
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6 py-4">
+        <div className="overflow-y-auto flex-1 px-6 py-4">
           {Object.keys(groupedSections).length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <p>No sections found</p>
@@ -243,9 +242,9 @@ export function AddSectionModal({
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
 
-        <div className="p-4 border-t bg-gray-50 flex justify-end">
+        <div className="p-4 border-t bg-gray-50 flex justify-end flex-shrink-0">
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
