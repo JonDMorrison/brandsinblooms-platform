@@ -1,7 +1,7 @@
 'use client'
 
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { ArrowUpDown, Calendar, MoreHorizontal, Edit, Trash2 } from 'lucide-react'
+import { ArrowUpDown, Calendar, MoreHorizontal, Edit, Trash2, ExternalLink } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from '@/src/components/ui/button'
@@ -26,10 +26,13 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { useDeleteContent } from '@/src/hooks/useContent'
 import { toast } from 'sonner'
+import { useSiteContext } from '@/src/contexts/SiteContext'
+import { getCustomerSiteFullUrl } from '@/src/lib/site/url-utils'
 
 export interface ContentItem {
   id: string
   title: string
+  slug: string
   type: 'page' | 'blog'
   layout?: 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact' | 'other'
   status: 'published' | 'draft' | 'archived'
@@ -93,6 +96,43 @@ const getLayoutLabel = (layout?: ContentItem['layout'], type?: ContentItem['type
   }
   
   return labels[layout] || 'Page'
+}
+
+// Title cell component with clickable link to customer site
+function TitleCell({ row }: { row: Row<ContentItem> }) {
+  const { currentSite } = useSiteContext()
+  const item = row.original
+
+  const handleTitleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (!currentSite) {
+      toast.error('Site information not available')
+      return
+    }
+
+    // Build the customer site URL
+    const baseUrl = getCustomerSiteFullUrl(currentSite)
+    // Handle home page (empty slug or "home") - just use base URL
+    const pageUrl = !item.slug || item.slug === 'home' ? baseUrl : `${baseUrl}/${item.slug}`
+
+    // Open in new tab - edit mode will auto-enable via middleware
+    window.open(pageUrl, '_blank')
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      {getTypeIcon(item.type, item.layout)}
+      <button
+        onClick={handleTitleClick}
+        className="group flex items-center gap-2 font-medium hover:text-primary transition-colors text-left cursor-pointer"
+        disabled={!currentSite}
+        aria-label={`Open ${item.title} in new tab`}
+      >
+        <span>{item.title}</span>
+        <ExternalLink className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+      </button>
+    </div>
+  )
 }
 
 // Actions cell component to handle navigation
@@ -213,15 +253,7 @@ export const createContentColumns = (
         </Button>
       )
     },
-    cell: ({ row }) => {
-      const item = row.original
-      return (
-        <div className="flex items-center gap-3">
-          {getTypeIcon(item.type, item.layout)}
-          <span className="font-medium">{item.title}</span>
-        </div>
-      )
-    },
+    cell: ({ row }) => <TitleCell row={row} />,
   },
   {
     accessorKey: "type",

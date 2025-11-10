@@ -3,12 +3,16 @@ import { getAppDomain } from '@/src/lib/env/app-domain'
 
 /**
  * Builds the customer-facing site URL from site data
- * Uses custom_domain if available, otherwise falls back to subdomain.localhost:port
- * Only includes port for localhost development - staging/production domains are clean
+ * Uses custom_domain if available, otherwise falls back to subdomain.baseDomain:port
+ * Only includes port for local development - staging/production domains are clean
+ * Local development is detected by port presence (e.g., localhost:3001, blooms.local:3001)
  */
 export function buildCustomerSiteUrl(site: Site): string {
   const appDomain = getAppDomain()
-  const isLocalhost = appDomain.includes('localhost')
+
+  // Extract base domain and port
+  const [baseDomain, port] = appDomain.split(':')
+  const isLocalDevelopment = !!port  // True if port exists (local dev), false otherwise (production)
 
   // If site has a custom domain, use that
   if (site.custom_domain) {
@@ -16,24 +20,20 @@ export function buildCustomerSiteUrl(site: Site): string {
     if (site.custom_domain.includes(':')) {
       return site.custom_domain
     }
-    // Only add port if we're in localhost development
-    if (isLocalhost && appDomain.includes(':')) {
-      const port = appDomain.split(':')[1]
+    // Add port if in local development
+    if (isLocalDevelopment) {
       return `${site.custom_domain}:${port}`
     }
     // For staging/production custom domains, return clean URL without port
     return site.custom_domain
   }
 
-  // Use subdomain.localhost:port format (only add port for localhost)
-  const baseDomain = appDomain.split(':')[0] // Get 'localhost' from 'localhost:3001'
-
-  if (isLocalhost && appDomain.includes(':')) {
-    const port = appDomain.split(':')[1]
+  // Use subdomain.baseDomain:port format (only add port for local development)
+  if (isLocalDevelopment) {
     return `${site.subdomain}.${baseDomain}:${port}`
   }
 
-  // For non-localhost environments, return clean subdomain URL
+  // For production environments, return clean subdomain URL
   return `${site.subdomain}.${baseDomain}`
 }
 
