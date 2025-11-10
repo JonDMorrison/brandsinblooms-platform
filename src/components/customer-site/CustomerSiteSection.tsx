@@ -164,14 +164,18 @@ export function CustomerSiteSection({
         >
           <div className="brand-container">
             <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                {String(sectionData.headline || '')}
-              </h1>
+              <h1
+                className="text-4xl md:text-5xl font-bold mb-6"
+                style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+                dangerouslySetInnerHTML={{
+                  __html: stripParagraphTags(String(sectionData.headline || ''))
+                }}
+              />
               <div
-                className="text-xl leading-relaxed"
+                className="text-xl leading-relaxed [&_p:not(:first-child)]:mt-2"
                 style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}
                 dangerouslySetInnerHTML={{
-                  __html: textToHtml(String(sectionData.subheadline || ''))
+                  __html: String(sectionData.subheadline || '')
                 }}
               />
             </div>

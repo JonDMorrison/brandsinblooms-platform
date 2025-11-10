@@ -6,7 +6,6 @@
 import React from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
-import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { isPreviewMode, createResponsiveClassHelper } from '@/src/lib/utils/responsive-classes'
 
 interface HeaderPreviewProps {
@@ -56,22 +55,23 @@ export function HeaderPreview({
               fontFamily: 'var(--theme-font-heading)'
             }}
             placeholder="Enter page title..."
-            showToolbar={false}
+            showToolbar={true}
+            debounceDelay={0}
           />
 
           {/* Subheadline */}
           {(data.subheadline || onContentUpdate) && (
             <InlineTextEditor
-              content={textToHtml(String(data.subheadline || ''))}
+              content={data.subheadline || ''}
               onUpdate={(htmlContent) => {
                 if (onContentUpdate) {
-                  const textContent = htmlToText(htmlContent)
-                  onContentUpdate(sectionKey, 'data.subheadline', textContent)
+                  onContentUpdate(sectionKey, 'data.subheadline', htmlContent)
                 }
               }}
               isEnabled={Boolean(onContentUpdate)}
               fieldPath="data.subheadline"
               format="simple-toolbar"
+              singleLine={false}
               className="text-xl leading-relaxed"
               style={{
                 color: 'var(--theme-text)',
@@ -79,6 +79,8 @@ export function HeaderPreview({
                 fontFamily: 'var(--theme-font-body)'
               }}
               placeholder="Enter subtitle or description..."
+              showToolbar={true}
+              debounceDelay={0}
             />
           )}
         </div>
