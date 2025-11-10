@@ -1,18 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import {
   Menu,
   User,
   Settings,
   LogOut,
-  HelpCircle,
   ChevronDown,
   Shield
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
-import { Badge } from '@/src/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from '@/src/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/src/components/ui/avatar'
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/src/components/ui/tooltip'
 // ThemeToggle removed - light mode only
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useAdminAuth } from '@/src/contexts/AdminAuthContext'
@@ -37,7 +33,6 @@ interface DashboardHeaderProps {
 export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const { user, signOut } = useAuth()
   const { isAdmin } = useAdminAuth()
-  const router = useRouter()
 
   // Check if dev features are enabled
   const isDevFeaturesEnabled = process.env.NEXT_PUBLIC_ENABLE_DEV_FEATURES === 'true'
@@ -51,10 +46,6 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
     } catch (error) {
       toast.error('Failed to sign out')
     }
-  }
-
-  const handleHelpClick = () => {
-    toast.info('Will open helpdesk / FAQ\'s')
   }
 
   const getUserInitials = () => {
@@ -94,18 +85,6 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
           {/* Notifications - Hidden for now */}
           {/* <NotificationCenter /> */}
-
-          {/* Help */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="sm" onClick={handleHelpClick}>
-                <HelpCircle className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Help/Support
-            </TooltipContent>
-          </Tooltip>
 
           {/* User menu - Always visible */}
           <DropdownMenu>

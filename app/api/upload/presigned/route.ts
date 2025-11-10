@@ -6,13 +6,13 @@
 import { NextRequest } from 'next/server';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { s3Client, getBucketName, isStorageConfigured } from '@/lib/storage/s3-client';
+import { s3Client, getBucketName, getCdnUrl, isStorageConfigured } from '@/lib/storage/s3-client';
 import { getUser } from '@/lib/auth/server';
 import { apiSuccess, apiError, ApiResult } from '@/lib/types/api';
 import { handleError } from '@/lib/types/error-handling';
 import { rateLimiters, addRateLimitHeaders } from '@/lib/security/rate-limiting';
-import { validateImageFile, STORAGE_CONFIG } from '@/lib/supabase/storage';
-import { generateFilePath } from '@/lib/storage/index';
+import { validateImageFile, validateEventFile, STORAGE_CONFIG } from '@/lib/supabase/storage';
+import { generateFilePath, generateEventFilePath } from '@/lib/storage/index';
 
 /**
  * Request body interface for presigned URL generation
@@ -24,6 +24,8 @@ interface PresignedUrlRequest {
   fileSize: number;
   siteId: string;
   productId?: string;
+  eventId?: string;
+  uploadType?: 'product' | 'event-media' | 'event-attachment';
   metadata?: Record<string, string>;
 }
 
@@ -70,6 +72,8 @@ function validateUploadRequest(data: unknown): {
   const fileSize = typeof request.fileSize === 'number' ? request.fileSize : parseInt(request.fileSize as string, 10);
   const siteId = request.siteId as string;
   const productId = request.productId as string | undefined;
+  const eventId = request.eventId as string | undefined;
+  const uploadType = (request.uploadType as 'product' | 'event-media' | 'event-attachment') || 'product';
   const metadata = request.metadata as Record<string, string> | undefined;
 
   // Validate file size
@@ -77,24 +81,9 @@ function validateUploadRequest(data: unknown): {
     return { isValid: false, error: 'Invalid file size' };
   }
 
-  if (fileSize > STORAGE_CONFIG.productImages.maxFileSize) {
-    return { 
-      isValid: false, 
-      error: `File size exceeds maximum allowed size of ${STORAGE_CONFIG.productImages.maxFileSize / (1024 * 1024)}MB` 
-    };
-  }
-
   // Validate file name
   if (!fileName || fileName.length > 255) {
     return { isValid: false, error: 'Invalid file name' };
-  }
-
-  // Validate content type
-  if (!STORAGE_CONFIG.productImages.allowedTypes.includes(contentType)) {
-    return { 
-      isValid: false, 
-      error: `Unsupported file type. Allowed types: ${STORAGE_CONFIG.productImages.allowedTypes.join(', ')}` 
-    };
   }
 
   // Create mock file object for validation
@@ -104,9 +93,24 @@ function validateUploadRequest(data: unknown): {
     size: fileSize,
   } as File;
 
-  const validation = validateImageFile(mockFile);
-  if (!validation.isValid) {
-    return { isValid: false, error: validation.error };
+  // Validate based on upload type
+  if (uploadType === 'event-media' || uploadType === 'event-attachment') {
+    // Event upload validation
+    const validation = validateEventFile(mockFile, uploadType);
+    if (!validation.isValid) {
+      return { isValid: false, error: validation.error };
+    }
+
+    // Require eventId for event uploads
+    if (!eventId) {
+      return { isValid: false, error: 'Event ID is required for event uploads' };
+    }
+  } else {
+    // Product upload validation (default)
+    const validation = validateImageFile(mockFile);
+    if (!validation.isValid) {
+      return { isValid: false, error: validation.error };
+    }
   }
 
   return {
@@ -118,6 +122,8 @@ function validateUploadRequest(data: unknown): {
       fileSize,
       siteId,
       productId,
+      eventId,
+      uploadType,
       metadata,
     },
   };
@@ -225,13 +231,28 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const uploadRequest = validation.data!;
 
-    // Use provided key if available, otherwise generate unique file path
-    const filePath = uploadRequest.key || generateFilePath(
-      uploadRequest.fileName,
-      uploadRequest.siteId,
-      'images',
-      uploadRequest.productId
-    );
+    // Generate file path based on upload type
+    let filePath: string;
+    if (uploadRequest.key) {
+      // Use provided key if available
+      filePath = uploadRequest.key;
+    } else if (uploadRequest.uploadType === 'event-media' || uploadRequest.uploadType === 'event-attachment') {
+      // Generate event-specific path
+      filePath = generateEventFilePath(
+        uploadRequest.fileName,
+        uploadRequest.siteId,
+        uploadRequest.eventId!,
+        uploadRequest.uploadType
+      );
+    } else {
+      // Generate product/default path
+      filePath = generateFilePath(
+        uploadRequest.fileName,
+        uploadRequest.siteId,
+        'images',
+        uploadRequest.productId
+      );
+    }
 
     const bucketName = getBucketName();
     const expiresIn = 5 * 60; // 5 minutes
@@ -242,15 +263,18 @@ export async function POST(request: NextRequest): Promise<Response> {
       'site-id': uploadRequest.siteId,
       'user-id': user.id,
       'uploaded-at': new Date().toISOString(),
+      'upload-type': uploadRequest.uploadType || 'product',
       ...uploadRequest.metadata,
       ...(uploadRequest.productId && { 'product-id': uploadRequest.productId }),
+      ...(uploadRequest.eventId && { 'event-id': uploadRequest.eventId }),
     };
 
     const tags = {
       siteId: uploadRequest.siteId,
       userId: user.id,
-      uploadType: 'presigned',
+      uploadType: uploadRequest.uploadType || 'product',
       ...(uploadRequest.productId && { productId: uploadRequest.productId }),
+      ...(uploadRequest.eventId && { eventId: uploadRequest.eventId }),
     };
 
     // Create presigned URL
@@ -270,8 +294,9 @@ export async function POST(request: NextRequest): Promise<Response> {
     });
 
     // Generate public URL for after upload
-    // Return a relative URL to avoid issues with Next.js Image component
-    const publicUrl = `/api/images/${filePath}`;
+    // For event uploads, return the CDN URL directly
+    const cdnUrl = getCdnUrl();
+    const publicUrl = cdnUrl ? `${cdnUrl}/${filePath}` : `/api/images/${filePath}`;
 
     const responseData: PresignedUrlResponse = {
       uploadUrl,
