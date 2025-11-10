@@ -47,7 +47,7 @@ export async function GET(
       )
     }
 
-    // Get site with domain configuration
+    // Get site with domain configuration including Cloudflare fields
     const { data: site, error: siteError } = await supabase
       .from('sites')
       .select(`
@@ -57,7 +57,10 @@ export async function GET(
         dns_records,
         last_dns_check_at,
         custom_domain_verified_at,
-        custom_domain_error
+        custom_domain_error,
+        cloudflare_ssl_status,
+        cloudflare_activated_at,
+        cloudflare_created_at
       `)
       .eq('id', siteId)
       .single()
@@ -78,6 +81,9 @@ export async function GET(
       last_dns_check_at: string | null
       custom_domain_verified_at: string | null
       custom_domain_error: string | null
+      cloudflare_ssl_status: string | null
+      cloudflare_activated_at: string | null
+      cloudflare_created_at: string | null
     }
 
     // Calculate next check availability if not verified
@@ -94,8 +100,12 @@ export async function GET(
       }
     }
 
-    // Prepare response
-    const result: DomainStatusResult = {
+    // Prepare response with extended Cloudflare information
+    const result: DomainStatusResult & {
+      sslStatus?: string | null
+      cloudflareActivatedAt?: string | null
+      cloudflareCreatedAt?: string | null
+    } = {
       domain: siteWithCustomFields.custom_domain,
       status: (siteWithCustomFields.custom_domain_status as DomainStatusResult['status']) || 'not_started',
       provider: siteWithCustomFields.dns_provider,
@@ -103,7 +113,11 @@ export async function GET(
       verifiedAt: siteWithCustomFields.custom_domain_verified_at,
       nextCheckAvailable,
       dnsRecords: siteWithCustomFields.dns_records as DnsRecords | null,
-      error: siteWithCustomFields.custom_domain_error
+      error: siteWithCustomFields.custom_domain_error,
+      // Include Cloudflare-specific status information
+      sslStatus: siteWithCustomFields.cloudflare_ssl_status,
+      cloudflareActivatedAt: siteWithCustomFields.cloudflare_activated_at,
+      cloudflareCreatedAt: siteWithCustomFields.cloudflare_created_at
     }
 
     return NextResponse.json(result)

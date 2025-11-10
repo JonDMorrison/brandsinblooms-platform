@@ -4,6 +4,8 @@ import { isValidSubdomain, isValidCustomDomain } from '@/src/lib/site/resolution
 import { isSubdomainAvailable, isCustomDomainAvailable } from '@/src/lib/site/queries'
 import { handleError } from '@/lib/types/error-handling'
 import { getAppDomain } from '@/lib/env/app-domain'
+import { CloudflareService } from '@/src/lib/cloudflare/service'
+import type { Json } from '@/lib/database/types'
 
 interface DomainUpdateRequest {
   subdomain?: string
@@ -130,12 +132,42 @@ export async function PATCH(
       )
     }
 
+    // Get current site with Cloudflare configuration
+    const { data: currentSite, error: siteError } = await supabase
+      .from('sites')
+      .select(`
+        subdomain,
+        custom_domain,
+        custom_domain_status,
+        cloudflare_hostname_id,
+        cloudflare_route_id
+      `)
+      .eq('id', siteId)
+      .single()
+
+    if (siteError || !currentSite) {
+      return NextResponse.json(
+        { error: 'Site not found' },
+        { status: 404 }
+      )
+    }
+
+    // Type assertion for Cloudflare fields
+    const siteWithCloudflare = currentSite as unknown as {
+      subdomain: string
+      custom_domain: string | null
+      custom_domain_status: string | null
+      cloudflare_hostname_id: string | null
+      cloudflare_route_id: string | null
+    }
+
     // Parse request body
     const body = await request.json() as DomainUpdateRequest
     const { subdomain, custom_domain } = body
 
     const errors: string[] = []
-    const updates: { subdomain?: string; custom_domain?: string | null } = {}
+    const updates: Record<string, unknown> = {}
+    let cloudflareResult: { dnsRecords?: unknown } | null = null
 
     // Get app domain for validation
     const appDomain = getAppDomain()
@@ -167,31 +199,98 @@ export async function PATCH(
 
     // Validate and update custom domain if provided
     if (custom_domain !== undefined) {
-      if (custom_domain === null || custom_domain === '') {
-        // Allow clearing custom domain
-        updates.custom_domain = null
-      } else {
-        const validation = validateAndNormalizeDomain(custom_domain, appDomain)
+      // Check if we're changing the custom domain
+      const isChangingDomain = custom_domain !== siteWithCloudflare.custom_domain
 
-        if (!validation.isValid) {
-          errors.push(...validation.errors)
-        } else if (validation.normalizedDomain) {
-          // Additional check using the library function
-          if (!isValidCustomDomain(validation.normalizedDomain)) {
-            errors.push('Invalid custom domain format')
-          } else {
-            // Check availability
-            const availabilityResult = await isCustomDomainAvailable(
-              validation.normalizedDomain,
-              siteId
-            )
+      if (isChangingDomain) {
+        // Handle removing old domain from Cloudflare
+        if (siteWithCloudflare.custom_domain && siteWithCloudflare.cloudflare_hostname_id) {
+          console.log(`[PATCH] Removing old custom domain from Cloudflare: ${siteWithCloudflare.custom_domain}`)
 
-            if (availabilityResult.error) {
-              errors.push('Could not verify custom domain availability')
-            } else if (availabilityResult.data === false) {
-              errors.push('Custom domain is already in use by another site')
+          // Remove old Cloudflare resources
+          const removeSuccess = await CloudflareService.removeCustomDomain(
+            siteWithCloudflare.cloudflare_hostname_id,
+            siteWithCloudflare.cloudflare_route_id || undefined
+          )
+
+          if (!removeSuccess) {
+            console.error('[PATCH] Warning: Failed to remove old Cloudflare resources')
+            // Continue anyway, don't block the update
+          }
+
+          // Clear Cloudflare fields
+          updates.cloudflare_hostname_id = null
+          updates.cloudflare_route_id = null
+          updates.cloudflare_txt_name = null
+          updates.cloudflare_txt_value = null
+          updates.cloudflare_cname_target = null
+          updates.cloudflare_ssl_status = null
+          updates.cloudflare_created_at = null
+          updates.cloudflare_activated_at = null
+        }
+
+        // Handle setting up new domain
+        if (custom_domain === null || custom_domain === '') {
+          // Clearing custom domain
+          updates.custom_domain = null
+          updates.custom_domain_status = 'disconnected'
+          updates.dns_provider = null
+          updates.dns_records = null
+          updates.custom_domain_error = null
+          updates.custom_domain_verified_at = null
+          updates.last_dns_check_at = null
+        } else {
+          const validation = validateAndNormalizeDomain(custom_domain, appDomain)
+
+          if (!validation.isValid) {
+            errors.push(...validation.errors)
+          } else if (validation.normalizedDomain) {
+            // Additional check using the library function
+            if (!isValidCustomDomain(validation.normalizedDomain)) {
+              errors.push('Invalid custom domain format')
             } else {
-              updates.custom_domain = validation.normalizedDomain
+              // Check availability
+              const availabilityResult = await isCustomDomainAvailable(
+                validation.normalizedDomain,
+                siteId
+              )
+
+              if (availabilityResult.error) {
+                errors.push('Could not verify custom domain availability')
+              } else if (availabilityResult.data === false) {
+                errors.push('Custom domain is already in use by another site')
+              } else {
+                // Setup new domain with Cloudflare
+                console.log(`[PATCH] Setting up new custom domain with Cloudflare: ${validation.normalizedDomain}`)
+                const setupResult = await CloudflareService.setupCustomDomain(
+                  validation.normalizedDomain,
+                  siteId
+                )
+
+                if (!setupResult.success || !setupResult.data) {
+                  errors.push(setupResult.error || 'Failed to setup custom domain with Cloudflare')
+                } else {
+                  // Update with new domain and Cloudflare configuration
+                  updates.custom_domain = validation.normalizedDomain
+                  updates.custom_domain_status = 'pending_dns'
+                  updates.dns_records = setupResult.data.dnsRecords as unknown as Json
+                  updates.custom_domain_error = null
+                  updates.custom_domain_verified_at = null
+                  updates.last_dns_check_at = null
+
+                  // Cloudflare fields
+                  updates.cloudflare_hostname_id = setupResult.data.hostname.hostnameId
+                  updates.cloudflare_route_id = setupResult.data.workerRoute.routeId
+                  updates.cloudflare_txt_name = setupResult.data.hostname.txtName
+                  updates.cloudflare_txt_value = setupResult.data.hostname.txtValue
+                  updates.cloudflare_cname_target = setupResult.data.hostname.cnameTarget
+                  updates.cloudflare_ssl_status = setupResult.data.hostname.sslStatus
+                  updates.cloudflare_created_at = new Date().toISOString()
+
+                  // Store result for response
+                  cloudflareResult = setupResult.data
+                }
+              }
             }
           }
         }
@@ -226,10 +325,18 @@ export async function PATCH(
       throw updateError
     }
 
-    return NextResponse.json({
+    // Prepare response
+    const response: Record<string, unknown> = {
       success: true,
       data: updatedSite
-    })
+    }
+
+    // Include DNS records if we just set up a new custom domain
+    if (cloudflareResult && cloudflareResult.dnsRecords) {
+      response.dnsRecords = cloudflareResult.dnsRecords
+    }
+
+    return NextResponse.json(response)
   } catch (error: unknown) {
     const errorInfo = handleError(error)
     return NextResponse.json(
@@ -248,7 +355,6 @@ export async function DELETE(
   { params }: { params: { siteId: string } }
 ): Promise<NextResponse> {
   try {
-    const { removeFromCloudflare } = await import('@/src/lib/dns/utils')
     const supabase = await createClient()
     const { siteId } = params
 
@@ -277,10 +383,15 @@ export async function DELETE(
       )
     }
 
-    // Get current domain to remove from Cloudflare
+    // Get current domain and Cloudflare configuration
     const { data: site, error: siteError } = await supabase
       .from('sites')
-      .select('custom_domain, custom_domain_status')
+      .select(`
+        custom_domain,
+        custom_domain_status,
+        cloudflare_hostname_id,
+        cloudflare_route_id
+      `)
       .eq('id', siteId)
       .single()
 
@@ -291,10 +402,12 @@ export async function DELETE(
       )
     }
 
-    // Type assertion for new fields until database types are regenerated
+    // Type assertion for fields
     const siteWithCustomFields = site as unknown as {
       custom_domain: string | null
       custom_domain_status: string | null
+      cloudflare_hostname_id: string | null
+      cloudflare_route_id: string | null
     }
 
     if (!siteWithCustomFields.custom_domain) {
@@ -304,27 +417,41 @@ export async function DELETE(
       )
     }
 
-    // Remove from Cloudflare if verified (placeholder)
-    if (siteWithCustomFields.custom_domain_status === 'verified') {
-      const cloudflareResult = await removeFromCloudflare(siteWithCustomFields.custom_domain)
-      if (!cloudflareResult.success) {
-        console.error('Failed to remove from Cloudflare:', cloudflareResult.error)
+    // Remove from Cloudflare if configured
+    if (siteWithCustomFields.cloudflare_hostname_id) {
+      console.log(`[DELETE] Removing custom domain from Cloudflare: ${siteWithCustomFields.custom_domain}`)
+
+      const removeSuccess = await CloudflareService.removeCustomDomain(
+        siteWithCustomFields.cloudflare_hostname_id,
+        siteWithCustomFields.cloudflare_route_id || undefined
+      )
+
+      if (!removeSuccess) {
+        console.error('[DELETE] Warning: Failed to remove from Cloudflare, continuing with disconnection')
         // Continue with disconnection even if Cloudflare fails
       }
     }
 
-    // Clear all custom domain fields
+    // Clear all custom domain and Cloudflare fields
     const { data: updatedSite, error: updateError } = await supabase
       .from('sites')
       .update({
         custom_domain: null,
         custom_domain_status: 'disconnected',
         dns_provider: null,
-        dns_verification_token: null,
         dns_records: null,
         custom_domain_error: null,
         custom_domain_verified_at: null,
-        last_dns_check_at: null
+        last_dns_check_at: null,
+        // Clear Cloudflare fields
+        cloudflare_hostname_id: null,
+        cloudflare_route_id: null,
+        cloudflare_txt_name: null,
+        cloudflare_txt_value: null,
+        cloudflare_cname_target: null,
+        cloudflare_ssl_status: null,
+        cloudflare_created_at: null,
+        cloudflare_activated_at: null
       })
       .eq('id', siteId)
       .select()

@@ -1,0 +1,393 @@
+/**
+ * Example API Route for Custom Domain Management
+ *
+ * This is an example of how to use the Cloudflare service in a Next.js API route.
+ * Copy this to app/api/sites/[id]/custom-domain/route.ts and adapt as needed.
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { CloudflareService, isCloudflareConfigured } from '@/lib/cloudflare';
+import { createClient } from '@/lib/supabase/server';
+import { apiError, apiSuccess } from '@/lib/types/api';
+
+/**
+ * POST /api/sites/[id]/custom-domain
+ * Add a custom domain to a site
+ */
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // Check if Cloudflare is configured
+    if (!isCloudflareConfigured()) {
+      return NextResponse.json(
+        apiError('Cloudflare integration is not configured'),
+        { status: 503 }
+      );
+    }
+
+    // Authenticate user
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        apiError('Authentication required'),
+        { status: 401 }
+      );
+    }
+
+    // Get request body
+    const body = await request.json();
+    const { domain } = body;
+
+    if (!domain) {
+      return NextResponse.json(
+        apiError('Domain is required'),
+        { status: 400 }
+      );
+    }
+
+    // Validate domain format
+    const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
+    if (!domainRegex.test(domain)) {
+      return NextResponse.json(
+        apiError('Invalid domain format'),
+        { status: 400 }
+      );
+    }
+
+    // Check site ownership
+    const siteId = params.id;
+    const { data: site, error: siteError } = await supabase
+      .from('sites')
+      .select('id, name, profile_id')
+      .eq('id', siteId)
+      .single();
+
+    if (siteError || !site) {
+      return NextResponse.json(
+        apiError('Site not found'),
+        { status: 404 }
+      );
+    }
+
+    // Verify user owns the site
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    if (site.profile_id !== profile?.id) {
+      return NextResponse.json(
+        apiError('You do not have permission to modify this site'),
+        { status: 403 }
+      );
+    }
+
+    // Check if domain is already in use
+    const { data: existingDomain } = await supabase
+      .from('site_domains')
+      .select('id')
+      .eq('domain', domain)
+      .single();
+
+    if (existingDomain) {
+      return NextResponse.json(
+        apiError('This domain is already in use'),
+        { status: 409 }
+      );
+    }
+
+    // Setup custom domain with Cloudflare
+    const result = await CloudflareService.setupCustomDomain(domain, siteId);
+
+    if (!result.success || !result.data) {
+      return NextResponse.json(
+        apiError(result.error || 'Failed to setup custom domain'),
+        { status: 500 }
+      );
+    }
+
+    // Save domain to database
+    const { error: insertError } = await supabase
+      .from('site_domains')
+      .insert({
+        site_id: siteId,
+        domain,
+        is_primary: false,
+        status: 'pending_verification',
+        verification_method: 'dns_txt',
+        verification_token: result.data.hostname.txtValue,
+        cloudflare_hostname_id: result.data.hostname.hostnameId,
+        cloudflare_route_id: result.data.workerRoute.routeId,
+      });
+
+    if (insertError) {
+      // Rollback Cloudflare changes
+      await CloudflareService.removeCustomDomain(
+        result.data.hostname.hostnameId,
+        result.data.workerRoute.routeId
+      );
+
+      return NextResponse.json(
+        apiError('Failed to save domain configuration'),
+        { status: 500 }
+      );
+    }
+
+    // Return DNS configuration for customer
+    return NextResponse.json(
+      apiSuccess({
+        message: 'Custom domain added successfully',
+        dnsRecords: result.data.dnsRecords,
+        status: 'pending_verification',
+      })
+    );
+  } catch (error) {
+    console.error('Error adding custom domain:', error);
+    return NextResponse.json(
+      apiError('An unexpected error occurred'),
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * GET /api/sites/[id]/custom-domain
+ * Get custom domain status and DNS records
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = await createClient();
+
+    // Authenticate user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json(
+        apiError('Authentication required'),
+        { status: 401 }
+      );
+    }
+
+    // Get site and domains
+    const { data: site, error } = await supabase
+      .from('sites')
+      .select(`
+        id,
+        name,
+        profile_id,
+        cloudflare_hostname_id,
+        cloudflare_ssl_status,
+        cloudflare_txt_name,
+        cloudflare_txt_value,
+        cloudflare_cname_target,
+        site_domains (
+          id,
+          domain,
+          is_primary,
+          status,
+          created_at
+        )
+      `)
+      .eq('id', params.id)
+      .single();
+
+    if (error || !site) {
+      return NextResponse.json(
+        apiError('Site not found'),
+        { status: 404 }
+      );
+    }
+
+    // Check SSL status if hostname exists
+    if (site.cloudflare_hostname_id) {
+      const sslResult = await CloudflareService.checkSslStatus(
+        site.cloudflare_hostname_id
+      );
+
+      if (sslResult.success && sslResult.data) {
+        // Update if status changed
+        if (sslResult.data !== site.cloudflare_ssl_status) {
+          await supabase
+            .from('sites')
+            .update({
+              cloudflare_ssl_status: sslResult.data,
+              cloudflare_activated_at:
+                sslResult.data === 'active' ? new Date().toISOString() : null
+            })
+            .eq('id', params.id);
+        }
+      }
+    }
+
+    // Format response
+    const domains = site.site_domains.map((domain: any) => ({
+      ...domain,
+      sslStatus: site.cloudflare_ssl_status,
+      dnsRecords: site.cloudflare_txt_name ? {
+        cname: {
+          type: 'CNAME',
+          name: '@',
+          value: site.cloudflare_cname_target,
+          ttl: 300
+        },
+        txt: {
+          type: 'TXT',
+          name: site.cloudflare_txt_name,
+          value: site.cloudflare_txt_value,
+          ttl: 300
+        }
+      } : null
+    }));
+
+    return NextResponse.json(apiSuccess({ domains }));
+  } catch (error) {
+    console.error('Error fetching custom domains:', error);
+    return NextResponse.json(
+      apiError('An unexpected error occurred'),
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/sites/[id]/custom-domain
+ * Remove a custom domain from a site
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = await createClient();
+
+    // Authenticate user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json(
+        apiError('Authentication required'),
+        { status: 401 }
+      );
+    }
+
+    // Get domain from query params
+    const { searchParams } = new URL(request.url);
+    const domain = searchParams.get('domain');
+
+    if (!domain) {
+      return NextResponse.json(
+        apiError('Domain parameter is required'),
+        { status: 400 }
+      );
+    }
+
+    // Get site and verify ownership
+    const { data: site, error: siteError } = await supabase
+      .from('sites')
+      .select(`
+        id,
+        profile_id,
+        cloudflare_hostname_id,
+        cloudflare_route_id,
+        site_domains!inner (
+          id,
+          domain,
+          cloudflare_hostname_id,
+          cloudflare_route_id
+        )
+      `)
+      .eq('id', params.id)
+      .eq('site_domains.domain', domain)
+      .single();
+
+    if (siteError || !site) {
+      return NextResponse.json(
+        apiError('Domain not found for this site'),
+        { status: 404 }
+      );
+    }
+
+    // Verify user owns the site
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    if (site.profile_id !== profile?.id) {
+      return NextResponse.json(
+        apiError('You do not have permission to modify this site'),
+        { status: 403 }
+      );
+    }
+
+    // Remove from Cloudflare
+    const hostnameId = site.site_domains[0].cloudflare_hostname_id ||
+                       site.cloudflare_hostname_id;
+    const routeId = site.site_domains[0].cloudflare_route_id ||
+                    site.cloudflare_route_id;
+
+    if (hostnameId) {
+      const success = await CloudflareService.removeCustomDomain(
+        hostnameId,
+        routeId
+      );
+
+      if (!success) {
+        console.warn('Failed to remove domain from Cloudflare');
+      }
+    }
+
+    // Remove from database
+    const { error: deleteError } = await supabase
+      .from('site_domains')
+      .delete()
+      .eq('site_id', params.id)
+      .eq('domain', domain);
+
+    if (deleteError) {
+      return NextResponse.json(
+        apiError('Failed to remove domain'),
+        { status: 500 }
+      );
+    }
+
+    // Clear Cloudflare fields from site if this was the last domain
+    const { data: remainingDomains } = await supabase
+      .from('site_domains')
+      .select('id')
+      .eq('site_id', params.id);
+
+    if (!remainingDomains || remainingDomains.length === 0) {
+      await supabase
+        .from('sites')
+        .update({
+          cloudflare_hostname_id: null,
+          cloudflare_route_id: null,
+          cloudflare_ssl_status: null,
+          cloudflare_txt_name: null,
+          cloudflare_txt_value: null,
+          cloudflare_cname_target: null,
+          cloudflare_created_at: null,
+          cloudflare_activated_at: null,
+        })
+        .eq('id', params.id);
+    }
+
+    return NextResponse.json(
+      apiSuccess({ message: 'Domain removed successfully' })
+    );
+  } catch (error) {
+    console.error('Error removing custom domain:', error);
+    return NextResponse.json(
+      apiError('An unexpected error occurred'),
+      { status: 500 }
+    );
+  }
+}

@@ -1,6 +1,6 @@
 /**
  * Initialize custom domain configuration
- * Validates domain, detects DNS provider, generates verification token and DNS records
+ * Validates domain, detects DNS provider, creates Cloudflare resources and returns DNS records
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -8,11 +8,8 @@ import { createClient } from '@/src/lib/supabase/server'
 import { handleError } from '@/lib/types/error-handling'
 import { isValidCustomDomain } from '@/src/lib/site/resolution'
 import { isCustomDomainAvailable } from '@/src/lib/site/queries'
-import {
-  generateVerificationToken,
-  generateDnsRecords,
-  detectDnsProvider
-} from '@/src/lib/dns/utils'
+import { detectDnsProvider } from '@/src/lib/dns/utils'
+import { CloudflareService } from '@/src/lib/cloudflare/service'
 import type { DomainInitializationResult } from '@/src/lib/dns/types'
 import type { Json } from '@/src/lib/database/types'
 
@@ -122,39 +119,69 @@ export async function POST(
     // Detect DNS provider
     const dnsProvider = await detectDnsProvider(cleanDomain)
 
-    // Generate verification token and DNS records
-    const verificationToken = generateVerificationToken(siteId, cleanDomain)
-    const dnsRecords = generateDnsRecords(cleanDomain, verificationToken)
+    // Setup custom domain with Cloudflare
+    console.log(`[Initialize] Setting up custom domain with Cloudflare for: ${cleanDomain}`)
+    const cloudflareResult = await CloudflareService.setupCustomDomain(cleanDomain, siteId)
 
-    // Update site with domain configuration
+    if (!cloudflareResult.success || !cloudflareResult.data) {
+      // Log detailed error for debugging
+      console.error('[Initialize] Cloudflare setup failed:', cloudflareResult.error)
+
+      // Return a user-friendly error
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to initialize custom domain',
+          details: cloudflareResult.error || 'Could not create Cloudflare resources'
+        },
+        { status: 500 }
+      )
+    }
+
+    const { hostname, workerRoute, dnsRecords } = cloudflareResult.data
+
+    // Update site with domain configuration and Cloudflare IDs
     const { data: updatedSite, error: updateError } = await supabase
       .from('sites')
       .update({
         custom_domain: cleanDomain,
-        custom_domain_status: 'pending_verification',
+        custom_domain_status: 'pending_dns',
         dns_provider: dnsProvider,
-        dns_verification_token: verificationToken,
         dns_records: dnsRecords as unknown as Json,
         custom_domain_error: null,
         custom_domain_verified_at: null,
-        last_dns_check_at: null
+        last_dns_check_at: null,
+        // Cloudflare-specific fields (already set by CloudflareService but ensuring consistency)
+        cloudflare_hostname_id: hostname.hostnameId,
+        cloudflare_route_id: workerRoute.routeId,
+        cloudflare_txt_name: hostname.txtName,
+        cloudflare_txt_value: hostname.txtValue,
+        cloudflare_cname_target: hostname.cnameTarget,
+        cloudflare_ssl_status: hostname.sslStatus,
+        cloudflare_created_at: new Date().toISOString()
       })
       .eq('id', siteId)
       .select()
       .single()
 
     if (updateError) {
+      // If database update fails, attempt to rollback Cloudflare resources
+      console.error('[Initialize] Database update failed, rolling back Cloudflare:', updateError)
+      await CloudflareService.removeCustomDomain(hostname.hostnameId, workerRoute.routeId)
       throw updateError
     }
 
-    // Prepare response
+    // Prepare response with real DNS records from Cloudflare
     const result: DomainInitializationResult = {
       success: true,
       domain: cleanDomain,
       status: 'pending_verification',
       provider: dnsProvider || undefined,
-      verificationToken,
-      dnsRecords
+      verificationToken: hostname.txtValue, // Use Cloudflare's TXT value as verification token
+      dnsRecords: {
+        cname: dnsRecords.cname,
+        txt: dnsRecords.txt
+      }
     }
 
     return NextResponse.json(result)

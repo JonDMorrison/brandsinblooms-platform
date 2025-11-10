@@ -1,22 +1,20 @@
 /**
  * Verify custom domain DNS configuration
- * Checks CNAME and TXT records with rate limiting
+ * Checks CNAME and TXT records with rate limiting and Cloudflare SSL status
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/src/lib/supabase/server'
 import { handleError } from '@/lib/types/error-handling'
-import {
-  verifyDnsRecords,
-  canCheckDns,
-  registerWithCloudflare
-} from '@/src/lib/dns/utils'
+import { canCheckDns } from '@/src/lib/dns/utils'
+import { CloudflareService } from '@/src/lib/cloudflare/service'
 import {
   DNS_CHECK_RATE_LIMIT_SECONDS,
   type DomainVerificationResult,
   type DnsRecords
 } from '@/src/lib/dns/types'
 import type { Json } from '@/src/lib/database/types'
+import { promises as dns } from 'dns'
 
 export async function POST(
   request: NextRequest,
@@ -51,10 +49,20 @@ export async function POST(
       )
     }
 
-    // Get site with domain configuration
+    // Get site with domain configuration and Cloudflare fields
     const { data: site, error: siteError } = await supabase
       .from('sites')
-      .select('custom_domain, custom_domain_status, dns_verification_token, last_dns_check_at, dns_records')
+      .select(`
+        custom_domain,
+        custom_domain_status,
+        last_dns_check_at,
+        dns_records,
+        cloudflare_hostname_id,
+        cloudflare_txt_name,
+        cloudflare_txt_value,
+        cloudflare_cname_target,
+        cloudflare_ssl_status
+      `)
       .eq('id', siteId)
       .single()
 
@@ -65,13 +73,17 @@ export async function POST(
       )
     }
 
-    // Type assertion for new fields until database types are regenerated
+    // Type assertion for fields
     const siteWithCustomFields = site as unknown as {
       custom_domain: string | null
       custom_domain_status: string | null
-      dns_verification_token: string | null
       last_dns_check_at: string | null
       dns_records: Json | null
+      cloudflare_hostname_id: string | null
+      cloudflare_txt_name: string | null
+      cloudflare_txt_value: string | null
+      cloudflare_cname_target: string | null
+      cloudflare_ssl_status: string | null
     }
 
     // Check if domain initialization is required first
@@ -82,9 +94,10 @@ export async function POST(
       )
     }
 
-    if (!siteWithCustomFields.dns_verification_token) {
+    // Check if we have Cloudflare configuration
+    if (!siteWithCustomFields.cloudflare_hostname_id || !siteWithCustomFields.cloudflare_txt_value) {
       return NextResponse.json(
-        { error: 'Verification token not found. Please re-initialize domain.' },
+        { error: 'Cloudflare configuration not found. Please re-initialize domain.' },
         { status: 400 }
       )
     }
@@ -116,33 +129,115 @@ export async function POST(
       )
     }
 
-    // Perform DNS verification
-    const verificationResult = await verifyDnsRecords(
-      siteWithCustomFields.custom_domain,
-      siteWithCustomFields.dns_verification_token
-    )
+    // Perform real DNS verification using Node.js dns module
+    console.log(`[Verify] Checking DNS records for domain: ${siteWithCustomFields.custom_domain}`)
 
-    // Update last check time
-    const updateData: Record<string, unknown> = {
-      last_dns_check_at: new Date().toISOString()
+    let cnameValid = false
+    let txtValid = false
+    const errors: string[] = []
+    const details: DomainVerificationResult['details'] = {}
+
+    // Check CNAME record
+    try {
+      const cnameRecords = await dns.resolveCname(siteWithCustomFields.custom_domain)
+      console.log(`[Verify] CNAME records found:`, cnameRecords)
+
+      // Check if CNAME points to our proxy
+      const expectedCname = siteWithCustomFields.cloudflare_cname_target || ''
+      details.expectedCname = expectedCname
+      details.actualCname = cnameRecords[0]
+
+      if (cnameRecords.some(record =>
+        record.toLowerCase() === expectedCname.toLowerCase() ||
+        record.toLowerCase().includes(expectedCname.toLowerCase())
+      )) {
+        cnameValid = true
+      } else {
+        errors.push(`CNAME record does not point to ${expectedCname}`)
+      }
+    } catch (error) {
+      console.error('[Verify] CNAME lookup error:', error)
+      errors.push('CNAME record not found or could not be resolved')
+      details.actualCname = 'Not found'
     }
 
-    // If verification successful, update status and register with Cloudflare
-    if (verificationResult.verified) {
+    // Check TXT record for verification
+    try {
+      // TXT records need to be checked at the specific subdomain
+      const txtDomain = siteWithCustomFields.cloudflare_txt_name || `_cf-custom-hostname.${siteWithCustomFields.custom_domain}`
+      const txtRecords = await dns.resolveTxt(txtDomain)
+      console.log(`[Verify] TXT records found for ${txtDomain}:`, txtRecords)
+
+      // TXT records come as arrays of chunks, flatten them
+      const flatTxtRecords = txtRecords.map(chunks => chunks.join(''))
+
+      const expectedTxt = siteWithCustomFields.cloudflare_txt_value || ''
+      details.expectedTxt = expectedTxt
+      details.actualTxt = flatTxtRecords.join(', ')
+
+      if (flatTxtRecords.some(record => record === expectedTxt)) {
+        txtValid = true
+      } else {
+        errors.push(`TXT verification record not found or incorrect`)
+      }
+    } catch (error) {
+      console.error('[Verify] TXT lookup error:', error)
+      errors.push('TXT verification record not found')
+      details.actualTxt = 'Not found'
+    }
+
+    // Check Cloudflare SSL status if DNS records are valid
+    let sslStatus = siteWithCustomFields.cloudflare_ssl_status
+    let domainVerified = false
+
+    if (cnameValid && txtValid) {
+      console.log('[Verify] DNS records valid, checking SSL status with Cloudflare')
+      const sslResult = await CloudflareService.checkSslStatus(siteWithCustomFields.cloudflare_hostname_id)
+
+      if (sslResult.success && sslResult.data) {
+        sslStatus = sslResult.data
+        console.log(`[Verify] SSL status from Cloudflare: ${sslStatus}`)
+
+        // Domain is considered verified when SSL is active
+        domainVerified = sslStatus === 'active'
+
+        if (!domainVerified) {
+          errors.push(`SSL certificate status: ${sslStatus}. Waiting for SSL activation.`)
+        }
+      } else {
+        console.error('[Verify] Failed to check SSL status:', sslResult.error)
+        errors.push('Could not verify SSL certificate status')
+      }
+    }
+
+    // Prepare verification result
+    const verificationResult: DomainVerificationResult = {
+      verified: domainVerified,
+      cnameValid,
+      txtValid,
+      errors,
+      details
+    }
+
+    // Update database with results
+    const updateData: Record<string, unknown> = {
+      last_dns_check_at: new Date().toISOString(),
+      cloudflare_ssl_status: sslStatus
+    }
+
+    if (domainVerified) {
       updateData.custom_domain_status = 'verified'
       updateData.custom_domain_verified_at = new Date().toISOString()
       updateData.custom_domain_error = null
-
-      // Register with Cloudflare (placeholder)
-      const cloudflareResult = await registerWithCloudflare(siteWithCustomFields.custom_domain)
-      if (!cloudflareResult.success) {
-        // Log error but don't fail the verification
-        console.error('Failed to register with Cloudflare:', cloudflareResult.error)
-      }
+      updateData.cloudflare_activated_at = new Date().toISOString()
+    } else if (cnameValid && txtValid) {
+      // DNS is correct but SSL not active yet
+      updateData.custom_domain_status = 'pending_ssl'
+      updateData.custom_domain_error = `SSL certificate ${sslStatus || 'pending'}`
     } else {
-      // Update with error details
-      updateData.custom_domain_status = 'failed'
-      updateData.custom_domain_error = verificationResult.errors.join('; ')
+      // DNS verification failed
+      updateData.custom_domain_status = 'pending_dns'
+      updateData.custom_domain_error = errors.join('; ')
     }
 
     // Update site with verification results
