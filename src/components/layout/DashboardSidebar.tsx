@@ -15,13 +15,7 @@ import {
   X,
   Shield,
   ChevronRight,
-  ChevronDown,
-  User,
-  Globe,
-  Building2,
-  Lock,
-  CreditCard,
-  Blocks
+  ChevronDown
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import { Separator } from '@/src/components/ui/separator'
@@ -40,7 +34,6 @@ interface NavigationItem {
   children?: Array<{
     name: string
     href: string
-    icon?: React.ComponentType<{ className?: string }>
   }>
 }
 
@@ -55,12 +48,12 @@ const allNavigationItems: NavigationItem[] = [
     href: '/dashboard/settings',
     icon: Settings,
     children: [
-      { name: 'Profile Settings', href: '/dashboard/settings/profile', icon: User },
-      { name: 'Site Information', href: '/dashboard/settings/site', icon: Globe },
-      { name: 'Business Configuration', href: '/dashboard/settings/business', icon: Building2 },
-      { name: 'Security Settings', href: '/dashboard/settings/security', icon: Lock },
-      { name: 'Payment Settings', href: '/dashboard/settings/payments', icon: CreditCard },
-      { name: 'Domains', href: '/dashboard/settings/domains', icon: Blocks },
+      { name: 'Profile', href: '/dashboard/settings/profile' },
+      { name: 'Site Information', href: '/dashboard/settings/site' },
+      { name: 'Domain Settings', href: '/dashboard/settings/domains' },
+      { name: 'Business', href: '/dashboard/settings/business' },
+      { name: 'Security', href: '/dashboard/settings/security' },
+      { name: 'Payments', href: '/dashboard/settings/payments' },
     ]
   },
   { name: 'Admin', href: '/dashboard/admin', icon: Shield, adminOnly: true },
@@ -155,7 +148,7 @@ export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
       <Separator />
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+      <nav className="flex-1 px-4 py-6 space-y-2">
         {navigationItems.map((item) => {
           const Icon = item.icon
           const hasChildren = item.children && item.children.length > 0
@@ -168,58 +161,51 @@ export default function DashboardSidebar({ onClose }: DashboardSidebarProps) {
 
           if (hasChildren) {
             return (
-              <div key={item.href}>
-                <Collapsible
-                  open={isExpanded}
-                  onOpenChange={() => toggleExpanded(item.name)}
-                >
-                  <CollapsibleTrigger asChild>
-                    <button
-                      onMouseEnter={() => handleHover(item.href)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 group ${
-                        isActive
-                          ? 'bg-gradient-primary text-white shadow-sm'
-                          : 'text-gray-500 hover:text-gray-900 hover:bg-gradient-primary-50 interactive'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'group-hover:text-primary'}`} />
-                        <span className="font-medium">{item.name}</span>
-                      </div>
-                      {isExpanded ? (
-                        <ChevronDown className={`h-4 w-4 transition-transform ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                      ) : (
-                        <ChevronRight className={`h-4 w-4 transition-transform ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                      )}
-                    </button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-1 space-y-1">
-                    {item.children?.map((child) => {
-                      const isChildItemActive = pathname === child.href
-                      const ChildIcon = child.icon
-                      return (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          onClick={onClose}
-                          className={`flex items-center pl-11 pr-3 py-2 rounded-lg transition-all duration-200 text-sm group ${
-                            isChildItemActive
-                              ? 'bg-gradient-primary-50 text-primary font-medium border-l-2 border-primary ml-[2px]'
-                              : 'text-gray-500 hover:text-gray-900 hover:bg-gradient-primary-50 interactive'
-                          }`}
-                        >
-                          {ChildIcon && (
-                            <ChildIcon className={`h-4 w-4 mr-2 ${
-                              isChildItemActive ? 'text-primary' : 'text-gray-400 group-hover:text-primary'
-                            }`} />
-                          )}
-                          <span>{child.name}</span>
-                        </Link>
-                      )
-                    })}
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
+              <Collapsible
+                key={item.href}
+                open={isExpanded}
+                onOpenChange={() => toggleExpanded(item.name)}
+              >
+                <CollapsibleTrigger asChild>
+                  <button
+                    onMouseEnter={() => handleHover(item.href)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 group ${
+                      isActive
+                        ? 'bg-gradient-primary text-white shadow-sm'
+                        : 'text-gray-500 hover:text-gray-900 hover:bg-gradient-primary-50 interactive'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'group-hover:text-primary'}`} />
+                      <span className="font-medium">{item.name}</span>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronDown className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                    ) : (
+                      <ChevronRight className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                    )}
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-1 space-y-1">
+                  {item.children?.map((child) => {
+                    const isChildItemActive = pathname === child.href
+                    return (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        onClick={onClose}
+                        className={`flex items-center pl-12 pr-3 py-2 rounded-lg transition-all duration-200 text-sm group ${
+                          isChildItemActive
+                            ? 'bg-gradient-primary-50 text-primary font-bold'
+                            : 'text-gray-500 hover:text-gray-900 hover:bg-gradient-primary-50 interactive'
+                        }`}
+                      >
+                        {child.name}
+                      </Link>
+                    )
+                  })}
+                </CollapsibleContent>
+              </Collapsible>
             )
           }
 

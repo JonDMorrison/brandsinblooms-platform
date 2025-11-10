@@ -319,7 +319,7 @@ export function DomainConfigurationIntegrated({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Domain Configuration
+            Custom Domain
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -348,50 +348,12 @@ export function DomainConfigurationIntegrated({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Domain Configuration
+            Custom Domain
           </CardTitle>
-          <CardDescription>Manage your site's domain settings</CardDescription>
+          <CardDescription>Connect your own domain to make your site more professional</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Default Subdomain - Read Only */}
-          <div>
-            <h3 className="text-sm font-medium mb-3">Default Subdomain</h3>
-            <div className="p-4 bg-muted rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-mono text-sm">
-                    {site.subdomain}.{appDomain}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Your free subdomain on our platform
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">
-                    <Check className="h-3 w-3 mr-1" />
-                    Active
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() =>
-                      window.open(`https://${site.subdomain}.${appDomain}`, '_blank')
-                    }
-                    aria-label="Open subdomain in new tab"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Custom Domain Section */}
-          <div>
-            <h3 className="text-sm font-medium mb-3">Custom Domain</h3>
-            {site.custom_domain ? (
+          {site.custom_domain ? (
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
@@ -447,7 +409,6 @@ export function DomainConfigurationIntegrated({
                 </Button>
               </div>
             )}
-          </div>
 
           {!canManage && (
             <Alert>

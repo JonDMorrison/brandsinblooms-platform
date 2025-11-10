@@ -1,20 +1,18 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
-import { SiteSettings } from '@/src/components/settings/SiteSettings'
+import { SiteInformationSettings } from '@/src/components/settings/SiteInformationSettings'
 
 export default function SiteSettingsPage() {
   return (
-    <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
-      <CardHeader>
-        <CardTitle>Site Information</CardTitle>
-        <CardDescription>
-          Configure your site settings, branding, and SEO preferences
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <SiteSettings />
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div className="fade-in-up" style={{ animationDelay: '0s' }}>
+        <h1 className="text-3xl font-bold tracking-tight">Site Information</h1>
+        <p className="text-gray-500">
+          Configure your site&apos;s basic information.
+        </p>
+      </div>
+
+      <SiteInformationSettings />
+    </div>
   )
 }

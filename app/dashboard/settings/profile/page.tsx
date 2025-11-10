@@ -1,20 +1,18 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
 import { ProfileSettings } from '@/src/components/settings/ProfileSettings'
 
 export default function ProfileSettingsPage() {
   return (
-    <Card className="fade-in-up" style={{ animationDelay: '0.2s' }}>
-      <CardHeader>
-        <CardTitle>Profile Settings</CardTitle>
-        <CardDescription>
-          Update your profile information and manage your account details
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ProfileSettings />
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div className="fade-in-up" style={{ animationDelay: '0s' }}>
+        <h1 className="text-3xl font-bold tracking-tight">Profile Settings</h1>
+        <p className="text-gray-500">
+          Update your profile information and manage your account details.
+        </p>
+      </div>
+
+      <ProfileSettings />
+    </div>
   )
 }

@@ -1,8 +1,6 @@
 'use client'
 
-import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { Button } from '@/src/components/ui/button'
 import { Badge } from '@/src/components/ui/badge'
 import { Separator } from '@/src/components/ui/separator'
@@ -13,13 +11,10 @@ import {
 } from '@/src/components/ui/alert'
 import {
   Globe,
-  Plus,
   Eye,
-  Settings,
   ExternalLink,
   AlertTriangle,
   Check,
-  Clock,
   Shield,
 } from 'lucide-react'
 import { useCurrentSite, useSitePermissions } from '@/src/hooks/useSite'
@@ -30,7 +25,6 @@ import { SiteSwitcher } from '@/src/components/site/SiteSwitcher'
 export default function DomainsPage() {
   const { site, loading } = useCurrentSite()
   const { canManage, canEdit } = useSitePermissions()
-  const [activeTab, setActiveTab] = useState('configuration')
 
   if (loading) {
     return (
@@ -90,7 +84,27 @@ export default function DomainsPage() {
         />
       </div>
 
-      {/* Site Info Card */}
+      {/* Permissions Warning */}
+      {!canManage && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Limited Permissions</AlertTitle>
+          <AlertDescription>
+            You have {canEdit ? 'editor' : 'viewer'} access to this site.
+            Contact the site owner to modify domain settings.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Custom Domain Configuration */}
+      <DomainConfigurationIntegrated
+        onDomainUpdate={(domain, type) => {
+          // Handle domain update
+          console.log('Domain updated:', domain, type)
+        }}
+      />
+
+      {/* Site Info Card - Moved to Bottom */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -187,193 +201,6 @@ export default function DomainsPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
-
-      {/* Permissions Warning */}
-      {!canManage && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Limited Permissions</AlertTitle>
-          <AlertDescription>
-            You have {canEdit ? 'editor' : 'viewer'} access to this site. 
-            Contact the site owner to modify domain settings.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Main Content Tabs */}
-      <Card>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <CardHeader>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="configuration" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Configuration
-              </TabsTrigger>
-              <TabsTrigger value="preview" className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                Preview & Testing
-              </TabsTrigger>
-              <TabsTrigger value="management" className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                Management
-              </TabsTrigger>
-            </TabsList>
-          </CardHeader>
-
-          <CardContent className="space-y-6">
-            <TabsContent value="configuration" className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Domain Configuration</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  Configure your custom domain and subdomain settings. Changes take effect immediately.
-                </p>
-                <Separator className="mb-6" />
-              </div>
-              
-              <DomainConfigurationIntegrated
-                onDomainUpdate={(domain, type) => {
-                  // Handle domain update
-                  console.log('Domain updated:', domain, type)
-                }}
-              />
-            </TabsContent>
-
-            <TabsContent value="preview" className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Site Preview & Testing</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  Preview your site across different devices and test domain configuration.
-                </p>
-                <Separator className="mb-6" />
-              </div>
-              
-              <SitePreview />
-            </TabsContent>
-
-            <TabsContent value="management" className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Domain Management</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  Advanced domain management and monitoring tools.
-                </p>
-                <Separator className="mb-6" />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Domain History */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Domain History</CardTitle>
-                    <CardDescription>
-                      Recent changes to your domain configuration
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-gray-1000 rounded-full mt-2 flex-shrink-0" />
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">Domain configured</p>
-                          <p className="text-xs text-gray-500">
-                            {domainStatus.type === 'custom' ? site.custom_domain : `${site.subdomain}.blooms.cc`}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date().toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">SSL certificate issued</p>
-                          <p className="text-xs text-gray-500">
-                            Automatic HTTPS enabled
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(Date.now() - 86400000).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Quick Actions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Quick Actions</CardTitle>
-                    <CardDescription>
-                      Common domain management tasks
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => setActiveTab('preview')}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Test Site Connectivity
-                      </Button>
-                      
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => window.open(domainStatus.url, '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Visit Live Site
-                      </Button>
-                      
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => {
-                          navigator.clipboard.writeText(domainStatus.url)
-                          // toast would be shown here
-                        }}
-                      >
-                        <Globe className="h-4 w-4 mr-2" />
-                        Copy Site URL
-                      </Button>
-                      
-                      {canManage && (
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start"
-                          onClick={() => setActiveTab('configuration')}
-                        >
-                          <Settings className="h-4 w-4 mr-2" />
-                          Configure Domains
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Domain Analytics */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Domain Analytics</CardTitle>
-                  <CardDescription>
-                    Traffic and performance metrics for your domains
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 text-gray-500">
-                    <Clock className="h-8 w-8 mx-auto mb-2" />
-                    <p>Domain analytics will be available here</p>
-                    <p className="text-sm">Connect your analytics service to view detailed metrics</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </CardContent>
-        </Tabs>
       </Card>
     </div>
   )
