@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
 import { Switch } from '@/src/components/ui/switch'
@@ -79,19 +79,9 @@ export function PageTab({
     setSlugInput(slug || '')
   }, [slug])
 
-  // Handle slug changes with validation
-  useEffect(() => {
-    if (slugInput !== slug) {
-      // Debounce slug validation
-      const timer = setTimeout(() => {
-        validateSlug(slugInput)
-      }, 500)
-      return () => clearTimeout(timer)
-    }
-  }, [slugInput])
-
-  const validateSlug = async (slug: string) => {
-    if (!slug.trim()) {
+  // Memoized validation function to prevent recreation on every render
+  const validateSlug = useCallback(async (slugToValidate: string) => {
+    if (!slugToValidate.trim()) {
       setSlugStatus('invalid')
       setSlugMessage('Slug cannot be empty')
       setSlugSuggestions([])
@@ -101,17 +91,17 @@ export function PageTab({
     setSlugStatus('checking')
     setSlugMessage('Checking availability...')
     setSlugSuggestions([])
-    
+
     try {
-      const result = await slugValidator.validateSlug(slug)
-      
+      const result = await slugValidator.validateSlug(slugToValidate)
+
       setSlugStatus(result.status)
       setSlugMessage(result.message)
       setSlugSuggestions(result.suggestions || [])
-      
+
       // Only update slug if valid and available
       if (result.isValid && result.isAvailable) {
-        onSlugChange(slug)
+        onSlugChange(slugToValidate)
       }
     } catch (error) {
       console.error('Error validating slug:', error)
@@ -119,18 +109,29 @@ export function PageTab({
       setSlugMessage('Error checking slug availability')
       setSlugSuggestions([])
     }
-  }
+  }, [slugValidator, onSlugChange])
 
-  const generateSlugFromTitle = () => {
+  // Handle slug changes with validation
+  useEffect(() => {
+    if (slugInput !== slug) {
+      // Debounce slug validation
+      const timer = setTimeout(() => {
+        validateSlug(slugInput)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [slugInput, slug, validateSlug])
+
+  const generateSlugFromTitle = useCallback(() => {
     const generatedSlug = slugValidator.generateFromTitle(pageTitle)
     setSlugInput(generatedSlug)
-  }
+  }, [slugValidator, pageTitle])
 
-  const applySuggestion = (suggestion: string) => {
+  const applySuggestion = useCallback((suggestion: string) => {
     setSlugInput(suggestion)
-  }
+  }, [])
 
-  const handlePublishedToggle = (published: boolean) => {
+  const handlePublishedToggle = useCallback((published: boolean) => {
     // For about/contact pages, show confirmation dialog when publishing
     if (published && (layout === 'about' || layout === 'contact')) {
       setPendingPublishState(true)
@@ -139,20 +140,20 @@ export function PageTab({
       // Regular pages or unpublishing - no confirmation needed
       onPublishedChange(published)
     }
-  }
+  }, [layout, onPublishedChange])
 
-  const confirmPublish = () => {
+  const confirmPublish = useCallback(() => {
     onPublishedChange(true)
     setShowPublishDialog(false)
     setPendingPublishState(false)
-  }
+  }, [onPublishedChange])
 
-  const cancelPublish = () => {
+  const cancelPublish = useCallback(() => {
     setShowPublishDialog(false)
     setPendingPublishState(false)
-  }
+  }, [])
 
-  const handleHomePageToggle = (isHome: boolean) => {
+  const handleHomePageToggle = useCallback((isHome: boolean) => {
     if (isHome && slugInput !== 'home') {
       setShowHomePageDialog(true)
     } else if (isHome) {
@@ -160,9 +161,9 @@ export function PageTab({
       onPublishedChange(true)
     }
     // If setting to false, do nothing special - user can manually unpublish
-  }
+  }, [slugInput, onPublishedChange])
 
-  const confirmHomePageChange = async () => {
+  const confirmHomePageChange = useCallback(async () => {
     try {
       if (onSetAsHomePage) {
         // Use the atomic handler to set as home page
@@ -179,9 +180,9 @@ export function PageTab({
       // Just keep the dialog open so user can try again or cancel
       console.error('Failed to set as home page:', error)
     }
-  }
+  }, [onSetAsHomePage, onSlugChange, onPublishedChange])
 
-  const handlePrivacyPageToggle = (isPrivacy: boolean) => {
+  const handlePrivacyPageToggle = useCallback((isPrivacy: boolean) => {
     if (isPrivacy && slugInput !== 'privacy') {
       setShowPrivacyPageDialog(true)
     } else if (isPrivacy) {
@@ -189,17 +190,17 @@ export function PageTab({
       onPublishedChange(true)
     }
     // If setting to false, do nothing special - user can manually unpublish
-  }
+  }, [slugInput, onPublishedChange])
 
-  const confirmPrivacyPageChange = () => {
+  const confirmPrivacyPageChange = useCallback(() => {
     // Set slug to 'privacy' and publish the page
     // The useEffect will sync slugInput when parent state updates
     onSlugChange('privacy')
     onPublishedChange(true)
     setShowPrivacyPageDialog(false)
-  }
+  }, [onSlugChange, onPublishedChange])
 
-  const handleTermsPageToggle = (isTerms: boolean) => {
+  const handleTermsPageToggle = useCallback((isTerms: boolean) => {
     if (isTerms && slugInput !== 'terms') {
       setShowTermsPageDialog(true)
     } else if (isTerms) {
@@ -207,17 +208,17 @@ export function PageTab({
       onPublishedChange(true)
     }
     // If setting to false, do nothing special - user can manually unpublish
-  }
+  }, [slugInput, onPublishedChange])
 
-  const confirmTermsPageChange = () => {
+  const confirmTermsPageChange = useCallback(() => {
     // Set slug to 'terms' and publish the page
     // The useEffect will sync slugInput when parent state updates
     onSlugChange('terms')
     onPublishedChange(true)
     setShowTermsPageDialog(false)
-  }
+  }, [onSlugChange, onPublishedChange])
 
-  const getSlugStatusIcon = () => {
+  const getSlugStatusIcon = useCallback(() => {
     switch (slugStatus) {
       case 'available':
         return <Check className="h-4 w-4 text-green-600" />
@@ -230,18 +231,18 @@ export function PageTab({
       default:
         return null
     }
-  }
+  }, [slugStatus])
 
-  const getSlugStatusMessage = () => {
+  const getSlugStatusMessage = useCallback(() => {
     return slugMessage || 'Enter a URL slug'
-  }
+  }, [slugMessage])
 
-  const handleOpenPreview = () => {
+  const handleOpenPreview = useCallback(() => {
     if (!isPublished) return
 
     const previewUrl = `http://${siteUrl}/${slugInput || slug}`
     window.open(previewUrl, '_blank', 'noopener,noreferrer')
-  }
+  }, [isPublished, siteUrl, slugInput, slug])
 
   return (
     <div className="p-4 space-y-6">

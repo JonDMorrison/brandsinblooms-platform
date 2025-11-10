@@ -7,6 +7,7 @@ import { ContentSection } from '@/src/lib/content/schema'
 import {
   HeroEditor,
   HeaderEditor,
+  BlogHeaderEditor,
   FeaturedEditor,
   CategoriesEditor,
   RichTextSectionEditor,
@@ -71,6 +72,9 @@ export function SectionEditorRenderer({
 
       case 'header':
         return <HeaderEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
+
+      case 'blogHeader':
+        return <BlogHeaderEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
 
       case 'featured':
         return <FeaturedEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />

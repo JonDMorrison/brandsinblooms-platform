@@ -720,12 +720,12 @@ export const useCurrentSite = () => {
   )
   
   const isLoaded = !loading && !error && (
-    currentSite !== null || 
+    currentSite !== null ||
     (isMainDomain && !userSitesLoading)
   )
-  
-  return { 
-    site: currentSite, 
+
+  return {
+    site: currentSite,
     loading, 
     error,
     isLoaded

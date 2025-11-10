@@ -458,14 +458,16 @@ export async function getSiteStatistics(
   totalContent: number;
   totalCategories: number;
   featuredProducts: number;
+  totalEvents: number;
   activeCustomers: number;
   monthlyRevenue: number;
 }> {
-  const [products, content, categories, featuredProducts] = await Promise.all([
+  const [products, content, categories, featuredProducts, events] = await Promise.all([
     supabase.from('products').select('id', { count: 'exact' }).eq('site_id', siteId),
     supabase.from('content').select('id', { count: 'exact' }).eq('site_id', siteId),
     supabase.from('product_categories').select('id', { count: 'exact' }).eq('site_id', siteId),
-    supabase.from('products').select('id', { count: 'exact' }).eq('site_id', siteId).eq('is_featured', true)
+    supabase.from('products').select('id', { count: 'exact' }).eq('site_id', siteId).eq('is_featured', true),
+    supabase.from('events').select('id', { count: 'exact' }).eq('site_id', siteId).is('deleted_at', null)
   ]);
 
   return {
@@ -473,6 +475,7 @@ export async function getSiteStatistics(
     totalContent: content.count || 0,
     totalCategories: categories.count || 0,
     featuredProducts: featuredProducts.count || 0,
+    totalEvents: events.count || 0,
     activeCustomers: 0, // TODO: Implement when customer table exists
     monthlyRevenue: 0, // TODO: Implement when orders table exists
   };

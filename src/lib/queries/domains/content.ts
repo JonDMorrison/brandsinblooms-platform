@@ -46,6 +46,11 @@ export interface ContentWithTags extends Content {
     name: string;
     slug: string;
   }>;
+  author?: {
+    id: string;
+    full_name: string;
+    avatar_url?: string | null;
+  } | null;
 }
 
 /**
@@ -204,12 +209,13 @@ export async function getContentBySlug(
   if (!data) {
     return null as any; // Return null when content is not found instead of throwing error
   }
-  
-  // Transform tags (empty for now)
+
+  // Transform tags and author (no author join for now, can be added later if needed)
   return {
     ...data,
     tags: [],
-  };
+    author: null,
+  } as ContentWithTags;
 }
 
 /**
@@ -410,10 +416,7 @@ export async function getContentByType(
 ): Promise<ContentWithTags[]> {
   const query = supabase
     .from('content')
-    .select(`
-      *,
-      author:profiles!author_id(id, full_name, avatar_url)
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('content_type', contentType)
     .order('created_at', { ascending: false });
@@ -422,6 +425,7 @@ export async function getContentByType(
   return data.map((item: any) => ({
     ...item,
     tags: [],
+    author: null,
   }));
 }
 
@@ -435,10 +439,7 @@ export async function getPublishedContent(
 ): Promise<ContentWithTags[]> {
   let query = supabase
     .from('content')
-    .select(`
-      *,
-      author:profiles!author_id(id, full_name, avatar_url)
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .eq('is_published', true)
     .order('published_at', { ascending: false });
@@ -451,7 +452,31 @@ export async function getPublishedContent(
   return data.map((item: any) => ({
     ...item,
     tags: [],
+    author: null,
   }));
+}
+
+/**
+ * Check if a site has any published blog posts
+ * Optimized query that only checks for existence (limit 1)
+ */
+export async function hasPublishedBlogPosts(
+  supabase: SupabaseClient<Database>,
+  siteId: string
+): Promise<boolean> {
+  const { count, error } = await supabase
+    .from('content')
+    .select('*', { count: 'exact', head: true })
+    .eq('site_id', siteId)
+    .eq('content_type', 'blog_post')
+    .eq('is_published', true);
+
+  if (error) {
+    console.error('Error checking for published blog posts:', error);
+    return false;
+  }
+
+  return (count ?? 0) > 0;
 }
 
 /**
@@ -464,10 +489,7 @@ export async function searchContent(
 ): Promise<ContentWithTags[]> {
   const query = supabase
     .from('content')
-    .select(`
-      *,
-      author:profiles!author_id(id, full_name, avatar_url)
-    `)
+    .select('*')
     .eq('site_id', siteId)
     .ilike('title', `%${searchQuery}%`)
     .order('created_at', { ascending: false });
@@ -476,6 +498,7 @@ export async function searchContent(
   return data.map((item: any) => ({
     ...item,
     tags: [],
+    author: null,
   }));
 }
 

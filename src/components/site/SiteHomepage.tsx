@@ -9,7 +9,6 @@ import Link from 'next/link'
 import { SiteThemeProvider, ThemeWrapper } from '@/src/components/theme/ThemeProvider'
 import { SiteLayout } from '@/src/components/layout/SiteLayout'
 import { ProductCatalog } from '@/src/components/site/ProductCatalog'
-import { getAppDomain } from '@/lib/env/app-domain'
 
 interface SiteHomepageProps {
   fallbackContent?: React.ReactNode
@@ -19,8 +18,24 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
   const { site, loading, error, isLoaded } = useCurrentSite()
   const { user, loading: authLoading } = useAuth()
 
+  // Check if we're on the main app domain (needs to happen before loading check)
+  // During SSR (window undefined), assume we might be on main domain if we have fallback
+  const isMainDomain = typeof window !== 'undefined' ? (
+    window.location.hostname === 'localhost' ||
+    (window.location.hostname.includes('staging') && !window.location.hostname.includes('.')) ||
+    window.location.hostname.includes('.vercel.app') ||
+    window.location.hostname.includes('.railway.app') ||
+    window.location.hostname === process.env.NEXT_PUBLIC_APP_DOMAIN
+  ) : true // During SSR, assume main domain if we have fallback content
 
-  // Show loading state
+  // On main domain with fallback content, show fallback immediately without waiting for site loading
+  // This ensures the platform landing page loads instantly on localhost
+  // During SSR, if fallback exists, show it to avoid loading spinner flash
+  if (isMainDomain && fallbackContent) {
+    return <>{fallbackContent}</>
+  }
+
+  // Show loading state for site domains or when no fallback is available
   if (loading || authLoading) {
     return <SiteHomepageLoading />
   }
@@ -33,21 +48,6 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
   // Show site not found if no site and no fallback
   if (!site && !fallbackContent) {
     return <SiteNotFound />
-  }
-
-  // Check if we're on the main app domain
-  const isMainDomain = typeof window !== 'undefined' && (
-    window.location.hostname === 'localhost' ||
-    (window.location.hostname.includes('staging') && !window.location.hostname.includes('.')) ||
-    window.location.hostname.includes('.vercel.app') ||
-    window.location.hostname.includes('.railway.app') ||
-    window.location.hostname === getAppDomain()
-  )
-
-  // On main domain, always show the fallback content (HomePlatform)
-  // This ensures the platform landing page is shown on localhost, not a site
-  if (isMainDomain && fallbackContent) {
-    return <>{fallbackContent}</>
   }
 
   // If no site but we have fallback content, show that

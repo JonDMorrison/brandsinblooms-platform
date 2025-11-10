@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { createContent, generateUniqueContentSlug } from '@/src/lib/queries/domains/content'
 import { supabase } from '@/src/lib/supabase/client'
 import { useSiteContext } from '@/src/contexts/SiteContext'
+import { useAuth } from '@/src/contexts/AuthContext'
 import { getTemplateContent } from '@/src/lib/content/templates'
 import { MOCK_DATA_PRESETS } from '@/src/lib/content/mock-data'
 import { serializePageContent } from '@/src/lib/content'
@@ -17,6 +18,8 @@ import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
 import { Textarea } from '@/src/components/ui/textarea'
+import { Calendar } from '@/src/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/src/components/ui/popover'
 import {
   Dialog,
   DialogContent,
@@ -35,6 +38,8 @@ import {
 import { Badge } from '@/src/components/ui/badge'
 import { Switch } from '@/src/components/ui/switch'
 import { toast } from 'sonner'
+import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 import {
   ArrowRight,
   Check,
@@ -42,20 +47,25 @@ import {
   Sparkles,
   Wand2,
   ArrowLeft,
-  AlertCircle,
-  Loader2
+  Loader2,
+  CalendarIcon
 } from 'lucide-react'
 
 const createContentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  layout: z.enum(['landing', 'about', 'contact', 'other']),
-  template: z.string().optional()
+  layout: z.enum(['landing', 'about', 'contact', 'other', 'blog_post']),
+  template: z.string().optional(),
+  // Blog-specific metadata fields
+  subtitle: z.string().optional(),
+  featured_image: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  author_id: z.string().optional(),
+  publish_date: z.date().optional()
 })
 
 type CreateContentForm = z.infer<typeof createContentSchema>
 
 interface PageTypeOption {
-  id: 'landing' | 'about' | 'contact' | 'other'
+  id: 'landing' | 'about' | 'contact' | 'other' | 'blog_post'
   name: string
   description: string
   preview: string
@@ -112,6 +122,18 @@ const pageTypeOptions: PageTypeOption[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
     )
+  },
+  {
+    id: 'blog_post',
+    name: 'Blog Post',
+    description: 'Article page for blogging with rich content',
+    preview: 'Header, Featured Image, Content, Author Bio, and Related Posts',
+    icon: ({ className }) => (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+      </svg>
+    ),
+    recommended: false
   }
 ]
 
@@ -183,12 +205,30 @@ const otherTemplateOptions: TemplateOption[] = [
   }
 ]
 
+const blogTemplateOptions: TemplateOption[] = [
+  {
+    id: 'full-blog-post',
+    name: 'Full Blog Post',
+    description: 'Complete blog post with all sections',
+    preview: 'Header, Featured Image, Rich Content, Author Bio, and Related Posts',
+    recommended: true
+  },
+  {
+    id: 'minimal-blog-post',
+    name: 'Minimal Blog Post',
+    description: 'Simple blog post with essential sections',
+    preview: 'Header and Rich Content sections only',
+    recommended: false
+  }
+]
+
 interface CreateContentModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onContentCreated?: () => void
   siteIdOverride?: string
   onNavigateAfterCreate?: (newContent: { id: string; slug: string; title: string }) => void
+  defaultPageType?: 'landing' | 'about' | 'contact' | 'other' | 'blog_post'
 }
 
 export function CreateContentModal({
@@ -196,16 +236,21 @@ export function CreateContentModal({
   onOpenChange,
   onContentCreated,
   siteIdOverride,
-  onNavigateAfterCreate
+  onNavigateAfterCreate,
+  defaultPageType
 }: CreateContentModalProps) {
   const router = useRouter()
   const { currentSite } = useSiteContext()
+  const { user } = useAuth()
 
   // Use override site ID if provided, otherwise use site context
   const activeSiteId = siteIdOverride || currentSite?.id
-  const [step, setStep] = useState(1)
-  const [selectedPageType, setSelectedPageType] = useState<'landing' | 'about' | 'contact' | 'other'>('landing')
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('home-page')
+
+  // Determine if we're in blog post mode - if defaultPageType is blog_post, skip type selection
+  const isBlogPostMode = defaultPageType === 'blog_post'
+  const [step, setStep] = useState(isBlogPostMode ? 1 : 1) // Start at step 1 in both cases (type selection is now first)
+  const [selectedPageType, setSelectedPageType] = useState<'landing' | 'about' | 'contact' | 'other' | 'blog_post'>(defaultPageType || 'landing')
+  const [selectedTemplate, setSelectedTemplate] = useState<string>(defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page')
   const [isCreating, setIsCreating] = useState(false)
   const [useMockData, setUseMockData] = useState(true)
 
@@ -219,19 +264,56 @@ export function CreateContentModal({
     resolver: zodResolver(createContentSchema),
     defaultValues: {
       title: '',
-      layout: 'landing',
-      template: 'home-page'
+      layout: defaultPageType || 'landing',
+      template: defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page',
+      subtitle: '',
+      featured_image: '',
+      author_id: user?.id || '',
+      publish_date: undefined
     }
   })
 
+  // Reset form and state when modal opens or defaultPageType changes
+  useEffect(() => {
+    if (open) {
+      const pageType = defaultPageType || 'landing'
+      const template = defaultPageType === 'blog_post' ? 'full-blog-post' : 'home-page'
+
+      // Update state
+      setSelectedPageType(pageType)
+      setSelectedTemplate(template)
+      setStep(1)
+
+      // Reset form with correct defaultPageType
+      form.reset({
+        title: '',
+        layout: pageType,
+        template: template,
+        subtitle: '',
+        featured_image: '',
+        author_id: user?.id || '',
+        publish_date: undefined
+      })
+
+      // Reset validation state
+      setSlugValidationStatus('idle')
+      setSlugValidationMessage('')
+      setGeneratedSlug('')
+      setIsValidatingSlug(false)
+      setUseMockData(true)
+    }
+  }, [open, defaultPageType, user?.id, form])
+
   // Get current template options based on selected page type
-  const currentTemplateOptions =
+  // In blog mode, always use blog templates regardless of selectedPageType state
+  const currentTemplateOptions = isBlogPostMode ? blogTemplateOptions :
     selectedPageType === 'about' ? aboutTemplateOptions :
     selectedPageType === 'contact' ? contactTemplateOptions :
     selectedPageType === 'other' ? otherTemplateOptions :
+    selectedPageType === 'blog_post' ? blogTemplateOptions :
     landingTemplateOptions
 
-  const handlePageTypeSelect = (pageType: 'landing' | 'about' | 'contact' | 'other') => {
+  const handlePageTypeSelect = (pageType: 'landing' | 'about' | 'contact' | 'other' | 'blog_post') => {
     setSelectedPageType(pageType)
     form.setValue('layout', pageType, { shouldValidate: true })
 
@@ -240,9 +322,25 @@ export function CreateContentModal({
       pageType === 'about' ? 'full-about' :
       pageType === 'contact' ? 'full-contact' :
       pageType === 'other' ? 'privacy-policy' :
+      pageType === 'blog_post' ? 'full-blog-post' :
       'home-page'
     setSelectedTemplate(defaultTemplate)
     form.setValue('template', defaultTemplate, { shouldValidate: true })
+
+    // Reset blog-specific fields when switching to/from blog_post
+    if (pageType === 'blog_post') {
+      // Initialize blog fields with defaults
+      form.setValue('author_id', user?.id || '')
+      form.setValue('subtitle', '')
+      form.setValue('featured_image', '')
+      form.setValue('publish_date', undefined)
+    } else {
+      // Clear blog fields when switching to other types
+      form.setValue('subtitle', '')
+      form.setValue('featured_image', '')
+      form.setValue('author_id', '')
+      form.setValue('publish_date', undefined)
+    }
   }
 
   const handleTemplateSelect = (templateId: string) => {
@@ -301,15 +399,29 @@ export function CreateContentModal({
   }, [form.watch('title'), validateSlugAvailability])
 
   const nextStep = () => {
-    if (step === 1) {
-      form.trigger(['title']).then((isValid) => {
-        // Just validate the title field, don't block on slug
-        if (isValid) {
-          setStep(2)
-        }
-      })
-    } else if (step === 2) {
-      setStep(3)
+    // If in blog post mode, we skip the type selection step
+    if (isBlogPostMode) {
+      // Step 1 (details) -> Step 2 (template)
+      if (step === 1) {
+        form.trigger(['title']).then((isValid) => {
+          if (isValid) {
+            setStep(2)
+          }
+        })
+      }
+    } else {
+      // Normal mode: Step 1 (type) -> Step 2 (details) -> Step 3 (template)
+      if (step === 1) {
+        // Type selection -> Details
+        setStep(2)
+      } else if (step === 2) {
+        // Details -> Template (validate title first)
+        form.trigger(['title']).then((isValid) => {
+          if (isValid) {
+            setStep(3)
+          }
+        })
+      }
     }
   }
 
@@ -319,22 +431,9 @@ export function CreateContentModal({
     }
   }
 
-  const resetModal = () => {
-    setStep(1)
-    setSelectedPageType('landing')
-    setSelectedTemplate('home-page')
-    setUseMockData(true)
-    setSlugValidationStatus('idle')
-    setSlugValidationMessage('')
-    setIsValidatingSlug(false)
-    setGeneratedSlug('')
-    form.reset()
-  }
-
   const handleModalClose = (open: boolean) => {
-    if (!open) {
-      resetModal()
-    }
+    // Reset is now handled by useEffect when modal opens
+    // No need to reset on close since useEffect will reset on next open
     onOpenChange(open)
   }
 
@@ -363,17 +462,30 @@ export function CreateContentModal({
         : getTemplateContent(selectedTemplateName, data.title, undefined, { ...MOCK_DATA_PRESETS.technology, complexity: 'simple' })
       const serializedContent = serializePageContent(templateContent)
 
+      // Map layout to correct content_type and meta_data.layout
+      // For blog_post: content_type='blog_post' and layout='blog'
+      // For other types: content_type=layout and layout=same value
+      const isBlogPost = data.layout === 'blog_post'
+      const contentType = isBlogPost ? 'blog_post' : data.layout
+      const layoutValue = isBlogPost ? 'blog' : data.layout
+
       const contentData = {
         site_id: activeSiteId,
         title: data.title,
         slug,
-        content_type: data.layout,
+        content_type: contentType,
         content: serializedContent,
         is_published: false,
         is_featured: false,
+        author_id: isBlogPost && data.author_id ? data.author_id : null,
+        published_at: isBlogPost && data.publish_date ? data.publish_date.toISOString() : null,
         meta_data: {
-          layout: data.layout,
-          template: selectedTemplateName
+          layout: layoutValue,
+          template: selectedTemplateName,
+          ...(isBlogPost && {
+            subtitle: data.subtitle || null,
+            featured_image: data.featured_image || null
+          })
         }
       }
 
@@ -426,30 +538,38 @@ export function CreateContentModal({
     <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-left pb-6 border-b">
-          <DialogTitle className="text-2xl font-bold">Create New Page</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            {isBlogPostMode ? 'Create New Blog Post' : 'Create New Page'}
+          </DialogTitle>
           <DialogDescription>
-            Step {step} of 3: {
-              step === 1 ? 'Page Details' :
-              step === 2 ? 'Page Type' :
-              'Choose Template'
-            }
+            {isBlogPostMode ? (
+              // Blog post mode: 2 steps (details, template)
+              `Step ${step} of 2: ${step === 1 ? 'Blog Post Details' : 'Choose Template'}`
+            ) : (
+              // Page mode: 3 steps (type, details, template)
+              `Step ${step} of 3: ${
+                step === 1 ? 'Page Type' :
+                step === 2 ? 'Page Details' :
+                'Choose Template'
+              }`
+            )}
           </DialogDescription>
         </DialogHeader>
 
         {/* Progress Indicator */}
         <div className="flex items-center justify-center space-x-4 py-4">
-          {[1, 2, 3].map((stepNumber) => (
+          {(isBlogPostMode ? [1, 2] : [1, 2, 3]).map((stepNumber) => (
             <div key={stepNumber} className="flex items-center">
               <div className={`
                 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
-                ${step >= stepNumber 
-                  ? 'bg-green-600 text-white shadow-lg' 
+                ${step >= stepNumber
+                  ? 'bg-green-600 text-white shadow-lg'
                   : 'bg-gray-200 text-gray-600'
                 }
               `}>
                 {step > stepNumber ? <Check className="h-4 w-4" /> : stepNumber}
               </div>
-              {stepNumber < 3 && (
+              {stepNumber < (isBlogPostMode ? 2 : 3) && (
                 <div className={`
                   w-12 h-1 mx-2 rounded-full transition-all
                   ${step > stepNumber ? 'bg-green-600' : 'bg-gray-200'}
@@ -461,19 +581,118 @@ export function CreateContentModal({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Step 1: Page Details */}
-            {step === 1 && (
+            {/* BLOG POST MODE: Step 1 = Details (skip type selection) */}
+            {/* PAGE MODE: Step 1 = Type Selection, Step 2 = Details, Step 3 = Template */}
+
+            {/* Step 1: Page Type Selection (only shown in page mode, not blog mode) */}
+            {!isBlogPostMode && step === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <Label className="text-base font-semibold mb-4 block">Choose Page Type</Label>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Select the type of page you want to create. Each type has different sections and layouts.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Filter out blog_post option for regular page creation */}
+                    {pageTypeOptions.filter(pageType => pageType.id !== 'blog_post').map((pageType) => {
+                      const IconComponent = pageType.icon
+                      return (
+                        <div
+                          key={pageType.id}
+                          className={`
+                            relative p-6 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md
+                            ${selectedPageType === pageType.id
+                              ? 'border-green-600 bg-green-50 shadow-lg'
+                              : 'border-gray-200 hover:border-gray-300'
+                            }
+                          `}
+                          onClick={() => handlePageTypeSelect(pageType.id)}
+                        >
+                          {pageType.recommended && (
+                            <Badge className="absolute top-2 right-2 bg-yellow-500 text-yellow-900 text-xs">
+                              <Sparkles className="h-3 w-3 mr-1" />
+                              Recommended
+                            </Badge>
+                          )}
+
+                          <div className="flex items-start gap-4">
+                            <div className={`
+                              p-3 rounded-md transition-colors
+                              ${selectedPageType === pageType.id
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-100 text-gray-600'
+                              }
+                            `}>
+                              <IconComponent className="h-6 w-6" />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <h3 className={`text-lg font-semibold mb-2 ${
+                                selectedPageType === pageType.id ? 'text-green-900' : 'text-gray-900'
+                              }`}>{pageType.name}</h3>
+                              <p className={`text-sm mb-3 ${
+                                selectedPageType === pageType.id
+                                  ? 'text-green-800'
+                                  : 'text-gray-600'
+                              }`}>
+                                {pageType.description}
+                              </p>
+                              <p className={`text-xs leading-relaxed ${
+                                selectedPageType === pageType.id
+                                  ? 'text-green-700'
+                                  : 'text-gray-500'
+                              }`}>
+                                {pageType.preview}
+                              </p>
+                            </div>
+
+                            {selectedPageType === pageType.id && (
+                              <div className="absolute top-2 left-2">
+                                <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                                  <Check className="h-3 w-3 text-white" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-6 border-t">
+                  <Button
+                    type="button"
+                    onClick={nextStep}
+                    size="lg"
+                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8"
+                  >
+                    Continue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2 in Page Mode OR Step 1 in Blog Mode: Details */}
+            {((isBlogPostMode && step === 1) || (!isBlogPostMode && step === 2)) && (
               <div className="space-y-6">
                 <FormField
                   control={form.control}
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-base font-semibold">Page Title *</FormLabel>
+                      <FormLabel className="text-base font-semibold">
+                        {isBlogPostMode ? 'Blog Post Title *' : 'Page Title *'}
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
-                            placeholder="Enter a descriptive title for your page"
+                            placeholder={isBlogPostMode
+                              ? "Enter a descriptive title for your blog post"
+                              : "Enter a descriptive title for your page"
+                            }
                             className="h-12 text-lg pr-10"
                             {...field}
                           />
@@ -504,6 +723,102 @@ export function CreateContentModal({
                   )}
                 />
 
+                {/* Blog Post Metadata Fields - Hidden in blog mode (Step 1 only asks for title) */}
+                {selectedPageType === 'blog_post' && !isBlogPostMode && (
+                  <div className="space-y-4 mt-6 pt-6 border-t">
+                    <p className="text-sm font-semibold text-gray-700">Blog Post Metadata</p>
+
+                    {/* Subtitle */}
+                    <FormField
+                      control={form.control}
+                      name="subtitle"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subtitle (Optional)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Enter a brief description or subtitle for your blog post"
+                              className="min-h-[80px] resize-none"
+                              {...field}
+                            />
+                          </FormControl>
+                          <p className="text-xs text-gray-500">
+                            Used as the blog post description/excerpt
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Featured Image URL */}
+                    <FormField
+                      control={form.control}
+                      name="featured_image"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Featured Image URL (Optional)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://example.com/image.jpg"
+                              {...field}
+                            />
+                          </FormControl>
+                          <p className="text-xs text-gray-500">
+                            Enter a URL to an image that will be displayed in the blog index and post header
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Publish Date */}
+                    <FormField
+                      control={form.control}
+                      name="publish_date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Scheduled Publish Date (Optional)</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    'w-full pl-3 text-left font-normal',
+                                    !field.value && 'text-muted-foreground'
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, 'PPP')
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 bg-white border shadow-md" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date < new Date(new Date().setHours(0, 0, 0, 0))
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <p className="text-xs text-gray-500">
+                            Set when this post should be published (only applies when published)
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
 
                 <div className="p-6 border rounded-xl bg-gradient-to-br from-blue-50 to-emerald-50 border-green-200">
                   <div className="flex items-center justify-between">
@@ -528,9 +843,22 @@ export function CreateContentModal({
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-4">
-                  <Button 
-                    type="button" 
+                <div className={`flex pt-6 border-t ${!isBlogPostMode && step === 2 ? 'justify-between' : 'justify-end'}`}>
+                  {/* Show back button in page mode step 2, or don't show in blog mode step 1 */}
+                  {!isBlogPostMode && step === 2 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={prevStep}
+                      size="lg"
+                      className="px-8"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
                     onClick={nextStep}
                     size="lg"
                     className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8"
@@ -542,8 +870,9 @@ export function CreateContentModal({
               </div>
             )}
 
+            {/* OLD Step 2 - NOW REMOVED, moved to Step 1 above */}
             {/* Step 2: Page Type Selection */}
-            {step === 2 && (
+            {false && step === 2 && (
               <div className="space-y-6">
                 <div>
                   <Label className="text-base font-semibold mb-4 block">Choose Page Type</Label>
@@ -642,8 +971,8 @@ export function CreateContentModal({
               </div>
             )}
 
-            {/* Step 3: Template Selection */}
-            {step === 3 && (
+            {/* Step 3 in Page Mode OR Step 2 in Blog Mode: Template Selection */}
+            {((isBlogPostMode && step === 2) || (!isBlogPostMode && step === 3)) && (
               <div className="space-y-6">
                 {/* Page Type Display */}
                 <div className={`p-4 rounded-lg border ${
@@ -673,21 +1002,26 @@ export function CreateContentModal({
                       <h3 className={`font-semibold ${
                         selectedPageType === 'about' ? 'text-blue-900' :
                         selectedPageType === 'contact' ? 'text-purple-900' :
+                        selectedPageType === 'blog_post' ? 'text-orange-900' :
                         'text-green-900'
                       }`}>
                         {selectedPageType === 'about' ? 'About Page' :
                          selectedPageType === 'contact' ? 'Contact Page' :
+                         selectedPageType === 'blog_post' ? 'Blog Post' :
                          'Landing Page'}
                       </h3>
                       <p className={`text-sm ${
                         selectedPageType === 'about' ? 'text-blue-700' :
                         selectedPageType === 'contact' ? 'text-purple-700' :
+                        selectedPageType === 'blog_post' ? 'text-orange-700' :
                         'text-green-700'
                       }`}>
                         {selectedPageType === 'about'
                           ? 'Includes: Header, Mission, Values, Features, Story, and CTA blocks'
                           : selectedPageType === 'contact'
                           ? 'Includes: Header, Business Info, Rich Text, and FAQ blocks'
+                          : selectedPageType === 'blog_post'
+                          ? 'Includes: Header, Featured Image, Content, Author Bio, and Related Posts'
                           : 'Includes: Hero, Featured, Categories, Features, and CTA blocks'
                         }
                       </p>
@@ -701,6 +1035,7 @@ export function CreateContentModal({
                     Select a template for your {
                       selectedPageType === 'about' ? 'About Page' :
                       selectedPageType === 'contact' ? 'Contact Page' :
+                      selectedPageType === 'blog_post' ? 'Blog Post' :
                       'Landing Page'
                     }. You can customize all content later.
                   </p>

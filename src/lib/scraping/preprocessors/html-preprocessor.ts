@@ -469,7 +469,7 @@ function extractHeroImages(element: ReturnType<CheerioAPI>, $: CheerioAPI, baseU
       // Check for <picture> elements
       $hero.find('picture source, picture img').each((_, source) => {
         const $source = $(source);
-        let srcset = $source.attr('srcset') || $source.attr('src');
+        const srcset = $source.attr('srcset') || $source.attr('src');
         if (srcset) {
           // Parse srcset to get largest image
           const urls = srcset.split(',').map(s => s.trim().split(/\s+/)[0]);

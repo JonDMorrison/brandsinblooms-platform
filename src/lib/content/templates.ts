@@ -130,20 +130,25 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
       version: '1.0',
       layout: 'blog',
       sections: {
-        header: {
-          type: 'hero',
+        blogHeader: {
+          type: 'blogHeader',
           visible: true,
-          order: 0,
+          order: 1,
           data: {
-            content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p class="text-sm text-gray-500">Published on ${new Date().toLocaleDateString()}</p>`
+            title: title || '',
+            subtitle: subtitle || '',
+            author: '',
+            publishedDate: new Date().toISOString().split('T')[0],
+            image: ''
           }
         },
         content: {
           type: 'richText',
           visible: true,
-          order: 1,
+          order: 2,
           data: {
-            content: `<h2>Introduction</h2><p>Start your blog post with an engaging introduction that captures your reader's attention.</p><h2>Main Content</h2><p>This is where you'll add the main body of your blog post. Use headings, paragraphs, lists, and images to structure your content effectively.</p><h2>Conclusion</h2><p>Wrap up your post with a strong conclusion that summarizes your key points and encourages reader engagement.</p>`
+            content: `<h2>Introduction</h2><p>Start your blog post with an engaging introduction that captures your reader's attention.</p><h2>Main Content</h2><p>This is where you'll add the main body of your blog post. Use headings, paragraphs, lists, and images to structure your content effectively.</p><h2>Conclusion</h2><p>Wrap up your post with a strong conclusion that summarizes your key points and encourages reader engagement.</p>`,
+            json: null
           }
         }
       }
@@ -511,7 +516,16 @@ export function getTemplateContent(
   // If simple complexity is requested, return basic template regardless of template choice
   if (config.complexity === 'simple') {
     // Determine layout based on template ID
-    const layout = templateId.includes('about') ? 'about' : 'landing'
+    let layout: LayoutType = 'landing'
+    if (templateId.includes('about')) {
+      layout = 'about'
+    } else if (templateId.includes('blog')) {
+      layout = 'blog'
+    } else if (templateId.includes('contact')) {
+      layout = 'contact'
+    } else if (templateId.includes('portfolio')) {
+      layout = 'portfolio'
+    }
     return getBasicLayoutTemplate(layout, title, subtitle)
   }
 
@@ -532,6 +546,10 @@ export function getTemplateContent(
       return getPrivacyPolicyTemplate(title, subtitle, config)
     case 'terms-of-service':
       return getTermsOfServiceTemplate(title, subtitle, config)
+    case 'full-blog-post':
+      return enhanceBlogTemplate(title, subtitle, config)
+    case 'minimal-blog-post':
+      return getMinimalBlogTemplate(title, subtitle, config)
     default:
       return enhanceLandingTemplate(title, subtitle, config)
   }
@@ -1674,14 +1692,16 @@ function enhanceBlogTemplate(
     version: '1.0',
     layout: 'blog',
     sections: {
-      header: {
-        type: 'hero',
+      blogHeader: {
+        type: 'blogHeader',
         visible: true,
         order: 0,
         data: {
-          content: `<h1>${title || 'Digital Transformation: A Strategic Guide'}</h1>
-<p class="text-xl text-gray-600">${subtitle || 'Insights and strategies for navigating the modern business landscape'}</p>
-<p class="text-sm text-gray-500">Published on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} · 8 min read</p>`
+          title: title || 'Digital Transformation: A Strategic Guide',
+          subtitle: subtitle || 'Insights and strategies for navigating the modern business landscape',
+          author: 'Admin',
+          publishedDate: new Date().toISOString(),
+          image: ''
         }
       },
       content: {
@@ -1690,6 +1710,51 @@ function enhanceBlogTemplate(
         order: 1,
         data: {
           content: richContent
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Minimal blog page template with essential sections only
+ */
+function getMinimalBlogTemplate(
+  title: string,
+  subtitle?: string,
+  config: MockDataOptions = MOCK_DATA_PRESETS.technology
+): PageContent {
+  const minimalContent = `<h2>Introduction</h2>
+<p>Start your blog post with an engaging introduction that captures your reader's attention.</p>
+
+<h2>Main Content</h2>
+<p>This is where you'll add the main body of your blog post. Use headings, paragraphs, lists, and images to structure your content effectively.</p>
+
+<h2>Conclusion</h2>
+<p>Wrap up your post with a strong conclusion that summarizes your key points.</p>`
+
+  return {
+    version: '1.0',
+    layout: 'blog',
+    sections: {
+      blogHeader: {
+        type: 'blogHeader',
+        visible: true,
+        order: 0,
+        data: {
+          title: title || 'Blog Post Title',
+          subtitle: subtitle || 'A brief description of your blog post',
+          author: 'Admin',
+          publishedDate: new Date().toISOString(),
+          image: ''
+        }
+      },
+      content: {
+        type: 'richText',
+        visible: true,
+        order: 1,
+        data: {
+          content: minimalContent
         }
       }
     }

@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Search, ShoppingCart } from 'lucide-react'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { useCartContext } from '@/src/contexts/CartContext'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useDesignSettings } from '@/src/hooks/useDesignSettings'
+import { useHasBlogPosts } from '@/src/hooks/useHasBlogPosts'
+import { useHasEvents } from '@/src/hooks/useHasEvents'
 import { useIsEditModeActive } from '@/src/contexts/FullSiteEditorContext'
 import { Button } from '@/src/components/ui/button'
 import { cn } from '@/src/lib/utils'
@@ -17,6 +19,7 @@ import { SearchBar } from './SearchBar'
 import { CartButton } from './CartButton'
 import { UserMenu } from './UserMenu'
 import { SearchOverlay } from './SearchOverlay'
+import { getDefaultNavItems } from './utils'
 import type { SiteNavigationProps } from './types'
 
 export function SiteNavigation({ className }: SiteNavigationProps) {
@@ -27,6 +30,13 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const isEditMode = useIsEditModeActive()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+
+  // Check if site has published blog posts
+  const { data: hasBlogPosts, loading: isLoadingBlogCheck } = useHasBlogPosts(site?.id)
+
+  // Check if site has published events
+  const { data: hasEvents, loading: isLoadingEventsCheck } = useHasEvents(site?.id)
+
 
   // Get navigation configuration from theme settings
   const theme = designSettings
@@ -44,16 +54,42 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   ]
 
   // Use all configured navigation items from theme settings
+  // If no theme config, use default items (which includes Blog link)
   const optionalNavItems = configuredNavItems.length > 0
     ? configuredNavItems
-    : [
-        { label: 'Home', href: '/home' },
-        { label: 'About', href: '/about' },
-        { label: 'Contact', href: '/contact' }
-      ]
+    : getDefaultNavItems().filter(item => item.label !== 'Products') // Exclude Products since it's in requiredNavItems
 
   // Combine required items (Products) with optional items
-  const navItems = [...requiredNavItems, ...optionalNavItems]
+  const allNavItems = [...requiredNavItems, ...optionalNavItems]
+
+  // Filter out Blog and Events navigation if no published content exists
+  // Only filter during normal operation, not while loading
+  const navItems = useMemo(() => {
+    // During loading, show all items to prevent layout shift
+    if (isLoadingBlogCheck || isLoadingEventsCheck) {
+      return allNavItems;
+    }
+
+    // Filter out blog and events navigation if no content exists
+    return allNavItems.filter((item) => {
+      // Filter blog navigation
+      if (item.href.includes('/blog')) {
+        // Show blog items only if posts exist OR user can edit
+        // (editors should see blog nav even without posts)
+        return hasBlogPosts === true || canEdit;
+      }
+
+      // Filter events navigation
+      if (item.href.includes('/events')) {
+        // Show events items only if events exist OR user can edit
+        // (editors should see events nav even without events)
+        return hasEvents === true || canEdit;
+      }
+
+      // Keep all other items
+      return true;
+    });
+  }, [allNavItems, hasBlogPosts, hasEvents, canEdit, isLoadingBlogCheck, isLoadingEventsCheck])
   
   // Get branding configuration
   const brandingType = theme?.logo?.displayType || 'text'

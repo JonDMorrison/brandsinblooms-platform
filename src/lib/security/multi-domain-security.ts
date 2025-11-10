@@ -579,7 +579,8 @@ export function applySecurityHeaders(
       process.env.NODE_ENV === 'development'
         ? "connect-src 'self' https://api.stripe.com https://m.stripe.network wss: https: http://localhost:* http://127.0.0.1:*"
         : "connect-src 'self' https://api.stripe.com https://m.stripe.network wss: https:",
-      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.youtube.com https://www.youtube-nocookie.com",
+      "child-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
       `frame-ancestors ${allowedFrameAncestors}`,
       "base-uri 'self'",
       "form-action 'self'",

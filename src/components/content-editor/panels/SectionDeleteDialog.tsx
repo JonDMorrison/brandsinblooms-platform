@@ -72,7 +72,13 @@ function getSectionDisplayName(sectionKey: string, type: ContentSectionType): st
     plant_comparison: 'Plant Comparison',
     care_calendar: 'Care Calendar',
     plant_benefits: 'Plant Benefits',
-    soil_guide: 'Soil Guide'
+    soil_guide: 'Soil Guide',
+    featured: 'Featured',
+    categories: 'Categories',
+    header: 'Header',
+    blogHeader: 'Blog Header',
+    content: 'Content',
+    products: 'Products'
   }
 
   return typeNames[type] || type

@@ -13,7 +13,14 @@ import {
   Files,
   Edit,
   Eye,
+  ChevronDown,
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/src/components/ui/dropdown-menu'
 import { useContent, useContentStats } from '@/src/hooks/useContent'
 import type { ContentType } from '@/src/lib/queries/domains/content'
 import { Skeleton } from '@/src/components/ui/skeleton'
@@ -33,6 +40,7 @@ export default function ContentPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('all')
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [defaultPageType, setDefaultPageType] = useState<'landing' | 'about' | 'contact' | 'other' | 'blog_post' | undefined>(undefined)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [homepageId, setHomepageId] = useState<string | null>(null)
@@ -252,13 +260,6 @@ export default function ContentPage() {
             <Eye className="h-4 w-4" />
             <span className="sm:inline">View Site</span>
           </Button>
-          <Button
-            className="btn-gradient-primary"
-            onClick={() => setCreateModalOpen(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Create New Page
-          </Button>
         </div>
       </div>
 
@@ -272,8 +273,72 @@ export default function ContentPage() {
 
       {/* Content Library with Enhanced Data Table */}
       <Card className="fade-in-up" style={{ animationDelay: '0.7s' }}>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Content Library</CardTitle>
+
+          {/* Context-aware create buttons */}
+          <div className="flex gap-2">
+            {/* Show dropdown when "All" tab is selected */}
+            {activeTab === 'all' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="btn-gradient-primary">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create New
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setDefaultPageType(undefined)
+                      setCreateModalOpen(true)
+                    }}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Create New Page
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setDefaultPageType('blog_post')
+                      setCreateModalOpen(true)
+                    }}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Create New Blog Post
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* Show "Create New Page" when "Pages" tab is selected */}
+            {activeTab === 'pages' && (
+              <Button
+                className="btn-gradient-primary"
+                onClick={() => {
+                  setDefaultPageType(undefined)
+                  setCreateModalOpen(true)
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create New Page
+              </Button>
+            )}
+
+            {/* Show "Create New Blog Post" when "Blog" tab is selected */}
+            {activeTab === 'blog' && (
+              <Button
+                className="btn-gradient-primary"
+                onClick={() => {
+                  setDefaultPageType('blog_post')
+                  setCreateModalOpen(true)
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create New Blog Post
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange}>
@@ -347,6 +412,7 @@ export default function ContentPage() {
       <CreateContentModal
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
+        defaultPageType={defaultPageType}
         onContentCreated={() => {
           refetch()
           refetchStats()

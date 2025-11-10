@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
@@ -37,18 +37,26 @@ interface UseContentEditorDataProps {
   siteLoading: boolean
 }
 
-export function useContentEditorData({ 
-  contentId, 
-  siteId, 
-  siteLoading 
+export function useContentEditorData({
+  contentId,
+  siteId,
+  siteLoading
 }: UseContentEditorDataProps) {
   const router = useRouter()
-  
+
   const [pageData, setPageData] = useState<PageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [pageContent, setPageContent] = useState<PageContent | null>(null)
   const [unifiedContent, setUnifiedContent] = useState<UnifiedPageContent | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+
+  // Use ref to break circular dependency in handleContentChange
+  const pageDataRef = useRef<PageData | null>(null)
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    pageDataRef.current = pageData
+  }, [pageData])
 
   // Database column states
   const [slug, setSlug] = useState<string>('')
@@ -175,38 +183,40 @@ export function useContentEditorData({
   }, [])
 
   // Handler for content changes
+  // Use ref to access pageData without triggering dependency re-creation
   const handleContentChange = useCallback((content: PageContent, hasChanges: boolean) => {
     if (Object.keys(content.sections).length === 0 && !hasChanges) {
       return
     }
-    
+
     setPageContent(prev => {
       if (!prev || JSON.stringify(prev.sections) !== JSON.stringify(content.sections)) {
         return content
       }
       return prev
     })
-    
+
     setUnifiedContent(prev => {
-      if (!prev && pageData) {
-        return { 
-          ...content, 
-          title: pageData.title || '', 
+      const currentPageData = pageDataRef.current
+      if (!prev && currentPageData) {
+        return {
+          ...content,
+          title: currentPageData.title || '',
           subtitle: ''
         }
       }
       if (!prev) return null
       return {
         ...content,
-        title: pageData?.title || prev.title,
+        title: currentPageData?.title || prev.title,
         subtitle: ''
       }
     })
-    
+
     if (hasChanges) {
       setHasUnsavedChanges(true)
     }
-  }, [pageData])
+  }, [])
 
   // Handler for slug changes
   const handleSlugChange = useCallback(async (newSlug: string) => {
@@ -300,7 +310,8 @@ export function useContentEditorData({
 
     try {
       // Get current meta_data and update SEO section
-      const currentMetaData = pageData ? { layout: pageData.layout } : {}
+      const currentPageData = pageDataRef.current
+      const currentMetaData = currentPageData ? { layout: currentPageData.layout } : {}
       const updatedMetaData = {
         ...currentMetaData,
         seo: newSeoSettings
@@ -317,7 +328,7 @@ export function useContentEditorData({
       toast.error('Failed to update SEO settings')
       throw error
     }
-  }, [contentId, siteId, pageData])
+  }, [contentId, siteId])
 
   // Save content to database
   const handleContentSave = useCallback(async (content: PageContent) => {
@@ -325,6 +336,7 @@ export function useContentEditorData({
       throw new Error('Missing required information to save')
     }
 
+    const currentPageData = pageDataRef.current
     const metaData = {
       layout: content.layout,
       ...content.settings
@@ -342,7 +354,7 @@ export function useContentEditorData({
       siteId,
       contentId,
       {
-        title: pageData?.title || '',
+        title: currentPageData?.title || '',
         meta_data: metaData as any,
         content: serializePageContent(content),
         content_type: layoutToContentType(content.layout)
@@ -361,7 +373,7 @@ export function useContentEditorData({
     })
 
     setHasUnsavedChanges(false)
-  }, [contentId, siteId, unifiedContent, pageData?.title])
+  }, [contentId, siteId, unifiedContent])
 
   return {
     pageData,

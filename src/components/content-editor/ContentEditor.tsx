@@ -17,6 +17,7 @@ import { toast } from 'sonner'
 // Import all section editor components from centralized index
 import {
   HeroEditor,
+  HeaderEditor,
   FeaturedEditor,
   CategoriesEditor,
   RichTextSectionEditor,
@@ -40,7 +41,8 @@ import {
   PlantComparisonEditor,
   CareCalendarEditor,
   PlantBenefitsEditor,
-  SoilGuideEditor
+  SoilGuideEditor,
+  BlogHeaderEditor
 } from './editors'
 
 // Import the CTAEditor component
@@ -102,6 +104,7 @@ const SectionEditor = function SectionEditor({
   const getSectionIcon = (type: ContentSectionType) => {
     const iconMap = {
       hero: '🦸',
+      header: '📌',
       richText: '📝',
       text: '📄',
       image: '🖼️',
@@ -117,6 +120,7 @@ const SectionEditor = function SectionEditor({
       mission: '🎯',
       values: '💎',
       specifications: '📋',
+      blogHeader: '📰',
       // Plant shop specific icons
       plant_showcase: '🌟',
       plant_grid: '🌿',
@@ -140,7 +144,13 @@ const SectionEditor = function SectionEditor({
     switch (section.type) {
       case 'hero':
         return <HeroEditor {...commonProps} />
-        
+
+      case 'header':
+        return <HeaderEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
+
+      case 'blogHeader':
+        return <BlogHeaderEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
+
       case 'featured':
         return <FeaturedEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
         

@@ -62,4 +62,4 @@ debug-*.ts
 .tmp/
 
 # Supabase config (local development)
-supabase/config/
+supabase/config/test-results/

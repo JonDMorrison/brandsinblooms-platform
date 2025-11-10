@@ -24,6 +24,7 @@ export type ContentSectionType =
   | 'categories'
   | 'hero'
   | 'header' // Simplified hero - title + subtitle only
+  | 'blogHeader' // Blog-specific header with title, subtitle, author, date, and image
   | 'cta'
   | 'testimonials'
   | 'form'
@@ -404,17 +405,20 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     }
   },
   blog: {
-    required: ['header', 'content'],
+    required: ['blogHeader', 'content'],
     optional: ['related'],
     defaultSections: {
-      header: {
-        type: 'hero',
+      blogHeader: {
+        type: 'blogHeader',
         data: {
-          content: '',
-          alignment: 'left'
+          title: '',
+          subtitle: '',
+          author: '',
+          publishedDate: new Date().toISOString().split('T')[0],
+          image: ''
         },
         settings: {
-          backgroundColor: 'gradient'
+          backgroundColor: 'default'
         },
         visible: true,
         order: 1

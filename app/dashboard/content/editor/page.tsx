@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -33,6 +33,7 @@ import { useContentEditorData } from '@/src/hooks/useContentEditorData';
 // Database
 import { supabase } from '@/src/lib/supabase/client';
 import { updateContent } from '@/src/lib/queries/domains/content';
+import { updateContentWithRevalidation } from '@/app/actions/content';
 
 // Types
 type LayoutType =
@@ -152,17 +153,54 @@ function PageEditorContent() {
     setHasUnsavedChanges(true);
   };
 
-  const handlePageTitleChange = (title: string) => {
-    if (!pageData) return;
-    setPageData({ ...pageData, title });
-    if (unifiedContent) {
-      setUnifiedContent({
-        ...unifiedContent,
-        title
+  const handlePageTitleChange = useCallback((title: string) => {
+    setPageData((prev) => (prev ? { ...prev, title } : null));
+    setUnifiedContent((prev) => (prev ? { ...prev, title } : prev));
+    setHasUnsavedChanges(true);
+  }, []);
+
+  // Ref to track the latest pageData for synchronous access in save handlers
+  const pageDataRef = useRef<PageData | null>(null);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    pageDataRef.current = pageData;
+  }, [pageData]);
+
+  // Memoized callback for EditorSidebar to prevent infinite re-renders
+  const handleSidebarContentChange = useCallback((content: PageContent, hasChanges: boolean) => {
+    // Sync blogHeader.data.title to content.title for blog posts
+    if (content.sections.blogHeader?.data?.title) {
+      const blogHeaderTitle = content.sections.blogHeader.data.title as string;
+      setPageData((prev) => {
+        if (prev && prev.layout === 'blog' && prev.title !== blogHeaderTitle) {
+          return { ...prev, title: blogHeaderTitle };
+        }
+        return prev;
       });
     }
+    handleContentChange(content, hasChanges);
+  }, [handleContentChange]);
+
+  // Memoized callback for VisualEditor to prevent infinite re-renders
+  const handleVisualEditorContentChange = useCallback((content: PageContent) => {
+    // Sync blogHeader.data.title to content.title for blog posts
+    if (content.sections.blogHeader?.data?.title) {
+      const blogHeaderTitle = content.sections.blogHeader.data.title as string;
+      setPageData((prev) => {
+        if (prev && prev.layout === 'blog' && prev.title !== blogHeaderTitle) {
+          return { ...prev, title: blogHeaderTitle };
+        }
+        return prev;
+      });
+    }
+    handleContentChange(content, true);
+  }, [handleContentChange]);
+
+  const handleSubtitleChange = useCallback((subtitle: string) => {
+    setPageData((prev) => (prev ? { ...prev, subtitle } : null));
     setHasUnsavedChanges(true);
-  };
+  }, []);
 
   const handleSave = async () => {
     if (!contentId || !currentSite?.id || !unifiedContent || !pageData) {
@@ -186,8 +224,12 @@ function PageEditorContent() {
         }
       );
 
-      const result = await updateContent(supabase, currentSite.id, contentId, {
-        title: pageData.title || '',
+      // Use ref to get the latest title value to avoid race condition with async state updates
+      const currentTitle = pageDataRef.current?.title || pageData.title || '';
+
+      // Use server action with cache revalidation to ensure updates appear immediately
+      const result = await updateContentWithRevalidation(currentSite.id, contentId, {
+        title: currentTitle,
         meta_data: JSON.parse(JSON.stringify(metaData)),
         content: contentData,
         content_type: mapLayoutToContentType(unifiedContent.layout),
@@ -255,7 +297,7 @@ function PageEditorContent() {
             contentEditorRef={contentEditorRef}
             onLayoutChange={handleLayoutChange}
             onContentSave={handleContentSave}
-            onContentChange={handleContentChange}
+            onContentChange={handleSidebarContentChange}
             onTitleChange={handleTitleChange}
             onPageTitleChange={handlePageTitleChange}
             onSectionClick={setActiveSectionKey}
@@ -291,14 +333,9 @@ function PageEditorContent() {
                 ? pageContent.sections.header.data.subtitle
                 : pageData.subtitle
             }
-            onContentChange={(content) => {
-              handleContentChange(content, true);
-            }}
+            onContentChange={handleVisualEditorContentChange}
             onTitleChange={handleTitleChange}
-            onSubtitleChange={(subtitle) => {
-              setPageData((prev) => (prev ? { ...prev, subtitle } : null));
-              setHasUnsavedChanges(true);
-            }}
+            onSubtitleChange={handleSubtitleChange}
             viewport={activeViewport}
             className='h-full w-full'
           />
