@@ -182,3 +182,4 @@ When adding new scraping capabilities, **ALWAYS use LLM extraction**:
   - API types: `import { apiSuccess, apiError, ApiResult } from '@/lib/types/api'`
   - Database types: `import { Tables, TablesInsert, TablesUpdate } from '@/lib/database/types'`
 - After completing a prompt, restart the dev servers to ensure changes have taken affect
+- Never start the server without first asking if you can.

@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          operationName?: string
           extensions?: Json
-          query?: string
           variables?: Json
+          query?: string
+          operationName?: string
         }
         Returns: Json
       }
@@ -490,6 +490,302 @@ export type Database = {
           record_count?: number
         }
         Relationships: []
+      }
+      event_attachments: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          event_id: string
+          file_name: string
+          file_size_bytes: number | null
+          file_url: string
+          id: string
+          mime_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          event_id: string
+          file_name: string
+          file_size_bytes?: number | null
+          file_url: string
+          id?: string
+          mime_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          event_id?: string
+          file_name?: string
+          file_size_bytes?: number | null
+          file_url?: string
+          id?: string
+          mime_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attachments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_with_next_occurrence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_attachments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_content_associations: {
+        Row: {
+          content_id: string
+          created_at: string
+          created_by: string | null
+          event_id: string
+          id: string
+          site_id: string
+        }
+        Insert: {
+          content_id: string
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          id?: string
+          site_id: string
+        }
+        Update: {
+          content_id?: string
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          id?: string
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_content_associations_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_content_associations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_with_next_occurrence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_content_associations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_content_associations_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_media: {
+        Row: {
+          alt_text: string | null
+          caption: string | null
+          created_at: string
+          deleted_at: string | null
+          event_id: string
+          id: string
+          media_type: string
+          media_url: string
+          sort_order: number
+          thumbnail_url: string | null
+        }
+        Insert: {
+          alt_text?: string | null
+          caption?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          event_id: string
+          id?: string
+          media_type: string
+          media_url: string
+          sort_order?: number
+          thumbnail_url?: string | null
+        }
+        Update: {
+          alt_text?: string | null
+          caption?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          event_id?: string
+          id?: string
+          media_type?: string
+          media_url?: string
+          sort_order?: number
+          thumbnail_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_media_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_with_next_occurrence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_media_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_occurrences: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          end_datetime: string | null
+          event_id: string
+          id: string
+          is_all_day: boolean
+          location: string | null
+          meta_data: Json | null
+          start_datetime: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          end_datetime?: string | null
+          event_id: string
+          id?: string
+          is_all_day?: boolean
+          location?: string | null
+          meta_data?: Json | null
+          start_datetime: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          end_datetime?: string | null
+          event_id?: string
+          id?: string
+          is_all_day?: boolean
+          location?: string | null
+          meta_data?: Json | null
+          start_datetime?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_occurrences_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_with_next_occurrence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_occurrences_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          end_datetime: string | null
+          featured_image_id: string | null
+          id: string
+          is_all_day: boolean | null
+          location: string | null
+          meta_data: Json | null
+          published_at: string | null
+          site_id: string
+          slug: string
+          start_datetime: string
+          status: string | null
+          subtitle: string | null
+          timezone: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          end_datetime?: string | null
+          featured_image_id?: string | null
+          id?: string
+          is_all_day?: boolean | null
+          location?: string | null
+          meta_data?: Json | null
+          published_at?: string | null
+          site_id: string
+          slug: string
+          start_datetime: string
+          status?: string | null
+          subtitle?: string | null
+          timezone?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          end_datetime?: string | null
+          featured_image_id?: string | null
+          id?: string
+          is_all_day?: boolean | null
+          location?: string | null
+          meta_data?: Json | null
+          published_at?: string | null
+          site_id?: string
+          slug?: string
+          start_datetime?: string
+          status?: string | null
+          subtitle?: string | null
+          timezone?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_featured_image_id_fkey"
+            columns: ["featured_image_id"]
+            isOneToOne: false
+            referencedRelation: "event_media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       import_batches: {
         Row: {
@@ -2590,6 +2886,43 @@ export type Database = {
         }
         Relationships: []
       }
+      event_with_next_occurrence: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          end_datetime: string | null
+          id: string | null
+          is_all_day: boolean | null
+          location: string | null
+          meta_data: Json | null
+          next_end_datetime: string | null
+          next_is_all_day: boolean | null
+          next_location: string | null
+          next_occurrence_id: string | null
+          next_start_datetime: string | null
+          published_at: string | null
+          site_id: string | null
+          slug: string | null
+          start_datetime: string | null
+          status: string | null
+          subtitle: string | null
+          timezone: string | null
+          title: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_summary: {
         Row: {
           category: string | null
@@ -2969,8 +3302,16 @@ export type Database = {
     }
     Functions: {
       acquire_migration_lock: {
-        Args: { p_instance_id: string; p_migration_batch: string }
+        Args: { p_migration_batch: string; p_instance_id: string }
         Returns: boolean
+      }
+      add_event_occurrence: {
+        Args: {
+          p_base_occurrence_id?: string
+          p_event_id: string
+          p_days_offset: number
+        }
+        Returns: string
       }
       admin_bulk_update_content: {
         Args: {
@@ -2982,17 +3323,17 @@ export type Database = {
       }
       admin_bulk_update_products: {
         Args: {
-          admin_notes?: string
           product_ids: string[]
+          admin_notes?: string
           bulk_updates: Json
         }
         Returns: Json
       }
       admin_count_users: {
         Args: {
-          search_query?: string
           role_filter?: string
           status_filter?: boolean
+          search_query?: string
         }
         Returns: number
       }
@@ -3005,41 +3346,35 @@ export type Database = {
         Returns: Json
       }
       admin_get_product_analytics: {
-        Args: { start_date?: string; end_date?: string; site_uuid: string }
+        Args: { site_uuid: string; end_date?: string; start_date?: string }
         Returns: Json
       }
       admin_get_site_content: {
         Args: {
-          offset_count?: number
-          site_uuid: string
+          limit_count?: number
           search_query?: string
           content_type_filter?: string
           status_filter?: string
-          limit_count?: number
+          offset_count?: number
+          site_uuid: string
         }
         Returns: Json
       }
       admin_get_site_products: {
         Args: {
-          search_query?: string
-          offset_count?: number
-          limit_count?: number
-          status_filter?: string
           site_uuid: string
+          offset_count?: number
+          status_filter?: string
+          limit_count?: number
           category_filter?: string
+          search_query?: string
         }
         Returns: Json
       }
       admin_get_user_details: {
         Args: { target_user_id: string }
         Returns: {
-          user_id: string
-          email: string
-          full_name: string
-          username: string
-          avatar_url: string
           bio: string
-          phone: string
           role: string
           is_active: boolean
           created_at: string
@@ -3047,6 +3382,12 @@ export type Database = {
           last_sign_in_at: string
           email_confirmed_at: string
           site_count: number
+          full_name: string
+          username: string
+          avatar_url: string
+          phone: string
+          user_id: string
+          email: string
         }[]
       }
       admin_toggle_user_status: {
@@ -3055,55 +3396,68 @@ export type Database = {
       }
       admin_update_content: {
         Args: {
-          admin_notes?: string
           content_uuid: string
+          admin_notes?: string
           content_updates: Json
         }
         Returns: Json
       }
       admin_update_product: {
         Args: {
+          product_updates: Json
           admin_notes?: string
           product_uuid: string
-          product_updates: Json
         }
         Returns: Json
       }
       admin_update_site_status: {
         Args: {
           site_uuid: string
-          new_is_active?: boolean
-          new_is_published?: boolean
           notes?: string
+          new_is_published?: boolean
+          new_is_active?: boolean
         }
         Returns: boolean
       }
       admin_update_user_profile: {
         Args: {
-          target_user_id: string
-          new_email?: string
           new_full_name?: string
           new_username?: string
-          new_phone?: string
           new_role?: string
+          target_user_id: string
+          new_email?: string
+          new_phone?: string
           new_is_active?: boolean
         }
         Returns: boolean
       }
+      bulk_create_event_content_associations: {
+        Args: { p_content_ids: string[]; p_event_id: string }
+        Returns: {
+          association_id: string
+          error_message: string
+          success: boolean
+          content_id: string
+        }[]
+      }
       bulk_import_products_atomic: {
-        Args: { p_site_id: string; p_products: Json }
+        Args: { p_products: Json; p_site_id: string }
         Returns: Json
       }
       calculate_metric_trend: {
         Args: { current_value: number; previous_value: number }
         Returns: string
       }
+      can_manage_event_media: {
+        Args: { event_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
       can_site_accept_payments: {
         Args: { p_site_id: string }
         Returns: boolean
       }
       can_upload_product_image: {
-        Args: { site_id_param: string; user_id_param: string }
+        Args: { user_id_param: string; site_id_param: string }
         Returns: boolean
       }
       check_site_health: {
@@ -3117,9 +3471,9 @@ export type Database = {
       check_user_active_status: {
         Args: { target_user_id: string }
         Returns: {
-          user_id: string
-          is_active: boolean
           role: string
+          is_active: boolean
+          user_id: string
         }[]
       }
       cleanup_expired_impersonation_sessions: {
@@ -3137,21 +3491,25 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      create_event_content_association: {
+        Args: { p_content_id: string; p_event_id: string }
+        Returns: string
+      }
       create_initial_admin: {
-        Args: { target_user_id: string; admin_full_name?: string }
+        Args: { admin_full_name?: string; target_user_id: string }
         Returns: boolean
       }
       create_plant_page_content: {
-        Args: { page_type: string; layout_type?: string }
+        Args: { layout_type?: string; page_type: string }
         Returns: Json
       }
       create_site_with_template: {
         Args: {
-          template_slug: string
-          site_name: string
-          site_subdomain: string
-          owner_email: string
           business_info?: Json
+          owner_email: string
+          site_subdomain: string
+          site_name: string
+          template_slug: string
         }
         Returns: Json
       }
@@ -3198,8 +3556,8 @@ export type Database = {
       }
       end_impersonation_session: {
         Args: {
-          end_reason_param?: string
           session_token_param?: string
+          end_reason_param?: string
           session_id_param?: string
         }
         Returns: Json
@@ -3218,15 +3576,15 @@ export type Database = {
       }
       generate_s3_key: {
         Args: {
-          resource_id: string
-          site_id: string
           resource_type: string
           filename: string
+          resource_id: string
+          site_id: string
         }
         Returns: string
       }
       generate_unique_slug: {
-        Args: { p_name: string; p_exclude_id?: string; p_site_id: string }
+        Args: { p_exclude_id?: string; p_site_id: string; p_name: string }
         Returns: string
       }
       get_active_impersonation_sessions: {
@@ -3239,10 +3597,10 @@ export type Database = {
       }
       get_admin_action_logs: {
         Args: {
+          target_type_filter?: string
           site_uuid?: string
           admin_user_uuid?: string
           action_type_filter?: string
-          target_type_filter?: string
           start_date?: string
           end_date?: string
           limit_count?: number
@@ -3253,9 +3611,9 @@ export type Database = {
       get_all_sites_with_stats: {
         Args: {
           search_query?: string
-          status_filter?: string
-          limit_count?: number
           offset_count?: number
+          limit_count?: number
+          status_filter?: string
         }
         Returns: Json
       }
@@ -3283,23 +3641,22 @@ export type Database = {
       get_category_ancestors: {
         Args: { p_category_id: string }
         Returns: {
-          id: string
-          parent_id: string
           name: string
           slug: string
           level: number
+          parent_id: string
+          id: string
         }[]
       }
       get_category_tree: {
         Args: { p_site_id: string }
         Returns: {
-          children_count: number
-          image_url: string
           id: string
           parent_id: string
           name: string
           slug: string
           description: string
+          image_url: string
           icon: string
           color: string
           path: string
@@ -3307,20 +3664,69 @@ export type Database = {
           sort_order: number
           is_active: boolean
           product_count: number
+          children_count: number
+        }[]
+      }
+      get_content_events: {
+        Args: { p_content_id: string }
+        Returns: {
+          title: string
+          event_id: string
+          location: string
+          status: string
+          end_datetime: string
+          start_datetime: string
+          slug: string
+          association_created_at: string
+        }[]
+      }
+      get_event_content: {
+        Args: { p_event_id: string }
+        Returns: {
+          slug: string
+          title: string
+          content_type: string
+          content_id: string
+          association_created_at: string
+          published_at: string
+          is_published: boolean
+        }[]
+      }
+      get_event_featured_image: {
+        Args: { p_event_id: string; p_featured_image_id: string }
+        Returns: {
+          thumbnail_url: string
+          alt_text: string
+          caption: string
+          sort_order: number
+          id: string
+          media_type: string
+          media_url: string
+        }[]
+      }
+      get_event_occurrences: {
+        Args: { p_event_id: string }
+        Returns: {
+          is_all_day: boolean
+          end_datetime: string
+          start_datetime: string
+          occurrence_id: string
+          location: string
+          meta_data: Json
         }[]
       }
       get_guest_orders_by_email: {
         Args: { order_email: string }
         Returns: {
           id: string
-          order_number: string
           status: string
           total_amount: number
           created_at: string
+          order_number: string
         }[]
       }
       get_image_url: {
-        Args: { storage_type: string; supabase_url: string; cdn_url: string }
+        Args: { cdn_url: string; supabase_url: string; storage_type: string }
         Returns: string
       }
       get_impersonation_context: {
@@ -3330,37 +3736,37 @@ export type Database = {
       get_job_statistics: {
         Args: { p_user_id?: string }
         Returns: {
-          total_jobs: number
-          pending_jobs: number
-          processing_jobs: number
-          completed_jobs: number
-          failed_jobs: number
-          total_cost_cents: number
           avg_completion_time_seconds: number
+          total_cost_cents: number
+          failed_jobs: number
+          completed_jobs: number
+          processing_jobs: number
+          pending_jobs: number
+          total_jobs: number
         }[]
       }
       get_migration_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
-          table_name: string
-          total_records: number
           migrated_records: number
+          total_records: number
+          table_name: string
+          migration_percentage: number
           pending_records: number
           failed_records: number
-          migration_percentage: number
         }[]
       }
       get_order_summary_stats: {
-        Args: { p_site_id: string; p_date_range?: unknown }
+        Args: { p_date_range?: unknown; p_site_id: string }
         Returns: {
-          total_orders: number
-          average_order_value: number
-          conversion_rate: number
-          pending_orders: number
           processing_orders: number
-          shipped_orders: number
-          delivered_orders: number
+          conversion_rate: number
+          average_order_value: number
           total_revenue: number
+          total_orders: number
+          delivered_orders: number
+          shipped_orders: number
+          pending_orders: number
         }[]
       }
       get_platform_analytics_summary: {
@@ -3371,30 +3777,43 @@ export type Database = {
         Args: { p_site_id: string }
         Returns: {
           active_products: number
+          total_reviews: number
+          total_products: number
           out_of_stock: number
           low_stock: number
           average_rating: number
-          total_products: number
-          total_reviews: number
         }[]
       }
       get_site_analytics: {
-        Args: { site_uuid: string; days_back?: number; period_type?: string }
+        Args: { period_type?: string; days_back?: number; site_uuid: string }
         Returns: Json
       }
       get_site_health_summary: {
         Args: { days_back?: number; site_uuid: string }
         Returns: Json
       }
+      get_site_occurrences_in_range: {
+        Args: { p_site_id: string; p_start_date: string; p_end_date: string }
+        Returns: {
+          is_all_day: boolean
+          status: string
+          end_datetime: string
+          start_datetime: string
+          occurrence_id: string
+          event_id: string
+          event_title: string
+          event_slug: string
+          location: string
+        }[]
+      }
       get_site_payment_settings: {
         Args: { p_site_id: string }
         Returns: {
-          platform_commission_value: number
+          shipping_enabled: boolean
           tax_enabled: boolean
           default_tax_rate: number
           tax_by_state: Json
           tax_inclusive: boolean
-          shipping_enabled: boolean
           free_shipping_threshold: number
           flat_rate_shipping: number
           shipping_by_region: Json
@@ -3402,6 +3821,7 @@ export type Database = {
           minimum_order_amount: number
           platform_commission_enabled: boolean
           platform_commission_type: string
+          platform_commission_value: number
         }[]
       }
       get_site_summary_stats: {
@@ -3409,25 +3829,25 @@ export type Database = {
         Returns: Json
       }
       get_site_templates: {
-        Args: { category_filter?: string; active_only?: boolean }
+        Args: { active_only?: boolean; category_filter?: string }
         Returns: Json
       }
       get_sites_with_social_platform: {
         Args: { platform_name: string }
         Returns: {
-          site_id: string
           site_name: string
-          social_url: string
           social_username: string
+          social_url: string
+          site_id: string
           confidence: number
         }[]
       }
       get_social_media_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
-          platform: string
-          site_count: number
           avg_confidence: number
+          site_count: number
+          platform: string
         }[]
       }
       get_unread_notification_count: {
@@ -3444,16 +3864,16 @@ export type Database = {
       }
       log_admin_action: {
         Args: {
-          admin_id: string
-          site_uuid: string
-          action_type_val: string
+          user_agent_val?: string
           target_type_val: string
-          target_uuid?: string
+          action_type_val: string
+          site_uuid: string
+          admin_id: string
           old_vals?: Json
           new_vals?: Json
           details?: string
           ip_addr?: unknown
-          user_agent_val?: string
+          target_uuid?: string
         }
         Returns: string
       }
@@ -3463,11 +3883,11 @@ export type Database = {
       }
       mark_image_migrated: {
         Args: {
-          p_table_name: string
           p_record_id: string
-          p_s3_key: string
           p_s3_bucket: string
           p_cdn_url: string
+          p_table_name: string
+          p_s3_key: string
         }
         Returns: boolean
       }
@@ -3478,6 +3898,12 @@ export type Database = {
       migrate_existing_categories: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      migrate_single_date_events_to_occurrences: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          migrated_count: number
+        }[]
       }
       permanently_delete_expired_sites: {
         Args: { retention_days?: number }
@@ -3494,8 +3920,12 @@ export type Database = {
         Args: { p_migration_batch: string; p_instance_id: string }
         Returns: boolean
       }
+      remove_event_content_association: {
+        Args: { p_content_id: string; p_event_id: string }
+        Returns: boolean
+      }
       rollback_image_migration: {
-        Args: { p_table_name: string; p_record_id: string }
+        Args: { p_record_id: string; p_table_name: string }
         Returns: boolean
       }
       run_platform_health_checks: {
@@ -3508,18 +3938,18 @@ export type Database = {
       }
       search_content_global: {
         Args: {
-          search_query: string
-          site_id_param: string
           result_limit?: number
+          site_id_param: string
+          search_query: string
         }
         Returns: {
+          relevance: number
+          content_type: string
           title: string
           id: string
-          content_type: string
           slug: string
           excerpt: string
           is_published: boolean
-          relevance: number
           updated_at: string
         }[]
       }
@@ -3534,24 +3964,24 @@ export type Database = {
         }
         Returns: {
           id: string
-          created_at: string
-          total_amount: number
-          payment_status: string
-          status: string
-          customer_email: string
-          customer_name: string
           order_number: string
+          customer_name: string
+          customer_email: string
+          status: string
+          payment_status: string
+          total_amount: number
+          created_at: string
         }[]
       }
       start_admin_impersonation: {
         Args: {
-          site_uuid: string
-          user_agent_val?: string
-          ip_addr?: unknown
-          allowed_actions_list?: string[]
-          duration_hours?: number
           purpose_text?: string
+          site_uuid: string
           impersonated_user_uuid?: string
+          duration_hours?: number
+          allowed_actions_list?: string[]
+          ip_addr?: unknown
+          user_agent_val?: string
         }
         Returns: Json
       }
@@ -3563,8 +3993,12 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
+      update_event_occurrences_all_day: {
+        Args: { p_event_id: string; p_is_all_day: boolean }
+        Returns: number
+      }
       update_product_inventory: {
-        Args: { p_change: number; p_product_id: string }
+        Args: { p_product_id: string; p_change: number }
         Returns: {
           attributes: Json | null
           care_instructions: string | null
@@ -3605,7 +4039,7 @@ export type Database = {
         }
       }
       user_has_site_access: {
-        Args: { p_site_id: string; p_role?: string }
+        Args: { p_role?: string; p_site_id: string }
         Returns: boolean
       }
       validate_plant_content: {
