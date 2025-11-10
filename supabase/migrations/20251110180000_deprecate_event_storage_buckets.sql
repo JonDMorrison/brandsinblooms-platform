@@ -10,8 +10,8 @@
 -- Manual removal only after verification complete
 -- =====================================================
 
--- Mark storage buckets as deprecated with clear documentation
-COMMENT ON COLUMN storage.buckets.id IS 'Storage bucket identifier. event_media and event_attachments buckets are DEPRECATED as of 2025-11-10. Migrated to R2/CloudFlare CDN. Safe to remove after 2025-12-10 pending verification.';
+-- NOTE: Cannot add COMMENT to storage.buckets (requires owner permissions)
+-- The deprecation is tracked via migration log and documentation instead
 
 -- Create view to track unmigrated event media files
 CREATE OR REPLACE VIEW public.event_storage_unmigrated AS
@@ -19,22 +19,22 @@ SELECT
     'event_media' as storage_type,
     em.id,
     em.event_id,
-    em.file_url,
-    em.file_name,
+    em.media_url as file_url,
+    em.alt_text as file_name,
     em.created_at,
     em.updated_at,
     CASE
-        WHEN em.file_url LIKE '%supabase%' THEN 'supabase_storage'
-        WHEN em.file_url LIKE '%r2.cloudflarestorage%' THEN 'r2_cdn'
-        WHEN em.file_url LIKE '%cloudflare%' THEN 'cloudflare_cdn'
+        WHEN em.media_url LIKE '%supabase%' THEN 'supabase_storage'
+        WHEN em.media_url LIKE '%r2.cloudflarestorage%' THEN 'r2_cdn'
+        WHEN em.media_url LIKE '%cloudflare%' THEN 'cloudflare_cdn'
         ELSE 'unknown'
     END as storage_location,
     CASE
-        WHEN em.file_url LIKE '%supabase%' THEN false
+        WHEN em.media_url LIKE '%supabase%' THEN false
         ELSE true
     END as is_migrated
 FROM public.event_media em
-WHERE em.file_url LIKE '%supabase%'
+WHERE em.media_url LIKE '%supabase%'
 
 UNION ALL
 
@@ -92,7 +92,7 @@ BEGIN
     -- Count total and migrated media files
     SELECT
         COUNT(*),
-        COUNT(*) FILTER (WHERE file_url NOT LIKE '%supabase%')
+        COUNT(*) FILTER (WHERE media_url NOT LIKE '%supabase%')
     INTO v_total_media_count, v_migrated_media_count
     FROM public.event_media;
 
@@ -218,10 +218,10 @@ BEGIN
     WITH media_stats AS (
         SELECT
             COUNT(*) as total_count,
-            COUNT(*) FILTER (WHERE file_url LIKE '%supabase%') as supabase_count,
-            COUNT(*) FILTER (WHERE file_url NOT LIKE '%supabase%') as cdn_count,
-            SUM(file_size) FILTER (WHERE file_url LIKE '%supabase%') as supabase_size,
-            SUM(file_size) FILTER (WHERE file_url NOT LIKE '%supabase%') as cdn_size
+            COUNT(*) FILTER (WHERE media_url LIKE '%supabase%') as supabase_count,
+            COUNT(*) FILTER (WHERE media_url NOT LIKE '%supabase%') as cdn_count,
+            0 as supabase_size,  -- event_media doesn't track file_size
+            0 as cdn_size  -- event_media doesn't track file_size
         FROM public.event_media
     ),
     attachment_stats AS (
@@ -229,8 +229,8 @@ BEGIN
             COUNT(*) as total_count,
             COUNT(*) FILTER (WHERE file_url LIKE '%supabase%') as supabase_count,
             COUNT(*) FILTER (WHERE file_url NOT LIKE '%supabase%') as cdn_count,
-            SUM(file_size) FILTER (WHERE file_url LIKE '%supabase%') as supabase_size,
-            SUM(file_size) FILTER (WHERE file_url NOT LIKE '%supabase%') as cdn_size
+            SUM(file_size_bytes) FILTER (WHERE file_url LIKE '%supabase%') as supabase_size,
+            SUM(file_size_bytes) FILTER (WHERE file_url NOT LIKE '%supabase%') as cdn_size
         FROM public.event_attachments
     ),
     migration_log_stats AS (
@@ -314,8 +314,8 @@ $$;
 GRANT EXECUTE ON FUNCTION public.get_event_storage_migration_stats() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_event_storage_migration_stats() TO service_role;
 
--- Add deprecation notice as a system comment (visible in migrations)
-COMMENT ON SCHEMA public IS 'Public schema. Note: Event storage (event_media and event_attachments) migrated from Supabase Storage to R2/CloudFlare CDN as of 2025-11-10. Legacy storage buckets deprecated and safe to remove after 2025-12-10.';
+-- NOTE: Deprecation notice tracked via migration log (not schema comment)
+-- Cannot modify public schema comment without elevated permissions
 
 -- Create an audit log entry for the deprecation
 INSERT INTO public.event_storage_migration_log (
