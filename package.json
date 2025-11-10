@@ -64,7 +64,11 @@
     "railway:status": "railway status",
     "proxy:deploy": "pnpm --filter custom-domain-proxy deploy",
     "proxy:deploy:staging": "pnpm --filter custom-domain-proxy deploy:staging",
-    "proxy:deploy:production": "pnpm --filter custom-domain-proxy deploy:production"
+    "proxy:deploy:production": "pnpm --filter custom-domain-proxy deploy:production",
+    "migrate:event-storage": "tsx scripts/migrate-event-storage.ts",
+    "migrate:event-storage:dry": "tsx scripts/migrate-event-storage.ts --dry-run",
+    "migrate:event-storage:verbose": "tsx scripts/migrate-event-storage.ts --verbose",
+    "migrate:event-storage:status": "tsx scripts/check-migration-status.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.873.0",
