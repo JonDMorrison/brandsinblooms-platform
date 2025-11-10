@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -20,6 +20,8 @@ import { signInWithProvider, signInWithMagicLink, handleAuthError } from '@/src/
 import { AuthError } from '@supabase/supabase-js'
 import { handleError } from '@/src/lib/types/error-handling'
 import { AlertCircle } from 'lucide-react'
+
+const LAST_EMAIL_KEY = 'lastSignInEmail'
 
 interface SignInProps {
   returnUrlProp?: string
@@ -44,10 +46,20 @@ export default function SignIn({ returnUrlProp, enableEditProp }: SignInProps = 
   const emailId = React.useId()
   const passwordId = React.useId()
 
+  // Load saved email from localStorage
+  const getSavedEmail = () => {
+    if (typeof window === 'undefined') return ''
+    try {
+      return localStorage.getItem(LAST_EMAIL_KEY) || ''
+    } catch {
+      return ''
+    }
+  }
+
   const form = useForm<SignInData>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      email: '',
+      email: getSavedEmail(),
       password: '',
     },
   })
@@ -56,6 +68,14 @@ export default function SignIn({ returnUrlProp, enableEditProp }: SignInProps = 
     try {
       setAuthError(null) // Clear any previous errors
       await signIn(data.email, data.password)
+
+      // Save email to localStorage for next time
+      try {
+        localStorage.setItem(LAST_EMAIL_KEY, data.email)
+      } catch {
+        // Ignore localStorage errors (e.g., in private browsing)
+      }
+
       toast.success('Successfully signed in!')
 
       // If enableEdit is true, activate edit mode
@@ -118,6 +138,14 @@ export default function SignIn({ returnUrlProp, enableEditProp }: SignInProps = 
     try {
       setIsLoadingMagicLink(true)
       await signInWithMagicLink(email)
+
+      // Save email to localStorage for next time
+      try {
+        localStorage.setItem(LAST_EMAIL_KEY, email)
+      } catch {
+        // Ignore localStorage errors (e.g., in private browsing)
+      }
+
       toast.success('Check your email for the magic link!')
     } catch (error: unknown) {
       const handled = handleError(error)
