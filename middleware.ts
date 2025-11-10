@@ -974,7 +974,7 @@ function handleSiteNotFound(
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     }
     .container {
       background: white;
@@ -986,7 +986,7 @@ function handleSiteNotFound(
     }
     h1 {
       font-size: 24px;
-      color: #1a202c;
+      color: #065f46;
       margin: 0 0 16px 0;
     }
     p {
@@ -995,12 +995,13 @@ function handleSiteNotFound(
       margin: 0 0 24px 0;
     }
     .domain {
-      background: #f7fafc;
+      background: #d1fae5;
       padding: 12px 16px;
       border-radius: 6px;
       font-family: 'Courier New', monospace;
-      color: #2d3748;
+      color: #065f46;
       margin: 24px 0;
+      border: 1px solid #6ee7b7;
     }
     .steps {
       text-align: left;
@@ -1016,9 +1017,9 @@ function handleSiteNotFound(
     .footer {
       margin-top: 24px;
       padding-top: 24px;
-      border-top: 1px solid #e2e8f0;
+      border-top: 1px solid #d1fae5;
       font-size: 14px;
-      color: #718096;
+      color: #6b7280;
     }
   </style>
 </head>
