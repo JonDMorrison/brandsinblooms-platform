@@ -159,7 +159,13 @@ export async function BlogIndexPage() {
                       {/* Content - 2/3 width */}
                       <div className="lg:w-2/3">
                         {/* Associated Events Section */}
-                        <AssociatedEventsSection contentId={latestPost.id} />
+                        <AssociatedEventsSection
+                          contentId={latestPost.id}
+                          referrerContent={{
+                            title: latestPost.title,
+                            slug: latestPost.slug
+                          }}
+                        />
 
                         {/* Full Content */}
                         <article className="flex-1">

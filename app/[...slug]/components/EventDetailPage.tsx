@@ -67,10 +67,28 @@ function formatFileSize(bytes: number): string {
 export function EventDetailPage({ event, siteId }: EventDetailPageProps) {
   const searchParams = useSearchParams()
 
-  // Preserve search params from the events list page (view and month)
-  const backUrl = searchParams.toString()
-    ? `/events?${searchParams.toString()}`
-    : '/events'
+  // Check if user came from a blog post
+  const fromBlogSlug = searchParams.get('from')
+  const fromBlogTitle = searchParams.get('fromTitle')
+
+  // Determine back link URL and text based on referrer
+  let backUrl: string
+  let backText: string
+
+  if (fromBlogSlug && fromBlogTitle) {
+    // User came from a blog post - link back to that post
+    backUrl = `/${fromBlogSlug}`
+    backText = `Continue reading "${fromBlogTitle}"`
+  } else {
+    // User came from events list (or direct access) - link to events
+    const params = new URLSearchParams(searchParams.toString())
+    // Remove blog referrer params if they exist
+    params.delete('from')
+    params.delete('fromTitle')
+
+    backUrl = params.toString() ? `/events?${params.toString()}` : '/events'
+    backText = 'Back to Events'
+  }
 
   return (
     <SiteRenderer
@@ -80,13 +98,13 @@ export function EventDetailPage({ event, siteId }: EventDetailPageProps) {
     >
       <div className="brand-container py-12">
         <div className="max-w-7xl mx-auto">
-          {/* Back Button */}
+          {/* Back Button - Dynamic based on referrer */}
           <Link
             href={backUrl}
             className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Events
+            {backText}
           </Link>
 
           {/* Event Header - Full Width */}

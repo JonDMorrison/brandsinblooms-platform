@@ -9,6 +9,11 @@ import { createClient } from '@/src/lib/supabase/server'
 
 interface AssociatedEventsSectionProps {
   contentId: string
+  /** Optional: Content context for "Continue reading" navigation */
+  referrerContent?: {
+    title: string
+    slug: string
+  }
 }
 
 /**
@@ -16,8 +21,11 @@ interface AssociatedEventsSectionProps {
  * Only renders if there are published upcoming events.
  * Seamlessly integrated into blog article flow with minimal spacing.
  * Uses horizontal layout for single event, 2-column grid for multiple.
+ *
+ * When referrerContent is provided, event links will include blog context
+ * for dynamic "Continue reading {title}" navigation on event detail page.
  */
-export async function AssociatedEventsSection({ contentId }: AssociatedEventsSectionProps) {
+export async function AssociatedEventsSection({ contentId, referrerContent }: AssociatedEventsSectionProps) {
   // Fetch associated events
   const events = await getContentEvents(contentId)
 
@@ -57,6 +65,7 @@ export async function AssociatedEventsSection({ contentId }: AssociatedEventsSec
               key={event.id}
               slug={event.slug}
               className="group block"
+              referrerContent={referrerContent}
             >
               <article className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative flex flex-col md:flex-row">
                 {/* Multiple Dates Ribbon */}
@@ -162,6 +171,7 @@ export async function AssociatedEventsSection({ contentId }: AssociatedEventsSec
                 key={event.id}
                 slug={event.slug}
                 className="group block h-full"
+                referrerContent={referrerContent}
               >
                 <article className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative flex flex-col h-full">
                   {/* Multiple Dates Ribbon */}

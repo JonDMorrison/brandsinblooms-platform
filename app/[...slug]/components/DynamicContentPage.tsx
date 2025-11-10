@@ -219,7 +219,13 @@ export async function DynamicContentPage({ slug, isEditMode = false }: DynamicCo
               {/* Content - 2/3 width */}
               <div className="lg:w-2/3">
                   {/* Associated Events Section */}
-                  <AssociatedEventsSection contentId={contentResult.id} />
+                  <AssociatedEventsSection
+                    contentId={contentResult.id}
+                    referrerContent={{
+                      title: contentResult.title,
+                      slug: contentResult.slug
+                    }}
+                  />
 
                   {/* Full Content */}
                   <article className="flex-1">
