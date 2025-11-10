@@ -199,10 +199,9 @@ const InlineTextEditorComponent = ({
       }
     },
     onUpdate: ({ editor }) => {
-      // For single-line or plain format, extract text without HTML tags
-      const newContent = (singleLine || format === 'plain')
-        ? editor.getText() 
-        : editor.getHTML();
+      // Always save as HTML to detect formatting changes (bold, italic, color)
+      // This ensures autosave triggers when formatting is applied
+      const newContent = editor.getHTML();
       debouncedUpdate(newContent);
     },
     onSelectionUpdate: ({ editor }) => {
@@ -245,15 +244,13 @@ const InlineTextEditorComponent = ({
   // Update editor content when prop changes
   useEffect(() => {
     if (editor && !editor.isFocused) {
-      const currentContent = (singleLine || format === 'plain')
-        ? editor.getText() 
-        : editor.getHTML();
-      
+      const currentContent = editor.getHTML();
+
       if (content !== currentContent) {
         editor.commands.setContent(content);
       }
     }
-  }, [content, editor, format, singleLine]);
+  }, [content, editor]);
   
   // Update editable state
   useEffect(() => {

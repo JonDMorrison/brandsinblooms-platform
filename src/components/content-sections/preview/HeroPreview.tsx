@@ -172,9 +172,9 @@ export function HeroPreview({
           {(data.headline || title) && (
             <InlineTextEditor
               content={data.headline || title || ''}
-              onUpdate={(content) => {
+              onUpdate={(htmlContent) => {
                 if (onContentUpdate) {
-                  onContentUpdate(sectionKey, 'data.headline', content)
+                  onContentUpdate(sectionKey, 'data.headline', htmlContent)
                 }
               }}
               isEnabled={Boolean(onContentUpdate)}
@@ -195,18 +195,17 @@ export function HeroPreview({
           {/* Subheadline */}
           {(data.subheadline || onContentUpdate) && (
             <InlineTextEditor
-              content={textToHtml(data.subheadline || '')}
+              content={data.subheadline || ''}
               onUpdate={(htmlContent) => {
                 if (onContentUpdate) {
-                  const textContent = htmlToText(htmlContent)
-                  onContentUpdate(sectionKey, 'data.subheadline', textContent)
+                  onContentUpdate(sectionKey, 'data.subheadline', htmlContent)
                 }
               }}
               isEnabled={Boolean(onContentUpdate)}
               fieldPath="data.subheadline"
               format="simple-toolbar"
               className={`${responsive.typography.heroSubheadline} mb-8 leading-relaxed block [&_.ProseMirror_p:not(:first-child)]:mt-2`}
-              style={{ 
+              style={{
                 color: 'var(--theme-text)',
                 opacity: 0.8,
                 fontFamily: 'var(--theme-font-body)'
@@ -228,9 +227,9 @@ export function HeroPreview({
                   >
                     <InlineTextEditor
                       content={data.ctaText || ''}
-                      onUpdate={(content) => {
+                      onUpdate={(htmlContent) => {
                         if (onContentUpdate) {
-                          onContentUpdate(sectionKey, 'data.ctaText', content)
+                          onContentUpdate(sectionKey, 'data.ctaText', htmlContent)
                         }
                       }}
                       isEnabled={Boolean(onContentUpdate)}
@@ -269,9 +268,9 @@ export function HeroPreview({
                   >
                     <InlineTextEditor
                       content={data.ctaText || ''}
-                      onUpdate={(content) => {
+                      onUpdate={(htmlContent) => {
                         if (onContentUpdate) {
-                          onContentUpdate(sectionKey, 'data.ctaText', content)
+                          onContentUpdate(sectionKey, 'data.ctaText', htmlContent)
                         }
                       }}
                       isEnabled={Boolean(onContentUpdate)}
@@ -301,9 +300,9 @@ export function HeroPreview({
                   >
                     <InlineTextEditor
                       content={data.secondaryCtaText || ''}
-                      onUpdate={(content) => {
+                      onUpdate={(htmlContent) => {
                         if (onContentUpdate) {
-                          onContentUpdate(sectionKey, 'data.secondaryCtaText', content)
+                          onContentUpdate(sectionKey, 'data.secondaryCtaText', htmlContent)
                         }
                       }}
                       isEnabled={Boolean(onContentUpdate)}
@@ -342,9 +341,9 @@ export function HeroPreview({
                   >
                     <InlineTextEditor
                       content={data.secondaryCtaText || ''}
-                      onUpdate={(content) => {
+                      onUpdate={(htmlContent) => {
                         if (onContentUpdate) {
-                          onContentUpdate(sectionKey, 'data.secondaryCtaText', content)
+                          onContentUpdate(sectionKey, 'data.secondaryCtaText', htmlContent)
                         }
                       }}
                       isEnabled={Boolean(onContentUpdate)}
@@ -388,9 +387,9 @@ export function HeroPreview({
                     </div>
                     <InlineTextEditor
                       content={feature.text}
-                      onUpdate={(content) => {
+                      onUpdate={(htmlContent) => {
                         if (onFeatureUpdate) {
-                          onFeatureUpdate(sectionKey, index, 'text', content)
+                          onFeatureUpdate(sectionKey, index, 'text', htmlContent)
                         }
                       }}
                       isEnabled={Boolean(onFeatureUpdate)}

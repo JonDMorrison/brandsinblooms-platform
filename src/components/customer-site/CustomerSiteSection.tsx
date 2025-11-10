@@ -15,7 +15,7 @@ import {
   CategoriesSectionErrorBoundary
 } from '@/src/components/ui/plant-shop-error-boundaries'
 import { MissionStatementSkeleton } from '@/src/components/ui/plant-shop-loading-states'
-import { textToHtml } from '@/src/lib/utils/html-text'
+import { stripParagraphTags, textToHtml } from '@/src/lib/utils/html-text'
 import { ContentRenderer } from '@/src/components/preview/ContentRenderer'
 import { getSectionBackgroundStyle, getBackgroundImageOpacity } from '@/src/components/content-sections/shared/background-utils'
 import { getFeatureGridClasses, getCategoriesGridClasses } from '@/src/components/content-sections/shared/grid-utils'
@@ -72,14 +72,18 @@ export function CustomerSiteSection({
 
             <div className="brand-container relative" style={{ zIndex: 2 }}>
               <div className="max-w-4xl mx-auto text-center">
-                <h1 className="text-4xl md:text-6xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                  {String(sectionData.headline || 'Welcome to our site')}
-                </h1>
+                <h1
+                  className="text-4xl md:text-6xl font-bold mb-6"
+                  style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+                  dangerouslySetInnerHTML={{
+                    __html: stripParagraphTags(String(sectionData.headline || 'Welcome to our site'))
+                  }}
+                />
                 <div
                   className="text-xl md:text-2xl mb-8 leading-relaxed [&_p:not(:first-child)]:mt-2"
                   style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}
                   dangerouslySetInnerHTML={{
-                    __html: textToHtml(String(sectionData.subheadline || 'Your trusted source for premium plants and expert care guidance'))
+                    __html: String(sectionData.subheadline || '<p>Your trusted source for premium plants and expert care guidance</p>')
                   }}
                 />
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -88,7 +92,9 @@ export function CustomerSiteSection({
                     className={getButtonClassName((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', false)}
                     style={getButtonStyles((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', false)}
                   >
-                    {String(sectionData.ctaText || 'Shop Plants')}
+                    <span dangerouslySetInnerHTML={{
+                      __html: stripParagraphTags(String(sectionData.ctaText || 'Shop Plants'))
+                    }} />
                   </SmartLink>
                   {sectionData.secondaryCtaText && (
                     <SmartLink
@@ -96,7 +102,9 @@ export function CustomerSiteSection({
                       className={getButtonClassName((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', false)}
                       style={getButtonStyles((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', false)}
                     >
-                      {String(sectionData.secondaryCtaText)}
+                      <span dangerouslySetInnerHTML={{
+                        __html: stripParagraphTags(String(sectionData.secondaryCtaText))
+                      }} />
                     </SmartLink>
                   )}
                 </div>
@@ -129,9 +137,10 @@ export function CustomerSiteSection({
                               color: 'var(--theme-text)',
                               fontFamily: 'var(--theme-font-body)'
                             }}
-                          >
-                            {featureText}
-                          </span>
+                            dangerouslySetInnerHTML={{
+                              __html: stripParagraphTags(featureText)
+                            }}
+                          />
                         </div>
                       )
                     })}
