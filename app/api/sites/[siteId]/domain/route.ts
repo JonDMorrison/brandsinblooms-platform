@@ -238,3 +238,114 @@ export async function PATCH(
     )
   }
 }
+
+/**
+ * Disconnect custom domain from site
+ * Removes custom domain configuration and cleans up Cloudflare settings
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { siteId: string } }
+): Promise<NextResponse> {
+  try {
+    const { removeFromCloudflare } = await import('@/src/lib/dns/utils')
+    const supabase = await createClient()
+    const { siteId } = params
+
+    // Verify authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Verify site ownership
+    const { data: membership, error: membershipError } = await supabase
+      .from('site_memberships')
+      .select('role')
+      .eq('site_id', siteId)
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single()
+
+    if (membershipError || !membership || membership.role !== 'owner') {
+      return NextResponse.json(
+        { error: 'Forbidden: Only site owners can disconnect custom domains' },
+        { status: 403 }
+      )
+    }
+
+    // Get current domain to remove from Cloudflare
+    const { data: site, error: siteError } = await supabase
+      .from('sites')
+      .select('custom_domain, custom_domain_status')
+      .eq('id', siteId)
+      .single()
+
+    if (siteError || !site) {
+      return NextResponse.json(
+        { error: 'Site not found' },
+        { status: 404 }
+      )
+    }
+
+    // Type assertion for new fields until database types are regenerated
+    const siteWithCustomFields = site as unknown as {
+      custom_domain: string | null
+      custom_domain_status: string | null
+    }
+
+    if (!siteWithCustomFields.custom_domain) {
+      return NextResponse.json(
+        { error: 'No custom domain configured' },
+        { status: 400 }
+      )
+    }
+
+    // Remove from Cloudflare if verified (placeholder)
+    if (siteWithCustomFields.custom_domain_status === 'verified') {
+      const cloudflareResult = await removeFromCloudflare(siteWithCustomFields.custom_domain)
+      if (!cloudflareResult.success) {
+        console.error('Failed to remove from Cloudflare:', cloudflareResult.error)
+        // Continue with disconnection even if Cloudflare fails
+      }
+    }
+
+    // Clear all custom domain fields
+    const { data: updatedSite, error: updateError } = await supabase
+      .from('sites')
+      .update({
+        custom_domain: null,
+        custom_domain_status: 'disconnected',
+        dns_provider: null,
+        dns_verification_token: null,
+        dns_records: null,
+        custom_domain_error: null,
+        custom_domain_verified_at: null,
+        last_dns_check_at: null
+      })
+      .eq('id', siteId)
+      .select()
+      .single()
+
+    if (updateError) {
+      throw updateError
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Custom domain disconnected successfully',
+      data: {
+        subdomain: updatedSite.subdomain
+      }
+    })
+  } catch (error: unknown) {
+    const errorInfo = handleError(error)
+    return NextResponse.json(
+      { error: 'Failed to disconnect custom domain', details: errorInfo.message },
+      { status: 500 }
+    )
+  }
+}
