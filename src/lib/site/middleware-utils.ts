@@ -225,11 +225,21 @@ export function generateSiteCacheKey(value: string, type: 'subdomain' | 'custom_
  */
 export function getSiteCacheTTL(type: 'subdomain' | 'custom_domain'): number {
   if (process.env.NODE_ENV === 'development') {
-    return 60 // 1 minute in development
+    // Use env var or default to 1 minute in development
+    const devTTL = parseInt(process.env.SITE_CACHE_TTL_DEV || '60', 10)
+    return devTTL
   }
 
-  // In production, cache subdomains longer since they change less frequently
-  return type === 'subdomain' ? 3600 : 1800 // 1 hour for subdomains, 30 minutes for custom domains
+  // In production, use environment variables with sensible defaults
+  // Subdomains change less frequently, so cache longer
+  if (type === 'subdomain') {
+    const subdomainTTL = parseInt(process.env.SITE_CACHE_TTL_SUBDOMAIN || '3600', 10)
+    return subdomainTTL // Default: 1 hour
+  }
+
+  // Custom domains may change more frequently
+  const customDomainTTL = parseInt(process.env.SITE_CACHE_TTL_CUSTOM_DOMAIN || '1800', 10)
+  return customDomainTTL // Default: 30 minutes
 }
 
 /**
