@@ -215,14 +215,18 @@ export function CustomerSiteSection({
             <section className="py-16" style={backgroundStyle}>
               <div className="brand-container">
                 <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                    {String(sectionData.headline || 'Shop by Category')}
-                  </h2>
+                  <h2
+                    className="text-3xl md:text-4xl font-bold mb-4"
+                    style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+                    dangerouslySetInnerHTML={{
+                      __html: stripParagraphTags(String(sectionData.headline || 'Shop by Category'))
+                    }}
+                  />
                   <div
                     className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
                     style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
                     dangerouslySetInnerHTML={{
-                      __html: textToHtml(String(sectionData.description || 'Find the perfect plants for your space and lifestyle'))
+                      __html: String(sectionData.description || '<p>Find the perfect plants for your space and lifestyle</p>')
                     }}
                   />
                 </div>
