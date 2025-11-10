@@ -16,15 +16,12 @@ NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key  # Required for unrestricted access
 
-# R2 Configuration
+# R2 Configuration (Required for event uploads)
 R2_ACCOUNT_ID=your-cloudflare-account-id
 R2_ACCESS_KEY_ID=your-r2-access-key
 R2_SECRET_ACCESS_KEY=your-r2-secret-key
 R2_BUCKET_NAME=your-bucket-name
 NEXT_PUBLIC_CDN_URL=https://your-cdn-url.com
-
-# Enable R2 Storage (for new uploads)
-NEXT_PUBLIC_EVENT_STORAGE_R2=true
 ```
 
 ### 2. R2 Bucket Setup
@@ -357,13 +354,7 @@ After successful migration and verification (recommended: wait 1-2 weeks):
    # Be absolutely certain before deleting!
    ```
 
-2. **Update environment variables**:
-   ```bash
-   # Ensure R2 is the primary storage
-   NEXT_PUBLIC_EVENT_STORAGE_R2=true
-   ```
-
-3. **Remove migration timestamps** (optional):
+2. **Remove migration timestamps** (optional):
    ```sql
    -- Optional: Remove migration tracking column
    ALTER TABLE event_media DROP COLUMN IF EXISTS migrated_at;

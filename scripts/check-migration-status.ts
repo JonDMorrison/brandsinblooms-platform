@@ -145,7 +145,6 @@ async function checkMigrationStatus() {
     // Check R2 configuration
     console.log('\n' + '-'.repeat(80));
     console.log('R2 CONFIGURATION:');
-    console.log(`  R2 Enabled: ${process.env.NEXT_PUBLIC_EVENT_STORAGE_R2 === 'true' ? 'Yes' : 'No'}`);
     console.log(`  R2 Account: ${process.env.R2_ACCOUNT_ID ? 'Configured' : 'Not configured'}`);
     console.log(`  CDN URL: ${process.env.NEXT_PUBLIC_CDN_URL || 'Not configured'}`);
 

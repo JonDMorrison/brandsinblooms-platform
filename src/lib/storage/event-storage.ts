@@ -1,7 +1,6 @@
 /**
  * Event Storage Adapter for the Brands in Blooms platform
  * Handles event media and attachment uploads to R2/CDN
- * Provides dual-read support for migration compatibility
  */
 
 import { handleError } from '../types/error-handling';
@@ -226,35 +225,11 @@ export class EventStorageAdapter {
   }
 
   /**
-   * Get media URL with dual-read support
-   * Returns the URL as-is for now (future: handle Supabase to CDN migration)
+   * Get media URL
+   * Returns the URL as-is (for backward compatibility with existing URLs in the database)
    */
   async getMediaUrl(url: string): Promise<string> {
-    // For now, just return the URL as-is
-    // In the future, this method will handle:
-    // 1. Detecting Supabase URLs
-    // 2. Checking if the file exists in R2
-    // 3. Returning the appropriate URL
     return url;
-  }
-
-  /**
-   * Check if a URL is from Supabase storage
-   */
-  isSupabaseUrl(url: string): boolean {
-    try {
-      const urlObj = new URL(url);
-
-      // Check for common Supabase storage patterns
-      return (
-        urlObj.hostname.includes('supabase.co') ||
-        urlObj.hostname.includes('supabase.in') ||
-        urlObj.pathname.includes('/storage/v1/object/')
-      );
-    } catch {
-      // Invalid URL
-      return false;
-    }
   }
 
   /**

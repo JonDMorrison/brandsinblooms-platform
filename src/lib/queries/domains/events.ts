@@ -719,8 +719,8 @@ export async function deleteEventMedia(
     throw SupabaseError.fromPostgrestError(fetchError);
   }
 
-  // Delete the actual file if we have the feature flag enabled
-  if (process.env.NEXT_PUBLIC_EVENT_STORAGE_R2 === 'true' && media && siteId) {
+  // Delete the actual file from R2 if we have siteId
+  if (media && siteId) {
     try {
       const { EventStorageAdapter } = await import('@/lib/storage/event-storage');
       const adapter = new EventStorageAdapter({
@@ -728,30 +728,14 @@ export async function deleteEventMedia(
         eventId: media.event_id,
       });
 
-      // Check if this is a CDN URL (new) or Supabase URL (legacy)
-      if (media.media_url && !adapter.isSupabaseUrl(media.media_url)) {
-        // Delete from R2
+      // Delete from R2
+      if (media.media_url) {
         await adapter.deleteEventFile(media.media_url);
-      } else if (media.media_url && adapter.isSupabaseUrl(media.media_url)) {
-        // Delete from Supabase Storage (legacy)
-        const urlParts = media.media_url.split('/storage/v1/object/public/event-media/');
-        if (urlParts.length === 2) {
-          const filePath = urlParts[1];
-          await supabase.storage.from('event-media').remove([filePath]);
-        }
       }
 
       // Also delete thumbnail if different from main URL
       if (media.thumbnail_url && media.thumbnail_url !== media.media_url) {
-        if (!adapter.isSupabaseUrl(media.thumbnail_url)) {
-          await adapter.deleteEventFile(media.thumbnail_url);
-        } else {
-          const thumbParts = media.thumbnail_url.split('/storage/v1/object/public/event-media/');
-          if (thumbParts.length === 2) {
-            const thumbPath = thumbParts[1];
-            await supabase.storage.from('event-media').remove([thumbPath]);
-          }
-        }
+        await adapter.deleteEventFile(media.thumbnail_url);
       }
     } catch (error) {
       console.error('Failed to delete media file from storage:', error);
@@ -848,8 +832,8 @@ export async function deleteEventAttachment(
     throw SupabaseError.fromPostgrestError(fetchError);
   }
 
-  // Delete the actual file if we have the feature flag enabled
-  if (process.env.NEXT_PUBLIC_EVENT_STORAGE_R2 === 'true' && attachment && siteId) {
+  // Delete the actual file from R2 if we have siteId
+  if (attachment && siteId) {
     try {
       const { EventStorageAdapter } = await import('@/lib/storage/event-storage');
       const adapter = new EventStorageAdapter({
@@ -857,17 +841,9 @@ export async function deleteEventAttachment(
         eventId: attachment.event_id,
       });
 
-      // Check if this is a CDN URL (new) or Supabase URL (legacy)
-      if (attachment.file_url && !adapter.isSupabaseUrl(attachment.file_url)) {
-        // Delete from R2
+      // Delete from R2
+      if (attachment.file_url) {
         await adapter.deleteEventFile(attachment.file_url);
-      } else if (attachment.file_url && adapter.isSupabaseUrl(attachment.file_url)) {
-        // Delete from Supabase Storage (legacy)
-        const urlParts = attachment.file_url.split('/storage/v1/object/public/event-attachments/');
-        if (urlParts.length === 2) {
-          const filePath = urlParts[1];
-          await supabase.storage.from('event-attachments').remove([filePath]);
-        }
       }
     } catch (error) {
       console.error('Failed to delete attachment file from storage:', error);

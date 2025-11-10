@@ -1,29 +1,22 @@
 # Event Storage Migration - Phase 2 Implementation
 
 ## Overview
-Phase 2 of the events storage migration has been successfully implemented. The event upload flow now supports both R2/CDN and legacy Supabase Storage, controlled by a feature flag.
-
-## Feature Flag
-- **Environment Variable**: `NEXT_PUBLIC_EVENT_STORAGE_R2`
-- **Default**: `false` (uses Supabase Storage)
-- **To Enable**: Set `NEXT_PUBLIC_EVENT_STORAGE_R2=true` in `.env.local`
+Phase 2 of the events storage migration has been successfully implemented. The event upload flow now uses R2/CDN for all new uploads. Legacy Supabase Storage URLs in the database remain accessible for backward compatibility.
 
 ## Modified Files
 
 ### 1. Event Edit Page (`app/dashboard/events/edit/[id]/page.tsx`)
 - **Changes**:
-  - Added import for `EventStorageAdapter`
-  - Added feature flag check `USE_R2_STORAGE`
-  - Modified `onDropImages` to use adapter when flag is enabled
-  - Modified `onDropAttachments` to use adapter when flag is enabled
-  - Maintains backward compatibility with Supabase Storage
+  - Uses `EventStorageAdapter` for all uploads
+  - `onDropImages` always uses R2 storage
+  - `onDropAttachments` always uses R2 storage
+  - No feature flag required
 
 ### 2. Event Queries (`src/lib/queries/domains/events.ts`)
 - **Changes**:
-  - `deleteEventMedia()` - Added dual-delete support
-  - `deleteEventAttachment()` - Added dual-delete support
-  - Detects URL type (Supabase vs CDN)
-  - Deletes from appropriate storage backend
+  - `deleteEventMedia()` - Always deletes from R2
+  - `deleteEventAttachment()` - Always deletes from R2
+  - No URL type detection needed
   - Soft-deletes database record regardless of file deletion success
 
 ### 3. Event Hooks (`src/hooks/useEvents.ts`)
@@ -41,13 +34,15 @@ Phase 2 of the events storage migration has been successfully implemented. The e
 
 ### 5. Event Storage Adapter (`src/lib/storage/event-storage.ts`)
 - **Updated**:
+  - Simplified to always use R2
+  - Removed Supabase URL detection
   - Added `credentials: 'include'` for API calls
   - Ensures cookies are sent for authentication
 
-## Dual-Read/Delete Pattern
+## Storage Pattern
 
-### URL Detection
-The system automatically detects whether a URL is from Supabase or CDN:
+### R2-Only Uploads
+All new uploads go directly to R2/CDN:
 ```typescript
 // Supabase URL patterns:
 // - hostname includes 'supabase.co' or 'supabase.in'
@@ -68,7 +63,6 @@ The system automatically detects whether a URL is from Supabase or CDN:
 ## Testing Checklist
 
 ### Upload Testing
-- [ ] Set `NEXT_PUBLIC_EVENT_STORAGE_R2=true` in `.env.local`
 - [ ] Upload single image to event
 - [ ] Upload multiple images in batch
 - [ ] Upload PDF attachment
@@ -76,46 +70,23 @@ The system automatically detects whether a URL is from Supabase or CDN:
 - [ ] Verify images display correctly
 
 ### Delete Testing
-- [ ] Delete newly uploaded media (CDN URL)
-- [ ] Delete legacy media (Supabase URL)
-- [ ] Delete attachment (both CDN and Supabase)
+- [ ] Delete uploaded media (CDN URL)
+- [ ] Delete attachment
 - [ ] Verify soft-delete in database
-- [ ] Verify file removal from storage
+- [ ] Verify file removal from R2 storage
 
-### Rollback Testing
-- [ ] Set `NEXT_PUBLIC_EVENT_STORAGE_R2=false`
-- [ ] Verify uploads go to Supabase Storage
-- [ ] Verify existing CDN URLs still display
-- [ ] Verify delete still works for both URL types
+## Deployment Strategy
 
-## Migration Strategy
-
-### Phase 1: Testing (Current)
-1. Enable flag in development/staging
-2. Test all upload/delete scenarios
+### Testing (Development/Staging)
+1. Test all upload/delete scenarios
+2. Verify R2 configuration
 3. Monitor for issues
 
-### Phase 2: Gradual Rollout
-1. Enable for specific sites/users
-2. Monitor performance and errors
-3. Gather feedback
-
-### Phase 3: Full Migration
-1. Enable globally
-2. Migrate existing Supabase files to R2 (separate script)
-3. Update all URLs in database
-
-### Phase 4: Cleanup
-1. Remove Supabase Storage code paths
-2. Remove feature flag
-3. Archive Supabase Storage buckets
-
-## Rollback Procedure
-
-If issues arise, rollback is simple:
-1. Set `NEXT_PUBLIC_EVENT_STORAGE_R2=false`
-2. System immediately reverts to Supabase Storage
-3. All existing data (both CDN and Supabase URLs) continues to work
+### Production Deployment
+1. Ensure R2 environment variables are configured
+2. Deploy updated code
+3. Monitor upload/delete operations
+4. Verify CDN performance
 
 ## Performance Benefits
 
@@ -184,14 +155,13 @@ pnpm dev
 - Check browser console for detailed error messages
 - Network tab shows presigned URL requests
 - R2 bucket can be inspected via Cloudflare dashboard
-- Supabase Storage can be checked via Supabase dashboard
 
 ### Common Issues
 1. **401 Unauthorized**: Check user is logged in
 2. **403 Forbidden**: Verify user owns the site
-3. **Upload fails**: Check file size limits
+3. **Upload fails**: Check file size limits and R2 configuration
 4. **Delete fails**: File may not exist (non-critical)
 
 ## Conclusion
 
-Phase 2 implementation is complete and ready for testing. The dual-storage approach ensures zero downtime and easy rollback if needed. The feature flag allows gradual migration with minimal risk.
+Phase 2 implementation uses R2/CDN storage exclusively for all event uploads. R2 configuration is required for event uploads to work.

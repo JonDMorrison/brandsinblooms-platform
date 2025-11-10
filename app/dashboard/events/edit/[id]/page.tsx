@@ -48,14 +48,11 @@ import { RichTextEditor } from '@/src/components/content-editor/RichTextEditor'
 import { PageAssociationsTab } from '@/src/components/events/PageAssociationsTab'
 import { RepeatEventModal, type GeneratedOccurrence } from '@/src/components/events/RepeatEventModal'
 import type { EventStatus } from '@/src/lib/queries/domains/events'
-import { createEventOccurrence, updateEventOccurrence, setEventFeaturedImage } from '@/src/lib/queries/domains/events'
+import { setEventFeaturedImage } from '@/src/lib/queries/domains/events'
 import { supabase } from '@/lib/supabase/client'
 import { EventStorageAdapter } from '@/src/lib/storage/event-storage'
 import { TIMEZONES, getUserTimezone } from '@/src/lib/timezones'
 import { cn } from '@/lib/utils'
-
-// Feature flag for R2 storage
-const USE_R2_STORAGE = process.env.NEXT_PUBLIC_EVENT_STORAGE_R2 === 'true'
 
 const eventFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -452,31 +449,12 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
     try {
       const uploadPromises = acceptedFiles.map(async (file, index) => {
-        let publicUrl: string
-
-        if (USE_R2_STORAGE) {
-          // Use R2 storage with EventStorageAdapter
-          const adapter = new EventStorageAdapter({
-            siteId,
-            eventId,
-          })
-          publicUrl = await adapter.uploadEventMedia(file, eventId, siteId)
-        } else {
-          // Use Supabase storage (legacy)
-          const fileName = `${eventId}/${Date.now()}-${index}-${file.name}`
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('event-media')
-            .upload(fileName, file)
-
-          if (uploadError) throw uploadError
-
-          // Get public URL
-          const { data: { publicUrl: url } } = supabase.storage
-            .from('event-media')
-            .getPublicUrl(fileName)
-
-          publicUrl = url
-        }
+        // Always use R2 storage with EventStorageAdapter
+        const adapter = new EventStorageAdapter({
+          siteId,
+          eventId,
+        })
+        const publicUrl = await adapter.uploadEventMedia(file, eventId, siteId)
 
         // Create media record
         await addMediaMutation.mutateAsync({
@@ -539,30 +517,12 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
     try {
       const uploadPromises = acceptedFiles.map(async (file, index) => {
-        let publicUrl: string
-
-        if (USE_R2_STORAGE) {
-          // Use R2 storage with EventStorageAdapter
-          const adapter = new EventStorageAdapter({
-            siteId,
-            eventId,
-          })
-          publicUrl = await adapter.uploadEventAttachment(file, eventId, siteId)
-        } else {
-          // Use Supabase storage (legacy)
-          const fileName = `${eventId}/${Date.now()}-${index}-${file.name}`
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('event-attachments')
-            .upload(fileName, file)
-
-          if (uploadError) throw uploadError
-
-          const { data: { publicUrl: url } } = supabase.storage
-            .from('event-attachments')
-            .getPublicUrl(fileName)
-
-          publicUrl = url
-        }
+        // Always use R2 storage with EventStorageAdapter
+        const adapter = new EventStorageAdapter({
+          siteId,
+          eventId,
+        })
+        const publicUrl = await adapter.uploadEventAttachment(file, eventId, siteId)
 
         await addAttachmentMutation.mutateAsync({
           eventId,
