@@ -42,15 +42,11 @@ Request → Middleware → Check Cache → Cache Hit? → Serve Site
 Configure cache TTL (Time-To-Live) for different environments and domain types:
 
 ```bash
-# Development Cache TTL (seconds)
-# Short TTL for faster iteration and testing
-SITE_CACHE_TTL_DEV=60                    # Default: 60 seconds (1 minute)
-
-# Production: Subdomain Cache TTL (seconds)
+# Subdomain Cache TTL (seconds)
 # Subdomains change less frequently, cache longer
 SITE_CACHE_TTL_SUBDOMAIN=3600            # Default: 3600 seconds (1 hour)
 
-# Production: Custom Domain Cache TTL (seconds)
+# Custom Domain Cache TTL (seconds)
 # Custom domains may change more frequently
 SITE_CACHE_TTL_CUSTOM_DOMAIN=1800        # Default: 1800 seconds (30 minutes)
 
@@ -63,7 +59,7 @@ SITE_CACHE_MAX_SIZE=1000                 # Maximum number of cached entries
 
 | Environment | Subdomain TTL | Custom Domain TTL | Reasoning |
 |-------------|---------------|-------------------|-----------|
-| **Development** | 60s (1 min) | 60s (1 min) | Fast iteration, see changes quickly |
+| **Development** | 10s | 10s | Fast iteration, see changes quickly |
 | **Staging** | 300s (5 min) | 300s (5 min) | Balance between testing and performance |
 | **Production** | 3600s (1 hour) | 1800s (30 min) | Optimal performance, rare changes |
 | **High-traffic** | 7200s (2 hours) | 3600s (1 hour) | Maximum performance |
