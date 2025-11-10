@@ -1,13 +1,19 @@
 'use client';
 
 /**
- * Color picker for rich text editor with theme color presets
+ * Color picker dialog for rich text editor with theme color presets
  * Allows users to set text color overriding theme defaults
  */
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { SketchPicker, ColorResult } from 'react-color';
-import { useFloating, autoUpdate, offset, flip, shift, FloatingPortal } from '@floating-ui/react';
+import { HexColorPicker } from 'react-colorful';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Palette, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -58,23 +64,10 @@ function getThemeColors(): ThemeColors {
 export function ColorPicker({ editor, size = 'sm', variant = 'ghost', disabled = false }: ColorPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [customColor, setCustomColor] = useState<string>('#000000');
-  const buttonRef = React.useRef<HTMLButtonElement>(null);
-
-  // Floating UI setup
-  const { refs, floatingStyles } = useFloating({
-    open: isOpen,
-    onOpenChange: setIsOpen,
-    whileElementsMounted: autoUpdate,
-    middleware: [
-      offset(10),
-      flip({ padding: 8 }),
-      shift({ padding: 8 })
-    ],
-    placement: 'bottom-start'
-  });
+  const [hexInputValue, setHexInputValue] = useState<string>('#000000');
 
   // Get theme colors
-  const themeColors = useMemo(() => getThemeColors(), [isOpen]);
+  const themeColors = useMemo(() => getThemeColors(), []);
 
   // Get current text color from editor
   const currentColor = useMemo(() => {
@@ -83,54 +76,68 @@ export function ColorPicker({ editor, size = 'sm', variant = 'ghost', disabled =
   }, [editor, editor?.state.selection]);
 
   // Handle theme preset selection
-  const handleThemeColorSelect = useCallback((color: string, colorName: string) => {
+  const handleThemeColorSelect = useCallback((color: string) => {
     if (!editor) return;
-
     editor.chain().focus().setColor(color).run();
     setIsOpen(false);
   }, [editor]);
 
-  // Handle custom color change from SketchPicker
-  const handleCustomColorChange = useCallback((color: ColorResult) => {
-    setCustomColor(color.hex);
-  }, []);
-
-  // Apply custom color
+  // Handle custom color apply
   const handleCustomColorApply = useCallback(() => {
     if (!editor) return;
-
     editor.chain().focus().setColor(customColor).run();
     setIsOpen(false);
   }, [editor, customColor]);
 
-  // Remove color (revert to theme default)
+  // Handle remove color
   const handleRemoveColor = useCallback(() => {
     if (!editor) return;
-
     editor.chain().focus().unsetColor().run();
     setIsOpen(false);
   }, [editor]);
 
-  // Update custom color when current color changes
-  useEffect(() => {
-    if (currentColor) {
-      setCustomColor(currentColor);
-    }
-  }, [currentColor]);
+  // Handle hex input change
+  const handleHexInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
 
-  // Check if editor is active and has selection
+    // Always update the input display
+    setHexInputValue(value);
+
+    // Ensure it starts with #
+    if (!value.startsWith('#')) {
+      value = '#' + value;
+      setHexInputValue(value);
+    }
+
+    // Only update customColor if it's a valid 6-character hex
+    if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+      setCustomColor(value);
+    }
+  }, []);
+
+  // Initialize custom color and hex input when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      const editorColor = editor?.getAttributes('textStyle').color || '#000000';
+      setCustomColor(editorColor);
+      setHexInputValue(editorColor);
+    }
+  }, [isOpen]); // Only depend on isOpen to prevent resets
+
+  // Sync hex input when customColor changes from color picker
+  useEffect(() => {
+    setHexInputValue(customColor);
+  }, [customColor]);
+
+  // Check if editor is active
   const isActive = editor?.isActive('textStyle', { color: currentColor || undefined }) || false;
 
   return (
     <>
       <Button
-        ref={(el) => {
-          buttonRef.current = el;
-          refs.setReference(el);
-        }}
         size={size}
         variant={isActive ? 'secondary' : variant}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen(true)}
         disabled={disabled || !editor}
         className={cn(
           'relative',
@@ -140,7 +147,6 @@ export function ColorPicker({ editor, size = 'sm', variant = 'ghost', disabled =
         title="Text color"
         aria-label="Text color"
         aria-pressed={isActive}
-        aria-expanded={isOpen}
       >
         <Palette className={cn(
           size === 'sm' && 'h-3.5 w-3.5',
@@ -155,30 +161,20 @@ export function ColorPicker({ editor, size = 'sm', variant = 'ghost', disabled =
         )}
       </Button>
 
-      {/* Color Picker Popover */}
-      {isOpen && (
-        <FloatingPortal>
-          <div
-            ref={refs.setFloating}
-            style={floatingStyles}
-            className={cn(
-              'z-50 rounded-lg border bg-popover shadow-lg',
-              'animate-in fade-in-0 zoom-in-95 duration-150',
-              'p-4'
-            )}
-            onMouseDown={(e) => {
-              // Prevent editor blur when clicking inside popover
-              e.preventDefault();
-            }}
-            role="dialog"
-            aria-label="Color picker"
-          >
+      {/* Color Picker Dialog */}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Text Color</DialogTitle>
+          </DialogHeader>
+
+          <div className="py-4">
             {/* Theme Color Presets */}
             <div className="mb-4">
               <div className="text-xs font-medium text-muted-foreground mb-2">
                 Theme Colors
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-center">
                 {[
                   { color: themeColors.primary, label: 'Primary' },
                   { color: themeColors.secondary, label: 'Secondary' },
@@ -187,7 +183,7 @@ export function ColorPicker({ editor, size = 'sm', variant = 'ghost', disabled =
                 ].map(({ color, label }) => (
                   <button
                     key={label}
-                    onClick={() => handleThemeColorSelect(color, label)}
+                    onClick={() => handleThemeColorSelect(color)}
                     className={cn(
                       'flex flex-col items-center gap-1 p-2 rounded-md hover:bg-accent transition-colors',
                       currentColor === color && 'bg-accent'
@@ -210,52 +206,57 @@ export function ColorPicker({ editor, size = 'sm', variant = 'ghost', disabled =
               </div>
             </div>
 
-            <Separator className="my-3" />
+            <Separator className="my-4" />
 
             {/* Custom Color Picker */}
-            <div className="mb-3">
-              <div className="text-xs font-medium text-muted-foreground mb-2">
+            <div className="mb-4">
+              <div className="text-xs font-medium text-muted-foreground mb-3">
                 Custom Color
               </div>
-              <SketchPicker
-                color={customColor}
-                onChange={handleCustomColorChange}
-                disableAlpha={true}
-                presetColors={[
-                  '#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff',
-                  '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#800080'
-                ]}
-                width="240px"
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2 pt-2">
-              <Button
-                size="sm"
-                onClick={handleCustomColorApply}
-                className="flex-1"
-              >
-                Apply
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleRemoveColor}
-                className="flex-1"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Remove
-              </Button>
-            </div>
-
-            {/* Close hint */}
-            <div className="text-[10px] text-muted-foreground text-center mt-2">
-              Press <kbd className="px-1 py-0.5 bg-muted rounded text-[9px]">Esc</kbd> to close
+              <div className="flex flex-col items-center gap-3">
+                <HexColorPicker
+                  color={customColor}
+                  onChange={setCustomColor}
+                  style={{ width: '100%' }}
+                />
+                <div className="w-full">
+                  <label htmlFor="hex-input" className="text-xs text-muted-foreground mb-1 block">
+                    HEX
+                  </label>
+                  <input
+                    id="hex-input"
+                    type="text"
+                    value={hexInputValue}
+                    onChange={handleHexInputChange}
+                    className={cn(
+                      'w-full px-3 py-2 text-sm rounded-md border border-input',
+                      'bg-background text-foreground',
+                      'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                      'placeholder:text-muted-foreground'
+                    )}
+                    placeholder="#000000"
+                    maxLength={7}
+                    spellCheck={false}
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </FloatingPortal>
-      )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleRemoveColor}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Remove Color
+            </Button>
+            <Button onClick={handleCustomColorApply}>
+              Apply Color
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -182,12 +182,12 @@ export function HeroPreview({
               format="plain"
               singleLine={true}
               className={`${responsive.typography.heroHeadline} mb-6 block`}
-              style={{ 
+              style={{
                 color: 'var(--theme-text)',
                 fontFamily: 'var(--theme-font-heading)'
               }}
               placeholder="Enter your headline..."
-              showToolbar={false}
+              showToolbar={true}
               debounceDelay={0}
             />
           )}
@@ -243,7 +243,7 @@ export function HeroPreview({
                         fontFamily: 'inherit'
                       }}
                       placeholder="Add button text..."
-                      showToolbar={false}
+                      showToolbar={true}
                       debounceDelay={0}
                     />
                     {/* Link Settings Icon */}
@@ -284,7 +284,7 @@ export function HeroPreview({
                         fontFamily: 'inherit'
                       }}
                       placeholder="Add button text..."
-                      showToolbar={false}
+                      showToolbar={true}
                       debounceDelay={0}
                     />
                   </SmartLink>
@@ -316,7 +316,7 @@ export function HeroPreview({
                         fontFamily: 'inherit'
                       }}
                       placeholder="Add secondary button text..."
-                      showToolbar={false}
+                      showToolbar={true}
                       debounceDelay={0}
                     />
                     {/* Link Settings Icon */}
@@ -357,7 +357,7 @@ export function HeroPreview({
                         fontFamily: 'inherit'
                       }}
                       placeholder="Add secondary button text..."
-                      showToolbar={false}
+                      showToolbar={true}
                       debounceDelay={0}
                     />
                   </SmartLink>
@@ -403,7 +403,7 @@ export function HeroPreview({
                         fontFamily: 'var(--theme-font-body)'
                       }}
                       placeholder="Add feature text..."
-                      showToolbar={false}
+                      showToolbar={true}
                       debounceDelay={0}
                     />
                   </div>
