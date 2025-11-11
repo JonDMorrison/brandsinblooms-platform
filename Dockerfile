@@ -112,5 +112,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # Use tini for proper signal handling
 ENTRYPOINT ["/sbin/tini", "--"]
 
-# Start with our custom entrypoint that handles migrations
-CMD ["/app/scripts/docker-entrypoint.sh"]
+# Start Next.js directly (migrations/seeds handled separately)
+CMD ["node", "server.js"]
