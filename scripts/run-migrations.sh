@@ -57,10 +57,9 @@ run_migrations() {
         log "info" "Migration attempt $attempt of $RETRY_COUNT"
         
         # Set timeout for the operation
-        timeout $MIGRATION_TIMEOUT supabase db push \
+        # Use echo "n" to automatically decline seed prompts
+        echo "n" | timeout $MIGRATION_TIMEOUT supabase db push \
             --db-url "$db_url" \
-            --include-seed false \
-            --include-roles false \
             2>&1 | while IFS= read -r line; do
                 echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [SUPABASE] $line"
             done
