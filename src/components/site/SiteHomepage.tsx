@@ -23,7 +23,6 @@ export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
   const isMainDomain = typeof window !== 'undefined' ? (
     window.location.hostname === 'localhost' ||
     (window.location.hostname.includes('staging') && !window.location.hostname.includes('.')) ||
-    window.location.hostname.includes('.vercel.app') ||
     window.location.hostname.includes('.railway.app') ||
     window.location.hostname === process.env.NEXT_PUBLIC_APP_DOMAIN
   ) : true // During SSR, assume main domain if we have fallback content

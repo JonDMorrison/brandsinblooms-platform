@@ -171,7 +171,6 @@ export function SiteProvider({
 
       const isMainDomain = hostname === appDomain ||
                           hostname === appDomainWithoutPort ||
-                          hostname.endsWith('.vercel.app') ||
                           hostname.endsWith('.railway.app') ||
                           hostname === 'localhost'
 
@@ -540,7 +539,6 @@ export function SiteProvider({
                           hostname === appDomain ||
                           hostname === appDomainWithoutPort ||
                           hostname.includes('staging') ||
-                          hostname.endsWith('.vercel.app') ||
                           hostname.endsWith('.railway.app')
 
       debug.site('SiteProvider - Browser environment detected:', {
@@ -715,7 +713,6 @@ export const useCurrentSite = () => {
   const isMainDomain = typeof window !== 'undefined' && (
     window.location.hostname === 'localhost' ||
     window.location.hostname.includes('staging') ||
-    window.location.hostname.includes('.vercel.app') ||
     window.location.hostname.includes('.railway.app')
   )
   

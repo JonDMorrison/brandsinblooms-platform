@@ -54,7 +54,7 @@ Before deploying to production, verify the following:
 
 ### Required Environment Variables
 
-Configure these in your production environment (Railway, Vercel, etc.):
+Configure these in your production environment (Railway):
 
 ```bash
 # Scraping Service
@@ -79,21 +79,6 @@ SCRAPING_SERVICE_MAX_RETRIES = 2
 ```
 
 5. Click "Deploy" to apply changes
-
-### Vercel Deployment
-
-```bash
-# Using Vercel CLI
-vercel env add SCRAPING_SERVICE_URL production
-vercel env add SCRAPING_SERVICE_SALT production
-vercel env add SCRAPING_SERVICE_TIMEOUT production
-vercel env add SCRAPING_SERVICE_MAX_RETRIES production
-
-# Or via Vercel Dashboard
-# 1. Go to Project Settings > Environment Variables
-# 2. Add each variable for "Production" environment
-# 3. Redeploy to apply changes
-```
 
 ### Other Platforms
 
@@ -174,9 +159,6 @@ SCRAPING_SERVICE_TIMEOUT=60000
 ```bash
 # For Railway
 git push origin main
-
-# For Vercel
-vercel --prod
 
 # For manual deployment
 pnpm build
@@ -407,9 +389,6 @@ If issues arise after deployment:
 ```bash
 # Railway
 railway rollback
-
-# Vercel
-vercel rollback
 
 # Manual
 git revert <commit-hash>

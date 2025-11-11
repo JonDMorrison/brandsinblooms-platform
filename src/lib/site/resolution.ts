@@ -101,7 +101,6 @@ function isMainPlatformDomain(hostname: string): boolean {
   return (
     hostnameWithoutPort === appDomain ||
     hostnameWithoutPort === appDomainWithoutPort ||
-    hostname.endsWith('.vercel.app') ||
     hostname.endsWith('.railway.app')
   )
 }

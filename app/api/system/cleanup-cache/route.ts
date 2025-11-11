@@ -42,12 +42,6 @@ function validateCronAuth(request: ApiRequest<void>): boolean {
     return true
   }
 
-  // Check for Vercel cron header
-  const cronHeader = request.headers.get('x-vercel-cron')
-  if (cronHeader === '1') {
-    return true
-  }
-
   // Check for custom cron secret
   if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
     return true

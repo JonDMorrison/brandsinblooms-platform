@@ -46,7 +46,6 @@ function getPreviewUrl(site: any): string {
     pathname: window.location.pathname,
     isLocalhost: window.location.hostname === 'localhost',
     isStaging: window.location.hostname.includes('blooms-staging.cc'),
-    isVercel: window.location.hostname.includes('.vercel.app'),
     isRailway: window.location.hostname.includes('.railway.app'),
     proposedFallbackUrl: `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`
   } : 'SSR_MODE';

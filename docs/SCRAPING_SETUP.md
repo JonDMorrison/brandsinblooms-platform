@@ -44,7 +44,7 @@ The salt is used for MD5 authentication with the scraping service. It ensures on
 
 ### For Production
 
-The salt should be configured as an environment variable in your deployment platform (Railway, Vercel, etc.). See [SCRAPING_DEPLOYMENT.md](./SCRAPING_DEPLOYMENT.md) for production setup instructions.
+The salt should be configured as an environment variable in your deployment platform (Railway). See [SCRAPING_DEPLOYMENT.md](./SCRAPING_DEPLOYMENT.md) for production setup instructions.
 
 ## Testing the Configuration
 
