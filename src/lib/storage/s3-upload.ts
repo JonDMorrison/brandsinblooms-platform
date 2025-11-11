@@ -320,7 +320,7 @@ export async function getPresignedUploadUrl(
         uploadUrl: result.data.uploadUrl,
         fields: result.data.fields || {},
         url: result.data.publicUrl,  // Map publicUrl to url for compatibility
-        cdnUrl: result.data.cdnUrl,
+        cdnUrl: result.data.publicUrl, // Use publicUrl as cdnUrl since API handles CDN logic
       },
     };
 
