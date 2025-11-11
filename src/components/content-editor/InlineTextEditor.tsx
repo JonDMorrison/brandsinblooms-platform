@@ -13,6 +13,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Heading from '@tiptap/extension-heading';
 import { useDebounceCallback } from '@/hooks/useDebounce';
+import { useSiteId } from '@/contexts/SiteContext';
 import { cn } from '@/src/lib/utils';
 import { FloatingToolbar } from './FloatingToolbar';
 import { SimpleFloatingToolbar } from './SimpleFloatingToolbar';
@@ -47,8 +48,12 @@ const InlineTextEditorComponent = ({
   debounceDelay = 500,
   showToolbar = true,
   singleLine = false,
-  siteId
+  siteId: siteIdProp
 }: InlineTextEditorProps) => {
+  // Get siteId from context if not provided as prop
+  const siteIdFromContext = useSiteId();
+  const siteId = siteIdProp || siteIdFromContext;
+
   const [isEditing, setIsEditing] = useState(false);
   const [showFloatingToolbar, setShowFloatingToolbar] = useState(false);
   const [selectionRange, setSelectionRange] = useState<{ from: number; to: number } | null>(null);
