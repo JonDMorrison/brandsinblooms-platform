@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { SiteThemeProvider, ThemeWrapper } from '@/src/components/theme/ThemeProvider'
 import { SiteLayout } from '@/src/components/layout/SiteLayout'
 import { ProductCatalog } from '@/src/components/site/ProductCatalog'
+import { getAppDomainWithoutPort } from '@/src/lib/env/app-domain'
 
 interface SiteHomepageProps {
   isMainDomain?: boolean

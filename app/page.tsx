@@ -16,8 +16,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   // Get search parameters
   const searchParamsData = await searchParams
 
-  // Get app domain from environment
+  // Get app domain from environment (with port for comparison)
   const appDomain = getAppDomain()
+  // Check if this is a subdomain (not the main platform domain)
   const isSubdomain = host.includes('.') && host !== appDomain && !host.startsWith('localhost:')
 
   if (isSubdomain) {
