@@ -161,11 +161,24 @@ http://blooms.local:3001/forgot-password
 
 ## Staging & Production Deployment
 
+This guide covers deploying to Supabase Cloud (hosted projects) for staging and production environments.
+
+**Important**: Hosted Supabase projects use the **Dashboard** for SMTP configuration, NOT `supabase/config.toml`. The config.toml file only applies to local development with Supabase CLI.
+
+### Configuration Overview
+
+| Environment | Supabase Type | Config Location | SMTP Config Method |
+|-------------|---------------|-----------------|-------------------|
+| **Local** | Docker (CLI) | `supabase/config.toml` | config.toml file |
+| **Staging** | Cloud (Hosted) | Dashboard + .env.staging | Dashboard only |
+| **Production** | Cloud (Hosted) | Dashboard + .env.production | Dashboard only |
+
 ### Prerequisites
 
 1. Verified domain in Resend dashboard
 2. Production Resend API key
 3. Access to Supabase Dashboard for your hosted project
+4. Hosting platform access (Railway, Vercel, etc.)
 
 ### Step 1: Verify Domain in Resend
 
@@ -181,62 +194,178 @@ http://blooms.local:3001/forgot-password
 5. Wait for verification (usually 1-5 minutes)
 6. Confirm domain is "Verified" in dashboard
 
-### Step 2: Configure Supabase Dashboard (Hosted Project)
+### Step 2: Create Supabase Cloud Project
 
-For staging and production, configure SMTP in your Supabase project dashboard:
+If you don't already have a staging/production Supabase project:
 
 1. Go to [app.supabase.com](https://app.supabase.com)
-2. Select your project (staging or production)
-3. Navigate to **Authentication** > **Email**
-4. Scroll to **SMTP Settings**
-5. Configure:
+2. Click **New Project**
+3. Configure project:
+   - **Name**: `brands-blooms-staging` (or `brands-blooms-production`)
+   - **Database Password**: Generate a strong password (save this!)
+   - **Region**: Choose closest to your users
+   - **Pricing Plan**: Select appropriate plan
+4. Click **Create new project** (takes 2-3 minutes)
+
+### Step 3: Get Supabase Credentials
+
+Once your project is created:
+
+1. In the Supabase Dashboard, navigate to **Settings** > **API**
+2. Copy the following credentials:
+   - **Project URL**: `https://xxxxx.supabase.co`
+   - **anon public key**: `eyJhbGc...` (for client-side)
+   - **service_role secret**: `eyJhbGc...` (for server-side only!)
+3. Navigate to **Settings** > **Database**
+4. Copy the **Connection string** (URI format)
+
+**Security Note**: Never commit service_role keys to version control!
+
+### Step 4: Configure SMTP in Supabase Dashboard
+
+Configure SMTP settings for your hosted Supabase project:
+
+1. In the Supabase Dashboard, navigate to **Authentication** > **Email**
+2. Scroll down to **SMTP Settings**
+3. Toggle **Enable Custom SMTP** to ON
+4. Configure the SMTP settings:
    ```
    SMTP Host: smtp.resend.com
    SMTP Port: 587
    SMTP Username: resend
-   SMTP Password: [Your Resend API Key]
-   Sender Email: noreply@blooms-staging.cc  (or blooms.cc for prod)
+   SMTP Password: [Your Resend API Key - starts with re_]
+   Sender Email: noreply@blooms-staging.cc  (or noreply@blooms.cc for prod)
    Sender Name: Brands & Blooms
    ```
-6. Click **Save**
+5. Click **Save**
+6. Send a test email to verify configuration
 
-**Important**: For hosted Supabase projects (staging/production), you configure SMTP through the dashboard, NOT through `supabase/config.toml`. The config.toml file only applies to local development.
+**Important**: For hosted Supabase projects (staging/production), you configure SMTP through the dashboard, NOT through `supabase/config.toml`. The config.toml file only applies to local development with Supabase CLI.
 
-### Step 3: Set Environment Variables
+### Step 5: Set Environment Variables
 
-In your hosting platform (Railway, Vercel, etc.), set:
+Configure environment variables in your hosting platform (Railway, Vercel, etc.):
 
+**For Staging:**
 ```bash
-# Staging
+# Supabase credentials
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
+DATABASE_URL=postgresql://postgres:[password]@db.xxxxx.supabase.co:5432/postgres
+
+# Resend configuration
 RESEND_API_KEY=re_your_production_api_key
 SMTP_ADMIN_EMAIL=noreply@blooms-staging.cc
 SMTP_SENDER_NAME=Brands & Blooms
 
-# Production
+# App configuration
+NEXT_PUBLIC_APP_URL=https://blooms-staging.cc
+NEXT_PUBLIC_APP_DOMAIN=blooms-staging.cc
+```
+
+**For Production:**
+```bash
+# Supabase credentials
+NEXT_PUBLIC_SUPABASE_URL=https://yyyyy.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
+DATABASE_URL=postgresql://postgres:[password]@db.yyyyy.supabase.co:5432/postgres
+
+# Resend configuration
 RESEND_API_KEY=re_your_production_api_key
 SMTP_ADMIN_EMAIL=noreply@blooms.cc
 SMTP_SENDER_NAME=Brands & Blooms
+
+# App configuration
+NEXT_PUBLIC_APP_URL=https://blooms.cc
+NEXT_PUBLIC_APP_DOMAIN=blooms.cc
 ```
 
-### Step 4: Test Production Emails
+**Security Notes:**
+- Never commit these values to version control
+- Use different API keys for staging and production
+- Store secrets in your hosting platform's environment variable manager
 
-1. Deploy your application
-2. Test magic link sign-in on staging/production
-3. Verify emails in Resend dashboard
-4. Check spam folder if emails don't arrive
+### Step 6: Run Database Migrations
 
-### Step 5: Update Supabase Redirect URLs
+Apply your local migrations to the staging/production database:
 
-Ensure your production URLs are allowed in Supabase Auth:
+```bash
+# Link your Supabase project (one-time setup)
+pnpm supabase link --project-ref xxxxx
 
-1. Go to **Authentication** > **URL Configuration**
-2. Add redirect URLs:
+# Push migrations to remote database
+pnpm supabase db push
+
+# Or reset the database (⚠️ destructive - only for initial setup!)
+pnpm supabase db reset --db-url "postgresql://postgres:[password]@db.xxxxx.supabase.co:5432/postgres"
+```
+
+**Important**: The `db reset` command will delete all data. Only use for initial setup or development databases.
+
+### Step 7: Configure Authentication URLs
+
+Ensure your staging/production URLs are allowed in Supabase Auth:
+
+1. In the Supabase Dashboard, go to **Authentication** > **URL Configuration**
+2. Set **Site URL**:
+   - Staging: `https://blooms-staging.cc`
+   - Production: `https://blooms.cc`
+3. Add **Redirect URLs** (one per line):
    ```
    https://blooms-staging.cc
+   https://blooms-staging.cc/**
    https://*.blooms-staging.cc
+   https://*.blooms-staging.cc/**
    https://blooms.cc
+   https://blooms.cc/**
    https://*.blooms.cc
+   https://*.blooms.cc/**
    ```
+4. Click **Save**
+
+**Note**: Wildcard URLs (`*`) allow all customer subdomains (e.g., `customer1.blooms-staging.cc`).
+
+### Step 8: Deploy Application
+
+Deploy your Next.js application to your hosting platform:
+
+**Railway:**
+```bash
+# Deploy to staging
+pnpm deploy:staging
+
+# Deploy to production
+pnpm deploy:production
+```
+
+**Vercel:**
+```bash
+# Deploy to staging
+vercel --prod --alias staging.blooms-staging.cc
+
+# Deploy to production
+vercel --prod --alias blooms.cc
+```
+
+### Step 9: Test Email Delivery
+
+After deployment, verify email functionality:
+
+1. Navigate to your staging/production site
+2. Go to the sign-in page
+3. Click "Sign in with magic link"
+4. Enter your email address
+5. Check your inbox for the magic link email
+6. Verify email in Resend dashboard at https://resend.com/emails
+
+**If emails don't arrive:**
+- Check spam/junk folder
+- Verify SMTP settings in Supabase Dashboard
+- Check Resend logs at https://resend.com/logs
+- Verify domain is active in Resend
+- Check environment variables are set correctly
 
 ## Domain Verification
 

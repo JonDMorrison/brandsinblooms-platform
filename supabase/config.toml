@@ -210,7 +210,19 @@ admin_email = "noreply@blooms-staging.cc"
 # admin_email = "noreply@blooms.cc"          # Production
 sender_name = "Brands & Blooms"
 
-# Uncomment to customize email template
+# Custom branded email templates
+[auth.email.template.confirmation]
+subject = "Confirm Your Email Address"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.magic_link]
+subject = "Your Magic Link to Sign In"
+content_path = "./supabase/templates/magic-link.html"
+
+[auth.email.template.recovery]
+subject = "Reset Your Password"
+content_path = "./supabase/templates/recovery.html"
+
 # [auth.email.template.invite]
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
