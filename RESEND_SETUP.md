@@ -21,11 +21,11 @@ This platform uses Resend for sending all authentication-related emails:
 - Account confirmation emails
 
 **Current Configuration:**
-- **Local Dev**: Uses verified domain (`noreply@clustera.io`) - Resend SMTP active
-- **Staging**: Should use `noreply@blooms-staging.cc` (requires domain verification)
+- **Local Dev**: Uses verified domain (`noreply@blooms-staging.cc`) - Resend SMTP active
+- **Staging**: Uses same verified domain (`noreply@blooms-staging.cc`)
 - **Production**: Should use `noreply@blooms.cc` (requires domain verification)
 
-**Important Note:** Resend's sandbox/free tier only allows sending emails from verified domains to any recipient, or from the test domain (`onboarding@resend.dev`) to the verified account owner email only. For local development, we use the verified `clustera.io` domain.
+**Important Note:** Resend's sandbox/free tier only allows sending emails from verified domains to any recipient. For local development and staging, we use the verified `blooms-staging.cc` domain. Ensure this domain is verified in your Resend account at https://resend.com/domains before testing.
 
 ## Quick Setup (Local Development)
 

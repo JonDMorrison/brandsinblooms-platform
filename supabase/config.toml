@@ -195,7 +195,7 @@ otp_expiry = 3600
 
 # Resend SMTP Configuration
 # Enable this to use Resend for sending auth emails (magic links, password resets, etc.)
-# For local development: Using verified domain (noreply@clustera.io)
+# For local development: Using blooms-staging.cc verified domain
 # For staging/production: Use your verified domain email (e.g., noreply@blooms.cc)
 # To switch back to Inbucket for local testing, comment out this section
 [auth.email.smtp]
@@ -204,10 +204,9 @@ host = "smtp.resend.com"
 port = 587
 user = "resend"
 pass = "env(RESEND_API_KEY)"
-# For local dev, use your verified domain (Resend sandbox requires verified domain):
-admin_email = "noreply@clustera.io"
-# For staging/production, use your verified domain:
-# admin_email = "noreply@blooms-staging.cc"  # Staging
+# For local dev and staging, use blooms-staging.cc verified domain:
+admin_email = "noreply@blooms-staging.cc"
+# For production, use your production domain:
 # admin_email = "noreply@blooms.cc"          # Production
 sender_name = "Brands & Blooms"
 
