@@ -9,6 +9,7 @@ import React, { memo } from 'react';
 import { ContentRenderer } from './ContentRenderer';
 import { InlineTextEditor } from '@/components/content-editor/InlineTextEditor';
 import { useIsInlineEditEnabled } from '@/contexts/EditModeContext';
+import { useSiteId } from '@/contexts/SiteContext';
 
 interface EditableContentRendererProps {
   content: string;
@@ -18,6 +19,7 @@ interface EditableContentRendererProps {
   className?: string;
   placeholder?: string;
   forceReadOnly?: boolean; // Override inline edit mode for specific fields
+  siteId?: string; // Optional siteId for image uploads (falls back to context if not provided)
 }
 
 const EditableContentRendererComponent = ({
@@ -27,11 +29,14 @@ const EditableContentRendererComponent = ({
   format = 'rich',
   className = '',
   placeholder = 'Click to edit...',
-  forceReadOnly = false
+  forceReadOnly = false,
+  siteId: siteIdProp
 }: EditableContentRendererProps) => {
   const isInlineEditEnabled = useIsInlineEditEnabled();
   const canEdit = isInlineEditEnabled && !forceReadOnly && onUpdate;
-  
+  const siteIdFromContext = useSiteId();
+  const siteId = siteIdProp || siteIdFromContext;
+
   // If inline editing is enabled and we have an update handler, use InlineTextEditor
   if (canEdit) {
     return (
@@ -44,10 +49,11 @@ const EditableContentRendererComponent = ({
         className={className}
         placeholder={placeholder}
         debounceDelay={500}
+        siteId={siteId}
       />
     );
   }
-  
+
   // Otherwise, use standard ContentRenderer
   return <ContentRenderer content={content} className={className} />;
 };
@@ -60,7 +66,8 @@ export const EditableContentRenderer = memo(EditableContentRendererComponent, (p
     prevProps.format === nextProps.format &&
     prevProps.className === nextProps.className &&
     prevProps.placeholder === nextProps.placeholder &&
-    prevProps.forceReadOnly === nextProps.forceReadOnly
+    prevProps.forceReadOnly === nextProps.forceReadOnly &&
+    prevProps.siteId === nextProps.siteId
   );
 });
 

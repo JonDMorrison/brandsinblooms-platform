@@ -210,13 +210,10 @@ export async function getPresignedUploadUrl(
       siteId: requestBody.siteId,
     });
 
-    // Use absolute URL for server-side fetch (works in both browser and Node.js)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL
-      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-      || 'http://localhost:3001';
-    const apiUrl = `${baseUrl}/api/upload/presigned`;
+    // Use relative URL - works on any domain
+    const apiUrl = '/api/upload/presigned';
 
-    console.log('[S3 Upload] Using API URL:', { apiUrl, baseUrl });
+    console.log('[S3 Upload] Using API URL:', { apiUrl });
 
     const response = await fetch(apiUrl, {
       method: 'POST',

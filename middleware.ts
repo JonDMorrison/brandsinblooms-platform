@@ -380,7 +380,6 @@ function isMainAppDomain(hostname: string): boolean {
   return (
     hostname === APP_DOMAIN ||
     hostname === appDomainWithoutPort ||
-    hostname.endsWith('.vercel.app') ||
     hostname.endsWith('.railway.app')
   )
 }

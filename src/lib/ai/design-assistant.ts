@@ -101,7 +101,7 @@ export async function suggestFontPairings(input: {
         headingFont: 'Inter',
         bodyFont: 'Inter',
         reasoning: 'Clean and highly legible system font that works across all devices',
-        example: 'Used by companies like Linear, Vercel, and GitHub'
+        example: 'Used by companies like Linear and GitHub'
       },
       {
         headingFont: 'Poppins',
