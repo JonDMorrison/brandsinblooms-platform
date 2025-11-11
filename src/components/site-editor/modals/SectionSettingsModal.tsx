@@ -13,7 +13,7 @@ import { Label } from '@/src/components/ui/label'
 import { Slider } from '@/src/components/ui/slider'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { ContentSection } from '@/src/lib/content/schema'
-import { Settings, Upload, X, Palette, List } from 'lucide-react'
+import { Settings, Upload, X, Palette, List, Loader2, Cloud } from 'lucide-react'
 import { getAvailableBackgrounds } from '@/src/lib/content/section-backgrounds'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { toast } from 'sonner'
@@ -476,14 +476,32 @@ export function SectionSettingsModal({
                       className="w-full h-32 rounded border bg-cover bg-center"
                       style={{ backgroundImage: `url(${backgroundImage.url})` }}
                     />
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={handleRemoveImage}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+
+                    {/* Loading overlay during upload */}
+                    {isUploading && (
+                      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center rounded">
+                        <Cloud className="h-8 w-8 text-white animate-pulse mb-2" />
+                        <p className="text-sm font-medium text-white mb-2">Uploading...</p>
+                        <div className="w-3/4 h-2 bg-white/20 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-white transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-white/80 mt-1">{Math.round(uploadProgress)}%</p>
+                      </div>
+                    )}
+
+                    {!isUploading && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={handleRemoveImage}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -491,8 +509,12 @@ export function SectionSettingsModal({
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
                     >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Change Image
+                      {isUploading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4 mr-2" />
+                      )}
+                      {isUploading ? 'Uploading...' : 'Change Image'}
                     </Button>
                   </div>
                 ) : (

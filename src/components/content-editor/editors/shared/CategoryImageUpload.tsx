@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/src/components/ui/card'
 import { Button } from '@/src/components/ui/button'
 import { Progress } from '@/src/components/ui/progress'
 import { toast } from 'sonner'
-import { Upload, X, Image as ImageIcon, Cloud } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, Cloud, Loader2 } from 'lucide-react'
 
 interface CategoryImageUploadProps {
   imageUrl: string | null
@@ -194,8 +194,18 @@ export function CategoryImageUpload({
               />
             )}
 
+            {/* Loading overlay during upload */}
+            {isUploading && (
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
+                <Cloud className="h-8 w-8 text-white animate-pulse mb-2" />
+                <p className="text-sm font-medium text-white mb-2">Uploading...</p>
+                <Progress value={uploadProgress} className="h-2 w-3/4 mb-1" />
+                <p className="text-xs text-white/80">{Math.round(uploadProgress)}%</p>
+              </div>
+            )}
+
             {/* Remove button overlay */}
-            {!disabled && (
+            {!disabled && !isUploading && (
               <div className="absolute top-2 right-2">
                 <Button
                   size="sm"
@@ -217,10 +227,15 @@ export function CategoryImageUpload({
             variant="outline"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
             className="w-full"
           >
-            <Upload className="h-3 w-3 mr-2" />
-            Change Image
+            {isUploading ? (
+              <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+            ) : (
+              <Upload className="h-3 w-3 mr-2" />
+            )}
+            {isUploading ? 'Uploading...' : 'Change Image'}
           </Button>
         )}
 
