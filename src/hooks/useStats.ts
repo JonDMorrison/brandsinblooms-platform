@@ -141,7 +141,7 @@ export function useActivityFeed(limit: number = 10) {
     {
       enabled: !!siteId,
       staleTime: 30 * 1000, // 30 seconds for activity feed
-      refetchInterval: 60 * 1000, // Auto-refresh every minute
+      refetchInterval: false, // Disabled polling for placeholder implementation
       persistKey: siteId ? `activity-feed-${siteId}-${limit}` : undefined,
     },
     [siteId, limit] // Re-fetch when siteId or limit changes

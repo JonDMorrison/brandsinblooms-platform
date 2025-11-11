@@ -6,6 +6,7 @@ import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { useAuth } from '@/src/contexts/AuthContext';
+import { stableSerialize } from '@/src/lib/utils/cache-key';
 import {
   getNotifications,
   getEntityNotifications,
@@ -46,7 +47,7 @@ export function useNotifications(filters?: NotificationFilters) {
     };
   }, [client, siteId, user?.id, filters]);
 
-  const persistKey = siteId && user?.id ? `notifications-${siteId}-${user.id}-${JSON.stringify(filters || {})}` : undefined;
+  const persistKey = siteId && user?.id ? `notifications-${siteId}-${user.id}-${stableSerialize(filters || {})}` : undefined;
 
   return useInfiniteSupabase(queryFn, {
     enabled: !!siteId && !!user?.id,
@@ -248,7 +249,7 @@ export function useArchivedNotifications(filters?: Omit<NotificationFilters, 'is
     };
   }, [client, siteId, user?.id, filters]);
 
-  const persistKey = siteId && user?.id ? `archived-notifications-${siteId}-${user.id}-${JSON.stringify(filters || {})}` : undefined;
+  const persistKey = siteId && user?.id ? `archived-notifications-${siteId}-${user.id}-${stableSerialize(filters || {})}` : undefined;
 
   return useInfiniteSupabase(queryFn, {
     enabled: !!siteId && !!user?.id,

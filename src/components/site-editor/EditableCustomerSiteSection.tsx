@@ -25,7 +25,7 @@ interface EditableCustomerSiteSectionProps {
   className?: string
 }
 
-export function EditableCustomerSiteSection({
+export const EditableCustomerSiteSection = React.memo(function EditableCustomerSiteSection({
   children,
   sectionKey,
   section,
@@ -432,4 +432,14 @@ export function EditableCustomerSiteSection({
       />
     </>
   )
-}
+}, (prevProps, nextProps) => {
+  // Only re-render if key props actually changed
+  return (
+    prevProps.sectionKey === nextProps.sectionKey &&
+    prevProps.section.visible === nextProps.section.visible &&
+    prevProps.section.type === nextProps.section.type &&
+    prevProps.className === nextProps.className &&
+    JSON.stringify(prevProps.section.data) === JSON.stringify(nextProps.section.data) &&
+    JSON.stringify(prevProps.sectionData) === JSON.stringify(nextProps.sectionData)
+  )
+})

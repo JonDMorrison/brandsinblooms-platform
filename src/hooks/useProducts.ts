@@ -5,11 +5,11 @@ import { toast } from 'sonner';
 import { supabase } from '@/src/lib/supabase/client';
 import { useSupabaseQuery } from '@/hooks/base/useSupabaseQuery';
 import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
-import { 
-  getProducts, 
-  getProductById, 
-  createProduct, 
-  updateProduct, 
+import {
+  getProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
   deleteProduct,
   getProductsByCategory,
   searchProducts,
@@ -22,12 +22,13 @@ import {
 import { checkAndCreateLowStockNotification } from '../../app/actions/low-stock-notification';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { Product, ProductInsert, ProductUpdate } from '@/src/lib/database/aliases';
+import { stableSerialize } from '@/src/lib/utils/cache-key';
 
 // Main products query hook
 export function useProducts(filters?: ProductFilters) {
   const siteId = useSiteId();
 
-  const cacheKey = `products_${siteId}_${JSON.stringify(filters || {})}`;
+  const cacheKey = `products_${siteId}_${stableSerialize(filters || {})}`;
 
   return useSupabaseQuery(
     async (signal) => {

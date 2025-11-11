@@ -23,6 +23,7 @@ import { useSiteId } from '@/src/contexts/SiteContext';
 import { Content, InsertContent, ContentUpdate } from '@/src/lib/database/aliases';
 import { handleError } from '@/src/lib/types/error-handling';
 import { emitContentChange } from '@/src/lib/events/content-events';
+import { stableSerialize } from '@/src/lib/utils/cache-key';
 
 // Cache management utilities
 const clearContentCaches = (siteId: string) => {
@@ -118,8 +119,8 @@ export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) 
 
   const memoizedDeps = useMemo(() => [
     siteId,
-    JSON.stringify(filters || {}),
-    JSON.stringify(sort || {})
+    stableSerialize(filters || {}),
+    stableSerialize(sort || {})
   ], [siteId, filters, sort]);
 
   const queryResult = useSupabaseQuery(
@@ -127,7 +128,7 @@ export function useContent(filters?: ContentFilters, sort?: ContentSortOptions) 
     {
       enabled: !!siteId,
       staleTime: 2 * 60 * 1000, // 2 minutes for better performance
-      persistKey: `content-list-${siteId}-${JSON.stringify(filters || {})}-${JSON.stringify(sort || {})}`,
+      persistKey: `content-list-${siteId}-${stableSerialize(filters || {})}-${stableSerialize(sort || {})}`,
       onSuccess: (data) => {
         // Validate that returned data belongs to current site
         if (siteId) {
