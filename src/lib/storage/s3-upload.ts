@@ -364,7 +364,9 @@ export async function uploadToS3(
   file: File,
   uploadUrl: string,
   fields: Record<string, string>, // Kept for backwards compatibility but not used with PUT presigned URLs
-  onProgress?: UploadProgressCallback
+  onProgress?: UploadProgressCallback,
+  publicUrl?: string, // Optional publicUrl from presigned response (preferred over reconstructing)
+  key?: string // Optional key from presigned response
 ): Promise<S3UploadResult> {
   try {
     // Validate file
@@ -389,29 +391,36 @@ export async function uploadToS3(
 
       xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          // Extract key from upload URL path
-          // URL format for path-style: http(s)://host/bucket/key
-          // URL format for virtual-hosted: http(s)://bucket.host/key
-          const urlObj = new URL(uploadUrl);
-          const pathParts = urlObj.pathname.split('/').filter(Boolean);
+          // Use key and publicUrl from presigned response if provided (preferred)
+          // Otherwise extract key from upload URL path
+          let finalKey = key;
+          let finalPublicUrl = publicUrl;
+          let finalCdnUrl = publicUrl; // Use publicUrl as cdnUrl since API handles CDN logic
 
-          // For path-style URLs (MinIO/S3): /{bucket}/{key...}
-          // Skip the first part (bucket) and join the rest as the key
-          const key = pathParts.length > 1 ? pathParts.slice(1).join('/') : pathParts.join('/');
+          if (!finalKey || !finalPublicUrl) {
+            // Fallback: extract key from upload URL path
+            // URL format for path-style: http(s)://host/bucket/key
+            // URL format for virtual-hosted: http(s)://bucket.host/key
+            const urlObj = new URL(uploadUrl);
+            const pathParts = urlObj.pathname.split('/').filter(Boolean);
 
-          // Generate public URL using API proxy pattern
-          // This matches the pattern from the presigned URL API route
-          const publicUrl = `/api/images/${key}`;
+            // For path-style URLs (MinIO/S3): /{bucket}/{key...}
+            // Skip the first part (bucket) and join the rest as the key
+            finalKey = pathParts.length > 1 ? pathParts.slice(1).join('/') : pathParts.join('/');
 
-          // Generate CDN URL if configured
-          const cdnUrl = S3_CONFIG.cdnUrl ? `${S3_CONFIG.cdnUrl}/${key}` : undefined;
+            // Generate public URL using API proxy pattern
+            finalPublicUrl = `/api/images/${finalKey}`;
+
+            // Generate CDN URL if configured
+            finalCdnUrl = S3_CONFIG.cdnUrl ? `${S3_CONFIG.cdnUrl}/${finalKey}` : undefined;
+          }
 
           resolve({
             success: true,
             data: {
-              key,
-              url: publicUrl,
-              cdnUrl,
+              key: finalKey,
+              url: finalPublicUrl,
+              cdnUrl: finalCdnUrl,
               etag: xhr.getResponseHeader('ETag')?.replace(/"/g, '') || '',
               size: file.size,
               contentType: file.type,
@@ -933,7 +942,9 @@ export async function uploadFileToS3(
       file,
       presignedResult.data.uploadUrl,
       presignedResult.data.fields,
-      onProgress
+      onProgress,
+      presignedResult.data.url, // Pass publicUrl from presigned response
+      key // Pass the key we generated
     );
   }
 }
