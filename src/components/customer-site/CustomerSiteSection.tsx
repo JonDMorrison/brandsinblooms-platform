@@ -41,8 +41,10 @@ export function CustomerSiteSection({
   backgroundSetting = 'default',
   className = '' 
 }: CustomerSiteSectionProps) {
-  // Don't render if section is not visible or has no data
-  if (!section.visible || !sectionData) {
+  // Don't render if section has no data
+  // Note: Visibility is handled by parent components (DynamicSectionRenderer)
+  // which check the 'available' status before passing sections here
+  if (!sectionData) {
     return null
   }
 
