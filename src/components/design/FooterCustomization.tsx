@@ -300,6 +300,12 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
   }
 
   const addColumn = () => {
+    // Enforce maximum of 3 columns for comprehensive footer
+    if (footerColumns.length >= 3) {
+      toast.error('Maximum 3 columns allowed for comprehensive footer')
+      return
+    }
+
     const newColumns = [...footerColumns, { title: 'New Column', links: [] }]
     const newSettings = {
       ...value,
@@ -730,8 +736,19 @@ export function FooterCustomization({ value, colors, typography, onChange }: Foo
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-3 space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-sm text-muted-foreground">Organize links into columns</Label>
-                <Button size="sm" onClick={addColumn}>
+                <div className="space-y-1">
+                  <Label className="text-sm text-muted-foreground">
+                    Organize links into columns ({footerColumns.length}/3)
+                  </Label>
+                  {footerColumns.length >= 3 && (
+                    <p className="text-xs text-amber-600">Maximum columns reached</p>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  onClick={addColumn}
+                  disabled={footerColumns.length >= 3}
+                >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Column
                 </Button>

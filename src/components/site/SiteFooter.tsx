@@ -281,8 +281,8 @@ export function SiteFooter({ className }: SiteFooterProps) {
                     {column.title}
                   </h4>
                   <ul className="space-y-1">
-                    {column.links.map((link) => (
-                      <li key={link.href}>
+                    {column.links.map((link, linkIndex) => (
+                      <li key={`${index}-${linkIndex}`}>
                         <Link
                           href={link.href}
                           className="text-xs hover:opacity-70 cursor-pointer transition-opacity"

@@ -3,7 +3,7 @@
  * Allows switching between internal page selection and external URL input
  */
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
 import { Button } from '@/src/components/ui/button'
@@ -54,6 +54,14 @@ export function ButtonLinkField({
       onChange('')
     }
   }
+
+  // Auto-initialize internal links with default home page
+  // This ensures the form is always in a valid state when in Page mode
+  useEffect(() => {
+    if (linkMode === 'internal' && !value) {
+      onChange('/')
+    }
+  }, [linkMode, value, onChange])
 
   return (
     <div className={`space-y-2 ${className}`}>
