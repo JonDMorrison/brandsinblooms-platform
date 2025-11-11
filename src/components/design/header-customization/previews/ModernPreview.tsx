@@ -8,7 +8,7 @@ interface ModernPreviewProps extends Pick<HeaderCustomizationProps, 'value' | 'c
 }
 
 export function ModernPreview(props: ModernPreviewProps) {
-  const { value, colors, typography, selectedNavItems } = props
+  const { value, colors, typography } = props
 
   return (
     <div className="flex items-center justify-between">
@@ -16,7 +16,7 @@ export function ModernPreview(props: ModernPreviewProps) {
         <BrandingElement {...props} />
         {/* Desktop Navigation */}
         <nav className="hidden md:flex gap-4 text-sm items-center" style={{ fontFamily: typography?.bodyFont || 'Inter' }}>
-          <NavigationItems selectedNavItems={selectedNavItems} colors={colors} typography={typography} />
+          <NavigationItems value={value} colors={colors} typography={typography} />
         </nav>
       </div>
       <div className="flex items-center gap-3">

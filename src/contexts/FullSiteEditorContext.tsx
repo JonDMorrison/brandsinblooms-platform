@@ -5,7 +5,7 @@
  * Manages state for the full site editor on customer-facing sites
  */
 
-import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode } from 'react'
 import { PageContent, LayoutType, DEFAULT_FEATURED_ITEMS, LAYOUT_SECTIONS, ContentSectionType, ContentSection } from '@/src/lib/content/schema'
 import { usePathname } from 'next/navigation'
 import { toast } from 'sonner'
@@ -1467,7 +1467,7 @@ export function FullSiteEditorProvider({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [state.hasUnsavedChanges])
 
-  const value: FullSiteEditorContextValue = {
+  const value: FullSiteEditorContextValue = useMemo(() => ({
     ...state,
     setEditorMode,
     toggleEditorMode,
@@ -1509,7 +1509,49 @@ export function FullSiteEditorProvider({
     setTopBarVisible,
     setPermissions,
     exitEditor
-  }
+  }), [
+    state,
+    setEditorMode,
+    toggleEditorMode,
+    setViewportSize,
+    setPageContent,
+    setCurrentPageId,
+    updateSectionContent,
+    updateFieldContent,
+    updateFeatureContent,
+    updateCategoryContent,
+    deleteCategoryContent,
+    updateFeaturedContent,
+    deleteFeaturedContent,
+    addFeatureItem,
+    deleteFeatureItem,
+    addValueItem,
+    deleteValueItem,
+    addFAQItem,
+    deleteFAQItem,
+    addFeaturedContent,
+    addCategoryContent,
+    updateSectionSettings,
+    markAsChanged,
+    updatePageTitle,
+    updatePageSlug,
+    updatePagePublished,
+    setActiveSection,
+    hideSection,
+    toggleSectionVisibility,
+    deleteSection,
+    reorderSection,
+    reorderSections,
+    addSection,
+    updateSection,
+    duplicateSection,
+    savePage,
+    discardChanges,
+    setSaving,
+    setTopBarVisible,
+    setPermissions,
+    exitEditor
+  ])
 
   return (
     <FullSiteEditorContext.Provider value={value}>
@@ -1554,4 +1596,25 @@ export function useIsEditModeActive() {
 export function useCanEdit() {
   const context = useContext(FullSiteEditorContext)
   return context?.permissions.canEdit ?? false
+}
+
+/**
+ * Hook to get current viewport size in edit mode
+ * Returns null when not in edit mode
+ */
+export function useEditorViewport(): ViewportSize | null {
+  const context = useContext(FullSiteEditorContext)
+  if (!context?.isEditMode) return null
+  return context.viewportSize
+}
+
+/**
+ * Hook to check if in visual edit mode (not navigate mode)
+ * Returns true only when editorMode === 'edit' AND isEditMode === true
+ * Returns false when in navigate mode or not in edit mode at all
+ */
+export function useIsVisualEditMode(): boolean {
+  const context = useContext(FullSiteEditorContext)
+  if (!context?.isEditMode) return false
+  return context.editorMode === 'edit'
 }

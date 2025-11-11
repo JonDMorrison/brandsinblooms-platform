@@ -94,6 +94,7 @@ export function HeaderSettingsModal({ isOpen, onClose }: HeaderSettingsModalProp
             colors={designSettings.colors}
             typography={designSettings.typography}
             onChange={handleChange}
+            hidePreview={true}
           />
         </div>
 

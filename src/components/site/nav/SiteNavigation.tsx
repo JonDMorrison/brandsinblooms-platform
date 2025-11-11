@@ -9,7 +9,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useDesignSettings } from '@/src/hooks/useDesignSettings'
 import { useHasBlogPosts } from '@/src/hooks/useHasBlogPosts'
 import { useHasEvents } from '@/src/hooks/useHasEvents'
-import { useIsEditModeActive } from '@/src/contexts/FullSiteEditorContext'
+import { useIsVisualEditMode } from '@/src/contexts/FullSiteEditorContext'
 import { Button } from '@/src/components/ui/button'
 import { cn } from '@/src/lib/utils'
 import { BrandLogo } from './BrandLogo'
@@ -20,6 +20,7 @@ import { CartButton } from './CartButton'
 import { UserMenu } from './UserMenu'
 import { SearchOverlay } from './SearchOverlay'
 import { getDefaultNavItems } from './utils'
+import { NavigationItem, getDefaultNavigationItems } from '@/src/lib/queries/domains/theme'
 import type { SiteNavigationProps } from './types'
 
 export function SiteNavigation({ className }: SiteNavigationProps) {
@@ -27,7 +28,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const { data: designSettings } = useDesignSettings()
   const { itemCount } = useCartContext()
   const { user } = useAuth()
-  const isEditMode = useIsEditModeActive()
+  const isVisualEditMode = useIsVisualEditMode()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -46,21 +47,17 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const headerStyle = theme?.layout?.headerStyle || 'modern'
 
   // Build navigation items from theme settings
-  const configuredNavItems = theme?.navigation?.items || []
+  const configuredNavItems = (theme?.navigation?.items || []) as NavigationItem[]
 
-  // Products is always required and visible (like Search and Cart)
-  const requiredNavItems = [
-    { label: 'Products', href: '/products' }
-  ]
+  // Filter visible items and sort by order
+  const visibleNavItems = configuredNavItems
+    .filter(item => item.visible !== false) // Show items that are explicitly visible or undefined
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
 
-  // Use all configured navigation items from theme settings
-  // If no theme config, use default items (which includes Blog link)
-  const optionalNavItems = configuredNavItems.length > 0
-    ? configuredNavItems
-    : getDefaultNavItems().filter(item => item.label !== 'Products') // Exclude Products since it's in requiredNavItems
-
-  // Combine required items (Products) with optional items
-  const allNavItems = [...requiredNavItems, ...optionalNavItems]
+  // If no configured items, use defaults
+  const allNavItems = visibleNavItems.length > 0
+    ? visibleNavItems
+    : getDefaultNavigationItems().filter(item => item.visible)
 
   // Filter out Blog and Events navigation if no published content exists
   // Only filter during normal operation, not while loading
@@ -111,20 +108,20 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const rightSection = (
     <div className="flex items-center gap-2">
       {/* Search */}
-      <div className="hidden sm:block">
+      <div className={isVisualEditMode ? "hidden @sm:block" : "hidden sm:block"}>
         <SearchBar searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
       </div>
-      
+
       {/* User Account */}
       <UserMenu user={user} canEdit={canEdit} />
-      
+
       {/* Shopping Cart */}
       <CartButton itemCount={itemCount} />
 
       {/* CTA Button */}
-      {ctaButton?.text && (
+      {ctaButton?.enabled && ctaButton?.text && (
         <Button
-          className="hidden md:inline-flex ml-2 btn-theme-primary"
+          className={isVisualEditMode ? "hidden @md:inline-flex ml-2 btn-theme-primary" : "hidden md:inline-flex ml-2 btn-theme-primary"}
           asChild
         >
           <Link href={ctaButton.href || '#'}>
@@ -139,7 +136,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
     <header
       className={cn(
         'w-full bg-white border-b transition-all duration-200',
-        stickyHeader && (isEditMode ? 'sticky top-14 z-30' : 'sticky top-0 z-50'),
+        stickyHeader && (isVisualEditMode ? 'sticky top-14 z-30' : 'sticky top-0 z-50'),
         headerStyle === 'classic' ? '' : headerStyle === 'modern' || headerStyle === 'minimal' ? 'py-3' : heightClass,
         className
       )}
@@ -159,7 +156,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                 logoSize={logoSize}
               />
               {/* Desktop Navigation - Only show on large screens */}
-              <div className="hidden lg:block">
+              <div className={isVisualEditMode ? "hidden @lg:block" : "hidden lg:block"}>
                 {menuStyle === 'horizontal' && (
                   <nav className="flex gap-4 text-sm items-center" style={{ fontFamily: 'var(--theme-font-body)' }}>
                     {navItems.map((item) => (
@@ -178,7 +175,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
             </div>
             <div className="flex items-center gap-3">
               {/* Desktop Icons */}
-              <div className="hidden lg:flex items-center gap-3">
+              <div className={isVisualEditMode ? "hidden @lg:flex items-center gap-3" : "hidden lg:flex items-center gap-3"}>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -188,7 +185,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                   <Search className="h-4 w-4" style={{ color: 'var(--theme-text)' }} />
                 </Button>
                 <CartButton itemCount={itemCount} />
-                {ctaButton?.text && (
+                {ctaButton?.enabled && ctaButton?.text && (
                   <Link href={ctaButton.href || '#'}>
                     <button
                       className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-pointer"
@@ -200,7 +197,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                 )}
               </div>
               {/* Mobile Icons - Only on Mobile/Tablet */}
-              <div className="flex lg:hidden items-center gap-2">
+              <div className={isVisualEditMode ? "flex @lg:hidden items-center gap-2" : "flex lg:hidden items-center gap-2"}>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -235,7 +232,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
         {headerStyle === 'classic' && (
           <div className="space-y-2">
             {/* Desktop Layout */}
-            <div className="hidden md:block text-center space-y-2">
+            <div className={isVisualEditMode ? "hidden @md:block text-center space-y-2" : "hidden md:block text-center space-y-2"}>
               <BrandLogo 
                 brandingType={brandingType}
                 logoUrl={logoUrl}
@@ -269,10 +266,10 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                 </nav>
               </div>
               {/* CTA Button below navigation */}
-              {ctaButton?.text && (
+              {ctaButton?.enabled && ctaButton?.text && (
                 <div className="flex justify-center pt-1">
                   <Link href={ctaButton.href || '#'}>
-                    <button 
+                    <button
                       className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-pointer"
                       style={{ backgroundColor: 'var(--theme-primary)', color: '#fff' }}
                     >
@@ -282,9 +279,9 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                 </div>
               )}
             </div>
-            
+
             {/* Mobile Layout */}
-            <div className="md:hidden">
+            <div className={isVisualEditMode ? "@md:hidden" : "md:hidden"}>
               <div className="flex items-center justify-between">
                 <BrandLogo
                   brandingType={brandingType}

@@ -1,13 +1,14 @@
 'use client'
 
-import { 
-  createContext, 
-  useContext, 
-  useEffect, 
-  useState, 
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
   useCallback,
-  useRef, 
-  ReactNode 
+  useMemo,
+  useRef,
+  ReactNode
 } from 'react'
 import { useAuth } from './AuthContext'
 import { supabase } from '@/src/lib/supabase/client'
@@ -659,7 +660,7 @@ export function SiteProvider({
     }
   }, [])
 
-  const value: SiteContextType = {
+  const value: SiteContextType = useMemo(() => ({
     // Current site state
     currentSite,
     siteResolution,
@@ -681,7 +682,22 @@ export function SiteProvider({
     refreshSite,
     refreshUserSites,
     resolveSiteFromUrl,
-  }
+  }), [
+    currentSite,
+    siteResolution,
+    loading,
+    error,
+    userAccess,
+    canEdit,
+    canManage,
+    userSites,
+    userSitesLoading,
+    userSitesError,
+    switchSite,
+    refreshSite,
+    refreshUserSites,
+    resolveSiteFromUrl,
+  ])
 
   return (
     <SiteContext.Provider value={value}>

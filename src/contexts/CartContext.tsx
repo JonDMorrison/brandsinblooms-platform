@@ -177,8 +177,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [allItems, currentSite])
 
   // Calculate totals from filtered items
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
-  const total = items.reduce((sum, item) => sum + item.subtotal, 0)
+  const itemCount = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items])
+  const total = useMemo(() => items.reduce((sum, item) => sum + item.subtotal, 0), [items])
 
   const addItem = useCallback(async (product: Tables<'products'>, quantity: number) => {
     setIsLoading(true)
@@ -297,7 +297,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const value: CartContextType = {
+  const value: CartContextType = useMemo(() => ({
     items, // Return filtered items
     total,
     itemCount,
@@ -309,7 +309,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     removeItem,
     clearCart,
     refreshCart
-  }
+  }), [
+    items,
+    total,
+    itemCount,
+    isLoading,
+    isHydrated,
+    error,
+    addItem,
+    updateQuantity,
+    removeItem,
+    clearCart,
+    refreshCart
+  ])
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }

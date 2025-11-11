@@ -12,6 +12,8 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Heading from '@tiptap/extension-heading';
+import Color from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
 import { useDebounceCallback } from '@/hooks/useDebounce';
 import { useSiteId } from '@/contexts/SiteContext';
 import { cn } from '@/src/lib/utils';
@@ -81,21 +83,29 @@ const InlineTextEditorComponent = ({
               }
             }
           }),
+          TextStyle,
+          Color.configure({
+            types: ['textStyle'],
+          }),
           Placeholder.configure({
             placeholder,
             showOnlyWhenEditable: true,
             showOnlyCurrent: false,
           })
         ]
-      : format === 'plain' 
+      : format === 'plain'
       ? [
-          StarterKit.configure({ 
-            heading: false, 
+          StarterKit.configure({
+            heading: false,
             codeBlock: false,
             blockquote: false,
             horizontalRule: false,
             dropcursor: false,
             gapcursor: false
+          }),
+          TextStyle,
+          Color.configure({
+            types: ['textStyle'],
           }),
           Placeholder.configure({
             placeholder,
@@ -127,6 +137,10 @@ const InlineTextEditorComponent = ({
             HTMLAttributes: {
               class: 'inline-editor-image',
             },
+          }),
+          TextStyle,
+          Color.configure({
+            types: ['textStyle'],
           }),
           Placeholder.configure({
             placeholder,
@@ -166,6 +180,10 @@ const InlineTextEditorComponent = ({
               class: 'inline-editor-image',
             },
           }),
+          TextStyle,
+          Color.configure({
+            types: ['textStyle'],
+          }),
           Placeholder.configure({
             placeholder,
             showOnlyWhenEditable: true,
@@ -186,10 +204,9 @@ const InlineTextEditorComponent = ({
       }
     },
     onUpdate: ({ editor }) => {
-      // For single-line or plain format, extract text without HTML tags
-      const newContent = (singleLine || format === 'plain')
-        ? editor.getText() 
-        : editor.getHTML();
+      // Always save as HTML to detect formatting changes (bold, italic, color)
+      // This ensures autosave triggers when formatting is applied
+      const newContent = editor.getHTML();
       debouncedUpdate(newContent);
     },
     onSelectionUpdate: ({ editor }) => {
@@ -232,15 +249,13 @@ const InlineTextEditorComponent = ({
   // Update editor content when prop changes
   useEffect(() => {
     if (editor && !editor.isFocused) {
-      const currentContent = (singleLine || format === 'plain')
-        ? editor.getText() 
-        : editor.getHTML();
-      
+      const currentContent = editor.getHTML();
+
       if (content !== currentContent) {
         editor.commands.setContent(content);
       }
     }
-  }, [content, editor, format, singleLine]);
+  }, [content, editor]);
   
   // Update editable state
   useEffect(() => {

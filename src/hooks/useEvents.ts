@@ -6,6 +6,7 @@ import { useSupabaseMutation } from '@/hooks/base/useSupabaseMutation';
 import { supabase } from '@/src/lib/supabase/client';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { toast } from 'sonner';
+import { stableSerialize } from '@/src/lib/utils/cache-key';
 import {
   getEvents,
   getEventById,
@@ -104,7 +105,7 @@ export function useEvents(filters?: EventFilters) {
 
   const memoizedDeps = useMemo(() => [
     siteId,
-    JSON.stringify(filters || {})
+    stableSerialize(filters || {})
   ], [siteId, filters]);
 
   return useSupabaseQuery(
@@ -112,7 +113,7 @@ export function useEvents(filters?: EventFilters) {
     {
       enabled: !!siteId,
       staleTime: 2 * 60 * 1000, // 2 minutes
-      persistKey: `events-list-${siteId}-${JSON.stringify(filters || {})}`,
+      persistKey: `events-list-${siteId}-${stableSerialize(filters || {})}`,
     },
     memoizedDeps
   );

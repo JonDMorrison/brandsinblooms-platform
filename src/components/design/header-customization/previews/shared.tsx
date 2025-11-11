@@ -1,5 +1,6 @@
 import { Search, ShoppingCart } from 'lucide-react'
 import { HeaderCustomizationProps, BrandingType } from '../types'
+import { NavigationItem } from '@/src/lib/queries/domains/theme'
 
 interface SharedPreviewProps extends Pick<HeaderCustomizationProps, 'value' | 'colors' | 'typography'> {
   selectedNavItems: string[]
@@ -33,14 +34,23 @@ export function BrandingElement({ value, colors, typography, logoSize, brandingT
   )
 }
 
-export function NavigationItems({ selectedNavItems, colors, typography }: Pick<SharedPreviewProps, 'selectedNavItems' | 'colors' | 'typography'>) {
+export function NavigationItems({ value, colors, typography }: Pick<SharedPreviewProps, 'value' | 'colors' | 'typography'>) {
+  // Get navigation items from theme settings, sorted and filtered by visibility
+  const navItems = ((value.navigation?.items || []) as NavigationItem[])
+    .filter(item => item.visible !== false)
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
+
   return (
     <>
-      {selectedNavItems.includes('home') && <span className="hover:opacity-70 cursor-default transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Home</span>}
-      <span className="hover:opacity-70 cursor-default transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Products</span>
-      {selectedNavItems.includes('about') && <span className="hover:opacity-70 cursor-default transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>About</span>}
-      {selectedNavItems.includes('contact') && <span className="hover:opacity-70 cursor-default transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Contact</span>}
-      {selectedNavItems.includes('blog') && <span className="hover:opacity-70 cursor-default transition-opacity" style={{ color: colors?.secondary || '#6b7280' }}>Blog</span>}
+      {navItems.map((item) => (
+        <span
+          key={item.id}
+          className="hover:opacity-70 cursor-default transition-opacity"
+          style={{ color: colors?.secondary || '#6b7280' }}
+        >
+          {item.label}
+        </span>
+      ))}
     </>
   )
 }
@@ -55,8 +65,8 @@ export function ActionIcons({ colors }: Pick<SharedPreviewProps, 'colors'>) {
 }
 
 export function CtaButton({ value, colors }: Pick<SharedPreviewProps, 'value' | 'colors'>) {
-  if (!value.layout?.ctaButton?.text) return null
-  
+  if (!value.layout?.ctaButton?.enabled || !value.layout?.ctaButton?.text) return null
+
   return (
     <button
       className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-default"

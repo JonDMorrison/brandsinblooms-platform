@@ -11,25 +11,16 @@ import { SiteLayout } from '@/src/components/layout/SiteLayout'
 import { ProductCatalog } from '@/src/components/site/ProductCatalog'
 
 interface SiteHomepageProps {
+  isMainDomain?: boolean
   fallbackContent?: React.ReactNode
 }
 
-export function SiteHomepage({ fallbackContent }: SiteHomepageProps) {
+export function SiteHomepage({ isMainDomain = false, fallbackContent }: SiteHomepageProps) {
   const { site, loading, error, isLoaded } = useCurrentSite()
   const { user, loading: authLoading } = useAuth()
 
-  // Check if we're on the main app domain (needs to happen before loading check)
-  // During SSR (window undefined), assume we might be on main domain if we have fallback
-  const isMainDomain = typeof window !== 'undefined' ? (
-    window.location.hostname === 'localhost' ||
-    (window.location.hostname.includes('staging') && !window.location.hostname.includes('.')) ||
-    window.location.hostname.includes('.railway.app') ||
-    window.location.hostname === process.env.NEXT_PUBLIC_APP_DOMAIN
-  ) : true // During SSR, assume main domain if we have fallback content
-
   // On main domain with fallback content, show fallback immediately without waiting for site loading
-  // This ensures the platform landing page loads instantly on localhost
-  // During SSR, if fallback exists, show it to avoid loading spinner flash
+  // This ensures the platform landing page loads instantly and prevents hydration mismatch
   if (isMainDomain && fallbackContent) {
     return <>{fallbackContent}</>
   }

@@ -7,7 +7,6 @@
 import React, { useState } from 'react'
 import { ContentSection, DEFAULT_FEATURED_ITEMS, ButtonStyleVariant } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
-import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared'
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
 import { ImageIcon, ExternalLink, Settings } from 'lucide-react'
@@ -160,15 +159,15 @@ export function FeaturedPreview({
                 fontFamily: 'var(--theme-font-heading)'
               }}
               placeholder="Enter headline..."
-              showToolbar={false}
+              showToolbar={true}
+              debounceDelay={0}
             />
           </div>
           <InlineTextEditor
-            content={textToHtml(String(data.subheadline || 'Handpicked selections from our master horticulturists'))}
+            content={data.subheadline || 'Handpicked selections from our master horticulturists'}
             onUpdate={(htmlContent) => {
               if (onContentUpdate) {
-                const textContent = htmlToText(htmlContent)
-                onContentUpdate(sectionKey, 'data.subheadline', textContent)
+                onContentUpdate(sectionKey, 'data.subheadline', htmlContent)
               }
             }}
             isEnabled={Boolean(onContentUpdate)}
@@ -182,6 +181,8 @@ export function FeaturedPreview({
               fontFamily: 'var(--theme-font-body)'
             }}
             placeholder="Enter description..."
+            showToolbar={true}
+            debounceDelay={0}
           />
         </div>
 

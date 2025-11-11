@@ -22,6 +22,7 @@ import {
 } from '@/src/lib/queries/domains/reviews';
 import { useSiteId } from '@/src/contexts/SiteContext';
 import { Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types';
+import { stableSerialize } from '@/src/lib/utils/cache-key';
 
 type ProductReview = Tables<'product_reviews'>;
 type ReviewInsert = TablesInsert<'product_reviews'>;
@@ -31,7 +32,7 @@ type ReviewUpdate = TablesUpdate<'product_reviews'>;
 export function useProductReviews(productId: string, filters?: ReviewFilters) {
   const siteId = useSiteId();
   
-  const cacheKey = `product_reviews_${siteId}_${productId}_${JSON.stringify(filters || {})}`;
+  const cacheKey = `product_reviews_${siteId}_${productId}_${stableSerialize(filters || {})}`;
   
   return useSupabaseQuery(
     async (signal) => {
@@ -118,7 +119,7 @@ export function useUserProductReview(productId: string, profileId?: string) {
 export function useReviewsByProfile(profileId: string, filters?: Omit<ReviewFilters, 'profileId'>) {
   const siteId = useSiteId();
   
-  const cacheKey = `reviews_by_profile_${siteId}_${profileId}_${JSON.stringify(filters || {})}`;
+  const cacheKey = `reviews_by_profile_${siteId}_${profileId}_${stableSerialize(filters || {})}`;
   
   return useSupabaseQuery(
     async (signal) => {

@@ -6,7 +6,6 @@
 import React, { useState } from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
-import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared'
 import { getCategoriesGridClasses } from '@/src/components/content-sections/shared/grid-utils'
 import { createResponsiveClassHelper, isPreviewMode } from '@/src/lib/utils/responsive-classes'
@@ -64,19 +63,19 @@ export function CategoriesPreview({
               singleLine={true}
               className={`${responsive.typography.sectionHeading} [&_.ProseMirror]:text-center [&_.ProseMirror]:!min-h-0`}
               style={{
-                color: 'var(--theme-text)', 
+                color: 'var(--theme-text)',
                 fontFamily: 'var(--theme-font-heading)'
               }}
               placeholder="Enter headline..."
-              showToolbar={false}
+              showToolbar={true}
+              debounceDelay={0}
             />
           </div>
           <InlineTextEditor
-            content={textToHtml(String(data.description || 'Find Your Perfect Plant Match'))}
+            content={data.description || 'Find Your Perfect Plant Match'}
             onUpdate={(htmlContent) => {
               if (onContentUpdate) {
-                const textContent = htmlToText(htmlContent)
-                onContentUpdate(sectionKey, 'data.description', textContent)
+                onContentUpdate(sectionKey, 'data.description', htmlContent)
               }
             }}
             isEnabled={Boolean(onContentUpdate)}
@@ -85,11 +84,13 @@ export function CategoriesPreview({
             singleLine={false}
             className={`${responsive.typography.bodyText} max-w-2xl mx-auto [&_.ProseMirror]:text-center [&_p:not(:first-child)]:mt-2`}
             style={{
-              color: 'var(--theme-text)', 
+              color: 'var(--theme-text)',
               opacity: '0.7',
               fontFamily: 'var(--theme-font-body)'
             }}
             placeholder="Enter description..."
+            showToolbar={true}
+            debounceDelay={0}
           />
         </div>
         

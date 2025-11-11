@@ -11,8 +11,11 @@ interface MobileNavProps {
   mobileMenuOpen: boolean
   setMobileMenuOpen: (open: boolean) => void
   ctaButton?: {
-    text?: string
-    href?: string
+    enabled: boolean
+    text: string
+    href: string
+    type: 'internal' | 'external'
+    variant: 'primary' | 'secondary' | 'accent'
   }
 }
 
@@ -28,9 +31,9 @@ export function MobileNav({
       <SheetContent side="right" className="w-[280px] sm:w-[350px]">
         <nav className="flex flex-col gap-4 mt-8">
           {/* CTA Button - Prominent placement at top */}
-          {ctaButton?.text && (
+          {ctaButton?.enabled && ctaButton?.text && (
             <Link href={ctaButton.href || '#'} onClick={() => setMobileMenuOpen(false)}>
-              <button 
+              <button
                 className="w-full px-4 py-3 text-sm font-medium rounded-md transition-opacity hover:opacity-90"
                 style={{ backgroundColor: 'var(--theme-primary)', color: '#fff' }}
               >

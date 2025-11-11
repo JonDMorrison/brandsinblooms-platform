@@ -57,9 +57,23 @@ export function DynamicSectionRenderer({
     <>
       {initialSections.map(({ key, section }) => {
         const sectionInfo = sectionDataMap[key as keyof typeof sectionDataMap]
+        const typedSection = section as ContentSection
 
-        // Only render if section has data and is available
-        if (!sectionInfo || sectionInfo.status !== 'available' || !sectionInfo.data) {
+        // Determine data source and background setting
+        // Priority: sectionDataMap (server data) > section.data (sections with inline data)
+        let sectionData: unknown
+        let backgroundSetting: string
+
+        if (sectionInfo && sectionInfo.status === 'available' && sectionInfo.data) {
+          // Use server data if available
+          sectionData = sectionInfo.data
+          backgroundSetting = sectionInfo.backgroundSetting
+        } else if (typedSection.data) {
+          // Use section's own data (for sections not in sectionDataMap)
+          sectionData = typedSection.data
+          backgroundSetting = String(typedSection.settings?.backgroundColor || 'default')
+        } else {
+          // No data available - skip rendering
           return null
         }
 
@@ -67,14 +81,14 @@ export function DynamicSectionRenderer({
           <EditableCustomerSiteSection
             key={key}
             sectionKey={key}
-            section={section as ContentSection}
-            sectionData={sectionInfo.data}
+            section={typedSection}
+            sectionData={sectionData}
           >
             <CustomerSiteSection
-              section={section as ContentSection}
+              section={typedSection}
               sectionKey={key}
-              sectionData={sectionInfo.data}
-              backgroundSetting={sectionInfo.backgroundSetting}
+              sectionData={sectionData}
+              backgroundSetting={backgroundSetting}
             />
           </EditableCustomerSiteSection>
         )

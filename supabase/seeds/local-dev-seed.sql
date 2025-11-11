@@ -223,11 +223,67 @@ VALUES (
         "layout": {
             "containerWidth": "normal",
             "spacing": "normal",
-            "borderRadius": "medium"
+            "borderRadius": "medium",
+            "headerStyle": "modern",
+            "footerStyle": "minimal",
+            "menuStyle": "horizontal"
         },
         "logo": {
             "position": "left",
             "size": "medium"
+        },
+        "navigation": {
+            "items": [
+                {
+                    "id": "00000000-0000-0000-0000-000000000001",
+                    "label": "Home",
+                    "href": "/",
+                    "type": "internal",
+                    "visible": true,
+                    "order": 0
+                },
+                {
+                    "id": "00000000-0000-0000-0000-000000000002",
+                    "label": "Products",
+                    "href": "/products",
+                    "type": "internal",
+                    "visible": true,
+                    "order": 1
+                },
+                {
+                    "id": "00000000-0000-0000-0000-000000000003",
+                    "label": "Blog",
+                    "href": "/blog",
+                    "type": "internal",
+                    "visible": true,
+                    "order": 2
+                },
+                {
+                    "id": "00000000-0000-0000-0000-000000000004",
+                    "label": "Events",
+                    "href": "/events",
+                    "type": "internal",
+                    "visible": true,
+                    "order": 3
+                },
+                {
+                    "id": "00000000-0000-0000-0000-000000000005",
+                    "label": "About",
+                    "href": "/about",
+                    "type": "internal",
+                    "visible": true,
+                    "order": 4
+                },
+                {
+                    "id": "00000000-0000-0000-0000-000000000006",
+                    "label": "Contact",
+                    "href": "/contact",
+                    "type": "internal",
+                    "visible": true,
+                    "order": 5
+                }
+            ],
+            "style": "horizontal"
         }
     }'::jsonb,
     '[

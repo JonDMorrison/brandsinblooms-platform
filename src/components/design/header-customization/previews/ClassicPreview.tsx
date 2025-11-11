@@ -8,7 +8,7 @@ interface ClassicPreviewProps extends Pick<HeaderCustomizationProps, 'value' | '
 }
 
 export function ClassicPreview(props: ClassicPreviewProps) {
-  const { value, colors, typography, selectedNavItems, logoSize, brandingType } = props
+  const { value, colors, typography, logoSize, brandingType } = props
 
   return (
     <div className="space-y-3">
@@ -16,17 +16,17 @@ export function ClassicPreview(props: ClassicPreviewProps) {
       <div className="hidden md:block text-center space-y-3">
         <div className="flex items-center justify-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
           {(brandingType === 'logo' || brandingType === 'both') && value.logo?.url && (
-            <img 
-              src={value.logo.url} 
-              alt="Logo" 
+            <img
+              src={value.logo.url}
+              alt="Logo"
               className="object-contain"
               style={{ height: `${logoSize[0]}px` }}
             />
           )}
           {(brandingType === 'text' || brandingType === 'both') && (
-            <div 
+            <div
               className="font-bold text-lg"
-              style={{ 
+              style={{
                 color: colors?.primary || '#2563eb',
                 fontFamily: typography?.headingFont || 'Inter'
               }}
@@ -36,7 +36,7 @@ export function ClassicPreview(props: ClassicPreviewProps) {
           )}
         </div>
         <nav className="flex justify-center gap-4 text-sm items-center" style={{ fontFamily: typography?.bodyFont || 'Inter' }}>
-          <NavigationItems selectedNavItems={selectedNavItems} colors={colors} typography={typography} />
+          <NavigationItems value={value} colors={colors} typography={typography} />
           <ActionIcons colors={colors} />
         </nav>
         <CtaButton value={value} colors={colors} />

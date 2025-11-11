@@ -41,8 +41,22 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     redirect(homeUrl)
   }
 
+  // Calculate isMainDomain server-side to prevent hydration mismatch
+  // Extract hostname without port for comparison
+  const hostname = host.split(':')[0]
+  const appDomainWithoutPort = appDomain.split(':')[0]
+
+  const isMainDomain =
+    hostname === 'localhost' ||
+    hostname === appDomain ||
+    hostname === appDomainWithoutPort ||
+    hostname.includes('staging') ||
+    hostname.endsWith('.vercel.app') ||
+    hostname.endsWith('.railway.app')
+
   return (
-    <SiteHomepage 
+    <SiteHomepage
+      isMainDomain={isMainDomain}
       fallbackContent={
         <Suspense fallback={null}>
           <HomePlatform />

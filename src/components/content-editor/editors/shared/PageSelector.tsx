@@ -49,6 +49,27 @@ export function PageSelector({
     return value.startsWith('/') ? value.substring(1) : value
   }, [value])
 
+  // Get the display label for the selected value
+  // IMPORTANT: Must be called before early returns to maintain hook order
+  const selectedPageLabel = React.useMemo(() => {
+    const selectedPage = pages?.find(p => p.slug === displayValue)
+    if (selectedPage) {
+      // Special handling for home page display
+      if (selectedPage.slug === 'home') {
+        return 'Home /'
+      }
+      // Category pages already have 'category/' in slug
+      if (selectedPage.contentType === 'category') {
+        return `${selectedPage.title} /${selectedPage.slug}`
+      }
+      // Regular pages
+      return `${selectedPage.title} /${selectedPage.slug}`
+    }
+
+    // Fallback
+    return displayValue ? `/${displayValue}` : ''
+  }, [displayValue, pages])
+
   if (loading) {
     return (
       <div className={`space-y-2 ${className}`}>
@@ -81,26 +102,6 @@ export function PageSelector({
       onChange(`/${val}`)
     }
   }
-
-  // Get the display label for the selected value
-  const selectedPageLabel = React.useMemo(() => {
-    const selectedPage = pages?.find(p => p.slug === displayValue)
-    if (selectedPage) {
-      // Special handling for home page display
-      if (selectedPage.slug === 'home') {
-        return 'Home /'
-      }
-      // Category pages already have 'category/' in slug
-      if (selectedPage.contentType === 'category') {
-        return `${selectedPage.title} /${selectedPage.slug}`
-      }
-      // Regular pages
-      return `${selectedPage.title} /${selectedPage.slug}`
-    }
-
-    // Fallback
-    return displayValue ? `/${displayValue}` : ''
-  }, [displayValue, pages])
 
   return (
     <div className={`space-y-2 ${className}`}>

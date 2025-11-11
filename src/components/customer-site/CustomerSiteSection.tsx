@@ -15,7 +15,7 @@ import {
   CategoriesSectionErrorBoundary
 } from '@/src/components/ui/plant-shop-error-boundaries'
 import { MissionStatementSkeleton } from '@/src/components/ui/plant-shop-loading-states'
-import { textToHtml } from '@/src/lib/utils/html-text'
+import { stripParagraphTags, textToHtml } from '@/src/lib/utils/html-text'
 import { ContentRenderer } from '@/src/components/preview/ContentRenderer'
 import { getSectionBackgroundStyle, getBackgroundImageOpacity } from '@/src/components/content-sections/shared/background-utils'
 import { getFeatureGridClasses, getCategoriesGridClasses } from '@/src/components/content-sections/shared/grid-utils'
@@ -41,8 +41,10 @@ export function CustomerSiteSection({
   backgroundSetting = 'default',
   className = '' 
 }: CustomerSiteSectionProps) {
-  // Don't render if section is not visible or has no data
-  if (!section.visible || !sectionData) {
+  // Don't render if section has no data
+  // Note: Visibility is handled by parent components (DynamicSectionRenderer)
+  // which check the 'available' status before passing sections here
+  if (!sectionData) {
     return null
   }
 
@@ -72,14 +74,18 @@ export function CustomerSiteSection({
 
             <div className="brand-container relative" style={{ zIndex: 2 }}>
               <div className="max-w-4xl mx-auto text-center">
-                <h1 className="text-4xl md:text-6xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                  {String(sectionData.headline || 'Welcome to our site')}
-                </h1>
+                <h1
+                  className="text-4xl md:text-6xl font-bold mb-6"
+                  style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+                  dangerouslySetInnerHTML={{
+                    __html: stripParagraphTags(String(sectionData.headline || 'Welcome to our site'))
+                  }}
+                />
                 <div
                   className="text-xl md:text-2xl mb-8 leading-relaxed [&_p:not(:first-child)]:mt-2"
                   style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}
                   dangerouslySetInnerHTML={{
-                    __html: textToHtml(String(sectionData.subheadline || 'Your trusted source for premium plants and expert care guidance'))
+                    __html: String(sectionData.subheadline || '<p>Your trusted source for premium plants and expert care guidance</p>')
                   }}
                 />
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -88,7 +94,9 @@ export function CustomerSiteSection({
                     className={getButtonClassName((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', false)}
                     style={getButtonStyles((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', false)}
                   >
-                    {String(sectionData.ctaText || 'Shop Plants')}
+                    <span dangerouslySetInnerHTML={{
+                      __html: stripParagraphTags(String(sectionData.ctaText || 'Shop Plants'))
+                    }} />
                   </SmartLink>
                   {sectionData.secondaryCtaText && (
                     <SmartLink
@@ -96,7 +104,9 @@ export function CustomerSiteSection({
                       className={getButtonClassName((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', false)}
                       style={getButtonStyles((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', false)}
                     >
-                      {String(sectionData.secondaryCtaText)}
+                      <span dangerouslySetInnerHTML={{
+                        __html: stripParagraphTags(String(sectionData.secondaryCtaText))
+                      }} />
                     </SmartLink>
                   )}
                 </div>
@@ -129,9 +139,10 @@ export function CustomerSiteSection({
                               color: 'var(--theme-text)',
                               fontFamily: 'var(--theme-font-body)'
                             }}
-                          >
-                            {featureText}
-                          </span>
+                            dangerouslySetInnerHTML={{
+                              __html: stripParagraphTags(featureText)
+                            }}
+                          />
                         </div>
                       )
                     })}
@@ -155,14 +166,18 @@ export function CustomerSiteSection({
         >
           <div className="brand-container">
             <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-6" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                {String(sectionData.headline || '')}
-              </h1>
+              <h1
+                className="text-4xl md:text-5xl font-bold mb-6"
+                style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+                dangerouslySetInnerHTML={{
+                  __html: stripParagraphTags(String(sectionData.headline || ''))
+                }}
+              />
               <div
-                className="text-xl leading-relaxed"
+                className="text-xl leading-relaxed [&_p:not(:first-child)]:mt-2"
                 style={{color: 'var(--theme-text)', opacity: '0.8', fontFamily: 'var(--theme-font-body)'}}
                 dangerouslySetInnerHTML={{
-                  __html: textToHtml(String(sectionData.subheadline || ''))
+                  __html: String(sectionData.subheadline || '')
                 }}
               />
             </div>
@@ -202,14 +217,18 @@ export function CustomerSiteSection({
             <section className="py-16" style={backgroundStyle}>
               <div className="brand-container">
                 <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                    {String(sectionData.headline || 'Shop by Category')}
-                  </h2>
+                  <h2
+                    className="text-3xl md:text-4xl font-bold mb-4"
+                    style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+                    dangerouslySetInnerHTML={{
+                      __html: stripParagraphTags(String(sectionData.headline || 'Shop by Category'))
+                    }}
+                  />
                   <div
                     className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
                     style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
                     dangerouslySetInnerHTML={{
-                      __html: textToHtml(String(sectionData.description || 'Find the perfect plants for your space and lifestyle'))
+                      __html: String(sectionData.description || '<p>Find the perfect plants for your space and lifestyle</p>')
                     }}
                   />
                 </div>
@@ -271,14 +290,18 @@ export function CustomerSiteSection({
         <section className="py-16" style={backgroundStyle}>
           <div className="brand-container">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>
-                {String(sectionData.headline || 'Essential Plant Care Features')}
-              </h2>
+              <h2
+                className="text-3xl md:text-4xl font-bold mb-4"
+                style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}
+                dangerouslySetInnerHTML={{
+                  __html: stripParagraphTags(String(sectionData.headline || 'Essential Plant Care Features'))
+                }}
+              />
               <div
                 className="text-lg max-w-2xl mx-auto [&_p:not(:first-child)]:mt-2"
                 style={{color: 'var(--theme-text)', opacity: '0.7', fontFamily: 'var(--theme-font-body)'}}
                 dangerouslySetInnerHTML={{
-                  __html: textToHtml(String(sectionData.description || 'Master these key practices for healthy, thriving plants year-round'))
+                  __html: String(sectionData.description || '<p>Master these key practices for healthy, thriving plants year-round</p>')
                 }}
               />
             </div>
@@ -297,7 +320,13 @@ export function CustomerSiteSection({
                     <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto" style={{backgroundColor: 'var(--theme-primary)'}}>
                       {IconComponent && <IconComponent className="w-6 h-6 text-white" />}
                     </div>
-                    <p className="text-sm font-medium" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>{featureText}</p>
+                    <p
+                      className="text-sm font-medium"
+                      style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}
+                      dangerouslySetInnerHTML={{
+                        __html: stripParagraphTags(featureText)
+                      }}
+                    />
                   </div>
                 );
               })}
@@ -316,14 +345,18 @@ export function CustomerSiteSection({
           >
             <div className="brand-container">
               <div className="max-w-4xl mx-auto text-center">
-                <h2 className={`text-4xl md:text-6xl font-bold mb-6 leading-tight ${
-                  backgroundSetting === 'primary' ? 'text-white' : ''
-                }`} style={{
-                  fontFamily: 'var(--theme-font-heading)',
-                  color: backgroundSetting === 'primary' ? 'white' : 'var(--theme-text)'
-                }}>
-                  {String(sectionData.headline || 'Growing Together, Sustainably')}
-                </h2>
+                <h2
+                  className={`text-4xl md:text-6xl font-bold mb-6 leading-tight ${
+                    backgroundSetting === 'primary' ? 'text-white' : ''
+                  }`}
+                  style={{
+                    fontFamily: 'var(--theme-font-heading)',
+                    color: backgroundSetting === 'primary' ? 'white' : 'var(--theme-text)'
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html: stripParagraphTags(String(sectionData.headline || 'Growing Together, Sustainably'))
+                  }}
+                />
                 <div
                   className={`prose text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed ${
                     backgroundSetting === 'primary' ? 'text-white/90' : ''
@@ -334,7 +367,7 @@ export function CustomerSiteSection({
                     opacity: backgroundSetting === 'primary' ? 1 : '0.7'
                   }}
                   dangerouslySetInnerHTML={{
-                    __html: textToHtml(String(sectionData.description || 'Our mission is to help you create thriving plant sanctuaries while protecting our planet for future generations.'))
+                    __html: String(sectionData.description || '<p>Our mission is to help you create thriving plant sanctuaries while protecting our planet for future generations.</p>')
                   }}
                 />
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -345,7 +378,9 @@ export function CustomerSiteSection({
                       className={getButtonClassName((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', backgroundSetting === 'primary')}
                       style={getButtonStyles((sectionData.ctaStyle as ButtonStyleVariant) || 'primary', backgroundSetting === 'primary')}
                     >
-                      {String(sectionData.ctaText || 'Shop Plants')}
+                      <span dangerouslySetInnerHTML={{
+                        __html: stripParagraphTags(String(sectionData.ctaText || 'Shop Plants'))
+                      }} />
                     </SmartLink>
                   )}
 
@@ -356,7 +391,9 @@ export function CustomerSiteSection({
                       className={getButtonClassName((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', backgroundSetting === 'primary')}
                       style={getButtonStyles((sectionData.secondaryCtaStyle as ButtonStyleVariant) || 'secondary', backgroundSetting === 'primary')}
                     >
-                      {String(sectionData.secondaryCtaText || 'Browse Plants')}
+                      <span dangerouslySetInnerHTML={{
+                        __html: stripParagraphTags(String(sectionData.secondaryCtaText || 'Browse Plants'))
+                      }} />
                     </SmartLink>
                   )}
                 </div>

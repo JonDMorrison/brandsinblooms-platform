@@ -2,14 +2,18 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/src/lib/database/types';
 import { Site } from '@/src/lib/database/aliases';
 import { debug } from '@/src/lib/utils/debug';
+import { generateUUID } from '@/src/lib/utils/uuid';
 // No longer need executeQuery imports - using direct Supabase queries
 
 // Navigation item interface - compatible with Json type
 export interface NavigationItem {
-  [key: string]: string | NavigationItem[] | undefined;
+  [key: string]: string | boolean | number | NavigationItem[] | undefined;
+  id: string;
   label: string;
   href: string;
-  icon?: string;
+  type: 'internal' | 'external';
+  visible: boolean;
+  order: number;
   children?: NavigationItem[];
 }
 
@@ -56,9 +60,11 @@ export interface ThemeSettings {
     stickyHeader?: boolean;
     transparentHeader?: boolean;
     ctaButton?: {
-      text?: string;
-      href?: string;
-      variant?: string;
+      enabled: boolean;
+      text: string;
+      href: string;
+      type: 'internal' | 'external';
+      variant: 'primary' | 'secondary' | 'accent';
     };
   };
   logo: {
@@ -227,6 +233,60 @@ export function getDefaultTheme(): ThemeSettings {
       size: 'medium',
     },
   };
+}
+
+// Get default navigation items
+export function getDefaultNavigationItems(): NavigationItem[] {
+  return [
+    {
+      id: generateUUID(),
+      label: 'Home',
+      href: '/',
+      type: 'internal',
+      visible: true,
+      order: 0,
+    },
+    {
+      id: generateUUID(),
+      label: 'Products',
+      href: '/products',
+      type: 'internal',
+      visible: true,
+      order: 1,
+    },
+    {
+      id: generateUUID(),
+      label: 'Blog',
+      href: '/blog',
+      type: 'internal',
+      visible: true,
+      order: 2,
+    },
+    {
+      id: generateUUID(),
+      label: 'Events',
+      href: '/events',
+      type: 'internal',
+      visible: true,
+      order: 3,
+    },
+    {
+      id: generateUUID(),
+      label: 'About',
+      href: '/about',
+      type: 'internal',
+      visible: true,
+      order: 4,
+    },
+    {
+      id: generateUUID(),
+      label: 'Contact',
+      href: '/contact',
+      type: 'internal',
+      visible: true,
+      order: 5,
+    },
+  ];
 }
 
 // Apply theme to DOM (for immediate visual feedback)
