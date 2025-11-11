@@ -294,7 +294,9 @@ export function SectionSettingsModal({
       }
 
       setUploadProgress(100)
-      setBackgroundImage(prev => ({ ...prev, url: publicUrl }))
+      const newImage = { ...backgroundImage, url: publicUrl }
+      setBackgroundImage(newImage)
+      applySettingsPreview(backgroundColor, newImage)
       toast.success('Background image uploaded successfully')
     } catch (error) {
       handleError(error)
@@ -314,12 +316,14 @@ export function SectionSettingsModal({
   }
 
   const handleRemoveImage = () => {
-    setBackgroundImage({
+    const newImage = {
       url: '',
       position: 'center',
       opacity: 100,
       scale: 100
-    })
+    }
+    setBackgroundImage(newImage)
+    applySettingsPreview(backgroundColor, newImage)
   }
 
   // Get section name for display
