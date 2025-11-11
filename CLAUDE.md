@@ -24,7 +24,10 @@ pnpm dev:all          # Start with all services
 
 # Database
 pnpm supabase:start   # Start local Supabase
+pnpm supabase:reset   # Reset local DB with migrations + seeds
 pnpm generate-types   # Generate DB types
+pnpm supabase:seed    # Run seeds on local DB
+pnpm supabase:seed:remote # Run seeds on remote DB (requires SUPABASE_DB_URL)
 
 # Quality
 pnpm lint             # ESLint
@@ -49,8 +52,32 @@ pnpm deploy:production # Deploy to production
 ### Overview
 The database is seeded with **Soul Bloom Sanctuary**, a complete plant store with realistic product data for local development.
 
-**Seed File**: `supabase/seeds/local-dev-seed.sql` (local development only - excluded from production)
-**Reset Command**: `pnpm supabase:reset`
+**Seed File**: `supabase/seeds/local-dev-seed.sql`
+**Reset Local DB**: `pnpm supabase:reset` (migrations + seeds)
+**Seed Local Only**: `pnpm supabase:seed`
+
+### Seeding Remote Databases
+You can apply seed data to remote Supabase instances (staging, testing) using the seed runner:
+
+**Option 1: From Railway Container**
+```bash
+# Set environment variable in Railway dashboard:
+RUN_SEEDS=true
+
+# Then trigger manually via Railway shell or restart
+./scripts/run-seeds.sh
+```
+
+**Option 2: From Local Machine**
+```bash
+# Get your database connection string from Supabase dashboard
+export SUPABASE_DB_URL="postgresql://postgres:[PASSWORD]@db.exebfzcowacpuhsvzijv.supabase.co:5432/postgres"
+
+# Run seeds
+pnpm supabase:seed:remote
+```
+
+**⚠️ WARNING**: Seeds will **TRUNCATE existing data**! Only use on development/testing databases, never production.
 
 ### Default Users (password: `password123`)
 ```

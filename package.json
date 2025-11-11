@@ -26,6 +26,8 @@
     "supabase:reset": "supabase db reset",
     "supabase:migrate": "supabase db push",
     "supabase:generate-types": "supabase gen types typescript --local > src/lib/database/types.ts",
+    "supabase:seed": "RUN_SEEDS=true ./scripts/run-seeds.sh",
+    "supabase:seed:remote": "echo 'Set SUPABASE_DB_URL environment variable first' && RUN_SEEDS=true ./scripts/run-seeds.sh",
     "docker:build": "docker build -t brands-in-blooms .",
     "docker:run": "docker run -p 3000:3000 -e PORT=3000 brands-in-blooms",
     "test": "jest",

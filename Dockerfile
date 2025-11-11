@@ -80,11 +80,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Copy Supabase migrations, config, and email templates for production (exclude seeds - dev only)
+# Copy Supabase migrations, config, templates, and seeds for production
 COPY --from=builder --chown=nextjs:nodejs /app/supabase/migrations ./supabase/migrations
 COPY --from=builder --chown=nextjs:nodejs /app/supabase/config.toml ./supabase/config.toml
 COPY --from=builder --chown=nextjs:nodejs /app/supabase/templates ./supabase/templates
-COPY --chown=nextjs:nodejs scripts/run-migrations.sh scripts/docker-entrypoint.sh scripts/migration-monitor.sh scripts/migration-batch-processor.sh ./scripts/
+COPY --from=builder --chown=nextjs:nodejs /app/supabase/seeds ./supabase/seeds
+COPY --chown=nextjs:nodejs scripts/run-migrations.sh scripts/docker-entrypoint.sh scripts/migration-monitor.sh scripts/migration-batch-processor.sh scripts/run-seeds.sh ./scripts/
 RUN chmod +x ./scripts/*.sh
 
 # Runtime environment defaults (overridden by Railway)
