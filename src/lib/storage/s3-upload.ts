@@ -892,9 +892,20 @@ export async function uploadFileToS3(
   }
 ): Promise<S3UploadResult | S3MultipartUploadResult> {
   const { filename, onProgress, metadata } = options || {};
-  
+
+  // Validate siteId is provided
+  if (!siteId || siteId.trim() === '') {
+    console.error('[S3 Upload] siteId is required but was not provided:', { siteId, resourceType, resourceId });
+    return {
+      success: false,
+      error: 'siteId is required for S3 uploads',
+    };
+  }
+
   // Generate S3 key
   const key = generateS3Key(siteId, resourceType, resourceId, filename || file.name);
+
+  console.log('[S3 Upload] Generated S3 key:', { key, siteId, resourceType, resourceId });
   
   // Choose upload method based on file size
   if (file.size > S3_CONFIG.multipartThreshold) {

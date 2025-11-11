@@ -49,6 +49,20 @@ export function useImageUpload({
   });
 
   const uploadImage = useCallback(async (file: File): Promise<ImageUploadResult> => {
+    // Validate siteId is provided
+    if (!siteId || siteId.trim() === '') {
+      const error = 'siteId is required for image uploads';
+      console.error('[useImageUpload] siteId validation failed:', { siteId, resourceType, resourceId });
+      setState({
+        isUploading: false,
+        progress: 0,
+        error,
+        uploadedUrl: null,
+      });
+      onError?.(error);
+      return { success: false, error };
+    }
+
     // Reset state
     setState({
       isUploading: true,
@@ -56,6 +70,8 @@ export function useImageUpload({
       error: null,
       uploadedUrl: null,
     });
+
+    console.log('[useImageUpload] Starting upload:', { siteId, resourceType, resourceId, fileName: file.name });
 
     try {
       // Validate file
