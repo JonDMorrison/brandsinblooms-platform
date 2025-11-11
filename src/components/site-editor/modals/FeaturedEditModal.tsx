@@ -13,6 +13,7 @@ import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
 import { FeaturedImageUpload } from '@/src/components/content-editor/editors/shared/FeaturedImageUpload'
 import { Trash2, Star } from 'lucide-react'
+import { stripParagraphTags } from '@/src/lib/utils/html-text'
 
 interface FeaturedItemData {
   id: string
@@ -114,7 +115,7 @@ export function FeaturedEditModal({
             </Label>
             <Input
               id="item-title"
-              value={editedItem.title}
+              value={stripParagraphTags(editedItem.title)}
               onChange={(e) => setEditedItem({ ...editedItem, title: e.target.value })}
               placeholder="e.g., Golden Pothos"
               className="w-full"
@@ -128,7 +129,7 @@ export function FeaturedEditModal({
             </Label>
             <Input
               id="item-tag"
-              value={editedItem.tag}
+              value={stripParagraphTags(editedItem.tag)}
               onChange={(e) => setEditedItem({ ...editedItem, tag: e.target.value })}
               placeholder="e.g., houseplants, trending, easy care"
               className="w-full"

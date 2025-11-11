@@ -13,6 +13,7 @@ import { Input } from '@/src/components/ui/input'
 import { Label } from '@/src/components/ui/label'
 import { CategoryImageUpload } from '@/src/components/content-editor/editors/shared/CategoryImageUpload'
 import { Trash2, Image as ImageIcon } from 'lucide-react'
+import { stripParagraphTags } from '@/src/lib/utils/html-text'
 
 interface CategoryData {
   id: string
@@ -115,7 +116,7 @@ export function CategoryEditModal({
             </Label>
             <Input
               id="category-name"
-              value={editedCategory.name}
+              value={stripParagraphTags(editedCategory.name)}
               onChange={(e) => setEditedCategory({ ...editedCategory, name: e.target.value })}
               placeholder="e.g., Beginner-Friendly"
               className="w-full"
