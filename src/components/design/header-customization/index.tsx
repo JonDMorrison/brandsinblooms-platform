@@ -9,20 +9,22 @@ import { HeaderStyleSection } from './HeaderStyleSection'
 import { NavigationSection } from './NavigationSection'
 import { CtaSection } from './CtaSection'
 
-export function HeaderCustomization({ value, colors, typography, onChange }: HeaderCustomizationProps) {
+export function HeaderCustomization({ value, colors, typography, onChange, hidePreview }: HeaderCustomizationProps) {
   const state = useHeaderCustomizationState(value, onChange)
 
   return (
     <Card className="border-0 shadow-none">
       <CardContent className="px-0 space-y-6">
-        <HeaderPreviewSection 
-          value={value}
-          colors={colors}
-          typography={typography}
-          selectedNavItems={state.selectedNavItems}
-          logoSize={state.logoSize}
-          brandingType={state.brandingType}
-        />
+        {!hidePreview && (
+          <HeaderPreviewSection
+            value={value}
+            colors={colors}
+            typography={typography}
+            selectedNavItems={state.selectedNavItems}
+            logoSize={state.logoSize}
+            brandingType={state.brandingType}
+          />
+        )}
 
         <BrandingSection
           value={value}

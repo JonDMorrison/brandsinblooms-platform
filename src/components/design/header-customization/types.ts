@@ -15,6 +15,7 @@ export interface HeaderCustomizationProps {
     fontSize: string
   }
   onChange: (settings: ThemeSettings) => void
+  hidePreview?: boolean
 }
 
 export type BrandingType = 'text' | 'logo' | 'both'
