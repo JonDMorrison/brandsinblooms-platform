@@ -20,6 +20,7 @@ import { CartButton } from './CartButton'
 import { UserMenu } from './UserMenu'
 import { SearchOverlay } from './SearchOverlay'
 import { getDefaultNavItems } from './utils'
+import { NavigationItem, getDefaultNavigationItems } from '@/src/lib/queries/domains/theme'
 import type { SiteNavigationProps } from './types'
 
 export function SiteNavigation({ className }: SiteNavigationProps) {
@@ -46,21 +47,17 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const headerStyle = theme?.layout?.headerStyle || 'modern'
 
   // Build navigation items from theme settings
-  const configuredNavItems = theme?.navigation?.items || []
+  const configuredNavItems = (theme?.navigation?.items || []) as NavigationItem[]
 
-  // Products is always required and visible (like Search and Cart)
-  const requiredNavItems = [
-    { label: 'Products', href: '/products' }
-  ]
+  // Filter visible items and sort by order
+  const visibleNavItems = configuredNavItems
+    .filter(item => item.visible !== false) // Show items that are explicitly visible or undefined
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
 
-  // Use all configured navigation items from theme settings
-  // If no theme config, use default items (which includes Blog link)
-  const optionalNavItems = configuredNavItems.length > 0
-    ? configuredNavItems
-    : getDefaultNavItems().filter(item => item.label !== 'Products') // Exclude Products since it's in requiredNavItems
-
-  // Combine required items (Products) with optional items
-  const allNavItems = [...requiredNavItems, ...optionalNavItems]
+  // If no configured items, use defaults
+  const allNavItems = visibleNavItems.length > 0
+    ? visibleNavItems
+    : getDefaultNavigationItems().filter(item => item.visible)
 
   // Filter out Blog and Events navigation if no published content exists
   // Only filter during normal operation, not while loading
@@ -122,7 +119,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
       <CartButton itemCount={itemCount} />
 
       {/* CTA Button */}
-      {ctaButton?.text && (
+      {ctaButton?.enabled && ctaButton?.text && (
         <Button
           className={isVisualEditMode ? "hidden @md:inline-flex ml-2 btn-theme-primary" : "hidden md:inline-flex ml-2 btn-theme-primary"}
           asChild
@@ -188,7 +185,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                   <Search className="h-4 w-4" style={{ color: 'var(--theme-text)' }} />
                 </Button>
                 <CartButton itemCount={itemCount} />
-                {ctaButton?.text && (
+                {ctaButton?.enabled && ctaButton?.text && (
                   <Link href={ctaButton.href || '#'}>
                     <button
                       className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-pointer"
@@ -269,10 +266,10 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                 </nav>
               </div>
               {/* CTA Button below navigation */}
-              {ctaButton?.text && (
+              {ctaButton?.enabled && ctaButton?.text && (
                 <div className="flex justify-center pt-1">
                   <Link href={ctaButton.href || '#'}>
-                    <button 
+                    <button
                       className="px-3 py-1 text-sm rounded hover:opacity-90 transition-opacity cursor-pointer"
                       style={{ backgroundColor: 'var(--theme-primary)', color: '#fff' }}
                     >

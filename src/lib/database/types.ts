@@ -17,9 +17,9 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          extensions?: Json
-          variables?: Json
           query?: string
+          variables?: Json
+          extensions?: Json
           operationName?: string
         }
         Returns: Json
@@ -291,7 +291,6 @@ export type Database = {
           content: Json
           content_type: string
           created_at: string
-          deleted_at: string | null
           id: string
           is_featured: boolean | null
           is_published: boolean | null
@@ -309,7 +308,6 @@ export type Database = {
           content: Json
           content_type: string
           created_at?: string
-          deleted_at?: string | null
           id?: string
           is_featured?: boolean | null
           is_published?: boolean | null
@@ -327,7 +325,6 @@ export type Database = {
           content?: Json
           content_type?: string
           created_at?: string
-          deleted_at?: string | null
           id?: string
           is_featured?: boolean | null
           is_published?: boolean | null
@@ -490,302 +487,6 @@ export type Database = {
           record_count?: number
         }
         Relationships: []
-      }
-      event_attachments: {
-        Row: {
-          created_at: string
-          deleted_at: string | null
-          event_id: string
-          file_name: string
-          file_size_bytes: number | null
-          file_url: string
-          id: string
-          mime_type: string | null
-        }
-        Insert: {
-          created_at?: string
-          deleted_at?: string | null
-          event_id: string
-          file_name: string
-          file_size_bytes?: number | null
-          file_url: string
-          id?: string
-          mime_type?: string | null
-        }
-        Update: {
-          created_at?: string
-          deleted_at?: string | null
-          event_id?: string
-          file_name?: string
-          file_size_bytes?: number | null
-          file_url?: string
-          id?: string
-          mime_type?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_attachments_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_with_next_occurrence"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_attachments_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      event_content_associations: {
-        Row: {
-          content_id: string
-          created_at: string
-          created_by: string | null
-          event_id: string
-          id: string
-          site_id: string
-        }
-        Insert: {
-          content_id: string
-          created_at?: string
-          created_by?: string | null
-          event_id: string
-          id?: string
-          site_id: string
-        }
-        Update: {
-          content_id?: string
-          created_at?: string
-          created_by?: string | null
-          event_id?: string
-          id?: string
-          site_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_content_associations_content_id_fkey"
-            columns: ["content_id"]
-            isOneToOne: false
-            referencedRelation: "content"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_content_associations_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_with_next_occurrence"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_content_associations_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_content_associations_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      event_media: {
-        Row: {
-          alt_text: string | null
-          caption: string | null
-          created_at: string
-          deleted_at: string | null
-          event_id: string
-          id: string
-          media_type: string
-          media_url: string
-          sort_order: number
-          thumbnail_url: string | null
-        }
-        Insert: {
-          alt_text?: string | null
-          caption?: string | null
-          created_at?: string
-          deleted_at?: string | null
-          event_id: string
-          id?: string
-          media_type: string
-          media_url: string
-          sort_order?: number
-          thumbnail_url?: string | null
-        }
-        Update: {
-          alt_text?: string | null
-          caption?: string | null
-          created_at?: string
-          deleted_at?: string | null
-          event_id?: string
-          id?: string
-          media_type?: string
-          media_url?: string
-          sort_order?: number
-          thumbnail_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_media_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_with_next_occurrence"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_media_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      event_occurrences: {
-        Row: {
-          created_at: string
-          deleted_at: string | null
-          end_datetime: string | null
-          event_id: string
-          id: string
-          is_all_day: boolean
-          location: string | null
-          meta_data: Json | null
-          start_datetime: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          deleted_at?: string | null
-          end_datetime?: string | null
-          event_id: string
-          id?: string
-          is_all_day?: boolean
-          location?: string | null
-          meta_data?: Json | null
-          start_datetime: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          deleted_at?: string | null
-          end_datetime?: string | null
-          event_id?: string
-          id?: string
-          is_all_day?: boolean
-          location?: string | null
-          meta_data?: Json | null
-          start_datetime?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_occurrences_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "event_with_next_occurrence"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_occurrences_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      events: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          description: string | null
-          end_datetime: string | null
-          featured_image_id: string | null
-          id: string
-          is_all_day: boolean | null
-          location: string | null
-          meta_data: Json | null
-          published_at: string | null
-          site_id: string
-          slug: string
-          start_datetime: string
-          status: string | null
-          subtitle: string | null
-          timezone: string
-          title: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          end_datetime?: string | null
-          featured_image_id?: string | null
-          id?: string
-          is_all_day?: boolean | null
-          location?: string | null
-          meta_data?: Json | null
-          published_at?: string | null
-          site_id: string
-          slug: string
-          start_datetime: string
-          status?: string | null
-          subtitle?: string | null
-          timezone?: string
-          title: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          end_datetime?: string | null
-          featured_image_id?: string | null
-          id?: string
-          is_all_day?: boolean | null
-          location?: string | null
-          meta_data?: Json | null
-          published_at?: string | null
-          site_id?: string
-          slug?: string
-          start_datetime?: string
-          status?: string | null
-          subtitle?: string | null
-          timezone?: string
-          title?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "events_featured_image_id_fkey"
-            columns: ["featured_image_id"]
-            isOneToOne: false
-            referencedRelation: "event_media"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       import_batches: {
         Row: {
@@ -1313,7 +1014,7 @@ export type Database = {
           created_at: string
           currency: string | null
           customer_email: string
-          customer_id: string | null
+          customer_id: string
           customer_name: string
           delivered_at: string | null
           discount_amount: number | null
@@ -1330,7 +1031,6 @@ export type Database = {
           shipping_amount: number | null
           site_id: string
           status: string
-          stripe_payment_intent_id: string | null
           subtotal: number | null
           tax_amount: number | null
           total_amount: number
@@ -1343,7 +1043,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           customer_email: string
-          customer_id?: string | null
+          customer_id: string
           customer_name: string
           delivered_at?: string | null
           discount_amount?: number | null
@@ -1360,7 +1060,6 @@ export type Database = {
           shipping_amount?: number | null
           site_id: string
           status?: string
-          stripe_payment_intent_id?: string | null
           subtotal?: number | null
           tax_amount?: number | null
           total_amount: number
@@ -1373,7 +1072,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           customer_email?: string
-          customer_id?: string | null
+          customer_id?: string
           customer_name?: string
           delivered_at?: string | null
           discount_amount?: number | null
@@ -1390,7 +1089,6 @@ export type Database = {
           shipping_amount?: number | null
           site_id?: string
           status?: string
-          stripe_payment_intent_id?: string | null
           subtotal?: number | null
           tax_amount?: number | null
           total_amount?: number
@@ -1795,11 +1493,8 @@ export type Database = {
           category: string | null
           compare_at_price: number | null
           created_at: string
-          depth: number | null
           description: string | null
-          dimension_unit: string | null
           favorite_count: number | null
-          height: number | null
           id: string
           images: Json | null
           import_batch_id: string | null
@@ -1823,9 +1518,6 @@ export type Database = {
           subcategory: string | null
           unit_of_measure: string | null
           updated_at: string
-          weight: number | null
-          weight_unit: string | null
-          width: number | null
         }
         Insert: {
           attributes?: Json | null
@@ -1833,11 +1525,8 @@ export type Database = {
           category?: string | null
           compare_at_price?: number | null
           created_at?: string
-          depth?: number | null
           description?: string | null
-          dimension_unit?: string | null
           favorite_count?: number | null
-          height?: number | null
           id?: string
           images?: Json | null
           import_batch_id?: string | null
@@ -1861,9 +1550,6 @@ export type Database = {
           subcategory?: string | null
           unit_of_measure?: string | null
           updated_at?: string
-          weight?: number | null
-          weight_unit?: string | null
-          width?: number | null
         }
         Update: {
           attributes?: Json | null
@@ -1871,11 +1557,8 @@ export type Database = {
           category?: string | null
           compare_at_price?: number | null
           created_at?: string
-          depth?: number | null
           description?: string | null
-          dimension_unit?: string | null
           favorite_count?: number | null
-          height?: number | null
           id?: string
           images?: Json | null
           import_batch_id?: string | null
@@ -1899,9 +1582,6 @@ export type Database = {
           subcategory?: string | null
           unit_of_measure?: string | null
           updated_at?: string
-          weight?: number | null
-          weight_unit?: string | null
-          width?: number | null
         }
         Relationships: [
           {
@@ -1947,7 +1627,6 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
-          is_active: boolean
           phone: string | null
           role: string
           updated_at: string
@@ -1966,7 +1645,6 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
-          is_active?: boolean
           phone?: string | null
           role?: string
           updated_at?: string
@@ -1985,7 +1663,6 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
-          is_active?: boolean
           phone?: string | null
           role?: string
           updated_at?: string
@@ -2233,74 +1910,6 @@ export type Database = {
           },
         ]
       }
-      site_payment_settings: {
-        Row: {
-          created_at: string
-          currency: string
-          default_tax_rate: number
-          flat_rate_shipping: number
-          free_shipping_threshold: number | null
-          id: string
-          minimum_order_amount: number | null
-          platform_commission_enabled: boolean
-          platform_commission_type: string
-          platform_commission_value: number | null
-          shipping_by_region: Json
-          shipping_enabled: boolean
-          site_id: string
-          tax_by_state: Json
-          tax_enabled: boolean
-          tax_inclusive: boolean
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          currency?: string
-          default_tax_rate?: number
-          flat_rate_shipping?: number
-          free_shipping_threshold?: number | null
-          id?: string
-          minimum_order_amount?: number | null
-          platform_commission_enabled?: boolean
-          platform_commission_type?: string
-          platform_commission_value?: number | null
-          shipping_by_region?: Json
-          shipping_enabled?: boolean
-          site_id: string
-          tax_by_state?: Json
-          tax_enabled?: boolean
-          tax_inclusive?: boolean
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          currency?: string
-          default_tax_rate?: number
-          flat_rate_shipping?: number
-          free_shipping_threshold?: number | null
-          id?: string
-          minimum_order_amount?: number | null
-          platform_commission_enabled?: boolean
-          platform_commission_type?: string
-          platform_commission_value?: number | null
-          shipping_by_region?: Json
-          shipping_enabled?: boolean
-          site_id?: string
-          tax_by_state?: Json
-          tax_enabled?: boolean
-          tax_inclusive?: boolean
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "site_payment_settings_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: true
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       site_performance_metrics: {
         Row: {
           active_content_items: number | null
@@ -2491,30 +2100,14 @@ export type Database = {
           business_hours: Json | null
           business_name: string | null
           business_phone: string | null
-          cloudflare_activated_at: string | null
-          cloudflare_cname_target: string | null
-          cloudflare_created_at: string | null
-          cloudflare_hostname_id: string | null
-          cloudflare_route_id: string | null
-          cloudflare_ssl_status: string | null
-          cloudflare_txt_name: string | null
-          cloudflare_txt_value: string | null
           created_at: string
           created_by: string | null
           custom_domain: string | null
-          custom_domain_error: string | null
-          custom_domain_status: string | null
-          custom_domain_verified_at: string | null
-          deleted_at: string | null
           description: string | null
-          dns_provider: string | null
-          dns_records: Json | null
-          dns_verification_token: string | null
           id: string
           is_active: boolean | null
           is_published: boolean | null
           last_activity_at: string | null
-          last_dns_check_at: string | null
           latitude: number | null
           logo_cdn_url: string | null
           logo_migrated_at: string | null
@@ -2525,14 +2118,6 @@ export type Database = {
           longitude: number | null
           name: string
           primary_color: string | null
-          social_media: Json
-          stripe_account_id: string | null
-          stripe_account_status: string | null
-          stripe_charges_enabled: boolean | null
-          stripe_connected_at: string | null
-          stripe_disconnected_at: string | null
-          stripe_onboarding_completed: boolean | null
-          stripe_payouts_enabled: boolean | null
           subdomain: string
           theme_settings: Json | null
           timezone: string | null
@@ -2545,30 +2130,14 @@ export type Database = {
           business_hours?: Json | null
           business_name?: string | null
           business_phone?: string | null
-          cloudflare_activated_at?: string | null
-          cloudflare_cname_target?: string | null
-          cloudflare_created_at?: string | null
-          cloudflare_hostname_id?: string | null
-          cloudflare_route_id?: string | null
-          cloudflare_ssl_status?: string | null
-          cloudflare_txt_name?: string | null
-          cloudflare_txt_value?: string | null
           created_at?: string
           created_by?: string | null
           custom_domain?: string | null
-          custom_domain_error?: string | null
-          custom_domain_status?: string | null
-          custom_domain_verified_at?: string | null
-          deleted_at?: string | null
           description?: string | null
-          dns_provider?: string | null
-          dns_records?: Json | null
-          dns_verification_token?: string | null
           id?: string
           is_active?: boolean | null
           is_published?: boolean | null
           last_activity_at?: string | null
-          last_dns_check_at?: string | null
           latitude?: number | null
           logo_cdn_url?: string | null
           logo_migrated_at?: string | null
@@ -2579,14 +2148,6 @@ export type Database = {
           longitude?: number | null
           name: string
           primary_color?: string | null
-          social_media?: Json
-          stripe_account_id?: string | null
-          stripe_account_status?: string | null
-          stripe_charges_enabled?: boolean | null
-          stripe_connected_at?: string | null
-          stripe_disconnected_at?: string | null
-          stripe_onboarding_completed?: boolean | null
-          stripe_payouts_enabled?: boolean | null
           subdomain: string
           theme_settings?: Json | null
           timezone?: string | null
@@ -2599,30 +2160,14 @@ export type Database = {
           business_hours?: Json | null
           business_name?: string | null
           business_phone?: string | null
-          cloudflare_activated_at?: string | null
-          cloudflare_cname_target?: string | null
-          cloudflare_created_at?: string | null
-          cloudflare_hostname_id?: string | null
-          cloudflare_route_id?: string | null
-          cloudflare_ssl_status?: string | null
-          cloudflare_txt_name?: string | null
-          cloudflare_txt_value?: string | null
           created_at?: string
           created_by?: string | null
           custom_domain?: string | null
-          custom_domain_error?: string | null
-          custom_domain_status?: string | null
-          custom_domain_verified_at?: string | null
-          deleted_at?: string | null
           description?: string | null
-          dns_provider?: string | null
-          dns_records?: Json | null
-          dns_verification_token?: string | null
           id?: string
           is_active?: boolean | null
           is_published?: boolean | null
           last_activity_at?: string | null
-          last_dns_check_at?: string | null
           latitude?: number | null
           logo_cdn_url?: string | null
           logo_migrated_at?: string | null
@@ -2633,14 +2178,6 @@ export type Database = {
           longitude?: number | null
           name?: string
           primary_color?: string | null
-          social_media?: Json
-          stripe_account_id?: string | null
-          stripe_account_status?: string | null
-          stripe_charges_enabled?: boolean | null
-          stripe_connected_at?: string | null
-          stripe_disconnected_at?: string | null
-          stripe_onboarding_completed?: boolean | null
-          stripe_payouts_enabled?: boolean | null
           subdomain?: string
           theme_settings?: Json | null
           timezone?: string | null
@@ -2695,70 +2232,6 @@ export type Database = {
           table_name?: string
         }
         Relationships: []
-      }
-      stripe_webhook_events: {
-        Row: {
-          created_at: string
-          error_message: string | null
-          event_type: string
-          id: string
-          payload: Json
-          processed: boolean
-          processed_at: string | null
-          related_order_id: string | null
-          related_site_id: string | null
-          stripe_account_id: string | null
-          stripe_event_id: string
-        }
-        Insert: {
-          created_at?: string
-          error_message?: string | null
-          event_type: string
-          id?: string
-          payload: Json
-          processed?: boolean
-          processed_at?: string | null
-          related_order_id?: string | null
-          related_site_id?: string | null
-          stripe_account_id?: string | null
-          stripe_event_id: string
-        }
-        Update: {
-          created_at?: string
-          error_message?: string | null
-          event_type?: string
-          id?: string
-          payload?: Json
-          processed?: boolean
-          processed_at?: string | null
-          related_order_id?: string | null
-          related_site_id?: string | null
-          stripe_account_id?: string | null
-          stripe_event_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "stripe_webhook_events_related_order_id_fkey"
-            columns: ["related_order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "stripe_webhook_events_related_order_id_fkey"
-            columns: ["related_order_id"]
-            isOneToOne: false
-            referencedRelation: "orders_with_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "stripe_webhook_events_related_site_id_fkey"
-            columns: ["related_site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       taggings: {
         Row: {
@@ -2885,43 +2358,6 @@ export type Database = {
           total_spent: number | null
         }
         Relationships: []
-      }
-      event_with_next_occurrence: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          deleted_at: string | null
-          description: string | null
-          end_datetime: string | null
-          id: string | null
-          is_all_day: boolean | null
-          location: string | null
-          meta_data: Json | null
-          next_end_datetime: string | null
-          next_is_all_day: boolean | null
-          next_location: string | null
-          next_occurrence_id: string | null
-          next_start_datetime: string | null
-          published_at: string | null
-          site_id: string | null
-          slug: string | null
-          start_datetime: string | null
-          status: string | null
-          subtitle: string | null
-          timezone: string | null
-          title: string | null
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "events_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       notification_summary: {
         Row: {
@@ -3305,159 +2741,87 @@ export type Database = {
         Args: { p_migration_batch: string; p_instance_id: string }
         Returns: boolean
       }
-      add_event_occurrence: {
-        Args: {
-          p_base_occurrence_id?: string
-          p_event_id: string
-          p_days_offset: number
-        }
-        Returns: string
-      }
       admin_bulk_update_content: {
         Args: {
-          content_ids: string[]
-          admin_notes?: string
           bulk_updates: Json
+          admin_notes?: string
+          content_ids: string[]
         }
         Returns: Json
       }
       admin_bulk_update_products: {
         Args: {
           product_ids: string[]
-          admin_notes?: string
           bulk_updates: Json
+          admin_notes?: string
         }
         Returns: Json
-      }
-      admin_count_users: {
-        Args: {
-          role_filter?: string
-          status_filter?: boolean
-          search_query?: string
-        }
-        Returns: number
       }
       admin_exists: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
       admin_get_content_analytics: {
-        Args: { start_date?: string; end_date?: string; site_uuid: string }
+        Args: { start_date?: string; site_uuid: string; end_date?: string }
         Returns: Json
       }
       admin_get_product_analytics: {
-        Args: { site_uuid: string; end_date?: string; start_date?: string }
+        Args: { start_date?: string; site_uuid: string; end_date?: string }
         Returns: Json
       }
       admin_get_site_content: {
         Args: {
-          limit_count?: number
+          site_uuid: string
           search_query?: string
           content_type_filter?: string
           status_filter?: string
+          limit_count?: number
           offset_count?: number
-          site_uuid: string
         }
         Returns: Json
       }
       admin_get_site_products: {
         Args: {
+          search_query?: string
+          limit_count?: number
+          status_filter?: string
           site_uuid: string
           offset_count?: number
-          status_filter?: string
-          limit_count?: number
           category_filter?: string
-          search_query?: string
         }
         Returns: Json
-      }
-      admin_get_user_details: {
-        Args: { target_user_id: string }
-        Returns: {
-          bio: string
-          role: string
-          is_active: boolean
-          created_at: string
-          updated_at: string
-          last_sign_in_at: string
-          email_confirmed_at: string
-          site_count: number
-          full_name: string
-          username: string
-          avatar_url: string
-          phone: string
-          user_id: string
-          email: string
-        }[]
-      }
-      admin_toggle_user_status: {
-        Args: { target_user_id: string }
-        Returns: boolean
       }
       admin_update_content: {
         Args: {
           content_uuid: string
-          admin_notes?: string
           content_updates: Json
+          admin_notes?: string
         }
         Returns: Json
       }
       admin_update_product: {
         Args: {
-          product_updates: Json
           admin_notes?: string
+          product_updates: Json
           product_uuid: string
         }
         Returns: Json
       }
       admin_update_site_status: {
         Args: {
-          site_uuid: string
-          notes?: string
           new_is_published?: boolean
+          site_uuid: string
           new_is_active?: boolean
+          notes?: string
         }
         Returns: boolean
-      }
-      admin_update_user_profile: {
-        Args: {
-          new_full_name?: string
-          new_username?: string
-          new_role?: string
-          target_user_id: string
-          new_email?: string
-          new_phone?: string
-          new_is_active?: boolean
-        }
-        Returns: boolean
-      }
-      bulk_create_event_content_associations: {
-        Args: { p_content_ids: string[]; p_event_id: string }
-        Returns: {
-          association_id: string
-          error_message: string
-          success: boolean
-          content_id: string
-        }[]
-      }
-      bulk_import_products_atomic: {
-        Args: { p_products: Json; p_site_id: string }
-        Returns: Json
       }
       calculate_metric_trend: {
         Args: { current_value: number; previous_value: number }
         Returns: string
       }
-      can_manage_event_media: {
-        Args: { event_id_param: string; user_id_param: string }
-        Returns: boolean
-      }
-      can_site_accept_payments: {
-        Args: { p_site_id: string }
-        Returns: boolean
-      }
       can_upload_product_image: {
-        Args: { user_id_param: string; site_id_param: string }
+        Args: { site_id_param: string; user_id_param: string }
         Returns: boolean
       }
       check_site_health: {
@@ -3468,14 +2832,6 @@ export type Database = {
         Args: { subdomain_to_check: string }
         Returns: boolean
       }
-      check_user_active_status: {
-        Args: { target_user_id: string }
-        Returns: {
-          role: string
-          is_active: boolean
-          user_id: string
-        }[]
-      }
       cleanup_expired_impersonation_sessions: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -3483,17 +2839,13 @@ export type Database = {
       cleanup_old_generation_jobs: {
         Args: { days_to_keep?: number }
         Returns: {
-          deleted_count: number
           oldest_deletion_date: string
+          deleted_count: number
         }[]
       }
       cleanup_temp_product_images: {
         Args: Record<PropertyKey, never>
         Returns: undefined
-      }
-      create_event_content_association: {
-        Args: { p_content_id: string; p_event_id: string }
-        Returns: string
       }
       create_initial_admin: {
         Args: { admin_full_name?: string; target_user_id: string }
@@ -3505,60 +2857,19 @@ export type Database = {
       }
       create_site_with_template: {
         Args: {
-          business_info?: Json
-          owner_email: string
           site_subdomain: string
           site_name: string
           template_slug: string
+          owner_email: string
+          business_info?: Json
         }
         Returns: Json
-      }
-      decrement_product_inventory: {
-        Args: { p_quantity: number; p_product_id: string }
-        Returns: {
-          attributes: Json | null
-          care_instructions: string | null
-          category: string | null
-          compare_at_price: number | null
-          created_at: string
-          depth: number | null
-          description: string | null
-          dimension_unit: string | null
-          favorite_count: number | null
-          height: number | null
-          id: string
-          images: Json | null
-          import_batch_id: string | null
-          import_source: string | null
-          in_stock: boolean | null
-          inventory_count: number | null
-          is_active: boolean | null
-          is_featured: boolean | null
-          low_stock_threshold: number | null
-          meta_description: string | null
-          name: string
-          price: number | null
-          primary_category_id: string | null
-          rating: number | null
-          review_count: number | null
-          sale_price: number | null
-          site_id: string
-          sku: string | null
-          slug: string | null
-          stock_status: string | null
-          subcategory: string | null
-          unit_of_measure: string | null
-          updated_at: string
-          weight: number | null
-          weight_unit: string | null
-          width: number | null
-        }
       }
       end_impersonation_session: {
         Args: {
           session_token_param?: string
-          end_reason_param?: string
           session_id_param?: string
+          end_reason_param?: string
         }
         Returns: Json
       }
@@ -3576,31 +2887,31 @@ export type Database = {
       }
       generate_s3_key: {
         Args: {
-          resource_type: string
           filename: string
+          resource_type: string
           resource_id: string
           site_id: string
         }
         Returns: string
       }
       generate_unique_slug: {
-        Args: { p_exclude_id?: string; p_site_id: string; p_name: string }
+        Args: { p_name: string; p_exclude_id?: string; p_site_id: string }
         Returns: string
       }
       get_active_impersonation_sessions: {
         Args: {
-          admin_user_uuid?: string
           limit_count?: number
+          admin_user_uuid?: string
           site_uuid?: string
         }
         Returns: Json
       }
       get_admin_action_logs: {
         Args: {
-          target_type_filter?: string
           site_uuid?: string
           admin_user_uuid?: string
           action_type_filter?: string
+          target_type_filter?: string
           start_date?: string
           end_date?: string
           limit_count?: number
@@ -3610,50 +2921,30 @@ export type Database = {
       }
       get_all_sites_with_stats: {
         Args: {
-          search_query?: string
-          offset_count?: number
           limit_count?: number
           status_filter?: string
-        }
-        Returns: Json
-      }
-      get_all_users: {
-        Args: {
-          role_filter?: string
           search_query?: string
-          status_filter?: boolean
-          limit_count?: number
           offset_count?: number
         }
-        Returns: {
-          user_id: string
-          email: string
-          full_name: string
-          username: string
-          avatar_url: string
-          role: string
-          is_active: boolean
-          created_at: string
-          updated_at: string
-          last_sign_in_at: string
-        }[]
+        Returns: Json
       }
       get_category_ancestors: {
         Args: { p_category_id: string }
         Returns: {
+          id: string
+          parent_id: string
           name: string
           slug: string
           level: number
-          parent_id: string
-          id: string
         }[]
       }
       get_category_tree: {
         Args: { p_site_id: string }
         Returns: {
+          children_count: number
+          name: string
           id: string
           parent_id: string
-          name: string
           slug: string
           description: string
           image_url: string
@@ -3664,69 +2955,10 @@ export type Database = {
           sort_order: number
           is_active: boolean
           product_count: number
-          children_count: number
-        }[]
-      }
-      get_content_events: {
-        Args: { p_content_id: string }
-        Returns: {
-          title: string
-          event_id: string
-          location: string
-          status: string
-          end_datetime: string
-          start_datetime: string
-          slug: string
-          association_created_at: string
-        }[]
-      }
-      get_event_content: {
-        Args: { p_event_id: string }
-        Returns: {
-          slug: string
-          title: string
-          content_type: string
-          content_id: string
-          association_created_at: string
-          published_at: string
-          is_published: boolean
-        }[]
-      }
-      get_event_featured_image: {
-        Args: { p_event_id: string; p_featured_image_id: string }
-        Returns: {
-          thumbnail_url: string
-          alt_text: string
-          caption: string
-          sort_order: number
-          id: string
-          media_type: string
-          media_url: string
-        }[]
-      }
-      get_event_occurrences: {
-        Args: { p_event_id: string }
-        Returns: {
-          is_all_day: boolean
-          end_datetime: string
-          start_datetime: string
-          occurrence_id: string
-          location: string
-          meta_data: Json
-        }[]
-      }
-      get_guest_orders_by_email: {
-        Args: { order_email: string }
-        Returns: {
-          id: string
-          status: string
-          total_amount: number
-          created_at: string
-          order_number: string
         }[]
       }
       get_image_url: {
-        Args: { cdn_url: string; supabase_url: string; storage_type: string }
+        Args: { storage_type: string; cdn_url: string; supabase_url: string }
         Returns: string
       }
       get_impersonation_context: {
@@ -3748,25 +2980,25 @@ export type Database = {
       get_migration_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
-          migrated_records: number
-          total_records: number
-          table_name: string
-          migration_percentage: number
           pending_records: number
+          table_name: string
+          total_records: number
+          migrated_records: number
           failed_records: number
+          migration_percentage: number
         }[]
       }
       get_order_summary_stats: {
-        Args: { p_date_range?: unknown; p_site_id: string }
+        Args: { p_site_id: string; p_date_range?: unknown }
         Returns: {
-          processing_orders: number
-          conversion_rate: number
-          average_order_value: number
-          total_revenue: number
           total_orders: number
           delivered_orders: number
           shipped_orders: number
+          processing_orders: number
           pending_orders: number
+          conversion_rate: number
+          average_order_value: number
+          total_revenue: number
         }[]
       }
       get_platform_analytics_summary: {
@@ -3776,53 +3008,21 @@ export type Database = {
       get_product_stats: {
         Args: { p_site_id: string }
         Returns: {
-          active_products: number
-          total_reviews: number
           total_products: number
-          out_of_stock: number
+          active_products: number
           low_stock: number
           average_rating: number
+          out_of_stock: number
+          total_reviews: number
         }[]
       }
       get_site_analytics: {
-        Args: { period_type?: string; days_back?: number; site_uuid: string }
+        Args: { site_uuid: string; period_type?: string; days_back?: number }
         Returns: Json
       }
       get_site_health_summary: {
         Args: { days_back?: number; site_uuid: string }
         Returns: Json
-      }
-      get_site_occurrences_in_range: {
-        Args: { p_site_id: string; p_start_date: string; p_end_date: string }
-        Returns: {
-          is_all_day: boolean
-          status: string
-          end_datetime: string
-          start_datetime: string
-          occurrence_id: string
-          event_id: string
-          event_title: string
-          event_slug: string
-          location: string
-        }[]
-      }
-      get_site_payment_settings: {
-        Args: { p_site_id: string }
-        Returns: {
-          shipping_enabled: boolean
-          tax_enabled: boolean
-          default_tax_rate: number
-          tax_by_state: Json
-          tax_inclusive: boolean
-          free_shipping_threshold: number
-          flat_rate_shipping: number
-          shipping_by_region: Json
-          currency: string
-          minimum_order_amount: number
-          platform_commission_enabled: boolean
-          platform_commission_type: string
-          platform_commission_value: number
-        }[]
       }
       get_site_summary_stats: {
         Args: { site_uuid: string }
@@ -3831,24 +3031,6 @@ export type Database = {
       get_site_templates: {
         Args: { active_only?: boolean; category_filter?: string }
         Returns: Json
-      }
-      get_sites_with_social_platform: {
-        Args: { platform_name: string }
-        Returns: {
-          site_name: string
-          social_username: string
-          social_url: string
-          site_id: string
-          confidence: number
-        }[]
-      }
-      get_social_media_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          avg_confidence: number
-          site_count: number
-          platform: string
-        }[]
       }
       get_unread_notification_count: {
         Args: { p_site_id: string }
@@ -3864,16 +3046,16 @@ export type Database = {
       }
       log_admin_action: {
         Args: {
+          ip_addr?: unknown
           user_agent_val?: string
-          target_type_val: string
           action_type_val: string
-          site_uuid: string
           admin_id: string
+          site_uuid: string
+          target_type_val: string
+          target_uuid?: string
           old_vals?: Json
           new_vals?: Json
           details?: string
-          ip_addr?: unknown
-          target_uuid?: string
         }
         Returns: string
       }
@@ -3883,11 +3065,11 @@ export type Database = {
       }
       mark_image_migrated: {
         Args: {
+          p_table_name: string
           p_record_id: string
+          p_s3_key: string
           p_s3_bucket: string
           p_cdn_url: string
-          p_table_name: string
-          p_s3_key: string
         }
         Returns: boolean
       }
@@ -3899,33 +3081,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      migrate_single_date_events_to_occurrences: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          migrated_count: number
-        }[]
-      }
-      permanently_delete_expired_sites: {
-        Args: { retention_days?: number }
-        Returns: {
-          deleted_count: number
-          site_names: string[]
-        }[]
-      }
       reassign_category_products: {
         Args: { p_category_id: string; p_new_category_id?: string }
         Returns: number
       }
       release_migration_lock: {
-        Args: { p_migration_batch: string; p_instance_id: string }
-        Returns: boolean
-      }
-      remove_event_content_association: {
-        Args: { p_content_id: string; p_event_id: string }
+        Args: { p_instance_id: string; p_migration_batch: string }
         Returns: boolean
       }
       rollback_image_migration: {
-        Args: { p_record_id: string; p_table_name: string }
+        Args: { p_table_name: string; p_record_id: string }
         Returns: boolean
       }
       run_platform_health_checks: {
@@ -3938,28 +3103,28 @@ export type Database = {
       }
       search_content_global: {
         Args: {
-          result_limit?: number
-          site_id_param: string
           search_query: string
+          site_id_param: string
+          result_limit?: number
         }
         Returns: {
-          relevance: number
-          content_type: string
-          title: string
+          is_published: boolean
           id: string
+          title: string
+          content_type: string
           slug: string
           excerpt: string
-          is_published: boolean
+          relevance: number
           updated_at: string
         }[]
       }
       search_orders: {
         Args: {
+          p_limit?: number
           p_site_id: string
           p_search_term?: string
           p_status?: string
           p_payment_status?: string
-          p_limit?: number
           p_offset?: number
         }
         Returns: {
@@ -3975,13 +3140,13 @@ export type Database = {
       }
       start_admin_impersonation: {
         Args: {
-          purpose_text?: string
+          duration_hours?: number
+          user_agent_val?: string
+          ip_addr?: unknown
           site_uuid: string
           impersonated_user_uuid?: string
-          duration_hours?: number
+          purpose_text?: string
           allowed_actions_list?: string[]
-          ip_addr?: unknown
-          user_agent_val?: string
         }
         Returns: Json
       }
@@ -3993,23 +3158,16 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
-      update_event_occurrences_all_day: {
-        Args: { p_event_id: string; p_is_all_day: boolean }
-        Returns: number
-      }
       update_product_inventory: {
-        Args: { p_product_id: string; p_change: number }
+        Args: { p_change: number; p_product_id: string }
         Returns: {
           attributes: Json | null
           care_instructions: string | null
           category: string | null
           compare_at_price: number | null
           created_at: string
-          depth: number | null
           description: string | null
-          dimension_unit: string | null
           favorite_count: number | null
-          height: number | null
           id: string
           images: Json | null
           import_batch_id: string | null
@@ -4033,13 +3191,10 @@ export type Database = {
           subcategory: string | null
           unit_of_measure: string | null
           updated_at: string
-          weight: number | null
-          weight_unit: string | null
-          width: number | null
         }
       }
       user_has_site_access: {
-        Args: { p_role?: string; p_site_id: string }
+        Args: { p_site_id: string; p_role?: string }
         Returns: boolean
       }
       validate_plant_content: {
