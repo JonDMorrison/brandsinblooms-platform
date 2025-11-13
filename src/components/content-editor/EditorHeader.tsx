@@ -171,9 +171,9 @@ export function EditorHeader({
         <div className="border-t bg-gray-50/50 px-6 flex items-center justify-between text-sm h-[2.5rem]">
           <div className="flex items-center gap-3">
             {/* Sidebar Toggle */}
-            <Button 
-              variant={isSidebarOpen ? "secondary" : "ghost"} 
-              size="sm" 
+            <Button
+              variant={isSidebarOpen ? "secondary" : "ghost"}
+              size="sm"
               className="h-6 px-2 text-xs"
               onClick={onSidebarToggle}
             >
@@ -182,7 +182,7 @@ export function EditorHeader({
               ) : (
                 <PanelLeftOpen className="w-3.5 h-3.5 mr-1" />
               )}
-              Settings Panel
+              CONTENT BLOCKS
             </Button>
           </div>
           
