@@ -141,7 +141,7 @@ export const TextInputWithColorPicker = React.memo(function TextInputWithColorPi
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 p-4" align="end">
+          <PopoverContent className="w-80 p-4 bg-white" align="end">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Text Color</span>
