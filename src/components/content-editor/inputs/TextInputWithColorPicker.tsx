@@ -5,7 +5,8 @@
  * Allows customizing text color per-field in addition to editing the text content
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { HexColorPicker } from 'react-colorful';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -15,10 +16,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 import { Palette, RotateCcw } from 'lucide-react';
-import { ColorPicker } from '@/src/components/content-editor/ColorPicker';
 import { cn } from '@/src/lib/utils';
-import type { Editor } from '@tiptap/react';
 
 export interface TextInputWithColorPickerProps {
   /** Field label */
@@ -43,6 +43,29 @@ export interface TextInputWithColorPickerProps {
   className?: string;
 }
 
+/**
+ * Get theme colors from CSS variables
+ */
+function getThemeColors() {
+  if (typeof window === 'undefined') {
+    return {
+      primary: '#10b981',
+      secondary: '#8b5cf6',
+      accent: '#f59e0b',
+      text: '#1a1a1a'
+    };
+  }
+
+  const computedStyle = getComputedStyle(document.body);
+
+  return {
+    primary: computedStyle.getPropertyValue('--theme-primary')?.trim() || '#10b981',
+    secondary: computedStyle.getPropertyValue('--theme-secondary')?.trim() || '#8b5cf6',
+    accent: computedStyle.getPropertyValue('--theme-accent')?.trim() || '#f59e0b',
+    text: computedStyle.getPropertyValue('--theme-text')?.trim() || '#1a1a1a'
+  };
+}
+
 export const TextInputWithColorPicker = React.memo(function TextInputWithColorPicker({
   label,
   value,
@@ -56,30 +79,20 @@ export const TextInputWithColorPicker = React.memo(function TextInputWithColorPi
   className
 }: TextInputWithColorPickerProps) {
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [customColor, setCustomColor] = useState<string>(colorValue || '#000000');
 
-  // Create a mock editor object for ColorPicker compatibility
-  // ColorPicker expects an editor with setColor command and state.selection
-  // useMemo to ensure it updates when colorValue changes
-  const mockEditor = React.useMemo<Partial<Editor>>(() => ({
-    chain: () => ({
-      focus: () => ({
-        setColor: (color: string) => {
-          onColorChange(color);
-          return { run: () => {} };
-        },
-        unsetColor: () => {
-          onColorChange(undefined);
-          return { run: () => {} };
-        },
-        run: () => {}
-      } as any)
-    } as any),
-    isActive: () => false,
-    getAttributes: () => ({ color: colorValue }),
-    state: {
-      selection: { from: 0, to: 0 }
-    } as any
-  } as any), [colorValue, onColorChange]);
+  // Get theme colors
+  const themeColors = useMemo(() => getThemeColors(), []);
+
+  const handleThemeColorSelect = (color: string) => {
+    onColorChange(color);
+    setIsColorPickerOpen(false);
+  };
+
+  const handleCustomColorApply = () => {
+    onColorChange(customColor);
+    setIsColorPickerOpen(false);
+  };
 
   const handleResetColor = () => {
     onColorChange(undefined);
@@ -128,8 +141,8 @@ export const TextInputWithColorPicker = React.memo(function TextInputWithColorPi
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-3" align="end">
-            <div className="space-y-3">
+          <PopoverContent className="w-80 p-4" align="end">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Text Color</span>
                 {colorValue && (
@@ -140,14 +153,79 @@ export const TextInputWithColorPicker = React.memo(function TextInputWithColorPi
                     className="h-7 px-2 text-xs"
                   >
                     <RotateCcw className="h-3 w-3 mr-1" />
-                    Reset to Theme
+                    Reset
                   </Button>
                 )}
               </div>
 
-              <ColorPicker
-                editor={mockEditor as Editor}
-              />
+              {/* Theme Color Presets */}
+              <div>
+                <div className="text-xs font-medium text-muted-foreground mb-2">
+                  Theme Colors
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { color: themeColors.primary, label: 'Primary' },
+                    { color: themeColors.secondary, label: 'Secondary' },
+                    { color: themeColors.accent, label: 'Accent' },
+                    { color: themeColors.text, label: 'Text' }
+                  ].map(({ color, label }) => (
+                    <button
+                      key={label}
+                      onClick={() => handleThemeColorSelect(color)}
+                      className={cn(
+                        'flex flex-col items-center gap-1 p-2 rounded-md hover:bg-accent transition-colors',
+                        colorValue === color && 'bg-accent'
+                      )}
+                      title={label}
+                    >
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full border-2 transition-all',
+                          colorValue === color ? 'border-primary ring-2 ring-primary ring-offset-1' : 'border-border'
+                        )}
+                        style={{ backgroundColor: color }}
+                      />
+                      <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+                        {label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Custom Color Picker */}
+              <div>
+                <div className="text-xs font-medium text-muted-foreground mb-2">
+                  Custom Color
+                </div>
+                <div className="flex flex-col gap-3">
+                  <HexColorPicker
+                    color={customColor}
+                    onChange={setCustomColor}
+                    style={{ width: '100%' }}
+                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      value={customColor}
+                      onChange={(e) => setCustomColor(e.target.value)}
+                      className="flex-1 h-9 text-sm font-mono"
+                      placeholder="#000000"
+                      maxLength={7}
+                    />
+                    <Button
+                      onClick={handleCustomColorApply}
+                      size="sm"
+                      className="h-9"
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </PopoverContent>
         </Popover>
