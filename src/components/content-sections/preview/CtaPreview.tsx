@@ -38,10 +38,12 @@ export function CtaPreview({
   const backgroundStyle = getSectionBackgroundStyle(settings)
   const isPrimaryBackground = settings?.backgroundColor === 'primary'
 
-  // Dynamic styling based on background mode
-  const textColor = isPrimaryBackground ? 'white' : 'var(--theme-text)'
+  // Dynamic styling based on background mode and custom colors
+  const defaultTextColor = isPrimaryBackground ? 'white' : 'var(--theme-text)'
+  const textColor = data.headlineColor || defaultTextColor
   const descriptionOpacity = isPrimaryBackground ? 1 : 0.7
-  const descriptionColor = isPrimaryBackground ? 'rgba(255,255,255,0.9)' : 'var(--theme-text)'
+  const defaultDescriptionColor = isPrimaryBackground ? 'rgba(255,255,255,0.9)' : 'var(--theme-text)'
+  const descriptionColor = data.descriptionColor || defaultDescriptionColor
 
   // State for link editing
   const [linkEditModalOpen, setLinkEditModalOpen] = useState(false)

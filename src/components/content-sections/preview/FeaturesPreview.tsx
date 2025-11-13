@@ -125,7 +125,7 @@ export function FeaturesPreview({
             singleLine={true}
             className={`${responsive.typography.sectionHeading} mb-4`}
             style={{
-              color: 'var(--theme-text)',
+              color: data.headlineColor || 'var(--theme-text)',
               fontFamily: 'var(--theme-font-heading)'
             }}
             placeholder="Enter headline..."
@@ -147,7 +147,7 @@ export function FeaturesPreview({
             singleLine={false}
             className="text-lg max-w-2xl mx-auto"
             style={{
-              color: 'var(--theme-text)',
+              color: data.descriptionColor || 'var(--theme-text)',
               opacity: '0.7',
               fontFamily: 'var(--theme-font-body)'
             }}

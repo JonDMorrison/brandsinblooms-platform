@@ -152,7 +152,7 @@ export function BlogHeaderPreview({
             singleLine={true}
             className={`${responsive.typography.heroHeadline} mb-6`}
             style={{
-              color: 'var(--theme-text)',
+              color: data.titleColor || 'var(--theme-text)',
               fontFamily: 'var(--theme-font-heading)'
             }}
             placeholder="Enter blog post title..."
@@ -174,7 +174,7 @@ export function BlogHeaderPreview({
               format="simple-toolbar"
               className="text-xl leading-relaxed"
               style={{
-                color: 'var(--theme-text)',
+                color: data.subtitleColor || 'var(--theme-text)',
                 opacity: '0.8',
                 fontFamily: 'var(--theme-font-body)'
               }}

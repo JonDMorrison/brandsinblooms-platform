@@ -6,11 +6,10 @@
 
 import React from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
-import { 
-  FormField, 
-  TextareaField, 
-  ButtonConfigField, 
-  FormSection 
+import { TextInputWithColorPicker } from '@/src/components/content-editor/inputs/TextInputWithColorPicker'
+import {
+  ButtonConfigField,
+  FormSection
 } from '@/src/components/content-editor/editors/shared/form-utils'
 import { BackgroundToggle } from '@/src/components/content-editor/editors/shared/background-toggle'
 
@@ -34,20 +33,23 @@ export function CTAEditor({ section, sectionKey, onUpdate }: CTAEditorProps) {
     <>
       {/* CTA Section Title and Description fields */}
       <FormSection>
-        <FormField
-          id="cta-headline"
+        <TextInputWithColorPicker
           label="Title"
           value={data.headline || ''}
-          onChange={(value) => handleDataChange({ headline: value })}
+          colorValue={data.headlineColor}
+          onTextChange={(value) => handleDataChange({ headline: value })}
+          onColorChange={(color) => handleDataChange({ headlineColor: color })}
           placeholder="Growing Together, Sustainably"
         />
-        
-        <TextareaField
-          id="cta-description"
+
+        <TextInputWithColorPicker
           label="Description"
           value={data.description || ''}
-          onChange={(value) => handleDataChange({ description: value })}
+          colorValue={data.descriptionColor}
+          onTextChange={(value) => handleDataChange({ description: value })}
+          onColorChange={(color) => handleDataChange({ descriptionColor: color })}
           placeholder="Our mission is to help you create thriving plant sanctuaries while protecting our planet..."
+          multiline
           rows={4}
         />
       </FormSection>

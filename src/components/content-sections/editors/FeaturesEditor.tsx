@@ -11,11 +11,8 @@ import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { Plus, X } from 'lucide-react'
 import { IconSelector } from '@/src/components/ui/IconSelector'
-import {
-  FormField,
-  TextareaField,
-  FormSection
-} from '@/src/components/content-editor/editors/shared/form-utils'
+import { TextInputWithColorPicker } from '@/src/components/content-editor/inputs/TextInputWithColorPicker'
+import { FormSection } from '@/src/components/content-editor/editors/shared/form-utils'
 import { BackgroundToggle } from '@/src/components/content-editor/editors/shared/background-toggle'
 
 interface FeaturesEditorProps {
@@ -82,20 +79,23 @@ export function FeaturesEditor({ section, sectionKey, onUpdate }: FeaturesEditor
     <>
       {/* Features Section Title and Description fields */}
       <FormSection>
-        <FormField
-          id="features-headline"
+        <TextInputWithColorPicker
           label="Title"
           value={data.headline || ''}
-          onChange={(value) => handleDataChange({ headline: value })}
+          colorValue={data.headlineColor}
+          onTextChange={(value) => handleDataChange({ headline: value })}
+          onColorChange={(color) => handleDataChange({ headlineColor: color })}
           placeholder="Essential Plant Care Features"
         />
-        
-        <TextareaField
-          id="features-description"
+
+        <TextInputWithColorPicker
           label="Description"
           value={data.description || ''}
-          onChange={(value) => handleDataChange({ description: value })}
+          colorValue={data.descriptionColor}
+          onTextChange={(value) => handleDataChange({ description: value })}
+          onColorChange={(color) => handleDataChange({ descriptionColor: color })}
           placeholder="Master these key practices for healthy, thriving plants year-round"
+          multiline
           rows={3}
         />
       </FormSection>

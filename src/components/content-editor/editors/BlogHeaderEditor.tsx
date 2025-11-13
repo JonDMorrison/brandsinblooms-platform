@@ -5,9 +5,9 @@
 
 import React from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
+import { TextInputWithColorPicker } from '@/src/components/content-editor/inputs/TextInputWithColorPicker'
 import {
   FormField,
-  TextareaField,
   FormSection,
   BackgroundToggle
 } from './shared'
@@ -33,21 +33,23 @@ export function BlogHeaderEditor({ section, sectionKey, onUpdate }: BlogHeaderEd
   return (
     <>
       <FormSection>
-        <FormField
-          id="blog-header-title"
+        <TextInputWithColorPicker
           label="Title"
           value={String(data.title || '')}
-          onChange={(value) => handleDataChange({ title: value })}
+          colorValue={data.titleColor}
+          onTextChange={(value) => handleDataChange({ title: value })}
+          onColorChange={(color) => handleDataChange({ titleColor: color })}
           placeholder="Enter blog post title"
-          required
         />
 
-        <TextareaField
-          id="blog-header-subtitle"
+        <TextInputWithColorPicker
           label="Subtitle"
           value={String(data.subtitle || '')}
-          onChange={(value) => handleDataChange({ subtitle: value })}
+          colorValue={data.subtitleColor}
+          onTextChange={(value) => handleDataChange({ subtitle: value })}
+          onColorChange={(color) => handleDataChange({ subtitleColor: color })}
           placeholder="Enter blog post subtitle or summary (optional)"
+          multiline
           rows={3}
         />
 
