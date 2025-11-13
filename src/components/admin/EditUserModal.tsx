@@ -365,9 +365,9 @@ export function EditUserModal({ open, onOpenChange, userId, onSuccess }: EditUse
               </SelectContent>
             </Select>
             <p className="text-xs text-gray-600">
-              {role === 'admin' && 'Full platform access and user management'}
-              {role === 'site_owner' && 'Can create and manage their own sites'}
-              {role === 'user' && 'Basic user with site access permissions'}
+              {role === 'admin' && 'For platform administrators. Full platform access including user management, all sites, and admin dashboard.'}
+              {role === 'site_owner' && 'For store owners. Can create and manage their own online stores with full control over design, content, products, and settings.'}
+              {role === 'user' && 'For customers of stores. View-only access to sites they\'re invited to. Cannot create or manage sites.'}
             </p>
           </div>
 

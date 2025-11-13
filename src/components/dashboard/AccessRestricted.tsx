@@ -3,7 +3,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/card'
 import { Alert, AlertDescription } from '@/src/components/ui/alert'
 import { Button } from '@/src/components/ui/button'
-import { ShieldX, LogOut } from 'lucide-react'
+import { Clock, LogOut } from 'lucide-react'
 import { supabase } from '@/src/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -28,14 +28,14 @@ export function AccessRestricted() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center justify-center mb-2">
-            <ShieldX className="h-12 w-12 text-gray-400" />
+            <Clock className="h-12 w-12 text-blue-400" />
           </div>
-          <CardTitle className="text-center">Access Restricted</CardTitle>
+          <CardTitle className="text-center">Account Setup Pending</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert>
             <AlertDescription className="text-center">
-              You need to contact your administrator to gain access to create a site.
+              Your account hasn&apos;t been enabled for site creation yet. We&apos;ll notify you once it&apos;s ready!
             </AlertDescription>
           </Alert>
           <Button
