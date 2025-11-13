@@ -6,6 +6,7 @@
 import React from 'react'
 import { Label } from '@/src/components/ui/label'
 import { ContentSection } from '@/src/lib/content/schema'
+import { Check } from 'lucide-react'
 
 interface BackgroundToggleProps {
   sectionKey: string
@@ -77,10 +78,10 @@ export function BackgroundToggle({
           <label
             key={option.value}
             className={`
-              flex items-center gap-3 p-2 rounded-md border-2 cursor-pointer transition-all
+              relative flex items-center gap-3 p-3 rounded-md border-2 cursor-pointer transition-all
               ${currentBackground === option.value
-                ? 'border-primary bg-primary/5'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-primary bg-primary/10 ring-2 ring-primary ring-offset-2'
+                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
               }
             `}
           >
@@ -93,11 +94,19 @@ export function BackgroundToggle({
               className="sr-only"
             />
             <div
-              className="w-8 h-8 rounded border border-gray-300 flex-shrink-0"
+              className="w-10 h-10 rounded border border-gray-300 flex-shrink-0 relative"
               style={option.previewStyle}
-            />
+            >
+              {currentBackground === option.value && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded">
+                  <Check className="w-5 h-5 text-white drop-shadow-md" strokeWidth={3} />
+                </div>
+              )}
+            </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium">{option.label}</div>
+              <div className={`text-sm font-medium ${currentBackground === option.value ? 'text-primary' : ''}`}>
+                {option.label}
+              </div>
               <div className="text-xs text-gray-500">{option.description}</div>
             </div>
           </label>
