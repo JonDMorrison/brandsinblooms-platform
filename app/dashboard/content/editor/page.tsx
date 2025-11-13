@@ -78,7 +78,7 @@ function PageEditorContent() {
   const [activeSectionKey, setActiveSectionKey] = useState<
     string | undefined
   >();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const contentEditorRef = useRef<{ resetDirtyState: () => void } | null>(null);
 
   // Content data management
