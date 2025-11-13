@@ -471,7 +471,6 @@ export function SiteProvider({
 
       debug.site('switchSite - Site switch completed successfully')
     } catch (error) {
-      console.error('[SITE_DEBUG] switchSite - Error during site switch:', error)
       setError({
         code: 'SWITCH_FAILED',
         message: 'Failed to switch sites',

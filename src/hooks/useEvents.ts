@@ -52,7 +52,6 @@ const clearEventCaches = (siteId: string) => {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.warn('Failed to clear cache key:', key, error);
     }
   });
 };
@@ -75,7 +74,6 @@ const clearSpecificEventCache = (siteId: string, eventId?: string) => {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.warn('Failed to clear cache key:', key, error);
     }
   });
 };
@@ -92,7 +90,6 @@ const clearOccurrenceCache = (siteId: string, eventId: string) => {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.warn('Failed to clear occurrence cache key:', key, error);
     }
   });
 };

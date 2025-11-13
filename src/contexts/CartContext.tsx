@@ -71,7 +71,6 @@ function loadCartFromStorage(): CartItem[] {
 
     // Handle old cart format (plain array) - migrate it
     if (Array.isArray(parsed)) {
-      console.log('Migrating old cart format to new format with TTL')
       const migratedData: CartStorage = {
         version: CART_VERSION,
         items: parsed,
@@ -88,21 +87,18 @@ function loadCartFromStorage(): CartItem[] {
 
     // Check version for future migrations
     if (cartData.version !== CART_VERSION) {
-      console.warn(`Cart version mismatch: expected ${CART_VERSION}, got ${cartData.version}`)
       // Could add migration logic here for future versions
     }
 
     // Check if cart has expired
     const now = Date.now()
     if (now > cartData.expiresAt) {
-      console.log('Cart has expired, clearing it')
       localStorage.removeItem(CART_STORAGE_KEY)
       return []
     }
 
     return cartData.items || []
   } catch (err) {
-    console.error('Failed to load cart from storage:', err)
     // Clear corrupt data
     try {
       localStorage.removeItem(CART_STORAGE_KEY)
@@ -145,7 +141,6 @@ function saveCartToStorage(items: CartItem[]): void {
 
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartData))
   } catch (err) {
-    console.error('Failed to save cart to storage:', err)
   }
 }
 
@@ -293,7 +288,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const loadedItems = loadCartFromStorage()
       setAllItems(loadedItems)
     } catch (err) {
-      console.error('Failed to refresh cart:', err)
     }
   }, [])
 

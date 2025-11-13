@@ -8,7 +8,7 @@ interface WebVitalsMetric {
   name: string
   label: string
   value: number
-  attribution?: any
+  attribution?: unknown
 }
 
 // Threshold values for good/needs improvement/poor performance
@@ -59,8 +59,8 @@ function sendToAnalytics(metric: WebVitalsMetric) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    }).catch((error) => {
-      console.error('Failed to send web vitals:', error)
+    }).catch(() => {
+      // Silently handle analytics failures
     })
 
     // Example: Send to Google Analytics
@@ -125,7 +125,7 @@ export function WebVitals() {
         resourceObserver.disconnect()
       }
     } catch (error) {
-      console.error('Failed to setup performance observers:', error)
+      // Silently handle observer setup failures
     }
   }, [])
 

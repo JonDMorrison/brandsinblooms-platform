@@ -158,7 +158,6 @@ function ActionsCell({
         onDeleteSuccess()
       }
     } catch (error: unknown) {
-      console.error('Delete error:', error)
       toast.error('Failed to delete content. Please try again.')
     }
   }

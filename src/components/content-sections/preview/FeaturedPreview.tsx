@@ -84,9 +84,7 @@ export function FeaturedPreview({
     if (!Array.isArray(featuredItems) || featuredItems.length === 0) {
       // If old schema exists (featuredPlants from previous implementation), use defaults
       if (data.featuredPlants) {
-        console.info(`[FeaturedPreview] Old schema detected (featuredPlants) in section "${sectionKey}", using default featured items`)
       } else {
-        console.info(`[FeaturedPreview] No featuredItems found in section "${sectionKey}", using default featured items`)
       }
       featuredItems = DEFAULT_FEATURED_ITEMS
     }
@@ -112,7 +110,6 @@ export function FeaturedPreview({
       toast.success(`${product.name} added to cart`)
     } catch (error) {
       toast.error('Failed to add to cart')
-      console.error('Error adding to cart:', error)
     } finally {
       setAddingToCartId(null)
     }

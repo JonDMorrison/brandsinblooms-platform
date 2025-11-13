@@ -388,15 +388,18 @@ export function AdminImpersonationProvider({ children }: AdminImpersonationProvi
       })
 
       if (rpcError) {
-        console.error('Error fetching active sessions:', rpcError)
         setActiveSessionsError(rpcError.message)
         return
       }
 
-      setActiveSessions((data as any)?.sessions || [])
+      // Type guard for RPC response
+      if (data && typeof data === 'object' && 'sessions' in data && Array.isArray((data as { sessions: unknown }).sessions)) {
+        setActiveSessions((data as { sessions: ImpersonationSession[] }).sessions)
+      } else {
+        setActiveSessions([])
+      }
 
     } catch (err) {
-      console.error('Unexpected error fetching active sessions:', err)
       setActiveSessionsError('Failed to fetch active sessions')
     } finally {
       setActiveSessionsLoading(false)

@@ -265,8 +265,6 @@ export function SectionSettingsModal({
       })
 
       if (!response.ok) {
-        const error = await response.text()
-        console.error('Failed to get upload URL:', error)
         throw new Error('Failed to get upload URL')
       }
 
@@ -288,8 +286,6 @@ export function SectionSettingsModal({
       })
 
       if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text()
-        console.error('Upload failed:', uploadResponse.status, errorText)
         throw new Error(`Failed to upload file: ${uploadResponse.status}`)
       }
 

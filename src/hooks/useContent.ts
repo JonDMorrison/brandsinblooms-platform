@@ -38,7 +38,6 @@ const clearContentCaches = (siteId: string) => {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.warn('Failed to clear cache key:', key, error);
     }
   });
 };
@@ -108,7 +107,6 @@ const clearSpecificContentCache = (siteId: string, contentId?: string) => {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.warn('Failed to clear cache key:', key, error);
     }
   });
 };

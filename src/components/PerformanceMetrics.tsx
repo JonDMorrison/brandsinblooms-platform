@@ -9,6 +9,7 @@ import { TrendingUp, TrendingDown, Minus, AlertCircle } from 'lucide-react'
 import { supabase } from '@/src/lib/supabase/client'
 import { useSiteId } from '@/contexts/SiteContext'
 import { useMemo, useEffect, useState } from 'react'
+import { Tables } from '@/src/lib/database/types'
 
 interface MetricItem {
   id: string
@@ -72,8 +73,8 @@ const getTrendIcon = (type: MetricItem['change']['type']) => {
 
 export function PerformanceMetrics() {
   const siteId = useSiteId()
-  
-  const [performanceData, setPerformanceData] = useState<any>(null)
+
+  const [performanceData, setPerformanceData] = useState<Tables<'site_performance_metrics'> | null>(null)
   const [isLoadingCurrent, setIsLoadingCurrent] = useState(true)
   const [currentError, setCurrentError] = useState<Error | null>(null)
 

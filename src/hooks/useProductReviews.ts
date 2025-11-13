@@ -44,7 +44,6 @@ export function useProductReviews(productId: string, filters?: ReviewFilters) {
       persistKey: cacheKey,
       staleTime: 30 * 1000, // 30 seconds
       onError: (error) => {
-        console.error('Failed to fetch product reviews:', error.message);
       },
     }
   );
@@ -65,7 +64,6 @@ export function useReview(reviewId: string) {
       enabled: !!siteId && !!reviewId,
       persistKey: cacheKey,
       onError: (error) => {
-        console.error('Failed to fetch review:', error.message);
       },
     }
   );
@@ -87,7 +85,6 @@ export function useProductRating(productId: string) {
       persistKey: cacheKey,
       staleTime: 60 * 1000, // 1 minute
       onError: (error) => {
-        console.error('Failed to fetch product rating:', error.message);
       },
     }
   );
@@ -109,7 +106,6 @@ export function useUserProductReview(productId: string, profileId?: string) {
       persistKey: cacheKey,
       staleTime: 60 * 1000, // 1 minute
       onError: (error) => {
-        console.error('Failed to fetch user product review:', error.message);
       },
     }
   );
@@ -131,7 +127,6 @@ export function useReviewsByProfile(profileId: string, filters?: Omit<ReviewFilt
       persistKey: cacheKey,
       staleTime: 30 * 1000,
       onError: (error) => {
-        console.error('Failed to fetch reviews by profile:', error.message);
       },
     }
   );
@@ -153,7 +148,6 @@ export function useReviewStats() {
       persistKey: cacheKey,
       staleTime: 5 * 60 * 1000, // 5 minutes
       onError: (error) => {
-        console.error('Failed to fetch review stats:', error.message);
       },
     }
   );
@@ -203,7 +197,6 @@ export function useCreateReview() {
         });
       },
       onError: (error) => {
-        console.error('Failed to create review:', error.message);
       },
     }
   );
@@ -251,7 +244,6 @@ export function useUpdateReview() {
         });
       },
       onError: (error) => {
-        console.error('Failed to update review:', error.message);
       },
     }
   );
@@ -300,7 +292,6 @@ export function useDeleteReview() {
         });
       },
       onError: (error) => {
-        console.error('Failed to delete review:', error.message);
       },
     }
   );
@@ -345,7 +336,6 @@ export function useMarkReviewHelpful() {
         });
       },
       onError: (error) => {
-        console.error('Failed to mark review as helpful:', error.message);
       },
     }
   );
@@ -380,7 +370,6 @@ export function useModerateReview() {
         });
       },
       onError: (error) => {
-        console.error('Failed to moderate review:', error.message);
         toast.error('Failed to moderate review');
       },
       showSuccessToast: false, // We handle our own success messages

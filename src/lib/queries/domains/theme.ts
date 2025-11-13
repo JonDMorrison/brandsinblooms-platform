@@ -113,7 +113,6 @@ export async function getSiteTheme(
   debug.theme('getSiteTheme - Query result:', { data: !!data, error: error?.message });
 
   if (error) {
-    console.error('[THEME_DEBUG] getSiteTheme - Database error:', error);
     throw new Error(`Failed to get site theme: ${error.message}`);
   }
 

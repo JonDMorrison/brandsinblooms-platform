@@ -113,7 +113,6 @@ export const EditableCustomerSiteSection = React.memo(function EditableCustomerS
         addCategoryContent(sectionKey, newItem)
         break
       default:
-        console.warn(`[EditableCustomerSiteSection] Add item not supported for section type: ${section.type}`)
     }
   }
 
@@ -140,7 +139,6 @@ export const EditableCustomerSiteSection = React.memo(function EditableCustomerS
         deleteCategoryContent(sectionKey, itemIndex)
         break
       default:
-        console.warn(`[EditableCustomerSiteSection] Delete item not supported for section type: ${section.type}`)
     }
   }
 

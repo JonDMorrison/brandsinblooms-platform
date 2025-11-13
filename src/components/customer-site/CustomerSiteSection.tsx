@@ -29,7 +29,7 @@ import { getButtonStyles, getButtonClassName } from '@/src/lib/utils/button-styl
 interface CustomerSiteSectionProps {
   section: ContentSection
   sectionKey: string
-  sectionData: any // The fetched section data
+  sectionData: Record<string, unknown> // The fetched section data
   backgroundSetting?: string
   className?: string
 }
@@ -116,7 +116,7 @@ export function CustomerSiteSection({
                   <div
                     className={`grid gap-6 text-center ${getFeatureGridClasses(sectionData.features.length, false)}`}
                   >
-                    {sectionData.features.slice(0, 4).map((feature: any, index: number) => {
+                    {(sectionData.features as Array<{ icon?: string; title?: string; text?: string }>).slice(0, 4).map((feature, index: number) => {
                       // Support both string features (legacy) and object features with icons
                       const isObject = typeof feature === 'object' && feature !== null
                       const featureText = isObject
@@ -233,7 +233,7 @@ export function CustomerSiteSection({
                   />
                 </div>
                 <div className={`grid ${getCategoriesGridClasses(categories.length, false)} gap-8`}>
-                  {categories.map((category: any) => {
+                  {categories.map((category: { id?: string; name?: string; image?: string; description?: string; plantCount?: number; link?: string }) => {
                     const hasImage = category.image && category.image.trim() !== ''
 
                     return (
@@ -442,7 +442,7 @@ export function CustomerSiteSection({
               )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {((sectionData.items as any[]) || []).map((value: any) => {
+              {((sectionData.items as Array<{ icon?: string; title?: string; description?: string }>) || []).map((value) => {
                 const IconComponent = getIcon(value.icon)
                 return (
                   <div key={value.id} className="bg-white rounded-lg p-8 border hover:shadow-lg transition-shadow">
@@ -494,7 +494,7 @@ export function CustomerSiteSection({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {((sectionData.items as any[]) || []).map((member: any) => (
+                {((sectionData.items as Array<{ image?: string; name?: string; role?: string; bio?: string }>) || []).map((member) => (
                   <div key={member.id} className="bg-white rounded-xl p-6 md:p-8 border hover:shadow-lg transition-shadow">
                     <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-4 md:gap-6">
                       <div className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)'}}>
@@ -655,7 +655,7 @@ export function CustomerSiteSection({
                   <div>
                     <h3 className="text-sm font-semibold mb-1" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-heading)'}}>Hours</h3>
                     <div className="text-sm space-y-1" style={{color: 'var(--theme-text)', fontFamily: 'var(--theme-font-body)'}}>
-                      {hours.map((hour: any, index: number) => (
+                      {hours.map((hour: { day?: string; time?: string }, index: number) => (
                         <div key={index}>
                           <span className="font-medium">{hour.days}:</span> {hour.time}
                         </div>
@@ -753,7 +753,7 @@ export function CustomerSiteSection({
               )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {Array.isArray(sectionData.faqs) && sectionData.faqs.map((faq: any, index: number) => (
+              {Array.isArray(sectionData.faqs) && (sectionData.faqs as Array<{ question?: string; answer?: string }>).map((faq, index: number) => (
                 <div key={faq.id || index} className="bg-white rounded-lg p-6 border">
                   <h3
                     className="text-lg font-semibold mb-3"

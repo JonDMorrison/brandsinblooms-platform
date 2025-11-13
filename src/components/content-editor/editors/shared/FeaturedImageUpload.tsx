@@ -50,8 +50,6 @@ export function FeaturedImageUpload({
       })
 
       if (!response.ok) {
-        const error = await response.text()
-        console.error('Failed to get upload URL:', error)
         throw new Error('Failed to get upload URL')
       }
 
@@ -76,15 +74,12 @@ export function FeaturedImageUpload({
       })
 
       if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text()
-        console.error('Upload failed:', uploadResponse.status, errorText)
         throw new Error(`Failed to upload file: ${uploadResponse.status}`)
       }
 
       setUploadProgress(100)
       return { url: publicUrl, s3Key: key }
     } catch (error) {
-      console.error('S3 upload error:', error)
       return null
     }
   }
@@ -121,7 +116,6 @@ export function FeaturedImageUpload({
         toast.error('Failed to upload image')
       }
     } catch (error) {
-      console.error('Upload error:', error)
       toast.error('Failed to upload image')
     } finally {
       setIsUploading(false)

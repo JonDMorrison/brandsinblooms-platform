@@ -520,13 +520,11 @@ export function FullSiteEditorProvider({
       // Initialize featuredItems array if it doesn't exist or is empty
       // This "materializes" the default items into the database on first edit
       if (!Array.isArray(updatedData.featuredItems) || updatedData.featuredItems.length === 0) {
-        console.info(`[FullSiteEditor] Initializing featuredItems with defaults for section "${sectionKey}"`)
         updatedData.featuredItems = JSON.parse(JSON.stringify(DEFAULT_FEATURED_ITEMS))
       }
 
       // Validate itemIndex bounds
       if (itemIndex < 0 || itemIndex >= updatedData.featuredItems.length) {
-        console.warn(`[FullSiteEditor] Cannot update featured item: invalid itemIndex ${itemIndex} (array length: ${updatedData.featuredItems.length})`)
         return prev
       }
 
@@ -569,13 +567,11 @@ export function FullSiteEditorProvider({
       // Initialize featuredItems array if it doesn't exist or is empty
       // This "materializes" the default items into the database before deletion
       if (!Array.isArray(updatedData.featuredItems) || updatedData.featuredItems.length === 0) {
-        console.info(`[FullSiteEditor] Initializing featuredItems with defaults for section "${sectionKey}" before deletion`)
         updatedData.featuredItems = JSON.parse(JSON.stringify(DEFAULT_FEATURED_ITEMS))
       }
 
       // Validate itemIndex bounds
       if (itemIndex < 0 || itemIndex >= updatedData.featuredItems.length) {
-        console.warn(`[FullSiteEditor] Cannot delete featured item: invalid itemIndex ${itemIndex} (array length: ${updatedData.featuredItems.length})`)
         return prev
       }
 
@@ -657,13 +653,11 @@ export function FullSiteEditorProvider({
 
       // Ensure features array exists
       if (!Array.isArray(updatedData.features)) {
-        console.warn(`[FullSiteEditor] Cannot delete feature: features array not found`)
         return prev
       }
 
       // Validate itemIndex bounds
       if (itemIndex < 0 || itemIndex >= updatedData.features.length) {
-        console.warn(`[FullSiteEditor] Cannot delete feature: invalid itemIndex ${itemIndex} (array length: ${updatedData.features.length})`)
         return prev
       }
 
@@ -745,13 +739,11 @@ export function FullSiteEditorProvider({
 
       // Ensure items array exists
       if (!Array.isArray(updatedData.items)) {
-        console.warn(`[FullSiteEditor] Cannot delete value: items array not found`)
         return prev
       }
 
       // Validate itemIndex bounds
       if (itemIndex < 0 || itemIndex >= updatedData.items.length) {
-        console.warn(`[FullSiteEditor] Cannot delete value: invalid itemIndex ${itemIndex} (array length: ${updatedData.items.length})`)
         return prev
       }
 
@@ -833,13 +825,11 @@ export function FullSiteEditorProvider({
 
       // Ensure faqs array exists
       if (!Array.isArray(updatedData.faqs)) {
-        console.warn(`[FullSiteEditor] Cannot delete FAQ: faqs array not found`)
         return prev
       }
 
       // Validate itemIndex bounds
       if (itemIndex < 0 || itemIndex >= updatedData.faqs.length) {
-        console.warn(`[FullSiteEditor] Cannot delete FAQ: invalid itemIndex ${itemIndex} (array length: ${updatedData.faqs.length})`)
         return prev
       }
 
@@ -881,7 +871,6 @@ export function FullSiteEditorProvider({
 
       // Initialize featuredItems array if it doesn't exist or is empty
       if (!Array.isArray(updatedData.featuredItems) || updatedData.featuredItems.length === 0) {
-        console.info(`[FullSiteEditor] Initializing featuredItems with defaults for section "${sectionKey}"`)
         updatedData.featuredItems = JSON.parse(JSON.stringify(DEFAULT_FEATURED_ITEMS))
       }
 
@@ -1011,7 +1000,6 @@ export function FullSiteEditorProvider({
       const defaultSection = layoutConfig.defaultSections[sectionType]
 
       if (!defaultSection) {
-        console.warn(`[FullSiteEditor] No default section found for type "${sectionType}" in layout "${state.layout}"`)
         toast.error('Section type not available for this layout')
         return prev
       }
@@ -1405,7 +1393,6 @@ export function FullSiteEditorProvider({
       // Toast notification is shown by the onSave handler (ClientSiteEditorWrapper)
     } catch (error) {
       setState(prev => ({ ...prev, isSaving: false }))
-      console.error('Error saving page:', error)
       toast.error('Failed to save changes')
     }
   }, [state.pageContent, state.pageTitle, state.pageSlug, state.isPublished, onSave])
@@ -1449,7 +1436,6 @@ export function FullSiteEditorProvider({
       await fetch('/api/site-editor/exit', { method: 'POST' })
       window.location.reload()
     } catch (error) {
-      console.error('Error exiting editor:', error)
       toast.error('Failed to exit editor')
     }
   }, [state.hasUnsavedChanges])

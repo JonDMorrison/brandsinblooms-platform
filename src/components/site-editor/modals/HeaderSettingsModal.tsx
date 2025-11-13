@@ -59,7 +59,6 @@ export function HeaderSettingsModal({ isOpen, onClose }: HeaderSettingsModalProp
 
       toast.success('Header settings saved!')
     } catch (error) {
-      console.error('Failed to save header settings:', error)
       toast.error('Failed to save header settings')
     } finally {
       setSaving(false)

@@ -111,7 +111,6 @@ export function FullSiteEditorBar() {
       // Stay on current page, just logged out
       window.location.reload()
     } catch (error) {
-      console.error('Sign out error:', error)
       toast.error('Failed to sign out')
     }
   }

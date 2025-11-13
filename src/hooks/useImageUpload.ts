@@ -52,7 +52,6 @@ export function useImageUpload({
     // Validate siteId is provided
     if (!siteId || siteId.trim() === '') {
       const error = 'siteId is required for image uploads';
-      console.error('[useImageUpload] siteId validation failed:', { siteId, resourceType, resourceId });
       setState({
         isUploading: false,
         progress: 0,
@@ -71,7 +70,6 @@ export function useImageUpload({
       uploadedUrl: null,
     });
 
-    console.log('[useImageUpload] Starting upload:', { siteId, resourceType, resourceId, fileName: file.name });
 
     try {
       // Validate file

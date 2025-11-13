@@ -82,7 +82,6 @@ export default function SignIn({ returnUrlProp, enableEditProp }: SignInProps = 
       if (enableEdit) {
         // Check if we have a site context
         if (!currentSite?.id) {
-          console.error('Cannot enable edit mode: Site context not available')
           toast.error('Unable to enable edit mode. Please try again.')
         } else {
           try {
@@ -101,7 +100,6 @@ export default function SignIn({ returnUrlProp, enableEditProp }: SignInProps = 
               toast.success('Edit mode enabled!')
             }
           } catch (error) {
-            console.error('Error enabling edit mode:', error)
             toast.error('Failed to enable edit mode')
           }
         }

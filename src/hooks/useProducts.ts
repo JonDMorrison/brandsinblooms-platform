@@ -40,7 +40,6 @@ export function useProducts(filters?: ProductFilters) {
       persistKey: cacheKey,
       staleTime: 5 * 60 * 1000, // 5 minutes for better performance
       onError: (error) => {
-        console.error('Failed to fetch products:', error.message);
       },
     },
     [siteId, filters] // Re-fetch when siteId or filters change
@@ -71,7 +70,6 @@ export function useFeaturedProducts(limit: number = 4) {
       persistKey: cacheKey,
       staleTime: 5 * 60 * 1000, // 5 minutes
       onError: (error) => {
-        console.error('Failed to fetch featured products:', error.message);
       },
     },
     [siteId, limit] // Re-fetch when siteId or limit changes
@@ -93,7 +91,6 @@ export function useProduct(productId: string) {
       enabled: !!siteId && !!productId,
       persistKey: cacheKey,
       onError: (error) => {
-        console.error('Failed to fetch product:', error.message);
       },
     },
     [siteId, productId] // Re-fetch when siteId or productId changes
@@ -116,7 +113,6 @@ export function useProductsByCategory(category: string) {
       persistKey: cacheKey,
       staleTime: 5 * 60 * 1000, // 5 minutes
       onError: (error) => {
-        console.error('Failed to fetch products by category:', error.message);
       },
     },
     [siteId, category] // Re-fetch when siteId or category changes
@@ -139,7 +135,6 @@ export function useSearchProducts(searchQuery: string) {
       persistKey: cacheKey,
       staleTime: 10 * 1000,
       onError: (error) => {
-        console.error('Failed to search products:', error.message);
       },
     },
     [siteId, searchQuery] // Re-fetch when siteId or searchQuery changes
@@ -162,7 +157,6 @@ export function useProductCategories() {
       persistKey: cacheKey,
       staleTime: 5 * 60 * 1000, // 5 minutes
       onError: (error) => {
-        console.error('Failed to fetch product categories:', error.message);
       },
     },
     [siteId] // Re-fetch when siteId changes
@@ -175,12 +169,9 @@ export function useCreateProduct() {
   
   return useSupabaseMutation(
     async (data: Omit<ProductInsert, 'site_id'>, signal) => {
-      console.log('🏭 useCreateProduct mutation called with:', { data, siteId });
       if (!siteId) {
-        console.error('❌ Create product: siteId is missing!');
         throw new Error('Site ID is required for product creation');
       }
-      console.log('🔄 Calling createProduct function...');
       return createProduct(supabase, { ...data, site_id: siteId });
     },
     {
@@ -208,7 +199,6 @@ export function useCreateProduct() {
         });
       },
       onError: (error) => {
-        console.error('Failed to create product:', error.message);
       },
     }
   );
@@ -257,7 +247,6 @@ export function useUpdateProduct() {
             const currentStock = updatedProduct.inventory_count || 0;
             await checkAndCreateLowStockNotification(siteId!, updatedProduct, currentStock, previousStock);
           } catch (error) {
-            console.error('Failed to create low stock notification:', error);
           }
         }
         
@@ -272,7 +261,6 @@ export function useUpdateProduct() {
         });
       },
       onError: (error) => {
-        console.error('Failed to update product:', error.message);
       },
     }
   );
@@ -320,7 +308,6 @@ export function useUpdateInventory() {
             const currentStock = variables.quantity;
             await checkAndCreateLowStockNotification(siteId!, updatedProduct, currentStock, previousStock);
           } catch (error) {
-            console.error('Failed to create low stock notification:', error);
           }
         }
         
@@ -335,7 +322,6 @@ export function useUpdateInventory() {
         });
       },
       onError: (error) => {
-        console.error('Failed to update inventory:', error.message);
       },
     }
   );
@@ -374,7 +360,6 @@ export function useDeleteProduct() {
         });
       },
       onError: (error) => {
-        console.error('Failed to delete product:', error.message);
       },
     }
   );
@@ -418,7 +403,6 @@ export function useProductInventoryRealtime() {
             try {
               await checkAndCreateLowStockNotification(siteId, product, currentStock, previousStock);
             } catch (error) {
-              console.error('Failed to create low stock notification in real-time:', error);
             }
             
             toast.info(`Inventory updated for ${payload.new.name}`);
@@ -440,21 +424,16 @@ export function useSkuValidation() {
   return useSupabaseMutation(
     async (variables: { sku: string; excludeId?: string }, signal) => {
       const { sku, excludeId } = variables;
-      console.log('🔍 SKU validation called with:', { sku, excludeId, siteId });
       if (!siteId || !sku) {
-        console.log('❌ SKU validation: missing siteId or sku');
         return true;
       }
-      console.log('🔄 Checking SKU availability...');
       const result = await checkSkuAvailability(supabase, siteId, sku, excludeId);
-      console.log('✅ SKU availability result:', result);
       return result;
     },
     {
       showSuccessToast: false,
       showErrorToast: false,
       onError: (error) => {
-        console.error('SKU validation error:', error.message);
       },
     }
   );
@@ -466,21 +445,16 @@ export function useSlugGeneration() {
   
   return useSupabaseMutation(
     async (name: string, signal) => {
-      console.log('🏷️ Slug generation called with:', { name, siteId });
       if (!siteId || !name) {
-        console.log('❌ Slug generation: missing siteId or name');
         return '';
       }
-      console.log('🔄 Generating unique slug...');
       const result = await generateUniqueSlug(supabase, name, siteId);
-      console.log('✅ Generated slug:', result);
       return result;
     },
     {
       showSuccessToast: false,
       showErrorToast: false,
       onError: (error) => {
-        console.error('Slug generation error:', error.message);
       },
     }
   );
