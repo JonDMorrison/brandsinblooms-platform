@@ -33,7 +33,7 @@ const backgroundOptions: BackgroundOption[] = [
     value: 'alternate',
     label: 'Alternate',
     description: 'Subtle contrast',
-    previewStyle: { backgroundColor: 'rgba(var(--theme-primary-rgb), 0.03)' }
+    previewStyle: { backgroundColor: 'rgba(var(--theme-primary-rgb), 0.08)' }
   },
   {
     value: 'primary',

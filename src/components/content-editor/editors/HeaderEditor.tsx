@@ -57,7 +57,7 @@ export function HeaderEditor({ section, sectionKey, onUpdate }: HeaderEditorProp
         section={section}
         onUpdate={onUpdate}
         className="mb-4"
-        availableOptions={['default', 'gradient']}
+        availableOptions={['default', 'alternate', 'primary', 'gradient']}
       />
     </>
   )

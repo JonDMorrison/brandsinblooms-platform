@@ -91,7 +91,7 @@ export function BlogHeaderEditor({ section, sectionKey, onUpdate }: BlogHeaderEd
         section={section}
         onUpdate={onUpdate}
         className="mb-4"
-        availableOptions={['default', 'alternate', 'gradient']}
+        availableOptions={['default', 'alternate', 'primary', 'gradient']}
       />
     </>
   )

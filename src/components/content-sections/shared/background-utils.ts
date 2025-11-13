@@ -36,7 +36,7 @@ export const getSectionBackgroundStyle = (settings?: ContentSection['settings'])
   const backgroundType = settings?.backgroundColor || 'default'
 
   if (backgroundType === 'alternate') {
-    return { backgroundColor: 'rgba(var(--theme-primary-rgb), 0.03)' }
+    return { backgroundColor: 'rgba(var(--theme-primary-rgb), 0.08)' }
   }
 
   if (backgroundType === 'primary') {
