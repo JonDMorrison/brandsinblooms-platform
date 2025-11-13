@@ -58,19 +58,28 @@ export const TextInputWithColorPicker = React.memo(function TextInputWithColorPi
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
 
   // Create a mock editor object for ColorPicker compatibility
-  // ColorPicker expects an editor with setColor command
-  const mockEditor: Partial<Editor> = {
+  // ColorPicker expects an editor with setColor command and state.selection
+  // useMemo to ensure it updates when colorValue changes
+  const mockEditor = React.useMemo<Partial<Editor>>(() => ({
     chain: () => ({
       focus: () => ({
         setColor: (color: string) => {
           onColorChange(color);
           return { run: () => {} };
         },
+        unsetColor: () => {
+          onColorChange(undefined);
+          return { run: () => {} };
+        },
         run: () => {}
       } as any)
     } as any),
-    isActive: () => false
-  } as any;
+    isActive: () => false,
+    getAttributes: () => ({ color: colorValue }),
+    state: {
+      selection: { from: 0, to: 0 }
+    } as any
+  } as any), [colorValue, onColorChange]);
 
   const handleResetColor = () => {
     onColorChange(undefined);
@@ -138,11 +147,6 @@ export const TextInputWithColorPicker = React.memo(function TextInputWithColorPi
 
               <ColorPicker
                 editor={mockEditor as Editor}
-                onColorChange={(color) => {
-                  if (color) {
-                    onColorChange(color);
-                  }
-                }}
               />
             </div>
           </PopoverContent>
