@@ -28,9 +28,10 @@ export const htmlToText = (html: string): string => {
   if (!html) return ''
   // Convert HTML back to plain text with newlines
   return html
-    .replace(/<\/p><p>/g, '\n\n')
+    .replace(/<\/p>\s*<p[^>]*>/g, '\n\n') // Handle paragraph breaks (with attributes)
     .replace(/<br\s*\/?>/g, '\n')
-    .replace(/<\/?p>/g, '')
+    .replace(/<\/?p[^>]*>/g, '') // Remove all paragraph tags (with or without attributes)
+    .replace(/<[^>]+>/g, '') // Remove any remaining HTML tags
     .trim()
 }
 

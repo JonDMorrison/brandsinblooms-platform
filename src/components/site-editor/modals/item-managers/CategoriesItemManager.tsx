@@ -12,6 +12,7 @@ import { ContentSection } from '@/src/lib/content/schema'
 import { Label } from '@/src/components/ui/label'
 import { Button } from '@/src/components/ui/button'
 import { Plus, Trash2, ImageIcon } from 'lucide-react'
+import { htmlToText } from '@/src/lib/utils/html-text'
 
 interface CategoryItem {
   id: string
@@ -94,7 +95,7 @@ export function CategoriesItemManager({
               {/* Category Info */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  {category.name || 'Untitled Category'}
+                  {htmlToText(category.name) || 'Untitled Category'}
                 </p>
                 {category.plantCount !== undefined && (
                   <p className="text-xs text-gray-600 mt-1">

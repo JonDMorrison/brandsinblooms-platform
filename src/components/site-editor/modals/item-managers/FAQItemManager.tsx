@@ -11,6 +11,7 @@ import { ContentSection } from '@/src/lib/content/schema'
 import { Label } from '@/src/components/ui/label'
 import { Button } from '@/src/components/ui/button'
 import { Plus, Trash2, HelpCircle } from 'lucide-react'
+import { htmlToText } from '@/src/lib/utils/html-text'
 
 interface FAQItem {
   id: string
@@ -76,10 +77,10 @@ export function FAQItemManager({
               {/* FAQ Info */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 line-clamp-2">
-                  {faq.question || 'Untitled Question'}
+                  {htmlToText(faq.question) || 'Untitled Question'}
                 </p>
                 <p className="text-xs text-gray-600 line-clamp-2 mt-1">
-                  {faq.answer || 'No answer provided'}
+                  {htmlToText(faq.answer) || 'No answer provided'}
                 </p>
               </div>
 

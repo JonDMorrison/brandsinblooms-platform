@@ -13,6 +13,7 @@ import { Label } from '@/src/components/ui/label'
 import { Button } from '@/src/components/ui/button'
 import { Plus, Trash2 } from 'lucide-react'
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
+import { htmlToText } from '@/src/lib/utils/html-text'
 
 interface HeroFeatureItem {
   id: string
@@ -122,7 +123,7 @@ export function HeroFeaturesItemManager({
               {/* Feature Info */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  {feature.text || 'Untitled Feature'}
+                  {htmlToText(feature.text) || 'Untitled Feature'}
                 </p>
                 <p className="text-xs text-gray-500">
                   Icon: {feature.icon}

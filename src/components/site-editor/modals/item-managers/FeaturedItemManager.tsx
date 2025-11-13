@@ -15,6 +15,7 @@ import { Button } from '@/src/components/ui/button'
 import { Switch } from '@/src/components/ui/switch'
 import { Input } from '@/src/components/ui/input'
 import { Plus, Trash2, ImageIcon, Info, Database } from 'lucide-react'
+import { htmlToText } from '@/src/lib/utils/html-text'
 
 interface FeaturedItem {
   id: string
@@ -208,11 +209,11 @@ export function FeaturedItemManager({
                   {/* Item Info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
-                      {item.title || 'Untitled Item'}
+                      {htmlToText(item.title) || 'Untitled Item'}
                     </p>
                     {item.tag && (
                       <span className="inline-block mt-1 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
-                        {item.tag}
+                        {htmlToText(item.tag)}
                       </span>
                     )}
                     {item.link && (

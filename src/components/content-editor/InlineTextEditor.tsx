@@ -213,9 +213,12 @@ const InlineTextEditorComponent = ({
       const { from, to } = editor.state.selection;
       const hasSelection = from !== to;
 
+      // Show toolbar when text is selected OR when editor is focused (clicked)
       // Don't show text toolbar when an image is selected
-      if (hasSelection && isEditing && showToolbar && !editor.isActive('image')) {
-        setSelectionRange({ from, to });
+      if (isEditing && showToolbar && !editor.isActive('image')) {
+        if (hasSelection) {
+          setSelectionRange({ from, to });
+        }
         setShowFloatingToolbar(true);
       } else {
         setShowFloatingToolbar(false);
@@ -224,6 +227,10 @@ const InlineTextEditorComponent = ({
     },
     onFocus: () => {
       setIsEditing(true);
+      // Show toolbar immediately on focus (when clicking into text)
+      if (showToolbar) {
+        setShowFloatingToolbar(true);
+      }
     },
     onBlur: () => {
       // Delay blur to allow toolbar interactions

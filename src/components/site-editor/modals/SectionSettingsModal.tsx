@@ -13,7 +13,7 @@ import { Label } from '@/src/components/ui/label'
 import { Slider } from '@/src/components/ui/slider'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
 import { ContentSection } from '@/src/lib/content/schema'
-import { Settings, Upload, X, Palette, List, Loader2, Cloud } from 'lucide-react'
+import { Settings, Upload, X, Palette, List, Loader2, Cloud, Check } from 'lucide-react'
 import { getAvailableBackgrounds } from '@/src/lib/content/section-backgrounds'
 import { useSiteContext } from '@/src/contexts/SiteContext'
 import { toast } from 'sonner'
@@ -433,10 +433,10 @@ export function SectionSettingsModal({
               {backgroundOptions.map((option) => (
                 <label
                   key={option.value}
-                  className={`flex items-center gap-3 p-2 border-2 rounded-md cursor-pointer transition-all ${
+                  className={`flex items-center gap-3 p-3 border-2 rounded-md cursor-pointer transition-all ${
                     backgroundColor === option.value
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-primary bg-primary/10 ring-2 ring-primary ring-offset-2'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                   }`}
                 >
                   <input
@@ -451,11 +451,19 @@ export function SectionSettingsModal({
                     className="sr-only"
                   />
                   <div
-                    className="w-8 h-8 rounded border border-gray-300 flex-shrink-0"
+                    className="w-10 h-10 rounded border border-gray-300 flex-shrink-0 relative"
                     style={option.previewStyle}
-                  />
+                  >
+                    {backgroundColor === option.value && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded">
+                        <Check className="w-5 h-5 text-white drop-shadow-md" strokeWidth={3} />
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium">{option.label}</div>
+                    <div className={`text-sm font-medium ${backgroundColor === option.value ? 'text-primary' : ''}`}>
+                      {option.label}
+                    </div>
                     <div className="text-xs text-gray-500">{option.description}</div>
                   </div>
                 </label>
@@ -682,10 +690,10 @@ export function SectionSettingsModal({
                   {backgroundOptions.map((option) => (
                     <label
                       key={option.value}
-                      className={`flex items-center gap-3 p-2 border-2 rounded-md cursor-pointer transition-all ${
+                      className={`flex items-center gap-3 p-3 border-2 rounded-md cursor-pointer transition-all ${
                         backgroundColor === option.value
-                          ? 'border-primary bg-primary/5'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-primary bg-primary/10 ring-2 ring-primary ring-offset-2'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
                       <input
@@ -700,11 +708,19 @@ export function SectionSettingsModal({
                         className="sr-only"
                       />
                       <div
-                        className="w-8 h-8 rounded border border-gray-300 flex-shrink-0"
+                        className="w-10 h-10 rounded border border-gray-300 flex-shrink-0 relative"
                         style={option.previewStyle}
-                      />
+                      >
+                        {backgroundColor === option.value && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded">
+                            <Check className="w-5 h-5 text-white drop-shadow-md" strokeWidth={3} />
+                          </div>
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium">{option.label}</div>
+                        <div className={`text-sm font-medium ${backgroundColor === option.value ? 'text-primary' : ''}`}>
+                          {option.label}
+                        </div>
                         <div className="text-xs text-gray-500">{option.description}</div>
                       </div>
                     </label>

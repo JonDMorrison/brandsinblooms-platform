@@ -78,21 +78,57 @@ export function ColorPicker({ editor, size = 'sm', variant = 'ghost', disabled =
   // Handle theme preset selection
   const handleThemeColorSelect = useCallback((color: string) => {
     if (!editor) return;
-    editor.chain().focus().setColor(color).run();
+
+    // Check if there's a text selection
+    const { from, to } = editor.state.selection;
+    const hasSelection = from !== to;
+
+    if (hasSelection) {
+      // Apply color to selected text only
+      editor.chain().focus().setColor(color).run();
+    } else {
+      // No selection - apply color to all text in the editor
+      editor.chain().focus().selectAll().setColor(color).run();
+    }
+
     setIsOpen(false);
   }, [editor]);
 
   // Handle custom color apply
   const handleCustomColorApply = useCallback(() => {
     if (!editor) return;
-    editor.chain().focus().setColor(customColor).run();
+
+    // Check if there's a text selection
+    const { from, to } = editor.state.selection;
+    const hasSelection = from !== to;
+
+    if (hasSelection) {
+      // Apply color to selected text only
+      editor.chain().focus().setColor(customColor).run();
+    } else {
+      // No selection - apply color to all text in the editor
+      editor.chain().focus().selectAll().setColor(customColor).run();
+    }
+
     setIsOpen(false);
   }, [editor, customColor]);
 
   // Handle remove color
   const handleRemoveColor = useCallback(() => {
     if (!editor) return;
-    editor.chain().focus().unsetColor().run();
+
+    // Check if there's a text selection
+    const { from, to } = editor.state.selection;
+    const hasSelection = from !== to;
+
+    if (hasSelection) {
+      // Remove color from selected text only
+      editor.chain().focus().unsetColor().run();
+    } else {
+      // No selection - remove color from all text in the editor
+      editor.chain().focus().selectAll().unsetColor().run();
+    }
+
     setIsOpen(false);
   }, [editor]);
 

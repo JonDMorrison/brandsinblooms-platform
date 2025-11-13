@@ -12,6 +12,7 @@ import { Label } from '@/src/components/ui/label'
 import { Button } from '@/src/components/ui/button'
 import { Plus, Trash2 } from 'lucide-react'
 import { getIcon } from '@/src/components/content-sections/shared/icon-utils'
+import { htmlToText } from '@/src/lib/utils/html-text'
 
 interface ValueItem {
   id: string
@@ -80,10 +81,10 @@ export function ValuesItemManager({
               {/* Value Info */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  {value.title || 'Untitled Value'}
+                  {htmlToText(value.title) || 'Untitled Value'}
                 </p>
                 <p className="text-xs text-gray-600 line-clamp-2 mt-1">
-                  {value.description || 'No description'}
+                  {htmlToText(value.description) || 'No description'}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   Icon: {value.icon}

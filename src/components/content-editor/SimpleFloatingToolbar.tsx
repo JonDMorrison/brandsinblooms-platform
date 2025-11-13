@@ -73,11 +73,35 @@ export const SimpleFloatingToolbar = ({
   }, [anchorEl, refs]);
   
   const handleBold = useCallback(() => {
-    editor?.chain().focus().toggleBold().run();
+    if (!editor) return;
+
+    // Check if there's a text selection
+    const { from, to } = editor.state.selection;
+    const hasSelection = from !== to;
+
+    if (hasSelection) {
+      // Apply bold to selected text only
+      editor.chain().focus().toggleBold().run();
+    } else {
+      // No selection - apply bold to all text in the editor
+      editor.chain().focus().selectAll().toggleBold().run();
+    }
   }, [editor]);
-  
+
   const handleItalic = useCallback(() => {
-    editor?.chain().focus().toggleItalic().run();
+    if (!editor) return;
+
+    // Check if there's a text selection
+    const { from, to } = editor.state.selection;
+    const hasSelection = from !== to;
+
+    if (hasSelection) {
+      // Apply italic to selected text only
+      editor.chain().focus().toggleItalic().run();
+    } else {
+      // No selection - apply italic to all text in the editor
+      editor.chain().focus().selectAll().toggleItalic().run();
+    }
   }, [editor]);
   
   const handleLink = useCallback(() => {
