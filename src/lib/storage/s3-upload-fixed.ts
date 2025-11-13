@@ -250,10 +250,14 @@ export async function getPresignedUploadUrl(
             code: result.code,
           });
 
-          // Don't retry on certain error codes
+          // Don't retry on certain error codes - return error immediately
           const nonRetryableCodes = ['VALIDATION_ERROR', 'UNAUTHORIZED', 'FORBIDDEN'];
           if (result.code && nonRetryableCodes.includes(result.code)) {
-            throw new Error(errorMessage);
+            // Return error directly without retry attempts wrapper
+            return {
+              success: false,
+              error: errorMessage,
+            };
           }
 
           const error = new Error(errorMessage);

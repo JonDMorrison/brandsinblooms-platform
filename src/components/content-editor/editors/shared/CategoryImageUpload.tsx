@@ -49,13 +49,15 @@ export function CategoryImageUpload({
         }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to get upload URL')
-      }
-
       const result = await response.json()
 
-      if (!result.success || !result.data) {
+      // Check for API error response
+      if (!result.success) {
+        // Extract the actual error message from the API
+        throw new Error(result.error || 'Failed to get upload URL')
+      }
+
+      if (!result.data) {
         throw new Error('Invalid presigned URL response')
       }
 
@@ -80,7 +82,8 @@ export function CategoryImageUpload({
       setUploadProgress(100)
       return { url: publicUrl, s3Key: key }
     } catch (error) {
-      return null
+      // Re-throw the error so it can be caught by the caller
+      throw error
     }
   }
 
@@ -112,11 +115,11 @@ export function CategoryImageUpload({
         onImageChange(result.url, result.s3Key)
         toast.success('Image uploaded successfully')
         setImageError(false)
-      } else {
-        toast.error('Failed to upload image')
       }
     } catch (error) {
-      toast.error('Failed to upload image')
+      // Extract and display the actual error message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image'
+      toast.error(errorMessage)
     } finally {
       setIsUploading(false)
       setUploadProgress(0)

@@ -49,13 +49,15 @@ export function FeaturedImageUpload({
         }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to get upload URL')
-      }
-
       const result = await response.json()
 
-      if (!result.success || !result.data) {
+      // Check for API error response
+      if (!result.success) {
+        // Extract the actual error message from the API
+        throw new Error(result.error || 'Failed to get upload URL')
+      }
+
+      if (!result.data) {
         throw new Error('Invalid presigned URL response')
       }
 
@@ -116,7 +118,9 @@ export function FeaturedImageUpload({
         toast.error('Failed to upload image')
       }
     } catch (error) {
-      toast.error('Failed to upload image')
+      // Extract and display the actual error message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image'
+      toast.error(errorMessage)
     } finally {
       setIsUploading(false)
       setUploadProgress(0)

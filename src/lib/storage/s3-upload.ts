@@ -213,28 +213,26 @@ export async function getPresignedUploadUrl(
       body: JSON.stringify(requestBody),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    // Parse JSON response even for error responses
+    let result;
+    try {
+      const responseText = await response.text();
+      result = JSON.parse(responseText);
+    } catch (jsonError) {
+      // If JSON parsing fails, throw error with status text
       throw new Error(`Failed to get presigned URL: ${response.statusText}`);
     }
 
-    // Parse JSON response with error handling
-    let result;
-    try {
-      result = await response.json();
-    } catch (jsonError) {
-      throw new Error(`Failed to parse presigned URL response: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`);
+    // Check for API error in JSON response first (works for both ok and error responses)
+    if (!result.success) {
+      // Extract the actual error message from the API response
+      const errorMessage = result.error || 'Presigned URL API returned an error';
+      throw new Error(errorMessage);
     }
 
-    // Comprehensive response validation
-    // Check that result is an object
+    // For successful responses, validate it's an object
     if (!result || typeof result !== 'object') {
       throw new Error('Invalid response from presigned URL API: not an object');
-    }
-
-    // Check for API error first
-    if (!result.success) {
-      throw new Error(result.error || 'Presigned URL API returned an error');
     }
 
     // CRITICAL FIX: Validate data exists when success=true
