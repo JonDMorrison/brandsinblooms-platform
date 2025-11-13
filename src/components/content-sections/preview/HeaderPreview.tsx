@@ -51,7 +51,7 @@ export function HeaderPreview({
             singleLine={true}
             className={`${responsive.typography.heroHeadline} mb-6`}
             style={{
-              color: 'var(--theme-text)',
+              color: data.headlineColor || 'var(--theme-text)',
               fontFamily: 'var(--theme-font-heading)'
             }}
             placeholder="Enter page title..."
@@ -74,7 +74,7 @@ export function HeaderPreview({
               singleLine={false}
               className="text-xl leading-relaxed"
               style={{
-                color: 'var(--theme-text)',
+                color: data.subheadlineColor || 'var(--theme-text)',
                 opacity: '0.8',
                 fontFamily: 'var(--theme-font-body)'
               }}

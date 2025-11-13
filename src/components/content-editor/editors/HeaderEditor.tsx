@@ -5,9 +5,8 @@
 
 import React from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
+import { TextInputWithColorPicker } from '@/src/components/content-editor/inputs/TextInputWithColorPicker'
 import {
-  FormField,
-  TextareaField,
   FormSection,
   BackgroundToggle
 } from './shared'
@@ -31,20 +30,23 @@ export function HeaderEditor({ section, sectionKey, onUpdate }: HeaderEditorProp
   return (
     <>
       <FormSection>
-        <FormField
-          id="header-headline"
+        <TextInputWithColorPicker
           label="Title"
           value={String(data.headline || '')}
-          onChange={(value) => handleDataChange({ headline: value })}
+          colorValue={data.headlineColor}
+          onTextChange={(value) => handleDataChange({ headline: value })}
+          onColorChange={(color) => handleDataChange({ headlineColor: color })}
           placeholder="Enter page title"
         />
 
-        <TextareaField
-          id="header-subheadline"
+        <TextInputWithColorPicker
           label="Subtitle"
           value={String(data.subheadline || '')}
-          onChange={(value) => handleDataChange({ subheadline: value })}
+          colorValue={data.subheadlineColor}
+          onTextChange={(value) => handleDataChange({ subheadline: value })}
+          onColorChange={(color) => handleDataChange({ subheadlineColor: color })}
           placeholder="Enter page subtitle or description"
+          multiline
           rows={3}
         />
       </FormSection>

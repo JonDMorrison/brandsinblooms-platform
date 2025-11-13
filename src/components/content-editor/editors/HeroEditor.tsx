@@ -10,9 +10,8 @@ import { Button } from '@/src/components/ui/button'
 import { Input } from '@/src/components/ui/input'
 import { Plus, X } from 'lucide-react'
 import { IconSelector } from '@/src/components/ui/IconSelector'
+import { TextInputWithColorPicker } from '@/src/components/content-editor/inputs/TextInputWithColorPicker'
 import {
-  FormField,
-  TextareaField,
   ButtonConfigFieldWithPageSelector,
   FormSection
 } from './shared/form-utils'
@@ -75,22 +74,25 @@ export function HeroEditor({ section, onUpdate }: HeroEditorProps) {
 
   return (
     <>
-      {/* Hero Title and Subtitle fields */}
+      {/* Hero Title and Subtitle fields with color pickers */}
       <FormSection>
-        <FormField
-          id="hero-headline"
+        <TextInputWithColorPicker
           label="Title"
           value={data.headline || ''}
-          onChange={(value) => handleDataChange({ headline: value })}
+          colorValue={data.headlineColor}
+          onTextChange={(value) => handleDataChange({ headline: value })}
+          onColorChange={(color) => handleDataChange({ headlineColor: color })}
           placeholder="Main hero headline"
         />
-        
-        <TextareaField
-          id="hero-subheadline"
+
+        <TextInputWithColorPicker
           label="Subtitle"
           value={data.subheadline || ''}
-          onChange={(value) => handleDataChange({ subheadline: value })}
+          colorValue={data.subheadlineColor}
+          onTextChange={(value) => handleDataChange({ subheadline: value })}
+          onColorChange={(color) => handleDataChange({ subheadlineColor: color })}
           placeholder="Supporting subtitle or description"
+          multiline
           rows={3}
         />
       </FormSection>

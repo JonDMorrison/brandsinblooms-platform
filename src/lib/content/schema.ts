@@ -72,6 +72,23 @@ export interface ContentSectionData {
   // Text content
   content?: string // HTML for richText, plain text for text
   json?: Json      // Tiptap JSON format for richText
+  headline?: string     // Main heading text (hero, header)
+  subheadline?: string  // Secondary heading text (hero, header)
+  title?: string        // Title text (features, blog, etc.)
+  subtitle?: string     // Subtitle text
+  description?: string  // Description text
+
+  /**
+   * Text color customization (hex format like "#FF5733")
+   * If undefined, component uses theme's default text color
+   */
+  headlineColor?: string
+  subheadlineColor?: string
+  titleColor?: string
+  subtitleColor?: string
+  descriptionColor?: string
+  textColor?: string  // For generic text content
+  ctaTextColor?: string  // For CTA button text specifically
 
   // Media content
   url?: string     // For images/videos

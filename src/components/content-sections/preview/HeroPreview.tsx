@@ -183,7 +183,7 @@ export function HeroPreview({
               singleLine={true}
               className={`${responsive.typography.heroHeadline} mb-6 block`}
               style={{
-                color: 'var(--theme-text)',
+                color: data.headlineColor || 'var(--theme-text)',
                 fontFamily: 'var(--theme-font-heading)'
               }}
               placeholder="Enter your headline..."
@@ -206,7 +206,7 @@ export function HeroPreview({
               format="simple-toolbar"
               className={`${responsive.typography.heroSubheadline} mb-8 leading-relaxed block [&_.ProseMirror_p:not(:first-child)]:mt-2`}
               style={{
-                color: 'var(--theme-text)',
+                color: data.subheadlineColor || 'var(--theme-text)',
                 opacity: 0.8,
                 fontFamily: 'var(--theme-font-body)'
               }}
