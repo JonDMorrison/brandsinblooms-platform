@@ -6,6 +6,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useFloating, autoUpdate, offset, flip, shift, arrow } from '@floating-ui/react';
 import { Bold, Italic, Link, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -126,14 +127,15 @@ export const SimpleFloatingToolbar = ({
   }, [showLinkInput, applyLink, cancelLink, onClose]);
   
   if (!editor) return null;
-  
-  return (
+
+  // Use portal to render outside overflow:hidden containers
+  const toolbar = (
     <div
       ref={(el) => {
         refs.setFloating(el);
         toolbarRef.current = el;
       }}
-      style={floatingStyles}
+      style={{...floatingStyles, position: 'fixed'}}
       className={cn(
         "simple-toolbar z-50 flex items-center gap-1 rounded-lg border shadow-lg",
         // Enhanced visibility - always light background
@@ -254,4 +256,7 @@ export const SimpleFloatingToolbar = ({
       )}
     </div>
   );
+
+  // Render toolbar using portal to escape overflow:hidden containers
+  return typeof window !== 'undefined' ? createPortal(toolbar, document.body) : null;
 };
