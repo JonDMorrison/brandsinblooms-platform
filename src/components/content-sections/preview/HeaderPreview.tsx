@@ -7,6 +7,7 @@ import React from 'react'
 import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { isPreviewMode, createResponsiveClassHelper } from '@/src/lib/utils/responsive-classes'
+import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
 
 interface HeaderPreviewProps {
   section: ContentSection
@@ -24,11 +25,7 @@ export function HeaderPreview({
   const { data, settings } = section
   const isPreview = isPreviewMode(onContentUpdate)
   const responsive = createResponsiveClassHelper(isPreview)
-
-  // Determine background style
-  const backgroundStyle = settings?.backgroundColor === 'gradient'
-    ? { background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))' }
-    : { backgroundColor: 'var(--theme-background)' }
+  const backgroundStyle = getSectionBackgroundStyle(settings)
 
   return (
     <section

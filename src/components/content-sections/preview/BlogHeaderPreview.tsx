@@ -8,6 +8,7 @@ import { ContentSection } from '@/src/lib/content/schema'
 import { InlineTextEditor } from '@/src/components/content-editor/InlineTextEditor'
 import { htmlToText, textToHtml } from '@/src/lib/utils/html-text'
 import { isPreviewMode, createResponsiveClassHelper } from '@/src/lib/utils/responsive-classes'
+import { getSectionBackgroundStyle } from '@/src/components/content-sections/shared/background-utils'
 import { Calendar, User } from 'lucide-react'
 
 interface BlogHeaderPreviewProps {
@@ -26,6 +27,7 @@ export function BlogHeaderPreview({
   const { data, settings } = section
   const isPreview = isPreviewMode(onContentUpdate)
   const responsive = createResponsiveClassHelper(isPreview)
+  const backgroundStyle = getSectionBackgroundStyle(settings)
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -41,13 +43,6 @@ export function BlogHeaderPreview({
       return dateString
     }
   }
-
-  // Determine background style
-  const backgroundStyle = settings?.backgroundColor === 'gradient'
-    ? { background: 'linear-gradient(to bottom right, rgba(var(--theme-primary-rgb), 0.05), rgba(var(--theme-secondary-rgb), 0.1))' }
-    : settings?.backgroundColor === 'alternate'
-    ? { backgroundColor: 'var(--theme-background-alternate, #F9FAFB)' }
-    : { backgroundColor: 'var(--theme-background)' }
 
   return (
     <section
