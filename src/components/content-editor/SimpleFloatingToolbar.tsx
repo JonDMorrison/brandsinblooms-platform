@@ -36,11 +36,12 @@ export const SimpleFloatingToolbar = ({
     whileElementsMounted: autoUpdate,
     middleware: [
       offset(10),
-      flip({ 
+      flip({
         padding: 8,
+        fallbackPlacements: ['top-start', 'top-end'], // Only allow top placements
         fallbackAxisSideDirection: 'start'
       }),
-      shift({ 
+      shift({
         padding: 8,
         crossAxis: true
       }),
@@ -48,7 +49,8 @@ export const SimpleFloatingToolbar = ({
         element: arrowRef
       })
     ],
-    placement: 'top'
+    placement: 'top',
+    strategy: 'fixed' // Use fixed positioning for better behavior
   });
   
   useEffect(() => {
