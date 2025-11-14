@@ -6,6 +6,7 @@ import DashboardSidebar from '@/src/components/layout/DashboardSidebar';
 import DashboardHeader from '@/src/components/layout/DashboardHeader';
 import { useUserSites } from '@/src/hooks/useSite';
 import { useAuth } from '@/src/contexts/AuthContext';
+import { useProfile } from '@/src/contexts/ProfileContext';
 import { CreateFirstSite } from '@/src/components/dashboard/CreateFirstSite';
 import { Skeleton } from '@/src/components/ui/skeleton';
 
@@ -19,6 +20,7 @@ export function DashboardLayoutClient({
   const pathname = usePathname();
   const { sites, loading: sitesLoading } = useUserSites();
   const { user, loading: authLoading } = useAuth();
+  const { isAdmin, isLoading: profileLoading } = useProfile();
 
   // Check if we're on the content editor page
   const isContentEditor = pathname?.includes('/dashboard/content/editor');
@@ -38,9 +40,9 @@ export function DashboardLayoutClient({
   // Check if user has no sites - but only after auth is stable
   const hasNoSites = isAuthStable && !sitesLoading && sites.length === 0;
 
-  // Show loading state while checking auth or sites
+  // Show loading state while checking auth, profile, or sites
   // Don't proceed until auth is stable
-  if (authLoading || !isAuthStable || sitesLoading) {
+  if (authLoading || !isAuthStable || profileLoading || sitesLoading) {
     return (
       <div className='flex h-screen items-center justify-center bg-gradient-subtle'>
         <div className='space-y-4 w-full max-w-md px-4'>
@@ -54,7 +56,8 @@ export function DashboardLayoutClient({
 
   // Show create first site screen if user has no sites
   // BUT allow them to access the sites page where they can create one
-  if (hasNoSites && pathname !== '/dashboard/sites') {
+  // Admins are allowed to bypass this screen and access the dashboard
+  if (hasNoSites && !isAdmin && pathname !== '/dashboard/sites') {
     return (
       <div className='flex h-screen items-center justify-center bg-gradient-subtle'>
         <CreateFirstSite />
