@@ -1,0 +1,2434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brands in Blooms - Platform Admin Manual</title>
+  <style>
+    /* CSS Variables for Theming */
+    :root {
+      --color-primary: #2E7D32;
+      --color-primary-light: #66BB6A;
+      --color-primary-dark: #1B5E20;
+      --color-background: #F5F5F5;
+      --color-surface: #FFFFFF;
+      --color-text: #212121;
+      --color-text-secondary: #757575;
+      --color-border: #E0E0E0;
+      --color-tip: #E3F2FD;
+      --color-tip-border: #2196F3;
+      --color-warning: #FFF3E0;
+      --color-warning-border: #FF9800;
+      --color-technical: #F5F5F5;
+      --color-technical-border: #9E9E9E;
+      --color-success: #E8F5E9;
+      --color-success-border: #4CAF50;
+      --sidebar-width: 280px;
+      --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+    }
+
+    /* Dark Mode Variables */
+    [data-theme="dark"] {
+      --color-background: #1E1E1E;
+      --color-surface: #2D2D2D;
+      --color-text: #E0E0E0;
+      --color-text-secondary: #B0B0B0;
+      --color-border: #404040;
+      --color-tip: #1E3A5F;
+      --color-warning: #4A3800;
+      --color-technical: #2A2A2A;
+      --color-success: #1B3A1B;
+    }
+
+    /* Reset & Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    body {
+      font-family: var(--font-system);
+      background-color: var(--color-background);
+      color: var(--color-text);
+      line-height: 1.6;
+    }
+
+    /* Skip to Content Link */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: var(--color-primary);
+      color: white;
+      padding: 8px;
+      text-decoration: none;
+      z-index: 9999;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 1000;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-header {
+      padding: 1.5rem;
+      background: var(--color-primary);
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .sidebar-header p {
+      font-size: 0.875rem;
+      opacity: 0.9;
+    }
+
+    /* Search Bar */
+    .search-container {
+      padding: 1rem;
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 80px;
+      background: var(--color-surface);
+      z-index: 9;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      font-size: 0.875rem;
+      font-family: var(--font-system);
+      background: var(--color-background);
+      color: var(--color-text);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+    /* Navigation Menu */
+    .nav-menu {
+      padding: 0 0 2rem 0;
+    }
+
+    .nav-section {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-section-title {
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-secondary);
+    }
+
+    .nav-link {
+      display: block;
+      padding: 0.5rem 1rem 0.5rem 1.5rem;
+      color: var(--color-text);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: background-color 0.2s, color 0.2s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-link:hover {
+      background-color: var(--color-background);
+      color: var(--color-primary);
+    }
+
+    .nav-link.active {
+      background-color: var(--color-background);
+      color: var(--color-primary);
+      border-left-color: var(--color-primary);
+      font-weight: 500;
+    }
+
+    .nav-link.highlight {
+      background-color: #FFF9C4;
+    }
+
+    .nav-sublink {
+      padding-left: 2.5rem;
+      font-size: 0.8125rem;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      padding: 2rem;
+      max-width: 900px;
+    }
+
+    /* Header Controls */
+    .header-controls {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+
+    .control-btn {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      padding: 0.5rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      color: var(--color-text);
+      transition: background-color 0.2s;
+    }
+
+    .control-btn:hover {
+      background-color: var(--color-background);
+    }
+
+    .control-btn:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    /* Mobile Menu Toggle */
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 1001;
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    /* Breadcrumbs */
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-surface);
+      border-radius: 6px;
+      border: 1px solid var(--color-border);
+    }
+
+    .breadcrumb-link {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    .breadcrumb-link:hover {
+      text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+      color: var(--color-border);
+    }
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--color-text);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-top: 0;
+      color: var(--color-primary-dark);
+    }
+
+    h2 {
+      font-size: 2rem;
+      border-bottom: 2px solid var(--color-primary);
+      padding-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: var(--color-primary);
+    }
+
+    h4 {
+      font-size: 1.25rem;
+    }
+
+    h5 {
+      font-size: 1.125rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    a {
+      color: var(--color-primary);
+    }
+
+    a:hover {
+      color: var(--color-primary-dark);
+    }
+
+    /* Lists */
+    ul, ol {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    /* Callout Boxes */
+    .callout {
+      padding: 1rem 1rem 1rem 3rem;
+      margin: 1.5rem 0;
+      border-radius: 6px;
+      border-left: 4px solid;
+      position: relative;
+    }
+
+    .callout::before {
+      position: absolute;
+      left: 1rem;
+      top: 1rem;
+      font-size: 1.25rem;
+    }
+
+    .callout-tip {
+      background-color: var(--color-tip);
+      border-left-color: var(--color-tip-border);
+    }
+
+    .callout-tip::before {
+      content: '💡';
+    }
+
+    .callout-warning {
+      background-color: var(--color-warning);
+      border-left-color: var(--color-warning-border);
+    }
+
+    .callout-warning::before {
+      content: '⚠️';
+    }
+
+    .callout-technical {
+      background-color: var(--color-technical);
+      border-left-color: var(--color-technical-border);
+    }
+
+    .callout-technical::before {
+      content: '⚙️';
+    }
+
+    .callout-success {
+      background-color: var(--color-success);
+      border-left-color: var(--color-success-border);
+    }
+
+    .callout-success::before {
+      content: '✅';
+    }
+
+    /* Tables */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 1.5rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--color-surface);
+      border-radius: 6px;
+      overflow: hidden;
+      font-size: 0.875rem;
+    }
+
+    thead {
+      background-color: var(--color-primary);
+      color: white;
+    }
+
+    th {
+      padding: 0.75rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 0.75rem;
+      border-top: 1px solid var(--color-border);
+    }
+
+    tbody tr:hover {
+      background-color: var(--color-background);
+    }
+
+    /* Code Blocks */
+    .code-block {
+      position: relative;
+      margin: 1.5rem 0;
+    }
+
+    pre {
+      background: #2D2D2D;
+      color: #E0E0E0;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      background: var(--color-technical);
+      padding: 0.125rem 0.375rem;
+      border-radius: 3px;
+      font-size: 0.875em;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: background-color 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.625rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+
+    .badge-active {
+      background: var(--color-success);
+      color: var(--color-primary-dark);
+    }
+
+    .badge-inactive {
+      background: var(--color-technical);
+      color: var(--color-text-secondary);
+    }
+
+    .badge-admin {
+      background: #FFEBEE;
+      color: #C62828;
+    }
+
+    .badge-site-owner {
+      background: #E3F2FD;
+      color: #1565C0;
+    }
+
+    .badge-user {
+      background: var(--color-technical);
+      color: var(--color-text);
+    }
+
+    /* Step-by-Step Procedures */
+    .procedure {
+      margin: 1.5rem 0;
+    }
+
+    .procedure ol {
+      counter-reset: step-counter;
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .procedure li {
+      counter-increment: step-counter;
+      position: relative;
+      padding-left: 3rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .procedure li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2rem;
+      height: 2rem;
+      background: var(--color-primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    /* Screenshot Placeholders */
+    .screenshot {
+      margin: 1.5rem 0;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .screenshot-image {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(135deg, var(--color-background) 0%, var(--color-border) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .screenshot-caption {
+      padding: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+      border-top: 1px solid var(--color-border);
+    }
+
+    /* Back to Top Button */
+    .back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--color-primary);
+      color: white;
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5rem;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s;
+      z-index: 100;
+    }
+
+    .back-to-top:hover {
+      transform: translateY(-2px);
+    }
+
+    .back-to-top.visible {
+      display: flex;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      :root {
+        --sidebar-width: 240px;
+      }
+
+      .main-content {
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: 1rem;
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+
+      .header-controls {
+        top: 4rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      .procedure li {
+        padding-left: 2.5rem;
+      }
+
+      .procedure li::before {
+        width: 1.75rem;
+        height: 1.75rem;
+      }
+    }
+
+    /* Print Styles */
+    @media print {
+      .sidebar,
+      .menu-toggle,
+      .header-controls,
+      .back-to-top,
+      .search-container {
+        display: none;
+      }
+
+      .main-content {
+        margin-left: 0;
+        max-width: 100%;
+      }
+
+      .callout {
+        page-break-inside: avoid;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      a[href^="http"]::after {
+        content: " (" attr(href) ")";
+        font-size: 0.875em;
+      }
+    }
+
+    /* Accessibility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* Focus Styles */
+    *:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Skip to Content -->
+  <a href="#main-content" class="skip-link">Skip to content</a>
+
+  <!-- Mobile Menu Toggle -->
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
+    <span id="menuToggleText">☰ Menu</span>
+  </button>
+
+  <!-- Header Controls -->
+  <div class="header-controls">
+    <button class="control-btn" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <span id="darkModeIcon">🌙</span>
+    </button>
+    <button class="control-btn" id="fontSizeIncrease" aria-label="Increase font size" title="Increase font size">
+      A+
+    </button>
+    <button class="control-btn" id="fontSizeDecrease" aria-label="Decrease font size" title="Decrease font size">
+      A-
+    </button>
+    <button class="control-btn" onclick="window.print()" aria-label="Print manual" title="Print manual">
+      🖨
+    </button>
+  </div>
+
+  <div class="layout">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar" role="navigation" aria-label="Table of contents">
+      <div class="sidebar-header">
+        <h1>Admin Manual</h1>
+        <p>Brands in Blooms Platform</p>
+      </div>
+
+      <div class="search-container">
+        <input
+          type="search"
+          class="search-input"
+          id="searchInput"
+          placeholder="Search manual..."
+          aria-label="Search manual"
+        />
+      </div>
+
+      <div class="nav-menu">
+        <div class="nav-section">
+          <div class="nav-section-title">Getting Started</div>
+          <a href="#welcome" class="nav-link">Welcome & Overview</a>
+          <a href="#user-roles" class="nav-link">User Roles Explained</a>
+          <a href="#role-admin" class="nav-link nav-sublink">Admin Role</a>
+          <a href="#role-site-owner" class="nav-link nav-sublink">Site Owner Role</a>
+          <a href="#role-user" class="nav-link nav-sublink">User Role</a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Dashboard</div>
+          <a href="#admin-dashboard" class="nav-link">Admin Dashboard</a>
+          <a href="#accessing-dashboard" class="nav-link nav-sublink">Accessing the Dashboard</a>
+          <a href="#dashboard-statistics" class="nav-link nav-sublink">Dashboard Statistics</a>
+          <a href="#dashboard-navigation" class="nav-link nav-sublink">Navigation</a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">User Management</div>
+          <a href="#user-management" class="nav-link">User Management Overview</a>
+          <a href="#creating-users" class="nav-link nav-sublink">Creating Users</a>
+          <a href="#editing-users" class="nav-link nav-sublink">Editing User Profiles</a>
+          <a href="#changing-roles" class="nav-link nav-sublink">Changing User Roles</a>
+          <a href="#deactivating-users" class="nav-link nav-sublink">Deactivating Users</a>
+          <a href="#resetting-passwords" class="nav-link nav-sublink">Resetting Passwords</a>
+          <a href="#searching-filtering" class="nav-link nav-sublink">Searching & Filtering</a>
+          <a href="#user-status" class="nav-link nav-sublink">User Status Indicators</a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Impersonation</div>
+          <a href="#admin-impersonation" class="nav-link">Admin Impersonation</a>
+          <a href="#when-to-impersonate" class="nav-link nav-sublink">When to Use</a>
+          <a href="#starting-impersonation" class="nav-link nav-sublink">Starting a Session</a>
+          <a href="#active-sessions" class="nav-link nav-sublink">Active Sessions</a>
+          <a href="#ending-sessions" class="nav-link nav-sublink">Ending Sessions</a>
+          <a href="#impersonation-security" class="nav-link nav-sublink">Security & Audit</a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Security</div>
+          <a href="#access-control" class="nav-link">Access Control & Security</a>
+          <a href="#role-permissions" class="nav-link nav-sublink">Role Permissions</a>
+          <a href="#protected-routes" class="nav-link nav-sublink">Protected Routes</a>
+          <a href="#last-admin" class="nav-link nav-sublink">Last Admin Protection</a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Help</div>
+          <a href="#troubleshooting" class="nav-link">Troubleshooting</a>
+          <a href="#common-issues" class="nav-link nav-sublink">Common Issues</a>
+          <a href="#error-messages" class="nav-link nav-sublink">Error Messages</a>
+          <a href="#getting-help" class="nav-link">Getting Help</a>
+          <a href="#quick-reference" class="nav-link">Quick Reference</a>
+          <a href="#glossary" class="nav-link">Glossary</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+      <!-- Welcome Section -->
+      <section id="welcome">
+        <h1>Platform Administrator Manual</h1>
+
+        <div class="breadcrumbs">
+          <span>Home</span>
+        </div>
+
+        <p>Welcome to the Brands in Blooms Platform Administrator Manual. This comprehensive guide covers all administrative functions for managing users, roles, permissions, and platform access.</p>
+
+        <p>As a Platform Administrator, you have full control over user accounts, security settings, and the ability to troubleshoot issues by impersonating users. This manual will walk you through each capability step-by-step.</p>
+
+        <div class="callout callout-tip">
+          <strong>New to Platform Administration?</strong><br>
+          Start with the <a href="#user-roles">User Roles Explained</a> section to understand the different permission levels, then proceed to <a href="#admin-dashboard">Admin Dashboard</a> to learn how to navigate the interface.
+        </div>
+
+        <h3>What You'll Find in This Manual</h3>
+        <ul>
+          <li><strong>User Management:</strong> Create, edit, activate, and deactivate user accounts</li>
+          <li><strong>Role Assignment:</strong> Assign and manage user roles (Admin, Site Owner, User)</li>
+          <li><strong>Password Management:</strong> Reset user passwords and manage authentication</li>
+          <li><strong>User Impersonation:</strong> Troubleshoot issues by viewing the platform as specific users</li>
+          <li><strong>Security & Access Control:</strong> Understand and manage platform security</li>
+          <li><strong>Troubleshooting:</strong> Common issues and solutions</li>
+        </ul>
+      </section>
+
+      <!-- User Roles Section -->
+      <section id="user-roles">
+        <h2>User Roles Explained</h2>
+
+        <div class="breadcrumbs">
+          <a href="#welcome" class="breadcrumb-link">Home</a>
+          <span class="breadcrumb-separator">›</span>
+          <span>User Roles</span>
+        </div>
+
+        <p>The Brands in Blooms platform uses a role-based access control system with three distinct user roles. Each role has specific permissions and capabilities designed for different types of users.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Role</th>
+                <th scope="col">Who It's For</th>
+                <th scope="col">Primary Purpose</th>
+                <th scope="col">Key Capabilities</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-admin">Admin</span></td>
+                <td>Platform Administrators</td>
+                <td>Manage the entire platform</td>
+                <td>User management, all sites access, impersonation</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-site-owner">Site Owner</span></td>
+                <td>Store Owners</td>
+                <td>Create and manage online stores</td>
+                <td>Design, content, products, settings for owned sites</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-user">User</span></td>
+                <td>Store Customers</td>
+                <td>View store content</td>
+                <td>Browse sites, view-only access</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="role-admin">Admin Role</h3>
+        <p>Administrators have unrestricted access to the entire platform, including:</p>
+        <ul>
+          <li>Access the Admin Dashboard at <code>/dashboard/admin</code></li>
+          <li>Create, edit, and deactivate any user account</li>
+          <li>Assign or change user roles (including promoting to Admin)</li>
+          <li>Reset passwords for any user</li>
+          <li>Impersonate users to troubleshoot issues</li>
+          <li>View and manage all sites across the platform</li>
+          <li>Monitor platform statistics and user activity</li>
+        </ul>
+
+        <div class="callout callout-warning">
+          <strong>Important Security Note:</strong><br>
+          Admin accounts should be limited to trusted platform administrators only. Admin users can access all data and perform sensitive operations like deleting users or accessing other users' sites.
+        </div>
+
+        <h3 id="role-site-owner">Site Owner Role</h3>
+        <p>Site Owners are business users who create and manage their own online stores:</p>
+        <ul>
+          <li>Create new sites/stores</li>
+          <li>Customize design, themes, and branding for their sites</li>
+          <li>Manage content, pages, and blog posts</li>
+          <li>Add and manage products and inventory</li>
+          <li>Configure site settings and domains</li>
+          <li>View analytics for their sites</li>
+          <li><strong>Cannot</strong> access other users' sites or the Admin Dashboard</li>
+          <li><strong>Cannot</strong> create or manage other user accounts</li>
+        </ul>
+
+        <div class="callout callout-tip">
+          <strong>When to Assign Site Owner:</strong><br>
+          Use this role for customers who want to create and manage their own online store. This is the standard role for business customers using the platform.
+        </div>
+
+        <h3 id="role-user">User Role</h3>
+        <p>Users have the most limited permissions and are typically store customers:</p>
+        <ul>
+          <li>View sites they've been invited to access</li>
+          <li>Browse products and content</li>
+          <li>Read-only access to public pages</li>
+          <li><strong>Cannot</strong> create or edit sites</li>
+          <li><strong>Cannot</strong> manage products or content</li>
+          <li><strong>Cannot</strong> access any administrative functions</li>
+        </ul>
+
+        <div class="callout callout-technical">
+          <strong>Technical Note:</strong><br>
+          The User role is primarily for future functionality like customer accounts, order history, and personalized shopping experiences. For most platform operations, you'll work with Admin and Site Owner roles.
+        </div>
+      </section>
+
+      <!-- Admin Dashboard Section -->
+      <section id="admin-dashboard">
+        <h2>Admin Dashboard</h2>
+
+        <div class="breadcrumbs">
+          <a href="#welcome" class="breadcrumb-link">Home</a>
+          <span class="breadcrumb-separator">›</span>
+          <span>Admin Dashboard</span>
+        </div>
+
+        <p>The Admin Dashboard is your central hub for managing users and monitoring platform activity. This section covers how to access and navigate the dashboard.</p>
+
+        <h3 id="accessing-dashboard">Accessing the Dashboard</h3>
+
+        <div class="procedure">
+          <ol>
+            <li>
+              <strong>Log in to the platform</strong><br>
+              Ensure you're logged in with an account that has the Admin role. Only Admin users can access the Admin Dashboard.
+            </li>
+            <li>
+              <strong>Navigate to the Admin Dashboard</strong><br>
+              Visit <code>/dashboard/admin</code> in your browser, or click the "Admin" link in the main navigation menu.
+            </li>
+            <li>
+              <strong>Verify access</strong><br>
+              If you see the Admin Dashboard with user statistics and management tools, you're successfully logged in. If you're redirected, verify that your account has Admin role privileges.
+            </li>
+          </ol>
+        </div>
+
+        <div class="screenshot">
+          <div class="screenshot-image">📊 Admin Dashboard Screenshot</div>
+          <div class="screenshot-caption">Figure 1: Admin Dashboard showing user statistics and management tools</div>
+        </div>
+
+        <h3 id="dashboard-statistics">Dashboard Statistics</h3>
+
+        <p>The dashboard displays four key statistics cards at the top of the page:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Statistic</th>
+                <th scope="col">What It Shows</th>
+                <th scope="col">Why It Matters</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Total Users</strong></td>
+                <td>Total number of user accounts on the platform</td>
+                <td>Monitor platform growth and user base size</td>
+              </tr>
+              <tr>
+                <td><strong>Active Users</strong></td>
+                <td>Number of users with active status (can log in)</td>
+                <td>See how many users have access to the platform</td>
+              </tr>
+              <tr>
+                <td><strong>Inactive Users</strong></td>
+                <td>Number of deactivated user accounts</td>
+                <td>Track suspended or disabled accounts</td>
+              </tr>
+              <tr>
+                <td><strong>Administrators</strong></td>
+                <td>Number of users with Admin role</td>
+                <td>Monitor privileged account count for security</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-tip">
+          <strong>Monitoring Tip:</strong><br>
+          Keep the number of Administrator accounts to a minimum. If you see more Admin accounts than expected, review the user list to ensure only authorized personnel have elevated privileges.
+        </div>
+
+        <h3 id="dashboard-navigation">Dashboard Navigation</h3>
+
+        <p>The Admin Dashboard is organized into the following sections:</p>
+
+        <ul>
+          <li><strong>Statistics Cards:</strong> High-level metrics at the top of the page</li>
+          <li><strong>Filters and Search:</strong> Tools to find and filter users</li>
+          <li><strong>User Table:</strong> Complete list of all user accounts with details</li>
+          <li><strong>Action Buttons:</strong> Quick access to create users and perform management tasks</li>
+          <li><strong>Pagination:</strong> Navigate through pages of users (20 per page)</li>
+        </ul>
+
+        <div class="callout callout-success">
+          <strong>Dashboard Refreshes Automatically:</strong><br>
+          After creating, editing, or deactivating users, the dashboard statistics and user list automatically refresh to show the latest data.
+        </div>
+      </section>
+
+      <!-- User Management Section -->
+      <section id="user-management">
+        <h2>User Management</h2>
+
+        <div class="breadcrumbs">
+          <a href="#welcome" class="breadcrumb-link">Home</a>
+          <span class="breadcrumb-separator">›</span>
+          <span>User Management</span>
+        </div>
+
+        <p>User management is the core responsibility of platform administrators. This section covers all user account operations including creating, editing, deactivating, and managing user credentials.</p>
+
+        <div class="callout callout-info">
+          <strong>Prerequisites:</strong><br>
+          You must have an Admin account to manage users. Site Owners and regular Users cannot access these features.
+        </div>
+
+        <h3 id="creating-users">Creating Users</h3>
+
+        <p>Create new user accounts with automatic password generation and role assignment.</p>
+
+        <div class="procedure">
+          <ol>
+            <li>
+              <strong>Click "Create User" button</strong><br>
+              On the Admin Dashboard, click the blue "Create User" button in the top-right of the filters section.
+            </li>
+            <li>
+              <strong>Enter user details</strong><br>
+              Fill in the required fields:
+              <ul>
+                <li><strong>Email</strong> (required): User's email address for login</li>
+                <li><strong>Full Name</strong> (optional): User's display name</li>
+                <li><strong>Role</strong> (required): Select Admin, Site Owner, or User</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Review role description</strong><br>
+              As you select different roles, read the description below the dropdown to confirm you're assigning the correct permission level.
+            </li>
+            <li>
+              <strong>Click "Create User"</strong><br>
+              The system will automatically generate a secure temporary password.
+            </li>
+            <li>
+              <strong>Copy the temporary password</strong><br>
+              A dialog will display the auto-generated password. Click the copy button to copy it to your clipboard.
+            </li>
+            <li>
+              <strong>Share credentials securely</strong><br>
+              Send the email address and temporary password to the new user through a secure channel (not email). Instruct them to change their password on first login.
+            </li>
+          </ol>
+        </div>
+
+        <div class="screenshot">
+          <div class="screenshot-image">➕ Create User Dialog</div>
+          <div class="screenshot-caption">Figure 2: Create User dialog with role selection and password generation</div>
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>Important - Password Security:</strong><br>
+          The temporary password is shown only once and cannot be retrieved later. Make sure to copy it before closing the dialog. If you lose the password, you'll need to use the Password Reset function.
+        </div>
+
+        <h3 id="editing-users">Editing User Profiles</h3>
+
+        <p>Update user account information, contact details, and profile settings.</p>
+
+        <div class="procedure">
+          <ol>
+            <li>
+              <strong>Locate the user</strong><br>
+              Use the search bar or filters to find the user you want to edit in the user table.
+            </li>
+            <li>
+              <strong>Click the Edit button</strong><br>
+              In the Actions column, click the pencil icon (✏️) to open the Edit User modal.
+            </li>
+            <li>
+              <strong>Review user information</strong><br>
+              The modal displays:
+              <ul>
+                <li>Current status badges (Active/Inactive, role)</li>
+                <li>Account statistics (number of sites, creation date, last sign-in)</li>
+                <li>Editable fields (email, full name, username, phone, role)</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Make your changes</strong><br>
+              Edit any of the available fields. All fields except email and role are optional.
+            </li>
+            <li>
+              <strong>Click "Save Changes"</strong><br>
+              The button will be disabled until you make a change. Click to save your updates.
+            </li>
+            <li>
+              <strong>Verify the update</strong><br>
+              A success message will appear, and the user table will refresh to show the updated information.
+            </li>
+          </ol>
+        </div>
+
+        <div class="screenshot">
+          <div class="screenshot-image">✏️ Edit User Modal</div>
+          <div class="screenshot-caption">Figure 3: Edit User modal showing profile fields and account statistics</div>
+        </div>
+
+        <h3 id="changing-roles">Changing User Roles</h3>
+
+        <p>Promote or demote users by changing their assigned role.</p>
+
+        <div class="procedure">
+          <ol>
+            <li>
+              <strong>Open the Edit User modal</strong><br>
+              Follow the steps in <a href="#editing-users">Editing User Profiles</a> to open the edit dialog.
+            </li>
+            <li>
+              <strong>Locate the Role dropdown</strong><br>
+              Scroll to the "Role" field in the form.
+            </li>
+            <li>
+              <strong>Select the new role</strong><br>
+              Choose from:
+              <ul>
+                <li><span class="badge badge-admin">Admin</span> - Platform administrators</li>
+                <li><span class="badge badge-site-owner">Site Owner</span> - Store owners</li>
+                <li><span class="badge badge-user">User</span> - Customers</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Read the role description</strong><br>
+              The description below the dropdown explains what permissions the selected role grants.
+            </li>
+            <li>
+              <strong>Save the change</strong><br>
+              Click "Save Changes" to update the user's role.
+            </li>
+            <li>
+              <strong>Verify role update</strong><br>
+              The user's role badge in the table will update to reflect the new role. The user will have new permissions on their next login.
+            </li>
+          </ol>
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>Promoting to Admin:</strong><br>
+          Be extremely careful when promoting users to Admin role. This grants full platform access including the ability to manage all users and sites. Only promote trusted personnel.
+        </div>
+
+        <div class="callout callout-tip">
+          <strong>Role Changes Take Effect Immediately:</strong><br>
+          When you change a user's role, the new permissions apply on their next page load or login. Active sessions may need to be refreshed.
+        </div>
+
+        <h3 id="deactivating-users">Activating & Deactivating Users</h3>
+
+        <p>Disable or re-enable user accounts without deleting them.</p>
+
+        <div class="procedure">
+          <ol>
+            <li>
+              <strong>Find the user to deactivate</strong><br>
+              Locate the user in the user table using search or filters.
+            </li>
+            <li>
+              <strong>Click the deactivate button</strong><br>
+              In the Actions column, click the red user-X icon (for active users) or green user-check icon (for inactive users).
+            </li>
+            <li>
+              <strong>Confirm the action</strong><br>
+              If using the Edit User modal, click the "Deactivate" or "Activate" button and confirm in the dialog that appears.
+            </li>
+            <li>
+              <strong>Verify status change</strong><br>
+              The user's status badge will change from <span class="badge badge-active">Active</span> to <span class="badge badge-inactive">Inactive</span> (or vice versa).
+            </li>
+          </ol>
+        </div>
+
+        <div class="callout callout-technical">
+          <strong>What Happens When You Deactivate:</strong><br>
+          <ul>
+            <li>User cannot log in to the platform</li>
+            <li>Active sessions are immediately terminated</li>
+            <li>User data and sites are preserved</li>
+            <li>Account can be reactivated at any time</li>
+          </ul>
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>Last Admin Protection:</strong><br>
+          The system prevents you from deactivating the last remaining Admin account. You must have at least one active Admin at all times to prevent platform lockout. If you need to deactivate an Admin, first promote another user to Admin.
+        </div>
+
+        <h3 id="resetting-passwords">Resetting User Passwords</h3>
+
+        <p>Generate new temporary passwords for users who are locked out or forgot their credentials.</p>
+
+        <div class="procedure">
+          <ol>
+            <li>
+              <strong>Locate the user</strong><br>
+              Find the user in the user table who needs a password reset.
+            </li>
+            <li>
+              <strong>Click the password reset button</strong><br>
+              In the Actions column, click the key icon (🔑), or open the Edit User modal and click "Reset Password".
+            </li>
+            <li>
+              <strong>Confirm the reset</strong><br>
+              Read the warning that this will immediately invalidate the user's current password, then click "Reset Password".
+            </li>
+            <li>
+              <strong>Copy the temporary password</strong><br>
+              A new password is automatically generated. Click the copy button to copy it to your clipboard.
+            </li>
+            <li>
+              <strong>Share the password securely</strong><br>
+              Send the temporary password to the user through a secure, private channel (not email). Instruct them to change it immediately after logging in.
+            </li>
+            <li>
+              <strong>Click "Done"</strong><br>
+              Close the dialog. The password cannot be retrieved again.
+            </li>
+          </ol>
+        </div>
+
+        <div class="screenshot">
+          <div class="screenshot-image">🔑 Password Reset Dialog</div>
+          <div class="screenshot-caption">Figure 4: Password Reset dialog with auto-generated temporary password</div>
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>Password Reset Security:</strong><br>
+          <ul>
+            <li>Old password becomes invalid immediately</li>
+            <li>User will be logged out of all active sessions</li>
+            <li>Temporary password is shown only once</li>
+            <li>User should change password on first login</li>
+          </ul>
+        </div>
+
+        <h3 id="searching-filtering">Searching & Filtering Users</h3>
+
+        <p>Quickly find specific users using search and filter tools.</p>
+
+        <h4>Search by Name, Email, or Username</h4>
+        <p>Use the search bar above the user table to search for users by:</p>
+        <ul>
+          <li>Full name or partial name</li>
+          <li>Email address</li>
+          <li>Username</li>
+        </ul>
+        <p>Results update as you type, and the table resets to page 1 automatically.</p>
+
+        <h4>Filter by Role</h4>
+        <p>Use the "Role" dropdown to show only users with a specific role:</p>
+        <ul>
+          <li><strong>All Roles</strong> (default) - Show everyone</li>
+          <li><strong>Admin</strong> - Platform administrators only</li>
+          <li><strong>Site Owner</strong> - Store owners only</li>
+          <li><strong>User</strong> - Customers only</li>
+        </ul>
+
+        <h4>Filter by Status</h4>
+        <p>Use the "Status" dropdown to filter by account status:</p>
+        <ul>
+          <li><strong>All Status</strong> (default) - Show all users</li>
+          <li><strong>Active</strong> - Users who can log in</li>
+          <li><strong>Inactive</strong> - Deactivated users</li>
+        </ul>
+
+        <div class="callout callout-tip">
+          <strong>Combine Filters for Powerful Searches:</strong><br>
+          You can use search, role filter, and status filter together. For example, search for "john" + filter by "Site Owner" + filter by "Active" to find all active site owners named John.
+        </div>
+
+        <h3 id="user-status">Understanding User Status Indicators</h3>
+
+        <p>The user table displays several badges and indicators to help you quickly understand user account states:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Badge</th>
+                <th scope="col">Meaning</th>
+                <th scope="col">Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>User can log in</td>
+                <td>Account is enabled and user has access to the platform</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-inactive">Inactive</span></td>
+                <td>User cannot log in</td>
+                <td>Account is deactivated; user is locked out</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-admin">Admin</span></td>
+                <td>Administrator</td>
+                <td>Full platform access including user management</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-site-owner">Site Owner</span></td>
+                <td>Store owner</td>
+                <td>Can create and manage their own sites</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-user">User</span></td>
+                <td>Customer</td>
+                <td>View-only access to sites</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Table Columns Explained</h4>
+        <ul>
+          <li><strong>Name:</strong> User's full name, username, or "N/A" if not set</li>
+          <li><strong>Email:</strong> User's email address (used for login)</li>
+          <li><strong>Role:</strong> Current role badge (Admin, Site Owner, User)</li>
+          <li><strong>Status:</strong> Active or Inactive badge</li>
+          <li><strong>Created:</strong> Date the account was created</li>
+          <li><strong>Last Sign In:</strong> Most recent login date, or "Never" if user hasn't logged in</li>
+          <li><strong>Actions:</strong> Quick action buttons (Edit, Reset Password, Activate/Deactivate)</li>
+        </ul>
+
+        <div class="callout callout-tip">
+          <strong>Identifying New Users:</strong><br>
+          If the "Last Sign In" column shows "Never", the user has been created but hasn't logged in yet. This is normal for newly created accounts.
+        </div>
+      </section>
+
+      <!-- Admin Impersonation Section -->
+      <section id="admin-impersonation">
+        <h2>Admin Impersonation</h2>
+
+        <div class="breadcrumbs">
+          <a href="#welcome" class="breadcrumb-link">Home</a>
+          <span class="breadcrumb-separator">›</span>
+          <span>Admin Impersonation</span>
+        </div>
+
+        <p>Admin impersonation allows platform administrators to view the platform exactly as a specific user or site visitor would see it. This powerful troubleshooting tool helps you diagnose issues, verify permissions, and test functionality without needing the user's password.</p>
+
+        <div class="callout callout-warning">
+          <strong>Use Responsibly:</strong><br>
+          Impersonation grants you access to everything a user can see and do. Only use this feature for legitimate troubleshooting, testing, or support purposes. All impersonation sessions are logged for security and audit purposes.
+        </div>
+
+        <h3 id="when-to-impersonate">When to Use Impersonation</h3>
+
+        <p>Common scenarios where impersonation is helpful:</p>
+
+        <ul>
+          <li><strong>Troubleshooting user-reported issues:</strong> See exactly what the user sees to reproduce and diagnose problems</li>
+          <li><strong>Verifying permissions:</strong> Confirm that role-based access controls are working correctly</li>
+          <li><strong>Testing new features:</strong> Test functionality from different user perspectives</li>
+          <li><strong>Providing customer support:</strong> View a user's site configuration to help with support requests</li>
+          <li><strong>Investigating security incidents:</strong> Review what a user account has access to</li>
+          <li><strong>Training and documentation:</strong> Capture screenshots from different user perspectives</li>
+        </ul>
+
+        <div class="callout callout-tip">
+          <strong>Best Practice:</strong><br>
+          Before impersonating a user, document the purpose and notify the user if possible. This maintains transparency and trust.
+        </div>
+
+        <h3 id="starting-impersonation">Starting an Impersonation Session</h3>
+
+        <p>Impersonation sessions are started from individual site management pages.</p>
+
+        <div class="procedure">
+          <ol>
+            <li>
+              <strong>Navigate to site management</strong><br>
+              Go to the specific site you want to view (e.g., <code>/admin/sites/[site-id]/edit</code>).
+            </li>
+            <li>
+              <strong>Click "Start Impersonation"</strong><br>
+              Look for the impersonation button in the site management interface.
+            </li>
+            <li>
+              <strong>Select impersonation type (optional)</strong><br>
+              You can choose to:
+              <ul>
+                <li><strong>View as guest:</strong> See the site as an anonymous visitor</li>
+                <li><strong>View as specific user:</strong> Impersonate a particular user account</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Enter purpose (optional but recommended)</strong><br>
+              Document why you're starting this session (e.g., "Investigating payment issue reported by customer").
+            </li>
+            <li>
+              <strong>Confirm and start session</strong><br>
+              Click to begin impersonation. You'll be redirected to the site with an orange banner at the top.
+            </li>
+          </ol>
+        </div>
+
+        <h4>Understanding the Impersonation Banner</h4>
+
+        <p>When impersonating, an orange banner appears at the top of every page:</p>
+
+        <div class="screenshot">
+          <div class="screenshot-image" style="background: linear-gradient(to right, #ff6b35, #f7931e); color: white; font-weight: bold;">
+            🔍 Admin Impersonation Active - Site: Example Store • 1h 45m remaining
+          </div>
+          <div class="screenshot-caption">Figure 5: Impersonation banner showing active session details</div>
+        </div>
+
+        <p>The banner displays:</p>
+        <ul>
+          <li><strong>Session status:</strong> Confirms impersonation is active</li>
+          <li><strong>Site name:</strong> Which site you're viewing</li>
+          <li><strong>User (if applicable):</strong> Who you're impersonating</li>
+          <li><strong>Time remaining:</strong> How long until the session expires</li>
+          <li><strong>End Session button:</strong> Click to stop impersonation immediately</li>
+        </ul>
+
+        <div class="callout callout-technical">
+          <strong>Session Duration:</strong><br>
+          Impersonation sessions last for 2 hours by default. When 10 minutes remain, you'll see a warning badge on the banner. Sessions automatically end after expiration.
+        </div>
+
+        <h3 id="active-sessions">Managing Active Impersonation Sessions</h3>
+
+        <p>View and manage all active impersonation sessions from the Admin Dashboard.</p>
+
+        <div class="procedure">
+          <ol>
+            <li>
+              <strong>Navigate to Admin Dashboard</strong><br>
+              Go to <code>/dashboard/admin</code>.
+            </li>
+            <li>
+              <strong>Scroll to "Active Impersonation Sessions"</strong><br>
+              This card shows all ongoing impersonation sessions across the platform.
+            </li>
+            <li>
+              <strong>Review session details</strong><br>
+              For each session, you can see:
+              <ul>
+                <li>Which admin started the session</li>
+                <li>Which site they're viewing</li>
+                <li>If they're impersonating a specific user</li>
+                <li>Time remaining before expiration</li>
+                <li>Last activity timestamp</li>
+                <li>Purpose/reason (if provided)</li>
+              </ul>
+            </li>
+            <li>
+              <strong>End any session (if needed)</strong><br>
+              Click the "End" button next to any session to terminate it immediately.
+            </li>
+            <li>
+              <strong>Refresh session list</strong><br>
+              Click the "Refresh" button to update the session list with the latest information.
+            </li>
+          </ol>
+        </div>
+
+        <div class="screenshot">
+          <div class="screenshot-image">🔍 Active Sessions Dashboard</div>
+          <div class="screenshot-caption">Figure 6: Active Impersonation Sessions dashboard showing all ongoing sessions</div>
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>Expiring Soon Warning:</strong><br>
+          Sessions that will expire in less than 10 minutes are highlighted with a warning badge. If you need more time, consider starting a new session before the current one expires.
+        </div>
+
+        <h3 id="ending-sessions">Ending Impersonation Sessions</h3>
+
+        <p>You can end impersonation sessions in three ways:</p>
+
+        <h4>Method 1: From the Impersonation Banner</h4>
+        <div class="procedure">
+          <ol>
+            <li>While impersonating, locate the orange banner at the top of the page</li>
+            <li>Click the "End Session" button</li>
+            <li>You'll be returned to your normal admin view</li>
+          </ol>
+        </div>
+
+        <h4>Method 2: From Active Sessions Dashboard</h4>
+        <div class="procedure">
+          <ol>
+            <li>Go to <code>/dashboard/admin</code></li>
+            <li>Scroll to "Active Impersonation Sessions"</li>
+            <li>Click "End" next to the session you want to terminate</li>
+            <li>Confirm when prompted</li>
+          </ol>
+        </div>
+
+        <h4>Method 3: Automatic Expiration</h4>
+        <p>Sessions automatically end after 2 hours. No action required.</p>
+
+        <div class="callout callout-success">
+          <strong>Clean Session Termination:</strong><br>
+          When a session ends (manually or automatically), you're safely returned to your admin account with all your permissions restored. No data is lost or corrupted.
+        </div>
+
+        <h3 id="impersonation-security">Security & Audit Trail</h3>
+
+        <p>All impersonation activity is logged for security, compliance, and audit purposes.</p>
+
+        <h4>What Gets Logged</h4>
+        <ul>
+          <li><strong>Session start:</strong> Admin user, site, impersonated user (if any), timestamp, purpose</li>
+          <li><strong>Session activity:</strong> Last activity timestamp (updated periodically)</li>
+          <li><strong>Session end:</strong> How the session ended (manual, expired), final timestamp</li>
+        </ul>
+
+        <h4>Security Protections</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Protection</th>
+                <th scope="col">How It Works</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Admin-only access</strong></td>
+                <td>Only users with Admin role can start impersonation sessions</td>
+              </tr>
+              <tr>
+                <td><strong>Session expiration</strong></td>
+                <td>All sessions automatically expire after 2 hours maximum</td>
+              </tr>
+              <tr>
+                <td><strong>Visual indicator</strong></td>
+                <td>Orange banner always visible during impersonation - can't be hidden</td>
+              </tr>
+              <tr>
+                <td><strong>Session monitoring</strong></td>
+                <td>Active sessions dashboard shows all admins who is impersonating</td>
+              </tr>
+              <tr>
+                <td><strong>Audit logging</strong></td>
+                <td>All impersonation activity is permanently logged for review</td>
+              </tr>
+              <tr>
+                <td><strong>Purpose tracking</strong></td>
+                <td>Optional but recommended purpose field documents why impersonation was used</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-technical">
+          <strong>Technical Implementation:</strong><br>
+          Impersonation sessions are stored in the database with the impersonating admin's user ID, the target site ID, optional impersonated user ID, start time, expiration time, and last activity timestamp. Sessions are validated on every request and automatically cleaned up after expiration.
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>Compliance Note:</strong><br>
+          If your organization operates under regulatory compliance requirements (GDPR, HIPAA, SOC 2, etc.), document impersonation policies and review audit logs regularly. Consider requiring purpose documentation for all impersonation sessions.
+        </div>
+      </section>
+
+      <!-- Access Control Section -->
+      <section id="access-control">
+        <h2>Access Control & Security</h2>
+
+        <div class="breadcrumbs">
+          <a href="#welcome" class="breadcrumb-link">Home</a>
+          <span class="breadcrumb-separator">›</span>
+          <span>Access Control</span>
+        </div>
+
+        <p>Understanding how the platform enforces security and access control helps you maintain a secure environment and troubleshoot permission issues.</p>
+
+        <h3 id="role-permissions">Role-Based Permission Matrix</h3>
+
+        <p>This comprehensive matrix shows what each role can and cannot do:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Capability</th>
+                <th scope="col">Admin</th>
+                <th scope="col">Site Owner</th>
+                <th scope="col">User</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Access Admin Dashboard</td>
+                <td>✅ Yes</td>
+                <td>❌ No</td>
+                <td>❌ No</td>
+              </tr>
+              <tr>
+                <td>Create/Edit/Delete Users</td>
+                <td>✅ Yes</td>
+                <td>❌ No</td>
+                <td>❌ No</td>
+              </tr>
+              <tr>
+                <td>Change User Roles</td>
+                <td>✅ Yes</td>
+                <td>❌ No</td>
+                <td>❌ No</td>
+              </tr>
+              <tr>
+                <td>Reset User Passwords</td>
+                <td>✅ Yes</td>
+                <td>❌ No</td>
+                <td>❌ No</td>
+              </tr>
+              <tr>
+                <td>Impersonate Users/Sites</td>
+                <td>✅ Yes</td>
+                <td>❌ No</td>
+                <td>❌ No</td>
+              </tr>
+              <tr>
+                <td>Create New Sites</td>
+                <td>✅ Yes</td>
+                <td>✅ Yes</td>
+                <td>❌ No</td>
+              </tr>
+              <tr>
+                <td>Edit Own Sites</td>
+                <td>✅ Yes</td>
+                <td>✅ Yes</td>
+                <td>❌ No</td>
+              </tr>
+              <tr>
+                <td>Edit Other Users' Sites</td>
+                <td>✅ Yes</td>
+                <td>❌ No</td>
+                <td>❌ No</td>
+              </tr>
+              <tr>
+                <td>Manage Products/Content</td>
+                <td>✅ Yes (all sites)</td>
+                <td>✅ Yes (own sites)</td>
+                <td>❌ No</td>
+              </tr>
+              <tr>
+                <td>View Site Analytics</td>
+                <td>✅ Yes (all sites)</td>
+                <td>✅ Yes (own sites)</td>
+                <td>❌ No</td>
+              </tr>
+              <tr>
+                <td>View Public Sites</td>
+                <td>✅ Yes</td>
+                <td>✅ Yes</td>
+                <td>✅ Yes</td>
+              </tr>
+              <tr>
+                <td>Place Orders (future)</td>
+                <td>✅ Yes</td>
+                <td>✅ Yes</td>
+                <td>✅ Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="protected-routes">Protected Routes</h3>
+
+        <p>The platform uses route-level protection to enforce access control. Here are the key protected routes:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Route Pattern</th>
+                <th scope="col">Required Role</th>
+                <th scope="col">Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/dashboard/admin</code></td>
+                <td>Admin only</td>
+                <td>Admin dashboard and user management</td>
+              </tr>
+              <tr>
+                <td><code>/admin/*</code></td>
+                <td>Admin only</td>
+                <td>All admin-specific functionality</td>
+              </tr>
+              <tr>
+                <td><code>/dashboard</code></td>
+                <td>Site Owner or Admin</td>
+                <td>User's main dashboard (site list)</td>
+              </tr>
+              <tr>
+                <td><code>/dashboard/sites/new</code></td>
+                <td>Site Owner or Admin</td>
+                <td>Create new site</td>
+              </tr>
+              <tr>
+                <td><code>/dashboard/sites/[id]/edit</code></td>
+                <td>Site Owner (own sites) or Admin</td>
+                <td>Edit site settings and content</td>
+              </tr>
+              <tr>
+                <td>Public site routes</td>
+                <td>None (public)</td>
+                <td>View published sites</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-technical">
+          <strong>How Route Protection Works:</strong><br>
+          The platform uses the AdminGuard component and middleware to check user roles before rendering protected pages. If a user lacks the required role, they're redirected to their appropriate dashboard or shown an error page.
+        </div>
+
+        <h3 id="last-admin">Last Admin Protection</h3>
+
+        <p>To prevent platform lockout, the system enforces a critical security rule: <strong>you cannot deactivate or demote the last remaining Admin account.</strong></p>
+
+        <h4>Why This Matters</h4>
+        <p>If all Admin accounts were deactivated or changed to Site Owner/User roles, no one would be able to:</p>
+        <ul>
+          <li>Access the Admin Dashboard</li>
+          <li>Create new admin accounts</li>
+          <li>Manage users</li>
+          <li>Recover from this state</li>
+        </ul>
+
+        <h4>How It Works</h4>
+        <div class="procedure">
+          <ol>
+            <li>
+              <strong>System counts active Admins</strong><br>
+              Before allowing deactivation or role change, the system counts how many active Admin users exist.
+            </li>
+            <li>
+              <strong>Blocks if last Admin</strong><br>
+              If you try to deactivate or demote the only Admin, you'll see an error message explaining the restriction.
+            </li>
+            <li>
+              <strong>Requires promotion first</strong><br>
+              To deactivate/demote the last Admin, you must first promote another user to Admin role, ensuring at least one Admin remains.
+            </li>
+          </ol>
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>Best Practice - Multiple Admins:</strong><br>
+          Always maintain at least 2-3 active Admin accounts to prevent lockout if one account has issues. However, keep the total number of Admins small for security reasons.
+        </div>
+
+        <div class="callout callout-success">
+          <strong>Error Message You'll See:</strong><br>
+          "Cannot deactivate the last active administrator. Please ensure there is at least one other active admin before deactivating this account."
+        </div>
+      </section>
+
+      <!-- Troubleshooting Section -->
+      <section id="troubleshooting">
+        <h2>Troubleshooting</h2>
+
+        <div class="breadcrumbs">
+          <a href="#welcome" class="breadcrumb-link">Home</a>
+          <span class="breadcrumb-separator">›</span>
+          <span>Troubleshooting</span>
+        </div>
+
+        <p>This section covers common issues you might encounter while managing the platform and how to resolve them.</p>
+
+        <h3 id="common-issues">Common Issues & Solutions</h3>
+
+        <h4>Issue: Cannot Access Admin Dashboard</h4>
+        <div class="callout callout-technical">
+          <strong>Symptoms:</strong> Redirected to regular dashboard when trying to access <code>/dashboard/admin</code>
+          <br><br>
+          <strong>Cause:</strong> Your account doesn't have Admin role
+          <br><br>
+          <strong>Solution:</strong>
+          <ol>
+            <li>Verify your account role by logging in and checking your profile</li>
+            <li>If you're not an Admin, contact another administrator to promote your account</li>
+            <li>If you're the only user and locked out, you may need database-level access to fix this</li>
+          </ol>
+        </div>
+
+        <h4>Issue: Cannot Deactivate User</h4>
+        <div class="callout callout-technical">
+          <strong>Symptoms:</strong> Error message when trying to deactivate an Admin user
+          <br><br>
+          <strong>Cause:</strong> Attempting to deactivate the last active Admin account
+          <br><br>
+          <strong>Solution:</strong>
+          <ol>
+            <li>First promote another user to Admin role</li>
+            <li>Verify the new Admin account is active and working</li>
+            <li>Then deactivate the original Admin account</li>
+          </ol>
+        </div>
+
+        <h4>Issue: Lost Temporary Password</h4>
+        <div class="callout callout-technical">
+          <strong>Symptoms:</strong> Created a user but didn't copy the temporary password before closing the dialog
+          <br><br>
+          <strong>Cause:</strong> Passwords are shown only once for security
+          <br><br>
+          <strong>Solution:</strong>
+          <ol>
+            <li>Find the user in the user table</li>
+            <li>Click the key icon (🔑) or "Reset Password" in the edit modal</li>
+            <li>Generate a new temporary password</li>
+            <li>This time, copy it before closing!</li>
+          </ol>
+        </div>
+
+        <h4>Issue: User Can't See Their Sites</h4>
+        <div class="callout callout-technical">
+          <strong>Symptoms:</strong> User reports empty dashboard or missing sites
+          <br><br>
+          <strong>Possible Causes:</strong>
+          <ul>
+            <li>User has "User" role instead of "Site Owner"</li>
+            <li>Sites belong to a different account</li>
+            <li>Account was recently created and has no sites yet</li>
+          </ul>
+          <br>
+          <strong>Solution:</strong>
+          <ol>
+            <li>Open the Edit User modal for this user</li>
+            <li>Check the "Sites" count in the statistics section</li>
+            <li>Verify the role is "Site Owner" or "Admin"</li>
+            <li>If role is "User", change it to "Site Owner"</li>
+            <li>If site count is 0, the user needs to create their first site</li>
+          </ol>
+        </div>
+
+        <h4>Issue: Impersonation Session Stuck</h4>
+        <div class="callout callout-technical">
+          <strong>Symptoms:</strong> Orange impersonation banner won't go away, or can't end session
+          <br><br>
+          <strong>Cause:</strong> Session state not clearing properly
+          <br><br>
+          <strong>Solution:</strong>
+          <ol>
+            <li>Try clicking "End Session" in the banner again</li>
+            <li>Go to <code>/dashboard/admin</code> and end the session from Active Sessions</li>
+            <li>Clear browser cookies and refresh</li>
+            <li>Wait 2 hours for automatic expiration</li>
+            <li>As last resort, contact technical support for manual session cleanup</li>
+          </ol>
+        </div>
+
+        <h4>Issue: User Table Not Loading</h4>
+        <div class="callout callout-technical">
+          <strong>Symptoms:</strong> Spinning loader on Admin Dashboard, no users displayed
+          <br><br>
+          <strong>Possible Causes:</strong>
+          <ul>
+            <li>Database connection issue</li>
+            <li>API endpoint error</li>
+            <li>Browser extension blocking request</li>
+          </ul>
+          <br>
+          <strong>Solution:</strong>
+          <ol>
+            <li>Refresh the page (Cmd+R or Ctrl+R)</li>
+            <li>Check browser console for error messages (F12 → Console)</li>
+            <li>Disable browser extensions temporarily</li>
+            <li>Try in a different browser or incognito mode</li>
+            <li>If problem persists, contact technical support with console error messages</li>
+          </ol>
+        </div>
+
+        <h4>Issue: Search Not Finding Users</h4>
+        <div class="callout callout-technical">
+          <strong>Symptoms:</strong> Search returns "No users found" when you know the user exists
+          <br><br>
+          <strong>Possible Causes:</strong>
+          <ul>
+            <li>Active filters excluding the user</li>
+            <li>Typo in search query</li>
+            <li>User information doesn't match search</li>
+          </ul>
+          <br>
+          <strong>Solution:</strong>
+          <ol>
+            <li>Clear the search box</li>
+            <li>Reset filters to "All Roles" and "All Status"</li>
+            <li>Try searching by email instead of name</li>
+            <li>Check spelling and use partial matches</li>
+            <li>Scroll through all pages to find the user manually</li>
+          </ol>
+        </div>
+
+        <h3 id="error-messages">Common Error Messages</h3>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Error Message</th>
+                <th scope="col">What It Means</th>
+                <th scope="col">How to Fix</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>"Access denied"</td>
+                <td>You don't have permission for this action</td>
+                <td>Verify you're logged in as an Admin user</td>
+              </tr>
+              <tr>
+                <td>"Cannot deactivate the last active administrator"</td>
+                <td>Trying to deactivate the only Admin</td>
+                <td>Promote another user to Admin first</td>
+              </tr>
+              <tr>
+                <td>"Email already exists"</td>
+                <td>Another user has this email address</td>
+                <td>Use a different email or edit the existing user</td>
+              </tr>
+              <tr>
+                <td>"Failed to fetch users"</td>
+                <td>API or database connection problem</td>
+                <td>Refresh page, check internet connection, contact support</td>
+              </tr>
+              <tr>
+                <td>"Invalid email format"</td>
+                <td>Email address doesn't follow standard format</td>
+                <td>Ensure email is like: user@domain.com</td>
+              </tr>
+              <tr>
+                <td>"Session expired"</td>
+                <td>Your login session timed out</td>
+                <td>Log in again to continue</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-tip">
+          <strong>Getting Help:</strong><br>
+          If you encounter an error not listed here:
+          <ol>
+            <li>Take a screenshot of the error message</li>
+            <li>Note what you were trying to do when it occurred</li>
+            <li>Check browser console (F12) for technical error details</li>
+            <li>Contact technical support with this information</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Getting Help Section -->
+      <section id="getting-help">
+        <h2>Getting Help</h2>
+
+        <div class="breadcrumbs">
+          <a href="#welcome" class="breadcrumb-link">Home</a>
+          <span class="breadcrumb-separator">›</span>
+          <span>Getting Help</span>
+        </div>
+
+        <p>If you need assistance while using the platform:</p>
+
+        <h3>Support Resources</h3>
+        <ul>
+          <li><strong>Search This Manual</strong> - Use the search button (🔍) at the top to find specific topics</li>
+          <li><strong>Quick Reference</strong> - Jump to common tasks and keyboard shortcuts below</li>
+          <li><strong>Contact Support</strong> - Email support@brandsinblooms.com for personalized help</li>
+        </ul>
+
+        <div class="callout callout-tip">
+          <strong>Tip:</strong><br>
+          When contacting support, include screenshots and describe what you were trying to do. This helps us assist you faster!
+        </div>
+      </section>
+
+      <!-- Quick Reference Section -->
+      <section id="quick-reference">
+        <h2>Quick Reference</h2>
+
+        <div class="breadcrumbs">
+          <a href="#welcome" class="breadcrumb-link">Home</a>
+          <span class="breadcrumb-separator">›</span>
+          <span>Quick Reference</span>
+        </div>
+
+        <p>Quick lookups for common tasks and information.</p>
+
+        <h3>Common Admin Tasks</h3>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Task</th>
+                <th scope="col">Quick Steps</th>
+                <th scope="col">Where to Find It</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Create a user</td>
+                <td>Dashboard → Create User → Fill form → Copy password</td>
+                <td><code>/dashboard/admin</code></td>
+              </tr>
+              <tr>
+                <td>Reset password</td>
+                <td>Find user → Click key icon → Copy new password</td>
+                <td>User table Actions column</td>
+              </tr>
+              <tr>
+                <td>Change user role</td>
+                <td>Find user → Edit → Change Role dropdown → Save</td>
+                <td>User table Edit button</td>
+              </tr>
+              <tr>
+                <td>Deactivate user</td>
+                <td>Find user → Click red X icon → Confirm</td>
+                <td>User table Actions column</td>
+              </tr>
+              <tr>
+                <td>Start impersonation</td>
+                <td>Site management → Start Impersonation → Select user</td>
+                <td>Individual site edit page</td>
+              </tr>
+              <tr>
+                <td>End impersonation</td>
+                <td>Click "End Session" in orange banner</td>
+                <td>Banner at top of page</td>
+              </tr>
+              <tr>
+                <td>View active sessions</td>
+                <td>Admin Dashboard → Scroll to Active Sessions card</td>
+                <td><code>/dashboard/admin</code></td>
+              </tr>
+              <tr>
+                <td>Search for user</td>
+                <td>Type in search box → Filter by role/status</td>
+                <td>Above user table</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Important URLs</h3>
+
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy URL">Copy</button>
+          <pre><code># Admin Dashboard
+/dashboard/admin
+
+# User List (same as dashboard)
+/dashboard/admin
+
+# Main User Dashboard
+/dashboard
+
+# Create New Site
+/dashboard/sites/new
+
+# Edit Specific Site
+/dashboard/sites/[site-id]/edit</code></pre>
+        </div>
+
+        <h3>User Role Summary</h3>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Role</th>
+                <th scope="col">Badge</th>
+                <th scope="col">Can Create Sites</th>
+                <th scope="col">Can Manage Users</th>
+                <th scope="col">Can Impersonate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Admin</td>
+                <td><span class="badge badge-admin">Admin</span></td>
+                <td>✅ Yes</td>
+                <td>✅ Yes</td>
+                <td>✅ Yes</td>
+              </tr>
+              <tr>
+                <td>Site Owner</td>
+                <td><span class="badge badge-site-owner">Site Owner</span></td>
+                <td>✅ Yes</td>
+                <td>❌ No</td>
+                <td>❌ No</td>
+              </tr>
+              <tr>
+                <td>User</td>
+                <td><span class="badge badge-user">User</span></td>
+                <td>❌ No</td>
+                <td>❌ No</td>
+                <td>❌ No</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Status Badge Meanings</h3>
+
+        <ul>
+          <li><span class="badge badge-active">Active</span> = User can log in and access the platform</li>
+          <li><span class="badge badge-inactive">Inactive</span> = User is locked out, cannot log in</li>
+        </ul>
+
+        <h3>Action Icon Guide</h3>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Icon</th>
+                <th scope="col">Action</th>
+                <th scope="col">What It Does</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>✏️ Pencil</td>
+                <td>Edit</td>
+                <td>Open user edit modal to change profile and role</td>
+              </tr>
+              <tr>
+                <td>🔑 Key</td>
+                <td>Reset Password</td>
+                <td>Generate new temporary password for user</td>
+              </tr>
+              <tr>
+                <td>❌ Red X</td>
+                <td>Deactivate</td>
+                <td>Disable user account (shown for active users)</td>
+              </tr>
+              <tr>
+                <td>✅ Green Check</td>
+                <td>Activate</td>
+                <td>Re-enable user account (shown for inactive users)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Security Reminders</h3>
+
+        <div class="callout callout-warning">
+          <strong>Best Practices Checklist:</strong>
+          <ul>
+            <li>✅ Maintain at least 2 active Admin accounts</li>
+            <li>✅ Limit total Admin accounts to trusted personnel only</li>
+            <li>✅ Use impersonation only for legitimate troubleshooting</li>
+            <li>✅ Document purpose when starting impersonation sessions</li>
+            <li>✅ End impersonation sessions when finished</li>
+            <li>✅ Share temporary passwords through secure channels (not email)</li>
+            <li>✅ Instruct users to change temporary passwords immediately</li>
+            <li>✅ Regularly review user list for inactive accounts</li>
+            <li>✅ Deactivate users when they leave the organization</li>
+            <li>✅ Monitor active impersonation sessions periodically</li>
+          </ul>
+        </div>
+
+        <div class="callout callout-success">
+          <strong>You're All Set!</strong><br>
+          You now have all the knowledge needed to effectively manage the Brands in Blooms platform. Bookmark this manual for quick reference, and don't hesitate to reach out to technical support if you need assistance.
+        </div>
+      </section>
+
+      <!-- Glossary Section -->
+      <section id="glossary">
+        <h2>Glossary</h2>
+
+        <div class="breadcrumbs">
+          <a href="#welcome" class="breadcrumb-link">Home</a>
+          <span class="breadcrumb-separator">›</span>
+          <span>Glossary</span>
+        </div>
+
+        <p>Common terms used in this manual:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Term</th>
+                <th scope="col">Definition</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>SKU</strong></td>
+                <td>Stock Keeping Unit - Unique product code for inventory tracking</td>
+              </tr>
+              <tr>
+                <td><strong>DNS</strong></td>
+                <td>Domain Name System - Connects your domain name to your website</td>
+              </tr>
+              <tr>
+                <td><strong>SSL</strong></td>
+                <td>Secure Sockets Layer - Encryption for website security (the padlock icon)</td>
+              </tr>
+              <tr>
+                <td><strong>Slug</strong></td>
+                <td>URL-friendly version of a title (e.g., "about-us" from "About Us")</td>
+              </tr>
+              <tr>
+                <td><strong>CTA</strong></td>
+                <td>Call-to-Action - A button or link encouraging visitors to take action</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Back to Top Button -->
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">
+    ↑
+  </button>
+
+  <script>
+    // Navigation
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('section[id]');
+
+    // Update active nav link on scroll
+    function updateActiveLink() {
+      const scrollPosition = window.scrollY + 100;
+
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        const sectionId = section.getAttribute('id');
+
+        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+          navLinks.forEach(link => link.classList.remove('active'));
+          const activeLink = document.querySelector(`.nav-link[href="#${sectionId}"]`);
+          if (activeLink) {
+            activeLink.classList.add('active');
+          }
+        }
+      });
+    }
+
+    window.addEventListener('scroll', updateActiveLink);
+    updateActiveLink();
+
+    // Mobile Menu Toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const menuToggleText = document.getElementById('menuToggleText');
+
+    menuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      menuToggleText.textContent = sidebar.classList.contains('open') ? '✕ Close' : '☰ Menu';
+    });
+
+    // Close sidebar when clicking a link on mobile
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          sidebar.classList.remove('open');
+          menuToggleText.textContent = '☰ Menu';
+        }
+      });
+    });
+
+    // Search Functionality
+    const searchInput = document.getElementById('searchInput');
+
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const mainContent = document.getElementById('main-content');
+
+      if (searchTerm.length === 0) {
+        // Clear highlights
+        navLinks.forEach(link => link.classList.remove('highlight'));
+        return;
+      }
+
+      // Search through nav links and highlight matches
+      navLinks.forEach(link => {
+        const linkText = link.textContent.toLowerCase();
+        if (linkText.includes(searchTerm)) {
+          link.classList.add('highlight');
+        } else {
+          link.classList.remove('highlight');
+        }
+      });
+    });
+
+    // Dark Mode Toggle
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const darkModeIcon = document.getElementById('darkModeIcon');
+
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    darkModeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+    darkModeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      darkModeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    });
+
+    // Font Size Controls
+    let fontSize = parseInt(localStorage.getItem('fontSize')) || 16;
+    document.documentElement.style.fontSize = fontSize + 'px';
+
+    document.getElementById('fontSizeIncrease').addEventListener('click', () => {
+      if (fontSize < 20) {
+        fontSize += 1;
+        document.documentElement.style.fontSize = fontSize + 'px';
+        localStorage.setItem('fontSize', fontSize);
+      }
+    });
+
+    document.getElementById('fontSizeDecrease').addEventListener('click', () => {
+      if (fontSize > 12) {
+        fontSize -= 1;
+        document.documentElement.style.fontSize = fontSize + 'px';
+        localStorage.setItem('fontSize', fontSize);
+      }
+    });
+
+    // Back to Top Button
+    const backToTop = document.getElementById('backToTop');
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        backToTop.classList.add('visible');
+      } else {
+        backToTop.classList.remove('visible');
+      }
+    });
+
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Copy Code Block Function
+    function copyCode(button) {
+      const codeBlock = button.nextElementSibling;
+      const code = codeBlock.textContent;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        setTimeout(() => {
+          button.textContent = originalText;
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+      });
+    }
+
+    // Keyboard Navigation
+    document.addEventListener('keydown', (e) => {
+      // Alt + T = Back to top
+      if (e.altKey && e.key === 't') {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // Alt + S = Focus search
+      if (e.altKey && e.key === 's') {
+        e.preventDefault();
+        searchInput.focus();
+      }
+
+      // Alt + M = Toggle menu (mobile)
+      if (e.altKey && e.key === 'm') {
+        e.preventDefault();
+        menuToggle.click();
+      }
+
+      // Escape = Close mobile menu
+      if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        if (menuToggle) {
+          menuToggle.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+
+    // Print: Show all sections
+    window.addEventListener('beforeprint', () => {
+      document.querySelectorAll('details').forEach(details => {
+        details.setAttribute('open', '');
+      });
+    });
+  </script>
+</body>
+</html>

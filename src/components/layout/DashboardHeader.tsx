@@ -7,7 +7,8 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  Shield
+  Shield,
+  HelpCircle
 } from 'lucide-react'
 import { Button } from '@/src/components/ui/button'
 import {
@@ -82,6 +83,23 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
         {/* Right section */}
         <div className="flex items-center space-x-4">
+
+          {/* Help Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="text-gray-500 hover:text-gray-900"
+          >
+            <a
+              href={isAdmin ? '/docs/admin-manual.html' : '/docs/site-owner-manual.html'}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Help Documentation"
+            >
+              <HelpCircle className="h-5 w-5" />
+            </a>
+          </Button>
 
           {/* Notifications - Hidden for now */}
           {/* <NotificationCenter /> */}

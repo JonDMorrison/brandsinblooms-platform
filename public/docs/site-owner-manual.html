@@ -1,0 +1,2897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Brands in Blooms Site Owner Manual - Complete guide for managing your online store">
+    <title>Brands in Blooms - Site Owner Manual</title>
+    <style>
+        /* CSS Variables */
+        :root {
+            --color-primary: #2E7D32;
+            --color-primary-light: #66BB6A;
+            --color-primary-dark: #1B5E20;
+            --color-accent: #4CAF50;
+            --color-bg: #FFFFFF;
+            --color-bg-secondary: #F5F5F5;
+            --color-bg-tertiary: #E8F5E9;
+            --color-text: #212121;
+            --color-text-secondary: #757575;
+            --color-border: #E0E0E0;
+            --color-success: #4CAF50;
+            --color-warning: #FF9800;
+            --color-error: #F44336;
+            --color-info: #2196F3;
+            --sidebar-width: 280px;
+            --header-height: 64px;
+            --font-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+        }
+
+        body.dark-mode {
+            --color-bg: #1a1a1a;
+            --color-bg-secondary: #2d2d2d;
+            --color-bg-tertiary: #1B5E20;
+            --color-text: #E0E0E0;
+            --color-text-secondary: #B0B0B0;
+            --color-border: #404040;
+        }
+
+        /* Reset & Base */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; font-size: 16px; }
+        body {
+            font-family: var(--font-base);
+            color: var(--color-text);
+            background: var(--color-bg);
+            line-height: 1.6;
+        }
+
+        /* Skip Link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--color-primary);
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            z-index: 9999;
+        }
+        .skip-link:focus { top: 0; }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            height: var(--header-height);
+            background: var(--color-bg);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--color-text);
+            padding: 8px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            fill: var(--color-primary);
+        }
+
+        .manual-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .header-tools {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tool-btn {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: var(--color-text);
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: var(--color-bg-tertiary);
+            border-color: var(--color-primary);
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+            min-height: calc(100vh - var(--header-height));
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--color-bg-secondary);
+            border-right: 1px solid var(--color-border);
+            position: sticky;
+            top: var(--header-height);
+            height: calc(100vh - var(--header-height));
+            overflow-y: auto;
+            padding: 24px 0;
+        }
+
+        .sidebar-header {
+            padding: 0 24px 16px;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .collapse-all {
+            background: none;
+            border: none;
+            color: var(--color-primary);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        /* Table of Contents */
+        .toc {
+            list-style: none;
+            padding: 0 16px;
+        }
+
+        .toc-item {
+            margin-bottom: 4px;
+        }
+
+        .toc-section {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 6px;
+            color: var(--color-text);
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .toc-section:hover {
+            background: var(--color-bg-tertiary);
+        }
+
+        .toc-icon {
+            margin-right: 8px;
+            transition: transform 0.2s;
+        }
+
+        .toc-section.collapsed .toc-icon {
+            transform: rotate(-90deg);
+        }
+
+        .toc-subsections {
+            list-style: none;
+            padding-left: 32px;
+            margin-top: 4px;
+        }
+
+        .toc-subsections.hidden {
+            display: none;
+        }
+
+        .toc-link {
+            display: block;
+            padding: 6px 12px;
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .toc-link:hover {
+            background: var(--color-bg-tertiary);
+            color: var(--color-text);
+        }
+
+        .toc-link.active {
+            background: var(--color-bg-tertiary);
+            color: var(--color-primary);
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 32px 48px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Breadcrumbs */
+        .breadcrumbs {
+            display: flex;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumbs a {
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+
+        .breadcrumbs span {
+            color: var(--color-text-secondary);
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--color-text);
+        }
+
+        h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 48px;
+            margin-bottom: 16px;
+            color: var(--color-text);
+            scroll-margin-top: calc(var(--header-height) + 24px);
+        }
+
+        h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: var(--color-text);
+        }
+
+        h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            color: var(--color-text);
+        }
+
+        p {
+            margin-bottom: 16px;
+            line-height: 1.7;
+        }
+
+        .lead {
+            font-size: 18px;
+            color: var(--color-text-secondary);
+            margin-bottom: 24px;
+        }
+
+        /* Callouts */
+        .callout {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 24px 0;
+            border-left: 4px solid;
+        }
+
+        .callout-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .callout-tip {
+            background: #E3F2FD;
+            border-color: var(--color-info);
+            color: #0D47A1;
+        }
+
+        .callout-warning {
+            background: #FFF3E0;
+            border-color: var(--color-warning);
+            color: #E65100;
+        }
+
+        .callout-success {
+            background: var(--color-bg-tertiary);
+            border-color: var(--color-success);
+            color: #1B5E20;
+        }
+
+        .callout-info {
+            background: #F5F5F5;
+            border-color: #9E9E9E;
+            color: #212121;
+        }
+
+        /* Steps */
+        .steps {
+            list-style: none;
+            counter-reset: step;
+        }
+
+        .step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .step:last-child {
+            border-bottom: none;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            counter-increment: step;
+        }
+
+        .step-number::before {
+            content: counter(step);
+        }
+
+        .step-content h4 {
+            margin-top: 0;
+        }
+
+        /* Code Blocks */
+        code {
+            background: var(--color-bg-secondary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            border: 1px solid var(--color-border);
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 24px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #2d2d2d;
+            color: #d4d4d4;
+            border: 1px solid #404040;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover {
+            background: #404040;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        th {
+            background: var(--color-bg-secondary);
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        tr:hover {
+            background: var(--color-bg-secondary);
+        }
+
+        /* Navigation */
+        .page-nav {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--color-text);
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--color-bg-tertiary);
+            border-color: var(--color-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-title {
+            font-weight: 500;
+        }
+
+        /* Search Overlay */
+        .search-overlay {
+            display: none;
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--color-bg);
+            z-index: 1000;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        .search-overlay.active {
+            display: block;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto 32px;
+            position: relative;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 16px 48px 16px 16px;
+            font-size: 18px;
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            background: var(--color-bg-secondary);
+        }
+
+        #search-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .search-close {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+        }
+
+        #search-results {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-result {
+            padding: 16px;
+            margin-bottom: 16px;
+            background: var(--color-bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+        }
+
+        .search-result-path {
+            font-size: 12px;
+            color: var(--color-primary);
+            margin-bottom: 8px;
+        }
+
+        .search-result-excerpt {
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .search-result-excerpt mark {
+            background: #FFF176;
+            padding: 2px 4px;
+            border-radius: 2px;
+            color: #000;
+            font-weight: 500;
+        }
+
+        .search-result-link {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .menu-toggle { display: block; }
+
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: var(--header-height);
+                z-index: 999;
+                transition: left 0.3s;
+                box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .main-content {
+                padding: 24px 16px;
+            }
+        }
+
+        @media print {
+            .header, .sidebar, .search-overlay, .page-nav, .tool-btn { display: none !important; }
+            .main-content { max-width: 100%; padding: 0; }
+        }
+
+        /* Back to Top */
+        .back-to-top {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 48px;
+            height: 48px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 998;
+        }
+
+        .back-to-top.visible {
+            display: flex;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+<body>
+    <a href="#main" class="skip-link">Skip to main content</a>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+            <svg class="logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            <h1 class="manual-title">Site Owner Manual</h1>
+        </div>
+        <div class="header-tools">
+            <button class="tool-btn" id="searchToggle" aria-label="Search">🔍 Search</button>
+            <button class="tool-btn" id="fontToggle" aria-label="Increase font size">A+</button>
+            <button class="tool-btn" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+            <button class="tool-btn" onclick="window.print()" aria-label="Print">🖨️</button>
+        </div>
+    </header>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <input type="search" id="search-input" placeholder="Search manual..." aria-label="Search">
+            <button class="search-close" id="searchClose">×</button>
+        </div>
+        <div id="search-results"></div>
+    </div>
+
+    <!-- Layout -->
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Contents</h2>
+                <button class="collapse-all" id="collapseAll">Collapse All</button>
+            </div>
+            <nav aria-label="Table of contents">
+                <ul class="toc" id="toc">
+                    <li class="toc-item">
+                        <button class="toc-section" data-section="section1">
+                            <span class="toc-icon">▼</span>
+                            <span>1. Getting Started</span>
+                        </button>
+                        <ul class="toc-subsections" id="section1">
+                            <li><a href="#dashboard-overview" class="toc-link">Dashboard Overview</a></li>
+                            <li><a href="#first-steps" class="toc-link">First Steps Checklist</a></li>
+                            <li><a href="#navigation" class="toc-link">Dashboard Navigation</a></li>
+                        </ul>
+                    </li>
+                    <li class="toc-item">
+                        <button class="toc-section" data-section="section2">
+                            <span class="toc-icon">▼</span>
+                            <span>2. Content Management</span>
+                        </button>
+                        <ul class="toc-subsections" id="section2">
+                            <li><a href="#pages-overview" class="toc-link">Pages Overview</a></li>
+                            <li><a href="#creating-pages" class="toc-link">Creating Pages</a></li>
+                            <li><a href="#editing-modes" class="toc-link">Editing Modes Explained</a></li>
+                            <li><a href="#three-panel-editor" class="toc-link">The Three-Panel Editor</a></li>
+                            <li><a href="#section-types" class="toc-link">Section Types</a></li>
+                            <li><a href="#text-formatting" class="toc-link">Text Formatting</a></li>
+                            <li><a href="#image-management" class="toc-link">Image Management</a></li>
+                            <li><a href="#blog-posts" class="toc-link">Blog Posts</a></li>
+                        </ul>
+                    </li>
+                    <li class="toc-item">
+                        <button class="toc-section" data-section="section3">
+                            <span class="toc-icon">▼</span>
+                            <span>3. Design Customization</span>
+                        </button>
+                        <ul class="toc-subsections" id="section3">
+                            <li><a href="#colors" class="toc-link">Colors Tab</a></li>
+                            <li><a href="#fonts" class="toc-link">Fonts Tab</a></li>
+                            <li><a href="#header" class="toc-link">Header Tab</a></li>
+                            <li><a href="#footer" class="toc-link">Footer Tab</a></li>
+                        </ul>
+                    </li>
+                    <li class="toc-item">
+                        <button class="toc-section" data-section="section4">
+                            <span class="toc-icon">▼</span>
+                            <span>4. Product Catalog</span>
+                        </button>
+                        <ul class="toc-subsections" id="section4">
+                            <li><a href="#adding-products" class="toc-link">Adding Products</a></li>
+                            <li><a href="#product-details" class="toc-link">Product Details</a></li>
+                            <li><a href="#categories" class="toc-link">Categories</a></li>
+                            <li><a href="#inventory" class="toc-link">Inventory Management</a></li>
+                        </ul>
+                    </li>
+                    <li class="toc-item">
+                        <button class="toc-section" data-section="section5">
+                            <span class="toc-icon">▼</span>
+                            <span>5. Events Calendar</span>
+                        </button>
+                        <ul class="toc-subsections" id="section5">
+                            <li><a href="#creating-events" class="toc-link">Creating Events</a></li>
+                            <li><a href="#event-details" class="toc-link">Event Details</a></li>
+                            <li><a href="#event-associations" class="toc-link">Linking to Blog Posts</a></li>
+                        </ul>
+                    </li>
+                    <li class="toc-item">
+                        <button class="toc-section" data-section="section6">
+                            <span class="toc-icon">▼</span>
+                            <span>6. Order Management</span>
+                        </button>
+                        <ul class="toc-subsections" id="section6">
+                            <li><a href="#viewing-orders" class="toc-link">Viewing Orders</a></li>
+                            <li><a href="#order-status" class="toc-link">Updating Order Status</a></li>
+                        </ul>
+                    </li>
+                    <li class="toc-item">
+                        <button class="toc-section" data-section="section7">
+                            <span class="toc-icon">▼</span>
+                            <span>7. Payment Setup</span>
+                        </button>
+                        <ul class="toc-subsections" id="section7">
+                            <li><a href="#stripe-integration" class="toc-link">Stripe Integration</a></li>
+                            <li><a href="#tax-shipping" class="toc-link">Tax & Shipping</a></li>
+                        </ul>
+                    </li>
+                    <li class="toc-item">
+                        <button class="toc-section" data-section="section8">
+                            <span class="toc-icon">▼</span>
+                            <span>8. Domain Configuration</span>
+                        </button>
+                        <ul class="toc-subsections" id="section8">
+                            <li><a href="#custom-domain" class="toc-link">Custom Domain Setup</a></li>
+                            <li><a href="#dns-config" class="toc-link">DNS Configuration</a></li>
+                        </ul>
+                    </li>
+                    <li class="toc-item">
+                        <button class="toc-section" data-section="section9">
+                            <span class="toc-icon">▼</span>
+                            <span>9. Settings</span>
+                        </button>
+                        <ul class="toc-subsections" id="section9">
+                            <li><a href="#profile-settings" class="toc-link">Profile Settings</a></li>
+                            <li><a href="#security" class="toc-link">Security Settings</a></li>
+                        </ul>
+                    </li>
+                    <li class="toc-item">
+                        <button class="toc-section" data-section="section10">
+                            <span class="toc-icon">▼</span>
+                            <span>10. Getting Help</span>
+                        </button>
+                        <ul class="toc-subsections" id="section10">
+                            <li><a href="#getting-help" class="toc-link">Getting Help</a></li>
+                        </ul>
+                    </li>
+                    <li class="toc-item">
+                        <button class="toc-section" data-section="section11">
+                            <span class="toc-icon">▼</span>
+                            <span>11. Quick Reference</span>
+                        </button>
+                        <ul class="toc-subsections" id="section11">
+                            <li><a href="#common-tasks" class="toc-link">Common Tasks</a></li>
+                            <li><a href="#keyboard-shortcuts" class="toc-link">Keyboard Shortcuts</a></li>
+                            <li><a href="#glossary" class="toc-link">Glossary</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="main">
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="#main">Home</a>
+                <span>›</span>
+                <span id="current-section">Getting Started</span>
+            </nav>
+
+            <!-- Section 1: Getting Started -->
+            <section id="dashboard-overview">
+                <h2>Dashboard Overview</h2>
+                <p class="lead">Your dashboard is the control center for managing your online store. Here's everything you need to know to get started.</p>
+
+                <p>When you first log in, you'll see your dashboard with several key areas:</p>
+
+                <h3>Statistics Cards</h3>
+                <p>At the top of your dashboard, you'll find quick statistics showing:</p>
+                <ul>
+                    <li><strong>Total Content</strong> - Number of pages and blog posts</li>
+                    <li><strong>Total Products</strong> - Items in your catalog</li>
+                    <li><strong>Categories</strong> - Product organization groups</li>
+                    <li><strong>Featured Products</strong> - Highlighted items on your site</li>
+                </ul>
+
+                <h3>Quick Actions</h3>
+                <p>Below the statistics, you'll find buttons for common tasks:</p>
+                <ul>
+                    <li><strong>Create New Page</strong> - Add content to your site</li>
+                    <li><strong>Add Products</strong> - Build your product catalog</li>
+                    <li><strong>Customize Design</strong> - Change colors, fonts, and layout</li>
+                    <li><strong>View Site</strong> - See your live website</li>
+                </ul>
+
+                <div class="callout callout-tip">
+                    <span class="callout-icon">💡</span>
+                    <div>
+                        <strong>Tip:</strong> Click "View Site" frequently to see how your changes look to customers.
+                    </div>
+                </div>
+            </section>
+
+            <section id="first-steps">
+                <h2>First Steps Checklist</h2>
+                <p>Follow these steps to get your online store up and running:</p>
+
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Customize Your Design</h4>
+                            <p>Go to <strong>Design</strong> and set your brand colors, fonts, and logo. This establishes your store's visual identity.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Create Product Categories</h4>
+                            <p>Navigate to <strong>Products</strong> → <strong>Categories</strong> and create 5-10 categories to organize your products (e.g., "Indoor Plants", "Garden Tools").</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Add Your First Products</h4>
+                            <p>Go to <strong>Products</strong> and click <strong>Add Product</strong>. Fill in details, upload images, and assign categories.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Create Essential Pages</h4>
+                            <p>Use <strong>Content</strong> to create About, Contact, and other pages. Edit your homepage to showcase your products.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Set Up Payments</h4>
+                            <p>Connect your Stripe account in <strong>Settings</strong> → <strong>Payments</strong> to start accepting orders.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Configure Your Domain</h4>
+                            <p>Set up a custom domain in <strong>Settings</strong> → <strong>Domains</strong>, or use your free subdomain (yourname.blooms.cc).</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="navigation">
+                <h2>Dashboard Navigation</h2>
+                <p>The left sidebar contains all main sections of your dashboard:</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Section</th>
+                            <th scope="col">What You Can Do</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Dashboard</strong></td>
+                            <td>View statistics and quick actions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Content</strong></td>
+                            <td>Create and edit pages and blog posts</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Design</strong></td>
+                            <td>Customize colors, fonts, header, footer</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Products</strong></td>
+                            <td>Manage your product catalog and categories</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Events</strong></td>
+                            <td>Create and manage events calendar</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Orders</strong></td>
+                            <td>View and process customer orders</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Settings</strong></td>
+                            <td>Configure profile, business, payments, domains, security</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Section 2: Content Management -->
+            <section id="pages-overview">
+                <h2>Pages Overview</h2>
+                <p>Pages are the foundation of your website. Each page can have different layouts and sections to showcase your content.</p>
+
+                <h3>Page Types</h3>
+                <ul>
+                    <li><strong>Landing Page</strong> - Your homepage or promotional pages</li>
+                    <li><strong>About Page</strong> - Tell your story</li>
+                    <li><strong>Contact Page</strong> - How customers reach you</li>
+                    <li><strong>Blog Post</strong> - Articles, news, or tips</li>
+                    <li><strong>Custom Page</strong> - Any other content</li>
+                </ul>
+
+                <p>To view all your pages, go to <strong>Content</strong> in the sidebar. You'll see a list showing:</p>
+                <ul>
+                    <li>Page title</li>
+                    <li>Content type (landing, about, blog, etc.)</li>
+                    <li>Status (Published or Draft)</li>
+                    <li>Last modified date</li>
+                </ul>
+            </section>
+
+            <section id="creating-pages">
+                <h2>Creating Pages</h2>
+                <p>There are two ways to create a new page:</p>
+
+                <h3>Method 1: From Content Page</h3>
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Navigate to Content</h4>
+                            <p>Click <strong>Content</strong> in the sidebar.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Click Create New Page</h4>
+                            <p>Click the <strong>Create New Page</strong> button at the top.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Choose Page Type</h4>
+                            <p>Select from Landing Page, About, Contact, Blog Post, or Custom.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Enter Page Title</h4>
+                            <p>Give your page a descriptive title. The URL slug will be generated automatically.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Start Editing</h4>
+                            <p>The visual editor will open automatically, ready for you to add content.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <h3>Method 2: From Dashboard</h3>
+                <p>Click the <strong>Create New Page</strong> quick action button on the dashboard.</p>
+            </section>
+
+            <section id="editing-modes">
+                <h2>Editing Modes Explained</h2>
+                <p class="lead">The Brands in Blooms platform offers three different ways to edit your content. Each mode is designed for different scenarios.</p>
+
+                <h3>The Three Editing Modes</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Mode</th>
+                            <th scope="col">Best For</th>
+                            <th scope="col">How to Access</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Inline Editing</strong></td>
+                            <td>Quick text changes on your live site</td>
+                            <td>Click text on your site when logged in</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dashboard Editor</strong></td>
+                            <td>Major content changes, adding sections</td>
+                            <td>Dashboard → Content → Edit</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Full Site Editor</strong></td>
+                            <td>Editing while previewing on actual site</td>
+                            <td>View site → Toggle edit mode</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>1. Inline Editing</h3>
+                <p>Inline editing lets you make quick changes directly on your live site.</p>
+
+                <div class="callout callout-tip">
+                    <span class="callout-icon">💡</span>
+                    <div>
+                        <strong>How it works:</strong> When you're logged in and viewing your site, simply click on any text to start editing. A floating toolbar appears with formatting options.
+                    </div>
+                </div>
+
+                <p><strong>Features:</strong></p>
+                <ul>
+                    <li>Click text to edit in place</li>
+                    <li>Floating toolbar for bold, italic, headings, links, colors</li>
+                    <li>Color picker for text customization</li>
+                    <li>Link editor for buttons and text links</li>
+                    <li>Auto-save every 2 seconds</li>
+                </ul>
+
+                <p><strong>When to use:</strong></p>
+                <ul>
+                    <li>Fixing typos</li>
+                    <li>Updating product descriptions</li>
+                    <li>Changing headlines</li>
+                    <li>Quick color adjustments</li>
+                </ul>
+
+                <h3>2. Dashboard Editor</h3>
+                <p>The dashboard editor provides a complete 3-panel interface for major content changes.</p>
+
+                <p><strong>Features:</strong></p>
+                <ul>
+                    <li>Three-panel layout (sections, preview, settings)</li>
+                    <li>Add/remove/reorder sections</li>
+                    <li>Desktop/tablet/mobile preview modes</li>
+                    <li>Section Settings panel for detailed customization</li>
+                    <li>Image upload and management</li>
+                    <li>Page metadata (title, slug, SEO)</li>
+                </ul>
+
+                <p><strong>When to use:</strong></p>
+                <ul>
+                    <li>Creating new pages</li>
+                    <li>Adding or removing sections</li>
+                    <li>Major layout changes</li>
+                    <li>Testing mobile responsiveness</li>
+                    <li>SEO optimization</li>
+                </ul>
+
+                <h3>3. Full Site Editor</h3>
+                <p>Edit your content while viewing it on the actual site with a top toolbar.</p>
+
+                <p><strong>Features:</strong></p>
+                <ul>
+                    <li>Edit on the real site (not a preview)</li>
+                    <li>Toggle between Edit and Navigate modes</li>
+                    <li>Section-level editing</li>
+                    <li>Top toolbar with settings access</li>
+                    <li>Auto-save with 2-second debounce</li>
+                </ul>
+
+                <p><strong>When to use:</strong></p>
+                <ul>
+                    <li>Seeing exactly how customers see your site</li>
+                    <li>Making section-level adjustments</li>
+                    <li>Testing interactions and flows</li>
+                    <li>Quick edits while browsing your site</li>
+                </ul>
+
+                <div class="callout callout-info">
+                    <span class="callout-icon">ℹ️</span>
+                    <div>
+                        <strong>Pro Tip:</strong> Use Dashboard Editor for big changes, Inline Editing for quick fixes, and Full Site Editor when you want to see exactly what customers see.
+                    </div>
+                </div>
+            </section>
+
+            <section id="three-panel-editor">
+                <h2>The Three-Panel Editor</h2>
+                <p>The dashboard editor uses a three-panel layout for efficient content management.</p>
+
+                <h3>Panel Layout</h3>
+                <pre style="background: var(--color-bg-secondary); padding: 16px; border-radius: 8px; overflow-x: auto;">
+┌─────────────┬────────────────────────┬─────────────┐
+│             │                        │             │
+│  CONTENT    │     LIVE PREVIEW       │  SECTION    │
+│  BLOCKS     │       CANVAS           │  SETTINGS   │
+│  SIDEBAR    │                        │   PANEL     │
+│             │                        │             │
+│ • Sections  │   What customers       │ • Images    │
+│ • Add New   │   will see             │ • Text      │
+│ • Reorder   │                        │ • Colors    │
+│ • Hide      │   (Desktop/Tablet/     │ • Links     │
+│ • Delete    │    Mobile views)       │ • Spacing   │
+│             │                        │             │
+└─────────────┴────────────────────────┴─────────────┘
+     280px           Flexible              320px
+                </pre>
+
+                <h3>Left Panel: CONTENT BLOCKS Sidebar</h3>
+                <p>This sidebar shows all sections on your page and is expanded by default.</p>
+
+                <p><strong>What you can do:</strong></p>
+                <ul>
+                    <li><strong>View all sections</strong> - See complete page structure</li>
+                    <li><strong>Reorder sections</strong> - Drag and drop to change order</li>
+                    <li><strong>Hide sections</strong> - Click eye icon to temporarily hide</li>
+                    <li><strong>Delete sections</strong> - Remove unwanted content</li>
+                    <li><strong>Add sections</strong> - Click "+ Add Section" at bottom</li>
+                </ul>
+
+                <div class="callout callout-tip">
+                    <span class="callout-icon">💡</span>
+                    <div>
+                        <strong>Tip:</strong> The CONTENT BLOCKS sidebar was recently renamed from "Settings Panel" and is now expanded by default for easier access.
+                    </div>
+                </div>
+
+                <h3>Center Panel: Live Preview Canvas</h3>
+                <p>See exactly how your page will look to customers.</p>
+
+                <p><strong>Features:</strong></p>
+                <ul>
+                    <li><strong>Real-time preview</strong> - Changes appear instantly</li>
+                    <li><strong>Click to edit</strong> - Click any section to open settings</li>
+                    <li><strong>Viewport selector</strong> - Switch between desktop, tablet, mobile</li>
+                    <li><strong>Hover indicators</strong> - See section boundaries</li>
+                </ul>
+
+                <h3>Right Panel: Section Settings</h3>
+                <p>When you click a section in the preview or sidebar, detailed settings appear here.</p>
+
+                <p><strong>Common settings include:</strong></p>
+                <ul>
+                    <li>Section heading and description</li>
+                    <li>Images (upload, replace, remove)</li>
+                    <li>Text content and formatting</li>
+                    <li>Colors (text, background, buttons)</li>
+                    <li>Button links and labels</li>
+                    <li>Spacing and layout options</li>
+                </ul>
+            </section>
+
+            <section id="section-types">
+                <h2>Section Types</h2>
+                <p>Your pages are built from sections. Each section type serves a different purpose.</p>
+
+                <h3>Marketing & Hero Sections</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Section</th>
+                            <th scope="col">Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Hero</strong></td>
+                            <td>Large header with image, headline, and call-to-action button</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Features</strong></td>
+                            <td>Highlight 3-6 key features with icons and descriptions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CTA (Call-to-Action)</strong></td>
+                            <td>Encourage visitors to take action (shop now, sign up, contact)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Testimonials</strong></td>
+                            <td>Display customer reviews and social proof</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Content Sections</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Section</th>
+                            <th scope="col">Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Rich Text</strong></td>
+                            <td>Long-form content with formatting, links, images</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gallery</strong></td>
+                            <td>Image grids showcasing products or projects</td>
+                        </tr>
+                        <tr>
+                            <td><strong>FAQ</strong></td>
+                            <td>Frequently asked questions with expandable answers</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Contact Form</strong></td>
+                            <td>Let visitors send you messages</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Product Sections</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Section</th>
+                            <th scope="col">Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Featured Products</strong></td>
+                            <td>Showcase selected products from your catalog</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Categories</strong></td>
+                            <td>Display product categories for easy browsing</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Product Grid</strong></td>
+                            <td>Show multiple products in a grid layout</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="callout callout-info">
+                    <span class="callout-icon">ℹ️</span>
+                    <div>
+                        <strong>Note:</strong> The platform includes 28+ section types total. These are the most commonly used ones. Explore the full list in the editor!
+                    </div>
+                </div>
+            </section>
+
+            <section id="text-formatting">
+                <h2>Text Formatting</h2>
+                <p>The floating toolbar appears when you edit text in inline mode or the editor.</p>
+
+                <h3>Available Formatting</h3>
+                <ul>
+                    <li><strong>Bold</strong> - Make text stand out</li>
+                    <li><strong>Italic</strong> - Add emphasis</li>
+                    <li><strong>Headings</strong> - H1, H2, H3 for structure</li>
+                    <li><strong>Links</strong> - Add hyperlinks to text</li>
+                    <li><strong>Text Color</strong> - Choose from theme colors or custom</li>
+                    <li><strong>Lists</strong> - Bulleted or numbered</li>
+                    <li><strong>Alignment</strong> - Left, center, right, justify</li>
+                </ul>
+
+                <div class="callout callout-tip">
+                    <span class="callout-icon">💡</span>
+                    <div>
+                        <strong>Recent Update:</strong> The formatting toolbar was recently enhanced to stay above content instead of below, and now includes per-field text color customization.
+                    </div>
+                </div>
+            </section>
+
+            <section id="image-management">
+                <h2>Image Management</h2>
+                <p>Upload and manage images throughout your site.</p>
+
+                <h3>Uploading Images</h3>
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Find the Image Upload Area</h4>
+                            <p>In Section Settings or when adding a new section, look for "Upload Image" or an image placeholder.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Click to Upload</h4>
+                            <p>Click the upload area or drag and drop your image file.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Wait for Upload</h4>
+                            <p>A loading indicator shows upload progress. Images are stored securely in the cloud.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Preview and Adjust</h4>
+                            <p>Your image appears immediately in the preview. You can remove or replace it anytime.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <h3>Image Best Practices</h3>
+                <ul>
+                    <li><strong>Size:</strong> Minimum 1200px wide for hero images</li>
+                    <li><strong>Format:</strong> JPG for photos, PNG for graphics with transparency</li>
+                    <li><strong>File Size:</strong> Keep under 2MB for fast loading</li>
+                    <li><strong>Alt Text:</strong> Describe images for accessibility</li>
+                </ul>
+
+                <div class="callout callout-warning">
+                    <span class="callout-icon">⚠️</span>
+                    <div>
+                        <strong>Recent Fix:</strong> Images now update immediately in the preview when uploaded or removed, and actual API error messages are shown instead of generic failures.
+                    </div>
+                </div>
+            </section>
+
+            <section id="blog-posts">
+                <h2>Blog Posts</h2>
+                <p>Blog posts are a special content type for articles, news, and updates.</p>
+
+                <h3>Creating a Blog Post</h3>
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Go to Content</h4>
+                            <p>Navigate to <strong>Content</strong> and click the <strong>Blog</strong> tab.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Create New Blog Post</h4>
+                            <p>Click <strong>Create New Blog Post</strong>. You'll only need to enter a title on Step 1.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Add Content</h4>
+                            <p>Use the Blog Header section for title, subtitle, author, and date. Add Rich Text sections for your article content.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Link to Events</h4>
+                            <p>You can associate blog posts with events in your calendar for integrated content.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Publish</h4>
+                            <p>When ready, toggle the Published status to make it visible on your blog index page.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="callout callout-success">
+                    <span class="callout-icon">✅</span>
+                    <div>
+                        <strong>New Feature:</strong> The blog system is now complete with blog index page, individual post pages, and event associations!
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Design Customization -->
+            <section id="colors">
+                <h2>Colors Tab</h2>
+                <p>Set your brand colors and background options in the Design section.</p>
+
+                <h3>Brand Colors</h3>
+                <ul>
+                    <li><strong>Primary Color</strong> - Your main brand color (buttons, links, accents)</li>
+                    <li><strong>Secondary Color</strong> - Complementary accent color</li>
+                </ul>
+
+                <h3>Background Options</h3>
+                <p>You now have 4 background options for sections like Header and Footer:</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Option</th>
+                            <th scope="col">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Default</strong></td>
+                            <td>Standard white or light background</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Alternate</strong></td>
+                            <td>Light gray or subtle contrast (8% opacity)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Primary</strong></td>
+                            <td>Your primary brand color</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gradient</strong></td>
+                            <td>Smooth gradient using your brand colors</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="callout callout-success">
+                    <span class="callout-icon">✅</span>
+                    <div>
+                        <strong>Recent Enhancement:</strong> Background selectors now have much better visual feedback with checkmark icons, ring styling, and increased opacity so you can clearly see which option is selected!
+                    </div>
+                </div>
+
+                <h3>Using the Color Picker</h3>
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Click the Color Circle</h4>
+                            <p>Click any color swatch to open the color picker.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Choose Your Color</h4>
+                            <p>Use the visual picker or enter a hex code (e.g., #2E7D32).</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>See Live Preview</h4>
+                            <p>Changes appear immediately on your site preview.</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="fonts">
+                <h2>Fonts Tab</h2>
+                <p>Choose typography that matches your brand.</p>
+
+                <h3>Font Families</h3>
+                <ul>
+                    <li><strong>Heading Font</strong> - Used for titles and section headers</li>
+                    <li><strong>Body Font</strong> - Used for paragraphs and content</li>
+                </ul>
+
+                <h3>Recommended Pairings</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Style</th>
+                            <th scope="col">Heading</th>
+                            <th scope="col">Body</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Modern</td>
+                            <td>Montserrat</td>
+                            <td>Open Sans</td>
+                        </tr>
+                        <tr>
+                            <td>Classic</td>
+                            <td>Playfair Display</td>
+                            <td>Lora</td>
+                        </tr>
+                        <tr>
+                            <td>Clean</td>
+                            <td>Inter</td>
+                            <td>Roboto</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Font Sizes</h3>
+                <p>Adjust heading and body text sizes with easy sliders.</p>
+            </section>
+
+            <section id="header">
+                <h2>Header Tab</h2>
+                <p>Your header appears at the top of every page.</p>
+
+                <h3>Logo Settings</h3>
+                <ul>
+                    <li><strong>Logo Type</strong> - Upload an image or use text</li>
+                    <li><strong>Logo Size</strong> - Adjust height (40px - 120px)</li>
+                    <li><strong>Logo Position</strong> - Left, center, or right</li>
+                </ul>
+
+                <h3>Navigation Menu</h3>
+                <ul>
+                    <li>Add, remove, and reorder menu items</li>
+                    <li>Link to pages, products, or external URLs</li>
+                    <li>Dropdown menus supported</li>
+                </ul>
+
+                <h3>Header Background</h3>
+                <p>Choose from 4 background options (Default, Alternate, Primary, Gradient) with enhanced visual feedback.</p>
+
+                <div class="callout callout-tip">
+                    <span class="callout-icon">💡</span>
+                    <div>
+                        <strong>Tip:</strong> Use "Alternate" background for subtle contrast, or "Primary" to make your header stand out with your brand color.
+                    </div>
+                </div>
+            </section>
+
+            <section id="footer">
+                <h2>Footer Tab</h2>
+                <p>The footer appears at the bottom of every page.</p>
+
+                <h3>Footer Content</h3>
+                <ul>
+                    <li><strong>Business Description</strong> - Brief about section</li>
+                    <li><strong>Contact Information</strong> - Address, phone, email</li>
+                    <li><strong>Quick Links</strong> - Links to important pages</li>
+                    <li><strong>Social Media</strong> - Links to your social profiles (Instagram, Facebook, Twitter, etc.)</li>
+                </ul>
+
+                <h3>Footer Layout</h3>
+                <p>Choose from 1, 2, or 3 column layouts. Maximum of 3 columns enforced for better mobile experience.</p>
+
+                <h3>Footer Background</h3>
+                <p>Same 4 background options as the header for consistent design.</p>
+            </section>
+
+            <!-- Section 4: Product Catalog -->
+            <section id="adding-products">
+                <h2>Adding Products</h2>
+                <p>Build your product catalog with detailed product information.</p>
+
+                <div class="callout callout-info">
+                    <span class="callout-icon">ℹ️</span>
+                    <div>
+                        <strong>Before Adding Products:</strong> Create at least one product category first. Products must be assigned to a category.
+                    </div>
+                </div>
+
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Navigate to Products</h4>
+                            <p>Click <strong>Products</strong> in the sidebar, then <strong>Add Product</strong>.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Enter Product Name</h4>
+                            <p>Give your product a clear, descriptive name.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Set SKU (Stock Keeping Unit)</h4>
+                            <p><strong>SKU (Stock Keeping Unit)</strong> - A unique code that identifies your product for inventory tracking. Toggle "Auto-Generate SKU" ON for automatic generation, or enter your own unique code.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Write Description</h4>
+                            <p>Add detailed product information, care instructions, and benefits.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Set Price</h4>
+                            <p>Enter regular price. Optionally add a "Compare At" price to show savings.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Assign Categories</h4>
+                            <p>Select primary category (required) and any additional categories.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Upload Images</h4>
+                            <p>Add up to 10 product images. Drag to reorder - first image is the featured image.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Set Inventory</h4>
+                            <p>Enter current stock count. Set low stock alert threshold (default: 10).</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Mark as Featured (Optional)</h4>
+                            <p>Toggle "Featured Product" to highlight this item in Featured Products sections.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Activate and Save</h4>
+                            <p>Toggle "Active on Site" to ON, then click <strong>Create Product</strong>.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="callout callout-warning">
+                    <span class="callout-icon">⚠️</span>
+                    <div>
+                        <strong>Common Mistake:</strong> Forgetting to toggle "Active on Site" to ON. Your product won't appear on your store until you activate it!
+                    </div>
+                </div>
+            </section>
+
+            <section id="product-details">
+                <h2>Product Details</h2>
+                <p>Each product includes comprehensive information for customers.</p>
+
+                <h3>Required Fields</h3>
+                <ul>
+                    <li><strong>Product Name</strong> - Clear, descriptive title</li>
+                    <li><strong>SKU</strong> - Unique identifier (auto-generated or manual)</li>
+                    <li><strong>Price</strong> - Regular selling price</li>
+                    <li><strong>Primary Category</strong> - Main product category</li>
+                    <li><strong>Stock Count</strong> - Current inventory</li>
+                </ul>
+
+                <h3>Optional Fields</h3>
+                <ul>
+                    <li><strong>Description</strong> - Full product details</li>
+                    <li><strong>Compare At Price</strong> - Original price (shows discount)</li>
+                    <li><strong>Additional Categories</strong> - Multiple category assignments</li>
+                    <li><strong>Care Instructions</strong> - Special care guidelines</li>
+                    <li><strong>Dimensions</strong> - Width, height, depth (for shipping)</li>
+                    <li><strong>Weight</strong> - Product weight</li>
+                    <li><strong>Alt Text</strong> - Image descriptions for accessibility</li>
+                </ul>
+
+                <div class="callout callout-info">
+                    <span class="callout-icon">ℹ️</span>
+                    <div>
+                        <strong>SKU Validation:</strong> The system checks that your SKU is unique and shows a green checkmark when available.
+                    </div>
+                </div>
+            </section>
+
+            <section id="categories">
+                <h2>Categories</h2>
+                <p>Organize your products with categories for easy browsing.</p>
+
+                <h3>Creating Categories</h3>
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Go to Categories</h4>
+                            <p>Navigate to <strong>Products</strong> → <strong>Categories</strong> tab.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Click Create Category</h4>
+                            <p>Click the <strong>Create Category</strong> button.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Enter Details</h4>
+                            <p>Provide category name (e.g., "Indoor Plants") and optional description.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Upload Image (Optional)</h4>
+                            <p>Add a visual representation of the category.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Save</h4>
+                            <p>Click <strong>Create</strong> to save your category.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="callout callout-tip">
+                    <span class="callout-icon">💡</span>
+                    <div>
+                        <strong>Best Practice:</strong> Create 5-10 broad categories before adding products. Use customer-friendly names like "Easy Care Plants" instead of generic labels.
+                    </div>
+                </div>
+            </section>
+
+            <section id="inventory">
+                <h2>Inventory Management</h2>
+                <p>Track stock levels and get low stock alerts.</p>
+
+                <h3>Stock Tracking</h3>
+                <p>The system automatically:</p>
+                <ul>
+                    <li>Decreases stock count when orders are placed</li>
+                    <li>Shows low stock warnings when threshold is reached</li>
+                    <li>Marks products as out of stock when count reaches zero</li>
+                    <li>Displays stock status on the products list</li>
+                </ul>
+
+                <h3>Stock Status Indicators</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Status</th>
+                            <th scope="col">Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>In Stock</td>
+                            <td>Above low stock threshold</td>
+                        </tr>
+                        <tr>
+                            <td>Low Stock</td>
+                            <td>At or below threshold (default: 10)</td>
+                        </tr>
+                        <tr>
+                            <td>Out of Stock</td>
+                            <td>Zero inventory remaining</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Updating Inventory</h3>
+                <p>To manually adjust stock:</p>
+                <ol>
+                    <li>Click the product in your Products list</li>
+                    <li>Edit the "Current Stock" field</li>
+                    <li>Save changes</li>
+                </ol>
+            </section>
+
+            <!-- Section 5: Events Calendar -->
+            <section id="creating-events">
+                <h2>Creating Events</h2>
+                <p>Promote workshops, sales, classes, and community gatherings.</p>
+
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Navigate to Events</h4>
+                            <p>Click <strong>Events</strong> in the sidebar.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Click Create Event</h4>
+                            <p>Click the <strong>Create Event</strong> button at the top.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Enter Event Details</h4>
+                            <p>Fill in title, date/time, location, and description.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Upload Event Image (Optional)</h4>
+                            <p>Add a visual header for your event page.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Set Status</h4>
+                            <p>Toggle "Published" to make it visible on your public events calendar.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Create Event</h4>
+                            <p>Click <strong>Create Event</strong> to save.</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="event-details">
+                <h2>Event Details</h2>
+                <p>Configure all aspects of your event.</p>
+
+                <h3>Required Information</h3>
+                <ul>
+                    <li><strong>Event Title</strong> - Clear, descriptive name</li>
+                    <li><strong>Start Date & Time</strong> - When the event begins</li>
+                </ul>
+
+                <h3>Optional Information</h3>
+                <ul>
+                    <li><strong>Subtitle</strong> - Brief tagline</li>
+                    <li><strong>Description</strong> - Full event details (rich text)</li>
+                    <li><strong>End Date & Time</strong> - When the event ends</li>
+                    <li><strong>All-Day Event</strong> - Toggle for events without specific times</li>
+                    <li><strong>Location</strong> - Physical address or "Online"</li>
+                    <li><strong>Event Image</strong> - Visual header</li>
+                </ul>
+
+                <h3>Viewing Events</h3>
+                <p>The Events page has three tabs:</p>
+                <ul>
+                    <li><strong>All Events</strong> - Everything you've created</li>
+                    <li><strong>Upcoming</strong> - Future events</li>
+                    <li><strong>Past</strong> - Events that already happened</li>
+                </ul>
+
+                <p>Events automatically move between Upcoming and Past based on the date.</p>
+            </section>
+
+            <section id="event-associations">
+                <h2>Linking Events to Blog Posts</h2>
+                <p>Connect events with related blog content for richer storytelling.</p>
+
+                <div class="callout callout-success">
+                    <span class="callout-icon">✅</span>
+                    <div>
+                        <strong>New Feature:</strong> You can now associate events with blog posts! Events will appear as cards on associated blog posts, and blog posts will show on event pages.
+                    </div>
+                </div>
+
+                <h3>How to Link</h3>
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Edit Your Event or Blog Post</h4>
+                            <p>Open either the event or blog post editor.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Find Associations Section</h4>
+                            <p>Look for "Associated Content" or "Related Events" section.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Select Content to Link</h4>
+                            <p>Choose which blog posts or events to associate.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Save</h4>
+                            <p>The association appears on both pages automatically.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <h3>Use Cases</h3>
+                <ul>
+                    <li>Link workshop events to how-to blog posts</li>
+                    <li>Connect sale events to announcement blog posts</li>
+                    <li>Associate seasonal events with relevant content</li>
+                </ul>
+            </section>
+
+            <!-- Section 6: Order Management -->
+            <section id="viewing-orders">
+                <h2>Viewing Orders</h2>
+                <p>Track and manage all customer orders in one place.</p>
+
+                <h3>Orders Dashboard</h3>
+                <p>Navigate to <strong>Orders</strong> to see:</p>
+
+                <ul>
+                    <li><strong>Total Orders</strong> - All orders received</li>
+                    <li><strong>Pending Orders</strong> - Orders awaiting fulfillment</li>
+                    <li><strong>Revenue Metrics</strong> - Total sales and average order value</li>
+                    <li><strong>Status Breakdown</strong> - Orders by status</li>
+                </ul>
+
+                <h3>Order List</h3>
+                <p>The order table shows:</p>
+                <ul>
+                    <li>Order number (e.g., #1234)</li>
+                    <li>Customer name and email</li>
+                    <li>Order date</li>
+                    <li>Status (Processing, Shipped, Delivered, Cancelled)</li>
+                    <li>Payment status (Paid, Pending, Failed, Refunded)</li>
+                    <li>Total amount</li>
+                </ul>
+
+                <h3>Viewing Order Details</h3>
+                <p>Click any order to see complete information:</p>
+                <ul>
+                    <li>Customer contact details</li>
+                    <li>Shipping and billing addresses</li>
+                    <li>Order items with quantities and prices</li>
+                    <li>Order summary (subtotal, tax, shipping, total)</li>
+                    <li>Payment method</li>
+                    <li>Order timeline and status history</li>
+                </ul>
+            </section>
+
+            <section id="order-status">
+                <h2>Updating Order Status</h2>
+                <p>Keep customers informed by updating order status as you fulfill orders.</p>
+
+                <h3>Order Status Flow</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Status</th>
+                            <th scope="col">Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Processing</strong></td>
+                            <td>New order, not yet shipped</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Shipped</strong></td>
+                            <td>Package sent to customer</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Delivered</strong></td>
+                            <td>Customer received order</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cancelled</strong></td>
+                            <td>Order cancelled (by you or customer)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>How to Update Status</h3>
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Open the Order</h4>
+                            <p>Click the order in your order list.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Click Update Status</h4>
+                            <p>Find the "Update Status" dropdown or button.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Select New Status</h4>
+                            <p>Choose the appropriate status (Shipped, Delivered, etc.).</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Add Tracking (Optional)</h4>
+                            <p>For shipped orders, you can add a tracking number.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Confirm</h4>
+                            <p>Customer receives automatic email notification of status change.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="callout callout-info">
+                    <span class="callout-icon">ℹ️</span>
+                    <div>
+                        <strong>Auto-Refresh:</strong> The order list and statistics automatically refresh when you update an order status!
+                    </div>
+                </div>
+
+                <h3>Email Notifications</h3>
+                <p>Customers automatically receive email notifications when:</p>
+                <ul>
+                    <li>Order is placed (confirmation email)</li>
+                    <li>Order status changes to Shipped</li>
+                    <li>Order is delivered</li>
+                    <li>Refund is processed</li>
+                </ul>
+
+                <h3>Typical Workflow</h3>
+                <ol>
+                    <li><strong>New order arrives</strong> (Status: Processing, Payment: Paid)</li>
+                    <li><strong>Prepare items</strong> from inventory</li>
+                    <li><strong>Package order</strong> for shipping</li>
+                    <li><strong>Update to Shipped</strong> (add tracking number)</li>
+                    <li><strong>Mark Delivered</strong> when confirmed</li>
+                </ol>
+            </section>
+
+            <!-- Section 7: Payment Setup -->
+            <section id="stripe-integration">
+                <h2>Stripe Integration</h2>
+                <p>Accept online payments securely through Stripe.</p>
+
+                <h3>Why Stripe?</h3>
+                <p>Stripe handles:</p>
+                <ul>
+                    <li>Credit and debit cards</li>
+                    <li>Digital wallets (Apple Pay, Google Pay)</li>
+                    <li>Fraud prevention</li>
+                    <li>PCI compliance (security standards)</li>
+                    <li>Tax calculation</li>
+                </ul>
+
+                <h3>Connecting Stripe (One-Time Setup)</h3>
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Go to Payment Settings</h4>
+                            <p>Navigate to <strong>Settings</strong> → <strong>Payments</strong>.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Click Connect with Stripe</h4>
+                            <p>You'll be redirected to Stripe's website.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Create or Log In</h4>
+                            <p>Either create a new Stripe account or log into an existing one.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Complete Onboarding</h4>
+                            <p>Provide business information, bank account details, and tax identification.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Return to Dashboard</h4>
+                            <p>You'll be redirected back with a "Connected" status.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="callout callout-warning">
+                    <span class="callout-icon">⚠️</span>
+                    <div>
+                        <strong>Important:</strong> Complete all Stripe onboarding requirements before going live. Check your Payment Settings page for any missing information.
+                    </div>
+                </div>
+
+                <h3>Testing Payments</h3>
+                <p>Before accepting real payments, test your checkout:</p>
+
+                <ol>
+                    <li>Add a product to cart on your live site</li>
+                    <li>Go to checkout</li>
+                    <li>Use Stripe test card: <code>4242 4242 4242 4242</code></li>
+                    <li>Enter any future expiration and any 3-digit CVC</li>
+                    <li>Complete checkout</li>
+                </ol>
+
+                <p>Test orders appear in your Orders list with a "Test Mode" label.</p>
+
+                <h3>Going Live</h3>
+                <p>In your Stripe dashboard, toggle from "Test Mode" to "Live Mode". Your site now accepts real payments!</p>
+            </section>
+
+            <section id="tax-shipping">
+                <h2>Tax & Shipping Configuration</h2>
+                <p>Set up tax rates and shipping costs for your store.</p>
+
+                <h3>Tax Settings</h3>
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Enable Tax Calculation</h4>
+                            <p>Toggle "Enable Tax Calculation" to ON in Payment Settings.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Set Default Rate</h4>
+                            <p>Enter your default tax rate (e.g., 7.5% for general sales tax).</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Add Regional Rates (Optional)</h4>
+                            <p>Click "+ Add State Rate" to set different rates by state.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <h3>Shipping Settings</h3>
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Enable Shipping</h4>
+                            <p>Toggle "Enable Shipping" to ON.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Set Free Shipping Threshold (Optional)</h4>
+                            <p>Enter minimum order amount for free shipping (e.g., $50).</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Configure Flat Rate or Regional</h4>
+                            <p>Choose flat rate for all orders, or set different rates by region.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="callout callout-tip">
+                    <span class="callout-icon">💡</span>
+                    <div>
+                        <strong>Example:</strong> Set free shipping for orders over $50, and $5.99 flat rate for orders under $50.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 8: Domain Configuration -->
+            <section id="custom-domain">
+                <h2>Custom Domain Setup</h2>
+                <p>Use your own domain name instead of the default subdomain.</p>
+
+                <h3>Prerequisites</h3>
+                <ul>
+                    <li>You must own a domain (purchase from GoDaddy, Namecheap, Google Domains, etc.)</li>
+                    <li>You must have access to your domain's DNS settings</li>
+                </ul>
+
+                <h3>Adding Your Domain</h3>
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Go to Domain Settings</h4>
+                            <p>Navigate to <strong>Settings</strong> → <strong>Domains</strong>.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Click Add Custom Domain</h4>
+                            <p>Click the button to start domain setup.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Enter Your Domain</h4>
+                            <p>Type your domain name (e.g., yourplantshop.com).</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Copy DNS Records</h4>
+                            <p>The platform provides DNS records you need to add. Copy these values.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="callout callout-success">
+                    <span class="callout-icon">✅</span>
+                    <div>
+                        <strong>Note:</strong> Your free subdomain (yourname.blooms.cc) continues to work even after adding a custom domain!
+                    </div>
+                </div>
+            </section>
+
+            <section id="dns-config">
+                <h2>DNS Configuration</h2>
+                <p>Add DNS records at your domain registrar to connect your domain.</p>
+
+                <h3>DNS Records to Add</h3>
+
+                <div class="callout callout-info">
+                    <span class="callout-icon">ℹ️</span>
+                    <div>
+                        <strong>Don't worry if this looks technical!</strong> Your domain registrar (like GoDaddy or Namecheap) has a support team that can help add these records. Just copy the values below and contact their support chat for assistance.
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre><code>A Record (for yourdomain.com):
+Type: A
+Name: @ (or leave blank)
+Value: [IP address provided]
+TTL: 3600
+
+CNAME Record (for www.yourdomain.com):
+Type: CNAME
+Name: www
+Value: [domain provided]
+TTL: 3600
+
+TXT Record (for verification):
+Type: TXT
+Name: @ (or leave blank)
+Value: [verification code provided]
+TTL: 3600</code></pre>
+                </div>
+
+                <h3>Where to Add Records</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Registrar</th>
+                            <th scope="col">How to Access DNS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>GoDaddy</td>
+                            <td>My Products → Domains → Manage DNS</td>
+                        </tr>
+                        <tr>
+                            <td>Namecheap</td>
+                            <td>Domain List → Manage → Advanced DNS</td>
+                        </tr>
+                        <tr>
+                            <td>Google Domains</td>
+                            <td>Click domain → DNS tab</td>
+                        </tr>
+                        <tr>
+                            <td>Other</td>
+                            <td>Look for "DNS Settings" or "Name Servers"</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Verifying Your Domain</h3>
+                <ol>
+                    <li>After adding DNS records, return to your dashboard</li>
+                    <li>Go to <strong>Settings</strong> → <strong>Domains</strong></li>
+                    <li>Click <strong>Verify Domain</strong></li>
+                    <li>Wait for DNS propagation (can take 24-48 hours)</li>
+                </ol>
+
+                <div class="callout callout-warning">
+                    <span class="callout-icon">⚠️</span>
+                    <div>
+                        <strong>DNS Propagation:</strong> Don't worry if verification fails immediately. DNS changes can take 24-48 hours to propagate worldwide. Try again later!
+                    </div>
+                </div>
+
+                <h3>Domain Status</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Status</th>
+                            <th scope="col">Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Not Started</td>
+                            <td>DNS records not added yet</td>
+                        </tr>
+                        <tr>
+                            <td>Pending Verification</td>
+                            <td>Waiting for DNS to propagate</td>
+                        </tr>
+                        <tr>
+                            <td>Verified</td>
+                            <td>Domain is live! 🎉</td>
+                        </tr>
+                        <tr>
+                            <td>Failed</td>
+                            <td>DNS records incorrect or not found</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Section 9: Settings -->
+            <section id="profile-settings">
+                <h2>Profile Settings</h2>
+                <p>Manage your personal account information.</p>
+
+                <p>In <strong>Settings</strong> → <strong>Profile</strong>, you can update:</p>
+                <ul>
+                    <li><strong>Full Name</strong> - Your display name</li>
+                    <li><strong>Email Address</strong> - Account email</li>
+                    <li><strong>Avatar/Profile Picture</strong> - Upload a photo</li>
+                    <li><strong>Bio</strong> - Optional description</li>
+                </ul>
+
+                <h3>Business Settings</h3>
+                <p>In <strong>Settings</strong> → <strong>Business</strong>, configure:</p>
+                <ul>
+                    <li>Business name and description</li>
+                    <li>Contact email and phone number</li>
+                    <li>Physical address</li>
+                    <li>Social media links (Instagram, Facebook, Twitter, etc.)</li>
+                </ul>
+            </section>
+
+            <section id="security">
+                <h2>Security Settings</h2>
+                <p>Protect your account with strong security measures.</p>
+
+                <h3>Change Password</h3>
+                <ol>
+                    <li>Go to <strong>Settings</strong> → <strong>Security</strong></li>
+                    <li>Enter current password</li>
+                    <li>Enter new password (minimum 8 characters)</li>
+                    <li>Confirm new password</li>
+                    <li>Click <strong>Update Password</strong></li>
+                </ol>
+
+                <h3>Two-Factor Authentication (Recommended)</h3>
+                <p>Add an extra layer of security to your account:</p>
+
+                <ol class="steps">
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Enable 2FA</h4>
+                            <p>Toggle "Enable 2FA" to ON in Security Settings.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Scan QR Code</h4>
+                            <p>Use an authenticator app (Google Authenticator, Authy) to scan the QR code.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Enter Verification Code</h4>
+                            <p>Type the 6-digit code from your app to confirm setup.</p>
+                        </div>
+                    </li>
+                    <li class="step">
+                        <div class="step-number"></div>
+                        <div class="step-content">
+                            <h4>Save Backup Codes</h4>
+                            <p>Store backup codes in a safe place in case you lose access to your authenticator app.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="callout callout-tip">
+                    <span class="callout-icon">💡</span>
+                    <div>
+                        <strong>Security Best Practice:</strong> Use a strong, unique password and enable two-factor authentication to keep your store secure!
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 10: Getting Help -->
+            <section id="getting-help">
+                <h2>Getting Help</h2>
+                <p>If you need assistance while using the platform:</p>
+
+                <h3>Support Resources</h3>
+                <ul>
+                    <li><strong>Search This Manual</strong> - Use the search button (🔍) at the top to find specific topics</li>
+                    <li><strong>Quick Reference</strong> - Jump to common tasks and keyboard shortcuts below</li>
+                    <li><strong>Contact Support</strong> - Email support@brandsinblooms.com for personalized help</li>
+                </ul>
+
+                <div class="callout callout-tip">
+                    <span class="callout-icon">💡</span>
+                    <div>
+                        <strong>Tip:</strong> When contacting support, include screenshots and describe what you were trying to do. This helps us assist you faster!
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 11: Quick Reference -->
+            <section id="common-tasks">
+                <h2>Common Tasks</h2>
+                <p>Quick links to frequently performed actions.</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Task</th>
+                            <th scope="col">Steps</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Create a page</td>
+                            <td>Content → Create New Page → Choose type → Edit</td>
+                        </tr>
+                        <tr>
+                            <td>Add a product</td>
+                            <td>Products → Add Product → Fill wizard → Save</td>
+                        </tr>
+                        <tr>
+                            <td>Update order status</td>
+                            <td>Orders → Click order → Update Status</td>
+                        </tr>
+                        <tr>
+                            <td>Change site colors</td>
+                            <td>Design → Colors → Click color circles</td>
+                        </tr>
+                        <tr>
+                            <td>Upload logo</td>
+                            <td>Design → Header → Upload under Logo</td>
+                        </tr>
+                        <tr>
+                            <td>Create event</td>
+                            <td>Events → Create Event → Fill details → Publish</td>
+                        </tr>
+                        <tr>
+                            <td>View live site</td>
+                            <td>Click "View Site" button (top-right)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="keyboard-shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+                <p>Speed up your workflow with keyboard shortcuts.</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Shortcut</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Alt + S</strong></td>
+                            <td>Open search</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Alt + M</strong></td>
+                            <td>Toggle mobile menu</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Alt + T</strong></td>
+                            <td>Back to top</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Esc</strong></td>
+                            <td>Close search/overlays</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ctrl/Cmd + S</strong></td>
+                            <td>Save (auto-save enabled)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Editing Modes Comparison</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Feature</th>
+                            <th scope="col">Inline</th>
+                            <th scope="col">Dashboard</th>
+                            <th scope="col">Full Site</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Quick text edits</td>
+                            <td>✅ Best</td>
+                            <td>✅ Yes</td>
+                            <td>✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td>Add/remove sections</td>
+                            <td>❌ No</td>
+                            <td>✅ Best</td>
+                            <td>✅ Limited</td>
+                        </tr>
+                        <tr>
+                            <td>Mobile preview</td>
+                            <td>❌ No</td>
+                            <td>✅ Best</td>
+                            <td>⚠️ Browser resize</td>
+                        </tr>
+                        <tr>
+                            <td>See actual site</td>
+                            <td>✅ Yes</td>
+                            <td>❌ Preview only</td>
+                            <td>✅ Best</td>
+                        </tr>
+                        <tr>
+                            <td>Auto-save</td>
+                            <td>✅ 2 sec</td>
+                            <td>✅ Yes</td>
+                            <td>✅ 2 sec</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="glossary">
+                <h2>Glossary</h2>
+                <p>Common terms used in this manual:</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Term</th>
+                            <th scope="col">Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>SKU</strong></td>
+                            <td>Stock Keeping Unit - Unique product code for inventory tracking</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DNS</strong></td>
+                            <td>Domain Name System - Connects your domain name to your website</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SSL</strong></td>
+                            <td>Secure Sockets Layer - Encryption for website security (the padlock icon)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Slug</strong></td>
+                            <td>URL-friendly version of a title (e.g., "about-us" from "About Us")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CTA</strong></td>
+                            <td>Call-to-Action - A button or link encouraging visitors to take action</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Page Navigation -->
+            <nav class="page-nav" aria-label="Page navigation">
+                <a href="#dashboard-overview" class="nav-btn">
+                    <span style="font-size: 24px;">←</span>
+                    <div class="nav-btn-content">
+                        <span class="nav-label">Previous</span>
+                        <span class="nav-title">Getting Started</span>
+                    </div>
+                </a>
+                <a href="#common-tasks" class="nav-btn">
+                    <div class="nav-btn-content" style="text-align: right;">
+                        <span class="nav-label">Next</span>
+                        <span class="nav-title">Quick Reference</span>
+                    </div>
+                    <span style="font-size: 24px;">→</span>
+                </a>
+            </nav>
+        </main>
+    </div>
+
+    <!-- Back to Top -->
+    <a href="#main" class="back-to-top" id="backToTop">↑</a>
+
+    <script>
+        // Mobile Menu Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024 && !sidebar.contains(e.target) && e.target !== menuToggle) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Table of Contents Toggle
+        document.querySelectorAll('.toc-section').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const section = document.getElementById(btn.dataset.section);
+                const isCollapsed = btn.classList.contains('collapsed');
+
+                btn.classList.toggle('collapsed');
+                section.classList.toggle('hidden');
+            });
+        });
+
+        // Collapse All
+        let allCollapsed = false;
+        document.getElementById('collapseAll').addEventListener('click', function() {
+            allCollapsed = !allCollapsed;
+            document.querySelectorAll('.toc-section').forEach(btn => {
+                const section = document.getElementById(btn.dataset.section);
+                if (allCollapsed) {
+                    btn.classList.add('collapsed');
+                    section.classList.add('hidden');
+                } else {
+                    btn.classList.remove('collapsed');
+                    section.classList.remove('hidden');
+                }
+            });
+            this.textContent = allCollapsed ? 'Expand All' : 'Collapse All';
+        });
+
+        // Active Link Highlighting
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    document.querySelectorAll('.toc-link').forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    const activeLink = document.querySelector(`.toc-link[href="#${id}"]`);
+                    if (activeLink) {
+                        activeLink.classList.add('active');
+                        document.getElementById('current-section').textContent = activeLink.textContent;
+                    }
+                }
+            });
+        }, { rootMargin: '-100px 0px -66%' });
+
+        document.querySelectorAll('section[id]').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Search Functionality
+        const searchToggle = document.getElementById('searchToggle');
+        const searchOverlay = document.getElementById('searchOverlay');
+        const searchInput = document.getElementById('search-input');
+        const searchClose = document.getElementById('searchClose');
+        const searchResults = document.getElementById('search-results');
+
+        searchToggle.addEventListener('click', () => {
+            searchOverlay.classList.add('active');
+            searchInput.focus();
+        });
+
+        searchClose.addEventListener('click', () => {
+            searchOverlay.classList.remove('active');
+            searchInput.value = '';
+            searchResults.innerHTML = '';
+        });
+
+        // Search with debounce
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                performSearch(e.target.value);
+            }, 300);
+        });
+
+        function performSearch(query) {
+            if (!query || query.length < 2) {
+                searchResults.innerHTML = '';
+                return;
+            }
+
+            const results = [];
+            const sections = document.querySelectorAll('section[id]');
+
+            sections.forEach(section => {
+                const content = section.textContent.toLowerCase();
+                const title = section.querySelector('h2, h3')?.textContent || '';
+
+                if (content.includes(query.toLowerCase())) {
+                    const excerpt = extractExcerpt(content, query);
+                    results.push({
+                        id: section.id,
+                        title: title,
+                        excerpt: excerpt
+                    });
+                }
+            });
+
+            displayResults(results, query);
+        }
+
+        function extractExcerpt(text, query, length = 150) {
+            const index = text.toLowerCase().indexOf(query.toLowerCase());
+            if (index === -1) return text.substring(0, length) + '...';
+
+            const start = Math.max(0, index - length / 2);
+            const end = Math.min(text.length, index + query.length + length / 2);
+
+            let excerpt = text.substring(start, end);
+            if (start > 0) excerpt = '...' + excerpt;
+            if (end < text.length) excerpt = excerpt + '...';
+
+            return excerpt;
+        }
+
+        function displayResults(results, query) {
+            if (results.length === 0) {
+                searchResults.innerHTML = '<p style="text-align: center; padding: 48px; color: var(--color-text-secondary);">No results found</p>';
+                return;
+            }
+
+            searchResults.innerHTML = results.map(result => `
+                <div class="search-result">
+                    <div class="search-result-path">${result.title}</div>
+                    <div class="search-result-excerpt">${highlightQuery(result.excerpt, query)}</div>
+                    <a href="#${result.id}" class="search-result-link" onclick="closeSearch()">View Section →</a>
+                </div>
+            `).join('');
+        }
+
+        function highlightQuery(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }
+
+        function closeSearch() {
+            searchOverlay.classList.remove('active');
+        }
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.textContent = '☀️';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            themeToggle.textContent = isDark ? '☀️' : '🌙';
+        });
+
+        // Font Size Toggle
+        const fontToggle = document.getElementById('fontToggle');
+        let fontSize = localStorage.getItem('fontSize') || 'normal';
+        const sizes = ['normal', 'large', 'xlarge'];
+        let currentIndex = sizes.indexOf(fontSize);
+
+        document.documentElement.style.fontSize = fontSize === 'large' ? '18px' : fontSize === 'xlarge' ? '20px' : '16px';
+
+        fontToggle.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % sizes.length;
+            fontSize = sizes[currentIndex];
+            localStorage.setItem('fontSize', fontSize);
+            document.documentElement.style.fontSize = fontSize === 'large' ? '18px' : fontSize === 'xlarge' ? '20px' : '16px';
+            fontToggle.textContent = fontSize === 'large' ? 'A++' : fontSize === 'xlarge' ? 'A+++' : 'A+';
+        });
+
+        // Back to Top
+        const backToTop = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key === 's') {
+                e.preventDefault();
+                searchToggle.click();
+            }
+            if (e.altKey && e.key === 'm') {
+                e.preventDefault();
+                menuToggle.click();
+            }
+            if (e.altKey && e.key === 't') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            if (e.key === 'Escape' && searchOverlay.classList.contains('active')) {
+                closeSearch();
+            }
+            // Close mobile menu with Escape key
+            if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                if (menuToggle) {
+                    menuToggle.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+
+        // Copy Code Function
+        function copyCode(btn) {
+            const code = btn.nextElementSibling.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        // Smooth Scroll for TOC Links
+        document.querySelectorAll('.toc-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    if (window.innerWidth <= 1024) {
+                        sidebar.classList.remove('open');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
