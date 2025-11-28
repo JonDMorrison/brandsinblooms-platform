@@ -1,1 +1,3 @@
-apps/custom-domain-proxy
+apps/custom-domain-proxy/test/
+apps/custom-domain-proxy/README.md
+apps/custom-domain-proxy/QUICKSTART.md
