@@ -120,63 +120,69 @@ const VisualEditorContent = memo(function VisualEditorContent({
   // Event handling is now managed by useVisualEventHandling hook
 
   return (
-    <div className={`visual-editor-container relative ${className || ''}`}>      
-      {/* Preview Container with Click Detection */}
-        data-visual-editor="true"
-        data-preview-mode="true"
-      >
-        <PreviewComponent
-          layout={layout}
-          title={title}
-          subtitle={subtitle}
-          content={content}
-          onContentUpdate={handleSectionContentUpdate}
-          onFeatureUpdate={handleFeatureUpdate}
-          onValueUpdate={handleValueUpdate}
-          onCategoryUpdate={handleCategoryUpdate}
-          onCategoryDelete={handleCategoryDelete}
-          onFeaturedUpdate={handleFeaturedUpdate}
-          onFeaturedDelete={handleFeaturedDelete}
-          onFAQUpdate={handleFAQUpdate}
-          onFAQDelete={handleFAQDelete}
-          onAddSection={(index) => {
-            setInsertIndex(index)
-            setIsBlockPickerOpen(true)
-          }}
+    <>
+      <div className={`visual-editor-container relative ${className || ''}`}>
+        {/* Preview Container with Click Detection */}
+        <div
+          ref={containerRef}
+          className={viewportClassName}
+          style={viewportContainerStyles}
+          data-visual-editor="true"
+          data-preview-mode="true"
+        >
+          <PreviewComponent
+            layout={layout}
+            title={title}
+            subtitle={subtitle}
+            content={content}
+            onContentUpdate={handleSectionContentUpdate}
+            onFeatureUpdate={handleFeatureUpdate}
+            onValueUpdate={handleValueUpdate}
+            onCategoryUpdate={handleCategoryUpdate}
+            onCategoryDelete={handleCategoryDelete}
+            onFeaturedUpdate={handleFeaturedUpdate}
+            onFeaturedDelete={handleFeaturedDelete}
+            onFAQUpdate={handleFAQUpdate}
+            onFAQDelete={handleFAQDelete}
+            onAddSection={(index) => {
+              setInsertIndex(index)
+              setIsBlockPickerOpen(true)
+            }}
+          />
+        </div>
+
+        {/* Edit Overlay for Visual Indicators */}
+        <EditOverlay
+          containerRef={containerRef}
+          onContentUpdate={handleInlineContentUpdate}
+          onTitleUpdate={handleTitleUpdateWrapper}
+          onSubtitleUpdate={handleSubtitleUpdateWrapper}
         />
+
+        {/* Extracted Styles */}
+        <style jsx>{`${getViewportStyles(viewport)}`}</style>
+        <style jsx global>{`${getVisualFeedbackStyles()}`}</style>
       </div>
-      
+
       <BlockPickerModal
         open={isBlockPickerOpen}
         onClose={() => setIsBlockPickerOpen(false)}
         onSelect={(type) => {
           const newSection = createDefaultSection(type)
-          
+
           // Insert section at index
           const newSections = [...content.sections]
           newSections.splice(insertIndex ?? newSections.length, 0, newSection)
-          
+
           onContentChange({
             ...content,
             sections: newSections
           })
-          
+
           setIsBlockPickerOpen(false)
         }}
       />
-      
-      {/* Edit Overlay for Visual Indicators */ }
-  <EditOverlay
-    containerRef={containerRef}
-    onContentUpdate={handleInlineContentUpdate}
-    onTitleUpdate={handleTitleUpdateWrapper}
-    onSubtitleUpdate={handleSubtitleUpdateWrapper}
-  />
-
-  {/* Extracted Styles */ }
-      <style jsx>{`${getViewportStyles(viewport)}`}</style>
-      <style jsx global>{`${getVisualFeedbackStyles()}`}</style>
-    </div >
+    </>
   )
 })
 
