@@ -232,6 +232,28 @@ See [docs/SCRAPING_DEPLOYMENT.md](./docs/SCRAPING_DEPLOYMENT.md) for detailed de
 
 ## Troubleshooting
 
+### Lockfile Out of Sync
+
+If CI fails with a lockfile error (e.g., `ERR_PNPM_OUTDATED_LOCKFILE`), it means `pnpm-lock.yaml` doesn't match `package.json`. To fix:
+
+1. **Run pnpm install** to update the lockfile:
+   ```bash
+   pnpm install
+   ```
+
+2. **Commit the updated lockfile**:
+   ```bash
+   git add pnpm-lock.yaml
+   git commit -m "chore: sync pnpm-lock.yaml"
+   ```
+
+3. **Push your changes**:
+   ```bash
+   git push
+   ```
+
+This ensures all dependencies are properly resolved and locked for consistent builds across all environments.
+
 ### Common Issues
 
 **Port conflicts**: If ports 54321-54324 are already in use:
