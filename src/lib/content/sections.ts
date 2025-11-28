@@ -68,6 +68,7 @@ export type CoreSectionType =
     | 'businessInfo'
     | 'header' // Legacy/Specific
     | 'footer' // Legacy/Specific
+    | 'eventsList'
 
 /**
  * Plant-specific section types (kept for backward compatibility/vertical specifics)
@@ -219,6 +220,19 @@ export const SECTION_REGISTRY: Record<SectionType, SectionMetadata> = {
             title: 'Upcoming Events',
             showExcerpt: true,
             maxItems: 3
+        }
+    },
+    eventsList: {
+        label: 'Events List',
+        description: 'Display upcoming events in a list or grid',
+        icon: CalendarDays,
+        category: 'content',
+        defaultData: {
+            title: 'Upcoming Events',
+            subtitle: 'Join us for these upcoming events.',
+            limit: 3,
+            layout: 'list',
+            programId: null
         }
     },
     news: {

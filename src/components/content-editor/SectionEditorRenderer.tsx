@@ -34,7 +34,8 @@ import {
   SoilGuideEditor,
   FAQEditor,
   BusinessInfoEditor,
-  TextMediaEditor
+  TextMediaEditor,
+  EventsListEditor
 } from './editors'
 
 // Import the CTAEditor component
@@ -161,6 +162,9 @@ export function SectionEditorRenderer({
 
       case 'businessInfo':
         return <BusinessInfoEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
+
+      case 'eventsList':
+        return <EventsListEditor section={section} onUpdate={handleDataChange} />
 
       default:
         return (

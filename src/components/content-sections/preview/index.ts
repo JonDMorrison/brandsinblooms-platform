@@ -19,6 +19,7 @@ export { TextPreview } from './TextPreview'
 export { DefaultPreview } from './DefaultPreview'
 export { FAQPreview } from './FAQPreview'
 export { BusinessInfoPreview } from './BusinessInfoPreview'
+export { EventsListPreview } from './EventsListPreview'
 
 // Additional preview components can be added here following the same pattern:
 // export { TestimonialsPreview } from './TestimonialsPreview'

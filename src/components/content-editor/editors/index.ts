@@ -16,6 +16,7 @@ export { TextMediaEditor } from './TextMediaEditor'
 export { IconSectionEditor } from './IconSectionEditor'
 export { FAQEditor } from './FAQEditor'
 export { BusinessInfoEditor } from './BusinessInfoEditor'
+export { EventsListEditor } from './EventsListEditor'
 
 // Existing modular editor components
 export { FeaturesEditor } from '@/src/components/content-sections/editors/FeaturesEditor'

@@ -18,7 +18,9 @@ import {
   TextPreview,
   DefaultPreview,
   FAQPreview,
-  BusinessInfoPreview
+  FAQPreview,
+  BusinessInfoPreview,
+  EventsListPreview
 } from '@/src/components/content-sections/preview'
 import { GenericPreview } from '@/src/components/content-sections/preview/GenericPreview'
 import { TextMediaSection } from '@/src/components/content-sections/TextMediaSection'
@@ -97,6 +99,9 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
 
     case 'textMedia':
       return <TextMediaSection section={section} />
+
+    case 'eventsList':
+      return <EventsListPreview section={section} />
 
     // New section types using GenericPreview for now
     case 'textWithImage':
