@@ -180,7 +180,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
           const newSection = createDefaultSection(type)
           handleInsertSection(
             insertIndexRef.current ?? content.sections.length,
-            newSection,
+            newSection
           )
           setIsBlockPickerOpen(false)
         }}
