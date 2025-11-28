@@ -9,6 +9,7 @@ import { SiteProvider } from '@/src/contexts/SiteContext'
 import { AdminAuthProvider } from '@/src/contexts/AdminAuthContext'
 import { AdminImpersonationProvider } from '@/src/contexts/AdminImpersonationContext'
 import { ImpersonationBanner } from '@/src/components/admin/ImpersonationBanner'
+import { EmailConfirmationHandler } from '@/src/components/auth/EmailConfirmationHandler'
 import { Tables } from '@/src/lib/database/types'
 
 
@@ -27,9 +28,9 @@ interface ProvidersProps {
 export function Providers({ children, initialHostname, initialSiteData, isAdminRoute, impersonationData }: ProvidersProps) {
 
   return (
-      <AuthProvider>
-        <ProfileProvider>
-          <ThemeProvider
+    <AuthProvider>
+      <ProfileProvider>
+        <ThemeProvider
           attribute="class"
           defaultTheme="light"
           enableSystem={false}
@@ -62,13 +63,17 @@ export function Providers({ children, initialHostname, initialSiteData, isAdminR
               )}
             </AdminImpersonationProvider>
           </AdminAuthProvider>
+
+          {/* Email Confirmation Handler - handles ?code= parameter from Supabase auth emails */}
+          <EmailConfirmationHandler />
+
           <Toaster
             position="top-right"
             duration={4000}
             offset="72px"
           />
-          </ThemeProvider>
-        </ProfileProvider>
-      </AuthProvider>
+        </ThemeProvider>
+      </ProfileProvider>
+    </AuthProvider>
   )
 }

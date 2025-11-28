@@ -1,7 +1,7 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
 /**
- * Playwright configuration for blog feature tests
+ * Playwright configuration for E2E tests
  */
 export default defineConfig({
   testDir: './tests/e2e',
@@ -18,12 +18,9 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        browserName: 'chromium',
+      },
     },
   ],
-  webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:3001',
-    reuseExistingServer: true,
-  },
 });
