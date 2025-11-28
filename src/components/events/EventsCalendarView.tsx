@@ -44,9 +44,10 @@ interface EventsCalendarViewProps {
   events: CalendarEvent[]
   currentMonth?: Date
   onMonthChange?: (month: Date) => void
+  renderEventCard?: (event: CalendarEvent) => React.ReactNode
 }
 
-export function EventsCalendarView({ events, currentMonth: controlledMonth, onMonthChange }: EventsCalendarViewProps) {
+export function EventsCalendarView({ events, currentMonth: controlledMonth, onMonthChange, renderEventCard }: EventsCalendarViewProps) {
   const [internalMonth, setInternalMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
@@ -227,6 +228,10 @@ export function EventsCalendarView({ events, currentMonth: controlledMonth, onMo
 
           <div className="space-y-4 mt-4">
             {selectedDateEvents.map((event) => {
+              if (renderEventCard) {
+                return renderEventCard(event)
+              }
+
               const featuredImage = event.featured_image?.media_url
 
               return (
