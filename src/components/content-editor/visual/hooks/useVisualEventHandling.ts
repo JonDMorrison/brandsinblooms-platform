@@ -2,15 +2,10 @@
 
 import { useRef, useEffect, useCallback } from 'react'
 import { addVisualFeedbackClass, isElementBeingEdited } from '../styles/visual-feedback'
+import { EditableElement } from '@/contexts/VisualEditorContext'
 
-interface ElementData {
-  id: string
-  sectionKey: string
-  fieldPath: string
-  type: string
-  element: HTMLElement
-  bounds: DOMRect
-}
+// Re-export EditableElement as ElementData for compatibility
+export type ElementData = EditableElement
 
 interface UseVisualEventHandlingProps {
   onElementClick?: (event: MouseEvent, elementData: ElementData) => void
@@ -54,23 +49,23 @@ export function useVisualEventHandling({
 
     // Handle clicks on editable elements
     const editableElement = target.closest('[data-editable="true"]')
-    
+
     if (editableElement && onElementClick) {
       const fieldPath = editableElement.getAttribute('data-field')
       const sectionKey = editableElement.getAttribute('data-section')
       const editType = editableElement.getAttribute('data-edit-type')
-      
+
       if (fieldPath && sectionKey) {
         const bounds = editableElement.getBoundingClientRect()
         const elementData: ElementData = {
           id: `${sectionKey}:${fieldPath}`,
           sectionKey,
           fieldPath,
-          type: editType || 'text',
+          type: (editType as EditableElement['type']) || 'text',
           element: editableElement as HTMLElement,
           bounds
         }
-        
+
         onElementClick(event, elementData)
       }
     }
@@ -81,26 +76,26 @@ export function useVisualEventHandling({
    */
   const handleContainerMouseOver = useCallback((event: MouseEvent) => {
     if (!onElementHover) return
-    
+
     const target = event.target as HTMLElement
     const editableElement = target.closest('[data-editable="true"]')
-    
+
     if (editableElement) {
       const fieldPath = editableElement.getAttribute('data-field')
       const sectionKey = editableElement.getAttribute('data-section')
       const editType = editableElement.getAttribute('data-edit-type')
-      
+
       if (fieldPath && sectionKey) {
         const bounds = editableElement.getBoundingClientRect()
         const elementData: ElementData = {
           id: `${sectionKey}:${fieldPath}`,
           sectionKey,
           fieldPath,
-          type: editType || 'text',
+          type: (editType as EditableElement['type']) || 'text',
           element: editableElement as HTMLElement,
           bounds
         }
-        
+
         onElementHover(event, elementData)
       }
     }
@@ -125,12 +120,12 @@ export function useVisualEventHandling({
     // Create AbortController for cleanup
     const abortController = new AbortController()
     const { signal } = abortController
-    
+
     // Use AbortController signal for automatic cleanup
     container.addEventListener('click', handleContainerClick, { signal })
     container.addEventListener('mouseover', handleContainerMouseOver, { signal })
     container.addEventListener('mouseleave', handleContainerMouseLeave, { signal })
-    
+
     return () => {
       // AbortController automatically removes all event listeners
       abortController.abort()
@@ -157,15 +152,15 @@ export function useEditableDetection() {
     const fieldPath = element.getAttribute('data-field')
     const sectionKey = element.getAttribute('data-section')
     const editType = element.getAttribute('data-edit-type')
-    
+
     if (!fieldPath || !sectionKey) return null
-    
+
     const bounds = element.getBoundingClientRect()
     return {
       id: `${sectionKey}:${fieldPath}`,
       sectionKey,
       fieldPath,
-      type: editType || 'text',
+      type: (editType as EditableElement['type']) || 'text',
       element,
       bounds
     }
@@ -181,5 +176,3 @@ export function useEditableDetection() {
     isEditingActive
   }
 }
-
-export type { ElementData }

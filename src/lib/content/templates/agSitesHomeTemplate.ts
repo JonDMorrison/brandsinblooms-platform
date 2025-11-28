@@ -151,7 +151,7 @@ export function createAgSitesHomeContent(options: HomeTemplateOptions = {}) {
 
     return {
         version: '2.0',
-        layout: 'default',
+        layout: 'landing',
         sections,
         settings: {}
     }
