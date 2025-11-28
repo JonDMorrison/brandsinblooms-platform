@@ -67,7 +67,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
 }: VisualEditorProps) {
   const { theme } = useSiteTheme()
   const [isBlockPickerOpen, setIsBlockPickerOpen] = useState(false)
-  const [insertIndex, setInsertIndex] = useState<number | null>(null)
+  const insertIndexRef = React.useRef<number | null>(null)
 
   // Get visual editor helpers
   const {
@@ -117,7 +117,16 @@ const VisualEditorContent = memo(function VisualEditorContent({
   const viewportContainerStyles = getViewportContainerStyles(viewport)
   const viewportClassName = getViewportClassName(viewport)
 
-  // Event handling is now managed by useVisualEventHandling hook
+  // Handle section insertion
+  const handleInsertSection = (index: number, section: any) => {
+    const newSections = [...content.sections]
+    newSections.splice(index, 0, section)
+
+    onContentChange({
+      ...content,
+      sections: newSections
+    })
+  }
 
   return (
     <>
@@ -145,7 +154,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
             onFAQUpdate={handleFAQUpdate}
             onFAQDelete={handleFAQDelete}
             onAddSection={(index) => {
-              setInsertIndex(index)
+              insertIndexRef.current = index
               setIsBlockPickerOpen(true)
             }}
           />
@@ -169,16 +178,10 @@ const VisualEditorContent = memo(function VisualEditorContent({
         onClose={() => setIsBlockPickerOpen(false)}
         onSelect={(type) => {
           const newSection = createDefaultSection(type)
-
-          // Insert section at index
-          const newSections = [...content.sections]
-          newSections.splice(insertIndex ?? newSections.length, 0, newSection)
-
-          onContentChange({
-            ...content,
-            sections: newSections
-          })
-
+          handleInsertSection(
+            insertIndexRef.current ?? content.sections.length,
+            newSection,
+          )
           setIsBlockPickerOpen(false)
         }}
       />
