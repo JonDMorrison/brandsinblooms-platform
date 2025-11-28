@@ -18,7 +18,6 @@ import {
   TextPreview,
   DefaultPreview,
   FAQPreview,
-  FAQPreview,
   BusinessInfoPreview,
   EventsListPreview
 } from '@/src/components/content-sections/preview'
