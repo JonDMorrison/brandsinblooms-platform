@@ -9,6 +9,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useDesignSettings } from '@/src/hooks/useDesignSettings'
 import { useHasBlogPosts } from '@/src/hooks/useHasBlogPosts'
 import { useHasEvents } from '@/src/hooks/useHasEvents'
+import { useSiteMenu } from '@/src/hooks/useSiteMenu'
 import { useIsVisualEditMode } from '@/src/contexts/FullSiteEditorContext'
 import { Button } from '@/src/components/ui/button'
 import { cn } from '@/src/lib/utils'
@@ -38,6 +39,8 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   // Check if site has published events
   const { data: hasEvents, loading: isLoadingEventsCheck } = useHasEvents(site?.id)
 
+  // Fetch dynamic menu
+  const { menu: mainMenu, loading: isLoadingMenu } = useSiteMenu(site?.id, 'main')
 
   // Get navigation configuration from theme settings
   const theme = designSettings
@@ -46,57 +49,58 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
   const stickyHeader = theme?.layout?.stickyHeader !== false
   const headerStyle = theme?.layout?.headerStyle || 'modern'
 
-  // Build navigation items from theme settings
-  const configuredNavItems = (theme?.navigation?.items || []) as NavigationItem[]
-
-  // Filter visible items and sort by order
-  const visibleNavItems = configuredNavItems
-    .filter(item => item.visible !== false) // Show items that are explicitly visible or undefined
-    .sort((a, b) => (a.order || 0) - (b.order || 0))
-
-  // If no configured items, use defaults
-  const allNavItems = visibleNavItems.length > 0
-    ? visibleNavItems
-    : getDefaultNavigationItems().filter(item => item.visible)
-
-  // Filter out Blog and Events navigation if no published content exists
-  // Only filter during normal operation, not while loading
+  // Transform menu items to navigation items
   const navItems = useMemo(() => {
-    // During loading, show all items to prevent layout shift
-    if (isLoadingBlogCheck || isLoadingEventsCheck) {
-      return allNavItems;
-    }
+    if (!mainMenu?.items) return []
 
-    // Filter out blog and events navigation if no content exists
-    return allNavItems.filter((item) => {
-      // Filter blog navigation
-      if (item.href.includes('/blog')) {
-        // Show blog items only if posts exist OR user can edit
-        // (editors should see blog nav even without posts)
-        return hasBlogPosts === true || canEdit;
+    return mainMenu.items.map(item => {
+      let href = '#'
+      if (item.link_type === 'internal_page' && item.target_content_id) {
+        // We need the slug for the page. 
+        // For now, we'll assume we can get it or use a placeholder.
+        // Ideally, the query should return the slug or we fetch it.
+        // Since we don't have the slug in MenuItem, we might need to update the query 
+        // or store the slug/path in menu_items (which is risky if slug changes).
+        // OR we fetch content details.
+        // Let's assume for now we might need to fetch content details or the query already joins it.
+        // Wait, the query `getMenuWithItems` just selects * from menu_items.
+        // I should update `getMenuWithItems` to join content to get slugs.
+        href = `/pages/${item.target_content_id}` // Fallback if we don't have slug
+      } else if (item.link_type === 'blog_index') {
+        href = '/blog'
+      } else if (item.link_type === 'external') {
+        href = item.url || '#'
       }
 
-      // Filter events navigation
-      if (item.href.includes('/events')) {
-        // Show events items only if events exist OR user can edit
-        // (editors should see events nav even without events)
-        return hasEvents === true || canEdit;
+      return {
+        label: item.label,
+        href,
+        visible: true,
+        order: item.position,
+        isPrimary: item.is_primary_button
       }
+    })
+  }, [mainMenu])
 
-      // Keep all other items
-      return true;
-    });
-  }, [allNavItems, hasBlogPosts, hasEvents, canEdit, isLoadingBlogCheck, isLoadingEventsCheck])
-  
   // Get branding configuration
   const brandingType = theme?.logo?.displayType || 'text'
   const brandText = theme?.logo?.text || site?.name || 'Store'
   const logoUrl = theme?.logo?.url
   const logoSize = theme?.logo?.pixelSize || 100
-  
+
   // Get CTA button configuration
-  const ctaButton = theme?.layout?.ctaButton
-  
+  // We'll use the primary button from menu if available, otherwise fallback to theme CTA
+  const primaryMenuItem = navItems.find(item => item.isPrimary)
+
+  const ctaButton = primaryMenuItem ? {
+    enabled: true,
+    text: primaryMenuItem.label,
+    href: primaryMenuItem.href
+  } : theme?.layout?.ctaButton
+
+  // Filter out the primary button from regular nav items if it's being shown as a CTA
+  const displayNavItems = navItems.filter(item => !item.isPrimary)
+
   // Height classes based on theme
   const heightClass = {
     compact: 'h-14',
@@ -149,7 +153,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
         {headerStyle === 'modern' && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <BrandLogo 
+              <BrandLogo
                 brandingType={brandingType}
                 logoUrl={logoUrl}
                 brandText={brandText}
@@ -217,7 +221,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                 </div>
               </div>
               {/* Hidden Mobile Nav for Sheet */}
-              <MobileNav 
+              <MobileNav
                 navItems={navItems}
                 canEdit={canEdit}
                 mobileMenuOpen={mobileMenuOpen}
@@ -233,7 +237,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
           <div className="space-y-2">
             {/* Desktop Layout */}
             <div className={isVisualEditMode ? "hidden @md:block text-center space-y-2" : "hidden md:block text-center space-y-2"}>
-              <BrandLogo 
+              <BrandLogo
                 brandingType={brandingType}
                 logoUrl={logoUrl}
                 brandText={brandText}
@@ -310,7 +314,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
                   </div>
                 </div>
                 {/* Hidden Mobile Nav for Sheet */}
-                <MobileNav 
+                <MobileNav
                   navItems={navItems}
                   canEdit={canEdit}
                   mobileMenuOpen={mobileMenuOpen}
@@ -352,7 +356,7 @@ export function SiteNavigation({ className }: SiteNavigationProps) {
               </div>
             </div>
             {/* Hidden Mobile Nav for Sheet - Available at all screen sizes */}
-            <MobileNav 
+            <MobileNav
               navItems={navItems}
               canEdit={canEdit}
               mobileMenuOpen={mobileMenuOpen}

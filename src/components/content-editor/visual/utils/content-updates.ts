@@ -37,13 +37,13 @@ export function createSectionFieldPath(sectionKey: string, fieldPath: string): s
  * Helper to update content using a field path string
  */
 export function updateContentByPath(
-  content: PageContent, 
-  fieldPath: string, 
+  content: PageContent,
+  fieldPath: string,
   newValue: string
 ): PageContent {
   const pathParts = fieldPath.split('.')
   const updatedContent = JSON.parse(JSON.stringify(content)) // Deep clone
-  
+
   // Navigate to the target location and update
   let current: any = updatedContent
   for (let i = 0; i < pathParts.length - 1; i++) {
@@ -53,10 +53,10 @@ export function updateContentByPath(
     }
     current = current[part]
   }
-  
+
   const finalKey = pathParts[pathParts.length - 1]
   current[finalKey] = newValue
-  
+
   return updatedContent
 }
 
@@ -67,16 +67,15 @@ export function updateContentByPath(
  */
 export function updateSectionFeature(
   content: PageContent,
-  sectionKey: string,
+  sectionIdOrKey: string,
   featureIndex: number,
   field: string,
   newContent: string
 ): PageContent {
-  if (!content || !content.sections[sectionKey]) {
-    return content
-  }
+  const sectionIndex = content.sections.findIndex(s => s.id === sectionIdOrKey)
+  if (sectionIndex === -1) return content
 
-  const section = content.sections[sectionKey]
+  const section = content.sections[sectionIndex]
   if (!section || !section.data.features || !Array.isArray(section.data.features)) {
     return content
   }
@@ -151,19 +150,20 @@ export function updateSectionFeature(
     }
   }
 
-  // Create updated content with new features array
+  // Create updated content with new features array using map
   return {
     ...content,
-    sections: {
-      ...content.sections,
-      [sectionKey]: {
-        ...section,
-        data: {
-          ...section.data,
-          features: updatedFeatures
+    sections: content.sections.map((s, idx) =>
+      idx === sectionIndex
+        ? {
+          ...s,
+          data: {
+            ...s.data,
+            features: updatedFeatures
+          }
         }
-      }
-    }
+        : s
+    )
   }
 }
 
@@ -172,16 +172,15 @@ export function updateSectionFeature(
  */
 export function updateSectionValue(
   content: PageContent,
-  sectionKey: string,
+  sectionIdOrKey: string,
   valueIndex: number,
   fieldPath: string,
   newContent: string
 ): PageContent {
-  if (!content || !content.sections[sectionKey]) {
-    return content
-  }
+  const sectionIndex = content.sections.findIndex(s => s.id === sectionIdOrKey)
+  if (sectionIndex === -1) return content
 
-  const section = content.sections[sectionKey]
+  const section = content.sections[sectionIndex]
   if (!section || !section.data.items || !Array.isArray(section.data.items)) {
     return content
   }
@@ -195,19 +194,20 @@ export function updateSectionValue(
     }
   }
 
-  // Create updated content with new items array
+  // Create updated content with new items array using map
   return {
     ...content,
-    sections: {
-      ...content.sections,
-      [sectionKey]: {
-        ...section,
-        data: {
-          ...section.data,
-          items: updatedItems
+    sections: content.sections.map((s, idx) =>
+      idx === sectionIndex
+        ? {
+          ...s,
+          data: {
+            ...s.data,
+            items: updatedItems
+          }
         }
-      }
-    }
+        : s
+    )
   }
 }
 
@@ -217,15 +217,14 @@ export function updateSectionValue(
  */
 export function updateSectionCategory(
   content: PageContent,
-  sectionKey: string,
+  sectionIdOrKey: string,
   categoryIndex: number,
   updatedCategory: Record<string, unknown>
 ): PageContent {
-  if (!content || !content.sections[sectionKey]) {
-    return content
-  }
+  const sectionIndex = content.sections.findIndex(s => s.id === sectionIdOrKey)
+  if (sectionIndex === -1) return content
 
-  const section = content.sections[sectionKey]
+  const section = content.sections[sectionIndex]
   if (!section || !section.data.categories || !Array.isArray(section.data.categories)) {
     return content
   }
@@ -240,19 +239,20 @@ export function updateSectionCategory(
     }
   }
 
-  // Create updated content with new categories array
+  // Create updated content with new categories array using map
   return {
     ...content,
-    sections: {
-      ...content.sections,
-      [sectionKey]: {
-        ...section,
-        data: {
-          ...section.data,
-          categories: updatedCategories
+    sections: content.sections.map((s, idx) =>
+      idx === sectionIndex
+        ? {
+          ...s,
+          data: {
+            ...s.data,
+            categories: updatedCategories
+          }
         }
-      }
-    }
+        : s
+    )
   }
 }
 
@@ -261,14 +261,13 @@ export function updateSectionCategory(
  */
 export function deleteSectionCategory(
   content: PageContent,
-  sectionKey: string,
+  sectionIdOrKey: string,
   categoryIndex: number
 ): PageContent {
-  if (!content || !content.sections[sectionKey]) {
-    return content
-  }
+  const sectionIndex = content.sections.findIndex(s => s.id === sectionIdOrKey)
+  if (sectionIndex === -1) return content
 
-  const section = content.sections[sectionKey]
+  const section = content.sections[sectionIndex]
   if (!section || !section.data.categories || !Array.isArray(section.data.categories)) {
     return content
   }
@@ -277,19 +276,20 @@ export function deleteSectionCategory(
   const updatedCategories = [...section.data.categories]
   updatedCategories.splice(categoryIndex, 1)
 
-  // Create updated content with new categories array
+  // Create updated content with new categories array using map
   return {
     ...content,
-    sections: {
-      ...content.sections,
-      [sectionKey]: {
-        ...section,
-        data: {
-          ...section.data,
-          categories: updatedCategories
+    sections: content.sections.map((s, idx) =>
+      idx === sectionIndex
+        ? {
+          ...s,
+          data: {
+            ...s.data,
+            categories: updatedCategories
+          }
         }
-      }
-    }
+        : s
+    )
   }
 }
 
@@ -299,15 +299,14 @@ export function deleteSectionCategory(
  */
 export function updateSectionFeatured(
   content: PageContent,
-  sectionKey: string,
+  sectionIdOrKey: string,
   itemIndex: number,
   updatedItem: Record<string, unknown>
 ): PageContent {
-  if (!content || !content.sections[sectionKey]) {
-    return content
-  }
+  const sectionIndex = content.sections.findIndex(s => s.id === sectionIdOrKey)
+  if (sectionIndex === -1) return content
 
-  const section = content.sections[sectionKey]
+  const section = content.sections[sectionIndex]
   if (!section || !section.data.featuredItems || !Array.isArray(section.data.featuredItems)) {
     return content
   }
@@ -323,19 +322,20 @@ export function updateSectionFeatured(
     }
   }
 
-  // Create updated content with new featured items array
+  // Create updated content with new featured items array using map
   return {
     ...content,
-    sections: {
-      ...content.sections,
-      [sectionKey]: {
-        ...section,
-        data: {
-          ...section.data,
-          featuredItems: updatedFeaturedItems
+    sections: content.sections.map((s, idx) =>
+      idx === sectionIndex
+        ? {
+          ...s,
+          data: {
+            ...s.data,
+            featuredItems: updatedFeaturedItems
+          }
         }
-      }
-    }
+        : s
+    )
   }
 }
 
@@ -344,14 +344,13 @@ export function updateSectionFeatured(
  */
 export function deleteSectionFeatured(
   content: PageContent,
-  sectionKey: string,
+  sectionIdOrKey: string,
   itemIndex: number
 ): PageContent {
-  if (!content || !content.sections[sectionKey]) {
-    return content
-  }
+  const sectionIndex = content.sections.findIndex(s => s.id === sectionIdOrKey)
+  if (sectionIndex === -1) return content
 
-  const section = content.sections[sectionKey]
+  const section = content.sections[sectionIndex]
   if (!section || !section.data.featuredItems || !Array.isArray(section.data.featuredItems)) {
     return content
   }
@@ -360,19 +359,20 @@ export function deleteSectionFeatured(
   const updatedFeaturedItems = [...section.data.featuredItems]
   updatedFeaturedItems.splice(itemIndex, 1)
 
-  // Create updated content with new featured items array
+  // Create updated content with new featured items array using map
   return {
     ...content,
-    sections: {
-      ...content.sections,
-      [sectionKey]: {
-        ...section,
-        data: {
-          ...section.data,
-          featuredItems: updatedFeaturedItems
+    sections: content.sections.map((s, idx) =>
+      idx === sectionIndex
+        ? {
+          ...s,
+          data: {
+            ...s.data,
+            featuredItems: updatedFeaturedItems
+          }
         }
-      }
-    }
+        : s
+    )
   }
 }
 
@@ -382,15 +382,14 @@ export function deleteSectionFeatured(
  */
 export function updateSectionFAQ(
   content: PageContent,
-  sectionKey: string,
+  sectionIdOrKey: string,
   faqIndex: number,
   updatedFAQ: Record<string, unknown>
 ): PageContent {
-  if (!content || !content.sections[sectionKey]) {
-    return content
-  }
+  const sectionIndex = content.sections.findIndex(s => s.id === sectionIdOrKey)
+  if (sectionIndex === -1) return content
 
-  const section = content.sections[sectionKey]
+  const section = content.sections[sectionIndex]
   if (!section || !section.data.faqs || !Array.isArray(section.data.faqs)) {
     return content
   }
@@ -406,19 +405,20 @@ export function updateSectionFAQ(
     }
   }
 
-  // Create updated content with new FAQs array
+  // Create updated content with new FAQs array using map
   return {
     ...content,
-    sections: {
-      ...content.sections,
-      [sectionKey]: {
-        ...section,
-        data: {
-          ...section.data,
-          faqs: updatedFAQs
+    sections: content.sections.map((s, idx) =>
+      idx === sectionIndex
+        ? {
+          ...s,
+          data: {
+            ...s.data,
+            faqs: updatedFAQs
+          }
         }
-      }
-    }
+        : s
+    )
   }
 }
 
@@ -427,14 +427,13 @@ export function updateSectionFAQ(
  */
 export function deleteSectionFAQ(
   content: PageContent,
-  sectionKey: string,
+  sectionIdOrKey: string,
   faqIndex: number
 ): PageContent {
-  if (!content || !content.sections[sectionKey]) {
-    return content
-  }
+  const sectionIndex = content.sections.findIndex(s => s.id === sectionIdOrKey)
+  if (sectionIndex === -1) return content
 
-  const section = content.sections[sectionKey]
+  const section = content.sections[sectionIndex]
   if (!section || !section.data.faqs || !Array.isArray(section.data.faqs)) {
     return content
   }
@@ -443,19 +442,20 @@ export function deleteSectionFAQ(
   const updatedFAQs = [...section.data.faqs]
   updatedFAQs.splice(faqIndex, 1)
 
-  // Create updated content with new FAQs array
+  // Create updated content with new FAQs array using map
   return {
     ...content,
-    sections: {
-      ...content.sections,
-      [sectionKey]: {
-        ...section,
-        data: {
-          ...section.data,
-          faqs: updatedFAQs
+    sections: content.sections.map((s, idx) =>
+      idx === sectionIndex
+        ? {
+          ...s,
+          data: {
+            ...s.data,
+            faqs: updatedFAQs
+          }
         }
-      }
-    }
+        : s
+    )
   }
 }
 
@@ -467,14 +467,14 @@ export function createContentUpdateHandlers(
   onContentChange: (content: PageContent) => void,
   updateContent: (fieldPath: string, newValue: string) => void
 ) {
-  
+
   /**
    * Handle inline content updates from the visual editor
    */
   const handleInlineContentUpdate = (fieldPath: string, newContent: string) => {
     updateContent(fieldPath, newContent)
   }
-  
+
   /**
    * Handle section-specific content updates
    */
@@ -482,7 +482,7 @@ export function createContentUpdateHandlers(
     const fullFieldPath = createSectionFieldPath(sectionKey, fieldPath)
     updateContent(fullFieldPath, newContent)
   }
-  
+
   /**
    * Handle feature array updates
    * Supports field-specific updates for object-based features (icon, text, title)
@@ -610,7 +610,7 @@ export function isValidFieldPath(fieldPath: string): boolean {
 export function getValueByPath(content: PageContent, fieldPath: string): any {
   const pathParts = fieldPath.split('.')
   let current: any = content
-  
+
   for (const part of pathParts) {
     if (current && typeof current === 'object' && part in current) {
       current = current[part]
@@ -618,6 +618,6 @@ export function getValueByPath(content: PageContent, fieldPath: string): any {
       return undefined
     }
   }
-  
+
   return current
 }

@@ -5,8 +5,8 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database, Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types';
-import { 
-  handleQueryResponse, 
+import {
+  handleQueryResponse,
   handleSingleResponse,
   filterUndefined,
   RowType,
@@ -155,13 +155,13 @@ export async function checkSiteAccess(
 
   if (requiredRole) {
     const roleHierarchy = { owner: 3, editor: 2, viewer: 1 };
-    
+
     const response = await query.single();
     try {
       const membership = await handleSingleResponse(response);
       const userRoleLevel = roleHierarchy[membership.role as keyof typeof roleHierarchy] || 0;
       const requiredRoleLevel = roleHierarchy[requiredRole] || 0;
-      
+
       return userRoleLevel >= requiredRoleLevel;
     } catch {
       return false;
@@ -225,7 +225,7 @@ export async function updateSite(
   data: UpdateSite
 ): Promise<Site> {
   const filteredData = filterUndefined(data);
-  
+
   const response = await supabase
     .from('sites')
     .update({
@@ -588,4 +588,17 @@ export async function getSiteStats(
     memberCount: members.count || 0,
     inquiryCount: inquiries.count || 0,
   };
+}
+
+/**
+ * Get site by domain (hostname)
+ * Unified function that checks domains table, custom_domain, and subdomain
+ */
+export async function getSiteByDomain(
+  supabase: SupabaseClient<Database>,
+  domain: string
+): Promise<Site | null> {
+  // Use the new getSiteByHostname from domains module
+  const { getSiteByHostname } = await import('@/src/lib/domains/queries')
+  return getSiteByHostname(supabase, domain)
 }

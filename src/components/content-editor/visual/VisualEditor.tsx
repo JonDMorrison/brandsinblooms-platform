@@ -6,20 +6,20 @@ import { useVisualEditorHelpers } from '@/hooks/useVisualEditor'
 import { useSiteTheme } from '@/hooks/useSiteTheme'
 
 // Import extracted utilities and hooks
-import { 
-  getViewportContainerStyles, 
+import {
+  getViewportContainerStyles,
   getViewportClassName,
   ViewportMode
 } from './utils/viewport-utils'
-import { 
+import {
   getViewportStyles,
   getVisualFeedbackStyles
 } from './styles'
-import { 
+import {
   useVisualEventHandling,
   ElementData
 } from './hooks'
-import { 
+import {
   createContentUpdateHandlers
 } from './utils/content-updates'
 
@@ -28,6 +28,9 @@ import { EditOverlay } from './EditOverlay'
 
 // Import unified layout preview component
 import { UnifiedPagePreview } from '@/components/layout-previews/UnifiedPagePreview'
+import { BlockPickerModal } from '@/src/components/content-editor/block-picker/BlockPickerModal'
+import { createDefaultSection } from '@/src/lib/content/sections'
+import { useState } from 'react'
 
 interface VisualEditorProps {
   content: PageContent
@@ -63,7 +66,9 @@ const VisualEditorContent = memo(function VisualEditorContent({
   viewport = 'desktop'
 }: VisualEditorProps) {
   const { theme } = useSiteTheme()
-  
+  const [isBlockPickerOpen, setIsBlockPickerOpen] = useState(false)
+  const [insertIndex, setInsertIndex] = useState<number | null>(null)
+
   // Get visual editor helpers
   const {
     updateContent,
@@ -73,7 +78,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
     content,
     onContentChange
   })
-  
+
   // Create content update handlers using the extracted utility
   const {
     handleInlineContentUpdate,
@@ -89,38 +94,34 @@ const VisualEditorContent = memo(function VisualEditorContent({
     handleTitleUpdate: updateTitle,
     handleSubtitleUpdate: updateSubtitle
   } = createContentUpdateHandlers(content, onContentChange, updateContent)
-  
+
   // Wrap title/subtitle handlers to pass the callback functions
   const handleTitleUpdateWrapper = (newTitle: string) => {
     updateTitle(newTitle, onTitleChange)
   }
-  
+
   const handleSubtitleUpdateWrapper = (newSubtitle: string) => {
     updateSubtitle(newSubtitle, onSubtitleChange)
   }
-  
+
   // Setup event handling with extracted hooks
   const { containerRef } = useVisualEventHandling({
     onElementClick: handleElementClick,
     onElementHover: handleElementHover
   })
-  
+
   // Get the appropriate preview component
   const PreviewComponent = layoutComponents[layout]
-  
+
   // Get viewport-specific styles using extracted utilities
   const viewportContainerStyles = getViewportContainerStyles(viewport)
   const viewportClassName = getViewportClassName(viewport)
-  
+
   // Event handling is now managed by useVisualEventHandling hook
-  
+
   return (
     <div className={`visual-editor-container relative ${className || ''}`}>      
       {/* Preview Container with Click Detection */}
-      <div
-        ref={containerRef}
-        className={`visual-editor-preview ${viewportClassName} @container`}
-        style={viewportContainerStyles}
         data-visual-editor="true"
         data-preview-mode="true"
       >
@@ -138,21 +139,44 @@ const VisualEditorContent = memo(function VisualEditorContent({
           onFeaturedDelete={handleFeaturedDelete}
           onFAQUpdate={handleFAQUpdate}
           onFAQDelete={handleFAQDelete}
+          onAddSection={(index) => {
+            setInsertIndex(index)
+            setIsBlockPickerOpen(true)
+          }}
         />
       </div>
       
-      {/* Edit Overlay for Visual Indicators */}
-      <EditOverlay
-        containerRef={containerRef}
-        onContentUpdate={handleInlineContentUpdate}
-        onTitleUpdate={handleTitleUpdateWrapper}
-        onSubtitleUpdate={handleSubtitleUpdateWrapper}
+      <BlockPickerModal
+        open={isBlockPickerOpen}
+        onClose={() => setIsBlockPickerOpen(false)}
+        onSelect={(type) => {
+          const newSection = createDefaultSection(type)
+          
+          // Insert section at index
+          const newSections = [...content.sections]
+          newSections.splice(insertIndex ?? newSections.length, 0, newSection)
+          
+          onContentChange({
+            ...content,
+            sections: newSections
+          })
+          
+          setIsBlockPickerOpen(false)
+        }}
       />
       
-      {/* Extracted Styles */}
+      {/* Edit Overlay for Visual Indicators */ }
+  <EditOverlay
+    containerRef={containerRef}
+    onContentUpdate={handleInlineContentUpdate}
+    onTitleUpdate={handleTitleUpdateWrapper}
+    onSubtitleUpdate={handleSubtitleUpdateWrapper}
+  />
+
+  {/* Extracted Styles */ }
       <style jsx>{`${getViewportStyles(viewport)}`}</style>
       <style jsx global>{`${getVisualFeedbackStyles()}`}</style>
-    </div>
+    </div >
   )
 })
 

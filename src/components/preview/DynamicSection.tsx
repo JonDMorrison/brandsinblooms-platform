@@ -20,6 +20,8 @@ import {
   FAQPreview,
   BusinessInfoPreview
 } from '@/src/components/content-sections/preview'
+import { GenericPreview } from '@/src/components/content-sections/preview/GenericPreview'
+import { TextMediaSection } from '@/src/components/content-sections/TextMediaSection'
 
 // Helper functions have been moved to shared utilities and individual preview components
 
@@ -70,12 +72,14 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
       return <CategoriesPreview {...commonProps} />
 
     case 'features':
+    case 'featuresGrid':
       return <FeaturesPreview {...commonProps} />
 
     case 'values':
       return <ValuesPreview {...commonProps} />
 
     case 'cta':
+    case 'callToAction':
       return <CtaPreview {...commonProps} />
 
     case 'mission':
@@ -90,6 +94,32 @@ function DynamicSectionComponent({ section, sectionKey, className = '', title, o
 
     case 'businessInfo':
       return <BusinessInfoPreview {...commonProps} />
+
+    case 'textMedia':
+      return <TextMediaSection section={section} />
+
+    // New section types using GenericPreview for now
+    case 'textWithImage':
+    case 'map':
+    case 'contactForm':
+    case 'events':
+    case 'news':
+    case 'blogs':
+    case 'blogList':
+    case 'imageLinks':
+    case 'podcasts':
+    case 'video':
+    case 'videoEmbed':
+    case 'users':
+    case 'testimonials':
+    case 'gallery':
+    case 'newsletter':
+    case 'icons':
+    case 'customCode':
+    case 'contentColumns':
+    case 'pricing':
+    case 'form':
+      return <GenericPreview {...commonProps} />
 
     default:
       // Use DefaultPreview for all other section types

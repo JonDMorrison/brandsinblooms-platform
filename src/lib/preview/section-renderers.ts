@@ -4,42 +4,37 @@
  */
 
 import { ContentSection, ContentItem, LayoutType, LAYOUT_SECTIONS } from '@/src/lib/content/schema'
+import { createDefaultSection } from '@/src/lib/content/sections'
 
 /**
- * Get sections for a specific layout, sorted by order
+ * Get sections for a specific layout
  */
 export function getLayoutSections(
-  content: Record<string, ContentSection>,
+  sections: ContentSection[],
   layout: LayoutType
 ): Array<{ key: string; section: ContentSection }> {
-  // Get all sections from content, not just those defined in schema
-  // This allows for multiple instances of sections like richText_1, richText_2, etc.
-  // Note: Returns ALL sections including hidden ones - visibility is handled at render time
-  const sections = Object.entries(content)
-    .map(([key, section]) => ({ key, section }))
-    .filter(({ section }) => section)  // Only check section exists, not visibility
-    .sort((a, b) => (a.section.order || 0) - (b.section.order || 0))
-
-  return sections
+  // Map sections to key/section pairs
+  // Visibility is handled at render time by the component
+  return sections.map(section => ({
+    key: section.id,
+    section
+  }))
 }
 
 /**
  * Get the primary hero/header section for a layout
  */
 export function getHeroSection(
-  content: Record<string, ContentSection>,
+  sections: ContentSection[],
   layout: LayoutType
 ): { key: string; section: ContentSection } | null {
-  const layoutConfig = LAYOUT_SECTIONS[layout]
-  
-  // Look for the first required section (usually hero/header)
-  for (const key of layoutConfig.required) {
-    const section = content[key]
-    if (section && section.visible && (section.type === 'hero' || key === 'header')) {
-      return { key, section }
-    }
+  // Look for the first visible hero or header
+  const section = sections.find(s => s.visible && (s.type === 'hero' || s.type === 'header' || s.type === 'blogHeader'))
+
+  if (section) {
+    return { key: section.id, section }
   }
-  
+
   return null
 }
 
@@ -47,13 +42,14 @@ export function getHeroSection(
  * Get non-hero sections for a layout
  */
 export function getContentSections(
-  content: Record<string, ContentSection>,
+  sections: ContentSection[],
   layout: LayoutType
 ): Array<{ key: string; section: ContentSection }> {
-  const allSections = getLayoutSections(content, layout)
-  const heroSection = getHeroSection(content, layout)
-  
-  return allSections.filter(({ key }) => key !== heroSection?.key)
+  const heroSection = getHeroSection(sections, layout)
+
+  return sections
+    .filter(s => s.id !== heroSection?.key)
+    .map(s => ({ key: s.id, section: s }))
 }
 
 /**
@@ -61,7 +57,7 @@ export function getContentSections(
  */
 export function extractSectionText(section: ContentSection): string {
   if (!section.data.content) return ''
-  
+
   // Remove HTML tags and get plain text
   return section.data.content.replace(/<[^>]*>/g, '').trim()
 }
@@ -73,12 +69,12 @@ export function getFirstItem(section: ContentSection): ContentItem | null {
   if (!section.data.items || !Array.isArray(section.data.items) || section.data.items.length === 0) {
     return null
   }
-  
+
   const firstItem = section.data.items[0]
   if (typeof firstItem === 'object' && firstItem !== null && 'id' in firstItem) {
     return firstItem as unknown as ContentItem
   }
-  
+
   return null
 }
 
@@ -87,30 +83,30 @@ export function getFirstItem(section: ContentSection): ContentItem | null {
  */
 export function hasContent(section: ContentSection): boolean {
   if (!section.visible) return false
-  
+
   const { data } = section
-  
+
   // Check for text content
   if (data.content && data.content.trim() !== '') {
     const plainText = data.content.replace(/<[^>]*>/g, '').trim()
     if (plainText.length > 0) return true
   }
-  
+
   // Check for items
   if (data.items && Array.isArray(data.items) && data.items.length > 0) {
     return true
   }
-  
+
   // Check for media
   if (data.url || data.icon) {
     return true
   }
-  
+
   // Check for form fields
   if (data.fields && Array.isArray(data.fields) && data.fields.length > 0) {
     return true
   }
-  
+
   return false
 }
 
@@ -119,21 +115,21 @@ export function hasContent(section: ContentSection): boolean {
  */
 export function getGridColumns(columns: number = 3): string {
   const maxCols = Math.min(columns, 4) // Max 4 columns for responsive design
-  
+
   let classes = 'grid gap-4 grid-cols-1'
-  
+
   if (maxCols >= 2) {
     classes += ' sm:grid-cols-2'
   }
-  
+
   if (maxCols >= 3) {
     classes += ' lg:grid-cols-3'
   }
-  
+
   if (maxCols >= 4) {
     classes += ' xl:grid-cols-4'
   }
-  
+
   return classes
 }
 
@@ -174,20 +170,29 @@ export function createFallbackSection(
   title: string,
   subtitle?: string
 ): ContentSection {
-  return {
-    type: type as any,
-    data: {
-      content: title,
-      items: subtitle ? [{
-        id: 'fallback',
-        title: title,
-        subtitle: subtitle,
-        content: '',
-        order: 1
-      }] : []
-    },
-    visible: true,
-    order: 1
+  // Use createDefaultSection if type matches, otherwise generic fallback
+  try {
+    const defaultSec = createDefaultSection(type as any)
+    return {
+      ...defaultSec,
+      data: {
+        ...defaultSec.data,
+        headline: title,
+        subheadline: subtitle,
+        content: title
+      }
+    }
+  } catch (e) {
+    // Fallback if type not found
+    return {
+      id: `fallback-${Date.now()}`,
+      type: 'text' as any,
+      data: {
+        content: `<h2>${title}</h2>${subtitle ? `<p>${subtitle}</p>` : ''}`
+      },
+      visible: true,
+      settings: {}
+    }
   }
 }
 
@@ -207,24 +212,40 @@ export const LAYOUT_SECTION_MAPPING: Record<LayoutType, {
     secondaryAction: 'features'
   },
   blog: {
-    title: 'header',
-    subtitle: 'header'
+    title: 'blogHeader',
+    subtitle: 'blogHeader'
   },
   portfolio: {
-    title: 'header',
-    subtitle: 'header'
-  },
-  about: {
     title: 'hero',
     subtitle: 'hero'
   },
-  product: {
+  about: {
     title: 'header',
     subtitle: 'header'
+  },
+  product: {
+    title: 'hero',
+    subtitle: 'hero'
   },
   contact: {
     title: 'header',
     subtitle: 'header'
+  },
+  other: {
+    title: 'hero',
+    subtitle: 'hero'
+  },
+  plant_shop: {
+    title: 'hero',
+    subtitle: 'hero'
+  },
+  plant_care: {
+    title: 'hero',
+    subtitle: 'hero'
+  },
+  plant_catalog: {
+    title: 'hero',
+    subtitle: 'hero'
   }
 }
 
@@ -235,30 +256,52 @@ export function convertLegacyContent(
   layout: LayoutType,
   title?: string,
   subtitle?: string
-): Record<string, ContentSection> {
+): ContentSection[] {
   const layoutConfig = LAYOUT_SECTIONS[layout]
-  const sections: Record<string, ContentSection> = {}
-  
-  // Create default sections from schema
-  Object.entries(layoutConfig.defaultSections).forEach(([key, defaultSection]) => {
-    sections[key] = { ...defaultSection } as ContentSection
+
+  // Create default sections from schema blueprints
+  const sections: ContentSection[] = layoutConfig.initialSections.map(blueprint => {
+    // Create a fresh section with ID
+    const defaultSection = createDefaultSection(blueprint.type!)
+
+    // Merge blueprint data/settings over default data
+    return {
+      ...defaultSection,
+      ...blueprint,
+      data: {
+        ...defaultSection.data,
+        ...blueprint.data
+      },
+      settings: {
+        ...defaultSection.settings,
+        ...blueprint.settings
+      }
+    }
   })
-  
+
   // Map legacy title/subtitle to the appropriate section
   const mapping = LAYOUT_SECTION_MAPPING[layout]
-  
+
   if (title && mapping.title) {
-    const titleSection = sections[mapping.title]
+    const titleSection = sections.find(s => s.type === mapping.title) || sections.find(s => s.type === 'hero' || s.type === 'header')
+
     if (titleSection) {
-      // For hero sections, put title in content
-      if (titleSection.type === 'hero') {
-        titleSection.data.content = `<h1>${title}</h1>${subtitle ? `<p>${subtitle}</p>` : ''}`
+      // For hero/header sections, put title in headline
+      titleSection.data.headline = title
+      if (subtitle) {
+        titleSection.data.subheadline = subtitle
+      }
+
+      // Also update content for fallback
+      if (titleSection.type === 'hero' || titleSection.type === 'header' || titleSection.type === 'blogHeader') {
+        // Keep existing content if any, or set it
       } else {
         titleSection.data.content = title
       }
+
       titleSection.visible = true
     }
   }
-  
+
   return sections
 }

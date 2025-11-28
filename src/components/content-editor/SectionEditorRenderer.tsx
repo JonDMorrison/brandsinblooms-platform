@@ -33,7 +33,8 @@ import {
   PlantBenefitsEditor,
   SoilGuideEditor,
   FAQEditor,
-  BusinessInfoEditor
+  BusinessInfoEditor,
+  TextMediaEditor
 } from './editors'
 
 // Import the CTAEditor component
@@ -78,77 +79,80 @@ export function SectionEditorRenderer({
 
       case 'featured':
         return <FeaturedEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
-        
+
       case 'categories':
         return <CategoriesEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
-        
+
       case 'richText':
         return <RichTextSectionEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
-        
+
       case 'cta':
         return <CTAEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
-        
+
       case 'text':
         return <TextSectionEditor {...commonProps} />
-        
+
+      case 'textMedia':
+        return <TextMediaEditor section={section} onUpdate={handleDataChange} />
+
       case 'image':
         return <ImageSectionEditor {...commonProps} />
-        
+
       case 'icon':
         return <IconSectionEditor {...commonProps} />
-        
+
       case 'features':
         return <FeaturesEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
-        
+
       case 'testimonials':
         return <TestimonialsEditor {...commonProps} />
 
       case 'values':
         return <ValuesEditor section={section} sectionKey={sectionKey} onUpdate={onUpdate} />
-        
+
       case 'gallery':
         return <GalleryEditor {...commonProps} />
-        
+
       case 'pricing':
         return <PricingEditor {...commonProps} />
-        
+
       case 'form':
         return <FormBuilder {...commonProps} />
-        
+
       case 'specifications':
         return <SpecificationsEditor {...commonProps} />
-        
+
       case 'mission':
         return <MissionEditor {...commonProps} />
-        
+
       // Plant shop specific section editors
       case 'plant_showcase':
         return <PlantShowcaseEditor {...commonProps} />
-        
+
       case 'plant_grid':
         return <PlantGridEditor {...commonProps} />
-        
+
       case 'plant_care_guide':
         return <PlantCareGuideEditor {...commonProps} />
-        
+
       case 'seasonal_tips':
         return <SeasonalTipsEditor {...commonProps} />
-        
+
       case 'plant_categories':
         return <PlantCategoriesEditor {...commonProps} />
-        
+
       case 'growing_conditions':
         return <GrowingConditionsEditor {...commonProps} />
-        
+
       case 'plant_comparison':
         return <PlantComparisonEditor {...commonProps} />
-        
+
       case 'care_calendar':
         return <CareCalendarEditor {...commonProps} />
-        
+
       case 'plant_benefits':
         return <PlantBenefitsEditor {...commonProps} />
-        
+
       case 'soil_guide':
         return <SoilGuideEditor {...commonProps} />
 

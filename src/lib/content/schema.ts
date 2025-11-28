@@ -13,57 +13,9 @@ export type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' 
 /**
  * Content section types for different layout components
  */
-export type ContentSectionType =
-  | 'text'
-  | 'richText'
-  | 'image'
-  | 'icon'
-  | 'gallery'
-  | 'features'
-  | 'featured'
-  | 'categories'
-  | 'hero'
-  | 'header' // Simplified hero - title + subtitle only
-  | 'blogHeader' // Blog-specific header with title, subtitle, author, date, and image
-  | 'cta'
-  | 'testimonials'
-  | 'form'
-  | 'pricing'
-  | 'team'
-  | 'mission'
-  | 'values'
-  | 'specifications'
-  | 'businessInfo' // Business information section
-  | 'faq' // FAQ section
-  // Plant shop specific section types
-  | 'plant_showcase'
-  | 'plant_grid'
-  | 'plant_care_guide'
-  | 'seasonal_tips'
-  | 'plant_categories'
-  | 'growing_conditions'
-  | 'plant_comparison'
-  | 'care_calendar'
-  | 'plant_benefits'
-  | 'soil_guide'
+import { ContentSection, SectionType, ButtonStyleVariant } from './sections'
 
-/**
- * Button style variants for CTA buttons
- */
-export type ButtonStyleVariant = 'primary' | 'secondary' | 'accent'
-
-/**
- * Base content section interface
- */
-export interface ContentSection {
-  type: ContentSectionType
-  data: ContentSectionData
-  visible: boolean
-  order?: number
-  settings?: {
-    [key: string]: Json
-  }
-}
+export type { ContentSection, SectionType }
 
 /**
  * Data structure for content sections
@@ -279,11 +231,9 @@ export interface SEOSettings {
  * Main page content structure
  */
 export interface PageContent {
-  version: '1.0' // For future migrations
+  version: '2.0' // Bump version for new array-based structure
   layout: LayoutType
-  sections: {
-    [sectionKey: string]: ContentSection
-  }
+  sections: ContentSection[]
   settings?: {
     seo?: SEOSettings
     layout?: {
@@ -291,780 +241,337 @@ export interface PageContent {
       spacing?: 'tight' | 'normal' | 'loose'
       theme?: string
     }
-    [key: string]: Json | undefined
+    [key: string]: any
   }
 }
 
 /**
  * Layout-specific section definitions
- * Maps each layout type to its required and optional sections
+ * Maps each layout type to its initial sections
  */
 export const LAYOUT_SECTIONS: Record<LayoutType, {
-  required: string[]
-  optional: string[]
-  defaultSections: Record<string, Partial<ContentSection>>
+  initialSections: Partial<ContentSection>[]
 }> = {
   landing: {
-    required: ['hero'],
-    optional: ['featured', 'categories', 'features', 'richText', 'cta'],
-    defaultSections: {
-      hero: {
+    initialSections: [
+      {
         type: 'hero',
         data: {
-          content: '',
-          alignment: 'center'
+          headline: 'Welcome to Our Site',
+          subheadline: 'We help you grow your business',
+          alignment: 'center',
+          ctaText: 'Get Started',
+          ctaLink: '#',
+          ctaStyle: 'primary'
         },
         settings: {
           backgroundColor: 'gradient'
         },
-        visible: true,
-        order: 1
+        visible: true
       },
-      featured: {
+      {
         type: 'featured',
         data: {
-          headline: 'Featured Plants This Season',
-          subheadline: 'Handpicked selections from our master horticulturists',
-          viewAllText: 'View All Plants',
-          viewAllLink: '/plants',
-          featuredItems: DEFAULT_FEATURED_ITEMS
+          headline: 'Featured Items',
+          items: []
         },
-        visible: false,
-        order: 2
+        visible: false
       },
-      categories: {
+      {
         type: 'categories',
         data: {
           headline: 'Shop By Category',
-          description: 'Find Your Perfect Plant Match',
-          categories: [
-            {
-              id: 'beginner-friendly',
-              name: 'Beginner-Friendly',
-              image: '/images/golden-pothos.jpg',
-              link: '/plants?care-level=beginner',
-              plantCount: 12,
-              description: 'Perfect for new plant parents - low maintenance, forgiving varieties'
-            },
-            {
-              id: 'houseplants',
-              name: 'Houseplants',
-              image: '/images/snake-plant.jpg',
-              link: '/plants?category=houseplants',
-              plantCount: 25,
-              description: 'Transform indoor spaces with air-purifying and decorative plants'
-            },
-            {
-              id: 'outdoor',
-              name: 'Outdoor Specimens',
-              image: '/images/japanese-maple.jpg',
-              link: '/plants?category=outdoor',
-              plantCount: 18,
-              description: 'Hardy outdoor plants for landscaping and garden design'
-            },
-            {
-              id: 'succulents',
-              name: 'Succulents & Cacti',
-              image: '/images/fiddle-leaf-fig.jpg',
-              link: '/plants?category=succulents',
-              plantCount: 15,
-              description: 'Drought-tolerant beauties perfect for sunny spots and xeriscaping'
-            }
-          ]
-        },
-        visible: false,
-        order: 3
-      },
-      features: {
-        type: 'features',
-        data: {
-          headline: 'Essential Plant Care Features',
-          description: 'Master these key practices for healthy, thriving plants year-round',
-          features: [
-            'Reduce watering frequency as growth slows',
-            'Move tender plants indoors before first frost',
-            'Apply winter protection to marginally hardy plants'
-          ]
-        },
-        visible: true,
-        order: 4,
-        settings: {
-          backgroundColor: 'default'
-        }
-      },
-      cta: {
-        type: 'cta',
-        data: {
-          headline: 'Growing Together, Sustainably',
-          description: 'Our mission is to help you create thriving plant sanctuaries while protecting our planet. Every plant comes with expert care guidance, sustainable growing practices, and our commitment to your plant parenthood success.',
-          ctaText: 'Shop Plants',
-          ctaLink: '/',
-          ctaStyle: 'primary' as ButtonStyleVariant,
-          secondaryCtaText: 'Browse Plants',
-          secondaryCtaLink: '/',
-          secondaryCtaStyle: 'secondary' as ButtonStyleVariant
-        },
-        visible: true,
-        order: 5,
-        settings: {
-          backgroundColor: 'primary'
-        }
-      },
-      richText: {
-        type: 'richText',
-        data: {
-          headline: 'Welcome to Your Plant Paradise',
-          content: 'Discover the joy of growing with our carefully curated selection of premium plants and expert guidance. Whether you\'re just starting your plant journey or expanding your green sanctuary, we\'re here to help you create a thriving indoor oasis that brings nature into your everyday life.'
-        },
-        visible: true,
-        order: 6
-      }
-    }
-  },
-  blog: {
-    required: ['blogHeader', 'content'],
-    optional: ['related'],
-    defaultSections: {
-      blogHeader: {
-        type: 'blogHeader',
-        data: {
-          title: '',
-          subtitle: '',
-          author: '',
-          publishedDate: new Date().toISOString().split('T')[0],
-          image: ''
-        },
-        settings: {
-          backgroundColor: 'default'
-        },
-        visible: true,
-        order: 1
-      },
-      content: {
-        type: 'richText',
-        data: {
-          content: '',
-          json: null
-        },
-        visible: true,
-        order: 2
-      },
-      related: {
-        type: 'features',
-        data: {
-          items: [],
-          columns: 3
-        },
-        visible: false,
-        order: 4
-      }
-    }
-  },
-  portfolio: {
-    required: ['header', 'gallery'],
-    optional: ['description', 'details'],
-    defaultSections: {
-      header: {
-        type: 'hero',
-        data: {
-          content: '',
-          alignment: 'center'
-        },
-        settings: {
-          backgroundColor: 'gradient'
-        },
-        visible: true,
-        order: 1
-      },
-      gallery: {
-        type: 'gallery',
-        data: {
-          items: [],
-          columns: 3
-        },
-        visible: true,
-        order: 2
-      },
-      description: {
-        type: 'richText',
-        data: {
-          content: ''
-        },
-        visible: false,
-        order: 3
-      },
-      details: {
-        type: 'features',
-        data: {
-          items: [],
-          columns: 2
-        },
-        visible: false,
-        order: 4
-      }
-    }
-  },
-  about: {
-    required: [],
-    optional: ['header', 'values', 'features', 'richText', 'cta'],
-    defaultSections: {
-      header: {
-        type: 'header',
-        data: {
-          headline: 'About Our Plant Experts',
-          subheadline: 'Years of horticultural expertise helping plant lovers grow their green sanctuaries'
-        },
-        settings: {
-          backgroundColor: 'gradient'
-        },
-        visible: true,
-        order: 1
-      },
-      values: {
-        type: 'values',
-        data: {
-          headline: 'Our Core Values',
-          description: 'The principles that guide everything we do',
-          items: [
-            {
-              id: 'sustainability',
-              title: 'Environmental Sustainability',
-              description: 'We prioritize eco-friendly practices in all aspects of our business, from sourcing to packaging.',
-              icon: 'Leaf'
-            },
-            {
-              id: 'expertise',
-              title: 'Horticultural Expertise',
-              description: 'Our team of certified professionals brings decades of plant care knowledge to every interaction.',
-              icon: 'Award'
-            },
-            {
-              id: 'quality',
-              title: 'Premium Quality',
-              description: 'We source only the healthiest plants and provide ongoing support for long-term success.',
-              icon: 'Star'
-            },
-            {
-              id: 'education',
-              title: 'Plant Education',
-              description: 'We empower customers with knowledge to become confident, successful plant parents.',
-              icon: 'BookOpen'
-            }
-          ],
-          columns: 2
-        },
-        visible: false,
-        order: 3
-      },
-      features: {
-        type: 'features',
-        data: {
-          headline: 'Professional Certifications',
-          description: 'Our credentials and expertise you can trust',
-          features: [
-            'Certified Master Gardener',
-            'ISA Certified Arborist',
-            'Sustainable Agriculture Specialist',
-            'Plant Pathology Expert',
-            'Greenhouse Management Professional'
-          ]
-        },
-        visible: false,
-        order: 5,
-        settings: {
-          backgroundColor: 'alternate'
-        }
-      },
-      richText: {
-        type: 'richText',
-        data: {
-          headline: 'Our Story',
-          content: 'Founded with a passion for plants and a commitment to sustainability, we have grown from a small local nursery into a trusted source for premium plants and expert care guidance. Our journey began with the simple belief that everyone deserves to experience the joy and benefits of thriving plants in their space.'
-        },
-        visible: true,
-        order: 6
-      },
-      cta: {
-        type: 'cta',
-        data: {
-          headline: 'Ready to Start Your Plant Journey?',
-          description: 'Let our experts help you create the perfect green sanctuary for your space.',
-          ctaText: 'Schedule Consultation',
-          ctaLink: '/consultation',
-          ctaStyle: 'primary' as ButtonStyleVariant,
-          secondaryCtaText: 'Browse Plants',
-          secondaryCtaLink: '/plants',
-          secondaryCtaStyle: 'secondary' as ButtonStyleVariant
-        },
-        visible: false,
-        order: 7,
-        settings: {
-          backgroundColor: 'primary'
-        }
-      }
-    }
-  },
-  product: {
-    required: ['header', 'features'],
-    optional: ['pricing', 'specifications'],
-    defaultSections: {
-      header: {
-        type: 'hero',
-        data: {
-          content: '',
-          alignment: 'center'
-        },
-        settings: {
-          backgroundColor: 'gradient'
-        },
-        visible: true,
-        order: 1
-      },
-      features: {
-        type: 'features',
-        data: {
-          items: [],
-          columns: 3
-        },
-        visible: true,
-        order: 2
-      },
-      pricing: {
-        type: 'pricing',
-        data: {
-          items: [],
-          columns: 3
-        },
-        visible: false,
-        order: 3
-      },
-      specifications: {
-        type: 'specifications',
-        data: {
           items: []
         },
-        visible: false,
-        order: 4
-      }
-    }
-  },
-  contact: {
-    required: [],
-    optional: ['header', 'businessInfo', 'richText', 'faq'],
-    defaultSections: {
-      header: {
-        type: 'header',
-        data: {
-          headline: 'Get Expert Plant Care Help',
-          subheadline: 'Connect with our certified horticulturists for personalized plant care guidance'
-        },
-        settings: {
-          backgroundColor: 'gradient'
-        },
-        visible: true,
-        order: 1
+        visible: false
       },
-      businessInfo: {
-        type: 'businessInfo',
+      {
+        type: 'featuresGrid',
         data: {
-          headline: 'Contact Information',
-          phone: '(555) 123-4567',
-          email: 'hello@yourcompany.com',
-          address: {
-            street: '123 Plant Avenue',
-            city: 'Green City',
-            state: 'CA',
-            zip: '94105'
-          },
-          hours: [
-            { days: 'Monday - Friday', time: '9:00 AM - 6:00 PM' },
-            { days: 'Saturday', time: '10:00 AM - 4:00 PM' },
-            { days: 'Sunday', time: 'Closed' }
-          ],
-          socials: {
-            facebook: 'https://facebook.com/yourcompany',
-            instagram: 'https://instagram.com/yourcompany',
-            twitter: '',
-            linkedin: ''
-          }
-        },
-        visible: false,
-        order: 2
-      },
-      richText: {
-        type: 'richText',
-        data: {
-          headline: '',
-          content: ''
-        },
-        visible: false,
-        order: 3
-      },
-      faq: {
-        type: 'faq',
-        data: {
-          headline: 'Frequently Asked Questions',
-          description: '',
-          faqs: [
-            {
-              id: 'faq-1',
-              question: 'How can I reach customer support?',
-              answer: 'You can reach us by phone at (555) 123-4567, by email at hello@yourcompany.com, or visit our location during business hours. We typically respond to all inquiries within 24 hours.',
-              order: 0
-            },
-            {
-              id: 'faq-2',
-              question: 'What are your business hours?',
-              answer: 'We\'re open Monday through Friday from 9:00 AM to 6:00 PM, Saturday from 10:00 AM to 4:00 PM, and closed on Sundays.',
-              order: 1
-            },
-            {
-              id: 'faq-3',
-              question: 'Do you offer consultations?',
-              answer: 'Yes! We offer free consultations to help you with your needs. Contact us to schedule an appointment at a time that works for you.',
-              order: 2
-            },
-            {
-              id: 'faq-4',
-              question: 'Where are you located?',
-              answer: 'We\'re located at 123 Plant Avenue in Green City, CA 94105. Parking is available on-site for your convenience.',
-              order: 3
-            }
+          headline: 'Our Features',
+          items: [
+            { title: 'Feature 1', description: 'Description 1', icon: 'Star' },
+            { title: 'Feature 2', description: 'Description 2', icon: 'Zap' },
+            { title: 'Feature 3', description: 'Description 3', icon: 'Shield' }
           ]
         },
+        visible: true,
         settings: {
-          backgroundColor: 'alternate'
-        },
-        visible: false,
-        order: 4
-      }
-    }
-  },
-  other: {
-    required: [], // No required sections - complete flexibility
-    optional: [
-      'hero', 'text', 'richText', 'image', 'icon', 'gallery',
-      'features', 'featured', 'categories', 'cta', 'testimonials', 'form', 'pricing',
-      'values', 'specifications'
-    ],
-    defaultSections: {
-      hero: {
-        type: 'hero',
-        data: {
-          content: '',
-          alignment: 'center'
-        },
-        settings: {
-          backgroundColor: 'gradient'
-        },
-        visible: false,
-        order: 1
+          backgroundColor: 'default'
+        }
       },
-      text: {
+      {
+        type: 'callToAction',
+        data: {
+          headline: 'Ready to get started?',
+          subheadline: 'Join us today',
+          ctaText: 'Sign Up',
+          ctaLink: '/signup',
+          ctaStyle: 'primary'
+        },
+        visible: true,
+        settings: {
+          backgroundColor: 'primary'
+        }
+      },
+      {
         type: 'text',
         data: {
-          content: ''
+          content: '<p>Welcome to our site. We provide top-notch services.</p>'
         },
-        visible: false,
-        order: 2
-      },
-      richText: {
-        type: 'richText',
+        visible: true
+      }
+    ]
+  },
+  blog: {
+    initialSections: [
+      {
+        type: 'blogHeader',
         data: {
-          content: '',
-          json: null
+          title: 'Blog Post Title',
+          subtitle: 'Subtitle',
+          author: 'Author',
+          publishedDate: new Date().toISOString().split('T')[0]
         },
-        visible: true,
-        order: 3
-      },
-      image: {
-        type: 'image',
-        data: {
-          url: '',
-          alt: '',
-          caption: ''
+        settings: {
+          backgroundColor: 'default'
         },
-        visible: false,
-        order: 4
+        visible: true
       },
-      icon: {
-        type: 'icon',
+      {
+        type: 'text',
         data: {
-          icon: 'Star',
-          iconSize: 'md'
+          content: '<p>Write your blog post content here...</p>'
         },
-        visible: false,
-        order: 5
+        visible: true
       },
-      gallery: {
-        type: 'gallery',
+      {
+        type: 'blogList',
         data: {
-          items: [],
-          columns: 3
+          limit: 3,
+          showImage: true
         },
-        visible: false,
-        order: 6
-      },
-      features: {
-        type: 'features',
+        visible: false
+      }
+    ]
+  },
+  portfolio: {
+    initialSections: [
+      {
+        type: 'hero',
         data: {
-          items: [],
-          columns: 3
-        },
-        visible: false,
-        order: 7
-      },
-      cta: {
-        type: 'cta',
-        data: {
-          content: '',
+          headline: 'Our Portfolio',
           alignment: 'center'
         },
         settings: {
-          backgroundColor: 'primary'
+          backgroundColor: 'gradient'
         },
-        visible: false,
-        order: 8
+        visible: true
       },
-      testimonials: {
-        type: 'testimonials',
+      {
+        type: 'gallery',
         data: {
-          items: [],
-          columns: 2
-        },
-        visible: false,
-        order: 9
-      },
-      form: {
-        type: 'form',
-        data: {
-          fields: [
-            {
-              id: 'name',
-              type: 'text',
-              label: 'Name',
-              required: true,
-              order: 1
-            },
-            {
-              id: 'email',
-              type: 'email',
-              label: 'Email',
-              required: true,
-              order: 2
-            },
-            {
-              id: 'message',
-              type: 'textarea',
-              label: 'Message',
-              required: true,
-              order: 3
-            }
-          ]
-        },
-        visible: false,
-        order: 10
-      },
-      pricing: {
-        type: 'pricing',
-        data: {
-          items: [],
+          images: [],
           columns: 3
         },
-        visible: false,
-        order: 11
+        visible: true
       },
-      values: {
-        type: 'values',
+      {
+        type: 'text',
         data: {
-          items: [],
-          columns: 2
+          content: '<p>Description of our work.</p>'
+        },
+        visible: false
+      }
+    ]
+  },
+  about: {
+    initialSections: [
+      {
+        type: 'header',
+        data: {
+          headline: 'About Us',
+          subheadline: 'Our story and mission'
+        },
+        settings: {
+          backgroundColor: 'gradient'
+        },
+        visible: true
+      },
+      {
+        type: 'featuresGrid',
+        data: {
+          headline: 'Our Values',
+          items: [
+            { title: 'Value 1', description: 'Description', icon: 'Heart' },
+            { title: 'Value 2', description: 'Description', icon: 'Star' }
+          ]
+        },
+        visible: false
+      },
+      {
+        type: 'text',
+        data: {
+          content: '<p>Our story...</p>'
+        },
+        visible: true
+      },
+      {
+        type: 'callToAction',
+        data: {
+          headline: 'Work With Us',
+          ctaText: 'Contact',
+          ctaLink: '/contact'
         },
         visible: false,
-        order: 14
-      },
-      specifications: {
-        type: 'specifications',
+        settings: {
+          backgroundColor: 'primary'
+        }
+      }
+    ]
+  },
+  product: {
+    initialSections: [
+      {
+        type: 'hero',
         data: {
+          headline: 'Product Name',
+          alignment: 'center'
+        },
+        settings: {
+          backgroundColor: 'gradient'
+        },
+        visible: true
+      },
+      {
+        type: 'featuresGrid',
+        data: {
+          headline: 'Features',
+          items: []
+        },
+        visible: true
+      },
+      {
+        type: 'pricing',
+        data: {
+          headline: 'Pricing',
+          items: []
+        },
+        visible: false
+      }
+    ]
+  },
+  contact: {
+    initialSections: [
+      {
+        type: 'header',
+        data: {
+          headline: 'Contact Us',
+          subheadline: 'Get in touch'
+        },
+        settings: {
+          backgroundColor: 'gradient'
+        },
+        visible: true
+      },
+      {
+        type: 'businessInfo',
+        data: {
+          headline: 'Contact Info',
+          address: '123 Main St',
+          phone: '(555) 123-4567',
+          email: 'info@example.com'
+        },
+        visible: false
+      },
+      {
+        type: 'form',
+        data: {
+          headline: 'Send us a message',
+          fields: []
+        },
+        visible: true
+      },
+      {
+        type: 'faq',
+        data: {
+          headline: 'FAQ',
           items: []
         },
         visible: false,
-        order: 15
+        settings: {
+          backgroundColor: 'alternate'
+        }
       }
-    }
+    ]
   },
-  plant_shop: {
-    required: ['hero', 'featured_plants'],
-    optional: ['plant_categories', 'seasonal_tips', 'care_guide', 'testimonials'],
-    defaultSections: {
-      hero: {
+  other: {
+    initialSections: [
+      {
         type: 'hero',
         data: {
-          content: '',
+          headline: 'Page Title',
           alignment: 'center'
         },
         settings: {
           backgroundColor: 'gradient'
         },
-        visible: true,
-        order: 1
+        visible: true
       },
-      featured_plants: {
-        type: 'plant_showcase',
+      {
+        type: 'text',
         data: {
-          items: [],
-          columns: 3,
-          careLevel: 'easy'
+          content: '<p>Content goes here...</p>'
         },
-        visible: true,
-        order: 2
-      },
-      plant_categories: {
-        type: 'plant_categories',
-        data: {
-          plantCategories: [],
-          columns: 4
-        },
-        visible: false,
-        order: 3
-      },
-      seasonal_tips: {
-        type: 'seasonal_tips',
-        data: {
-          seasonalTips: [],
-          columns: 2
-        },
-        visible: false,
-        order: 4
-      },
-      care_guide: {
-        type: 'plant_care_guide',
-        data: {
-          content: '',
-          careLevel: 'easy'
-        },
-        visible: false,
-        order: 5
-      },
-      testimonials: {
-        type: 'testimonials',
-        data: {
-          items: [],
-          columns: 2
-        },
-        visible: false,
-        order: 6
+        visible: true
       }
-    }
+    ]
+  },
+  // Plant-specific layouts (mapped to generic or kept if needed)
+  plant_shop: {
+    initialSections: [
+      {
+        type: 'hero',
+        data: { headline: 'Plant Shop', alignment: 'center' },
+        settings: { backgroundColor: 'gradient' },
+        visible: true
+      },
+      {
+        type: 'plant_grid',
+        data: {},
+        visible: true
+      }
+    ]
   },
   plant_care: {
-    required: ['header', 'care_instructions'],
-    optional: ['growing_conditions', 'seasonal_calendar', 'troubleshooting'],
-    defaultSections: {
-      header: {
+    initialSections: [
+      {
         type: 'hero',
-        data: {
-          content: '',
-          alignment: 'left'
-        },
-        settings: {
-          backgroundColor: 'gradient'
-        },
-        visible: true,
-        order: 1
+        data: { headline: 'Plant Care', alignment: 'center' },
+        settings: { backgroundColor: 'gradient' },
+        visible: true
       },
-      care_instructions: {
+      {
         type: 'plant_care_guide',
-        data: {
-          content: '',
-          careLevel: 'medium',
-          lightRequirement: 'medium',
-          wateringFrequency: 'weekly'
-        },
-        visible: true,
-        order: 2
-      },
-      growing_conditions: {
-        type: 'growing_conditions',
-        data: {
-          growingConditions: [],
-          columns: 2
-        },
-        visible: false,
-        order: 3
-      },
-      seasonal_calendar: {
-        type: 'care_calendar',
-        data: {
-          seasonalTips: []
-        },
-        visible: false,
-        order: 4
-      },
-      troubleshooting: {
-        type: 'features',
-        data: {
-          items: [],
-          columns: 2
-        },
-        visible: false,
-        order: 5
+        data: {},
+        visible: true
       }
-    }
+    ]
   },
   plant_catalog: {
-    required: ['header', 'plant_grid'],
-    optional: ['filters', 'plant_comparison', 'care_benefits'],
-    defaultSections: {
-      header: {
+    initialSections: [
+      {
         type: 'hero',
-        data: {
-          content: '',
-          alignment: 'center'
-        },
-        settings: {
-          backgroundColor: 'gradient'
-        },
-        visible: true,
-        order: 1
+        data: { headline: 'Catalog', alignment: 'center' },
+        settings: { backgroundColor: 'gradient' },
+        visible: true
       },
-      plant_grid: {
+      {
         type: 'plant_grid',
-        data: {
-          items: [],
-          columns: 3
-        },
-        visible: true,
-        order: 2
-      },
-      filters: {
-        type: 'plant_categories',
-        data: {
-          plantCategories: [],
-          columns: 4
-        },
-        visible: false,
-        order: 3
-      },
-      plant_comparison: {
-        type: 'plant_comparison',
-        data: {
-          items: [],
-          columns: 3
-        },
-        visible: false,
-        order: 4
-      },
-      care_benefits: {
-        type: 'plant_benefits',
-        data: {
-          items: [],
-          columns: 2
-        },
-        visible: false,
-        order: 5
+        data: {},
+        visible: true
       }
-    }
+    ]
   }
 }
 
