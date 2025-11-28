@@ -153,7 +153,7 @@ const VisualEditorContent = memo(function VisualEditorContent({
             onFeaturedDelete={handleFeaturedDelete}
             onFAQUpdate={handleFAQUpdate}
             onFAQDelete={handleFAQDelete}
-            onAddSection={(index) => {
+            onAddSection={(index: number) => {
               insertIndexRef.current = index
               setIsBlockPickerOpen(true)
             }}
