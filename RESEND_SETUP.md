@@ -7,6 +7,7 @@ Complete guide for configuring Resend as the email provider for Supabase Auth em
 - [Quick Setup (Local Development)](#quick-setup-local-development)
 - [Environment Configuration](#environment-configuration)
 - [Testing Email Delivery](#testing-email-delivery)
+- [API-Based Verification Email](#api-based-verification-email)
 - [Staging & Production Deployment](#staging--production-deployment)
 - [Domain Verification](#domain-verification)
 - [Switching Between Resend and Inbucket](#switching-between-resend-and-inbucket)
@@ -19,6 +20,12 @@ This platform uses Resend for sending all authentication-related emails:
 - Password reset emails
 - Email verification emails
 - Account confirmation emails
+
+**Two Integration Methods:**
+
+1. **Supabase SMTP Integration** - Resend is configured as the SMTP provider for Supabase Auth. This handles magic links, password resets, and Supabase-triggered verification emails automatically.
+
+2. **Direct API Integration** - The `/api/send-verification-email` endpoint uses Resend's SDK directly to send custom verification emails. This is useful for custom verification flows or when you need more control over the email content.
 
 **Current Configuration:**
 - **Local Dev**: Uses verified domain (`noreply@blooms-staging.cc`) - Resend SMTP active
@@ -158,6 +165,80 @@ http://blooms.local:3001/forgot-password
 2. Check email for confirmation link
 
 **Note**: By default, `enable_confirmations = false` in `supabase/config.toml` (line 186), so signup emails won't be sent unless you enable this feature.
+
+## API-Based Verification Email
+
+The platform also provides a direct API endpoint for sending verification emails using Resend's SDK. This is useful for custom verification flows or when you need more control over the email content.
+
+### API Endpoint
+
+**POST** `/api/send-verification-email`
+
+**Request Body:**
+```json
+{
+  "to": "user@example.com",
+  "verificationUrl": "https://yourdomain.com/auth/verify-email?token=abc123"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "messageId": "re_xxxxxxxx"
+}
+```
+
+**Response (Error):**
+```json
+{
+  "success": false,
+  "error": "Error message here"
+}
+```
+
+### Environment Variables
+
+The API endpoint uses these environment variables:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `RESEND_API_KEY` | Your Resend API key | `re_xxxxxxxx` |
+| `NEXT_PUBLIC_EMAIL_FROM` | Default sender email | `support@agsites.ca` |
+| `SMTP_SENDER_NAME` | Sender display name | `Brands & Blooms` |
+
+### Using in Your Code
+
+You can use the `sendVerificationEmail` utility function:
+
+```typescript
+import { sendVerificationEmail } from '@/src/lib/email'
+
+// After creating a user
+const result = await sendVerificationEmail(
+  'user@example.com',
+  'https://yourdomain.com/auth/verify-email?token=abc123'
+)
+
+if (result.success) {
+  console.log('Email sent:', result.messageId)
+} else {
+  console.error('Failed to send email:', result.error)
+}
+```
+
+### Vercel Environment Variables Setup
+
+For production deployment on Vercel, set these environment variables:
+
+1. Go to your Vercel project dashboard
+2. Navigate to **Settings** > **Environment Variables**
+3. Add the following:
+   - `RESEND_API_KEY`: Your Resend API key (e.g., `re_XXXXXXXX_XXXXXXXXXXXXXXXXXXXX`)
+   - `NEXT_PUBLIC_EMAIL_FROM`: Your sender email (e.g., `support@agsites.ca`)
+
+**Security Note:** Never commit your `RESEND_API_KEY` to version control. Always use environment variables.
 
 ## Staging & Production Deployment
 
