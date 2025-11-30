@@ -266,7 +266,7 @@ export function useContentEditor({
       }
 
       // Don't allow hiding required sections
-      if (layoutConfig.required.includes(sectionKey) && currentSection.visible) {
+      if ((layoutConfig?.required || []).includes(sectionKey) && currentSection.visible) {
         return prev
       }
 
@@ -456,7 +456,7 @@ export function useContentEditor({
       const layoutConfig = LAYOUT_SECTIONS[layout]
       
       // Don't allow removing required sections
-      if (layoutConfig.required.includes(sectionKey)) {
+      if ((layoutConfig?.required || []).includes(sectionKey)) {
         console.warn(`Cannot remove required section: ${sectionKey}`)
         return prev
       }

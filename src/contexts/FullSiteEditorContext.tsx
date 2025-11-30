@@ -947,7 +947,7 @@ export function FullSiteEditorProvider({
     if (!section) return
 
     const layoutConfig = LAYOUT_SECTIONS[state.layout]
-    const isRequired = layoutConfig.required.includes(sectionKey)
+    const isRequired = (layoutConfig?.required || []).includes(sectionKey)
 
     if (isRequired && section.visible) {
       toast.error('Required sections cannot be hidden')

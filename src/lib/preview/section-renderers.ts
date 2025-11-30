@@ -15,10 +15,11 @@ export function getLayoutSections(
 ): Array<{ key: string; section: ContentSection }> {
   // Map sections to key/section pairs
   // Visibility is handled at render time by the component
-  return sections.map(section => ({
+  
+  return sections && Array.isArray(sections) ? sections.map(section => ({
     key: section.id,
     section
-  }))
+  })) : []
 }
 
 /**

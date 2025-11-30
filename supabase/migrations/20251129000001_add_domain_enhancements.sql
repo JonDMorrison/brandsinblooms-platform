@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS public.domain_events (
 CREATE INDEX IF NOT EXISTS idx_domain_events_domain_created ON public.domain_events(domain_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_domain_events_site_created ON public.domain_events(site_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_domain_events_session ON public.domain_events(session_id);
-CREATE INDEX IF NOT EXISTS idx_domain_events_date ON public.domain_events(CAST(created_at AS DATE));
+-- CREATE INDEX IF NOT EXISTS idx_domain_events_date ON public.domain_events(CAST(created_at AS DATE));
 
 -- Create subdomain_templates table
 CREATE TABLE IF NOT EXISTS public.subdomain_templates (

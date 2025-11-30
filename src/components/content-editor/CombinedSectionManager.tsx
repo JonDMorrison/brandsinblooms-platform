@@ -58,7 +58,7 @@ import { cn } from '@/src/lib/utils'
 import { 
   PageContent, 
   ContentSection, 
-  ContentSectionType,
+  SectionType,
   LayoutType,
   LAYOUT_SECTIONS 
 } from '@/src/lib/content/schema'
@@ -77,7 +77,7 @@ interface CombinedSectionManagerProps {
   activeSectionKey?: string
   isDraggingEnabled?: boolean
   onSectionUpdate?: (sectionKey: string, section: ContentSection) => void
-  onAddSection?: (sectionType: ContentSectionType, variant?: string) => void
+  onAddSection?: (sectionType: SectionType, variant?: string) => void
   onRemoveSection?: (sectionKey: string) => void
 }
 
@@ -152,7 +152,7 @@ function ExpandableSectionCard({
     return 'other'
   }
 
-  const getSectionIcon = (type: ContentSectionType) => {
+  const getSectionIcon = (type: SectionType) => {
     const iconMap: Record<string, string> = {
       hero: '🦸',
       header: '📋',
@@ -392,7 +392,6 @@ function ExpandableSectionCard({
                 }
               }}
               disabled={isRequired}
-              size="sm"
             />
           </div>
         </div>
@@ -426,8 +425,8 @@ function ExpandableSectionCard({
 
 // Add Section Card Component for missing sections
 interface AddSectionCardProps {
-  sectionType: ContentSectionType
-  onAddSection: (sectionType: ContentSectionType, variant?: string) => void
+  sectionType: SectionType
+  onAddSection: (sectionType: SectionType, variant?: string) => void
 }
 
 type RichTextVariant = 'mission' | 'story' | 'contact' | 'other'
@@ -457,7 +456,7 @@ export function createRichTextTemplate(variant: RichTextVariant) {
 }
 
 function AddSectionCard({ sectionType, onAddSection }: AddSectionCardProps) {
-  const getSectionIcon = (type: ContentSectionType) => {
+  const getSectionIcon = (type: SectionType) => {
     const iconMap: Record<string, string> = {
       hero: '🦸',
       header: '📋',
@@ -709,7 +708,36 @@ export function CombinedSectionManager({
   onAddSection,
   onRemoveSection
 }: CombinedSectionManagerProps) {
-  const layoutConfig = LAYOUT_SECTIONS[layout]
+  // Ensure layoutConfig always has array properties - memoized to prevent re-creation
+  const layoutConfig = useMemo(() => {
+    // Defensive: ensure layout is valid before accessing LAYOUT_SECTIONS
+    if (!layout || typeof layout !== 'string') {
+      console.warn('Invalid layout provided to CombinedSectionManager:', layout)
+      return { 
+        required: [], 
+        optional: [], 
+        initialSections: [] 
+      }
+    }
+    
+    const rawConfig = LAYOUT_SECTIONS[layout]
+    
+    if (!rawConfig) {
+      console.warn('No configuration found for layout:', layout)
+      return { 
+        required: [], 
+        optional: [], 
+        initialSections: [] 
+      }
+    }
+    
+    return {
+      required: Array.isArray(rawConfig.required) ? rawConfig.required : [],
+      optional: Array.isArray(rawConfig.optional) ? rawConfig.optional : [],
+      initialSections: Array.isArray(rawConfig.initialSections) ? rawConfig.initialSections : []
+    }
+  }, [layout])
+  
   const [activeId, setActiveId] = useState<string | null>(null)
   const [expandedSectionKey, setExpandedSectionKey] = useState<string | null>(null)
   const [draggedSection, setDraggedSection] = useState<{
@@ -720,12 +748,29 @@ export function CombinedSectionManager({
   
   // Get all available sections for this layout
   const allAvailableSections = useMemo(() => {
-    const existingSections = Object.keys(content.sections)
-    const requiredSections = layoutConfig.required
-    const optionalSections = layoutConfig.optional
+    // Initialize with empty arrays
+    const result: string[] = []
     
-    return [...requiredSections, ...optionalSections]
-  }, [layoutConfig, content.sections])
+    try {
+      // Safely get required sections
+      if (layoutConfig?.required) {
+        if (Array.isArray(layoutConfig.required)) {
+          result.push(...layoutConfig.required)
+        }
+      }
+      
+      // Safely get optional sections
+      if (layoutConfig?.optional) {
+        if (Array.isArray(layoutConfig.optional)) {
+          result.push(...layoutConfig.optional)
+        }
+      }
+    } catch (e) {
+      console.error('Error processing layout config in allAvailableSections:', e, { layoutConfig })
+    }
+    
+    return result
+  }, [layoutConfig])
 
   // Get existing sections (sorted by order)
   const sortedSections = useMemo(() => {
@@ -741,17 +786,18 @@ export function CombinedSectionManager({
     const existingSectionKeys = Object.keys(content.sections)
 
     // Section types that allow multiple instances
-    const multipleInstanceTypes: ContentSectionType[] = ['richText']
+    const multipleInstanceTypes: string[] = ['richText']
 
-    return layoutConfig.optional.filter(sectionKey => {
+    const optionalSections = Array.isArray(layoutConfig?.optional) ? layoutConfig.optional : []
+    return optionalSections.filter(sectionKey => {
       // Always allow multiple instance types to be added
-      if (multipleInstanceTypes.includes(sectionKey as ContentSectionType)) {
+      if (multipleInstanceTypes.includes(sectionKey)) {
         return true
       }
       // For other types, only show if they don't exist yet
       return !existingSectionKeys.includes(sectionKey)
     })
-  }, [layoutConfig.optional, content.sections])
+  }, [layoutConfig, content.sections])
 
   // Configure sensors for touch and pointer devices
   const sensors = useSensors(
@@ -987,7 +1033,7 @@ export function CombinedSectionManager({
                 <div className="space-y-2 relative">
                   {/* Existing Sections */}
                   {sortedSections.map(([sectionKey, section]) => {
-                    const isRequired = layoutConfig.required.includes(sectionKey)
+                    const isRequired = (layoutConfig?.required || []).includes(sectionKey)
                     const isActive = activeSectionKey === sectionKey
                     const isExpanded = expandedSectionKey === sectionKey
                     
@@ -1017,7 +1063,7 @@ export function CombinedSectionManager({
                       {missingSections.map((sectionType) => (
                         <div key={`add-${sectionType}`} className="mb-2">
                           <AddSectionCard
-                            sectionType={sectionType as ContentSectionType}
+                            sectionType={sectionType as SectionType}
                             onAddSection={onAddSection}
                           />
                         </div>
@@ -1039,7 +1085,7 @@ export function CombinedSectionManager({
                     <ExpandableSectionCard
                       sectionKey={draggedSection.key}
                       section={draggedSection.section}
-                      isRequired={layoutConfig.required.includes(draggedSection.key)}
+                      isRequired={(layoutConfig?.required || []).includes(draggedSection.key)}
                       isActive={activeSectionKey === draggedSection.key}
                       isExpanded={false}
                       onToggleVisibility={onToggleVisibility}
@@ -1059,7 +1105,7 @@ export function CombinedSectionManager({
             <div className="space-y-2">
               {/* Existing Sections */}
               {sortedSections.map(([sectionKey, section]) => {
-                const isRequired = layoutConfig.required.includes(sectionKey)
+                const isRequired = (layoutConfig?.required || []).includes(sectionKey)
                 const isActive = activeSectionKey === sectionKey
                 const isExpanded = expandedSectionKey === sectionKey
                 
@@ -1089,7 +1135,7 @@ export function CombinedSectionManager({
                   {missingSections.map((sectionType) => (
                     <div key={`add-${sectionType}`} className="mb-2">
                       <AddSectionCard
-                        sectionType={sectionType as ContentSectionType}
+                        sectionType={sectionType as SectionType}
                         onAddSection={onAddSection}
                       />
                     </div>

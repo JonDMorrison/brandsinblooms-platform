@@ -16,8 +16,7 @@ import {
     DollarSign,
     FormInput,
     Building,
-    LayoutTop,
-    LayoutBottom,
+    Layout,
     Flower,
     Sprout,
     Sun,
@@ -38,6 +37,7 @@ import {
 export type CoreSectionType =
     | 'hero'
     | 'text'
+    | 'richText'
     | 'textMedia'
     | 'textWithImage'
     | 'featuresGrid'
@@ -95,6 +95,7 @@ export interface ContentSection {
     id: string
     type: SectionType
     visible: boolean
+    order?: number
     settings?: {
         backgroundColor?: 'default' | 'alternate' | 'primary' | 'dark' | 'gradient'
         padding?: 'none' | 'small' | 'medium' | 'large'
@@ -134,6 +135,15 @@ export interface TextMediaData {
 }
 
 export const SECTION_REGISTRY: Record<SectionType, SectionMetadata> = {
+    richText: {
+        label: 'Rich Text',
+        description: 'Flexible text editor with formatting options',
+        icon: Type,
+        category: 'content',
+        defaultData: {
+            content: '<p>Enter your text here...</p>'
+        }
+    },
     hero: {
         label: 'Hero',
         description: 'Large introductory section with headline and CTA',
@@ -501,21 +511,21 @@ export const SECTION_REGISTRY: Record<SectionType, SectionMetadata> = {
         }
     },
     // Legacy/Specific mappings
+    // Legacy/Specific mappings
     header: {
         label: 'Header',
         description: 'Site header',
-        icon: LayoutTop,
+        icon: Layout,
         category: 'content',
         defaultData: {}
     },
     footer: {
         label: 'Footer',
         description: 'Site footer',
-        icon: LayoutBottom,
+        icon: Layout,
         category: 'content',
         defaultData: {}
     },
-    // Plant specific
     plant_showcase: {
         label: 'Plant Showcase',
         description: 'Highlight specific plants',

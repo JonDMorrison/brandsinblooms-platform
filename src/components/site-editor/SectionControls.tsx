@@ -36,7 +36,7 @@ export function SectionControls({ sectionKey, section, onSettingsClick, onDelete
 
   // Determine if this section is required for the current layout
   const layoutConfig = LAYOUT_SECTIONS[layout]
-  const isRequired = layoutConfig.required.includes(sectionKey)
+  const isRequired = (layoutConfig?.required || []).includes(sectionKey)
 
   // Determine if this section is first or last for up/down button states
   // Consider ALL sections (visible and hidden) since reordering works on all sections

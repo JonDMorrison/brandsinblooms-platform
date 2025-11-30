@@ -39,7 +39,7 @@ import { restrictToVerticalAxis, restrictToFirstScrollableAncestor } from '@dnd-
 import { 
   PageContent, 
   ContentSection, 
-  ContentSectionType,
+  SectionType,
   LayoutType,
   LAYOUT_SECTIONS 
 } from '@/src/lib/content/schema'
@@ -93,7 +93,7 @@ function SectionItem({
   isDragging = false,
   isOverlay = false
 }: SectionItemProps) {
-  const getSectionIcon = (type: ContentSectionType) => {
+  const getSectionIcon = (type: SectionType) => {
     // Content-aware icons for Rich Text sections
     if (type === 'richText') {
       const contentType = getRichTextContentType(section)
@@ -121,7 +121,7 @@ function SectionItem({
       values: '💎',
       specifications: '📋'
     }
-    return iconMap[type] || '📄'
+    return (iconMap as any)[type] || '📄'
   }
 
   const getSectionStatus = () => {
@@ -304,7 +304,6 @@ function SectionItem({
           checked={section.visible}
           onCheckedChange={() => onToggleVisibility(sectionKey)}
           disabled={isRequired}
-          size="sm"
           onClick={(e) => e.stopPropagation()}
         />
       </div>
@@ -366,7 +365,7 @@ export function SectionManager({
   activeSectionKey,
   isDraggingEnabled = true
 }: SectionManagerProps) {
-  const layoutConfig = LAYOUT_SECTIONS[layout]
+  const layoutConfig = LAYOUT_SECTIONS[layout] || { required: [], optional: [], initialSections: [] }
   const [activeId, setActiveId] = useState<string | null>(null)
   const [draggedSection, setDraggedSection] = useState<{
     key: string
@@ -530,7 +529,7 @@ export function SectionManager({
               >
                 <div className="space-y-2 relative">
                   {sortedSections.map(([sectionKey, section], index) => {
-                    const isRequired = layoutConfig.required.includes(sectionKey)
+                    const isRequired = (layoutConfig?.required || []).includes(sectionKey)
                     const isActive = activeSectionKey === sectionKey
                     
                     return (
@@ -567,7 +566,7 @@ export function SectionManager({
                       sectionKey={draggedSection.key}
                       section={draggedSection.section}
                       content={content}
-                      isRequired={layoutConfig.required.includes(draggedSection.key)}
+                      isRequired={(layoutConfig?.required || []).includes(draggedSection.key)}
                       isActive={activeSectionKey === draggedSection.key}
                       canMoveUp={false}
                       canMoveDown={false}
@@ -585,7 +584,7 @@ export function SectionManager({
             // Fallback to non-draggable version
             <div className="space-y-2">
               {sortedSections.map(([sectionKey, section], index) => {
-                const isRequired = layoutConfig.required.includes(sectionKey)
+                const isRequired = (layoutConfig?.required || []).includes(sectionKey)
                 const isActive = activeSectionKey === sectionKey
                 
                 return (

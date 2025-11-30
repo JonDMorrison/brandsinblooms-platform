@@ -84,7 +84,7 @@ export function VisualEditorToolbar({
 
     // Check if this is a required section - don't allow hiding required sections
     const layoutConfig = LAYOUT_SECTIONS[layout]
-    if (layoutConfig?.required.includes(sectionKey) && currentSection.visible) {
+    if ((layoutConfig?.required || []).includes(sectionKey) && currentSection.visible) {
       // Show a toast notification that required sections can't be hidden
       toast.info('Required sections cannot be hidden')
       return
@@ -182,7 +182,7 @@ export function VisualEditorToolbar({
             
             {sections.map(({ key, section, elementCount }) => {
               const layoutConfig = LAYOUT_SECTIONS[layout]
-              const isRequired = layoutConfig?.required.includes(key)
+              const isRequired = (layoutConfig?.required || []).includes(key)
 
               return (
                 <DropdownMenuItem
