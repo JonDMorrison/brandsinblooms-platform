@@ -13,7 +13,7 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.0.22",
+    "@cloudflare/vitest-pool-workers": "^0.10.11",
     "@cloudflare/workers-types": "^4.20230904.0",
     "eslint": "^9.4.1",
     "typescript": "^5.4.2",
