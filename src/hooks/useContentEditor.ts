@@ -4,20 +4,20 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { supabase } from '@/src/lib/supabase/client'
 import { getContentById, updateContent } from '@/src/lib/queries/domains/content'
 
-import { 
-  PageContent, 
-  ContentSection, 
-  ContentSectionType,
+import {
+  PageContent,
+  ContentSection,
+  SectionType,
   LayoutType,
   LAYOUT_SECTIONS,
   isPageContent,
   isLegacyContent
 } from '@/src/lib/content/schema'
 
-import { 
-  migrateContent, 
-  validatePageContent, 
-  initializeDefaultContent 
+import {
+  migrateContent,
+  validatePageContent,
+  initializeDefaultContent
 } from '@/src/lib/content/migration'
 
 import { handleError } from '@/src/lib/types/error-handling'
@@ -39,13 +39,13 @@ interface UseContentEditorReturn {
   errors: string[]
   isLoading: boolean
   isSaving: boolean
-  updateSection: (sectionKey: string, section: ContentSection) => void
-  toggleSectionVisibility: (sectionKey: string) => void
-  moveSectionUp: (sectionKey: string) => void
-  moveSectionDown: (sectionKey: string) => void
-  reorderSections: (sections: Array<{ key: string; section: ContentSection }>) => void
-  addSection: (sectionType: ContentSectionType, variant?: string) => void
-  removeSection: (sectionKey: string) => void
+  updateSection: (sectionId: string, section: ContentSection) => void
+  toggleSectionVisibility: (sectionId: string) => void
+  moveSectionUp: (sectionId: string) => void
+  moveSectionDown: (sectionId: string) => void
+  reorderSections: (sections: ContentSection[]) => void
+  addSection: (sectionType: SectionType, variant?: string) => void
+  removeSection: (sectionId: string) => void
   saveContent: () => Promise<void>
   resetContent: () => void
   loadContent: () => Promise<void>
@@ -59,11 +59,11 @@ export function useContentEditor({
   onSave,
   onContentChange
 }: UseContentEditorProps): UseContentEditorReturn {
-  const [content, setContent] = useState<PageContent>(() => 
-    initialContent || { version: '1.0', layout, sections: {} }  // Don't initialize with defaults
+  const [content, setContent] = useState<PageContent>(() =>
+    initialContent || { version: '2.0', layout, sections: [] }
   )
-  const [originalContent, setOriginalContent] = useState<PageContent>(() => 
-    initialContent || { version: '1.0', layout, sections: {} }  // Don't initialize with defaults
+  const [originalContent, setOriginalContent] = useState<PageContent>(() =>
+    initialContent || { version: '2.0', layout, sections: [] }
   )
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -112,7 +112,7 @@ export function useContentEditor({
     setIsLoading(true)
     try {
       const dbContent = await getContentById(supabase, siteId, contentId)
-      
+
       let pageContent: PageContent
 
       // Handle content migration
@@ -129,14 +129,14 @@ export function useContentEditor({
             autoFixVisibility: true
           }
         )
-        
+
         if (migrationResult.success && migrationResult.data) {
           pageContent = migrationResult.data
           // Inject title/subtitle into hero section if available
           if ((pageContent.sections.hero || pageContent.sections.header) && dbContent.title) {
             const heroSection = pageContent.sections.hero || pageContent.sections.header
             const heroKey = pageContent.sections.hero ? 'hero' : 'header'
-            
+
             let heroContent = ''
             if (dbContent.title) {
               heroContent += `<h1>${dbContent.title}</h1>`
@@ -147,7 +147,7 @@ export function useContentEditor({
             if (heroSection.data.content) {
               heroContent += heroSection.data.content
             }
-            
+
             pageContent.sections[heroKey] = {
               ...heroSection,
               data: { ...heroSection.data, content: heroContent }
@@ -231,80 +231,43 @@ export function useContentEditor({
   }, [contentId, siteId, content, isValid, onSave])
 
   // Update section
-  const updateSection = useCallback((sectionKey: string, section: ContentSection) => {
-    setContent(prev => ({
+  const updateSection = useCallback((sectionId: string, section: ContentSection) => {
+    setContent((prev: PageContent) => ({
       ...prev,
-      sections: {
-        ...prev.sections,
-        [sectionKey]: section
-      }
+      sections: prev.sections.map((s: ContentSection) => s.id === sectionId ? section : s)
     }))
   }, [])
 
   // Toggle section visibility
-  const toggleSectionVisibility = useCallback((sectionKey: string) => {
-    setContent(prev => {
-      const currentSection = prev.sections[sectionKey]
-      const layoutConfig = LAYOUT_SECTIONS[layout]
+  const toggleSectionVisibility = useCallback((sectionId: string) => {
+    setContent((prev: PageContent) => {
+      const currentSection = prev.sections.find(s => s.id === sectionId)
 
       if (!currentSection) {
-        // Create section if it doesn't exist (for optional sections)
-        const defaultSection = layoutConfig.defaultSections[sectionKey]
-        if (defaultSection) {
-          return {
-            ...prev,
-            sections: {
-              ...prev.sections,
-              [sectionKey]: {
-                ...defaultSection,
-                visible: true
-              }
-            }
-          }
-        }
-        return prev
-      }
-
-      // Don't allow hiding required sections
-      if (layoutConfig.required.includes(sectionKey) && currentSection.visible) {
+        console.warn(`Section with id ${sectionId} not found`)
         return prev
       }
 
       return {
         ...prev,
-        sections: {
-          ...prev.sections,
-          [sectionKey]: {
-            ...currentSection,
-            visible: !currentSection.visible
-          }
-        }
+        sections: prev.sections.map((s: ContentSection) =>
+          s.id === sectionId ? { ...s, visible: !s.visible } : s
+        )
       }
     })
-  }, [layout])
+  }, [])
 
   // Move section up
-  const moveSectionUp = useCallback((sectionKey: string) => {
-    setContent(prev => {
-      const sections = Object.entries(prev.sections)
-        .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
-      
-      const currentIndex = sections.findIndex(([key]) => key === sectionKey)
+  const moveSectionUp = useCallback((sectionId: string) => {
+    setContent((prev: PageContent) => {
+      const currentIndex = prev.sections.findIndex(s => s.id === sectionId)
       if (currentIndex <= 0) return prev
 
       // Swap with previous section
-      const newSections = { ...prev.sections }
-      const currentOrder = sections[currentIndex][1].order || currentIndex
-      const previousOrder = sections[currentIndex - 1][1].order || (currentIndex - 1)
-
-      newSections[sectionKey] = {
-        ...newSections[sectionKey],
-        order: previousOrder
-      }
-      newSections[sections[currentIndex - 1][0]] = {
-        ...newSections[sections[currentIndex - 1][0]],
-        order: currentOrder
-      }
+      const newSections = [...prev.sections]
+      const temp = newSections[currentIndex]
+      newSections[currentIndex] = newSections[currentIndex - 1]
+      newSections[currentIndex - 1] = temp
 
       return {
         ...prev,
@@ -314,27 +277,16 @@ export function useContentEditor({
   }, [])
 
   // Move section down
-  const moveSectionDown = useCallback((sectionKey: string) => {
-    setContent(prev => {
-      const sections = Object.entries(prev.sections)
-        .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
-      
-      const currentIndex = sections.findIndex(([key]) => key === sectionKey)
-      if (currentIndex < 0 || currentIndex >= sections.length - 1) return prev
+  const moveSectionDown = useCallback((sectionId: string) => {
+    setContent((prev: PageContent) => {
+      const currentIndex = prev.sections.findIndex(s => s.id === sectionId)
+      if (currentIndex < 0 || currentIndex >= prev.sections.length - 1) return prev
 
       // Swap with next section
-      const newSections = { ...prev.sections }
-      const currentOrder = sections[currentIndex][1].order || currentIndex
-      const nextOrder = sections[currentIndex + 1][1].order || (currentIndex + 1)
-
-      newSections[sectionKey] = {
-        ...newSections[sectionKey],
-        order: nextOrder
-      }
-      newSections[sections[currentIndex + 1][0]] = {
-        ...newSections[sections[currentIndex + 1][0]],
-        order: currentOrder
-      }
+      const newSections = [...prev.sections]
+      const temp = newSections[currentIndex]
+      newSections[currentIndex] = newSections[currentIndex + 1]
+      newSections[currentIndex + 1] = temp
 
       return {
         ...prev,
@@ -344,132 +296,72 @@ export function useContentEditor({
   }, [])
 
   // Reorder sections in bulk with optimistic updates
-  const reorderSections = useCallback((sections: Array<{ key: string; section: ContentSection }>) => {
-    setContent(prev => {
-      const newSections: { [key: string]: ContentSection } = {}
-      
-      // Rebuild sections object with new order
-      sections.forEach(({ key, section }) => {
-        newSections[key] = section
-      })
-      
-      return {
-        ...prev,
-        sections: newSections
-      }
-    })
+  const reorderSections = useCallback((sections: ContentSection[]) => {
+    setContent((prev: PageContent) => ({
+      ...prev,
+      sections
+    }))
   }, [])
 
   // Add section
-  const addSection = useCallback((sectionType: ContentSectionType, variant?: string) => {
-    setContent(prev => {
+  const addSection = useCallback((sectionType: SectionType, variant?: string) => {
+    setContent((prev: PageContent) => {
       const layoutConfig = LAYOUT_SECTIONS[layout]
-      const defaultSection = layoutConfig.defaultSections[sectionType]
+      const defaultSectionTemplate = layoutConfig.initialSections?.find((s: Partial<ContentSection>) => s.type === sectionType)
 
-      if (!defaultSection) {
+      if (!defaultSectionTemplate) {
         console.warn(`No default section found for type: ${sectionType}`)
         return prev
       }
 
-      // Calculate next order first
-      const existingOrders = Object.values(prev.sections).map(s => s.order || 0)
-      const nextOrder = Math.max(0, ...existingOrders) + 1
+      // Create new section with unique ID
+      const newSection: ContentSection = {
+        id: crypto.randomUUID(),
+        type: sectionType,
+        data: JSON.parse(JSON.stringify(defaultSectionTemplate.data || {})),
+        visible: true,
+        settings: defaultSectionTemplate.settings || {}
+      }
 
-      // Apply variant template for Rich Text sections and handle variant-aware key generation
-      let sectionData = { ...defaultSection.data }
-      let sectionKey = sectionType
-
-      if (sectionType === 'richText' && variant) {
+      // For text sections with variants, customize the content
+      if (sectionType === 'text' && variant) {
         const template = createRichTextTemplate(variant as 'mission' | 'story' | 'contact' | 'other')
 
-        // Find existing Rich Text sections of the same variant type
-        const sameVariantSections = Object.entries(prev.sections).filter(([key, section]) => {
-          if (!key.startsWith('richText') || section.type !== 'richText') return false
-
-          // Check if this section has the same variant by analyzing its content
-          const content = section.data.content || ''
-
-          // Look for any H2 that starts with our variant headline
-          // This catches both "Our Mission" and "Our Mission 02", "Our Mission 03", etc.
+        // Find existing text sections with the same variant
+        const sameVariantSections = prev.sections.filter((s: ContentSection) => {
+          if (s.type !== 'text') return false
+          const content = s.data.content || ''
           const h2Regex = new RegExp(`<h2[^>]*>\\s*${template.headline.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\s+\\d+)?\\s*</h2>`, 'i')
-
           return h2Regex.test(content)
         })
 
-
-        // Generate display name based on count of same variant sections
+        // Generate display name
         let displayName = template.headline
         if (sameVariantSections.length > 0) {
-          // This is not the first instance of this variant type
           const number = sameVariantSections.length + 1
           const paddedNumber = number.toString().padStart(2, '0')
           displayName = `${template.headline} ${paddedNumber}`
         }
 
-        // Generate unique section key (this is separate from display naming)
-        if (!prev.sections['richText']) {
-          sectionKey = 'richText'
-        } else {
-          // Find next available richText_N key
-          let counter = 1
-          while (prev.sections[`richText_${counter}`]) {
-            counter++
-          }
-          sectionKey = `richText_${counter}`
-        }
-
-        // Create content with centered H2 and template content
-        const contentWithH2 = `<h2 style="text-align: center;">${displayName}</h2>\n\n${template.content}`
-
-        sectionData = {
-          content: contentWithH2,
-          // Remove headline since we're putting it in the content
-          headline: undefined
-        }
-      } else {
-        // Non-Rich Text sections use original key generation logic
-        let counter = 1
-        while (prev.sections[sectionKey]) {
-          sectionKey = `${sectionType}_${counter}`
-          counter++
+        newSection.data = {
+          content: `<h2 style="text-align: center;">${displayName}</h2>\n\n${template.content}`
         }
       }
 
       return {
         ...prev,
-        sections: {
-          ...prev.sections,
-          [sectionKey]: {
-            ...defaultSection,
-            data: sectionData,
-            order: nextOrder,
-            visible: true
-          }
-        }
+        sections: [...prev.sections, newSection]
       }
     })
   }, [layout])
 
   // Remove section
-  const removeSection = useCallback((sectionKey: string) => {
-    setContent(prev => {
-      const layoutConfig = LAYOUT_SECTIONS[layout]
-      
-      // Don't allow removing required sections
-      if (layoutConfig.required.includes(sectionKey)) {
-        console.warn(`Cannot remove required section: ${sectionKey}`)
-        return prev
-      }
-
-      const newSections = { ...prev.sections }
-      delete newSections[sectionKey]
-
-      return {
-        ...prev,
-        sections: newSections
-      }
-    })
-  }, [layout])
+  const removeSection = useCallback((sectionId: string) => {
+    setContent((prev: PageContent) => ({
+      ...prev,
+      sections: prev.sections.filter((s: ContentSection) => s.id !== sectionId)
+    }))
+  }, [])
 
   // Reset content to original state
   const resetContent = useCallback(() => {

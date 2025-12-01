@@ -44,7 +44,7 @@ const ICON_CATEGORIES = {
 // Get all available icons and create searchable list
 const getAllIcons = (): IconOption[] => {
   const iconList: IconOption[] = [];
-  
+
   // Get all category icons first
   Object.entries(ICON_CATEGORIES).forEach(([category, iconNames]) => {
     iconNames.forEach(iconName => {
@@ -58,15 +58,15 @@ const getAllIcons = (): IconOption[] => {
       }
     });
   });
-  
+
   // Add any additional icons that aren't in categories
   Object.keys(LucideIcons).forEach(iconName => {
     // Skip non-icon exports
     if (iconName === 'createLucideIcon' || iconName === 'Icon') return;
-    
+
     // Skip if already in our list
     if (iconList.some(icon => icon.name === iconName)) return;
-    
+
     const IconComponent = (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[iconName];
     if (IconComponent && typeof IconComponent === 'function') {
       iconList.push({
@@ -76,7 +76,7 @@ const getAllIcons = (): IconOption[] => {
       });
     }
   });
-  
+
   return iconList.sort((a, b) => a.name.localeCompare(b.name));
 };
 
@@ -106,12 +106,14 @@ function IconPickerComponent<
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [allIcons] = React.useState<IconOption[]>(() => getAllIcons());
-  
+  // State for uncontrolled mode
+  const [internalSelectedIcon, setInternalSelectedIcon] = React.useState<string>('');
+
   const filteredIcons = React.useMemo(() => {
     if (!searchQuery.trim()) {
       return allIcons.slice(0, maxResults);
     }
-    
+
     const query = searchQuery.toLowerCase();
     const filtered = allIcons.filter(icon => {
       return (
@@ -119,7 +121,7 @@ function IconPickerComponent<
         icon.keywords?.some(keyword => keyword.includes(query))
       );
     });
-    
+
     return filtered.slice(0, maxResults);
   }, [searchQuery, allIcons, maxResults]);
 
@@ -127,11 +129,11 @@ function IconPickerComponent<
     if (required && (!value || value.trim().length === 0)) {
       return `${label} is required`;
     }
-    
+
     if (value && !allIcons.find(icon => icon.name === value)) {
       return 'Please select a valid icon';
     }
-    
+
     return true;
   }, [label, required, allIcons]);
 
@@ -156,7 +158,7 @@ function IconPickerComponent<
     }
 
     const IconComponent = icon.component;
-    
+
     return (
       <PopoverTrigger asChild>
         <Button
@@ -169,8 +171,8 @@ function IconPickerComponent<
             selectedIcon && "border-primary"
           )}
           aria-describedby={
-            error ? `${name}-error` : 
-            helperText ? `${name}-description` : undefined
+            error ? `${name}-error` :
+              helperText ? `${name}-description` : undefined
           }
         >
           <IconComponent size={iconSize} className="mr-2" />
@@ -201,10 +203,10 @@ function IconPickerComponent<
               )}>
                 {label}
               </Label>
-              
+
               <Popover open={isOpen} onOpenChange={setIsOpen}>
                 {renderIconButton(selectedIcon, selectedIcon)}
-                
+
                 <PopoverContent className="w-80 p-0" align="start">
                   <div className="p-3 space-y-3">
                     {showSearch && (
@@ -229,18 +231,18 @@ function IconPickerComponent<
                         )}
                       </div>
                     )}
-                    
+
                     <div className="text-xs text-gray-500 px-1">
                       {filteredIcons.length} {filteredIcons.length === 1 ? 'icon' : 'icons'}
                       {searchQuery && ` matching "${searchQuery}"`}
                     </div>
-                    
+
                     <ScrollArea className="h-64">
                       <div className="grid grid-cols-4 gap-1 p-1">
                         {filteredIcons.map((icon) => {
                           const IconComponent = icon.component;
                           const isSelected = selectedIcon === icon.name;
-                          
+
                           return (
                             <Button
                               key={icon.name}
@@ -262,14 +264,14 @@ function IconPickerComponent<
                           );
                         })}
                       </div>
-                      
+
                       {filteredIcons.length === 0 && (
                         <div className="flex items-center justify-center h-32 text-sm text-gray-500">
                           No icons found
                         </div>
                       )}
                     </ScrollArea>
-                    
+
                     {selectedIcon && (
                       <div className="border-t pt-3">
                         <Button
@@ -286,10 +288,10 @@ function IconPickerComponent<
                   </div>
                 </PopoverContent>
               </Popover>
-              
+
               <div className="min-h-[1.25rem]">
                 {fieldError && (
-                  <p 
+                  <p
                     id={`${name}-error`}
                     className="text-sm text-destructive"
                     role="alert"
@@ -298,7 +300,7 @@ function IconPickerComponent<
                   </p>
                 )}
                 {!fieldError && helperText && (
-                  <p 
+                  <p
                     id={`${name}-description`}
                     className="text-sm text-gray-500"
                   >
@@ -314,7 +316,6 @@ function IconPickerComponent<
   }
 
   // Uncontrolled version for direct usage without React Hook Form
-  const [selectedIcon, setSelectedIcon] = React.useState<string>('');
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -323,10 +324,10 @@ function IconPickerComponent<
       )}>
         {label}
       </Label>
-      
+
       <Popover open={isOpen} onOpenChange={setIsOpen}>
-        {renderIconButton(selectedIcon)}
-        
+        {renderIconButton(internalSelectedIcon)}
+
         <PopoverContent className="w-80 p-0" align="start">
           <div className="p-3 space-y-3">
             {showSearch && (
@@ -351,18 +352,18 @@ function IconPickerComponent<
                 )}
               </div>
             )}
-            
+
             <div className="text-xs text-gray-500 px-1">
               {filteredIcons.length} {filteredIcons.length === 1 ? 'icon' : 'icons'}
               {searchQuery && ` matching "${searchQuery}"`}
             </div>
-            
+
             <ScrollArea className="h-64">
               <div className="grid grid-cols-4 gap-1 p-1">
                 {filteredIcons.map((icon) => {
                   const IconComponent = icon.component;
-                  const isSelected = selectedIcon === icon.name;
-                  
+                  const isSelected = internalSelectedIcon === icon.name;
+
                   return (
                     <Button
                       key={icon.name}
@@ -374,7 +375,7 @@ function IconPickerComponent<
                         isSelected && "bg-primary text-primary-foreground"
                       )}
                       onClick={() => {
-                        setSelectedIcon(icon.name);
+                        setInternalSelectedIcon(icon.name);
                         setIsOpen(false);
                         setSearchQuery('');
                       }}
@@ -388,15 +389,15 @@ function IconPickerComponent<
                   );
                 })}
               </div>
-              
+
               {filteredIcons.length === 0 && (
                 <div className="flex items-center justify-center h-32 text-sm text-gray-500">
                   No icons found
                 </div>
               )}
             </ScrollArea>
-            
-            {selectedIcon && (
+
+            {internalSelectedIcon && (
               <div className="border-t pt-3">
                 <Button
                   type="button"
@@ -404,7 +405,7 @@ function IconPickerComponent<
                   size="sm"
                   className="w-full"
                   onClick={() => {
-                    setSelectedIcon('');
+                    setInternalSelectedIcon('');
                     setIsOpen(false);
                   }}
                 >
@@ -415,10 +416,10 @@ function IconPickerComponent<
           </div>
         </PopoverContent>
       </Popover>
-      
+
       <div className="min-h-[1.25rem]">
         {error && (
-          <p 
+          <p
             id={`${name}-error`}
             className="text-sm text-destructive"
             role="alert"
@@ -427,7 +428,7 @@ function IconPickerComponent<
           </p>
         )}
         {!error && helperText && (
-          <p 
+          <p
             id={`${name}-description`}
             className="text-sm text-gray-500"
           >
