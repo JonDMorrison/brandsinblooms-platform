@@ -52,7 +52,7 @@ import { CTAEditor } from '@/src/components/content-sections/editors/CTAEditor'
 import { 
   PageContent, 
   ContentSection, 
-  ContentSectionType,
+  SectionType,
   LayoutType,
   LAYOUT_SECTIONS 
 } from '@/src/lib/content/schema'
@@ -101,7 +101,7 @@ const SectionEditor = function SectionEditor({
     })
   }, [sectionKey, section, onUpdate])
 
-  const getSectionIcon = (type: ContentSectionType) => {
+  const getSectionIcon = (type: SectionType) => {
     const iconMap = {
       hero: '🦸',
       header: '📌',
@@ -133,7 +133,7 @@ const SectionEditor = function SectionEditor({
       plant_benefits: '💚',
       soil_guide: '🪴'
     }
-    return iconMap[type] || '📄'
+    return (iconMap as any)[type] || '📄'
   }
 
   const renderSectionContent = useCallback(() => {
@@ -395,7 +395,7 @@ export const ContentEditor = forwardRef<
     }
   }), [title])
 
-  const layoutConfig = LAYOUT_SECTIONS[layout]
+  const layoutConfig = LAYOUT_SECTIONS[layout] || { required: [], optional: [], initialSections: [] }
   
   const sortedSections = useMemo(() => {
     const sections = Object.entries(content.sections || {})
@@ -486,7 +486,7 @@ export const ContentEditor = forwardRef<
       <div className="flex-1 overflow-auto min-h-0">
         <div className="p-4 space-y-4">
           {sortedSections.map(([sectionKey, section], index) => {
-            const isRequired = layoutConfig.required.includes(sectionKey)
+            const isRequired = (layoutConfig?.required || []).includes(sectionKey)
             
             return (
               <SectionEditor
@@ -512,7 +512,7 @@ export const ContentEditor = forwardRef<
                 Add optional sections
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
-                {layoutConfig.optional
+                {(Array.isArray(layoutConfig?.optional) ? layoutConfig.optional : [])
                   .filter(sectionKey => !content.sections[sectionKey]?.visible)
                   .map(sectionKey => (
                     <Button

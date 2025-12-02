@@ -37,7 +37,10 @@ const layoutInfo = {
   about: { name: 'About/Company', icon: User },
   product: { name: 'Product Page', icon: Package },
   contact: { name: 'Contact/Services', icon: Phone },
-  other: { name: 'Custom/Other', icon: Layers }
+  other: { name: 'Custom/Other', icon: Layers },
+  plant_shop: { name: 'Plant Shop', icon: Package },
+  plant_care: { name: 'Plant Care', icon: FileText },
+  plant_catalog: { name: 'Plant Catalog', icon: Grid3X3 }
 }
 
 interface EditorSidebarProps {
@@ -86,7 +89,8 @@ export function EditorSidebar({
   seoSettings,
   onSEOChange
 }: EditorSidebarProps) {
-  const validLayout = pageData.layout in layoutInfo ? pageData.layout : 'landing'
+  // Ensure validLayout is a valid key in layoutInfo, fallback to 'landing' if not found
+  const validLayout = (pageData.layout && pageData.layout in layoutInfo) ? pageData.layout : 'landing'
   
   const contentEditorHook = useContentEditor({
     contentId: contentId || '',

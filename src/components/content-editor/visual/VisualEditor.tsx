@@ -51,6 +51,8 @@ const layoutComponents = {
   about: UnifiedPagePreview,
   product: UnifiedPagePreview,
   contact: UnifiedPagePreview,
+  plant_shop: UnifiedPagePreview,
+  plant_care: UnifiedPagePreview,
   other: UnifiedPagePreview
 }
 

@@ -231,9 +231,9 @@ export interface SEOSettings {
  * Main page content structure
  */
 export interface PageContent {
-  version: '2.0' // Bump version for new array-based structure
+  version: string
   layout: LayoutType
-  sections: ContentSection[]
+  sections: Record<string, ContentSection>
   settings?: {
     seo?: SEOSettings
     layout?: {
@@ -251,8 +251,12 @@ export interface PageContent {
  */
 export const LAYOUT_SECTIONS: Record<LayoutType, {
   initialSections: Partial<ContentSection>[]
+  required: string[]
+  optional: string[]
 }> = {
   landing: {
+    required: [],
+    optional: [],
     initialSections: [
       {
         type: 'hero',
@@ -324,6 +328,8 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     ]
   },
   blog: {
+    required: [],
+    optional: [],
     initialSections: [
       {
         type: 'blogHeader',
@@ -356,6 +362,8 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     ]
   },
   portfolio: {
+    required: [],
+    optional: [],
     initialSections: [
       {
         type: 'hero',
@@ -386,6 +394,8 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     ]
   },
   about: {
+    required: [],
+    optional: [],
     initialSections: [
       {
         type: 'header',
@@ -431,6 +441,8 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     ]
   },
   product: {
+    required: [],
+    optional: [],
     initialSections: [
       {
         type: 'hero',
@@ -462,6 +474,8 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     ]
   },
   contact: {
+    required: [],
+    optional: [],
     initialSections: [
       {
         type: 'header',
@@ -506,6 +520,8 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     ]
   },
   other: {
+    required: [],
+    optional: [],
     initialSections: [
       {
         type: 'hero',
@@ -529,6 +545,8 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
   },
   // Plant-specific layouts (mapped to generic or kept if needed)
   plant_shop: {
+    required: [],
+    optional: [],
     initialSections: [
       {
         type: 'hero',
@@ -544,6 +562,8 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     ]
   },
   plant_care: {
+    required: [],
+    optional: [],
     initialSections: [
       {
         type: 'hero',
@@ -559,6 +579,8 @@ export const LAYOUT_SECTIONS: Record<LayoutType, {
     ]
   },
   plant_catalog: {
+    required: [],
+    optional: [],
     initialSections: [
       {
         type: 'hero',

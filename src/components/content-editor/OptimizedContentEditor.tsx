@@ -327,7 +327,7 @@ export function OptimizedContentEditor({
     preload()
   }, [preload])
 
-  const layoutConfig = LAYOUT_SECTIONS[layout]
+  const layoutConfig = LAYOUT_SECTIONS[layout] || { required: [], optional: [], initialSections: [] }
   
   const sortedSections = useMemo(() => {
     return Object.entries(content.sections).sort((a, b) => {
@@ -427,7 +427,8 @@ export function OptimizedContentEditor({
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
           {sortedSections.map(([sectionKey, section], index) => {
-            const isRequired = layoutConfig.required.includes(sectionKey)
+            const requiredSections = Array.isArray(layoutConfig?.required) ? layoutConfig.required : []
+            const isRequired = requiredSections.includes(sectionKey)
             
             return (
               <OptimizedSectionEditor
@@ -451,7 +452,7 @@ export function OptimizedContentEditor({
                 Add optional sections
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
-                {layoutConfig.optional
+                {(Array.isArray(layoutConfig?.optional) ? layoutConfig.optional : [])
                   .filter(sectionKey => !content.sections[sectionKey]?.visible)
                   .map(sectionKey => (
                     <Button

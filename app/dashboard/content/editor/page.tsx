@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -65,6 +66,9 @@ const layoutInfo = {
   product: { name: 'Product Page' },
   contact: { name: 'Contact/Services' },
   other: { name: 'Custom/Other' },
+  plant_shop: { name: 'Plant Shop' },
+  plant_care: { name: 'Plant Care' },
+  plant_catalog: { name: 'Plant Catalog' }
 };
 
 function PageEditorContent() {
@@ -119,7 +123,7 @@ function PageEditorContent() {
 
       // Check if this is a required section - don't allow hiding required sections
       const layoutConfig = LAYOUT_SECTIONS[pageData?.layout as ContentLayoutType];
-      if (layoutConfig?.required.includes(sectionKey) && currentSection.visible) {
+      if ((layoutConfig?.required || []).includes(sectionKey) && currentSection.visible) {
         // Show a toast notification that required sections can't be hidden
         toast.info('Required sections cannot be hidden');
         return;
@@ -265,8 +269,8 @@ function PageEditorContent() {
     );
   }
 
-  const validLayout =
-    pageData.layout in layoutInfo ? pageData.layout : 'landing';
+  // Ensure validLayout is a valid key in layoutInfo, fallback to 'landing' if not found
+  const validLayout = (pageData.layout && pageData.layout in layoutInfo) ? pageData.layout : 'landing';
 
   return (
     <div className='h-full flex flex-col bg-white'>
@@ -356,7 +360,9 @@ export default function PageEditorPage() {
   return (
     <EditModeProvider defaultMode='inline'>
       <VisualEditorProvider>
-        <PageEditorContent />
+        <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading editor...</div>}>
+          <PageEditorContent />
+        </Suspense>
       </VisualEditorProvider>
     </EditModeProvider>
   );

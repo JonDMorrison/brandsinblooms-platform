@@ -29,9 +29,8 @@ import {
   PanelLeftClose,
   Lock
 } from 'lucide-react'
-import { PageContent, LAYOUT_SECTIONS } from '@/src/lib/content'
+import { PageContent, LAYOUT_SECTIONS, LayoutType } from '@/src/lib/content/schema'
 
-type LayoutType = 'landing' | 'blog' | 'portfolio' | 'about' | 'product' | 'contact' | 'other'
 type ViewportSize = 'mobile' | 'tablet' | 'desktop'
 
 interface PageData {
@@ -52,7 +51,10 @@ const layoutInfo = {
   about: { name: 'About/Company' },
   product: { name: 'Product Page' },
   contact: { name: 'Contact/Services' },
-  other: { name: 'Custom/Other' }
+  other: { name: 'Custom/Other' },
+  plant_shop: { name: 'Plant Shop' },
+  plant_care: { name: 'Plant Care' },
+  plant_catalog: { name: 'Plant Catalog' }
 }
 
 const viewportSizes = {
@@ -89,7 +91,8 @@ export function EditorHeader({
   onSectionVisibilityToggle
 }: EditorHeaderProps) {
   const router = useRouter()
-  const validLayout = pageData.layout in layoutInfo ? pageData.layout : 'landing'
+  // Ensure validLayout is a valid key in LAYOUT_SECTIONS, fallback to 'landing' if not found
+  const validLayout = (pageData.layout && pageData.layout in LAYOUT_SECTIONS) ? pageData.layout : 'landing'
 
   return (
     <div className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-10">
@@ -205,10 +208,19 @@ export function EditorHeader({
                 <DropdownMenuSeparator />
 
                 {Object.entries(pageContent.sections)
-                  .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
+                  .sort((a, b) => ((a[1] as any).order || 0) - ((b[1] as any).order || 0))
                   .map(([key, section]) => {
-                    const layoutConfig = LAYOUT_SECTIONS[validLayout as keyof typeof LAYOUT_SECTIONS]
-                    const isRequired = layoutConfig?.required.includes(key)
+                    // Safe access to layout config with fallback - ensure it's always defined
+                    const rawConfig = LAYOUT_SECTIONS?.[validLayout]
+                    const layoutConfig = rawConfig || { required: [], optional: [], initialSections: [] }
+                    
+                    // Triple defensive check: ensure requiredSections is ALWAYS an array
+                    let requiredSections: string[] = []
+                    if (layoutConfig && Array.isArray(layoutConfig.required)) {
+                      requiredSections = layoutConfig.required
+                    }
+                    
+                    const isRequired = requiredSections && Array.isArray(requiredSections) && requiredSections.includes(key)
 
                     return (
                       <DropdownMenuItem

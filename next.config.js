@@ -94,6 +94,7 @@ const nextConfig = {
   // Experimental performance features
   experimental: {
     optimizeCss: true,
+    optimizeFonts: false,
     scrollRestoration: true,
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'date-fns'],
   },

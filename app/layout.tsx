@@ -1,16 +1,16 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+// import { Inter } from 'next/font/google';
 import { headers } from 'next/headers';
 import { Providers } from './providers';
 import { WebVitals } from '@/src/components/WebVitals';
 import { generateSiteMetadata } from '@/src/lib/site/metadata';
 import './globals.css';
 
-const inter = Inter({ 
-  subsets: ['latin'],
-  display: 'swap', // Prevent FOIT (Flash of Invisible Text)
-  preload: true
-});
+// const inter = Inter({ 
+//   subsets: ['latin'],
+//   display: 'swap', // Prevent FOIT (Flash of Invisible Text)
+//   preload: false
+// });
 
 // Generate dynamic metadata based on the current site
 export async function generateMetadata(): Promise<Metadata> {
@@ -62,7 +62,7 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body 
-        className={`${inter.className} antialiased`}
+        className={`antialiased`}
         data-app={isMainApp ? 'platform' : 'site'}
       >
         <WebVitals />
