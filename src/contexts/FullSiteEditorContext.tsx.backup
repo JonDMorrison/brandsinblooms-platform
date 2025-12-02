@@ -87,25 +87,25 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   // Page content management
   setPageContent: (content: PageContent | null) => void
   setCurrentPageId: (id: string | null) => void
-  updateSectionContent: (sectionId: string, data: unknown) => void
-  updateFieldContent: (sectionId: string, fieldPath: string, content: string) => void
-  updateFeatureContent: (sectionId: string, featureIndex: number, field: string, value: string) => void
-  updateCategoryContent: (sectionId: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => void
-  deleteCategoryContent: (sectionId: string, categoryIndex: number) => void
-  updateFeaturedContent: (sectionId: string, itemIndex: number, updatedItem: Record<string, unknown>) => void
-  deleteFeaturedContent: (sectionId: string, itemIndex: number) => void
-  updateSectionSettings: (sectionId: string, settings: Record<string, unknown>, options?: { silent?: boolean }) => void
+  updateSectionContent: (sectionKey: string, data: unknown) => void
+  updateFieldContent: (sectionKey: string, fieldPath: string, content: string) => void
+  updateFeatureContent: (sectionKey: string, featureIndex: number, field: string, value: string) => void
+  updateCategoryContent: (sectionKey: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => void
+  deleteCategoryContent: (sectionKey: string, categoryIndex: number) => void
+  updateFeaturedContent: (sectionKey: string, itemIndex: number, updatedItem: Record<string, unknown>) => void
+  deleteFeaturedContent: (sectionKey: string, itemIndex: number) => void
+  updateSectionSettings: (sectionKey: string, settings: Record<string, unknown>, options?: { silent?: boolean }) => void
   markAsChanged: () => void
 
   // Item management (Features, Values, FAQ, Featured, Categories)
-  addFeatureItem: (sectionId: string, newItem: Record<string, unknown>) => void
-  deleteFeatureItem: (sectionId: string, itemIndex: number) => void
-  addValueItem: (sectionId: string, newItem: Record<string, unknown>) => void
-  deleteValueItem: (sectionId: string, itemIndex: number) => void
-  addFAQItem: (sectionId: string, newItem: Record<string, unknown>) => void
-  deleteFAQItem: (sectionId: string, itemIndex: number) => void
-  addFeaturedContent: (sectionId: string, newItem: Record<string, unknown>) => void
-  addCategoryContent: (sectionId: string, newItem: Record<string, unknown>) => void
+  addFeatureItem: (sectionKey: string, newItem: Record<string, unknown>) => void
+  deleteFeatureItem: (sectionKey: string, itemIndex: number) => void
+  addValueItem: (sectionKey: string, newItem: Record<string, unknown>) => void
+  deleteValueItem: (sectionKey: string, itemIndex: number) => void
+  addFAQItem: (sectionKey: string, newItem: Record<string, unknown>) => void
+  deleteFAQItem: (sectionKey: string, itemIndex: number) => void
+  addFeaturedContent: (sectionKey: string, newItem: Record<string, unknown>) => void
+  addCategoryContent: (sectionKey: string, newItem: Record<string, unknown>) => void
 
   // Page metadata management
   updatePageTitle: (title: string) => void
@@ -113,15 +113,15 @@ interface FullSiteEditorContextValue extends FullSiteEditorState {
   updatePagePublished: (published: boolean) => void
 
   // Section management
-  setActiveSection: (sectionId: string | null) => void
-  hideSection: (sectionId: string) => void
-  toggleSectionVisibility: (sectionId: string) => void
-  deleteSection: (sectionId: string) => void
-  reorderSection: (sectionId: string, direction: 'up' | 'down') => void
+  setActiveSection: (sectionKey: string | null) => void
+  hideSection: (sectionKey: string) => void
+  toggleSectionVisibility: (sectionKey: string) => void
+  deleteSection: (sectionKey: string) => void
+  reorderSection: (sectionKey: string, direction: 'up' | 'down') => void
   reorderSections: (sections: ContentSection[]) => void
   addSection: (sectionType: SectionType, variant?: string, position?: { after?: string; before?: string }) => void
-  updateSection: (sectionId: string, section: ContentSection) => void
-  duplicateSection: (sectionId: string) => void
+  updateSection: (sectionKey: string, section: ContentSection) => void
+  duplicateSection: (sectionKey: string) => void
 
   // Save management
   savePage: () => Promise<void>
@@ -411,19 +411,22 @@ export function FullSiteEditorProvider({
   }, [])
 
   // Category management
-  const updateCategoryContent = useCallback((sectionId: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => {
+  const updateCategoryContent = useCallback((sectionKey: string, categoryIndex: number, updatedCategory: Record<string, unknown>) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
+      // Ensure categories array exists
       if (!Array.isArray(updatedData.categories)) {
         updatedData.categories = []
       }
 
+      // Update the specific category
       if (updatedData.categories[categoryIndex]) {
         updatedData.categories[categoryIndex] = {
           ...updatedData.categories[categoryIndex],
@@ -433,9 +436,13 @@ export function FullSiteEditorProvider({
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       return {
@@ -447,26 +454,33 @@ export function FullSiteEditorProvider({
     })
   }, [])
 
-  const deleteCategoryContent = useCallback((sectionId: string, categoryIndex: number) => {
+  const deleteCategoryContent = useCallback((sectionKey: string, categoryIndex: number) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
+      // Ensure categories array exists
       if (!Array.isArray(updatedData.categories)) {
         return prev
       }
 
+      // Remove category at index
       updatedData.categories.splice(categoryIndex, 1)
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       toast.success('Category deleted')
@@ -481,23 +495,28 @@ export function FullSiteEditorProvider({
   }, [])
 
   // Featured items management
-  const updateFeaturedContent = useCallback((sectionId: string, itemIndex: number, updatedItem: Record<string, unknown>) => {
+  const updateFeaturedContent = useCallback((sectionKey: string, itemIndex: number, updatedItem: Record<string, unknown>) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
+      // Initialize featuredItems array if it doesn't exist or is empty
+      // This "materializes" the default items into the database on first edit
       if (!Array.isArray(updatedData.featuredItems) || updatedData.featuredItems.length === 0) {
         updatedData.featuredItems = JSON.parse(JSON.stringify(DEFAULT_FEATURED_ITEMS))
       }
 
+      // Validate itemIndex bounds
       if (itemIndex < 0 || itemIndex >= updatedData.featuredItems.length) {
         return prev
       }
 
+      // Update the specific featured item
       updatedData.featuredItems[itemIndex] = {
         ...updatedData.featuredItems[itemIndex],
         ...updatedItem
@@ -505,9 +524,13 @@ export function FullSiteEditorProvider({
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       return {
@@ -519,30 +542,39 @@ export function FullSiteEditorProvider({
     })
   }, [])
 
-  const deleteFeaturedContent = useCallback((sectionId: string, itemIndex: number) => {
+  const deleteFeaturedContent = useCallback((sectionKey: string, itemIndex: number) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
+      // Initialize featuredItems array if it doesn't exist or is empty
+      // This "materializes" the default items into the database before deletion
       if (!Array.isArray(updatedData.featuredItems) || updatedData.featuredItems.length === 0) {
         updatedData.featuredItems = JSON.parse(JSON.stringify(DEFAULT_FEATURED_ITEMS))
       }
 
+      // Validate itemIndex bounds
       if (itemIndex < 0 || itemIndex >= updatedData.featuredItems.length) {
         return prev
       }
 
+      // Remove item at index
       updatedData.featuredItems.splice(itemIndex, 1)
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       toast.success('Featured item deleted')
@@ -557,26 +589,33 @@ export function FullSiteEditorProvider({
   }, [])
 
   // Features section item management
-  const addFeatureItem = useCallback((sectionId: string, newItem: Record<string, unknown>) => {
+  const addFeatureItem = useCallback((sectionKey: string, newItem: Record<string, unknown>) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
+      // Ensure features array exists
       if (!Array.isArray(updatedData.features)) {
         updatedData.features = []
       }
 
+      // Add new item to features array
       updatedData.features.push(newItem)
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       toast.success('Feature added')
@@ -590,30 +629,38 @@ export function FullSiteEditorProvider({
     })
   }, [])
 
-  const deleteFeatureItem = useCallback((sectionId: string, itemIndex: number) => {
+  const deleteFeatureItem = useCallback((sectionKey: string, itemIndex: number) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
+      // Ensure features array exists
       if (!Array.isArray(updatedData.features)) {
         return prev
       }
 
+      // Validate itemIndex bounds
       if (itemIndex < 0 || itemIndex >= updatedData.features.length) {
         return prev
       }
 
+      // Remove item at index
       updatedData.features.splice(itemIndex, 1)
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       toast.success('Feature deleted')
@@ -628,26 +675,33 @@ export function FullSiteEditorProvider({
   }, [])
 
   // Values section item management
-  const addValueItem = useCallback((sectionId: string, newItem: Record<string, unknown>) => {
+  const addValueItem = useCallback((sectionKey: string, newItem: Record<string, unknown>) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
+      // Ensure items array exists
       if (!Array.isArray(updatedData.items)) {
         updatedData.items = []
       }
 
+      // Add new item to items array
       updatedData.items.push(newItem)
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       toast.success('Value added')
@@ -661,30 +715,38 @@ export function FullSiteEditorProvider({
     })
   }, [])
 
-  const deleteValueItem = useCallback((sectionId: string, itemIndex: number) => {
+  const deleteValueItem = useCallback((sectionKey: string, itemIndex: number) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
+      // Ensure items array exists
       if (!Array.isArray(updatedData.items)) {
         return prev
       }
 
+      // Validate itemIndex bounds
       if (itemIndex < 0 || itemIndex >= updatedData.items.length) {
         return prev
       }
 
+      // Remove item at index
       updatedData.items.splice(itemIndex, 1)
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       toast.success('Value deleted')
@@ -699,26 +761,33 @@ export function FullSiteEditorProvider({
   }, [])
 
   // FAQ section item management
-  const addFAQItem = useCallback((sectionId: string, newItem: Record<string, unknown>) => {
+  const addFAQItem = useCallback((sectionKey: string, newItem: Record<string, unknown>) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
+      // Ensure faqs array exists
       if (!Array.isArray(updatedData.faqs)) {
         updatedData.faqs = []
       }
 
+      // Add new item to faqs array
       updatedData.faqs.push(newItem)
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       toast.success('FAQ added')
@@ -732,30 +801,38 @@ export function FullSiteEditorProvider({
     })
   }, [])
 
-  const deleteFAQItem = useCallback((sectionId: string, itemIndex: number) => {
+  const deleteFAQItem = useCallback((sectionKey: string, itemIndex: number) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
+      // Ensure faqs array exists
       if (!Array.isArray(updatedData.faqs)) {
         return prev
       }
 
+      // Validate itemIndex bounds
       if (itemIndex < 0 || itemIndex >= updatedData.faqs.length) {
         return prev
       }
 
+      // Remove item at index
       updatedData.faqs.splice(itemIndex, 1)
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       toast.success('FAQ deleted')
@@ -770,26 +847,33 @@ export function FullSiteEditorProvider({
   }, [])
 
   // Featured section item management
-  const addFeaturedContent = useCallback((sectionId: string, newItem: Record<string, unknown>) => {
+  const addFeaturedContent = useCallback((sectionKey: string, newItem: Record<string, unknown>) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
-      if (!Array.isArray(updatedData.featuredItems)) {
-        updatedData.featuredItems = []
+      // Initialize featuredItems array if it doesn't exist or is empty
+      if (!Array.isArray(updatedData.featuredItems) || updatedData.featuredItems.length === 0) {
+        updatedData.featuredItems = JSON.parse(JSON.stringify(DEFAULT_FEATURED_ITEMS))
       }
 
+      // Add new item to featuredItems array
       updatedData.featuredItems.push(newItem)
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       toast.success('Featured item added')
@@ -804,26 +888,33 @@ export function FullSiteEditorProvider({
   }, [])
 
   // Categories section item management
-  const addCategoryContent = useCallback((sectionId: string, newItem: Record<string, unknown>) => {
+  const addCategoryContent = useCallback((sectionKey: string, newItem: Record<string, unknown>) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section || !section.data) return prev
 
+      // Deep clone section data
       const updatedData = JSON.parse(JSON.stringify(section.data))
 
+      // Ensure categories array exists
       if (!Array.isArray(updatedData.categories)) {
         updatedData.categories = []
       }
 
+      // Add new item to categories array
       updatedData.categories.push(newItem)
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) =>
-          s.id === sectionId ? { ...s, data: updatedData } : s
-        )
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            data: updatedData
+          }
+        }
       }
 
       toast.success('Category added')
@@ -838,13 +929,13 @@ export function FullSiteEditorProvider({
   }, [])
 
   // Section visibility management
-  const toggleSectionVisibility = useCallback((sectionId: string) => {
+  const toggleSectionVisibility = useCallback((sectionKey: string) => {
     // First, check if this operation is allowed
-    const section = state.pageContent?.sections.find((s: ContentSection) => s.id === sectionId)
+    const section = state.pageContent?.sections[sectionKey]
     if (!section) return
 
     const layoutConfig = LAYOUT_SECTIONS[state.layout]
-    const isRequired = layoutConfig.required.includes(sectionId)
+    const isRequired = layoutConfig.required.includes(sectionKey)
 
     if (isRequired && section.visible) {
       toast.error('Required sections cannot be hidden')
@@ -858,12 +949,18 @@ export function FullSiteEditorProvider({
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section) return prev
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: prev.pageContent.sections.map((s: ContentSection) => s.id === sectionId ? { ...s, visible: !s.visible } : s)
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: {
+            ...section,
+            visible: !section.visible
+          }
+        }
       }
 
       return {
@@ -896,14 +993,14 @@ export function FullSiteEditorProvider({
       }
 
       // Generate unique section key
-      let sectionId = sectionType
+      let sectionKey = sectionType
       let counter = 1
 
       // For sections that allow multiple instances (like richText), generate unique keys
-      if (sectionType === 'richText' || prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)) {
-        sectionId = `${sectionType}_${Date.now()}`
-        while (prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)) {
-          sectionId = `${sectionType}_${Date.now()}_${counter}`
+      if (sectionType === 'richText' || prev.pageContent.sections[sectionKey]) {
+        sectionKey = `${sectionType}_${Date.now()}`
+        while (prev.pageContent.sections[sectionKey]) {
+          sectionKey = `${sectionType}_${Date.now()}_${counter}`
           counter++
         }
       }
@@ -986,7 +1083,10 @@ export function FullSiteEditorProvider({
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
-        sections: [...prev.pageContent.sections, newSection]
+        sections: {
+          ...prev.pageContent.sections,
+          [sectionKey]: newSection
+        }
       }
 
       // Toast notification is now handled by the UI layer (modal/button)
@@ -1028,7 +1128,7 @@ export function FullSiteEditorProvider({
   }, [])
 
   // Update entire section (for inline editors)
-  const updateSection = useCallback((sectionId: string, section: ContentSection) => {
+  const updateSection = useCallback((sectionKey: string, section: ContentSection) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
@@ -1036,7 +1136,7 @@ export function FullSiteEditorProvider({
         ...prev.pageContent,
         sections: {
           ...prev.pageContent.sections,
-          [sectionId]: section
+          [sectionKey]: section
         }
       }
 
@@ -1051,21 +1151,21 @@ export function FullSiteEditorProvider({
 
   // Section settings management
   const updateSectionSettings = useCallback((
-    sectionId: string,
+    sectionKey: string,
     settings: Record<string, unknown>,
     options?: { silent?: boolean }
   ) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section) return prev
 
       const updatedContent: PageContent = {
         ...prev.pageContent,
         sections: {
           ...prev.pageContent.sections,
-          [sectionId]: {
+          [sectionKey]: {
             ...section,
             settings: {
               ...section.settings,
@@ -1090,11 +1190,11 @@ export function FullSiteEditorProvider({
   }, [])
 
   // Section management
-  const setActiveSection = useCallback((sectionId: string | null) => {
-    setState(prev => ({ ...prev, activeSection: sectionId }))
+  const setActiveSection = useCallback((sectionKey: string | null) => {
+    setState(prev => ({ ...prev, activeSection: sectionKey }))
   }, [])
 
-  const hideSection = useCallback((sectionId: string) => {
+  const hideSection = useCallback((sectionKey: string) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
@@ -1102,8 +1202,8 @@ export function FullSiteEditorProvider({
         ...prev.pageContent,
         sections: {
           ...prev.pageContent.sections,
-          [sectionId]: {
-            ...prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId),
+          [sectionKey]: {
+            ...prev.pageContent.sections[sectionKey],
             visible: false
           }
         }
@@ -1120,12 +1220,12 @@ export function FullSiteEditorProvider({
     // Toasts should only come from user-facing actions like toggleSectionVisibility
   }, [])
 
-  const deleteSection = useCallback((sectionId: string) => {
+  const deleteSection = useCallback((sectionKey: string) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
       const sections = { ...prev.pageContent.sections }
-      delete sections[sectionId]
+      delete sections[sectionKey]
 
       const updatedContent = {
         ...prev.pageContent,
@@ -1142,7 +1242,7 @@ export function FullSiteEditorProvider({
     toast.success('Section deleted')
   }, [])
 
-  const reorderSection = useCallback((sectionId: string, direction: 'up' | 'down') => {
+  const reorderSection = useCallback((sectionKey: string, direction: 'up' | 'down') => {
     // Check bounds before updating state to determine toast message
     const sections = state.pageContent?.sections
     if (!sections) return
@@ -1153,7 +1253,7 @@ export function FullSiteEditorProvider({
       .map(([key, section]) => ({ key, section, order: section.order || 0 }))
       .sort((a, b) => a.order - b.order)
 
-    const currentIndex = sortedSections.findIndex(s => s.key === sectionId)
+    const currentIndex = sortedSections.findIndex(s => s.key === sectionKey)
 
     if (currentIndex === -1) return
 
@@ -1174,7 +1274,7 @@ export function FullSiteEditorProvider({
         .map(([key, section]) => ({ key, section, order: section.order || 0 }))
         .sort((a, b) => a.order - b.order)
 
-      const currentIndex = sortedSections.findIndex(s => s.key === sectionId)
+      const currentIndex = sortedSections.findIndex(s => s.key === sectionKey)
 
       if (currentIndex === -1) return prev
 
@@ -1219,18 +1319,18 @@ export function FullSiteEditorProvider({
     toast.success(`Section moved ${direction}`)
   }, [state.pageContent])
 
-  const duplicateSection = useCallback((sectionId: string) => {
+  const duplicateSection = useCallback((sectionKey: string) => {
     setState(prev => {
       if (!prev.pageContent) return prev
 
-      const section = prev.pageContent.sections.find((s: ContentSection) => s.id === sectionId)
+      const section = prev.pageContent.sections[sectionKey]
       if (!section) return prev
 
       // Create new section key
-      let newKey = `${sectionId}_copy`
+      let newKey = `${sectionKey}_copy`
       let counter = 1
       while (prev.pageContent.sections[newKey]) {
-        newKey = `${sectionId}_copy_${counter}`
+        newKey = `${sectionKey}_copy_${counter}`
         counter++
       }
 

@@ -4,13 +4,13 @@
  */
 
 import { Tables, TablesInsert, TablesUpdate } from '@/src/lib/database/types'
-import { 
-  PageContent, 
-  ContentSection, 
-  ContentItem, 
-  FormField, 
+import {
+  PageContent,
+  ContentSection,
+  ContentItem,
+  FormField,
   LayoutType,
-  ContentSectionType 
+  SectionType
 } from './schema'
 
 /**
@@ -42,7 +42,7 @@ export interface ContentMetadata {
   version?: string
   migrated?: boolean
   lastModified?: string
-  [key: string]: unknown
+  [key: string]: any
 }
 
 /**
@@ -360,46 +360,46 @@ export interface ContentPerformance {
 /**
  * Utility type for content section with typed data based on section type
  */
-export type TypedContentSection<T extends ContentSectionType = ContentSectionType> = 
+export type TypedContentSection<T extends SectionType = SectionType> =
   ContentSection & {
     type: T
-    data: T extends 'form' 
-      ? ContentSection['data'] & { fields: FormField[] }
-      : T extends 'gallery' | 'features' | 'testimonials' | 'team'
-      ? ContentSection['data'] & { items: ContentItem[] }
-      : ContentSection['data']
+    data: T extends 'form'
+    ? ContentSection['data'] & { fields: FormField[] }
+    : T extends 'gallery' | 'features' | 'testimonials' | 'team'
+    ? ContentSection['data'] & { items: ContentItem[] }
+    : ContentSection['data']
   }
 
 /**
  * Type guards for content types
  */
 export function isTypedContent(content: ContentRow): content is TypedContent {
-  return typeof content.content === 'object' && 
-         content.content !== null && 
-         'version' in content.content
+  return typeof content.content === 'object' &&
+    content.content !== null &&
+    'version' in content.content
 }
 
 export function isContentWithRelations(content: unknown): content is ContentWithRelations {
-  return typeof content === 'object' && 
-         content !== null && 
-         'site' in content
+  return typeof content === 'object' &&
+    content !== null &&
+    'site' in content
 }
 
 /**
  * Helper type for partial content updates
  */
 export type PartialContentUpdate = {
-  [K in keyof TypedContent]?: K extends 'content' 
-    ? Partial<PageContent>
-    : K extends 'meta_data'
-    ? Partial<ContentMetadata>
-    : TypedContent[K]
+  [K in keyof TypedContent]?: K extends 'content'
+  ? Partial<PageContent>
+  : K extends 'meta_data'
+  ? Partial<ContentMetadata>
+  : TypedContent[K]
 }
 
 /**
  * Content event types for real-time updates
  */
-export type ContentEvent = 
+export type ContentEvent =
   | { type: 'content:created'; data: TypedContent }
   | { type: 'content:updated'; data: TypedContent }
   | { type: 'content:deleted'; data: { id: string } }

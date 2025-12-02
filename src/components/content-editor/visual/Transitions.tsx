@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/src/lib/utils';
 
 /**
@@ -44,7 +45,7 @@ export function useEditModeTransition(isEditing: boolean, delay = 0) {
   const [transitionState, setTransitionState] = useState<TransitionState>(
     isEditing ? TransitionState.IN_EDIT : TransitionState.IN_VIEW
   );
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     if (timeoutRef.current) {
@@ -53,13 +54,13 @@ export function useEditModeTransition(isEditing: boolean, delay = 0) {
 
     if (isEditing && transitionState !== TransitionState.IN_EDIT) {
       setTransitionState(TransitionState.ENTERING_EDIT);
-      
+
       timeoutRef.current = setTimeout(() => {
         setTransitionState(TransitionState.IN_EDIT);
       }, delay + 200); // 200ms for transition
     } else if (!isEditing && transitionState !== TransitionState.IN_VIEW) {
       setTransitionState(TransitionState.EXITING_EDIT);
-      
+
       timeoutRef.current = setTimeout(() => {
         setTransitionState(TransitionState.IN_VIEW);
       }, delay + 200);
@@ -74,12 +75,12 @@ export function useEditModeTransition(isEditing: boolean, delay = 0) {
 
   return {
     transitionState,
-    isTransitioning: transitionState === TransitionState.ENTERING_EDIT || 
-                    transitionState === TransitionState.EXITING_EDIT,
-    isInEditMode: transitionState === TransitionState.IN_EDIT || 
-                  transitionState === TransitionState.ENTERING_EDIT,
-    isInViewMode: transitionState === TransitionState.IN_VIEW || 
-                  transitionState === TransitionState.EXITING_EDIT
+    isTransitioning: transitionState === TransitionState.ENTERING_EDIT ||
+      transitionState === TransitionState.EXITING_EDIT,
+    isInEditMode: transitionState === TransitionState.IN_EDIT ||
+      transitionState === TransitionState.ENTERING_EDIT,
+    isInViewMode: transitionState === TransitionState.IN_VIEW ||
+      transitionState === TransitionState.EXITING_EDIT
   };
 }
 
@@ -106,10 +107,12 @@ export function EditModeContainer({
 
   const getTransitionClasses = () => {
     const preset = transitionPresets[animationPreset];
-    const duration = `duration-[${Math.round(preset.duration * 1000)}ms]`;
-    
+    // Spring preset doesn't have a fixed duration, default to 300ms
+    const durationValue = 'duration' in preset ? preset.duration : 0.3;
+    const duration = `duration-[${Math.round(durationValue * 1000)}ms]`;
+
     const baseClasses = `transition-all ${duration} ease-out`;
-    
+
     switch (transitionState) {
       case TransitionState.ENTERING_EDIT:
         return `${baseClasses} scale-[1.02] opacity-95 rounded-lg ring-2 ring-violet-500/20`;
@@ -128,8 +131,8 @@ export function EditModeContainer({
       const timer = setTimeout(() => {
         onTransitionComplete?.(isEditing);
         setHasTransitioned(false);
-      }, transitionPresets[animationPreset].duration * 1000);
-      
+      }, ('duration' in transitionPresets[animationPreset] ? transitionPresets[animationPreset].duration : 0.3) * 1000);
+
       return () => clearTimeout(timer);
     }
   }, [isTransitioning, isEditing, onTransitionComplete, animationPreset]);
@@ -230,17 +233,17 @@ export function SlideTransition({
 
   const getSlideClasses = () => {
     const baseClasses = `transition-all ease-out duration-[${duration}ms]`;
-    
+
     if (!isVisible) {
       const hiddenClasses = {
         left: '-translate-x-full opacity-0',
-        right: 'translate-x-full opacity-0', 
+        right: 'translate-x-full opacity-0',
         up: '-translate-y-full opacity-0',
         down: 'translate-y-full opacity-0'
       };
       return `${baseClasses} ${hiddenClasses[direction]}`;
     }
-    
+
     return `${baseClasses} translate-x-0 translate-y-0 opacity-100`;
   };
 
@@ -477,7 +480,7 @@ export const transitionConfig = {
     slow: 300,
     extraSlow: 500
   },
-  
+
   // Easing functions
   easings: {
     easeOut: [0.25, 0.46, 0.45, 0.94],
@@ -485,7 +488,7 @@ export const transitionConfig = {
     spring: { type: "spring", stiffness: 500, damping: 30 },
     bounce: { type: "spring", stiffness: 300, damping: 10 }
   },
-  
+
   // Common animation variants
   variants: {
     page: {

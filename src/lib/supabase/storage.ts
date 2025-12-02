@@ -58,7 +58,7 @@ export async function ensureProductImagesBucket(client: DatabaseClient): Promise
 }> {
   try {
     const { data: buckets, error: listError } = await client.storage.listBuckets();
-    
+
     if (listError) {
       // If we can't list buckets, assume it exists (permissions issue)
       // The bucket should be created via migration
@@ -92,13 +92,13 @@ export async function ensureProductImagesBucket(client: DatabaseClient): Promise
     return { success: true };
   } catch (error) {
     const handled = handleError(error);
-    
+
     // If it's an RLS/policy error, we'll assume the bucket exists
     if (handled.message.includes('row-level security') || handled.message.includes('policy')) {
       console.warn('Storage bucket check failed due to RLS, proceeding anyway:', handled.message);
       return { success: true };
     }
-    
+
     return {
       success: false,
       error: handled.message,
@@ -114,11 +114,11 @@ export function generateImageFilename(originalName: string, siteId: string, prod
   const random = Math.random().toString(36).substring(7);
   const extension = originalName.split('.').pop()?.toLowerCase() || 'jpg';
   const baseName = originalName.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
-  
+
   if (productId) {
     return `${siteId}/${productId}/${baseName}_${timestamp}_${random}.${extension}`;
   }
-  
+
   return `${siteId}/temp/${baseName}_${timestamp}_${random}.${extension}`;
 }
 
@@ -283,14 +283,19 @@ export async function uploadProductImage(
       throw new Error(validation.error);
     }
 
-    // Skip compression for now - use original file
-    // TODO: Re-enable compression after fixing upload issues
-    // const compressedFile = await compressImage(file);
-    const fileToUpload = file;
+    // Compress image if running in browser
+    let fileToUpload = file;
+    if (typeof window !== 'undefined') {
+      try {
+        fileToUpload = await compressImage(file);
+      } catch (e) {
+        console.warn('Image compression failed, using original file:', e);
+      }
+    }
 
     // Generate filename
     const filename = generateImageFilename(file.name, siteId, productId);
-    
+
     console.log('Uploading to path:', filename);
     console.log('File type:', fileToUpload.type);
     console.log('File size:', fileToUpload.size);
@@ -459,11 +464,11 @@ export async function uploadMultipleProductImages(
 }> {
   try {
     const results = [];
-    
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const result = await uploadProductImage(client, file, siteId, productId);
-      
+
       results.push({
         file,
         success: result.success,

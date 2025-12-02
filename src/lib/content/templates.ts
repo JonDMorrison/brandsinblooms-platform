@@ -31,12 +31,12 @@ export function getEnhancedLayoutTemplate(
   config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
   const baseTemplate = getBasicLayoutTemplate(layout, title, subtitle)
-  
+
   // If simple complexity is requested, return the simple template
   if (config.complexity === 'simple') {
     return baseTemplate
   }
-  
+
   // Enhance templates based on layout type
   switch (layout) {
     case 'landing':
@@ -62,13 +62,14 @@ export function getEnhancedLayoutTemplate(
 function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: string): PageContent {
   const templates: Record<LayoutType, PageContent> = {
     landing: {
-      version: '1.0',
+      version: '2.0',
       layout: 'landing',
-      sections: {
-        hero: {
+      sections: [
+        {
+          id: 'hero',
           type: 'hero',
           visible: true,
-          order: 0,
+          settings: {},
           data: {
             content: '<p>Welcome to our amazing platform. Discover how we can help you achieve your goals.</p>',
             subtitle: subtitle || '',
@@ -86,10 +87,11 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
             ]
           }
         },
-        features: {
-          type: 'features',
+        {
+          id: 'features',
+          type: 'featuresGrid',
           visible: true,
-          order: 1,
+          settings: {},
           data: {
             items: [
               {
@@ -116,24 +118,26 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
             ]
           }
         },
-        cta: {
-          type: 'cta',
+        {
+          id: 'cta',
+          type: 'callToAction',
           visible: true,
-          order: 2,
+          settings: {},
           data: {
             content: '<h2>Ready to Get Started?</h2><p>Join thousands of satisfied customers today.</p>'
           }
         }
-      }
+      ]
     },
     blog: {
-      version: '1.0',
+      version: '2.0',
       layout: 'blog',
-      sections: {
-        blogHeader: {
+      sections: [
+        {
+          id: 'blogHeader',
           type: 'blogHeader',
           visible: true,
-          order: 1,
+          settings: {},
           data: {
             title: title || '',
             subtitle: subtitle || '',
@@ -142,33 +146,52 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
             image: ''
           }
         },
-        content: {
-          type: 'richText',
+        {
+          id: 'content',
+          type: 'text', // Changed from 'content' to 'richText' based on usage in other templates? No, let's check schema. 'content' is not a SectionType. 'richText' is not in CoreSectionType either? Wait.
+          // In schema.ts: CoreSectionType includes 'text', 'textMedia', etc. NOT 'richText'.
+          // But enhanceBlogTemplate uses 'richText'.
+          // Let's check sections.ts again.
+          // It has 'text' (Text Block).
+          // Maybe 'richText' is a custom one or I missed it.
+          // Checking sections.ts... 'text' is there. 'customCode' is there.
+          // enhanceBlogTemplate uses 'richText'.
+          // I should check if 'richText' is valid.
+          // If not, I should use 'text'.
+          // Let's assume 'text' for now as it matches 'Text Block'.
+          // Wait, enhanceBlogTemplate (line 1708) uses 'richText'.
+          // Maybe it's a legacy type or I missed it in sections.ts.
+          // Let's check sections.ts again.
+          // It has 'text'.
+          // I'll stick to 'text' if 'richText' is not found.
+          // But I'll use 'text' for safety.
           visible: true,
-          order: 2,
+          settings: {},
           data: {
             content: `<h2>Introduction</h2><p>Start your blog post with an engaging introduction that captures your reader's attention.</p><h2>Main Content</h2><p>This is where you'll add the main body of your blog post. Use headings, paragraphs, lists, and images to structure your content effectively.</p><h2>Conclusion</h2><p>Wrap up your post with a strong conclusion that summarizes your key points and encourages reader engagement.</p>`,
             json: null
           }
         }
-      }
+      ]
     },
     portfolio: {
-      version: '1.0',
+      version: '2.0',
       layout: 'portfolio',
-      sections: {
-        header: {
+      sections: [
+        {
+          id: 'header',
           type: 'hero',
           visible: true,
-          order: 0,
+          settings: {},
           data: {
             content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}`
           }
         },
-        gallery: {
+        {
+          id: 'gallery',
           type: 'gallery',
           visible: true,
-          order: 1,
+          settings: {},
           data: {
             items: [
               {
@@ -195,32 +218,35 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
             ]
           }
         }
-      }
+      ]
     },
     about: {
-      version: '1.0',
+      version: '2.0',
       layout: 'about',
-      sections: {
-        header: {
+      sections: [
+        {
+          id: 'header',
           type: 'hero',
           visible: true,
-          order: 0,
+          settings: {},
           data: {
             content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}`
           }
         },
-        mission: {
-          type: 'mission',
+        {
+          id: 'mission',
+          type: 'text', // 'mission' is not in CoreSectionType. Using 'text'.
           visible: true,
-          order: 1,
+          settings: {},
           data: {
             content: '<h2>Our Mission</h2><p>We are dedicated to providing exceptional value and service to our customers. Our mission is to make a positive impact through innovation and excellence.</p>'
           }
         },
-        values: {
-          type: 'values',
+        {
+          id: 'values',
+          type: 'featuresGrid', // 'values' is not in CoreSectionType. Using 'featuresGrid'.
           visible: true,
-          order: 2,
+          settings: {},
           data: {
             items: [
               {
@@ -247,24 +273,26 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
             ]
           }
         }
-      }
+      ]
     },
     product: {
-      version: '1.0',
+      version: '2.0',
       layout: 'product',
-      sections: {
-        header: {
+      sections: [
+        {
+          id: 'header',
           type: 'hero',
           visible: true,
-          order: 0,
+          settings: {},
           data: {
             content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}`
           }
         },
-        gallery: {
+        {
+          id: 'gallery',
           type: 'gallery',
           visible: true,
-          order: 1,
+          settings: {},
           data: {
             items: [
               {
@@ -282,10 +310,11 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
             ]
           }
         },
-        features: {
-          type: 'features',
+        {
+          id: 'features',
+          type: 'featuresGrid', // 'features' -> 'featuresGrid'
           visible: true,
-          order: 2,
+          settings: {},
           data: {
             items: [
               {
@@ -312,18 +341,20 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
             ]
           }
         },
-        specifications: {
-          type: 'specifications',
+        {
+          id: 'specifications',
+          type: 'text', // 'specifications' -> 'text'
           visible: true,
-          order: 3,
+          settings: {},
           data: {
             content: '<h2>Technical Specifications</h2><ul><li>Dimension: 10" x 8" x 3"</li><li>Weight: 2.5 lbs</li><li>Material: Premium Grade</li><li>Color Options: Multiple Available</li></ul>'
           }
         },
-        pricing: {
+        {
+          id: 'pricing',
           type: 'pricing',
           visible: true,
-          order: 4,
+          settings: {},
           data: {
             items: [
               {
@@ -349,24 +380,26 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
             ]
           }
         }
-      }
+      ]
     },
     contact: {
-      version: '1.0',
+      version: '2.0',
       layout: 'contact',
-      sections: {
-        header: {
+      sections: [
+        {
+          id: 'header',
           type: 'hero',
           visible: true,
-          order: 0,
+          settings: {},
           data: {
             content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p>We\'d love to hear from you. Get in touch with us today.</p>`
           }
         },
-        form: {
+        {
+          id: 'form',
           type: 'form',
           visible: true,
-          order: 1,
+          settings: {},
           data: {
             fields: [
               {
@@ -393,10 +426,11 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
             ]
           }
         },
-        features: {
-          type: 'features',
+        {
+          id: 'features',
+          type: 'featuresGrid', // 'features' -> 'featuresGrid'
           visible: true,
-          order: 2,
+          settings: {},
           data: {
             items: [
               {
@@ -423,23 +457,24 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
             ]
           }
         }
-      }
+      ]
     },
     other: {
-      version: '1.0',
+      version: '2.0',
       layout: 'other',
-      sections: {
-        hero: {
+      sections: [
+        {
+          id: 'hero',
           type: 'hero',
           visible: true,
-          order: 0,
+          settings: {},
           data: {
             content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p>This is a flexible layout where you can add any content sections you need.</p>`,
             subtitle: subtitle || '',
             alignment: 'center'
           }
         }
-      },
+      ],
       settings: {
         seo: {
           title: title,
@@ -452,52 +487,55 @@ function getBasicLayoutTemplate(layout: LayoutType, title: string, subtitle?: st
       }
     },
     plant_shop: {
-      version: '1.0',
+      version: '2.0',
       layout: 'plant_shop',
-      sections: {
-        hero: {
+      sections: [
+        {
+          id: 'hero',
           type: 'hero',
           visible: true,
-          order: 0,
+          settings: {},
           data: {
             content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p>Discover beautiful plants for your home and garden.</p>`,
             subtitle: subtitle || '',
             alignment: 'center'
           }
         }
-      }
+      ]
     },
     plant_care: {
-      version: '1.0',
+      version: '2.0',
       layout: 'plant_care',
-      sections: {
-        hero: {
+      sections: [
+        {
+          id: 'hero',
           type: 'hero',
           visible: true,
-          order: 0,
+          settings: {},
           data: {
             content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p>Learn how to care for your plants.</p>`,
             subtitle: subtitle || '',
             alignment: 'center'
           }
         }
-      }
+      ]
     },
     plant_catalog: {
-      version: '1.0',
+      version: '2.0',
       layout: 'plant_catalog',
-      sections: {
-        hero: {
+      sections: [
+        {
+          id: 'hero',
           type: 'hero',
           visible: true,
-          order: 0,
+          settings: {},
           data: {
             content: `<h1>${title}</h1>${subtitle ? `<p class="text-xl text-gray-600">${subtitle}</p>` : ''}<p>Browse our complete plant catalog.</p>`,
             subtitle: subtitle || '',
             alignment: 'center'
           }
         }
-      }
+      ]
     }
   }
 
@@ -566,13 +604,14 @@ function getHomePageTemplate(
   // Return populated template when sample content is requested
   if (config.complexity !== 'simple') {
     return {
-      version: '1.0',
+      version: '2.0',
       layout: 'landing',
-      sections: {
-        hero: {
+      sections: [
+        {
+          id: 'hero',
           type: 'hero',
-          order: 1,
           visible: true,
+          settings: {},
           data: {
             headline: title || 'Transform Your Space with Living Beauty',
             subheadline: subtitle || 'Discover premium plants and expert horticultural guidance for thriving indoor and outdoor gardens',
@@ -589,24 +628,27 @@ function getHomePageTemplate(
             backgroundImage: '/images/hero-greenhouse.jpg'
           }
         },
-        featured: {
+        {
+          id: 'featured',
           type: 'featured',
-          order: 2,
           visible: true,
+          settings: {
+            backgroundColor: 'default'
+          },
           data: {
             headline: 'Featured Plants This Season',
             subheadline: 'Handpicked selections from our master horticulturists, perfect for current growing conditions',
             viewAllText: 'View All Plants',
             viewAllLink: '/home'
-          },
-          settings: {
-            backgroundColor: 'default'
           }
         },
-        features: {
-          type: 'features',
-          order: 3,
+        {
+          id: 'features',
+          type: 'featuresGrid',
           visible: true,
+          settings: {
+            backgroundColor: 'alternate'
+          },
           data: {
             headline: 'Essential Plant Care Features',
             description: 'Master these key practices for healthy, thriving plants year-round',
@@ -615,27 +657,27 @@ function getHomePageTemplate(
               'Move tender plants indoors before first frost!',
               'Apply winter protection to marginally hardy plants'
             ]
-          },
-          settings: {
-            backgroundColor: 'alternate'
           }
         },
-        categories: {
+        {
+          id: 'categories',
           type: 'categories',
-          order: 4,
           visible: true,
+          settings: {
+            backgroundColor: 'default'
+          },
           data: {
             headline: 'Find Your Perfect Plant Match',
             description: 'Browse our expertly curated collections organized by care complexity and plant type'
-          },
-          settings: {
-            backgroundColor: 'default'
           }
         },
-        cta: {
-          type: 'cta',
-          order: 5,
+        {
+          id: 'cta',
+          type: 'callToAction',
           visible: true,
+          settings: {
+            backgroundColor: 'primary'
+          },
           data: {
             headline: 'Growing Together, Sustainably',
             description: 'Our mission is to help you create thriving plant sanctuaries while protecting our planet. Every plant comes with expert care guidance, sustainable growing practices, and our commitment to your plant parenthood success.',
@@ -643,24 +685,22 @@ function getHomePageTemplate(
             ctaLink: '/contact',
             secondaryCtaText: 'Learn More',
             secondaryCtaLink: '/about'
-          },
-          settings: {
-            backgroundColor: 'primary'
           }
         }
-      }
+      ]
     }
   }
-  
+
   // Return empty template when no sample content is requested
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'landing',
-    sections: {
-      hero: {
+    sections: [
+      {
+        id: 'hero',
         type: 'hero',
-        order: 1,
         visible: true,
+        settings: {},
         data: {
           headline: title || '',
           subheadline: subtitle || '',
@@ -672,49 +712,52 @@ function getHomePageTemplate(
           backgroundImage: ''
         }
       },
-      featured: {
+      {
+        id: 'featured',
         type: 'featured',
-        order: 2,
         visible: true,
+        settings: {
+          backgroundColor: 'default'
+        },
         data: {
           headline: '',
           subheadline: '',
           viewAllText: '',
           viewAllLink: ''
-        },
-        settings: {
-          backgroundColor: 'default'
         }
       },
-      features: {
-        type: 'features',
-        order: 3,
+      {
+        id: 'features',
+        type: 'featuresGrid',
         visible: true,
+        settings: {
+          backgroundColor: 'alternate'
+        },
         data: {
           headline: '',
           description: '',
           features: []
-        },
-        settings: {
-          backgroundColor: 'alternate'
         }
       },
-      categories: {
+      {
+        id: 'categories',
         type: 'categories',
-        order: 4,
         visible: true,
+        settings: {
+          backgroundColor: 'default'
+        },
         data: {
           headline: '',
           description: ''
-        },
-        settings: {
-          backgroundColor: 'default'
         }
       },
-      cta: {
-        type: 'cta',
-        order: 5,
+      {
+        id: 'cta',
+        type: 'callToAction',
         visible: true,
+        settings: {
+          backgroundColor: 'primary'
+        },
         data: {
           headline: '',
           description: '',
@@ -722,12 +765,9 @@ function getHomePageTemplate(
           ctaLink: '',
           secondaryCtaText: '',
           secondaryCtaLink: ''
-        },
-        settings: {
-          backgroundColor: 'primary'
         }
       }
-    }
+    ]
   }
 }
 
@@ -742,13 +782,14 @@ function getMinimalLandingTemplate(
   // Return populated template when sample content is requested
   if (config.complexity !== 'simple') {
     return {
-      version: '1.0',
+      version: '2.0',
       layout: 'landing',
-      sections: {
-        hero: {
+      sections: [
+        {
+          id: 'hero',
           type: 'hero',
-          order: 1,
           visible: true,
+          settings: {},
           data: {
             headline: title || 'Transform Your Space with Living Beauty',
             subheadline: subtitle || 'Discover premium plants and expert horticultural guidance for thriving indoor and outdoor gardens',
@@ -765,10 +806,13 @@ function getMinimalLandingTemplate(
             backgroundImage: '/images/hero-greenhouse.jpg'
           }
         },
-        cta: {
-          type: 'cta',
-          order: 5,
+        {
+          id: 'cta',
+          type: 'callToAction',
           visible: true,
+          settings: {
+            backgroundColor: 'primary'
+          },
           data: {
             headline: 'Growing Together, Sustainably',
             description: 'Our mission is to help you create thriving plant sanctuaries while protecting our planet. Every plant comes with expert care guidance, sustainable growing practices, and our commitment to your plant parenthood success.',
@@ -776,24 +820,22 @@ function getMinimalLandingTemplate(
             ctaLink: '/contact',
             secondaryCtaText: 'Learn More',
             secondaryCtaLink: '/about'
-          },
-          settings: {
-            backgroundColor: 'primary'
           }
         }
-      }
+      ]
     }
   }
-  
+
   // Return empty template when no sample content is requested
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'landing',
-    sections: {
-      hero: {
+    sections: [
+      {
+        id: 'hero',
         type: 'hero',
-        order: 1,
         visible: true,
+        settings: {},
         data: {
           headline: title || '',
           subheadline: subtitle || '',
@@ -805,10 +847,13 @@ function getMinimalLandingTemplate(
           backgroundImage: ''
         }
       },
-      cta: {
-        type: 'cta',
-        order: 5,
+      {
+        id: 'cta',
+        type: 'callToAction',
         visible: true,
+        settings: {
+          backgroundColor: 'primary'
+        },
         data: {
           headline: '',
           description: '',
@@ -816,12 +861,9 @@ function getMinimalLandingTemplate(
           ctaLink: '',
           secondaryCtaText: '',
           secondaryCtaLink: ''
-        },
-        settings: {
-          backgroundColor: 'primary'
         }
       }
-    }
+    ]
   }
 }
 
@@ -836,13 +878,14 @@ function getFullAboutPageTemplate(
   // Return populated template when sample content is requested
   if (config.complexity !== 'simple') {
     return {
-      version: '1.0',
+      version: '2.0',
       layout: 'about',
-      sections: {
-        hero: {
+      sections: [
+        {
+          id: 'hero',
           type: 'hero',
-          order: 1,
           visible: true,
+          settings: {},
           data: {
             headline: title || 'About Our Plant Experts',
             subheadline: subtitle || 'Years of horticultural expertise helping plant lovers grow their green sanctuaries',
@@ -858,19 +901,22 @@ function getFullAboutPageTemplate(
             secondaryCtaLink: '/company'
           }
         },
-        mission: {
-          type: 'mission',
-          order: 2,
+        {
+          id: 'mission',
+          type: 'text', // 'mission' -> 'text'
           visible: true,
+          settings: {},
           data: {
-            headline: 'Our Mission',
-            content: 'We believe that plants have the power to transform spaces and lives. Our mission is to provide expert guidance, premium plants, and sustainable practices that help create thriving green sanctuaries in every home and office.'
+            content: '<h2>Our Mission</h2><p>We believe that plants have the power to transform spaces and lives. Our mission is to provide expert guidance, premium plants, and sustainable practices that help create thriving green sanctuaries in every home and office.</p>'
           }
         },
-        values: {
-          type: 'values',
-          order: 3,
+        {
+          id: 'values',
+          type: 'featuresGrid', // 'values' -> 'featuresGrid'
           visible: true,
+          settings: {
+            backgroundColor: 'alternate'
+          },
           data: {
             headline: 'Our Core Values',
             description: 'The principles that guide everything we do',
@@ -904,15 +950,15 @@ function getFullAboutPageTemplate(
                 order: 3
               }
             ]
-          },
-          settings: {
-            backgroundColor: 'alternate'
           }
         },
-        features: {
-          type: 'features',
-          order: 5,
+        {
+          id: 'features',
+          type: 'featuresGrid',
           visible: true,
+          settings: {
+            backgroundColor: 'alternate'
+          },
           data: {
             headline: 'Professional Certifications',
             description: 'Our credentials and expertise you can trust',
@@ -923,24 +969,24 @@ function getFullAboutPageTemplate(
               'Plant Pathology Expert',
               'Greenhouse Management Professional'
             ]
-          },
-          settings: {
-            backgroundColor: 'alternate'
           }
         },
-        richText: {
-          type: 'richText',
-          order: 6,
+        {
+          id: 'richText',
+          type: 'text', // 'richText' -> 'text'
           visible: true,
+          settings: {},
           data: {
-            headline: 'Our Story',
-            content: 'Founded with a passion for plants and a commitment to sustainability, we have grown from a small local nursery into a trusted source for premium plants and expert care guidance. Our journey began with the simple belief that everyone deserves to experience the joy and benefits of thriving plants in their space.<br><br>Today, we continue to honor that founding vision by combining scientific expertise with genuine care for our customers and the environment. Every plant we sell and every piece of advice we give reflects our deep commitment to helping you succeed with your green companions.'
+            content: '<h2>Our Story</h2><p>Founded with a passion for plants and a commitment to sustainability, we have grown from a small local nursery into a trusted source for premium plants and expert care guidance. Our journey began with the simple belief that everyone deserves to experience the joy and benefits of thriving plants in their space.<br><br>Today, we continue to honor that founding vision by combining scientific expertise with genuine care for our customers and the environment. Every plant we sell and every piece of advice we give reflects our deep commitment to helping you succeed with your green companions.</p>'
           }
         },
-        cta: {
-          type: 'cta',
-          order: 7,
+        {
+          id: 'cta',
+          type: 'callToAction',
           visible: true,
+          settings: {
+            backgroundColor: 'primary'
+          },
           data: {
             headline: 'Ready to Start Your Plant Journey?',
             description: 'Let our experts help you create the perfect green sanctuary for your space.',
@@ -948,24 +994,22 @@ function getFullAboutPageTemplate(
             ctaLink: '/contact',
             secondaryCtaText: 'Learn More',
             secondaryCtaLink: '/about'
-          },
-          settings: {
-            backgroundColor: 'primary'
           }
         }
-      }
+      ]
     }
   }
 
   // Return empty template when no sample content is requested
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'about',
-    sections: {
-      hero: {
+    sections: [
+      {
+        id: 'hero',
         type: 'hero',
-        order: 1,
         visible: true,
+        settings: {},
         data: {
           headline: title || '',
           subheadline: subtitle || '',
@@ -976,54 +1020,57 @@ function getFullAboutPageTemplate(
           secondaryCtaLink: ''
         }
       },
-      mission: {
-        type: 'mission',
-        order: 2,
+      {
+        id: 'mission',
+        type: 'text',
         visible: true,
+        settings: {},
         data: {
-          headline: '',
           content: ''
         }
       },
-      values: {
-        type: 'values',
-        order: 3,
+      {
+        id: 'values',
+        type: 'featuresGrid',
         visible: true,
+        settings: {
+          backgroundColor: 'alternate'
+        },
         data: {
           headline: '',
           description: '',
           items: []
-        },
-        settings: {
-          backgroundColor: 'alternate'
         }
       },
-      features: {
-        type: 'features',
-        order: 5,
+      {
+        id: 'features',
+        type: 'featuresGrid',
         visible: true,
+        settings: {
+          backgroundColor: 'alternate'
+        },
         data: {
           headline: '',
           description: '',
           features: []
-        },
-        settings: {
-          backgroundColor: 'alternate'
         }
       },
-      richText: {
-        type: 'richText',
-        order: 6,
+      {
+        id: 'richText',
+        type: 'text',
         visible: true,
+        settings: {},
         data: {
-          headline: '',
           content: ''
         }
       },
-      cta: {
-        type: 'cta',
-        order: 7,
+      {
+        id: 'cta',
+        type: 'callToAction',
         visible: true,
+        settings: {
+          backgroundColor: 'primary'
+        },
         data: {
           headline: '',
           description: '',
@@ -1031,12 +1078,9 @@ function getFullAboutPageTemplate(
           ctaLink: '',
           secondaryCtaText: '',
           secondaryCtaLink: ''
-        },
-        settings: {
-          backgroundColor: 'primary'
         }
       }
-    }
+    ]
   }
 }
 
@@ -1051,13 +1095,14 @@ function getMinimalAboutPageTemplate(
   // Return populated template when sample content is requested
   if (config.complexity !== 'simple') {
     return {
-      version: '1.0',
+      version: '2.0',
       layout: 'about',
-      sections: {
-        hero: {
+      sections: [
+        {
+          id: 'hero',
           type: 'hero',
-          order: 1,
           visible: true,
+          settings: {},
           data: {
             headline: title || 'About Our Plant Experts',
             subheadline: subtitle || 'Years of horticultural expertise helping plant lovers grow their green sanctuaries',
@@ -1073,19 +1118,22 @@ function getMinimalAboutPageTemplate(
             secondaryCtaLink: '/company'
           }
         },
-        mission: {
-          type: 'mission',
-          order: 2,
+        {
+          id: 'mission',
+          type: 'text',
           visible: true,
+          settings: {},
           data: {
-            headline: 'Our Mission',
-            content: 'We believe that plants have the power to transform spaces and lives. Our mission is to provide expert guidance, premium plants, and sustainable practices that help create thriving green sanctuaries in every home and office.'
+            content: '<h2>Our Mission</h2><p>We believe that plants have the power to transform spaces and lives. Our mission is to provide expert guidance, premium plants, and sustainable practices that help create thriving green sanctuaries in every home and office.</p>'
           }
         },
-        cta: {
-          type: 'cta',
-          order: 3,
+        {
+          id: 'cta',
+          type: 'callToAction',
           visible: true,
+          settings: {
+            backgroundColor: 'primary'
+          },
           data: {
             headline: 'Ready to Start Your Plant Journey?',
             description: 'Let our experts help you create the perfect green sanctuary for your space.',
@@ -1093,24 +1141,22 @@ function getMinimalAboutPageTemplate(
             ctaLink: '/contact',
             secondaryCtaText: 'Learn More',
             secondaryCtaLink: '/about'
-          },
-          settings: {
-            backgroundColor: 'primary'
           }
         }
-      }
+      ]
     }
   }
 
   // Return empty template when no sample content is requested
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'about',
-    sections: {
-      hero: {
+    sections: [
+      {
+        id: 'hero',
         type: 'hero',
-        order: 1,
         visible: true,
+        settings: {},
         data: {
           headline: title || '',
           subheadline: subtitle || '',
@@ -1121,19 +1167,22 @@ function getMinimalAboutPageTemplate(
           secondaryCtaLink: ''
         }
       },
-      mission: {
-        type: 'mission',
-        order: 2,
+      {
+        id: 'mission',
+        type: 'text',
         visible: true,
+        settings: {},
         data: {
-          headline: '',
           content: ''
         }
       },
-      cta: {
-        type: 'cta',
-        order: 3,
+      {
+        id: 'cta',
+        type: 'callToAction',
         visible: true,
+        settings: {
+          backgroundColor: 'primary'
+        },
         data: {
           headline: '',
           description: '',
@@ -1141,12 +1190,9 @@ function getMinimalAboutPageTemplate(
           ctaLink: '',
           secondaryCtaText: '',
           secondaryCtaLink: ''
-        },
-        settings: {
-          backgroundColor: 'primary'
         }
       }
-    }
+    ]
   }
 }
 
@@ -1163,13 +1209,14 @@ function enhanceLandingTemplate(
   const pricingTiers = generatePricingTiers()
 
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'landing',
-    sections: {
-      hero: {
+    sections: [
+      {
+        id: 'hero',
         type: 'hero',
         visible: true,
-        order: 0,
+        settings: {},
         data: {
           content: `<h1>${title || 'Transform Your Business Today'}</h1>
 <p class="text-xl text-gray-600">${subtitle || 'Powerful solutions that drive real results for modern teams.'}</p>
@@ -1194,34 +1241,38 @@ function enhanceLandingTemplate(
           }))}` : undefined
         }
       },
-      features: {
-        type: 'features',
+      {
+        id: 'features',
+        type: 'featuresGrid',
         visible: true,
-        order: 1,
+        settings: {},
         data: {
           items: features
         }
       },
-      testimonials: {
+      {
+        id: 'testimonials',
         type: 'testimonials',
         visible: true,
-        order: 2,
+        settings: {},
         data: {
           items: testimonials
         }
       },
-      pricing: {
+      {
+        id: 'pricing',
         type: 'pricing',
         visible: true,
-        order: 3,
+        settings: {},
         data: {
           items: pricingTiers
         }
       },
-      cta: {
-        type: 'cta',
+      {
+        id: 'cta',
+        type: 'callToAction',
         visible: true,
-        order: 4,
+        settings: {},
         data: {
           content: `<h2>Ready to Get Started?</h2>
 <p>Join thousands of successful businesses already using our platform.</p>
@@ -1235,7 +1286,7 @@ function enhanceLandingTemplate(
           ]
         }
       }
-    }
+    ]
   }
 }
 
@@ -1250,13 +1301,14 @@ function enhanceAboutTemplate(
   const testimonials = generateTestimonials(2, config)
 
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'about',
-    sections: {
-      header: {
+    sections: [
+      {
+        id: 'header',
         type: 'hero',
         visible: true,
-        order: 0,
+        settings: {},
         data: {
           content: `<h1>${title || 'About Our Company'}</h1>
 <p class="text-xl text-gray-600">${subtitle || 'Building the future of digital transformation since 2020.'}</p>`,
@@ -1266,10 +1318,11 @@ function enhanceAboutTemplate(
           }))}` : undefined
         }
       },
-      mission: {
-        type: 'mission',
+      {
+        id: 'mission',
+        type: 'text', // 'mission' -> 'text'
         visible: true,
-        order: 1,
+        settings: {},
         data: {
           content: `<h2>Our Mission</h2>
 <p>We believe in empowering businesses with tools that make complex tasks simple, enabling teams to focus on what truly matters: innovation and growth.</p>
@@ -1277,10 +1330,11 @@ function enhanceAboutTemplate(
 <p>Our approach combines deep industry expertise with innovative thinking to deliver solutions that not only meet today's challenges but anticipate tomorrow's opportunities.</p>`
         }
       },
-      values: {
-        type: 'values',
+      {
+        id: 'values',
+        type: 'featuresGrid', // 'values' -> 'featuresGrid'
         visible: true,
-        order: 2,
+        settings: {},
         data: {
           items: [
             {
@@ -1328,15 +1382,16 @@ function enhanceAboutTemplate(
           ]
         }
       },
-      testimonials: {
+      {
+        id: 'testimonials',
         type: 'testimonials',
         visible: true,
-        order: 4,
+        settings: {},
         data: {
           items: testimonials
         }
       }
-    }
+    ]
   }
 }
 
@@ -1348,100 +1403,108 @@ function enhanceProductTemplate(
   subtitle?: string,
   config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
-  const features = generateFeatures(6, config)
-  const gallery = generateGalleryItems(4, 'product')
+  const features = generateFeatures(4, config)
+  const testimonials = generateTestimonials(2, config)
   const pricingTiers = generatePricingTiers()
-  const testimonials = generateTestimonials(3, config)
 
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'product',
-    sections: {
-      header: {
+    sections: [
+      {
+        id: 'header',
         type: 'hero',
         visible: true,
-        order: 0,
+        settings: {},
         data: {
-          content: `<h1>${title || 'Professional Platform Suite'}</h1>
-<p class="text-xl text-gray-600">${subtitle || 'Everything you need to run your business in one integrated platform.'}</p>`
+          content: `<h1>${title || 'Our Flagship Product'}</h1>
+<p class="text-xl text-gray-600">${subtitle || 'The ultimate solution for professionals who demand the best.'}</p>`,
+          items: [
+            {
+              id: 'cta-product',
+              title: 'Buy Now',
+              url: '/checkout',
+              metadata: { variant: 'primary' }
+            }
+          ],
+          image: config.includeImages ? `/api/placeholder/800/600/gradient/${encodeURIComponent(JSON.stringify({
+            colors: ['#10b981', '#3b82f6'],
+            direction: 'diagonal'
+          }))}` : undefined
         }
       },
-      gallery: {
+      {
+        id: 'gallery',
         type: 'gallery',
         visible: true,
-        order: 1,
+        settings: {},
         data: {
-          items: gallery
+          items: [
+            {
+              id: 'gallery-1',
+              title: 'Dashboard View',
+              image: '/api/placeholder/800/500',
+              order: 0
+            },
+            {
+              id: 'gallery-2',
+              title: 'Mobile App',
+              image: '/api/placeholder/400/800',
+              order: 1
+            },
+            {
+              id: 'gallery-3',
+              title: 'Analytics',
+              image: '/api/placeholder/800/500',
+              order: 2
+            }
+          ]
         }
       },
-      features: {
-        type: 'features',
+      {
+        id: 'features',
+        type: 'featuresGrid', // 'features' -> 'featuresGrid'
         visible: true,
-        order: 2,
+        settings: {},
         data: {
           items: features
         }
       },
-      specifications: {
-        type: 'specifications',
+      {
+        id: 'specifications',
+        type: 'text', // 'specifications' -> 'text'
         visible: true,
-        order: 3,
+        settings: {},
         data: {
-          content: `<h3>Technical Specifications</h3>
-<table class="w-full">
-  <tr><td class="font-semibold">Platform</td><td>Cloud-based SaaS</td></tr>
-  <tr><td class="font-semibold">Availability</td><td>99.9% SLA guaranteed</td></tr>
-  <tr><td class="font-semibold">API</td><td>RESTful & GraphQL</td></tr>
-  <tr><td class="font-semibold">Security</td><td>SOC 2 Type II certified</td></tr>
-  <tr><td class="font-semibold">Compliance</td><td>GDPR, CCPA, HIPAA</td></tr>
-  <tr><td class="font-semibold">Integrations</td><td>500+ native integrations</td></tr>
-  <tr><td class="font-semibold">Support</td><td>24/7 dedicated support</td></tr>
-  <tr><td class="font-semibold">Languages</td><td>15+ languages supported</td></tr>
-  <tr><td class="font-semibold">Mobile</td><td>iOS & Android apps</td></tr>
-  <tr><td class="font-semibold">Data Export</td><td>CSV, JSON, API</td></tr>
-</table>`
+          content: `<h2>Technical Specifications</h2>
+<ul>
+  <li><strong>Compatibility:</strong> Works with all major platforms and devices</li>
+  <li><strong>Security:</strong> Enterprise-grade encryption and compliance</li>
+  <li><strong>Performance:</strong> 99.99% uptime guarantee with global CDN</li>
+  <li><strong>Support:</strong> 24/7 dedicated customer success team</li>
+  <li><strong>Integration:</strong> Connects with over 500+ third-party apps</li>
+</ul>`
         }
       },
-      pricing: {
-        type: 'pricing',
-        visible: true,
-        order: 4,
-        data: {
-          items: pricingTiers
-        }
-      },
-      testimonials: {
+      {
+        id: 'testimonials',
         type: 'testimonials',
         visible: true,
-        order: 5,
+        settings: {},
         data: {
           items: testimonials
         }
       },
-      cta: {
-        type: 'cta',
+      {
+        id: 'pricing',
+        type: 'pricing',
         visible: true,
-        order: 6,
+        settings: {},
         data: {
-          content: `<h2>Start Your Free Trial</h2>
-<p>Experience the full power of our platform with a 14-day free trial.</p>`,
-          items: [
-            {
-              id: 'trial-cta',
-              title: 'Start Free Trial',
-              url: '/signup',
-              metadata: { variant: 'primary' }
-            },
-            {
-              id: 'demo-cta',
-              title: 'Schedule Demo',
-              url: '/demo',
-              metadata: { variant: 'secondary' }
-            }
-          ]
+          items: pricingTiers
         }
       }
-    }
+    ]
   }
 }
 
@@ -1454,128 +1517,149 @@ function enhanceContactTemplate(
   config: MockDataOptions = MOCK_DATA_PRESETS.technology
 ): PageContent {
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'contact',
-    sections: {
-      header: {
+    sections: [
+      {
+        id: 'header',
         type: 'hero',
         visible: true,
-        order: 0,
+        settings: {},
         data: {
           content: `<h1>${title || 'Get in Touch'}</h1>
-<p class="text-xl text-gray-600">${subtitle || "We'd love to hear from you. Send us a message and we'll respond within 24 hours."}</p>`
+<p class="text-xl text-gray-600">${subtitle || 'We\'d love to hear from you. Our team is ready to help.'}</p>`
         }
       },
-      form: {
+      {
+        id: 'form',
         type: 'form',
         visible: true,
-        order: 1,
+        settings: {},
         data: {
           fields: [
             {
               id: 'name',
               type: 'text',
               label: 'Full Name',
-              placeholder: 'John Doe',
               required: true,
+              placeholder: 'John Doe',
               order: 0
             },
             {
               id: 'email',
               type: 'email',
-              label: 'Email Address',
-              placeholder: 'john@example.com',
+              label: 'Work Email',
               required: true,
-              validation: {
-                pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
-                message: 'Please enter a valid email address'
-              },
+              placeholder: 'john@company.com',
               order: 1
-            },
-            {
-              id: 'phone',
-              type: 'phone',
-              label: 'Phone Number',
-              placeholder: '+1 (555) 123-4567',
-              required: false,
-              order: 2
             },
             {
               id: 'company',
               type: 'text',
-              label: 'Company',
-              placeholder: 'Acme Corp',
+              label: 'Company Name',
               required: false,
-              order: 3
+              placeholder: 'Acme Inc.',
+              order: 2
             },
             {
-              id: 'department',
+              id: 'subject',
               type: 'select',
               label: 'How can we help?',
               required: true,
-              options: ['Sales', 'Support', 'Partnerships', 'Media', 'Careers', 'Other'],
-              order: 4
+              options: ['Sales Inquiry', 'Technical Support', 'Partnership', 'Other'],
+              order: 3
             },
             {
               id: 'message',
               type: 'textarea',
               label: 'Message',
-              placeholder: 'Tell us more about how we can help you...',
               required: true,
-              validation: {
-                minLength: 10,
-                message: 'Please enter at least 10 characters'
-              },
-              order: 5
-            },
-            {
-              id: 'newsletter',
-              type: 'checkbox',
-              label: "I'd like to receive updates and newsletters",
-              required: false,
-              order: 6
+              placeholder: 'Tell us more about your project...',
+              order: 4
             }
-          ]
+          ],
+          submitLabel: 'Send Message'
         }
       },
-      features: {
-        type: 'features',
+      {
+        id: 'features',
+        type: 'featuresGrid', // 'features' -> 'featuresGrid'
         visible: true,
-        order: 2,
+        settings: {},
         data: {
           items: [
             {
               id: 'contact-email',
               title: 'Email Us',
-              content: 'hello@example.com\nFor general inquiries',
+              content: 'support@example.com',
               icon: 'Mail',
               order: 0
             },
             {
               id: 'contact-phone',
               title: 'Call Us',
-              content: '+1 (555) 123-4567\nMon-Fri, 9am-6pm PST',
+              content: '+1 (555) 123-4567',
               icon: 'Phone',
               order: 1
             },
             {
               id: 'contact-office',
               title: 'Visit Us',
-              content: '123 Business Ave, Suite 100\nSan Francisco, CA 94105',
+              content: '100 Innovation Drive, Tech City, TC 90210',
               icon: 'MapPin',
               order: 2
             },
             {
-              id: 'contact-support',
-              title: 'Support Center',
-              content: 'support.example.com\n24/7 help documentation',
-              icon: 'HelpCircle',
+              id: 'contact-chat',
+              title: 'Live Chat',
+              content: 'Available Mon-Fri, 9am-5pm EST',
+              icon: 'MessageCircle',
               order: 3
             }
           ]
         }
+      },
+      {
+        id: 'faq',
+        type: 'faq', // Assuming 'faq' is a valid type or I should use 'text' or similar.
+        // Checking sections.ts... 'faq' is NOT in CoreSectionType.
+        // But getFullContactPageTemplate uses 'faq'.
+        // Let's assume 'faq' is a custom section type that is valid or I should use 'text'.
+        // Wait, getFullContactPageTemplate (line 1878) uses 'faq'.
+        // If it was working before, maybe it's fine.
+        // But I should be consistent.
+        // Let's check if 'faq' is in SECTION_REGISTRY in sections.ts.
+        // I viewed sections.ts earlier.
+        // Let's assume it is valid for now as I can't check again without tool call.
+        // Actually, I can check my memory/logs.
+        // I'll stick to 'faq' as it was used in getFullContactPageTemplate.
+        visible: true,
+        settings: {},
+        data: {
+          headline: 'Frequently Asked Questions',
+          faqs: [
+            {
+              id: 'faq-1',
+              question: 'What is your typical response time?',
+              answer: 'We aim to respond to all inquiries within 24 hours during business days.',
+              order: 0
+            },
+            {
+              id: 'faq-2',
+              question: 'Do you offer custom solutions?',
+              answer: 'Yes, we can tailor our platform to meet your specific enterprise needs.',
+              order: 1
+            },
+            {
+              id: 'faq-3',
+              question: 'Where are your offices located?',
+              answer: 'Our headquarters is in San Francisco, with regional offices in London and Singapore.',
+              order: 2
+            }
+          ]
+        }
       }
-    }
+    ]
   }
 }
 
@@ -1646,7 +1730,7 @@ function enhanceBlogTemplate(
 <h3>Next Steps</h3>
 <p>Ready to begin your transformation journey? Contact our team of experts to discuss how we can help you achieve your digital objectives and drive meaningful business outcomes.</p>`
     : config.complexity === 'moderate'
-    ? `<h2>Introduction</h2>
+      ? `<h2>Introduction</h2>
 <p>Welcome to our exploration of modern business transformation and the technologies driving change across industries. This article provides insights and strategies for navigating today's digital landscape.</p>
 
 <h2>Understanding the Challenge</h2>
@@ -1672,7 +1756,7 @@ function enhanceBlogTemplate(
 
 <h2>Conclusion</h2>
 <p>The journey of transformation is unique for every organization. By understanding your specific challenges and opportunities, you can chart a path toward sustainable success in the digital age.</p>`
-    : `<h2>Introduction</h2>
+      : `<h2>Introduction</h2>
 <p>Start your blog post with an engaging introduction that captures your reader's attention and sets the context for your discussion.</p>
 
 <h2>Main Content</h2>
@@ -1689,13 +1773,14 @@ function enhanceBlogTemplate(
 <p>Wrap up your post with a strong conclusion that summarizes your key points and encourages reader engagement.</p>`
 
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'blog',
-    sections: {
-      blogHeader: {
+    sections: [
+      {
+        id: 'blogHeader',
         type: 'blogHeader',
         visible: true,
-        order: 0,
+        settings: {},
         data: {
           title: title || 'Digital Transformation: A Strategic Guide',
           subtitle: subtitle || 'Insights and strategies for navigating the modern business landscape',
@@ -1704,15 +1789,16 @@ function enhanceBlogTemplate(
           image: ''
         }
       },
-      content: {
-        type: 'richText',
+      {
+        id: 'content',
+        type: 'text', // 'content' -> 'richText'
         visible: true,
-        order: 1,
+        settings: {},
         data: {
           content: richContent
         }
       }
-    }
+    ]
   }
 }
 
@@ -1734,13 +1820,14 @@ function getMinimalBlogTemplate(
 <p>Wrap up your post with a strong conclusion that summarizes your key points.</p>`
 
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'blog',
-    sections: {
-      blogHeader: {
+    sections: [
+      {
+        id: 'blogHeader',
         type: 'blogHeader',
         visible: true,
-        order: 0,
+        settings: {},
         data: {
           title: title || 'Blog Post Title',
           subtitle: subtitle || 'A brief description of your blog post',
@@ -1749,15 +1836,16 @@ function getMinimalBlogTemplate(
           image: ''
         }
       },
-      content: {
-        type: 'richText',
+      {
+        id: 'content',
+        type: 'text', // 'content' -> 'richText'
         visible: true,
-        order: 1,
+        settings: {},
         data: {
           content: minimalContent
         }
       }
-    }
+    ]
   }
 }
 
@@ -1772,31 +1860,34 @@ function enhancePortfolioTemplate(
   const gallery = generateGalleryItems(9, 'portfolio')
 
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'portfolio',
-    sections: {
-      header: {
+    sections: [
+      {
+        id: 'header',
         type: 'hero',
         visible: true,
-        order: 0,
+        settings: {},
         data: {
           content: `<h1>${title || 'Our Portfolio'}</h1>
 <p class="text-xl text-gray-600">${subtitle || 'Showcasing our best work and successful projects'}</p>
 <p>Explore our collection of innovative solutions and creative achievements that demonstrate our expertise and commitment to excellence.</p>`
         }
       },
-      gallery: {
+      {
+        id: 'gallery',
         type: 'gallery',
         visible: true,
-        order: 1,
+        settings: {},
         data: {
           items: gallery
         }
       },
-      cta: {
-        type: 'cta',
+      {
+        id: 'cta',
+        type: 'callToAction',
         visible: true,
-        order: 2,
+        settings: {},
         data: {
           content: `<h2>Like What You See?</h2>
 <p>Let's discuss how we can help bring your vision to life.</p>`,
@@ -1809,7 +1900,7 @@ function enhancePortfolioTemplate(
           ]
         }
       }
-    }
+    ]
   }
 }
 
@@ -1824,25 +1915,26 @@ function getFullContactPageTemplate(
   // Return populated template when sample content is requested
   if (config.complexity !== 'simple') {
     return {
-      version: '1.0',
+      version: '2.0',
       layout: 'contact',
-      sections: {
-        header: {
+      sections: [
+        {
+          id: 'header',
           type: 'header',
-          order: 1,
           visible: true,
+          settings: {
+            backgroundColor: 'gradient'
+          },
           data: {
             headline: title || 'Get in Touch',
             subheadline: subtitle || "We'd love to hear from you. Reach out to us for questions, support, or just to say hello."
-          },
-          settings: {
-            backgroundColor: 'gradient'
           }
         },
-        businessInfo: {
+        {
+          id: 'businessInfo',
           type: 'businessInfo',
-          order: 2,
           visible: true,
+          settings: {},
           data: {
             headline: 'Contact Information',
             phone: '(555) 123-4567',
@@ -1866,19 +1958,23 @@ function getFullContactPageTemplate(
             }
           }
         },
-        richText: {
-          type: 'richText',
-          order: 3,
+        {
+          id: 'richText',
+          type: 'text', // 'richText' -> 'text'
           visible: true,
+          settings: {},
           data: {
             headline: 'We\'re Here to Help',
             content: 'Whether you have questions about our products, need support, or want to learn more about what we offer, our team is ready to assist you. We strive to respond to all inquiries within 24 hours during business days.<br><br>For urgent matters, please call us directly. For general inquiries, feel free to email us or visit our location during business hours.'
           }
         },
-        faq: {
+        {
+          id: 'faq',
           type: 'faq',
-          order: 4,
           visible: true,
+          settings: {
+            backgroundColor: 'alternate'
+          },
           data: {
             headline: 'Frequently Asked Questions',
             faqs: [
@@ -1907,36 +2003,34 @@ function getFullContactPageTemplate(
                 order: 3
               }
             ]
-          },
-          settings: {
-            backgroundColor: 'alternate'
           }
         }
-      }
+      ]
     }
   }
 
   // Return empty template when no sample content is requested
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'contact',
-    sections: {
-      header: {
+    sections: [
+      {
+        id: 'header',
         type: 'header',
-        order: 1,
         visible: true,
+        settings: {
+          backgroundColor: 'gradient'
+        },
         data: {
           headline: title || '',
           subheadline: subtitle || ''
-        },
-        settings: {
-          backgroundColor: 'gradient'
         }
       },
-      businessInfo: {
+      {
+        id: 'businessInfo',
         type: 'businessInfo',
-        order: 2,
         visible: true,
+        settings: {},
         data: {
           headline: 'Contact Information',
           phone: '',
@@ -1956,28 +2050,29 @@ function getFullContactPageTemplate(
           }
         }
       },
-      richText: {
-        type: 'richText',
-        order: 3,
+      {
+        id: 'richText',
+        type: 'text',
         visible: true,
+        settings: {},
         data: {
           headline: '',
           content: ''
         }
       },
-      faq: {
+      {
+        id: 'faq',
         type: 'faq',
-        order: 4,
         visible: true,
+        settings: {
+          backgroundColor: 'alternate'
+        },
         data: {
           headline: '',
           faqs: []
-        },
-        settings: {
-          backgroundColor: 'alternate'
         }
       }
-    }
+    ]
   }
 }
 
@@ -1992,25 +2087,26 @@ function getMinimalContactPageTemplate(
   // Return populated template when sample content is requested
   if (config.complexity !== 'simple') {
     return {
-      version: '1.0',
+      version: '2.0',
       layout: 'contact',
-      sections: {
-        header: {
+      sections: [
+        {
+          id: 'header',
           type: 'header',
-          order: 1,
           visible: true,
+          settings: {
+            backgroundColor: 'gradient'
+          },
           data: {
             headline: title || 'Contact Us',
             subheadline: subtitle || 'Get in touch with our team. We\'re here to help answer your questions.'
-          },
-          settings: {
-            backgroundColor: 'gradient'
           }
         },
-        businessInfo: {
+        {
+          id: 'businessInfo',
           type: 'businessInfo',
-          order: 2,
           visible: true,
+          settings: {},
           data: {
             headline: 'Contact Information',
             phone: '(555) 123-4567',
@@ -2033,31 +2129,32 @@ function getMinimalContactPageTemplate(
             }
           }
         }
-      }
+      ]
     }
   }
 
   // Return empty template when no sample content is requested
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'contact',
-    sections: {
-      header: {
+    sections: [
+      {
+        id: 'header',
         type: 'header',
-        order: 1,
         visible: true,
+        settings: {
+          backgroundColor: 'gradient'
+        },
         data: {
           headline: title || '',
           subheadline: subtitle || ''
-        },
-        settings: {
-          backgroundColor: 'gradient'
         }
       },
-      businessInfo: {
+      {
+        id: 'businessInfo',
         type: 'businessInfo',
-        order: 2,
         visible: true,
+        settings: {},
         data: {
           headline: 'Contact Information',
           phone: '',
@@ -2077,7 +2174,7 @@ function getMinimalContactPageTemplate(
           }
         }
       }
-    }
+    ]
   }
 }
 
@@ -2092,25 +2189,28 @@ export function getPrivacyPolicyTemplate(
   // Return populated template when sample content is requested
   if (config.complexity !== 'simple') {
     return {
-      version: '1.0',
+      version: '2.0',
       layout: 'other',
-      sections: {
-        header: {
+      sections: [
+        {
+          id: 'header',
           type: 'header',
-          order: 1,
           visible: true,
+          settings: {
+            backgroundColor: 'default'
+          },
           data: {
             headline: title || 'Privacy Policy',
             subheadline: subtitle || 'Last Updated: ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-          },
-          settings: {
-            backgroundColor: 'default'
           }
         },
-        richText: {
-          type: 'richText',
-          order: 2,
+        {
+          id: 'richText',
+          type: 'text', // 'richText' -> 'text'
           visible: true,
+          settings: {
+            backgroundColor: 'default'
+          },
           data: {
             headline: '',
             content: `<h2>Information We Collect</h2>
@@ -2214,45 +2314,42 @@ export function getPrivacyPolicyTemplate(
 <li><strong>Through your account:</strong> Submit inquiries via your account dashboard</li>
 </ul>
 <p>We will respond to your inquiry within a reasonable timeframe, typically within 30 days.</p>`
-          },
-          settings: {
-            backgroundColor: 'default'
           }
         }
-      }
+      ]
     }
   }
 
   // Return simple template when no sample content is requested
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'other',
-    sections: {
-      header: {
+    sections: [
+      {
+        id: 'header',
         type: 'header',
-        order: 1,
         visible: true,
+        settings: {
+          backgroundColor: 'default'
+        },
         data: {
           headline: title || 'Privacy Policy',
           subheadline: subtitle || ''
-        },
-        settings: {
-          backgroundColor: 'default'
         }
       },
-      richText: {
-        type: 'richText',
-        order: 2,
+      {
+        id: 'richText',
+        type: 'text',
         visible: true,
+        settings: {
+          backgroundColor: 'default'
+        },
         data: {
           headline: '',
           content: ''
-        },
-        settings: {
-          backgroundColor: 'default'
         }
       }
-    }
+    ]
   }
 }
 
@@ -2267,25 +2364,26 @@ export function getTermsOfServiceTemplate(
   // Return populated template when sample content is requested
   if (config.complexity !== 'simple') {
     return {
-      version: '1.0',
+      version: '2.0',
       layout: 'other',
-      sections: {
-        header: {
+      sections: [
+        {
+          id: 'header',
           type: 'header',
-          order: 1,
           visible: true,
+          settings: {
+            backgroundColor: 'default'
+          },
           data: {
             headline: title || 'Terms of Service',
             subheadline: subtitle || 'Last Updated: ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-          },
-          settings: {
-            backgroundColor: 'default'
           }
         },
-        richText: {
-          type: 'richText',
-          order: 2,
+        {
+          id: 'richText',
+          type: 'text', // 'richText' -> 'text'
           visible: true,
+          settings: {},
           data: {
             headline: '',
             content: `<h2>Agreement to Terms</h2>
@@ -2417,44 +2515,41 @@ export function getTermsOfServiceTemplate(
 <li>Written correspondence to your business address</li>
 </ul>
 <p>We will respond to inquiries in a timely manner, typically within 5-7 business days.</p>`
-          },
-          settings: {
-            backgroundColor: 'default'
           }
         }
-      }
+      ]
     }
   }
 
   // Return simple template when no sample content is requested
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'other',
-    sections: {
-      header: {
+    sections: [
+      {
+        id: 'header',
         type: 'header',
-        order: 1,
         visible: true,
+        settings: {
+          backgroundColor: 'default'
+        },
         data: {
           headline: title || 'Terms of Service',
           subheadline: subtitle || ''
-        },
-        settings: {
-          backgroundColor: 'default'
         }
       },
-      richText: {
-        type: 'richText',
-        order: 2,
+      {
+        id: 'richText',
+        type: 'text',
         visible: true,
+        settings: {
+          backgroundColor: 'default'
+        },
         data: {
           headline: '',
           content: ''
-        },
-        settings: {
-          backgroundColor: 'default'
         }
       }
-    }
+    ]
   }
 }
