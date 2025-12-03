@@ -169,72 +169,68 @@ function createContactPageContent(data: GeneratedSiteData) {
   return {
     version: '2.0',
     layout: 'contact',
-    faq: {
-      type: 'faq',
-      order: 4,
-      visible: true,
-      data: {
-        headline: 'Frequently Asked Questions',
-        description: '',
-        faqs: hasAnyContactInfo ? [
-          // Only include hours FAQ if hours are provided
-          ...(contact.hours ? [{
-            id: 'faq-1',
-            order: 0,
-            question: 'What are your business hours?',
-            answer: `We are open ${contact.hours}.`
-          }] : []),
-          {
-            id: 'faq-2',
-            order: contact.hours ? 1 : 0,
-            question: 'How can I reach customer support?',
-            answer: [
-              contact.phone && `You can reach us by phone at ${contact.phone}`,
-              contact.email && `by email at ${contact.email}`,
-              'We typically respond to inquiries within 24 hours during business days.'
-            ].filter(Boolean).join(', ')
-          },
-          {
-            id: 'faq-3',
-            order: contact.hours ? 2 : 1,
-            question: 'Do you offer consultations?',
-            answer: 'Yes! We offer consultations to help you choose the right solutions for your needs. Contact us to schedule an appointment.'
-          },
-          // Only include location FAQ if address is provided
-          ...(contact.address ? [{
-            id: 'faq-4',
-            order: contact.hours ? 3 : 2,
-            question: 'Where are you located?',
-            answer: `We are located at ${contact.address}. Parking is available on-site.`
-          }] : [])
-        ] : [
-          // Generic FAQs when no contact info is available
-          {
-            id: 'faq-1',
-            order: 0,
-            question: 'How can I get in touch?',
-            answer: 'We\'re currently updating our contact information. Please check back soon for updated ways to reach us.'
-          },
-          {
-            id: 'faq-2',
-            order: 1,
-            question: 'Do you have a physical location?',
-            answer: 'Yes! Check back soon for our address and visiting hours.'
-          },
-          {
-            id: 'faq-3',
-            order: 2,
-            question: 'When will contact information be available?',
-            answer: 'We\'re working on updating our site. Please check back soon for our full contact details.'
-          }
-        ]
+    sections: [
+      {
+        id: 'hero',
+        type: 'hero',
+        order: 1,
+        visible: true,
+        settings: {},
+        data: {
+          headline: 'Contact Us',
+          subheadline: 'Get in touch with our team',
+          alignment: 'center'
+        }
       },
-      settings: {
-        backgroundColor: 'alternate'
+      {
+        id: 'info',
+        type: 'featuresGrid',
+        order: 2,
+        visible: true,
+        settings: {},
+        data: {
+          items: [
+            {
+              id: 'contact-email',
+              title: 'Email',
+              content: data.contact.email || 'Not provided',
+              icon: 'Mail',
+              order: 0
+            },
+            {
+              id: 'contact-phone',
+              title: 'Phone',
+              content: data.contact.phone || 'Not provided',
+              icon: 'Phone',
+              order: 1
+            },
+            {
+              id: 'contact-address',
+              title: 'Address',
+              content: data.contact.address || 'Not provided',
+              icon: 'MapPin',
+              order: 2
+            }
+          ]
+        }
+      },
+      {
+        id: 'form',
+        type: 'form',
+        order: 3,
+        visible: true,
+        settings: {},
+        data: {
+          headline: 'Send us a message',
+          fields: [
+            { id: 'name', type: 'text', label: 'Name', required: true, order: 0 },
+            { id: 'email', type: 'email', label: 'Email', required: true, order: 1 },
+            { id: 'message', type: 'textarea', label: 'Message', required: true, order: 2 }
+          ]
+        }
       }
-    }
+    ]
   }
-};
 }
 
 /**
@@ -242,77 +238,54 @@ function createContactPageContent(data: GeneratedSiteData) {
  * Converts LLM-generated custom pages to PageContent structure
  */
 function createCustomPageContent(customPage: CustomPageSection) {
-  const sections: Record<string, unknown> = {
-    header: {
-      type: 'header',
-      order: 1,
-      visible: true,
-      data: {
-        headline: customPage.content.headline || customPage.title,
-        subheadline: customPage.content.description || ''
-      },
-      settings: {
-        backgroundColor: 'gradient'
-      }
-    }
-  };
-
-  // Add items section if items are provided
-  if (customPage.content.items && customPage.content.items.length > 0) {
-    // Determine section type based on pageType
-    let sectionType = 'features';
-    if (customPage.pageType === 'services') {
-      sectionType = 'features';
-    } else if (customPage.pageType === 'team') {
-      sectionType = 'team';
-    } else if (customPage.pageType === 'faq') {
-      sectionType = 'faq';
-    }
-
-    sections.items = {
-      type: sectionType,
-      order: 2,
-      visible: true,
-      data: {
-        headline: customPage.content.headline || customPage.title,
-        description: customPage.content.description || '',
-        items: customPage.content.items.map((item, index) => ({
-          id: `${customPage.slug}-item-${index}`,
-          title: item.title,
-          description: item.description || '',
-          content: item.content || item.description || '',
-          icon: item.icon || 'Circle',
-          order: index
-        }))
-      },
-      settings: {
-        backgroundColor: 'default'
-      }
-    };
-  }
-
-  // Add rich text section if richText is provided
-  if (customPage.content.richText) {
-    sections.richText = {
-      type: 'richText',
-      order: 3,
-      visible: true,
-      data: {
-        headline: customPage.content.headline || customPage.title,
-        content: customPage.content.richText
-      },
-      settings: {
-        backgroundColor: 'alternate'
-      }
-    };
-  }
-
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'other',
-    sections
-  };
+    sections: [
+      {
+        id: 'header',
+        type: 'header',
+        order: 1,
+        visible: true,
+        settings: {},
+        data: {
+          headline: customPage.content.headline || customPage.title,
+          subheadline: customPage.content.description || ''
+        }
+      },
+      // Add items section if items are provided
+      ...(customPage.content.items && customPage.content.items.length > 0 ? [{
+        id: 'items',
+        type: 'featuresGrid',
+        order: 2,
+        visible: true,
+        settings: {},
+        data: {
+          headline: customPage.content.headline || customPage.title,
+          items: customPage.content.items.map((item, index) => ({
+            id: `item-${index}`,
+            title: item.title,
+            content: item.description || item.content,
+            icon: item.icon || 'Star',
+            order: index
+          }))
+        }
+      }] : []),
+      // Add rich text section if provided
+      ...(customPage.content.richText ? [{
+        id: 'content',
+        type: 'text',
+        order: 3,
+        visible: true,
+        settings: {},
+        data: {
+          content: customPage.content.richText
+        }
+      }] : [])
+    ]
+  }
 }
+
 
 /**
  * Creates a site and pages from generated content
