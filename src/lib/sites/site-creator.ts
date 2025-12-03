@@ -45,97 +45,68 @@ function generateSubdomain(siteName: string): string {
  */
 function createHomePageContent(data: GeneratedSiteData) {
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'landing',
-    sections: {
-      hero: {
+    sections: [
+      {
+        id: 'hero',
         type: 'hero',
         order: 1,
         visible: true,
+        settings: {},
         data: {
           headline: data.hero.headline,
           subheadline: data.hero.subheadline,
           ctaText: data.hero.cta_text,
           ctaLink: '/contact',
           secondaryCtaText: 'Care Guides',
-          secondaryCtaLink: '/watering',
-          features: data.features?.features?.map(f => f.title).slice(0, 4) || [
-            'Expert horticultural guidance',
-            'Premium plant selection',
-            'Comprehensive care resources',
-            'Local hardiness zone expertise'
-          ]
-        },
-        settings: {
-          // Use scraped background image if available, otherwise use gradient
-          backgroundColor: data.hero.background_image ? 'image' : 'gradient',
-          ...(data.hero.background_image && {
-            backgroundImage: {
-              url: data.hero.background_image,
-              position: 'center',
-              opacity: 80,
-              scale: 100
-            }
-          })
+          secondaryCtaLink: '/resources',
+          backgroundImage: data.hero.background_image ? '/images/hero-placeholder.jpg' : undefined
         }
       },
-      featured: {
-        type: 'featured',
+      {
+        id: 'features',
+        type: 'featuresGrid',
         order: 2,
         visible: true,
+        settings: {},
         data: {
-          headline: 'Featured Plants This Season',
-          subheadline: 'Handpicked selections from our master horticulturists, perfect for current growing conditions',
-          viewAllLink: '/home',
-          viewAllText: 'View All Plants'
-        },
-        settings: {
-          backgroundColor: 'default'
+          headline: data.features?.title || 'Why Choose Us',
+          subheadline: data.features?.subtitle || 'We bring expertise and passion to every project',
+          items: data.features?.features?.map((feature, index) => ({
+            id: `feature-${index}`,
+            title: feature.title,
+            content: feature.description,
+            icon: feature.icon || 'Star',
+            order: index
+          })) || []
         }
       },
-      features: {
-        type: 'features',
+      {
+        id: 'about',
+        type: 'text',
         order: 3,
         visible: true,
+        settings: {},
         data: {
-          headline: data.features?.title || 'Essential Plant Care Features',
-          description: data.features?.subtitle || 'Master these key practices for healthy, thriving plants year-round',
-          features: data.features?.features?.map(f => f.description || f.title).slice(0, 3) || []
-        },
-        settings: {
-          backgroundColor: 'alternate'
+          content: `<h2>About ${data.site_name}</h2><p>${data.description}</p>`
         }
       },
-      categories: {
-        type: 'categories',
+      {
+        id: 'cta',
+        type: 'callToAction',
         order: 4,
         visible: true,
+        settings: {},
         data: {
-          headline: 'Find Your Perfect Plant Match',
-          description: 'Browse our expertly curated collections organized by care complexity and plant type'
-        },
-        settings: {
-          backgroundColor: 'default'
-        }
-      },
-      cta: {
-        type: 'cta',
-        order: 5,
-        visible: true,
-        data: {
-          headline: 'Growing Together, Sustainably',
-          description: data.description || data.tagline,
-          ctaText: 'Get Started',
-          ctaLink: '/contact',
-          secondaryCtaText: 'Learn More',
-          secondaryCtaLink: '/about'
-        },
-        settings: {
-          backgroundColor: 'primary'
+          headline: 'Ready to Transform Your Garden?',
+          description: 'Contact us today to get started on your dream landscape.',
+          ctaText: 'Contact Us',
+          ctaLink: '/contact'
         }
       }
-    }
-  };
+    ]
+  }
 }
 
 /**
@@ -144,103 +115,50 @@ function createHomePageContent(data: GeneratedSiteData) {
  */
 function createAboutPageContent(data: GeneratedSiteData) {
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'about',
-    sections: {
-      hero: {
+    sections: [
+      {
+        id: 'hero',
         type: 'hero',
         order: 1,
         visible: true,
+        settings: {},
         data: {
-          headline: data.about.title || 'About',
-          subheadline: data.tagline || data.description,
-          ctaText: 'Contact Us',
-          ctaLink: '/contact',
-          secondaryCtaText: 'Our Company',
-          secondaryCtaLink: '/company',
-          features: [
-            'Professional Horticulturists',
-            'Expert Plant Care Guidance',
-            'Sustainable Growing Practices',
-            'Local Plant Sourcing'
-          ]
+          headline: 'About Us',
+          subheadline: `Learn more about ${data.site_name}`,
+          alignment: 'center'
         }
       },
-      mission: {
-        type: 'mission',
+      {
+        id: 'mission',
+        type: 'text',
         order: 2,
         visible: true,
+        settings: {},
         data: {
-          headline: 'Our Mission',
-          content: data.about.mission || data.about.content?.[0] || data.description
+          content: `<h2>Our Mission</h2><p>${data.about.mission || data.description}</p>`
         }
       },
-      ...(data.values && data.values.values.length > 0 ? {
-        values: {
-          type: 'values',
-          order: 3,
-          visible: true,
-          data: {
-            headline: data.values.title,
-            description: data.values.subtitle || 'The principles that guide everything we do',
-            items: data.values.values.map((v, i) => ({
-              id: v.title.toLowerCase().replace(/\s+/g, '-'),
-              title: v.title,
-              content: v.description,
-              description: v.description,
-              icon: v.icon || 'Leaf',
-              order: i
-            }))
-          },
-          settings: {
-            backgroundColor: 'alternate'
-          }
-        }
-      } : {}),
-      ...(data.features && data.features.features.length > 0 ? {
-        features: {
-          type: 'features',
-          order: 5,
-          visible: true,
-          data: {
-            headline: 'Professional Certifications',
-            description: 'Our credentials and expertise you can trust',
-            features: data.features.features.map(f => f.title).slice(0, 5)
-          },
-          settings: {
-            backgroundColor: 'alternate'
-          }
-        }
-      } : {}),
-      richText: {
-        type: 'richText',
-        order: 6,
+      {
+        id: 'values',
+        type: 'featuresGrid',
+        order: 3,
         visible: true,
+        settings: {},
         data: {
-          headline: 'Our Story',
-          content: `<p style="color: var(--theme-text); font-family: var(--theme-font-body); text-align: left;">${
-            data.about.vision || data.about.content?.[1] || data.about.content?.[0] || data.description
-          }</p>`
-        }
-      },
-      cta: {
-        type: 'cta',
-        order: 7,
-        visible: true,
-        data: {
-          headline: 'Ready to Start Your Plant Journey?',
-          description: 'Let our experts help you create the perfect green sanctuary for your space.',
-          ctaText: 'Contact Us',
-          ctaLink: '/contact',
-          secondaryCtaText: 'Learn More',
-          secondaryCtaLink: '/about'
-        },
-        settings: {
-          backgroundColor: 'primary'
+          headline: data.values?.title || 'Our Values',
+          items: data.values?.values?.map((value, index) => ({
+            id: `value-${index}`,
+            title: value.title,
+            content: value.description,
+            icon: value.icon || 'Star',
+            order: index
+          })) || []
         }
       }
-    }
-  };
+    ]
+  }
 }
 
 /**
@@ -248,132 +166,75 @@ function createAboutPageContent(data: GeneratedSiteData) {
  * Uses: contact, testimonials (as FAQs)
  */
 function createContactPageContent(data: GeneratedSiteData) {
-  const contact = data.contact;
-  const hasAnyContactInfo = contact.email || contact.phone || contact.address || contact.hours;
-
   return {
-    version: '1.0',
+    version: '2.0',
     layout: 'contact',
-    sections: {
-      header: {
-        type: 'header',
-        order: 1,
-        visible: true,
-        data: {
-          headline: contact.title || 'Contact',
-          subheadline: hasAnyContactInfo
-            ? 'We\'d love to hear from you. Reach out to us for questions, support, or just to say hello.'
-            : 'We\'re updating our contact information. Please check back soon!'
-        },
-        settings: {
-          backgroundColor: 'gradient'
-        }
-      },
-      businessInfo: {
-        type: 'businessInfo',
-        order: 2,
-        visible: true,
-        data: hasAnyContactInfo ? {
-          headline: 'Contact Information',
-          email: contact.email || undefined,
-          phone: contact.phone || undefined,
-          address: contact.address ? {
-            street: contact.address,
-            city: '',
-            state: '',
-            zip: ''
-          } : undefined,
-          hours: contact.hours ? [
-            { days: 'Monday - Friday', time: contact.hours }
-          ] : undefined,
-          socials: {
-            facebook: '',
-            instagram: '',
-            twitter: '',
-            linkedin: ''
+    faq: {
+      type: 'faq',
+      order: 4,
+      visible: true,
+      data: {
+        headline: 'Frequently Asked Questions',
+        description: '',
+        faqs: hasAnyContactInfo ? [
+          // Only include hours FAQ if hours are provided
+          ...(contact.hours ? [{
+            id: 'faq-1',
+            order: 0,
+            question: 'What are your business hours?',
+            answer: `We are open ${contact.hours}.`
+          }] : []),
+          {
+            id: 'faq-2',
+            order: contact.hours ? 1 : 0,
+            question: 'How can I reach customer support?',
+            answer: [
+              contact.phone && `You can reach us by phone at ${contact.phone}`,
+              contact.email && `by email at ${contact.email}`,
+              'We typically respond to inquiries within 24 hours during business days.'
+            ].filter(Boolean).join(', ')
+          },
+          {
+            id: 'faq-3',
+            order: contact.hours ? 2 : 1,
+            question: 'Do you offer consultations?',
+            answer: 'Yes! We offer consultations to help you choose the right solutions for your needs. Contact us to schedule an appointment.'
+          },
+          // Only include location FAQ if address is provided
+          ...(contact.address ? [{
+            id: 'faq-4',
+            order: contact.hours ? 3 : 2,
+            question: 'Where are you located?',
+            answer: `We are located at ${contact.address}. Parking is available on-site.`
+          }] : [])
+        ] : [
+          // Generic FAQs when no contact info is available
+          {
+            id: 'faq-1',
+            order: 0,
+            question: 'How can I get in touch?',
+            answer: 'We\'re currently updating our contact information. Please check back soon for updated ways to reach us.'
+          },
+          {
+            id: 'faq-2',
+            order: 1,
+            question: 'Do you have a physical location?',
+            answer: 'Yes! Check back soon for our address and visiting hours.'
+          },
+          {
+            id: 'faq-3',
+            order: 2,
+            question: 'When will contact information be available?',
+            answer: 'We\'re working on updating our site. Please check back soon for our full contact details.'
           }
-        } : {
-          headline: 'Contact Information',
-          message: "We're updating our contact information. Please check back soon for ways to reach us!"
-        }
+        ]
       },
-      richText: {
-        type: 'richText',
-        order: 3,
-        visible: true,
-        data: {
-          headline: hasAnyContactInfo ? 'We\'re Here to Help' : 'Coming Soon',
-          content: hasAnyContactInfo
-            ? 'Whether you have questions about our products, need support, or want to learn more about what we offer, our team is ready to assist you. We strive to respond to all inquiries within 24 hours during business days.<br><br>For urgent matters, please call us directly. For general inquiries, feel free to email us or visit our location during business hours.'
-            : 'We\'re currently updating our contact information. In the meantime, feel free to visit us in person or check back soon for updated contact details.'
-        }
-      },
-      faq: {
-        type: 'faq',
-        order: 4,
-        visible: true,
-        data: {
-          headline: 'Frequently Asked Questions',
-          description: '',
-          faqs: hasAnyContactInfo ? [
-            // Only include hours FAQ if hours are provided
-            ...(contact.hours ? [{
-              id: 'faq-1',
-              order: 0,
-              question: 'What are your business hours?',
-              answer: `We are open ${contact.hours}.`
-            }] : []),
-            {
-              id: 'faq-2',
-              order: contact.hours ? 1 : 0,
-              question: 'How can I reach customer support?',
-              answer: [
-                contact.phone && `You can reach us by phone at ${contact.phone}`,
-                contact.email && `by email at ${contact.email}`,
-                'We typically respond to inquiries within 24 hours during business days.'
-              ].filter(Boolean).join(', ')
-            },
-            {
-              id: 'faq-3',
-              order: contact.hours ? 2 : 1,
-              question: 'Do you offer consultations?',
-              answer: 'Yes! We offer consultations to help you choose the right solutions for your needs. Contact us to schedule an appointment.'
-            },
-            // Only include location FAQ if address is provided
-            ...(contact.address ? [{
-              id: 'faq-4',
-              order: contact.hours ? 3 : 2,
-              question: 'Where are you located?',
-              answer: `We are located at ${contact.address}. Parking is available on-site.`
-            }] : [])
-          ] : [
-            // Generic FAQs when no contact info is available
-            {
-              id: 'faq-1',
-              order: 0,
-              question: 'How can I get in touch?',
-              answer: 'We\'re currently updating our contact information. Please check back soon for updated ways to reach us.'
-            },
-            {
-              id: 'faq-2',
-              order: 1,
-              question: 'Do you have a physical location?',
-              answer: 'Yes! Check back soon for our address and visiting hours.'
-            },
-            {
-              id: 'faq-3',
-              order: 2,
-              question: 'When will contact information be available?',
-              answer: 'We\'re working on updating our site. Please check back soon for our full contact details.'
-            }
-          ]
-        },
-        settings: {
-          backgroundColor: 'alternate'
-        }
+      settings: {
+        backgroundColor: 'alternate'
       }
     }
-  };
+  }
+};
 }
 
 /**
@@ -502,9 +363,9 @@ export async function createSiteFromGenerated(
       href: string;
       children?: Array<{ label: string; href: string; description?: string }>;
     }> = [
-      { label: 'Home', href: '/home' },
-      { label: 'About', href: '/about' }
-    ];
+        { label: 'Home', href: '/home' },
+        { label: 'About', href: '/about' }
+      ];
 
     // Add product/service categories if available from scraped context
     const productCategories = scrapedContext?.businessInfo?.structuredContent?.productCategories;
@@ -564,7 +425,7 @@ export async function createSiteFromGenerated(
 
     // Determine copyright text - use scraped if available, otherwise generate
     const copyrightText = footerContent?.copyrightText ||
-                         `© ${new Date().getFullYear()} ${data.site_name}. All rights reserved.`;
+      `© ${new Date().getFullYear()} ${data.site_name}. All rights reserved.`;
 
     if (footerContent?.copyrightText) {
       console.log('Using scraped footer copyright text');
@@ -581,11 +442,11 @@ export async function createSiteFromGenerated(
       typography: {
         // Use extracted typography or fall back to font_family
         headingFont: data.branding?.typography?.heading?.fontFamily ||
-                     data.branding?.font_family?.split(',')[0]?.trim() ||
-                     'Inter',
+          data.branding?.font_family?.split(',')[0]?.trim() ||
+          'Inter',
         bodyFont: data.branding?.typography?.body?.fontFamily ||
-                  data.branding?.font_family?.split(',')[1]?.trim() ||
-                  'Inter',
+          data.branding?.font_family?.split(',')[1]?.trim() ||
+          'Inter',
         fontSize: 'medium',
         // Add extracted font weights if available
         headingWeight: data.branding?.typography?.heading?.fontWeight || '700',

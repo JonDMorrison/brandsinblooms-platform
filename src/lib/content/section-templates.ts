@@ -30,7 +30,7 @@ export interface SectionTemplate {
 /**
  * Categories for organizing section templates
  */
-export type SectionCategory = 
+export type SectionCategory =
   | 'content'     // Text, rich text, images
   | 'layout'      // Hero, CTA, features  
   | 'media'       // Gallery, images, videos
@@ -84,7 +84,7 @@ function createDefaultItems(count: number = 3): ContentItem[] {
     // Return deep copy to prevent mutations
     return JSON.parse(JSON.stringify(defaultItemsCache.get(count)))
   }
-  
+
   const items = Array.from({ length: count }, (_, index) => ({
     id: `item_template_${index}`,
     title: 'Sample Title',
@@ -92,7 +92,7 @@ function createDefaultItems(count: number = 3): ContentItem[] {
     content: 'Add your content here...',
     order: index + 1
   }))
-  
+
   defaultItemsCache.set(count, items)
   return JSON.parse(JSON.stringify(items))
 }
@@ -136,6 +136,84 @@ export const SECTION_TEMPLATES: SectionTemplate[] = [
       data: {
         content: '<p>Add your rich text content here...</p>',
         json: null
+      },
+      visible: true,
+      order: 1
+    }
+  },
+  {
+    id: 'textMedia',
+    name: 'Text Media',
+    description: 'Image and text side by side',
+    category: 'content',
+    icon: 'Image',
+    section: {
+      type: 'textMedia',
+      data: {
+        title: 'Heading goes here',
+        subtitle: '',
+        body: '<p>Replace this text with your content.</p>',
+        image: undefined,
+        layout: 'imageRight',
+        align: 'start',
+        button: {
+          label: 'Learn More',
+          url: '#',
+          style: 'primary'
+        },
+        background: 'default'
+      },
+      visible: true,
+      order: 1
+    }
+  },
+  {
+    id: 'contentColumns',
+    name: 'Content Columns',
+    description: 'Multi-column text content',
+    category: 'content',
+    icon: 'Columns',
+    section: {
+      type: 'contentColumns',
+      data: {
+        columns: 2,
+        items: [
+          { headline: 'Column 1', content: 'Content...' },
+          { headline: 'Column 2', content: 'Content...' }
+        ]
+      },
+      visible: true,
+      order: 1
+    }
+  },
+  {
+    id: 'blogList',
+    name: 'Latest Posts',
+    description: 'List of recent blog posts',
+    category: 'content',
+    icon: 'Newspaper',
+    section: {
+      type: 'blogList',
+      data: {
+        limit: 3,
+        showImage: true
+      },
+      visible: true,
+      order: 1
+    }
+  },
+  {
+    id: 'events',
+    name: 'Events List',
+    description: 'Display upcoming events',
+    category: 'content',
+    icon: 'CalendarDays',
+    section: {
+      type: 'events',
+      data: {
+        title: 'Upcoming Events',
+        showExcerpt: true,
+        maxItems: 3
       },
       visible: true,
       order: 1
@@ -228,6 +306,40 @@ export const SECTION_TEMPLATES: SectionTemplate[] = [
     }
   },
   {
+    id: 'video',
+    name: 'Video',
+    description: 'Embed video from YouTube or Vimeo',
+    category: 'media',
+    icon: 'Video',
+    section: {
+      type: 'video',
+      data: {
+        title: 'Featured Video',
+        description: '',
+        embedUrl: ''
+      },
+      visible: true,
+      order: 1
+    }
+  },
+  {
+    id: 'map',
+    name: 'Map',
+    description: 'Show your location',
+    category: 'media',
+    icon: 'MapPin',
+    section: {
+      type: 'map',
+      data: {
+        title: 'Our Location',
+        address: '123 Main St, City, Country',
+        embedUrl: ''
+      },
+      visible: true,
+      order: 1
+    }
+  },
+  {
     id: 'icon',
     name: 'Icon Display',
     description: 'Single icon with optional text',
@@ -257,6 +369,41 @@ export const SECTION_TEMPLATES: SectionTemplate[] = [
       type: 'form',
       data: {
         fields: createDefaultFormFields()
+      },
+      visible: true,
+      order: 1
+    }
+  },
+  {
+    id: 'newsletter',
+    name: 'Newsletter',
+    description: 'Email subscription form',
+    category: 'interactive',
+    icon: 'Mail',
+    section: {
+      type: 'newsletter',
+      data: {
+        title: 'Subscribe',
+        description: 'Get the latest updates',
+        ctaLabel: 'Subscribe',
+        embedFormId: ''
+      },
+      visible: true,
+      order: 1
+    }
+  },
+  {
+    id: 'customCode',
+    name: 'Custom Code',
+    description: 'Embed custom HTML/CSS/JS',
+    category: 'interactive',
+    icon: 'Code',
+    section: {
+      type: 'customCode',
+      data: {
+        html: '<!-- Custom HTML -->',
+        css: '',
+        js: ''
       },
       visible: true,
       order: 1
@@ -369,6 +516,23 @@ export const SECTION_TEMPLATES: SectionTemplate[] = [
   },
 
   // Social Category
+  {
+    id: 'users',
+    name: 'Team Members',
+    description: 'Showcase your team',
+    category: 'social',
+    icon: 'Users',
+    section: {
+      type: 'users',
+      data: {
+        title: 'Our Team',
+        subtitle: 'Meet the people behind the magic',
+        maxItems: 4
+      },
+      visible: true,
+      order: 1
+    }
+  },
   {
     id: 'mission',
     name: 'Mission Statement',
@@ -525,7 +689,7 @@ export function getTemplatesByCategory(category: SectionCategory): SectionTempla
   if (categoryCache.has(category)) {
     return categoryCache.get(category)!
   }
-  
+
   const templates = SECTION_TEMPLATES.filter(template => template.category === category)
   categoryCache.set(category, templates)
   return templates
@@ -538,7 +702,7 @@ export function getTemplateById(id: string): SectionTemplate | undefined {
   if (templateCache.has(id)) {
     return templateCache.get(id)
   }
-  
+
   const template = SECTION_TEMPLATES.find(template => template.id === id)
   if (template) {
     templateCache.set(id, template)
@@ -552,20 +716,19 @@ export function getTemplateById(id: string): SectionTemplate | undefined {
 export function createSectionFromTemplate(
   templateId: string,
   order?: number
-): { key: string; section: ContentSection } | null {
+): ContentSection | null {
   const template = getTemplateById(templateId)
   if (!template) {
     return null
   }
 
-  const sectionKey = generateSectionKey(template.section.type)
-  
+  const sectionId = generateSectionKey(template.section.type)
+
   return {
-    key: sectionKey,
-    section: {
-      ...template.section,
-      order: order || 1
-    }
+    ...template.section,
+    id: sectionId,
+    order: order || 1,
+    settings: template.section.settings || {}
   }
 }
 
@@ -576,7 +739,7 @@ export function getAllCategories(): SectionCategory[] {
   if (allCategoriesCache) {
     return allCategoriesCache
   }
-  
+
   const categories = new Set(SECTION_TEMPLATES.map(template => template.category))
   allCategoriesCache = Array.from(categories).sort()
   return allCategoriesCache
@@ -587,7 +750,7 @@ export function getAllCategories(): SectionCategory[] {
  */
 export function searchTemplates(query: string): SectionTemplate[] {
   const searchTerm = query.toLowerCase()
-  return SECTION_TEMPLATES.filter(template => 
+  return SECTION_TEMPLATES.filter(template =>
     template.name.toLowerCase().includes(searchTerm) ||
     template.description.toLowerCase().includes(searchTerm)
   )
