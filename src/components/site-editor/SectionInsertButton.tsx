@@ -36,34 +36,45 @@ export function SectionInsertButton({
   return (
     <div
       className={cn(
-        'relative flex items-center justify-center w-full py-2',
-        'transition-opacity duration-200',
-        visible ? 'opacity-100' : 'opacity-0 pointer-events-none',
+        'relative flex items-center justify-center w-full py-3',
+        'transition-all duration-200',
+        // Always show with reduced opacity, full opacity on hover
+        visible ? 'opacity-100' : 'opacity-40',
         className
       )}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Horizontal divider line */}
+      {/* Horizontal divider line - always visible */}
       <div className="absolute inset-x-0 flex items-center">
-        <div className="w-full border-t-2 border-dashed border-blue-300" />
+        <div className={cn(
+          'w-full border-t-2 border-dashed transition-colors',
+          visible ? 'border-blue-400' : 'border-blue-200'
+        )} />
       </div>
 
-      {/* Plus button in center */}
+      {/* Plus button in center - always visible */}
       <Button
         size="sm"
         variant="outline"
         className={cn(
           'relative z-10 h-8 w-8 p-0 rounded-full',
-          'bg-white border-2 border-blue-400',
-          'hover:bg-blue-50 hover:border-blue-500',
+          'bg-white border-2',
+          visible
+            ? 'border-blue-400 hover:border-blue-500'
+            : 'border-blue-300 hover:border-blue-400',
+          'hover:bg-blue-50',
           'transition-all duration-200',
-          'shadow-sm hover:shadow-md'
+          visible ? 'shadow-md' : 'shadow-sm',
+          'hover:shadow-lg hover:scale-110'
         )}
         onClick={onInsert}
         title={tooltipText}
         aria-label={tooltipText}
       >
-        <Plus className="w-4 h-4 text-blue-600" />
+        <Plus className={cn(
+          'w-4 h-4 transition-colors',
+          visible ? 'text-blue-600' : 'text-blue-400'
+        )} />
       </Button>
     </div>
   )
