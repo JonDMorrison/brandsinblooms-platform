@@ -14,19 +14,19 @@ interface AddSectionButtonProps {
 
 function AddSectionButton({ onClick, label = "Add Block" }: AddSectionButtonProps) {
   return (
-    <div className="group relative h-4 w-full flex items-center justify-center hover:z-50">
-      {/* Line */}
-      <div className="absolute inset-x-0 h-px bg-primary/0 group-hover:bg-primary/50 transition-colors" />
+    <div className="group relative h-12 w-full flex items-center justify-center hover:z-50 my-2">
+      {/* Line - always visible in edit mode */}
+      <div className="absolute inset-x-0 h-px bg-primary/20 group-hover:bg-primary/50 transition-colors" />
 
-      {/* Button */}
+      {/* Button - semi-transparent by default, fully visible on hover */}
       <button
         onClick={(e) => {
           e.stopPropagation()
           onClick()
         }}
-        className="relative flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100 transition-all shadow-sm hover:shadow-md"
+        className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium opacity-60 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all shadow-sm hover:shadow-md"
       >
-        <Plus className="w-3 h-3" />
+        <Plus className="w-3.5 h-3.5" />
         {label}
       </button>
     </div>
