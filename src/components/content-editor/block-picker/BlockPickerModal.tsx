@@ -7,8 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/ta
 import { ScrollArea } from '@/src/components/ui/scroll-area'
 import { Button } from '@/src/components/ui/button'
 import { Search, Plus } from 'lucide-react'
-import { SECTION_CATALOG, SectionType } from '@/src/lib/content/sections'
+import { SECTION_TEMPLATES, SectionTemplate, getAllCategories } from '@/src/lib/content/section-templates'
+import { SectionType } from '@/src/lib/content/sections'
 import { cn } from '@/src/lib/utils'
+import * as LucideIcons from 'lucide-react'
 
 interface BlockPickerModalProps {
     open: boolean
@@ -21,12 +23,12 @@ export function BlockPickerModal({ open, onClose, onSelect }: BlockPickerModalPr
     const [activeTab, setActiveTab] = useState('all')
 
     // Filter sections based on search and tab
-    const filteredSections = SECTION_CATALOG.filter(section => {
+    const filteredSections = SECTION_TEMPLATES.filter(template => {
         const matchesSearch =
-            section.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            section.description.toLowerCase().includes(searchQuery.toLowerCase())
+            template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            template.description.toLowerCase().includes(searchQuery.toLowerCase())
 
-        const matchesTab = activeTab === 'all' || section.category === activeTab
+        const matchesTab = activeTab === 'all' || template.category === activeTab
 
         return matchesSearch && matchesTab
     })
@@ -34,9 +36,12 @@ export function BlockPickerModal({ open, onClose, onSelect }: BlockPickerModalPr
     const categories = [
         { id: 'all', label: 'All' },
         { id: 'content', label: 'Content' },
+        { id: 'layout', label: 'Layout' },
         { id: 'media', label: 'Media' },
-        { id: 'marketing', label: 'Marketing' },
-        { id: 'advanced', label: 'Advanced' }
+        { id: 'interactive', label: 'Interactive' },
+        { id: 'commerce', label: 'Commerce' },
+        { id: 'social', label: 'Social' },
+        { id: 'plant', label: 'Plant' }
     ]
 
     return (
@@ -67,23 +72,24 @@ export function BlockPickerModal({ open, onClose, onSelect }: BlockPickerModalPr
 
                 <ScrollArea className="flex-1 p-6 bg-slate-50/50">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredSections.map((section) => {
-                            const Icon = section.icon
+                        {filteredSections.map((template) => {
+                            // Get the icon from lucide-react
+                            const IconComponent = (LucideIcons as any)[template.icon] || LucideIcons.Square
                             return (
                                 <button
-                                    key={section.type}
+                                    key={template.id}
                                     className={cn(
                                         "flex flex-col items-start p-4 rounded-xl border bg-white text-left transition-all",
                                         "hover:border-primary hover:shadow-md hover:-translate-y-0.5",
                                         "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                                     )}
-                                    onClick={() => onSelect(section.type)}
+                                    onClick={() => onSelect(template.section.type as SectionType)}
                                 >
                                     <div className="p-2.5 rounded-lg bg-primary/5 text-primary mb-3">
-                                        <Icon className="w-6 h-6" />
+                                        <IconComponent className="w-6 h-6" />
                                     </div>
-                                    <h3 className="font-semibold text-slate-900 mb-1">{section.label}</h3>
-                                    <p className="text-sm text-slate-500 line-clamp-2">{section.description}</p>
+                                    <h3 className="font-semibold text-slate-900 mb-1">{template.name}</h3>
+                                    <p className="text-sm text-slate-500 line-clamp-2">{template.description}</p>
                                 </button>
                             )
                         })}

@@ -29,7 +29,7 @@ import { EditOverlay } from './EditOverlay'
 // Import unified layout preview component
 import { UnifiedPagePreview } from '@/components/layout-previews/UnifiedPagePreview'
 import { BlockPickerModal } from '@/src/components/content-editor/block-picker/BlockPickerModal'
-import { createDefaultSection } from '@/src/lib/content/sections'
+import { createSectionFromTemplate } from '@/src/lib/content/section-templates'
 import { useState } from 'react'
 
 interface VisualEditorProps {
@@ -179,11 +179,13 @@ const VisualEditorContent = memo(function VisualEditorContent({
         open={isBlockPickerOpen}
         onClose={() => setIsBlockPickerOpen(false)}
         onSelect={(type) => {
-          const newSection = createDefaultSection(type)
-          handleInsertSection(
-            insertIndexRef.current ?? content.sections.length,
-            newSection
-          )
+          const result = createSectionFromTemplate(type, insertIndexRef.current ?? content.sections.length)
+          if (result) {
+            handleInsertSection(
+              insertIndexRef.current ?? content.sections.length,
+              result
+            )
+          }
           setIsBlockPickerOpen(false)
         }}
       />
