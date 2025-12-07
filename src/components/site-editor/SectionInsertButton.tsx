@@ -8,8 +8,6 @@
 
 import React from 'react'
 import { Plus } from 'lucide-react'
-import { Button } from '@/src/components/ui/button'
-import { cn } from '@/src/lib/utils'
 
 interface SectionInsertButtonProps {
   /** Position of the insert button relative to the section */
@@ -28,54 +26,53 @@ export function SectionInsertButton({
   position,
   relativeTo,
   onInsert,
-  visible = true,
+  visible = false,
   className
 }: SectionInsertButtonProps) {
+  const baseOpacity = visible ? 'opacity-100' : 'opacity-40'
   const tooltipText = position === 'above' ? 'Add section above' : 'Add section below'
 
   return (
     <div
-      className={cn(
-        'relative flex items-center justify-center w-full py-3',
-        'transition-all duration-200',
-        // Always show with reduced opacity, full opacity on hover
-        visible ? 'opacity-100' : 'opacity-40',
-        className
-      )}
-      onClick={(e) => e.stopPropagation()}
+      className={`
+        relative w-full py-3
+        flex items-center justify-center
+        ${className || ''}
+      `}
     >
-      {/* Horizontal divider line - always visible */}
-      <div className="absolute inset-x-0 flex items-center">
-        <div className={cn(
-          'w-full border-t-2 border-dashed transition-colors',
-          visible ? 'border-blue-400' : 'border-blue-200'
-        )} />
-      </div>
+      {/* Blue dashed line */}
+      <div
+        className={`
+          absolute inset-x-0 top-1/2 -translate-y-1/2
+          border-t-2 border-dashed border-blue-400
+        `}
+      />
 
-      {/* Plus button in center - always visible */}
-      <Button
-        size="sm"
-        variant="outline"
-        className={cn(
-          'relative z-10 h-8 w-8 p-0 rounded-full',
-          'bg-white border-2',
-          visible
-            ? 'border-blue-400 hover:border-blue-500'
-            : 'border-blue-300 hover:border-blue-400',
-          'hover:bg-blue-50',
-          'transition-all duration-200',
-          visible ? 'shadow-md' : 'shadow-sm',
-          'hover:shadow-lg hover:scale-110'
-        )}
-        onClick={onInsert}
+      {/* Add block button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          onInsert()
+        }}
+        className={`
+          relative z-20
+          flex items-center justify-center
+          w-8 h-8 rounded-full
+          border-2 border-blue-500 bg-white
+          shadow-md
+          text-blue-600
+          cursor-pointer
+          ${baseOpacity}
+          hover:opacity-100
+          focus:outline-none focus:ring-2 focus:ring-blue-400
+        `}
         title={tooltipText}
         aria-label={tooltipText}
       >
-        <Plus className={cn(
-          'w-4 h-4 transition-colors',
-          visible ? 'text-blue-600' : 'text-blue-400'
-        )} />
-      </Button>
+        <Plus className="w-4 h-4" aria-hidden="true" />
+        <span className="sr-only">{tooltipText}</span>
+      </button>
     </div>
   )
 }

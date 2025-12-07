@@ -169,11 +169,11 @@ export const EditableCustomerSiteSection = React.memo(function EditableCustomerS
   // Merge context data with prop data (context takes precedence for staged changes)
   const mergedSection: ContentSection = contextSectionData
     ? {
-        ...section,
-        data: contextSectionData.data,
-        visible: contextSectionData.visible ?? section.visible,
-        settings: contextSectionData.settings ?? section.settings
-      }
+      ...section,
+      data: contextSectionData.data,
+      visible: contextSectionData.visible ?? section.visible,
+      settings: contextSectionData.settings ?? section.settings
+    }
     : section
 
   // Use context data if available, otherwise fall back to prop data
@@ -203,7 +203,7 @@ export const EditableCustomerSiteSection = React.memo(function EditableCustomerS
             section={mergedSection}
             sectionKey={sectionKey}
             siteId={siteId}
-            // No onContentUpdate or onFeatureUpdate = no inline editing
+          // No onContentUpdate or onFeatureUpdate = no inline editing
           />
         </div>
       )
@@ -214,111 +214,111 @@ export const EditableCustomerSiteSection = React.memo(function EditableCustomerS
 
     return (
       <>
-      <div
-        className="relative"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {/* Insert Above Button */}
-        {editorMode === 'edit' && (
-          <SectionInsertButton
-            position="above"
-            relativeTo={sectionKey}
-            onInsert={() => handleInsertClick('above')}
-            visible={isHovered}
-          />
-        )}
-
         <div
-          className={`relative ${className} ${isHidden ? 'opacity-50' : ''}`}
-          onClick={() => setActiveSection(sectionKey)}
-          data-section-key={sectionKey}
-          data-edit-mode="edit"
-          data-section-hidden={isHidden}
-          style={{
-            outline: isHovered ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
-            outlineOffset: '4px',
-            transition: 'outline 0.2s ease, opacity 0.2s ease'
-          }}
+          className="relative"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
-        {/* Hidden Section Badge */}
-        {isHidden && (
-          <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-gray-900 text-white text-xs font-medium rounded shadow-lg">
-            Hidden
+          {/* Insert Above Button */}
+          {editorMode === 'edit' && (
+            <SectionInsertButton
+              position="above"
+              relativeTo={sectionKey}
+              onInsert={() => handleInsertClick('above')}
+              visible={isHovered}
+            />
+          )}
+
+          <div
+            className={`relative ${className} ${isHidden ? 'opacity-50' : ''}`}
+            onClick={() => setActiveSection(sectionKey)}
+            data-section-key={sectionKey}
+            data-edit-mode="edit"
+            data-section-hidden={isHidden}
+            style={{
+              outline: isHovered ? '2px dashed rgba(59, 130, 246, 0.5)' : 'none',
+              outlineOffset: '4px',
+              transition: 'outline 0.2s ease, opacity 0.2s ease'
+            }}
+          >
+            {/* Hidden Section Badge */}
+            {isHidden && (
+              <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-gray-900 text-white text-xs font-medium rounded shadow-lg">
+                Hidden
+              </div>
+            )}
+
+            {/* Section Controls Overlay */}
+            {isHovered && (
+              <SectionControls
+                sectionKey={sectionKey}
+                section={mergedSection}
+                onSettingsClick={() => setShowSettingsModal(true)}
+                onDeleteClick={() => setShowDeleteModal(true)}
+              />
+            )}
+
+            {/* Preview Component with Inline Editing */}
+            <PreviewComponent
+              section={mergedSection}
+              sectionKey={sectionKey}
+              siteId={siteId}
+              onContentUpdate={(key, fieldPath, content) => {
+                updateFieldContent(key, fieldPath, content)
+              }}
+              onFeatureUpdate={(key, featureIndex, field, value) => {
+                updateFeatureContent(key, featureIndex, field, value)
+              }}
+              onFeaturedUpdate={(key: string, itemIndex: number, updatedItem: Record<string, unknown>) => {
+                updateFeaturedContent(key, itemIndex, updatedItem)
+              }}
+              onFeaturedDelete={(key: string, itemIndex: number) => {
+                deleteFeaturedContent(key, itemIndex)
+              }}
+            />
           </div>
-        )}
 
-        {/* Section Controls Overlay */}
-        {isHovered && (
-          <SectionControls
-            sectionKey={sectionKey}
-            section={mergedSection}
-            onSettingsClick={() => setShowSettingsModal(true)}
-            onDeleteClick={() => setShowDeleteModal(true)}
-          />
-        )}
+          {/* Insert Below Button */}
+          {editorMode === 'edit' && (
+            <SectionInsertButton
+              position="below"
+              relativeTo={sectionKey}
+              onInsert={() => handleInsertClick('below')}
+              visible={isHovered}
+            />
+          )}
+        </div >
 
-        {/* Preview Component with Inline Editing */}
-        <PreviewComponent
+        {/* Settings Modal - rendered outside conditional to prevent unmounting on hover loss */}
+        < SectionSettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
           section={mergedSection}
           sectionKey={sectionKey}
-          siteId={siteId}
-          onContentUpdate={(key, fieldPath, content) => {
-            updateFieldContent(key, fieldPath, content)
-          }}
-          onFeatureUpdate={(key, featureIndex, field, value) => {
-            updateFeatureContent(key, featureIndex, field, value)
-          }}
-          onFeaturedUpdate={(key: string, itemIndex: number, updatedItem: Record<string, unknown>) => {
-            updateFeaturedContent(key, itemIndex, updatedItem)
-          }}
-          onFeaturedDelete={(key: string, itemIndex: number) => {
-            deleteFeaturedContent(key, itemIndex)
-          }}
+          onSave={handleSettingsSave}
+          onAddItem={handleAddItem}
+          onDeleteItem={handleDeleteItem}
+          onDataUpdate={handleDataUpdate}
         />
-      </div>
 
-      {/* Insert Below Button */}
-      {editorMode === 'edit' && (
-        <SectionInsertButton
-          position="below"
-          relativeTo={sectionKey}
-          onInsert={() => handleInsertClick('below')}
-          visible={isHovered}
+        {/* Delete Modal - rendered outside conditional to prevent unmounting on hover loss */}
+        < DeleteSectionModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          sectionKey={sectionKey}
+          sectionType={mergedSection.type}
+          onConfirm={handleDeleteSection}
         />
-      )}
-    </div>
 
-      {/* Settings Modal - rendered outside conditional to prevent unmounting on hover loss */}
-      <SectionSettingsModal
-        isOpen={showSettingsModal}
-        onClose={() => setShowSettingsModal(false)}
-        section={mergedSection}
-        sectionKey={sectionKey}
-        onSave={handleSettingsSave}
-        onAddItem={handleAddItem}
-        onDeleteItem={handleDeleteItem}
-        onDataUpdate={handleDataUpdate}
-      />
-
-      {/* Delete Modal - rendered outside conditional to prevent unmounting on hover loss */}
-      <DeleteSectionModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        sectionKey={sectionKey}
-        sectionType={mergedSection.type}
-        onConfirm={handleDeleteSection}
-      />
-
-      {/* Add Section Modal - for inserting sections above/below */}
-      <AddSectionModal
-        isOpen={showAddSectionModal}
-        onClose={() => setShowAddSectionModal(false)}
-        currentLayout={layout}
-        existingSections={pageContent ? Object.keys(pageContent.sections) : []}
-        onAddSection={handleAddSection}
-      />
-    </>
+        {/* Add Section Modal - for inserting sections above/below */}
+        < AddSectionModal
+          isOpen={showAddSectionModal}
+          onClose={() => setShowAddSectionModal(false)}
+          currentLayout={layout}
+          existingSections={pageContent ? Object.keys(pageContent.sections) : []}
+          onAddSection={handleAddSection}
+        />
+      </>
     )
   }
 
@@ -367,37 +367,37 @@ export const EditableCustomerSiteSection = React.memo(function EditableCustomerS
             transition: 'outline 0.2s ease, opacity 0.2s ease'
           }}
         >
-        {/* Hidden Section Badge */}
-        {isFallbackHidden && (
-          <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-gray-900 text-white text-xs font-medium rounded shadow-lg">
-            Hidden
-          </div>
-        )}
+          {/* Hidden Section Badge */}
+          {isFallbackHidden && (
+            <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-gray-900 text-white text-xs font-medium rounded shadow-lg">
+              Hidden
+            </div>
+          )}
 
-        {/* Section Controls Overlay */}
-        {showControls && (
-          <SectionControls
-            sectionKey={sectionKey}
-            section={section}
-            onSettingsClick={() => setShowSettingsModal(true)}
-            onDeleteClick={() => setShowDeleteModal(true)}
+          {/* Section Controls Overlay */}
+          {showControls && (
+            <SectionControls
+              sectionKey={sectionKey}
+              section={section}
+              onSettingsClick={() => setShowSettingsModal(true)}
+              onDeleteClick={() => setShowDeleteModal(true)}
+            />
+          )}
+
+          {/* Section Content */}
+          {children}
+        </div>
+
+        {/* Insert Below Button */}
+        {editorMode === 'edit' && (
+          <SectionInsertButton
+            position="below"
+            relativeTo={sectionKey}
+            onInsert={() => handleInsertClick('below')}
+            visible={isHovered}
           />
         )}
-
-        {/* Section Content */}
-        {children}
       </div>
-
-      {/* Insert Below Button */}
-      {editorMode === 'edit' && (
-        <SectionInsertButton
-          position="below"
-          relativeTo={sectionKey}
-          onInsert={() => handleInsertClick('below')}
-          visible={isHovered}
-        />
-      )}
-    </div>
 
       {/* Settings Modal - rendered outside conditional to prevent unmounting on hover loss */}
       <SectionSettingsModal
